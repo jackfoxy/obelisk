@@ -18,7 +18,6 @@
     default  ~(. (default-agent this %n) bowl)
 ++  on-init
   ^-  (quip card _this)
-::  ~&  >  '%obelisk init'
   =.  state  [%0 *(list @)]
   `this
 ++  on-save   !>(state)
@@ -35,7 +34,9 @@
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
+  ~&  >  "{<mark>} {<vase>}"
   ?>  ?=(%obelisk-action mark)
+  ~&  >  "alive"
   =/  act  !<(action vase)
   ?-    -.act
       %push
@@ -51,6 +52,21 @@
     ?>  =(our.bowl src.bowl)
     :_  this
     [%pass /pokes %agent [target.act %obelisk] %poke mark vase]~
+  ::
+      %tape
+    ?:  =(our.bowl src.bowl)
+      `this(values [10 values])
+    ?>  =(our.bowl src.bowl)
+  ::  :_  this
+      `this(values [10 values])
+    ::[%pass /pokes %agent [current-database.act %obelisk] %poke mark vase]~
+  ::
+      %commands
+    ?:  =(our.bowl src.bowl)
+      `this(values [10 values])
+    ?>  =(our.bowl src.bowl)
+  ::  :_  this
+      `this(values [10 values])
 
   ::
   :: [%give %fact ~ %<requesting desk> !>(`update`[%init values])]
