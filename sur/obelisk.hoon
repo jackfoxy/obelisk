@@ -3,8 +3,12 @@
 +$  action
   $%  [%push target=@p value=@]
       [%pop target=@p]
-      [%tape urql=(list @t) current-database=@tas]
+      [%tape current-database=@tas urql=tape]
       [%commands current-database=@tas cmds=(list command)]
-     :: [%create-database =(list command:ast)]   
+      [%tape-create-db urql=tape]
+      [%cmd-create-db cmd=create-database]   
+  ==
++$  response
+  $%  [%result values=(list @)]
   ==
 --  

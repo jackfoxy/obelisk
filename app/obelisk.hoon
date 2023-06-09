@@ -32,11 +32,11 @@
     ::  %1  `this(state old)
   ==
 ++  on-poke
+:: sending agent provenance coming soon^{TM} https://github.com/urbit/urbit/pull/6605
+:: expected in kelvin 412
   |=  [=mark =vase]
   ^-  (quip card _this)
-  ~&  >  "{<mark>} {<vase>}"
   ?>  ?=(%obelisk-action mark)
-  ~&  >  "alive"
   =/  act  !<(action vase)
   ?-    -.act
       %push
@@ -65,11 +65,24 @@
     ?:  =(our.bowl src.bowl)
       `this(values [10 values])
     ?>  =(our.bowl src.bowl)
-  ::  :_  this
       `this(values [10 values])
-
+  ::
+      %tape-create-db
+    ?:  =(our.bowl src.bowl)
+      ~&  >  "live"
+      :_  this(values [10 values])
+ ::     [%give %fact ~[/values] %obelisk-response !>(`response`[%result values])]~
+ ::     [%give %fact ~ %obelisk-response !>(`response`[%result values])]~
+      [%give %fact ~[/] %obelisk-response !>(`response`[%result values])]~
+    ~|("database must be created by local desk" !!)
+  ::
+      %cmd-create-db
+    ?:  =(our.bowl src.bowl)
+       `this(values [10 values])
+    ~|("database must be created by local desk" !!)
   ::
   :: [%give %fact ~ %<requesting desk> !>(`update`[%init values])]
+  :: [%give %fact ~ %atom !>(local.sta)]
   ::                                       ^ this is a mark, also entry in sur/
   :: ASL lesson 3 8:50, 25:30
 
