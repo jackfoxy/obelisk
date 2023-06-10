@@ -1,8 +1,8 @@
 /-  ast
 !:
 :: a library for parsing urQL tapes
-:: (parse:parse(current-database '<db>') "<script>")
-|_  current-database=@tas
+:: (parse:parse(default-database '<db>') "<script>")
+|_  default-database=@tas
 ::
 ::  +parse: parse urQL script, emitting list of high level AST structures
 ++  parse
@@ -38,11 +38,11 @@
     (cold %update ;~(pfix whitespace (jester 'update')))
     (cold %with ;~(plug whitespace (jester 'with')))
     ==
-  =/  dummy   ~|('Current database name is not a proper term' (scan (trip current-database) sym))
+  =/  dummy   ~|('Default database name is not a proper term' (scan (trip default-database) sym))
   :: main loop
   ::
   |-
-  ?~  =(~ script)  (flop commands)
+  ?~  script  (flop commands)
   =/  check-empty  u.+3:q.+3:(whitespace [[1 1] script])
   ?:  =(0 (lent q.q:check-empty))                   :: trailing whitespace after last end-command (;)
     (flop commands)
@@ -203,7 +203,7 @@
         %=  $
           script           q.q.u.+3.q:create-namespace-nail
           script-position  next-cursor
-          commands         [`command:ast`(create-namespace:ast %create-namespace current-database parsed) commands]
+          commands         [`command:ast`(create-namespace:ast %create-namespace default-database parsed) commands]
         ==
       %=  $
         script           q.q.u.+3.q:create-namespace-nail
@@ -279,14 +279,14 @@
         %=  $
           script           q.q.u.+3.q:drop-namespace-nail
           script-position  next-cursor
-          commands         [`command:ast`(drop-namespace:ast %drop-namespace current-database parsed %.n) commands]
+          commands         [`command:ast`(drop-namespace:ast %drop-namespace default-database parsed %.n) commands]
         ==
       ?:  ?=([@ @] parsed)                          :: force name
         ?:  =(%force -.parsed)
           %=  $
             script           q.q.u.+3.q:drop-namespace-nail
             script-position  next-cursor
-            commands         [`command:ast`(drop-namespace:ast %drop-namespace current-database +.parsed %.y) commands]
+            commands         [`command:ast`(drop-namespace:ast %drop-namespace default-database +.parsed %.y) commands]
           ==
         %=  $                                       :: db.name
           script           q.q.u.+3.q:drop-namespace-nail
@@ -616,8 +616,8 @@
 ++  cook-qualified-2object
   |=  a=*
   ?@  a
-    (qualified-object:ast %qualified-object ~ current-database 'dbo' a)
-  (qualified-object:ast %qualified-object ~ current-database -.a +.a)
+    (qualified-object:ast %qualified-object ~ default-database 'dbo' a)
+  (qualified-object:ast %qualified-object ~ default-database -.a +.a)
 ::
 ::  +cook-qualified-3object: database.namespace.object-name
 ++  cook-qualified-3object
@@ -627,9 +627,9 @@
   ?:  ?=([@ @ @ @] a)                               :: db..name
     (qualified-object:ast %qualified-object ~ -.a 'dbo' +>+.a)
   ?:  ?=([@ @] a)                                   :: ns.name
-    (qualified-object:ast %qualified-object ~ current-database -.a +.a)
+    (qualified-object:ast %qualified-object ~ default-database -.a +.a)
   ?@  a                                             :: name
-    (qualified-object:ast %qualified-object ~ current-database 'dbo' a)
+    (qualified-object:ast %qualified-object ~ default-database 'dbo' a)
   ~|("cannot parse qualified-object  {<a>}" !!)
 ::
 ::  +cook-qualified-object: @p.database.namespace.object-name
@@ -644,16 +644,16 @@
   ?:  ?=([@ @ @] a)
     (qualified-object:ast %qualified-object ~ -.a +<.a +>.a)  :: db.ns.name
   ?:  ?=([@ @] a)                                   :: ns.name
-    (qualified-object:ast %qualified-object ~ current-database -.a +.a)
+    (qualified-object:ast %qualified-object ~ default-database -.a +.a)
   ?@  a                                             :: name
-    (qualified-object:ast %qualified-object ~ current-database 'dbo' a)
+    (qualified-object:ast %qualified-object ~ default-database 'dbo' a)
   ~|("cannot parse qualified-object  {<a>}" !!)
 ::  +qualified-namespace: database.namespace
 ++  qualified-namespace
-  |=  [a=* current-database=@t]
+  |=  [a=* default-database=@t]
   ?:  ?=([@ @] [a])
     a
-  [current-database a]
+  [default-database a]
 ++  parse-qualified-2-name  ;~(pose ;~(pfix whitespace ;~((glue dot) sym sym)) parse-face)
 ::
 ::  +parse-qualified-3: database.namespace.object-name
@@ -797,7 +797,7 @@
 ++  ship-list  (more com ;~(pose ;~(sfix ;~(pfix whitespace parse-ship) whitespace) ;~(pfix whitespace parse-ship) ;~(sfix parse-ship whitespace) parse-ship))
 ++  on-database  ;~(plug (jester 'database') parse-face)
 ++  on-namespace
-  ;~(plug (jester 'namespace') (cook |=(a=* (qualified-namespace [a current-database])) parse-qualified-2-name))
+  ;~(plug (jester 'namespace') (cook |=(a=* (qualified-namespace [a default-database])) parse-qualified-2-name))
 ++  grant-object
   ;~(pfix whitespace ;~(pfix (jester 'on') ;~(pfix whitespace ;~(pose on-database on-namespace parse-qualified-3object))))
 ++  parse-aura  ~+
@@ -1006,7 +1006,7 @@
     (qualified-column:ast %qualified-column (qualified-object:ast %qualified-object ~ -.a 'dbo' +>-.a) +>+.a ~)
   (qualified-column:ast %qualified-column (qualified-object:ast %qualified-object ~ -.a +<.a +>-.a) +>+.a ~)
   ?:  ?=([@ @ @] a)                                           :: ns.object.column
-    (qualified-column:ast %qualified-column (qualified-object:ast %qualified-object ~ current-database -.a +<.a) +>.a ~)
+    (qualified-column:ast %qualified-column (qualified-object:ast %qualified-object ~ default-database -.a +<.a) +>.a ~)
   ?:  ?=([@ @] a)                                             :: something.column (could be table, table alias or cte)
     (qualified-column:ast %qualified-column (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN' -.a) +.a ~)
   ?@  a                                                       :: column, column alias, or cte
@@ -1744,7 +1744,7 @@
     ;~(sfix ;~(pose ;~(plug columns action) columns action) end-or-next-command)
   ==
 ++  parse-alter-namespace  ;~  plug
-  (cook |=(a=* (qualified-namespace [a current-database])) parse-qualified-2-name)
+  (cook |=(a=* (qualified-namespace [a default-database])) parse-qualified-2-name)
   ;~(pfix ;~(plug whitespace (jester 'transfer')) ;~(pfix whitespace ;~(pose (jester 'table') (jester 'view'))))
   ;~(sfix ;~(pfix whitespace parse-qualified-3object) end-or-next-command)
   ==
@@ -1991,7 +1991,7 @@
   ?:  ?=([%using @ %as @] -.a)
     %=  $
       a  +.a
-      source-table  `(table-set:ast %table-set (qualified-object:ast %qualified-object ~ current-database 'dbo' +<.a) `+>+.a)
+      source-table  `(table-set:ast %table-set (qualified-object:ast %qualified-object ~ default-database 'dbo' +<.a) `+>+.a)
     ==
   ?:  ?=([qualified-object:ast @] -.a)
     %=  $
