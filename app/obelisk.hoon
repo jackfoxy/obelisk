@@ -1,11 +1,11 @@
-/-  *obelisk
-/+  default-agent, dbug
+/-  *obelisk, ast
+/+  default-agent, dbug, *obelisk, *parse
 |%
 +$  versioned-state
   $%  state-0
   ==
 +$  state-0
-  $:  [%0 values=(list @)]
+  $:  [%0 =databases]
   ==
 +$  card  card:agent:gall
 --
@@ -16,10 +16,7 @@
 |_  =bowl:gall
 +*  this  .
     default  ~(. (default-agent this %n) bowl)
-++  on-init
-  ^-  (quip card _this)
-  =.  state  [%0 *(list @)]
-  `this
+++  on-init  `this(state *state-0)
 ++  on-save   !>(state)
 ++  on-load
   |=  =old==vase
@@ -39,69 +36,39 @@
   ?>  ?=(%obelisk-action mark)
   =/  act  !<(action vase)
   ?-    -.act
-      %push
-    ?:  =(our.bowl target.act)
-      `this(values [value.act values])
-    ?>  =(our.bowl src.bowl)
-    :_  this
-    [%pass /pokes %agent [target.act %obelisk] %poke mark vase]~
-  ::
-      %pop
-    ?:  =(our.bowl target.act)
-      `this(values ?~(values ~ t.values))
-    ?>  =(our.bowl src.bowl)
-    :_  this
-    [%pass /pokes %agent [target.act %obelisk] %poke mark vase]~
   ::
       %tape
-    ?:  =(our.bowl src.bowl)
-      `this(values [10 values])
-    ?>  =(our.bowl src.bowl)
-  ::  :_  this
-      `this(values [10 values])
-    ::[%pass /pokes %agent [current-database.act %obelisk] %poke mark vase]~
+    `this  :: (values [10 values])
   ::
       %commands
-    ?:  =(our.bowl src.bowl)
-      `this(values [10 values])
-    ?>  =(our.bowl src.bowl)
-      `this(values [10 values])
+::    `this  :: (values [10 values])
+    :_  this(databases (process-cmds databases bowl +<.act +>.act))
+    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    ==
   ::
       %tape-create-db
     ?:  =(our.bowl src.bowl)
-      ~&  >  "live"
-      :_  this(values [10 values])
- ::     [%give %fact ~[/values] %obelisk-response !>(`response`[%result values])]~
- ::     [%give %fact ~ %obelisk-response !>(`response`[%result values])]~
-      [%give %fact ~[/] %obelisk-response !>(`response`[%result values])]~
-    ~|("database must be created by local desk" !!)
+      :_  this(databases (new-database databases now.bowl -:(parse(default-database 'dummy') +.act)))
+::      :_  this(databases %:  new-database 
+::                         databases 
+::                         now.bowl 
+::                         -:(parse(default-database 'dummy') +.act)
+::                         ==)
+      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+      ==
+    ~|("database must be created by local agent" !!)
   ::
       %cmd-create-db
     ?:  =(our.bowl src.bowl)
-       `this(values [10 values])
-    ~|("database must be created by local desk" !!)
-  ::
-  :: [%give %fact ~ %<requesting desk> !>(`update`[%init values])]
-  :: [%give %fact ~ %atom !>(local.sta)]
-  ::                                       ^ this is a mark, also entry in sur/
-  :: ASL lesson 3 8:50, 25:30
-
+      :_  this(databases (new-database databases now.bowl +.act))
+      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+      ==
+    ~|("database must be created by local agent" !!)
   ==
-::++  on-watch  |=(path !!)
 ++  on-watch  on-watch:default
-::++  on-leave  |=(path `..on-init)
 ++  on-leave  on-leave:default
-::++  on-peek   |=(path ~)
-++  on-peek   :: on-peek:default
-  |=  =path
-  ^-  (unit (unit cage))
-  ?+  path  (on-peek:default path)
-    [%x %values ~]  ``noun+!>(values)
-  ==
-::++  on-agent  |=([wire sign:agent:gall] !!)
+++  on-peek   on-peek:default
 ++  on-agent  on-agent:default
-::++  on-arvo   |=([wire sign-arvo] !!)
 ++  on-arvo   on-arvo:default
-::++  on-fail   |=([term tang] `..on-init)
 ++  on-fail   on-fail:default
 --
