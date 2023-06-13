@@ -7,12 +7,18 @@
   ?>  ?=(create-database:ast c)
   =/  ns=namespaces
     %:  my 
-        :~  [%sys (ns-row %ns-row %sys %agent now)]
-            [%dbo (ns-row %ns-row %dbo %agent now)]
+        :~  [%sys %sys]
+            [%dbo %dbo]
             ==
         ==
   %:  %~  put  by  dbs
-      [+.c (db-row %db-row +.c %agent now (db-internals %db-internals ns))]
+      :-  +.c  %:  db-row 
+                   %db-row 
+                   +.c 
+                   %agent 
+                   now 
+                   ~[(db-internals %db-internals %agent now ns)]
+                   ==
       ==
 ++  process-cmds
   |=  [dbs=databases =bowl:gall default-database=@tas cmds=(list command:ast)]
@@ -31,7 +37,7 @@
       !!
     %create-namespace
       %=  $
-        dbs   (create-ns dbs bowl default-database -.cmds)
+        dbs   (create-ns dbs bowl -.cmds)
         cmds  +.cmds
       ==
    %create-table
@@ -58,9 +64,17 @@
       !!
   ==
 ++  create-ns
-  |=  [dbs=databases =bowl:gall default-database=@tas =create-namespace]
+  |=  [dbs=databases =bowl:gall =create-namespace]
   ^-  databases
-
-
-  dbs
+  ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
+  ?:  =(name.create-namespace 'sys')  ~|("cannot add namespace 'sys'" !!)
+  =/  dbrow  (~(got by dbs) database-name.create-namespace)
+  =/  internals=db-internals  -.sys.dbrow
+  =/  namespaces  %:  ~(put by namespaces.internals) 
+                      name.create-namespace 
+                      name.create-namespace
+                      ==
+  =.  sys.dbrow  :-  (db-internals %db-internals %agent now.bowl namespaces)
+                     sys.dbrow
+  (~(gas by dbs) ~[[database-name.create-namespace dbrow]])
 --

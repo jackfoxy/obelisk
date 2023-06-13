@@ -6,23 +6,19 @@
       name=@tas
       created-by-agent=@tas
       created-tmsp=@da
-      =db-internals
+      sys=(list db-internals)
   ==
 +$  db-internals
   $:  %db-internals
+      agent=@tas
+      tmsp=@da
       =namespaces
   :: tables
   :: views
   :: indices
   :: permissions
   ==
-+$  namespaces  (map @tas ns-row)
-+$  ns-row
-  $:  %ns-row
-      name=@tas
-      created-by-agent=@tas
-      created-tmsp=@da
-  ==
++$  namespaces  (map @tas @tas)
 
   :: $| validator mold for adding rows with FKs
 ::

@@ -29,41 +29,38 @@
     ::  %1  `this(state old)
   ==
 ++  on-poke
-:: sending agent provenance coming soon^{TM} https://github.com/urbit/urbit/pull/6605
-:: expected in kelvin 412
   |=  [=mark =vase]
   ^-  (quip card _this)
   ?>  ?=(%obelisk-action mark)
   =/  act  !<(action vase)
   ?-    -.act
   ::
-      %tape
+  %tape
     `this  :: (values [10 values])
   ::
-      %commands
-::    `this  :: (values [10 values])
+  %commands
     :_  this(databases (process-cmds databases bowl +<.act +>.act))
     :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
     ==
   ::
-      %tape-create-db
-    ?:  =(our.bowl src.bowl)
-      :_  this(databases (new-database databases now.bowl -:(parse(default-database 'dummy') +.act)))
-::      :_  this(databases %:  new-database 
-::                         databases 
-::                         now.bowl 
-::                         -:(parse(default-database 'dummy') +.act)
-::                         ==)
-      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+  %tape-create-db
+    ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
+    :_
+      %=  this
+        databases  %:  new-database 
+                       databases 
+                       now.bowl 
+                       -:(parse(default-database 'dummy') +.act)
+                       ==
       ==
-    ~|("database must be created by local agent" !!)
+    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    ==
   ::
-      %cmd-create-db
-    ?:  =(our.bowl src.bowl)
-      :_  this(databases (new-database databases now.bowl +.act))
-      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
-      ==
-    ~|("database must be created by local agent" !!)
+  %cmd-create-db
+    ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
+    :_  this(databases (new-database databases now.bowl +.act))
+    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    ==
   ==
 ++  on-watch  on-watch:default
 ++  on-leave  on-leave:default
