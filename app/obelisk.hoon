@@ -36,7 +36,17 @@
   ?-    -.act
   ::
   %tape
-    `this  :: (values [10 values])
+    :_
+      %=  this
+        databases  %:  process-cmds
+                       databases
+                       bowl
+                       +<.act
+                       (parse(default-database +<.act) +>.act)
+                    ==
+      ==
+      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    ==
   ::
   %commands
     :_  this(databases (process-cmds databases bowl +<.act +>.act))
@@ -51,9 +61,9 @@
                        databases 
                        now.bowl 
                        -:(parse(default-database 'dummy') +.act)
-                       ==
+                    ==
       ==
-    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
     ==
   ::
   %cmd-create-db

@@ -18,12 +18,14 @@
                    %agent 
                    now 
                    ~[(db-internals %db-internals %agent now ns)]
-                   ==
+                ==
       ==
 ++  process-cmds
-  |=  [dbs=databases =bowl:gall default-database=@tas cmds=(list command:ast)]
+  |=  [state-dbs=databases =bowl:gall default-database=@tas cmds=(list command:ast)]
   ^-  databases
-  |-  ?~  cmds  dbs
+  =/  dbs  state-dbs
+  |-  
+  ?~  cmds  (update-state [state-dbs dbs])
   ?-  -<.cmds
     %alter-index
       !!
@@ -70,11 +72,38 @@
   ?:  =(name.create-namespace 'sys')  ~|("cannot add namespace 'sys'" !!)
   =/  dbrow  (~(got by dbs) database-name.create-namespace)
   =/  internals=db-internals  -.sys.dbrow
-  =/  namespaces  %:  ~(put by namespaces.internals) 
+  =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
+                      %:  map-insert 
+                      namespaces.internals 
                       name.create-namespace 
                       name.create-namespace
                       ==
-  =.  sys.dbrow  :-  (db-internals %db-internals %agent now.bowl namespaces)
-                     sys.dbrow
+  =.  -.sys.dbrow  (db-internals %db-internals %agent now.bowl namespaces)
   (~(gas by dbs) ~[[database-name.create-namespace dbrow]])
+++  update-state
+  |=  [current=databases next=databases]
+  ^-  databases
+  =/  a  (fuse [~(tap by current) ~(tap by next)])
+  |-
+  ?~  a  current
+  :: old db-internals tmsp = new tmsp
+  ?:  =(<-<+>+>+<+>-.a> <->+>+>+<+>-.a>)  $(a +.a)
+  =/  dbrow=db-row  (~(got by current) -<-.a)
+  =.  sys.dbrow     [`db-internals`->+>+>+<.a sys.dbrow]
+  %=  $
+    a        +.a
+    current  (~(put by current) -<-.a dbrow)
+  ==
+++  fuse                        :: credit to ~paldev
+  |*  [a=(list) b=(list)]       :: [(list a) (list b)] -> (list [a b])
+  ^-  (list [_?>(?=(^ a) i.a) _?>(?=(^ b) i.b)])
+  ?~  a  ~
+  ?~  b  ~
+  :-  [i.a i.b]
+  $(a t.a, b t.b)
+++  map-insert
+  |*  [m=(map) key=* value=*]
+  ^+  m
+  ?:  (~(has by m) key)  !!
+  (~(put by m) key value)
 --
