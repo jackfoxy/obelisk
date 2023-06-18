@@ -45,7 +45,7 @@
                        (parse(default-database +<.act) +>.act)
                     ==
       ==
-      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
     ==
   ::
   %commands
@@ -63,7 +63,7 @@
                        -:(parse(default-database 'dummy') +.act)
                     ==
       ==
-      :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
     ==
   ::
   %cmd-create-db
