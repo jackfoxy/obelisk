@@ -45,12 +45,12 @@
                        (parse(default-database +<.act) +>.act)
                     ==
       ==
-    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%result "success"])]
     ==
   ::
   %commands
     :_  this(databases (process-cmds databases bowl +<.act +>.act))
-    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%result "success"])]
     ==
   ::
   %tape-create-db
@@ -63,13 +63,13 @@
                        -:(parse(default-database 'dummy') +.act)
                     ==
       ==
-    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%result "success"])]
     ==
   ::
   %cmd-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
     :_  this(databases (new-database databases now.bowl +.act))
-    :~  [%give %fact ~[/databases] %obelisk-response !>([%result "success"])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%result "success"])]
     ==
   ==
 ++  on-watch  on-watch:default
