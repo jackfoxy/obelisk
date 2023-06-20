@@ -11,17 +11,16 @@
             [%dbo %dbo]
             ==
         ==
-  %:  %~  put  by  dbs
-      :-  +.c  %:  db-row 
-                   %db-row 
-                   +.c 
-                   %agent 
-                   now 
-                   ~[(db-internals %db-internals %agent now ns)]
-                ==
+  %:  map-insert  dbs  +.c  %:  db-row 
+                                %db-row 
+                                +.c 
+                                %agent 
+                                now 
+                                ~[(db-internals %db-internals %agent now ns)]
+                                ==
       ==
 ++  process-cmds
-  |=  [state-dbs=databases =bowl:gall default-database=@tas cmds=(list command:ast)]
+  |=  [state-dbs=databases =bowl:gall default-db=@tas cmds=(list command:ast)]
   ^-  databases
   =/  dbs  state-dbs
   |-  
@@ -69,7 +68,6 @@
   |=  [dbs=databases =bowl:gall =create-namespace]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
-  ?:  =(name.create-namespace 'sys')  ~|("cannot add namespace 'sys'" !!)
   =/  dbrow  (~(got by dbs) database-name.create-namespace)
   =/  internals=db-internals  -.sys.dbrow
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
@@ -104,6 +102,6 @@
 ++  map-insert
   |*  [m=(map) key=* value=*]
   ^+  m
-  ?:  (~(has by m) key)  !!
+  ?:  (~(has by m) key)  ~|("cannot add duplicate key: {<key>}" !!)
   (~(put by m) key value)
 --

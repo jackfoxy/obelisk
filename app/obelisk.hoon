@@ -5,7 +5,8 @@
   $%  state-0
   ==
 +$  state-0
-  $:  [%0 =databases]
+  $:  %0 
+      =databases
   ==
 +$  card  card:agent:gall
 --
