@@ -29,6 +29,6 @@
       [%cmd-create-db cmd=create-database]   
   ==
 +$  response
-  $%  [%result msg=tape]
+  $%  [%result-msg =tape]
   ==
 --  
