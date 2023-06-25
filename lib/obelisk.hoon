@@ -21,10 +21,11 @@
       ==
 ++  process-cmds
   |=  [state-dbs=databases =bowl:gall default-db=@tas cmds=(list command:ast)]
-  ^-  databases
+  ^-  [(list cmd-result) databases]
   =/  dbs  state-dbs
+  =/  results=(list cmd-result)  ~
   |-  
-  ?~  cmds  (update-state [state-dbs dbs])
+  ?~  cmds  [(flop results) (update-state [state-dbs dbs])]
   ?-  -<.cmds
     %alter-index
       !!
@@ -40,8 +41,9 @@
       %=  $
         dbs   (create-ns dbs bowl -.cmds)
         cmds  +.cmds
+        results  ['success' results]
       ==
-   %create-table
+    %create-table
      !!
     %create-view
       !!

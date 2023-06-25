@@ -28,7 +28,9 @@
       [%tape-create-db urql=tape]
       [%cmd-create-db cmd=create-database]   
   ==
-+$  response
-  $%  [%result-msg =tape]
++$  msg  @t
++$  cmd-result
+  $%  msg
   ==
++$  result  [%results (list cmd-result)]
 --  
