@@ -341,8 +341,8 @@
     %create-index
     name=@tas
     object-name=qualified-object
-    is-unique=?
-    is-clustered=?
+    unique=?
+    clustered=?
     columns=(list ordered-column)
   ==
 ::
@@ -355,7 +355,7 @@
     %create-table
     table=qualified-object
     columns=(list column)
-    primary-key=create-index
+    pri-indx=create-index
     foreign-keys=(list foreign-key)
   ==
 ::

@@ -531,7 +531,7 @@
 +$  interim-key
   $:
     %interim-key
-    is-clustered=?
+    clustered=?
     columns=(list ordered-column:ast)
   ==
 +$  parens        ?(%pal %par)
@@ -1757,11 +1757,11 @@
   end-or-next-command
   ==
 ++  parse-create-index
-  =/  is-unique  ;~(pfix whitespace (jester 'unique'))
+  =/  unique  ;~(pfix whitespace (jester 'unique'))
   =/  index-name  ;~(pfix whitespace (jester 'index') parse-face)
   =/  type-and-name  ;~  pose
-    ;~(plug is-unique clustering index-name)
-    ;~(plug is-unique index-name)
+    ;~(plug unique clustering index-name)
+    ;~(plug unique index-name)
     ;~(plug clustering index-name)
     index-name
     ==

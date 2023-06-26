@@ -45,7 +45,11 @@
         results  ['success' results]
       ==
     %create-table
-     !!
+     %=  $
+        dbs   (create-tbl dbs bowl -.cmds)
+        cmds  +.cmds
+        results  ['success' results]
+      ==
     %create-view
       !!
     %drop-database
@@ -71,13 +75,15 @@
   |=  [dbs=databases =bowl:gall =create-namespace]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
-  =/  dbrow  (~(got by dbs) database-name.create-namespace)
+
+  :: to do fail on db does not exist
+  =/  dbrow  ~|("database {<database-name.create-namespace>} does not exist" (~(got by dbs) database-name.create-namespace))
   =/  internals=db-internals  -.sys.dbrow
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
-                      namespaces.internals 
-                      name.create-namespace 
-                      name.create-namespace
+                          namespaces.internals 
+                          name.create-namespace 
+                          name.create-namespace
                       ==
   =.  -.sys.dbrow  %:  db-internals 
                        %db-internals 
@@ -87,6 +93,43 @@
                        tables.internals
                        ==
   (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
+
+++  create-tbl
+  |=  [dbs=databases =bowl:gall =create-table]
+  ^-  databases
+  ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
+  =/  dbrow  ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
+
+  :: to do ns must exist
+  =/  internals=db-internals  -.sys.dbrow
+  =/  tables  
+        ~|  
+        "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
+        %:  map-insert 
+            tables.internals 
+            [namespace.table.create-table name.table.create-table] 
+            %:  table 
+                %table 
+                %:  index 
+                    %index 
+                    %.y 
+                    clustered.pri-indx.create-table 
+                    columns.pri-indx.create-table
+                ==
+                columns.create-table 
+                ~
+            ==
+        ==
+  =.  -.sys.dbrow  %:  db-internals 
+                       %db-internals 
+                       %agent 
+                       now.bowl 
+                       namespaces.internals 
+                       tables
+                       ==
+  (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
+
+
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases

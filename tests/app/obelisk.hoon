@@ -106,4 +106,21 @@
   =.  run  +(run)
   %-  expect-fail
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands %db1 ~[[%create-namespace %db1 %ns1]]]))
+++  test-fail-ns-db-does-not-exist
+  =|  run=@ud 
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands %db2 ~[[%create-namespace %db2 %ns1]]]))
+
+::  Create table
+
+:: fail on db does not exist
+:: fail on ns does not exist
+:: fail on duplicate table name
+:: fail on referenced table does not exist
+:: fail on referenced table columns not a unique key
+:: fail on fk columns not in table def columns
+:: fail on fk column auras do not match referenced column auras
 --
