@@ -13,13 +13,25 @@
       agent=@tas
       tmsp=@da
       =namespaces
-  :: tables
-  :: views
+      =tables
   :: indices
+  :: views
   :: permissions
   ==
 +$  namespaces  (map @tas @tas)
-
++$  tables  (map [@tas @tas] table)
++$  table
+  $:  %table 
+      pri-indx=index 
+      columns=(list column) 
+      indices=(list index)
+  ==
++$  index
+  $:  %index
+      is-clustered=?
+      is-unique=?
+      columns=(list ordered-column)
+  ==
   :: $| validator mold for adding rows with FKs
 ::
 +$  action

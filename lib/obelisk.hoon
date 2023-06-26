@@ -11,12 +11,13 @@
             [%dbo %dbo]
             ==
         ==
+  =/  tbs=tables  ~
   %:  map-insert  dbs  +.c  %:  db-row 
                                 %db-row 
                                 +.c 
                                 %agent 
                                 now 
-                                ~[(db-internals %db-internals %agent now ns)]
+                                ~[(db-internals %db-internals %agent now ns tbs)]
                                 ==
       ==
 ++  process-cmds
@@ -78,8 +79,14 @@
                       name.create-namespace 
                       name.create-namespace
                       ==
-  =.  -.sys.dbrow  (db-internals %db-internals %agent now.bowl namespaces)
-  (~(gas by dbs) ~[[database-name.create-namespace dbrow]])
+  =.  -.sys.dbrow  %:  db-internals 
+                       %db-internals 
+                       %agent 
+                       now.bowl 
+                       namespaces 
+                       tables.internals
+                       ==
+  (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases
