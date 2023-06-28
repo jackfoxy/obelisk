@@ -9,10 +9,9 @@
 ++  bowl
   |=  [run=@ud now=@da]
   ^-  bowl:gall
-  :*  [~zod ~zod %obelisk]     :: (our src dap)
-      [~ ~ ~]                     :: (wex sup)
-      [run `@uvJ`(shax run) now [~zod %base ud+run]]
-                                :: (act eny now byk)
+  :*  [~zod ~zod %obelisk]                            :: (our src dap)
+      [~ ~ ~]                                         :: (wex sup sky)
+      [run `@uvJ`(shax run) now [~zod %base ud+run]]  :: (act eny now byk)
   ==
 ::  Build a reference state mold.
 ::
@@ -113,7 +112,6 @@
   =.  run  +(run)
   %-  expect-fail
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands %db2 ~[[%create-namespace %db2 %ns1]]]))
-
 ::  Create table
 
 :: fail on db does not exist

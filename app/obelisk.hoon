@@ -44,13 +44,16 @@
                  (parse(default-database +<.act) +>.act)
                  ==
     :_  this(databases +.res)
-    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
+    ::https://github.com/urbit/urbit/issues/6692
+::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
     ==
   ::
   %commands
     =/  res  (process-cmds databases bowl +<.act +>.act)
     :_  this(databases +.res)
-    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
+::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
     ==
   ::
   %tape-create-db
@@ -63,13 +66,15 @@
                        -:(parse(default-database 'dummy') +.act)
                     ==
       ==
-    :~  [%give %fact ~ %obelisk-result !>([%results ~['success']])]
+::    :~  [%give %fact ~ %obelisk-result !>([%results ~['success']])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
     ==
   ::
   %cmd-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
     :_  this(databases (new-database databases now.bowl +.act))
-    :~  [%give %fact ~ %obelisk-result !>([%results ~['success']])]
+::  :~  [%give %fact ~ %obelisk-result !>([%results -.res])] 
+    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
     ==
   ==
 ++  on-watch  on-watch:default
