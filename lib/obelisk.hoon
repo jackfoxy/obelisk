@@ -21,7 +21,7 @@
                                 ==
       ==
 ++  process-cmds
-  |=  [state-dbs=databases =bowl:gall default-db=@tas cmds=(list command:ast)]
+  |=  [state-dbs=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
   =/  dbs  state-dbs
   =/  results=(list cmd-result)  ~
@@ -75,8 +75,6 @@
   |=  [dbs=databases =bowl:gall =create-namespace]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
-
-  :: to do fail on db does not exist
   =/  dbrow  ~|("database {<database-name.create-namespace>} does not exist" (~(got by dbs) database-name.create-namespace))
   =/  internals=db-internals  -.sys.dbrow
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
@@ -99,27 +97,26 @@
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
   =/  dbrow  ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
-
-  :: to do ns must exist
   =/  internals=db-internals  -.sys.dbrow
+  ?.  (~(has by namespaces.internals) namespace.table.create-table)
+    ~|("namespace {<namespaces.internals>} does not exist" !!)
   =/  tables  
-        ~|  
-        "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
-        %:  map-insert 
-            tables.internals 
-            [namespace.table.create-table name.table.create-table] 
-            %:  table 
-                %table 
-                %:  index 
-                    %index 
-                    %.y 
-                    clustered.pri-indx.create-table 
-                    columns.pri-indx.create-table
-                ==
-                columns.create-table 
-                ~
+    ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
+    %:  map-insert 
+        tables.internals 
+        [namespace.table.create-table name.table.create-table] 
+        %:  table 
+            %table 
+            %:  index 
+                %index 
+                %.y 
+                clustered.pri-indx.create-table 
+                columns.pri-indx.create-table
             ==
+            columns.create-table 
+            ~
         ==
+    ==
   =.  -.sys.dbrow  %:  db-internals 
                        %db-internals 
                        %agent 

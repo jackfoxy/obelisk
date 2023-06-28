@@ -85,7 +85,7 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%commands %db1 ~[[%create-namespace %db1 %ns1]]]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%commands ~[[%create-namespace %db1 %ns1]]]))
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
@@ -101,22 +101,54 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%commands %db1 ~[[%create-namespace %db1 %ns1]]]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%commands ~[[%create-namespace %db1 %ns1]]]))
   =.  run  +(run)
   %-  expect-fail
-  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands %db1 ~[[%create-namespace %db1 %ns1]]]))
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[[%create-namespace %db1 %ns1]]]))
 ++  test-fail-ns-db-does-not-exist
   =|  run=@ud 
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
   %-  expect-fail
-  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands %db2 ~[[%create-namespace %db2 %ns1]]]))
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[[%create-namespace %db2 %ns1]]]))
 ::  Create table
 
-:: fail on db does not exist
-:: fail on ns does not exist
-:: fail on duplicate table name
+
+++  test-fail-tbl-db-does-not-exist     :: fail on database does not exist
+  =|  run=@ud
+  =/  cmd
+    [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type='@t'] [%column name='col2' column-type='@p'] [%column name='col3' column-type='@ud']] primary-key=[%create-index name='ix-primary-dbo-my-table' object-name=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] is-unique=%.y is-clustered=%.n columns=~[[%ordered-column column-name='col1' is-ascending=%.y]]] foreign-keys=~]  
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+++  test-fail-tbl-ns-does-not-exist     :: fail on namespace does not exist
+  =|  run=@ud
+  =/  cmd
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type='@t'] [%column name='col2' column-type='@p'] [%column name='col3' column-type='@ud']] primary-key=[%create-index name='ix-primary-dbo-my-table' object-name=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] is-unique=%.y is-clustered=%.n columns=~[[%ordered-column column-name='col1' is-ascending=%.y]]] foreign-keys=~]  
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+++  test-fail-duplicate-tbl             :: fail on duplicate table name
+  =|  run=@ud
+  =/  cmd
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type='@t'] [%column name='col2' column-type='@p'] [%column name='col3' column-type='@ud']] primary-key=[%create-index name='ix-primary-dbo-my-table' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] is-unique=%.y is-clustered=%.n columns=~[[%ordered-column column-name='col1' is-ascending=%.y]]] foreign-keys=~]  
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  =^  mov2  agent  
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%commands ~[cmd]]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+
+
+
+
 :: fail on referenced table does not exist
 :: fail on referenced table columns not a unique key
 :: fail on fk columns not in table def columns

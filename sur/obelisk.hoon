@@ -36,7 +36,7 @@
 ::
 +$  action
   $%  [%tape default-database=@tas urql=tape]
-      [%commands default-database=@tas cmds=(list command)]
+      [%commands cmds=(list command)]
       [%tape-create-db urql=tape]
       [%cmd-create-db cmd=create-database]   
   ==

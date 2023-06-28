@@ -40,7 +40,6 @@
     =/  res  %:  process-cmds
                  databases
                  bowl
-                 +<.act
                  (parse(default-database +<.act) +>.act)
                  ==
     :_  this(databases +.res)
@@ -50,7 +49,7 @@
     ==
   ::
   %commands
-    =/  res  (process-cmds databases bowl +<.act +>.act)
+    =/  res  (process-cmds databases bowl +.act)
     :_  this(databases +.res)
 ::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
     :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
