@@ -51,7 +51,7 @@
 +$  ordered-column
   $:
     %ordered-column
-    column-name=@tas
+    name=@tas
     is-ascending=?
   ==
 +$  column

@@ -100,6 +100,21 @@
   =/  internals=db-internals  -.sys.dbrow
   ?.  (~(has by namespaces.internals) namespace.table.create-table)
     ~|("namespace {<namespaces.internals>} does not exist" !!)
+
+:: to do: 
+::        columns non-repeating
+::        columns in index non-repeating and in columns
+  =/  col-set  (silt columns.create-table)
+  ?.  =((lent columns.create-table) ~(wyt in col-set))
+    ~|("dulicate column definitions {<columns.create-table>}" !!)
+  =/  key-col-set  (silt columns.pri-indx.create-table)
+  =/  key-count  ~(wyt in key-col-set)
+  ?.  =((lent columns.pri-indx.create-table) key-count)
+    ~|("dulicate column definitions in key {<columns.create-table>}" !!)
+::  ?.  =(key-count ~(wyt in (~(int in col-set) (~(run in key-col-set) |=(=ordered-column name.ordered-column)))))
+::    ~|("key column not in column definitions {<columns.pri-indx.create-table>}" !!)
+
+
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert 
@@ -126,6 +141,9 @@
                        ==
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
 
+::++  key-column-in-columns
+::  |=  [cols=(set column) key-cols=(set ordered-column)]
+::  ^-  ?
 
 ++  update-state
   |=  [current=databases next=databases]
@@ -141,6 +159,10 @@
     a        +.a
     current  (~(put by current) -<-.a dbrow)
   ==
+++  name-set
+  |*  a=(set)
+  ^-  (set @tas)
+  (~(run in a) |=(b=* ?@(b !! -.b)))
 ++  fuse                        :: credit to ~paldev
   |*  [a=(list) b=(list)]       :: [(list a) (list b)] -> (list [a b])
   ^-  (list [_?>(?=(^ a) i.a) _?>(?=(^ b) i.b)])

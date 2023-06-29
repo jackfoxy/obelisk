@@ -46,6 +46,7 @@
     ::https://github.com/urbit/urbit/issues/6692
 ::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
     :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+        [%give %kick ~[/databases] ~]
     ==
   ::
   %commands
@@ -53,6 +54,7 @@
     :_  this(databases +.res)
 ::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
     :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+        [%give %kick ~[/databases] ~]
     ==
   ::
   %tape-create-db
@@ -67,6 +69,7 @@
       ==
 ::    :~  [%give %fact ~ %obelisk-result !>([%results ~['success']])]
     :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+        [%give %kick ~[/databases] ~]
     ==
   ::
   %cmd-create-db
@@ -74,6 +77,7 @@
     :_  this(databases (new-database databases now.bowl +.act))
 ::  :~  [%give %fact ~ %obelisk-result !>([%results -.res])] 
     :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+        [%give %kick ~[/databases] ~]
     ==
   ==
 ++  on-watch  on-watch:default
