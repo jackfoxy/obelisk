@@ -91,7 +91,6 @@
                        tables.internals
                        ==
   (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
-
 ++  create-tbl
   |=  [dbs=databases =bowl:gall =create-table]
   ^-  databases
@@ -100,21 +99,15 @@
   =/  internals=db-internals  -.sys.dbrow
   ?.  (~(has by namespaces.internals) namespace.table.create-table)
     ~|("namespace {<namespaces.internals>} does not exist" !!)
-
-:: to do: 
-::        columns non-repeating
-::        columns in index non-repeating and in columns
-  =/  col-set  (silt columns.create-table)
+  =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
-    ~|("dulicate column definitions {<columns.create-table>}" !!)
-  =/  key-col-set  (silt columns.pri-indx.create-table)
+    ~|("dulicate column names {<columns.create-table>}" !!)
+  =/  key-col-set  (name-set (silt columns.pri-indx.create-table))
   =/  key-count  ~(wyt in key-col-set)
   ?.  =((lent columns.pri-indx.create-table) key-count)
-    ~|("dulicate column definitions in key {<columns.create-table>}" !!)
-::  ?.  =(key-count ~(wyt in (~(int in col-set) (~(run in key-col-set) |=(=ordered-column name.ordered-column)))))
-::    ~|("key column not in column definitions {<columns.pri-indx.create-table>}" !!)
-
-
+    ~|("dulicate column names in key {<columns.create-table>}" !!)
+  ?.  =(key-count ~(wyt in (~(int in col-set) key-col-set)))
+    ~|("key column not in column definitions {<columns.pri-indx.create-table>}" !!)
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert 
@@ -140,11 +133,6 @@
                        tables
                        ==
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
-
-::++  key-column-in-columns
-::  |=  [cols=(set column) key-cols=(set ordered-column)]
-::  ^-  ?
-
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases
@@ -162,7 +150,7 @@
 ++  name-set
   |*  a=(set)
   ^-  (set @tas)
-  (~(run in a) |=(b=* ?@(b !! -.b)))
+  (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 ++  fuse                        :: credit to ~paldev
   |*  [a=(list) b=(list)]       :: [(list a) (list b)] -> (list [a b])
   ^-  (list [_?>(?=(^ a) i.a) _?>(?=(^ b) i.b)])
