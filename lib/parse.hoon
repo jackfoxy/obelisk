@@ -220,13 +220,13 @@
           script           q.q.u.+3.q:table-nail
           script-position  next-cursor
           commands
-            [`command:ast`(create-table:ast %create-table -.parsed +<.parsed (create-primary-key [-.parsed +>.parsed]) ~) commands]
+            [`command:ast`(create-table:ast %create-table -.parsed +<.parsed +>+<.parsed +>+>.parsed ~) commands]
         ==
       %=  $
         script           q.q.u.+3.q:table-nail
         script-position  next-cursor
         commands
-          [`command:ast`(create-table:ast %create-table -.parsed +<.parsed (create-primary-key [-.parsed +>-.parsed]) (build-foreign-keys [-.parsed +>+.parsed])) commands]
+          [`command:ast`(create-table:ast %create-table -.parsed +<.parsed +>->-.parsed +>->+.parsed (build-foreign-keys [-.parsed +>+.parsed])) commands]
       ==
     %create-view
       !!
@@ -929,10 +929,6 @@
   ==
 ++  primary-key
   (cook cook-primary-key ;~(pfix ;~(plug whitespace (jester 'primary') whitespace (jester 'key')) ;~(pose ;~(plug clustering ordered-column-list) ordered-column-list)))
-++  create-primary-key
-  |=  a=[[@ ship=(unit @p) database=@t namespace=@t name=@t] key=*]
-  =/  key-name  (crip (weld (weld "ix-primary-" (trip namespace.a)) (weld "-" (trip name.a))))
-  (create-index:ast %create-index key-name (qualified-object:ast %qualified-object ~ database.a namespace.a name.a) %.y +<:key.a +>:key.a)
 ::
 ::  query object and joins
 ::

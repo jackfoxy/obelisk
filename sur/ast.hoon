@@ -355,7 +355,8 @@
     %create-table
     table=qualified-object
     columns=(list column)
-    pri-indx=create-index
+    clustered=?
+    pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
   ==
 ::

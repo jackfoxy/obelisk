@@ -102,12 +102,12 @@
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
     ~|("dulicate column names {<columns.create-table>}" !!)
-  =/  key-col-set  (name-set (silt columns.pri-indx.create-table))
+  =/  key-col-set  (name-set (silt pri-indx.create-table))
   =/  key-count  ~(wyt in key-col-set)
-  ?.  =((lent columns.pri-indx.create-table) key-count)
+  ?.  =((lent pri-indx.create-table) key-count)
     ~|("dulicate column names in key {<columns.create-table>}" !!)
   ?.  =(key-count ~(wyt in (~(int in col-set) key-col-set)))
-    ~|("key column not in column definitions {<columns.pri-indx.create-table>}" !!)
+    ~|("key column not in column definitions {<pri-indx.create-table>}" !!)
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert 
@@ -118,8 +118,8 @@
             %:  index 
                 %index 
                 %.y 
-                clustered.pri-indx.create-table 
-                columns.pri-indx.create-table
+                clustered.create-table 
+                pri-indx.create-table
             ==
             columns.create-table 
             ~
