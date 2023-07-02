@@ -28,8 +28,8 @@
   ==
 +$  index
   $:  %index
-      clustered=?
       unique=?
+      clustered=?
       columns=(list ordered-column)
   ==
   :: $| validator mold for adding rows with FKs
