@@ -120,11 +120,11 @@
 ++  one-col-tbl-key
  [%dbo %my-table]
 ++  one-col-tbl
-  [%table [%index unique=%.y clustered=%.n ~[[%ordered-column name=%col1 is-ascending=%.y]]] ~[[%column name=%col1 column-type='@t']] ~]
+  [%table [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 is-ascending=%.y]]] ~[[%column name=%col1 column-type='@t']] ~]
 ++  one-col-tbls
  [[one-col-tbl-key one-col-tbl] ~ ~]
 ++  cmd-one-col
-    [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table'] ~[[%column 'col1' '@t']] %.n ~[[%ordered-column 'col1' %.y]] ~]
+    [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table'] ~[[%column 'col1' '@t']] %.y ~[[%ordered-column 'col1' %.y]] ~]
 ::
 ++  two-col-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-col-tbl-sys one-col-tbl-sys sys1]]] ~ ~]
@@ -143,7 +143,7 @@
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1]]] ~ ~]
 ++  two-comb-col-tbl-sys
   [%db-internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo %dbo] ~ [[%sys %sys] ~ ~]] tables=two-col-tbls]
-
+::
 ++  test-cmd-create-1-col-tbl
   =|  run=@ud
   =^  mov1  agent  
@@ -200,7 +200,7 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY CLUSTERED (col1)"]))
   =^  mov3  agent  
     (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) PRIMARY KEY NONCLUSTERED (col1, col2)"]))
   =+  !<(=state on-save:agent)
@@ -245,7 +245,11 @@
     !>  databases.state
   ==
 
-:: to do: make clustered default
+:: to do: create table with foreign keys
+::        fail on referenced table does not exist
+::        fail on referenced table columns not a unique key
+::        fail on fk columns not in table def columns
+::        fail on fk column auras do not match referenced column auras
 
 ++  test-fail-tbl-db-does-not-exist     :: fail on database does not exist
   =|  run=@ud
@@ -304,12 +308,6 @@
   =.  run  +(run)
   %-  expect-fail
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+::  Create table
 
-
-
-
-:: fail on referenced table does not exist
-:: fail on referenced table columns not a unique key
-:: fail on fk columns not in table def columns
-:: fail on fk column auras do not match referenced column auras
 --

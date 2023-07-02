@@ -885,7 +885,7 @@
   ~+
   ?@  -.a
     ?:  =(-.a 'clustered')  (interim-key %interim-key %.y +.a)  (interim-key %interim-key %.n +.a)
-  (interim-key %interim-key %.n a)
+  (interim-key %interim-key %.y a)
 ++  cook-foreign-key
   |=  a=*
   ?:  ?=([[@ * * [@ @] *] *] [a])                   :: foreign key ns.table ... references fk-table ... on action on action
