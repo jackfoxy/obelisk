@@ -308,6 +308,60 @@
   =.  run  +(run)
   %-  expect-fail
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
-::  Create table
+::  Drop table
+++  dropped-tbl-db
+  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys3 one-col-tbl-sys sys1]]] ~ ~]
+++  sys3
+  [%db-internals agent=%agent tmsp=~2000.1.3 namespaces=[[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
+++  test-drop-tbl
+  =|  run=@ud
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.n]
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
+  =.  run  +(run)
+  =^  mov2  agent  
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"]))
+  =.  run  +(run)
+  =^  mov3  agent  
+    (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq                         :: expected results
+    !>  [%results ~['success']]
+    !>  ->+>+>.mov2
+  %+  expect-eq                         :: expected state
+    !>  dropped-tbl-db
+    !>  databases.state
+  ==
+++  test-fail-drop-tbl-db-does-not-exist     :: fail on database does not exist
+  =|  run=@ud
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] %.n]
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+++  test-fail-drop-tbl-ns-does-not-exist     :: fail on namespace does not exist
+  =|  run=@ud
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] %.n]
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+++  test-fail-drop-tbl-not-exist            :: fail on table name does not exist
+  =|  run=@ud
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.n]
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
+
+::  To Do: test drop table force
 
 --

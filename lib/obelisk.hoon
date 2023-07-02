@@ -59,7 +59,11 @@
     %drop-namespace
       !!
     %drop-table
-      !!
+      %=  $
+        dbs   (drop-tbl dbs bowl -.cmds)
+        cmds  +.cmds
+        results  ['success' results]
+      ==
     %drop-view
       !!
     %grant
@@ -110,29 +114,50 @@
     ~|("key column not in column definitions {<pri-indx.create-table>}" !!)
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
-    %:  map-insert 
-        tables.internals 
-        [namespace.table.create-table name.table.create-table] 
-        %:  table 
-            %table 
-            %:  index 
-                %index 
-                %.y 
-                clustered.create-table 
+    %:  map-insert
+        tables.internals
+        [namespace.table.create-table name.table.create-table]
+        %:  table
+            %table
+            %:  index
+                %index
+                %.y
+                clustered.create-table
                 pri-indx.create-table
             ==
-            columns.create-table 
+            columns.create-table
             ~
         ==
     ==
-  =.  -.sys.dbrow  %:  db-internals 
-                       %db-internals 
-                       %agent 
-                       now.bowl 
-                       namespaces.internals 
+  =.  -.sys.dbrow  %:  db-internals
+                       %db-internals
+                       %agent
+                       now.bowl
+                       namespaces.internals
                        tables
                        ==
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
+++  drop-tbl
+  |=  [dbs=databases =bowl:gall =drop-table]
+  ^-  databases
+  ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
+  =/  dbrow  ~|("database {<database.table.drop-table>} does not exist" (~(got by dbs) database.table.drop-table))
+  =/  internals=db-internals  -.sys.dbrow
+  ?.  (~(has by namespaces.internals) namespace.table.drop-table)
+    ~|("namespace {<namespaces.internals>} does not exist" !!)
+  =/  tables  
+    ~|  "{<name.table.drop-table>} does not exists in {<namespace.table.drop-table>}"
+    %+  map-delete
+        tables.internals
+        [namespace.table.drop-table name.table.drop-table]
+  =.  -.sys.dbrow  %:  db-internals
+                       %db-internals
+                       %agent
+                       now.bowl
+                       namespaces.internals
+                       tables
+                       ==
+  (~(put by dbs) database.table.drop-table dbrow)  :: prefer upd
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases
@@ -163,4 +188,9 @@
   ^+  m
   ?:  (~(has by m) key)  ~|("cannot add duplicate key: {<key>}" !!)
   (~(put by m) key value)
+++  map-delete
+  |*  [m=(map) key=*]
+  ^+  m
+  ?:  (~(has by m) key)  (~(del by m) key)
+  ~|("key does not exist for deletion: {<key>}" !!)
 --
