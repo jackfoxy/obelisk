@@ -71,10 +71,35 @@
     %revoke
       !!
     %transform
-      !!
+      =/  a  `[databases @ud @t]`(do-transform dbs bowl -.cmds)
+      %=  $
+        dbs   -.a
+        cmds  +.cmds
+        results  [[%transform-result +<.a +>.a] results]  :: to do, gets more comples w/ other transforms
+      ==
     %truncate-table
       !!
   ==
+++  do-transform
+  |=  [dbs=databases =bowl:gall =transform]
+  ^-  [databases @ud @t]
+
+  =/  ctes=(list cte)  ctes.transform
+  =/  set-functions=(tree set-function)  set-functions.transform
+::  ?>  ?=(set-cmd +<.transform)
+::  =/  a  (do-set-cmd dbs bowl +<.transform)
+  ~&  "transform:  {<transform>}"
+  =/  a  (do-set-cmd dbs bowl +>.transform)
+
+  !!
+
+++  do-set-cmd
+::  |=  [dbs=databases =bowl:gall =set-cmd]
+  |=  [dbs=databases =bowl:gall set-functions=(tree set-function)]
+
+  ~&  "set-functions:  {<set-functions>}"
+  !!
+
 ++  create-ns
   |=  [dbs=databases =bowl:gall =create-namespace]
   ^-  databases

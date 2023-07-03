@@ -242,7 +242,7 @@
   $:
   %transform
   ctes=(list cte)
-  (tree set-functions)
+  set-functions=(tree set-function)
   ==
 ::
 ::  $cte:
@@ -250,9 +250,9 @@
   $:
     %cte
     name=@tas
-    set-cmds
+    set-cmd
   ==
-+$  set-ops  
++$  set-op  
   $?
     %union
     %except
@@ -265,8 +265,8 @@
     %tee
     %multee
   ==
-+$  set-cmds       $%(delete insert update query merge)
-+$  set-functions  ?(set-ops set-cmds)
++$  set-cmd       $%(delete insert update query merge)
++$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
 ::
