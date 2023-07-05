@@ -75,31 +75,73 @@
       %=  $
         dbs   -.a
         cmds  +.cmds
-        results  [[%transform-result +<.a +>.a] results]  :: to do, gets more comples w/ other transforms
+        results  [[%transform-result +<.a +>.a] results]  :: to do, gets more complex w/ other transforms
       ==
     %truncate-table
       !!
   ==
 ++  do-transform
-  |=  [dbs=databases =bowl:gall =transform]
+  |=  [dbs=databases =bowl:gall =transform:ast]
   ^-  [databases @ud @t]
 
-  =/  ctes=(list cte)  ctes.transform
-  =/  set-functions=(tree set-function)  set-functions.transform
-::  ?>  ?=(set-cmd +<.transform)
-::  =/  a  (do-set-cmd dbs bowl +<.transform)
-  ~&  "transform:  {<transform>}"
-  =/  a  (do-set-cmd dbs bowl +>.transform)
-
+  =/  ctes=(list cte)  ctes.transform  :: To Do - map CTEs
+  =/  a  (do-set-functions dbs bowl set-functions.transform)
+::  ~&  >  a
   !!
 
-++  do-set-cmd
-::  |=  [dbs=databases =bowl:gall =set-cmd]
-  |=  [dbs=databases =bowl:gall set-functions=(tree set-function)]
+++  do-set-functions
+  |=  [dbs=databases =bowl:gall =(tree set-function:ast)]
 
-  ~&  "set-functions:  {<set-functions>}"
-  !!
+::  =/  rtree  ^+((~(rdc of tree) foo) tree)
+::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
+::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
+::  ?~  rtree  !!  :: fuse loop
 
+  =/  rtree  (~(rdc of tree) rdc-set-func)
+
+  ?-  -<.rtree
+    %delete
+      !!
+    %insert
+      =/  ins=insert:ast  -.rtree
+      ~&  >  ins
+      !!
+    %update
+      !!
+    %query
+      !!
+    %merge
+      !!
+    == 
+  ++  rdc-set-func
+    |=  =(tree set-function)
+    ?~  tree  ~
+    ::  template
+    ?~  l.tree
+      ?~  r.tree  [n.tree ~ ~]
+      [n.r.tree ~ ~]
+    ?~  r.tree  [n.l.tree ~ ~]
+    [n.r.tree ~ ~]
+++  of                              ::  tree engine
+  =|  a=(tree)                      
+  |@
+  ++  rep                           ::  reduce to product
+    |*  b=_=>(~ |=([* *] +<+))
+    |-
+    ?~  a  +<+.b
+    $(a r.a, +<+.b $(a l.a, +<+.b (b n.a +<+.b)))
+  ++  rdc                           ::  reduce tree
+    |*  b=gate
+    |-
+    ?:  ?=([* ~ ~] a)              a
+    ?:  ?=([* [* ~ ~] [* ~ ~]] a)  $(a (b a))
+    ?:  ?=([* ~ [* ~ ~]] a)        $(a (b a))
+    ?:  ?=([* [* ~ ~] ~] a)        $(a (b a))
+    ?:  ?=([* * ~] a)              $(a [n=n.a l=$(a l.a) r=~])
+    ?:  ?=([* ~ *] a)              $(a [n=n.a l=~ r=$(a r.a)])
+    ?:  ?=([* * *] a)              $(a [n=n.a l=$(a l.a) r=$(a r.a)])
+    ~
+  --
 ++  create-ns
   |=  [dbs=databases =bowl:gall =create-namespace]
   ^-  databases

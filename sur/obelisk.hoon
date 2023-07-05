@@ -7,6 +7,7 @@
       created-by-agent=@tas
       created-tmsp=@da
       sys=(list db-internals)
+::      =data
   ==
 +$  db-internals
   $:  %db-internals
@@ -14,9 +15,16 @@
       tmsp=@da
       =namespaces
       =tables
-  :: indices
+  :: indices  ::  indices other than primary key
   :: views
   :: permissions
+  ==
++$  data
+  $:  %data
+      agent=@tas
+      tmsp=@da
+  ::    =indices
+  ::    =files
   ==
 +$  namespaces  (map @tas @tas)
 +$  tables  (map [@tas @tas] table)
