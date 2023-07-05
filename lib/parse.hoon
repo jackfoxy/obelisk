@@ -718,7 +718,7 @@
   ::  2. (a-co:co d) each atom to tape, weld tapes with delimiter, crip final tape
   ::  bad reason for (2): cannot ?=(expression ...) when expression includes a list
   ::
-  |=  a=(list value-literal:ast)
+  |=  a=(list dime)
   ~+
   =/  literal-type=@tas  -<.a
   =/  b  a
@@ -743,8 +743,9 @@
 ::
 ++  cook-column
   |=  a=*
-    ?:  ?=([@ @] [a])
-      (column:ast %column -.a +.a)
+    ?.  ?=([@ @] [a])  ~|("cannot parse column  {<a>}" !!)
+    ?@  +.a
+      (column:ast %column -.a (crip (slag 1 (trip +.a))))
     ~|("cannot parse column  {<a>}" !!)
 ++  cook-ordered-column
   |=  a=*
@@ -802,31 +803,31 @@
   ;~(pfix whitespace ;~(pfix (jester 'on') ;~(pfix whitespace ;~(pose on-database on-namespace parse-qualified-3object))))
 ++  parse-aura  ~+
   =/  root-aura  ;~  pose
-    (jest '@c')
-    (jest '@da')
-    (jest '@dr')
-    (jest '@f')
-    (jest '@if')
-    (jest '@is')
-    (jest '@p')
-    (jest '@q')
-    (jest '@rh')
-    (jest '@rs')
-    (jest '@rd')
-    (jest '@rq')
-    (jest '@sb')
-    (jest '@sd')
-    (jest '@sv')
-    (jest '@sw')
-    (jest '@sx')
-    (jest '@ta')
-    (jest '@tas')
-    (jest '@t')
-    (jest '@ub')
-    (jest '@ud')
-    (jest '@uv')
-    (jest '@uw')
-    (jest '@ux')
+    (jest '%c')
+    (jest '%da')
+    (jest '%dr')
+    (jest '%f')
+    (jest '%if')
+    (jest '%is')
+    (jest '%p')
+    (jest '%q')
+    (jest '%rh')
+    (jest '%rs')
+    (jest '%rd')
+    (jest '%rq')
+    (jest '%sb')
+    (jest '%sd')
+    (jest '%sv')
+    (jest '%sw')
+    (jest '%sx')
+    (jest '%ta')
+    (jest '%tas')
+    (jest '%t')
+    (jest '%ub')
+    (jest '%ud')
+    (jest '%uv')
+    (jest '%uw')
+    (jest '%ux')
     ==
   ;~  pose
     ;~(plug root-aura (shim 'A' 'J'))
@@ -1054,7 +1055,7 @@
   ?:  ?=(parens -.a)                  $(new-list [i=`parens`-.a t=new-list], a +.a)
   ?:  ?=(ops-and-conjs:ast -.a)       $(new-list [i=`ops-and-conjs:ast`-.a t=new-list], a +.a)
   ?:  ?=(qualified-column:ast -.a)    $(new-list [i=`qualified-column:ast`-.a t=new-list], a +.a)
-  ?:  ?=(value-literal:ast -.a)       $(new-list [i=`value-literal:ast`-.a t=new-list], a +.a)
+  ?:  ?=(dime -.a)                    $(new-list [i=`dime`-.a t=new-list], a +.a)
   ?:  ?=(value-literal-list:ast -.a)  $(new-list [i=`value-literal-list:ast`-.a t=new-list], a +.a)
   ?:  ?&(=(%aggregate:ast -<.a) ?=(@ ->-.a) ?=(qualified-column:ast ->+.a))
     $(new-list [i=(aggregate:ast %aggregate (aggregate-name ->-.a) `qualified-column:ast`->+.a) t=new-list], a +.a)
@@ -1273,7 +1274,7 @@
           parsed        +.parsed
         ==
       ~|("qualified-column can't get here" !!)
-    value-literal:ast
+    dime
       ?~  working-tree
         ?:  ?=(binary-op:ast +<.parsed)
           %=  $
@@ -1436,7 +1437,7 @@
   ?:  ?=(qualified-column:ast -.parsed)
     ?:  =('else' +>-.parsed)  (case:ast %case -.parsed (flop cases) +>+<.parsed)
       (case:ast %case -.parsed (flop cases) ~)
-  ?:  ?=(value-literal:ast -.parsed)
+  ?:  ?=(dime -.parsed)
     ?:  =('else' +>-.parsed)  (case:ast %case -.parsed (flop cases) +>+<.parsed)
       (case:ast %case -.parsed (flop cases) ~)
   ~|("cannot parse case  {<parsed>}" !!)
@@ -1688,7 +1689,7 @@
           columns  [(qualified-column:ast %qualified-column (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' ->.a) 'ALL' ~) columns]
           a        +.a
         ==
-      ?>  ?=(value-literal:ast -.a)
+      ?>  ?=(dime -.a)
         %=  $
           columns  [(selected-value:ast %selected-value -.a ~) columns]
           a        +.a

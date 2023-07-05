@@ -37,16 +37,10 @@
 ::
 ::  command component types
 ::
-+$  value-literal
-  $:
-    value-type=@tas
-    value=@
-  ==
 +$  value-literal-list
   $:
     %value-literal-list
-    value-type=@tas
-    value-list=@t
+    dime
   ==
 +$  ordered-column
   $:
@@ -58,7 +52,7 @@
   $:
     %column
     name=@tas
-    column-type=@t
+    column-type=@tas
   ==
 +$  qualified-object
   $:
@@ -100,9 +94,9 @@
 +$  ops-and-conjs        
  ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component  
-  ?(ops-and-conjs qualified-column value-literal value-literal-list aggregate)
+  ?(ops-and-conjs qualified-column dime value-literal-list aggregate)
 +$  predicate            (tree predicate-component)
-+$  datum                $%(qualified-column value-literal)
++$  datum                $%(qualified-column dime)
 +$  datum-or-scalar      $@(datum scalar-function)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
@@ -214,7 +208,7 @@
 +$  selected-value
   $:
     %selected-value
-    value=value-literal
+    value=dime
     alias=(unit @t)
   ==
 +$  aggregate
