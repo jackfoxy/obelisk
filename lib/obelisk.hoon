@@ -1,7 +1,7 @@
 /-  ast, *obelisk
 |%
 ++  new-database
-  |=  [dbs=databases now=@da c=command:ast]
+  |=  [dbs=databases =bowl:gall c=command:ast]
   ^-  databases
   ?:  =(+.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
@@ -16,9 +16,9 @@
                                 %db-row 
                                 +.c 
                                 %agent 
-                                now 
-                                ~[(internals %internals %agent now ns tbs)]
-                                ~[(data %data %agent now)]
+                                now.bowl 
+                                ~[(internals %internals %agent now.bowl ns tbs)]
+                                ~[(data %data src.bowl %agent now.bowl ~)]
                                 ==
       ==
 ++  process-cmds
@@ -170,6 +170,7 @@
   =/  dbrow  
     ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
   =/  db-internals=internals  -.sys.dbrow
+  =/  usr-data=data         -.user-data.dbrow
   ?.  (~(has by namespaces.db-internals) namespace.table.create-table)
     ~|("namespace {<namespaces.db-internals>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
@@ -181,23 +182,45 @@
     ~|("dulicate column names in key {<columns.create-table>}" !!)
   ?.  =(key-count ~(wyt in (~(int in col-set) key-col-set)))
     ~|("key column not in column definitions {<pri-indx.create-table>}" !!)
+  ::
+  =/  table  %:  table
+                 %table
+                 %:  index
+                     %index
+                     %.y
+                     clustered.create-table
+                     pri-indx.create-table
+                 ==
+                 columns.create-table
+                 ~
+             ==
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert
         tables.db-internals
         [namespace.table.create-table name.table.create-table]
-        %:  table
-            %table
-            %:  index
-                %index
-                %.y
-                clustered.create-table
-                pri-indx.create-table
-            ==
-            columns.create-table
-            ~
-        ==
+        table
     ==
+  ::
+  =/  file  %:  file
+                %file
+                src.bowl
+                %agent
+                now.bowl
+                0
+                clustered.create-table
+                ~
+                (turn columns.create-table |=(=column:ast column-type.column))
+                ~
+            ==
+  =/  files  
+    ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
+    %:  map-insert
+        files.usr-data
+        [namespace.table.create-table name.table.create-table]
+        file
+    ==
+  ::
   =.  -.sys.dbrow  %:  internals
                        %internals
                        %agent
@@ -205,6 +228,14 @@
                        namespaces.db-internals
                        tables
                        ==
+  =.  -.user-data.dbrow  %:  data
+                       %data
+                       src.bowl
+                       %agent
+                       now.bowl
+                       files
+                       ==
+
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
 ++  drop-tbl
   |=  [dbs=databases =bowl:gall =drop-table]
@@ -233,17 +264,20 @@
   =/  a=(list [[@tas db-row] [@tas db-row]])  (fuse [~(tap by current) ~(tap by next)])
   |-
   ?~  a  current
-  =/  cur-db-row=db-row   -<+.a
-  =/  next-db-row=db-row  ->+.a
+  =/  cur-db-row=db-row         -<+.a
+  =/  next-db-row=db-row        ->+.a
   =/  cur-internals=internals   -.sys.cur-db-row
   =/  next-internals=internals  -.sys.next-db-row
-  ?:  =(tmsp.cur-internals tmsp.next-internals)  $(a +.a)
+  =/  cur-data=data             -.user-data.cur-db-row
+  =/  next-data=data            -.user-data.next-db-row
+  ::
   =/  dbrow=db-row  (~(got by current) -<-.a)
+  ?:  =(tmsp.cur-internals tmsp.next-internals)
+    ?:  =(tmsp.cur-data tmsp.next-data)  $(a +.a)
+    =.  user-data.dbrow  [next-data user-data.dbrow]
+    $(a +.a, current (~(put by current) -<-.a dbrow))
   =.  sys.dbrow     [next-internals sys.dbrow]
-  %=  $
-    a        +.a
-    current  (~(put by current) -<-.a dbrow)
-  ==
+  $(a +.a, current (~(put by current) -<-.a dbrow))
 ++  name-set
   |*  a=(set)
   ^-  (set @tas)

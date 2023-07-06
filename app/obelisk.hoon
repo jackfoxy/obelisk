@@ -63,7 +63,7 @@
       %=  this
         databases  %:  new-database 
                        databases 
-                       now.bowl 
+                       bowl 
                        -:(parse(default-database 'dummy') +.act)
                     ==
       ==
@@ -74,7 +74,7 @@
   ::
   %cmd-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
-    :_  this(databases (new-database databases now.bowl +.act))
+    :_  this(databases (new-database databases bowl +.act))
 ::  :~  [%give %fact ~ %obelisk-result !>([%results -.res])] 
     :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
         [%give %kick ~[/databases] ~]

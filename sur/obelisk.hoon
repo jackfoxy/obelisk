@@ -21,11 +21,24 @@
   ==
 +$  data
   $:  %data
+      ship=@p
       agent=@tas
       tmsp=@da
-  ::    =indices
-  ::    =files
+      files=(map [@tas @tas] file)
   ==
++$  file
+  $:  %file
+      ship=@p
+      agent=@tas
+      tmsp=@da
+      length=@ud
+      clustered=?
+      =key
+      type=(list @tas)
+      data=(list (list @))
+        ::    =indices
+  ==
++$  key  (map (tree @) (tree @))
 +$  namespaces  (map @tas @tas)
 +$  tables  (map [@tas @tas] table)
 +$  table

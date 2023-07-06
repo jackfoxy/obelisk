@@ -28,7 +28,7 @@
 ++  sys2
   [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%ns1 q=%ns1] ~ [[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
 ++  user-data-1
-  [%data agent=%agent tmsp=~2000.1.1]
+  [%data ~zod agent=%agent tmsp=~2000.1.1 ~]
 ++  db2
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys2 sys1] user-data=~[user-data-1]]] ~ ~]
 ::  Create database
