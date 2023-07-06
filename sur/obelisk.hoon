@@ -6,11 +6,11 @@
       name=@tas
       created-by-agent=@tas
       created-tmsp=@da
-      sys=(list db-internals)
-::      =data
+      sys=(list internals)
+      user-data=(list data)
   ==
-+$  db-internals
-  $:  %db-internals
++$  internals
+  $:  %internals
       agent=@tas
       tmsp=@da
       =namespaces

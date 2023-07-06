@@ -17,7 +17,8 @@
                                 +.c 
                                 %agent 
                                 now 
-                                ~[(db-internals %db-internals %agent now ns tbs)]
+                                ~[(internals %internals %agent now ns tbs)]
+                                ~[(data %data %agent now)]
                                 ==
       ==
 ++  process-cmds
@@ -147,29 +148,30 @@
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
   =/  dbrow  ~|("database {<database-name.create-namespace>} does not exist" (~(got by dbs) database-name.create-namespace))
-  =/  internals=db-internals  -.sys.dbrow
+  =/  db-internals=internals  -.sys.dbrow
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
-                          namespaces.internals 
+                          namespaces.db-internals 
                           name.create-namespace 
                           name.create-namespace
                       ==
-  =.  -.sys.dbrow  %:  db-internals 
-                       %db-internals 
+  =.  -.sys.dbrow  %:  internals 
+                       %internals 
                        %agent 
                        now.bowl 
                        namespaces 
-                       tables.internals
+                       tables.db-internals
                        ==
   (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
 ++  create-tbl
   |=  [dbs=databases =bowl:gall =create-table]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
-  =/  dbrow  ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
-  =/  internals=db-internals  -.sys.dbrow
-  ?.  (~(has by namespaces.internals) namespace.table.create-table)
-    ~|("namespace {<namespaces.internals>} does not exist" !!)
+  =/  dbrow  
+    ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
+  =/  db-internals=internals  -.sys.dbrow
+  ?.  (~(has by namespaces.db-internals) namespace.table.create-table)
+    ~|("namespace {<namespaces.db-internals>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
     ~|("dulicate column names {<columns.create-table>}" !!)
@@ -182,7 +184,7 @@
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert
-        tables.internals
+        tables.db-internals
         [namespace.table.create-table name.table.create-table]
         %:  table
             %table
@@ -196,11 +198,11 @@
             ~
         ==
     ==
-  =.  -.sys.dbrow  %:  db-internals
-                       %db-internals
+  =.  -.sys.dbrow  %:  internals
+                       %internals
                        %agent
                        now.bowl
-                       namespaces.internals
+                       namespaces.db-internals
                        tables
                        ==
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
@@ -209,32 +211,35 @@
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
   =/  dbrow  ~|("database {<database.table.drop-table>} does not exist" (~(got by dbs) database.table.drop-table))
-  =/  internals=db-internals  -.sys.dbrow
-  ?.  (~(has by namespaces.internals) namespace.table.drop-table)
+  =/  db-internals=internals  -.sys.dbrow
+  ?.  (~(has by namespaces.db-internals) namespace.table.drop-table)
     ~|("namespace {<namespaces.internals>} does not exist" !!)
   =/  tables  
     ~|  "{<name.table.drop-table>} does not exists in {<namespace.table.drop-table>}"
     %+  map-delete
-        tables.internals
+        tables.db-internals
         [namespace.table.drop-table name.table.drop-table]
-  =.  -.sys.dbrow  %:  db-internals
-                       %db-internals
+  =.  -.sys.dbrow  %:  internals
+                       %internals
                        %agent
                        now.bowl
-                       namespaces.internals
+                       namespaces.db-internals
                        tables
                        ==
   (~(put by dbs) database.table.drop-table dbrow)  :: prefer upd
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases
-  =/  a  (fuse [~(tap by current) ~(tap by next)])
+  =/  a=(list [[@tas db-row] [@tas db-row]])  (fuse [~(tap by current) ~(tap by next)])
   |-
   ?~  a  current
-  :: old db-internals tmsp = new tmsp
-  ?:  =(<-<+>+>+<+>-.a> <->+>+>+<+>-.a>)  $(a +.a)
+  =/  cur-db-row=db-row   -<+.a
+  =/  next-db-row=db-row  ->+.a
+  =/  cur-internals=internals   -.sys.cur-db-row
+  =/  next-internals=internals  -.sys.next-db-row
+  ?:  =(tmsp.cur-internals tmsp.next-internals)  $(a +.a)
   =/  dbrow=db-row  (~(got by current) -<-.a)
-  =.  sys.dbrow     [`db-internals`->+>+>+<.a sys.dbrow]
+  =.  sys.dbrow     [next-internals sys.dbrow]
   %=  $
     a        +.a
     current  (~(put by current) -<-.a dbrow)
