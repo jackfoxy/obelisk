@@ -29,6 +29,15 @@
   [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%ns1 q=%ns1] ~ [[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
 ++  user-data-1
   [%data ~zod agent=%agent tmsp=~2000.1.1 ~]
+++  user-data-1-a
+  [%data ~zod agent=%agent tmsp=~2000.1.3 ~]
+++  user-data-2  
+  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table] [%file ~zod %agent ~2000.1.2 0 %.y ~ [%t ~] ~]] ~ ~]]
+++  user-data-3  
+  [%data ~zod %agent ~2000.1.3 [[[%dbo %my-table-2] [%file ~zod %agent ~2000.1.3 0 %.n ~ [%t %p ~] ~]] ~ [[[%dbo %my-table] [%file ~zod %agent ~2000.1.2 0 %.y ~ [%t ~] ~]] ~ ~]]]
+++  user-data-3-a
+  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table-2] [%file ~zod %agent ~2000.1.2 0 %.n ~ [%t %p ~] ~]] ~ [[[%dbo %my-table] [%file ~zod %agent ~2000.1.2 0 %.y ~ [%t ~] ~]] ~ ~]]]
+
 ++  db2
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys2 sys1] user-data=~[user-data-1]]] ~ ~]
 ::  Create database
@@ -116,7 +125,7 @@
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[[%create-namespace %db2 %ns1]]]))
 ::  Create table
 ++  one-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-2 user-data-1]]] ~ ~]
 ++  one-col-tbl-sys
   [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]] tables=one-col-tbls]
 ++  one-col-tbl-key
@@ -129,7 +138,7 @@
     [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table'] ~[[%column 'col1' %t]] %.y ~[[%ordered-column 'col1' %.y]] ~]
 ::
 ++  two-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-col-tbl-sys one-col-tbl-sys sys1] user-data=~[user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-col-tbl-sys one-col-tbl-sys sys1] user-data=~[user-data-3 user-data-2 user-data-1]]] ~ ~]
 ++  two-col-tbl-sys
   [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[%dbo %dbo] ~ [[%sys %sys] ~ ~]] tables=two-col-tbls]
 ++  two-col-tbl-key
@@ -142,7 +151,7 @@
     [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table-2'] ~[[%column 'col1' %t] [%column 'col2' %p]] %.n ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]] ~]
 ::
 ++  two-comb-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1] user-data=~[user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1] user-data=~[user-data-3-a user-data-1]]] ~ ~]
 ++  two-comb-col-tbl-sys
   [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo %dbo] ~ [[%sys %sys] ~ ~]] tables=two-col-tbls]
 ::
@@ -312,7 +321,7 @@
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
 ::  Drop table
 ++  dropped-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys3 one-col-tbl-sys sys1] user-data=~[user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys3 one-col-tbl-sys sys1] user-data=~[user-data-1-a user-data-2 user-data-1]]] ~ ~]
 ++  sys3
   [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
 ++  test-drop-tbl

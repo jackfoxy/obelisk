@@ -46,7 +46,7 @@
         results  ['success' results]
       ==
     %create-table
-     %=  $
+      %=  $
         dbs   (create-tbl dbs bowl -.cmds)
         cmds  +.cmds
         results  ['success' results]
@@ -87,16 +87,15 @@
 
   =/  ctes=(list cte)  ctes.transform  :: To Do - map CTEs
   =/  a  (do-set-functions dbs bowl set-functions.transform)
-::  ~&  >  a
   !!
 
 ++  do-set-functions
   |=  [dbs=databases =bowl:gall =(tree set-function:ast)]
 
-::  =/  rtree  ^+((~(rdc of tree) foo) tree)
-::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
-::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
-::  ?~  rtree  !!  :: fuse loop
+  ::  =/  rtree  ^+((~(rdc of tree) foo) tree)
+  ::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
+  ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
+  ::  ?~  rtree  !!  :: fuse loop
 
   =/  rtree  (~(rdc of tree) rdc-set-func)
 
@@ -105,7 +104,6 @@
       !!
     %insert
       =/  ins=insert:ast  -.rtree
-      ~&  >  ins
       !!
     %update
       !!
@@ -170,7 +168,7 @@
   =/  dbrow  
     ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
   =/  db-internals=internals  -.sys.dbrow
-  =/  usr-data=data         -.user-data.dbrow
+  =/  usr-data=data           -.user-data.dbrow
   ?.  (~(has by namespaces.db-internals) namespace.table.create-table)
     ~|("namespace {<namespaces.db-internals>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
@@ -229,13 +227,12 @@
                        tables
                        ==
   =.  -.user-data.dbrow  %:  data
-                       %data
-                       src.bowl
-                       %agent
-                       now.bowl
-                       files
-                       ==
-
+                             %data
+                             src.bowl
+                             %agent
+                             now.bowl
+                             files
+                             ==
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
 ++  drop-tbl
   |=  [dbs=databases =bowl:gall =drop-table]
@@ -243,12 +240,18 @@
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
   =/  dbrow  ~|("database {<database.table.drop-table>} does not exist" (~(got by dbs) database.table.drop-table))
   =/  db-internals=internals  -.sys.dbrow
+  =/  usr-data=data           -.user-data.dbrow
   ?.  (~(has by namespaces.db-internals) namespace.table.drop-table)
     ~|("namespace {<namespaces.internals>} does not exist" !!)
   =/  tables  
     ~|  "{<name.table.drop-table>} does not exists in {<namespace.table.drop-table>}"
     %+  map-delete
         tables.db-internals
+        [namespace.table.drop-table name.table.drop-table]
+   =/  files  
+    ~|  "{<name.table.drop-table>} does not exists in {<namespace.table.drop-table>}"
+    %+  map-delete
+        files.usr-data
         [namespace.table.drop-table name.table.drop-table]
   =.  -.sys.dbrow  %:  internals
                        %internals
@@ -257,6 +260,13 @@
                        namespaces.db-internals
                        tables
                        ==
+  =.  -.user-data.dbrow  %:  data
+                             %data
+                             src.bowl
+                             %agent
+                             now.bowl
+                             files
+                             ==
   (~(put by dbs) database.table.drop-table dbrow)  :: prefer upd
 ++  update-state
   |=  [current=databases next=databases]
@@ -271,12 +281,11 @@
   =/  cur-data=data             -.user-data.cur-db-row
   =/  next-data=data            -.user-data.next-db-row
   ::
+  ?:  ?&(=(tmsp.cur-internals tmsp.next-internals) =(tmsp.cur-data tmsp.next-data))
+    $(a +.a)
   =/  dbrow=db-row  (~(got by current) -<-.a)
-  ?:  =(tmsp.cur-internals tmsp.next-internals)
-    ?:  =(tmsp.cur-data tmsp.next-data)  $(a +.a)
-    =.  user-data.dbrow  [next-data user-data.dbrow]
-    $(a +.a, current (~(put by current) -<-.a dbrow))
-  =.  sys.dbrow     [next-internals sys.dbrow]
+  =?  sys.dbrow  !=(tmsp.cur-internals tmsp.next-internals)  [next-internals sys.dbrow]
+  =?  user-data.dbrow  !=(tmsp.cur-data tmsp.next-data)  [next-data user-data.dbrow]
   $(a +.a, current (~(put by current) -<-.a dbrow))
 ++  name-set
   |*  a=(set)
