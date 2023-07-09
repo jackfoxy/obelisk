@@ -169,7 +169,7 @@
               commands
                 [`command:ast`(create-index:ast %create-index ->.parsed +<.parsed %.n %.y +>.parsed) commands]
             ==
-        ?:  =(-<.parsed %nonclustered)              ::"create nonclustered index ..."
+        ?:  =(-<.parsed %look-up)              ::"create look-up index ..."
             %=  $
               script           q.q.u.+3.q:index-nail
               script-position  next-cursor
@@ -185,7 +185,7 @@
               commands
                 [`command:ast`(create-index:ast %create-index ->+.parsed +<.parsed %.y %.y +>.parsed) commands]
             ==
-        ?:  =(->-.parsed %nonclustered)             ::"create unique nonclustered index ..."
+        ?:  =(->-.parsed %look-up)             ::"create unique look-up index ..."
             %=  $
               script           q.q.u.+3.q:index-nail
               script-position  next-cursor
@@ -791,7 +791,7 @@
 ++  parse-face  ;~(pfix whitespace sym)
 ++  face-list  ;~(pfix whitespace (ifix [pal par] (more com ;~(pose ;~(sfix parse-face whitespace) parse-face))))
 ++  ordering  ;~(pfix whitespace ;~(pose (jester 'asc') (jester 'desc')))
-++  clustering  ;~(pfix whitespace ;~(pose (jester 'clustered') (jester 'nonclustered')))
+++  clustering  ;~(pfix whitespace ;~(pose (jester 'clustered') (jester 'look-up')))
 ++  ordered-column-list
   ;~(pfix whitespace (ifix [pal par] (more com (cook cook-ordered-column ;~(pose ;~(sfix ;~(plug parse-face ordering) whitespace) ;~(plug parse-face ordering) ;~(sfix parse-face whitespace) parse-face)))))
 ++  parse-ship  ;~(pfix sig fed:ag)
