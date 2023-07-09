@@ -99,21 +99,21 @@
   =/  expected2  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') " ALtER  TaBLE  db.ns.table  AdD  COlUMN  ( col1  %t ,  col2  %p ,  col3  %ud ) \0a;\0a ALTER TABLE db..table ADD COLUMN (col1 %t) ")
+    !>  (parse:parse(default-database 'db1') " ALtER  TaBLE  db.ns.table  AdD  COlUMN  ( col1  @t ,  col2  @p ,  col3  @ud ) \0a;\0a ALTER TABLE db..table ADD COLUMN (col1 @t) ")
 ::
 :: alter column table 3 columns
 ++  test-alter-table-2
   =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 %t, col2 %p, col3 %ud)")
+    !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 @t, col2 @p, col3 @ud)")
 ::
 :: alter column table 1 column
 ++  test-alter-table-3
   =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 %t)")
+    !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 @t)")
 ::
 :: drop column table 3 columns
 ++  test-alter-table-4
@@ -272,8 +272,8 @@
 ++  test-create-table-1
   =/  expected1  [%create-table table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]]]
   =/  expected2  [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.n pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]]]
-  =/  urql1  "crEate  taBle  db.ns.my-table  ( col1  %t ,  col2  %p ,  col3  %ud )  pRimary  kEy  clusTered  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
-  =/  urql2  "crEate  taBle  db..my-table  ( col1  %t ,  col2  %p ,  col3  %ud )  pRimary  kEy  look-up  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  UPdATE  CAsCADE  oN  dELETE  CAScADE "
+  =/  urql1  "crEate  taBle  db.ns.my-table  ( col1  @t ,  col2  @p ,  col3  @ud )  pRimary  kEy  clusTered  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
+  =/  urql2  "crEate  taBle  db..my-table  ( col1  @t ,  col2  @p ,  col3  @ud )  pRimary  kEy  look-up  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  UPdATE  CAsCADE  oN  dELETE  CAScADE "
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'db1') (weld urql1 (weld "\0a;\0a" urql2)))
@@ -281,7 +281,7 @@
 :: leading whitespace characters, whitespace after end delimiter, create look-up table... table ... references  ns.fk-table  on update no action on delete no action
 ++  test-create-table-2
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.n pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~]]]
-  =/  urql2  "  \0acreate table my-table (col1 %t,col2 %p,col3 %ud) primary key look-up (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete no action; "
+  =/  urql2  "  \0acreate table my-table (col1 @t,col2 @p,col3 @ud) primary key look-up (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete no action; "
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql2)
@@ -289,7 +289,7 @@
 :: create table... table ... references  ns.fk-table  on update no action on delete cascade
 ++  test-create-table-3
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade]]]]
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete cascade"
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete cascade"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -297,7 +297,7 @@
 :: create table... table ... references fk-table on update cascade on delete no action
 ++  test-create-table-4
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%update-cascade]]]]
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences fk-table (col19, col20) on update cascade on delete no action"
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences fk-table (col19, col20) on update cascade on delete no action"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -305,7 +305,7 @@
 :: create table... table ... single column indices... references fk-table on update cascade
 ++  test-create-table-5
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~[%update-cascade]]]]
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) on update cascade"
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) on update cascade"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -313,7 +313,7 @@
 :: create table... table ... single column indices... references fk-table
 ++  test-create-table-6
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~]]]
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) "
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) "
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -321,7 +321,7 @@
 :: create table...  no foreign key
 ++  test-create-table-7
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~]
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1,col2)"
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -329,20 +329,20 @@
 :: create table...  2 foreign keys
 ++  test-create-table-8
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col20' ~] referential-integrity=~] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~]]]
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20), fk2 (col1, col2 desc) reFerences fk-table2 (col19, col20)"
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20), fk2 (col1, col2 desc) reFerences fk-table2 (col19, col20)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: fail when database qualifier on foreign key table db.ns.fk-table
 ++  test-fail-create-table-9
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1) foreign key fk (col2 desc) reFerences db.ns.fk-table (col20) "
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences db.ns.fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
 ::
 :: fail when database qualifier on foreign key table db..fk-table
 ++  test-fail-create-table-10
-  =/  urql  "create table my-table (col1 %t,col2 %p,col3 %ud) primary key (col1) foreign key fk (col2 desc) reFerences db..fk-table (col20) "
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences db..fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
 ::
