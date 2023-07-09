@@ -32,11 +32,20 @@
 ++  user-data-1-a
   [%data ~zod agent=%agent tmsp=~2000.1.3 ~]
 ++  user-data-2  
-  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table] [%file ~zod %agent ~2000.1.2 0 %.y ~ [%t ~] ~]] ~ ~]]
+  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
 ++  user-data-3  
-  [%data ~zod %agent ~2000.1.3 [[[%dbo %my-table-2] [%file ~zod %agent ~2000.1.3 0 %.n ~ [%t %p ~] ~]] ~ [[[%dbo %my-table] [%file ~zod %agent ~2000.1.2 0 %.y ~ [%t ~] ~]] ~ ~]]]
+  [%data ~zod %agent ~2000.1.3 [[[%dbo %my-table-2] file-2col-1-3] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
 ++  user-data-3-a
-  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table-2] [%file ~zod %agent ~2000.1.2 0 %.n ~ [%t %p ~] ~]] ~ [[[%dbo %my-table] [%file ~zod %agent ~2000.1.2 0 %.y ~ [%t ~] ~]] ~ ~]]]
+  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table-2] file-2col-1-2] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
+
+++  file-1col-1-2
+  [%file ~zod %agent ~2000.1.2 %.y ~[[%t %.y]] ~ 0 [[%col1 [%t 0]] ~ ~] ~]
+
+++  file-2col-1-2
+  [%file ~zod %agent ~2000.1.2 %.n ~[[%t %.y] [%p %.y]] ~ 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~]
+
+++  file-2col-1-3
+  [%file ~zod %agent ~2000.1.3 %.n ~[[%t %.y] [%p %.y]] ~ 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~]
 
 ++  db2
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys2 sys1] user-data=~[user-data-1]]] ~ ~]

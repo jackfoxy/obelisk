@@ -52,7 +52,7 @@
   $:
     %column
     name=@tas
-    column-type=@tas
+    type=@tas
   ==
 +$  qualified-object
   $:

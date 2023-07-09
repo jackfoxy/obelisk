@@ -200,15 +200,18 @@
         table
     ==
   ::
+  =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
+  ::
   =/  file  %:  file
                 %file
                 src.bowl
                 %agent
                 now.bowl
-                0
                 clustered.create-table
+                (make-index-key column-look-up pri-indx.create-table)
                 ~
-                (turn columns.create-table |=(=column:ast column-type.column))
+                0
+                column-look-up
                 ~
             ==
   =/  files  
@@ -234,6 +237,22 @@
                              files
                              ==
   (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
+++  make-col-lu-data
+    |=  [=column:ast a=@]
+    ^-  [[@tas [@tas @ud]] @ud]
+    [[name.column [type.column a]] +(a)]
+++  make-index-key
+  |=  [column-lookup=(map @tas [@tas @ud]) pri-indx=(list ordered-column)]
+  ^-  (list [@tas ?])
+  =/  a=(list [@tas ?])  ~
+  |-
+  ?~  pri-indx  (flop a)
+  =/  b=ordered-column  -.pri-indx
+  =/  col  (~(got by column-lookup) name.b)
+  %=  $
+    pri-indx  +.pri-indx
+    a  [[-.col is-ascending.b] a]
+  ==
 ++  drop-tbl
   |=  [dbs=databases =bowl:gall =drop-table]
   ^-  databases
@@ -308,4 +327,15 @@
   ^+  m
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("key does not exist for deletion: {<key>}" !!)
+++  idx-comp 
+  |_  index=(list [@tas is-ascending=?])
+  ++  order
+    |=  [p=(list @) q=(list @)]
+    =/  k=(list [@tas is-ascending=?])  index
+    |-  ^-  ?
+    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
+    ?:  =(-<.k %t)  (aor -.p -.q)
+    ?:  ->.k  (lth -.p -.q)
+    (gth -.p -.q)
+  --
 --

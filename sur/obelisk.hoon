@@ -31,14 +31,14 @@
       ship=@p
       agent=@tas
       tmsp=@da
-      length=@ud
       clustered=?
-      =key
-      type=(list @tas)
-      data=(list (list @))
-        ::    =indices
+      key=(list [@tas ?])
+      pri-idx=(tree [(list @) (map @tas @)])
+      length=@ud
+      column-lookup=(map @tas [@tas @ud])   :: name [type index]
+      data=(list (map @tas @))
+      ::    =indices
   ==
-+$  key  (map (tree @) (tree @))
 +$  namespaces  (map @tas @tas)
 +$  tables  (map [@tas @tas] table)
 +$  table
