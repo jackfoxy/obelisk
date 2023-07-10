@@ -44,39 +44,37 @@
                  ==
     :_  this(databases +.res)
     ::https://github.com/urbit/urbit/issues/6692
-::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
-    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]
     ==
   ::
   %commands
     =/  res  (process-cmds databases bowl +.act)
     :_  this(databases +.res)
-::    :~  [%give %fact ~ %obelisk-result !>([%results -.res])]
-    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]
     ==
   ::
   %tape-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
+    =/  res  %:  new-database 
+                 databases 
+                 bowl 
+                 -:(parse(default-database 'dummy') +.act)
+             ==
     :_
       %=  this
-        databases  %:  new-database 
-                       databases 
-                       bowl 
-                       -:(parse(default-database 'dummy') +.act)
-                    ==
+        databases  -.res
       ==
-::    :~  [%give %fact ~ %obelisk-result !>([%results ~['success']])]
-    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+    :~  [%give %fact ~[/databases] %obelisk-result !>(+.res)]
         [%give %kick ~[/databases] ~]
     ==
   ::
   %cmd-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
-    :_  this(databases (new-database databases bowl +.act))
-::  :~  [%give %fact ~ %obelisk-result !>([%results -.res])] 
-    :~  [%give %fact ~[/databases] %obelisk-result !>([%results ~['success']])]
+    =/  res  (new-database databases bowl +.act)
+    :_  this(databases -.res)
+    :~  [%give %fact ~[/databases] %obelisk-result !>(+.res)]
         [%give %kick ~[/databases] ~]
     ==
   ==

@@ -57,7 +57,7 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
+    !>  [%result-da 'system time' ~2000.1.1]
     !>  ->+>+>.move
   %+  expect-eq                         :: expected state
     !>  db1
@@ -70,7 +70,7 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
+    !>  [%result-da 'system time' ~2000.1.1]
     !>  ->+>+>.move
   %+  expect-eq                         :: expected state
     !>  db1
@@ -92,9 +92,12 @@
     (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE NAMESPACE ns1"]))
   =+  !<(=state on-save:agent)
   ;:  weld
+%+  expect-eq                         :: expected results
+    !>  %results
+    !>  ->+>+>-.mov2
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  db2
     !>  databases.state
@@ -109,8 +112,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  db2
     !>  databases.state
@@ -174,8 +180,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  one-col-tbl-db
     !>  databases.state
@@ -190,8 +199,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  one-col-tbl-db
     !>  databases.state
@@ -208,8 +220,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov3
+    !>  %results
+    !>  ->+>+>-.mov3
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.3]
+    !>  ->+>+>+<.mov3
   %+  expect-eq                         :: expected state
     !>  two-col-tbl-db
     !>  databases.state
@@ -226,8 +241,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov3
+    !>  %results
+    !>  ->+>+>-.mov3
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.3]
+    !>  ->+>+>+<.mov3
   %+  expect-eq                         :: expected state
     !>  two-col-tbl-db
     !>  databases.state
@@ -242,8 +260,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  two-comb-col-tbl-db
     !>  databases.state
@@ -258,8 +279,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  two-comb-col-tbl-db
     !>  databases.state
@@ -348,8 +372,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov3
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.3]
+    !>  ->+>+>+<.mov3
   %+  expect-eq                         :: expected state
     !>  dropped-tbl-db
     !>  databases.state

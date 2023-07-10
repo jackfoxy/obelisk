@@ -2,7 +2,7 @@
 |%
 ++  new-database
   |=  [dbs=databases =bowl:gall c=command:ast]
-  ^-  databases
+  ^-  [databases cmd-result]
   ?:  =(+.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
   =/  ns=namespaces
@@ -12,6 +12,7 @@
             ==
         ==
   =/  tbs=tables  ~
+  :-
   %:  map-insert  dbs  +.c  %:  db-row 
                                 %db-row 
                                 +.c 
@@ -21,13 +22,14 @@
                                 ~[(data %data src.bowl %agent now.bowl ~)]
                                 ==
       ==
+  `cmd-result`[%result-da 'system time' now.bowl]
 ++  process-cmds
   |=  [state-dbs=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
   =/  dbs  state-dbs
   =/  results=(list cmd-result)  ~
   |-  
-  ?~  cmds  [(flop results) (update-state [state-dbs dbs])]
+  ?~  cmds  [[%results (flop results)] (update-state [state-dbs dbs])]
   ?-  -<.cmds
     %alter-index
       !!
@@ -43,13 +45,13 @@
       %=  $
         dbs   (create-ns dbs bowl -.cmds)
         cmds  +.cmds
-        results  ['success' results]
+        results  [`cmd-result`[%result-da 'system time' now.bowl] results]
       ==
     %create-table
       %=  $
         dbs   (create-tbl dbs bowl -.cmds)
         cmds  +.cmds
-        results  ['success' results]
+        results  [`cmd-result`[%result-da 'system time' now.bowl] results]
       ==
     %create-view
       !!
@@ -63,7 +65,7 @@
       %=  $
         dbs   (drop-tbl dbs bowl -.cmds)
         cmds  +.cmds
-        results  ['success' results]
+        results  [`cmd-result`[%result-da 'system time' now.bowl] results]
       ==
     %drop-view
       !!
@@ -76,7 +78,7 @@
       %=  $
         dbs   -.a
         cmds  +.cmds
-        results  [[%transform-result +<.a +>.a] results]  :: to do, gets more complex w/ other transforms
+        results  [`cmd-result`[%result-ud 'dummy' 0] results]  :: to do: gets more complex w/ other transforms
       ==
     %truncate-table
       !!
@@ -104,6 +106,13 @@
       !!
     %insert
       =/  ins=insert:ast  -.rtree
+~&  >  -.rtree
+      =/  dbrow  
+    ~|("database {<database.table.ins>} does not exist" (~(got by dbs) database.table.ins))
+    =/  db-internals=internals  -.sys.dbrow
+    =/  =data                   -.user-data.dbrow
+    =/  =file  ~|("table {<namespace.table.ins>}.{<name.table.ins>} does not exist" (~(got by files.data) [namespace.table.ins name.table.ins]))  
+~&  >  file
       !!
     %update
       !!

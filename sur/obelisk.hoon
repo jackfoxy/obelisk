@@ -64,7 +64,8 @@
 +$  msg  @t
 +$  cmd-result
   $%  msg
-      [%transform-result msg-count=@ud msg=@t]
+      [%result-ud msg=@t count=@ud]
+      [%result-da msg=@t date=@da]
   ==
 +$  result  [%results (list cmd-result)]
 --  
