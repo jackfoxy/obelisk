@@ -140,7 +140,7 @@
 ++  one-col-tbl-key
  [%dbo %my-table]
 ++  one-col-tbl
-  [%table [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 is-ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
+  [%table [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
 ++  one-col-tbls
  [[one-col-tbl-key one-col-tbl] ~ ~]
 ++  cmd-one-col
@@ -186,7 +186,7 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 %t) PRIMARY KEY (col1)"]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"]))
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
@@ -220,9 +220,9 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 %t) PRIMARY KEY CLUSTERED (col1)"]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY CLUSTERED (col1)"]))
   =^  mov3  agent  
-    (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table-2 (col1 %t, col2 %p) PRIMARY KEY NONCLUSTERED (col1, col2)"]))
+    (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) PRIMARY KEY LOOK-UP (col1, col2)"]))
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
@@ -254,7 +254,7 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 %t) PRIMARY KEY (col1); CREATE TABLE db1..my-table-2 (col1 %t, col2 %p) PRIMARY KEY NONCLUSTERED (col1, col2)"]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) PRIMARY KEY LOOK-UP (col1, col2)"]))
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
@@ -274,7 +274,7 @@
 ++  test-fail-tbl-db-does-not-exist     :: fail on database does not exist
   =|  run=@ud
   =/  cmd
-    [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' is-ascending=%.y]] foreign-keys=~]  
+    [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' ascending=%.y]] foreign-keys=~]  
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
@@ -283,7 +283,7 @@
 ++  test-fail-tbl-ns-does-not-exist     :: fail on namespace does not exist
   =|  run=@ud
   =/  cmd
-    [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' is-ascending=%.y]] foreign-keys=~]  
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' ascending=%.y]] foreign-keys=~]  
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
@@ -292,7 +292,7 @@
 ++  test-fail-duplicate-tbl             :: fail on duplicate table name
   =|  run=@ud
   =/  cmd
-    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' is-ascending=%.y]] foreign-keys=~]  
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' ascending=%.y]] foreign-keys=~]  
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
@@ -304,7 +304,7 @@
   ++  test-fail-tbl-dup-cols     :: fail on dulicate column names
   =|  run=@ud
   =/  cmd
-    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col1' column-type=%t]] clustered=%.n primary-key=~[[%ordered-column column-name='col1' is-ascending=%.y]] foreign-keys=~]  
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col1' column-type=%t]] clustered=%.n primary-key=~[[%ordered-column column-name='col1' ascending=%.y]] foreign-keys=~]  
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
@@ -313,7 +313,7 @@
   ++  test-fail-tbl-dup-key-cols     :: fail on dulicate column names in key
   =|  run=@ud
   =/  cmd
-    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' is-ascending=%.y] [%ordered-column column-name='col1' is-ascending=%.y]] foreign-keys=~]  
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' ascending=%.y] [%ordered-column column-name='col1' ascending=%.y]] foreign-keys=~]  
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
@@ -322,7 +322,7 @@
   ++  test-fail-tbl-key-col-not-exist     :: fail on key column not in column definitions
   =|  run=@ud
   =/  cmd
-    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' is-ascending=%.y] [%ordered-column column-name='col4' is-ascending=%.y]] foreign-keys=~]  
+    [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type='@ud']] clustered=%.n primary-key=~[[%ordered-column column-name='col1' ascending=%.y] [%ordered-column column-name='col4' ascending=%.y]] foreign-keys=~]  
   =^  mov1  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
   =.  run  +(run)
@@ -341,7 +341,7 @@
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 %t) PRIMARY KEY (col1)"]))
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"]))
   =.  run  +(run)
   =^  mov3  agent  
     (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))

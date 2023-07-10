@@ -46,7 +46,7 @@
   $:
     %ordered-column
     name=@tas
-    is-ascending=?
+    ascending=?
   ==
 +$  column
   $:
@@ -223,7 +223,7 @@
   $:
   %ordering-column
   column=grouping-column
-  is-ascending=?
+  ascending=?
   ==
 +$  with
   $:

@@ -37,7 +37,7 @@
 ++  one-col-tbl-key
  [%dbo %my-table]
 ++  one-col-tbl
-  [%table [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 is-ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
+  [%table [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
 ++  cmd-one-col
     [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table'] ~[[%column 'col1' %t]] %.y ~[[%ordered-column 'col1' %.y]] ~]
 ::

@@ -251,7 +251,7 @@
   =/  col  (~(got by column-lookup) name.b)
   %=  $
     pri-indx  +.pri-indx
-    a  [[-.col is-ascending.b] a]
+    a  [[-.col ascending.b] a]
   ==
 ++  drop-tbl
   |=  [dbs=databases =bowl:gall =drop-table]
@@ -328,10 +328,10 @@
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("key does not exist for deletion: {<key>}" !!)
 ++  idx-comp 
-  |_  index=(list [@tas is-ascending=?])
+  |_  index=(list [@tas ascending=?])
   ++  order
     |=  [p=(list @) q=(list @)]
-    =/  k=(list [@tas is-ascending=?])  index
+    =/  k=(list [@tas ascending=?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
     ?:  =(-<.k %t)  (aor -.p -.q)
