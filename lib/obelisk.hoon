@@ -134,52 +134,90 @@
     ?.  =(~(wyt by column-lookup.file) ~(wyt in (silt `(list @t)`(need columns.c))))  !!
     (turn `(list @t)`(need columns.c) |=(a=@t (~(got by col-map) a)))
     ::
-    =/  key-pick  (turn columns.pri-indx.table |=(a=ordered-column:ast (make-key-pick name.a cols)))
-    =/  mycomp  ~(order idx-comp key.file)
+    =/  key-pick  
+      (turn columns.pri-indx.table |=(a=ordered-column:ast (make-key-pick name.a cols)))
+    =/  mycomp  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key.file))
+    ::
     ?.  ?=([%data *] values.c)  !!  :: not implemented
     =/  value-table  `(list (list value-or-default:ast))`+.values.c
     =/  i=@ud  0
-                          ~&  >  c
-                          ~&  >  file
-                          ~&  >  "col-map"
-                          ~&  >  col-map
+                      ::    ~&  >  c
+                      ::    ~&  >  file
+                      ::    ~&  >  "col-map:  {<col-map>} "
 
-                          ~&  >  "columns.table"
-                          ~&  >  columns.table
-                          ~&  >  "cols"
-                          ~&  >  cols
-                          ~&  >  "key-pick"
-                          ~&  >  key-pick
-                          ~&  >  "key.file"
-                          ~&  >  key.file
-                          ~&  >  "pri-indx.table"
-                          ~&  >  pri-indx.table
+                      ::    ~&  >  "columns.table"
+                      ::    ~&  >  columns.table
+                      ::    ~&  >  "key-pick:  {<key-pick>}"
+                      ::    ~&  >  " "
+                      ::    ~&  >  "key.file:  {<key.file>}"
+                      ::    ~&  >  ""
+                      ::    ~&  >  "pri-indx.table:  {<pri-indx.table>}"
+                      ::    ~&  >  ""
 
     |-
     ?~  value-table  ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
-    ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<i>}"
-    =/  row  -.value-table
-    $(value-table `(list (list value-or-default:ast))`+.value-table)
-::  for each value row
-::    + row-count
-::make key delayed execution
-           :: (create mop of cols then to list)
-::    construct map of row cells, key
-::    insert map of row cells into pri-idx.file
-::    cons map of row cells data.file
-::  
-::  update files; data ship,agent, tmsp
 
-::      =.  ship.file  src.bowl
-::    =.  data 
-  ::  !!
+::  update files; data ship,agent, tmsp
+::    =.  ship.file  src.bowl
+::    =.  agent.file  %agent
+::    =.  tmsp.file  now.bowl 
+
+    ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<i>}"
+    =/  row=(list value-or-default:ast)  -.value-table
+    =/  row-key  
+      (turn key-pick |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map])))
+    =/  map-row=(map @tas @)  (malt (row-cells row cols))
+
+                 ~&  "before {<pri-idx.file>}"
+
+   =.  pri-idx.file  (put:mycomp pri-idx.file row-key map-row)
+
+                    ~&  "after {<pri-idx.file>}"
     
-      
+::  To Do:
+::  1)   =.  data.file
+::  2)  enable default in parse insert
+
+                          ::   ~&  >  "row-key {<row-key>}"
+                          ::   ~&  >  " "
+                          ::   ~&  >  "cols {<cols>}"
+                          ::   ~&  >  "row {<row>}"
+                          ::   ~&  >  "map-row {<map-row>}"
+
+    $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
+++  key-atom
+  |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
+  ^-  @
+  ?:  ?=(dime q.a)  q.q.a
+  ?.  =(%default q.a)  !!        :: default to bunt
+  =/  c  (~(got by r.a) p.a)
+  ?:  =(%da type.c)  *@da
+  0
+++  row-cells
+  |=  a=[p=(list value-or-default:ast) q=(list column:ast)]
+  ^-  (list [@tas @])
+  =/  cells=(list [@tas @])  ~
+  |-
+  ?~  p.a  cells
+  %=  $
+    cells  [(row-cell -.p.a -.q.a) cells]
+    p.a  +.p.a
+    q.a  +.q.a
+  ==
+++  row-cell
+  |=  a=[p=value-or-default:ast q=column:ast]
+  ^-  [@tas @]
+  =/  q  
+    ?:  ?=(dime p.a)  q.p.a
+    ?.  =(%default p.a)  !!        :: default to bunt
+    ?:  =(%da type.q.a)  *@da
+    0
+  [name.q.a q]
 ++  make-key-pick
   |=  b=[key=@tas a=(list column:ast)]
   =/  i  0
   |-
-  ?:  =(key.b name:(snag i a.b))  i
+  ?:  =(key.b name:(snag i a.b))  [key.b i]
   $(i +(i))
 
 ++  rdc-set-func
