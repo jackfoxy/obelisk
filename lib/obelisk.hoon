@@ -144,7 +144,6 @@
                       ::    ~&  >  c
                       ::    ~&  >  file
                       ::    ~&  >  "col-map:  {<col-map>} "
-
                       ::    ~&  >  "columns.table"
                       ::    ~&  >  columns.table
                       ::    ~&  >  "key-pick:  {<key-pick>}"
@@ -155,44 +154,35 @@
                       ::    ~&  >  ""
 
     |-
-    ?~  value-table  ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
+    ?~  value-table  ~&  >  "done"  ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
 
 ::  update files; data ship,agent, tmsp
 ::    =.  ship.file  src.bowl
 ::    =.  agent.file  %agent
 ::    =.  tmsp.file  now.bowl 
+::    =.  data.file
 
-    ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<i>}"
+    ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
     =/  row-key  
       (turn key-pick |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map])))
     =/  map-row=(map @tas @)  (malt (row-cells row cols))
 
-                 ~&  "before {<pri-idx.file>}"
+                ::    ~&  "before {<pri-idx.file>}"
 
-   =.  pri-idx.file  (put:mycomp pri-idx.file row-key map-row)
+    =.  pri-idx.file  (put:mycomp pri-idx.file row-key map-row)
 
-                    ~&  "after {<pri-idx.file>}"
-    
-::  To Do:
-::  1)   =.  data.file
-::  2)  enable default in parse insert
-
-                          ::   ~&  >  "row-key {<row-key>}"
-                          ::   ~&  >  " "
-                          ::   ~&  >  "cols {<cols>}"
-                          ::   ~&  >  "row {<row>}"
-                          ::   ~&  >  "map-row {<map-row>}"
+                ::    ~&  "after {<pri-idx.file>}"
 
     $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
-  ?:  ?=(dime q.a)  q.q.a
-  ?.  =(%default q.a)  !!        :: default to bunt
-  =/  c  (~(got by r.a) p.a)
-  ?:  =(%da type.c)  *@da
-  0
+  ?:  ?=(dime q.a)  
+    ?.  =(%default p.q.a)  q.q.a     
+    ?:  =(%da type:(~(got by r.a) p.a))  *@da    :: default to bunt
+    0
+  ~|("key atom {<q.a>} not supported" !!)
 ++  row-cells
   |=  a=[p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (list [@tas @])
@@ -208,10 +198,13 @@
   |=  a=[p=value-or-default:ast q=column:ast]
   ^-  [@tas @]
   =/  q  
-    ?:  ?=(dime p.a)  q.p.a
-    ?.  =(%default p.a)  !!        :: default to bunt
-    ?:  =(%da type.q.a)  *@da
-    0
+    ?:  ?=(dime p.a)  
+      ?:  =(%default p.p.a)
+        ?:  =(%da type.q.a)  *@da                :: default to bunt
+        0 
+      ?:  =(p.p.a type.q.a)  q.p.a
+      ~|("type of column {<name.q.a>} does not match input value type" !!)
+    ~|("row cell {<p.a>} not suppoerted" !!)                                           :: not supported
   [name.q.a q]
 ++  make-key-pick
   |=  b=[key=@tas a=(list column:ast)]
