@@ -272,7 +272,7 @@
     table=qualified-object
     predicate=(unit predicate)
   ==
-+$  insert-values        $%([%data (list (list datum))] [%query query])
++$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
 ::  $insert:
 +$  insert

@@ -87,7 +87,7 @@
   |=  [dbs=databases =bowl:gall =transform:ast]
   ^-  [databases @ud @t]
 
-  =/  ctes=(list cte)  ctes.transform  :: To Do - map CTEs
+  =/  ctes=(list cte:ast)  ctes.transform  :: To Do - map CTEs
   =/  a  (do-set-functions dbs bowl set-functions.transform)
   !!
 
@@ -105,15 +105,7 @@
     %delete
       !!
     %insert
-      =/  ins=insert:ast  -.rtree
-~&  >  -.rtree
-      =/  dbrow  
-    ~|("database {<database.table.ins>} does not exist" (~(got by dbs) database.table.ins))
-    =/  db-internals=internals  -.sys.dbrow
-    =/  =data                   -.user-data.dbrow
-    =/  =file  ~|("table {<namespace.table.ins>}.{<name.table.ins>} does not exist" (~(got by files.data) [namespace.table.ins name.table.ins]))  
-~&  >  file
-      !!
+      (do-insert dbs bowl -.rtree)
     %update
       !!
     %query
@@ -121,15 +113,84 @@
     %merge
       !!
     == 
-  ++  rdc-set-func
-    |=  =(tree set-function)
-    ?~  tree  ~
-    ::  template
-    ?~  l.tree
-      ?~  r.tree  [n.tree ~ ~]
-      [n.r.tree ~ ~]
-    ?~  r.tree  [n.l.tree ~ ~]
+  ++  do-insert
+    |=  [dbs=databases =bowl:gall c=insert:ast]
+    ^-  (list cmd-result)              
+    =/  dbrow  
+    ~|  "database {<database.table.c>} does not exist" 
+        (~(got by dbs) database.table.c)
+    =/  db-internals=internals  -.sys.dbrow
+    =/  =table  (~(got by `tables`->+>+.sys.dbrow) [namespace.table.c name.table.c])
+    =/  =data                   -.user-data.dbrow
+    =/  =file  
+          ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist" 
+          (~(got by files.data) [namespace.table.c name.table.c])
+    ::
+    =/  col-map  (malt (turn columns.table |=(a=column:ast [+<.a a])))  
+    =/  cols=(list column:ast)  ?~  columns.c
+      ::  use canonical column list
+      columns.table
+      ::  validate columns.c length matches, no dups
+    ?.  =(~(wyt by column-lookup.file) ~(wyt in (silt `(list @t)`(need columns.c))))  !!
+    (turn `(list @t)`(need columns.c) |=(a=@t (~(got by col-map) a)))
+    ::
+    =/  key-pick  (turn columns.pri-indx.table |=(a=ordered-column:ast (make-key-pick name.a cols)))
+    =/  mycomp  ~(order idx-comp key.file)
+    ?.  ?=([%data *] values.c)  !!  :: not implemented
+    =/  value-table  `(list (list value-or-default:ast))`+.values.c
+    =/  i=@ud  0
+                          ~&  >  c
+                          ~&  >  file
+                          ~&  >  "col-map"
+                          ~&  >  col-map
+
+                          ~&  >  "columns.table"
+                          ~&  >  columns.table
+                          ~&  >  "cols"
+                          ~&  >  cols
+                          ~&  >  "key-pick"
+                          ~&  >  key-pick
+                          ~&  >  "key.file"
+                          ~&  >  key.file
+                          ~&  >  "pri-indx.table"
+                          ~&  >  pri-indx.table
+
+    |-
+    ?~  value-table  ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
+    ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<i>}"
+    =/  row  -.value-table
+    $(value-table `(list (list value-or-default:ast))`+.value-table)
+::  for each value row
+::    + row-count
+::make key delayed execution
+           :: (create mop of cols then to list)
+::    construct map of row cells, key
+::    insert map of row cells into pri-idx.file
+::    cons map of row cells data.file
+::  
+::  update files; data ship,agent, tmsp
+
+::      =.  ship.file  src.bowl
+::    =.  data 
+  ::  !!
+    
+      
+++  make-key-pick
+  |=  b=[key=@tas a=(list column:ast)]
+  =/  i  0
+  |-
+  ?:  =(key.b name:(snag i a.b))  i
+  $(i +(i))
+
+++  rdc-set-func
+  |=  =(tree set-function:ast)
+  ?~  tree  ~
+  ::  template
+  ?~  l.tree
+    ?~  r.tree  [n.tree ~ ~]
     [n.r.tree ~ ~]
+  ?~  r.tree  [n.l.tree ~ ~]
+  [n.r.tree ~ ~]
 ++  of                              ::  tree engine
   =|  a=(tree)                      
   |@
@@ -151,7 +212,7 @@
     ~
   --
 ++  create-ns
-  |=  [dbs=databases =bowl:gall =create-namespace]
+  |=  [dbs=databases =bowl:gall =create-namespace:ast]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
   =/  dbrow  ~|("database {<database-name.create-namespace>} does not exist" (~(got by dbs) database-name.create-namespace))
@@ -171,7 +232,7 @@
                        ==
   (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
 ++  create-tbl
-  |=  [dbs=databases =bowl:gall =create-table]
+  |=  [dbs=databases =bowl:gall =create-table:ast]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
   =/  dbrow  
@@ -251,19 +312,19 @@
     ^-  [[@tas [@tas @ud]] @ud]
     [[name.column [type.column a]] +(a)]
 ++  make-index-key
-  |=  [column-lookup=(map @tas [@tas @ud]) pri-indx=(list ordered-column)]
+  |=  [column-lookup=(map @tas [@tas @ud]) pri-indx=(list ordered-column:ast)]
   ^-  (list [@tas ?])
   =/  a=(list [@tas ?])  ~
   |-
   ?~  pri-indx  (flop a)
-  =/  b=ordered-column  -.pri-indx
+  =/  b=ordered-column:ast  -.pri-indx
   =/  col  (~(got by column-lookup) name.b)
   %=  $
     pri-indx  +.pri-indx
     a  [[-.col ascending.b] a]
   ==
 ++  drop-tbl
-  |=  [dbs=databases =bowl:gall =drop-table]
+  |=  [dbs=databases =bowl:gall =drop-table:ast]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
   =/  dbrow  ~|("database {<database.table.drop-table>} does not exist" (~(got by dbs) database.table.drop-table))

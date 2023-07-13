@@ -1,4 +1,5 @@
 /-  *ast
+^?
 |%
 +$  databases  (map @tas db-row)
 +$  db-row
@@ -44,7 +45,7 @@
 +$  table
   $:  %table 
       pri-indx=index 
-      columns=(list column) 
+      columns=(list column)             ::  canonical column list
       indices=(list index)
   ==
 +$  index
@@ -68,4 +69,5 @@
       [%result-da msg=@t date=@da]
   ==
 +$  result  [%results (list cmd-result)]
---  
+-- 
+ 
