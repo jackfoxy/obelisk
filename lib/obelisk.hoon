@@ -43,14 +43,14 @@
       !!
     %create-namespace
       %=  $
-        dbs   (create-ns dbs bowl -.cmds)
-        cmds  +.cmds
+        dbs      (create-ns dbs bowl -.cmds)
+        cmds     +.cmds
         results  [`cmd-result`[%result-da 'system time' now.bowl] results]
       ==
     %create-table
       %=  $
-        dbs   (create-tbl dbs bowl -.cmds)
-        cmds  +.cmds
+        dbs      (create-tbl dbs bowl -.cmds)
+        cmds     +.cmds
         results  [`cmd-result`[%result-da 'system time' now.bowl] results]
       ==
     %create-view
@@ -63,8 +63,8 @@
       !!
     %drop-table
       %=  $
-        dbs   (drop-tbl dbs bowl -.cmds)
-        cmds  +.cmds
+        dbs      (drop-tbl dbs bowl -.cmds)
+        cmds     +.cmds
         results  [`cmd-result`[%result-da 'system time' now.bowl] results]
       ==
     %drop-view
@@ -74,23 +74,21 @@
     %revoke
       !!
     %transform
-      =/  a  `[databases @ud @t]`(do-transform dbs bowl -.cmds)
+      =/  a  `[databases (list cmd-result)]`(do-transform dbs bowl -.cmds)
       %=  $
-        dbs   -.a
-        cmds  +.cmds
-        results  [`cmd-result`[%result-ud 'dummy' 0] results]  :: to do: gets more complex w/ other transforms
+        dbs      -.a
+        cmds     +.cmds
+        results  (weld +.a results)
       ==
     %truncate-table
       !!
   ==
 ++  do-transform
   |=  [dbs=databases =bowl:gall =transform:ast]
-  ^-  [databases @ud @t]
+  ^-  [databases (list cmd-result)]
 
   =/  ctes=(list cte:ast)  ctes.transform  :: To Do - map CTEs
-  =/  a  (do-set-functions dbs bowl set-functions.transform)
-  !!
-
+  (do-set-functions dbs bowl set-functions.transform)
 ++  do-set-functions
   |=  [dbs=databases =bowl:gall =(tree set-function:ast)]
 
@@ -98,7 +96,7 @@
   ::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
   ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
   ::  ?~  rtree  !!  :: fuse loop
-
+  ^-  [databases (list cmd-result)] 
   =/  rtree  (~(rdc of tree) rdc-set-func)
 
   ?-  -<.rtree
@@ -115,12 +113,14 @@
     == 
   ++  do-insert
     |=  [dbs=databases =bowl:gall c=insert:ast]
-    ^-  (list cmd-result)              
+    ^-  [databases (list cmd-result)]          
     =/  dbrow  
-    ~|  "database {<database.table.c>} does not exist" 
+        ~|  "database {<database.table.c>} does not exist" 
         (~(got by dbs) database.table.c)
     =/  db-internals=internals  -.sys.dbrow
-    =/  =table  (~(got by `tables`->+>+.sys.dbrow) [namespace.table.c name.table.c])
+    =/  =table
+        ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
+        (~(got by `tables`->+>+.sys.dbrow) [namespace.table.c name.table.c])
     =/  =data                   -.user-data.dbrow
     =/  =file  
           ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist" 
@@ -141,40 +141,31 @@
     ?.  ?=([%data *] values.c)  !!  :: not implemented
     =/  value-table  `(list (list value-or-default:ast))`+.values.c
     =/  i=@ud  0
-                      ::    ~&  >  c
-                      ::    ~&  >  file
-                      ::    ~&  >  "col-map:  {<col-map>} "
-                      ::    ~&  >  "columns.table"
-                      ::    ~&  >  columns.table
-                      ::    ~&  >  "key-pick:  {<key-pick>}"
-                      ::    ~&  >  " "
-                      ::    ~&  >  "key.file:  {<key.file>}"
-                      ::    ~&  >  ""
-                      ::    ~&  >  "pri-indx.table:  {<pri-indx.table>}"
-                      ::    ~&  >  ""
-
     |-
-    ?~  value-table  ~&  >  "done"  ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
-
-::  update files; data ship,agent, tmsp
-::    =.  ship.file  src.bowl
-::    =.  agent.file  %agent
-::    =.  tmsp.file  now.bowl 
-::    =.  data.file
-
+    ?~  value-table  
+      :-
+        (finalize-data dbs dbrow data file bowl table.c)
+        ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
     =/  row-key  
       (turn key-pick |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map])))
     =/  map-row=(map @tas @)  (malt (row-cells row cols))
-
-                ::    ~&  "before {<pri-idx.file>}"
-
-    =.  pri-idx.file  (put:mycomp pri-idx.file row-key map-row)
-
-                ::    ~&  "after {<pri-idx.file>}"
-
+    =.  pri-idx.file          (put:mycomp pri-idx.file row-key map-row)
+    =.  data.file             [map-row data.file]
+    =.  length.file           +(length.file)
     $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
+++  finalize-data
+  |=  [dbs=databases =db-row =data =file =bowl:gall table=qualified-object:ast]
+   =.  ship.file          src.bowl
+   =.  agent.file         %agent
+   =.  tmsp.file          now.bowl
+   =.  ship.data          src.bowl
+   =.  agent.data         %agent
+   =.  tmsp.data          now.bowl
+   =.  files.data         (~(put by files.data) [namespace.table name.table] file)
+   =.  -.user-data.db-row  data
+   (~(put by dbs) database.table db-row)
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
