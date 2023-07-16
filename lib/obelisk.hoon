@@ -131,14 +131,14 @@
       ::  use canonical column list
       columns.table
       ::  validate columns.c length matches, no dups
-    ?.  =(~(wyt by column-lookup.file) ~(wyt in (silt `(list @t)`(need columns.c))))  !!
-    (turn `(list @t)`(need columns.c) |=(a=@t (~(got by col-map) a)))
-    ::
-    =/  key-pick  
-      (turn columns.pri-indx.table |=(a=ordered-column:ast (make-key-pick name.a cols)))
-    =/  mycomp  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key.file))
-    ::
-    ?.  ?=([%data *] values.c)  !!  :: not implemented
+      ?.  .=  ~(wyt by column-lookup.file) 
+              ~(wyt in (silt `(list @t)`(need columns.c)))
+        ~|("invalid column: {<columns.c>}" !!)
+      %:  turn 
+          `(list @t)`(need columns.c) 
+          |=(a=@t ~|("invalid column: {<a>}" (~(got by col-map) a)))
+      ==
+    ?.  ?=([%data *] values.c)  ~|("not implemented: {<values.c>}" !!)
     =/  value-table  `(list (list value-or-default:ast))`+.values.c
     =/  i=@ud  0
     |-
@@ -148,10 +148,21 @@
         ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
+    =/  key-pick  %:  turn 
+                      columns.pri-indx.table 
+                      |=(a=ordered-column:ast (make-key-pick name.a cols))
+                  ==
     =/  row-key  
-      (turn key-pick |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map])))
+        %:  turn
+            key-pick 
+            |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map]))
+        ==
     =/  map-row=(map @tas @)  (malt (row-cells row cols))
-    =.  pri-idx.file          (put:mycomp pri-idx.file row-key map-row)
+    =/  mycomp  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key.file))
+    =.  pri-idx.file
+      ?:  (has:mycomp pri-idx.file row-key)  
+        ~|("cannot add duplicate key: {<row-key>}" !!)
+      (put:mycomp pri-idx.file row-key map-row)
     =.  data.file             [map-row data.file]
     =.  length.file           +(length.file)
     $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)

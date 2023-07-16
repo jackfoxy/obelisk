@@ -10,6 +10,8 @@
   =|  result=tang
   ::
   =?  result  !=(q.expected q.actual)
+  ~&  >  "q.expected:  {<q.expected>}"
+  ~&  >  "q.actual:  {<q.actual>}"
     %+  weld  result
     ^-  tang
     :~  [%palm [": " ~ ~ ~] [leaf+"expected" (sell expected) ~]]

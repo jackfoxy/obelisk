@@ -51,7 +51,7 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~['success']]
+    !>  [%results ~[[%result-da 'system time' ~2000.1.2]]]
     !>  ->+>+>.mov2
   %+  expect-eq                         :: expected state
     !>  one-col-tbl-db

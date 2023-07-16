@@ -803,31 +803,31 @@
   ;~(pfix whitespace ;~(pfix (jester 'on') ;~(pfix whitespace ;~(pose on-database on-namespace parse-qualified-3object))))
 ++  parse-aura  ~+
   =/  root-aura  ;~  pose
-    (jest '@c')
-    (jest '@da')
-    (jest '@dr')
-    (jest '@f')
-    (jest '@if')
-    (jest '@is')
-    (jest '@p')
-    (jest '@q')
-    (jest '@rh')
-    (jest '@rs')
-    (jest '@rd')
-    (jest '@rq')
-    (jest '@sb')
-    (jest '@sd')
-    (jest '@sv')
-    (jest '@sw')
-    (jest '@sx')
-    (jest '@ta')
-    (jest '@tas')
-    (jest '@t')
-    (jest '@ub')
-    (jest '@ud')
-    (jest '@uv')
-    (jest '@uw')
-    (jest '@ux')
+    (jest '@c')              ::  UTF-32
+    (jest '@da')             ::  date
+    (jest '@dr')             ::  timespan
+    (jest '@f')              ::  loobean
+    (jest '@if')             ::  IPv4 address
+    (jest '@is')             ::  IPv6 address
+    (jest '@p')              ::  ship name
+    (jest '@q')              ::  phonemic base, unscrambled
+    (jest '@rh')             ::  half precision (16 bits)
+    (jest '@rs')             ::  single precision (32 bits)
+    (jest '@rd')             ::  double precision (64 bits)
+    (jest '@rq')             ::  quad precision (128 bits)
+    (jest '@sb')             ::  signed binary
+    (jest '@sd')             ::  signed decimal
+    (jest '@sv')             ::  signed base32
+    (jest '@sw')             ::  signed base64
+    (jest '@sx')             ::  signed hexadecimal
+    (jest '@t')              ::  UTF-8 text (cord)
+    (jest '@ta')             ::  ASCII text (knot)
+    (jest '@tas')            ::  ASCII text symbol (term)
+    (jest '@ub')             ::  unsigned binary
+    (jest '@ud')             ::  unsigned decimal
+    (jest '@uv')             ::  unsigned base32
+    (jest '@uw')             ::  unsigned base64
+    (jest '@ux')             ::  unsigned hexadecimal
     ==
   ;~  pose
     ;~(plug root-aura (shim 'A' 'J'))
