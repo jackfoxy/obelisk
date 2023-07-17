@@ -311,10 +311,10 @@
                 %agent
                 now.bowl
                 clustered.create-table
-                (make-index-key column-look-up pri-indx.create-table)
-                ~
                 0
                 column-look-up
+                (make-index-key column-look-up pri-indx.create-table)
+                ~ 
                 ~
             ==
   =/  files  

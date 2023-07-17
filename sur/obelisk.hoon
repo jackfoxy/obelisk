@@ -33,10 +33,10 @@
       agent=@tas
       tmsp=@da
       clustered=?
-      key=(list [@tas ?])
-      pri-idx=(tree [(list @) (map @tas @)])
       length=@ud
       column-lookup=(map @tas [@tas @ud])   :: name [type index]
+      key=(list [@tas ?])
+      pri-idx=(tree [(list @) (map @tas @)])
       data=(list (map @tas @))
       ::    =indices
   ==

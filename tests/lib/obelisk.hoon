@@ -30,9 +30,9 @@
   [%index unique=%.y clustered=%.y columns=~[[%ordered-column name=%col1 is-ascending=%.y] [%ordered-column name=%col3 is-ascending=%.n]]]
 ::
 ++  file-my-table
-  [p=[%dbo %my-table] q=[%file ship=~zod agent=%agent tmsp=~2023.7.9..22.27.32..49e3 clustered=%.y key=~[[%t %.y]] pri-idx=~ length=0 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] data=~]]
+  [p=[%dbo %my-table] q=[%file ship=~zod agent=%agent tmsp=~2023.7.9..22.27.32..49e3 clustered=%.y length=0 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] key=~[[%t %.y]] pri-idx=~ data=~]]
 ++  file-my-table-3
-  [p=[%dbo %my-table-3] q=[%file ship=~zod agent=%agent tmsp=~2023.7.9..22.35.34..7e90 clustered=%.y key=~[[%t %.y] [%ud %.n]] pri-idx=~ length=0 column-lookup=col-lu-table-3 data=~]]
+  [p=[%dbo %my-table-3] q=[%file ship=~zod agent=%agent tmsp=~2023.7.9..22.35.34..7e90 clustered=%.y length=0 column-lookup=col-lu-table-3 key=~[[%t %.y] [%ud %.n]] pri-idx=~ data=~]]
 ++  col-lu-table-3
   [n=[p=%col3 q=[%ud 2]] l=[n=[p=%col2 q=[%p 1]] l=~ r=~] r=[n=[p=%col1 q=[%t 0]] l=~ r=~]]
 ::
@@ -56,7 +56,7 @@
 [n=[p=%db1 q=start-db1-row] l=~ r=~]
 ::
 ++  gen3-file-my-table-3
-  [p=[%dbo %my-table-3] q=[%file ship=~zod agent=%agent tmsp=~2030.1.1 clustered=%.y key=~[[%t %.y] [%ud %.n]] pri-idx=file-pri-idx-my-table-3 length=2 column-lookup=col-lu-table-3 data=file-data-my-table-3]]
+  [p=[%dbo %my-table-3] q=[%file ship=~zod agent=%agent tmsp=~2030.1.1 clustered=%.y length=2 column-lookup=col-lu-table-3 key=~[[%t %.y] [%ud %.n]] pri-idx=file-pri-idx-my-table-3 data=file-data-my-table-3]]
 ++  row1
   [n=[p=%col3 q=20] l=[n=[p=%col2 q=28.242.037] l=~ r=~] r=[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
 ++  row1-idx
@@ -90,7 +90,7 @@
 ++  gen4-file-data-my-table-3
   ~[row4 row3 row2 row1]
 ++  gen4-file-my-table-3
-  [p=[%dbo %my-table-3] q=[%file ship=~zod agent=%agent tmsp=~2030.2.1 clustered=%.y key=~[[%t %.y] [%ud %.n]] pri-idx=gen4-file-pri-idx-my-table-3 length=4 column-lookup=col-lu-table-3 data=gen4-file-data-my-table-3]]
+  [p=[%dbo %my-table-3] q=[%file ship=~zod agent=%agent tmsp=~2030.2.1 clustered=%.y length=4 column-lookup=col-lu-table-3 key=~[[%t %.y] [%ud %.n]] pri-idx=gen4-file-pri-idx-my-table-3 data=gen4-file-data-my-table-3]]
 ++  gen4-data
   [%data ship=~zod agent=%agent tmsp=~2030.2.1 files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]]
 ++  gen4-db1-row
@@ -127,7 +127,7 @@
   ==
 ::
 :: insert rows without columns to populated table fail on col wrong type
-++  test-fail-insert-no-cols-col-type
+++  test-fail-ins-no-cols-col-type
   =|  run=@ud
   =/  my-insert  "INSERT INTO db1..my-table-3 VALUES ('cord2',~nec,21) ('cord2',1, ~bus)"
   %-  expect-fail

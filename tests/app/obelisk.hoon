@@ -39,13 +39,13 @@
   [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table-2] file-2col-1-2] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
 
 ++  file-1col-1-2
-  [%file ~zod %agent ~2000.1.2 %.y ~[[%t %.y]] ~ 0 [[%col1 [%t 0]] ~ ~] ~]
+  [%file ~zod %agent ~2000.1.2 %.y 0 [[%col1 [%t 0]] ~ ~] ~[[%t %.y]] ~ ~]
 
 ++  file-2col-1-2
-  [%file ~zod %agent ~2000.1.2 %.n ~[[%t %.y] [%p %.y]] ~ 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~]
+  [%file ~zod %agent ~2000.1.2 %.n 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~[[%t %.y] [%p %.y]] ~ ~]
 
 ++  file-2col-1-3
-  [%file ~zod %agent ~2000.1.3 %.n ~[[%t %.y] [%p %.y]] ~ 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~]
+  [%file ~zod %agent ~2000.1.3 %.n 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~[[%t %.y] [%p %.y]] ~ ~]
 
 ++  db2
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys2 sys1] user-data=~[user-data-1]]] ~ ~]
@@ -76,7 +76,7 @@
     !>  db1
     !>  databases.state
   ==
-++  test-fail-tape-create-duplicate-db
+++  test-fail-tape-create-dup-db
   =|  run=@ud 
   =^  move  agent  
     (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
@@ -367,7 +367,7 @@
 ++  user-data-1b
   [%data ~zod agent=%agent tmsp=~2000.1.3 files=files-4]
 ++  files-4
- [n=[p=[%dbo %my-table] q=[%file ship=~zod agent=%agent tmsp=~2000.1.3 clustered=%.y key=~[[%t %.y]] pri-idx=files-4-pri-idx length=1 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]]] l=~ r=~]
+ [n=[p=[%dbo %my-table] q=[%file ship=~zod agent=%agent tmsp=~2000.1.3 clustered=%.y length=1 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] key=~[[%t %.y]] pri-idx=files-4-pri-idx data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]]] l=~ r=~]
 ++  files-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::

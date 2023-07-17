@@ -24,7 +24,7 @@
 ++  user-data-1
   [%data ~zod agent=%agent tmsp=~2000.1.1 ~]
 ++  file-1col-1-2
-  [%file ~zod %agent ~2000.1.2 %.y ~[[%t %.y]] ~ 0 [[%col1 [%t 0]] ~ ~] ~]
+  [%file ~zod %agent ~2000.1.2 %.y 0 [[%col1 [%t 0]] ~ ~] ~[[%t %.y]] ~ ~]
 ++  sys1
   [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]] tables=~]
 ::  Create table
@@ -51,8 +51,11 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq                         :: expected results
-    !>  [%results ~[[%result-da 'system time' ~2000.1.2]]]
-    !>  ->+>+>.mov2
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>+<.mov2
   %+  expect-eq                         :: expected state
     !>  one-col-tbl-db
     !>  databases.state
