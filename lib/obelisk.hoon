@@ -121,10 +121,10 @@
     =/  =table
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
         (~(got by `tables`->+>+.sys.dbrow) [namespace.table.c name.table.c])
-    =/  =data                   -.user-data.dbrow
+    =/  usr-data=data  -.user-data.dbrow
     =/  =file  
           ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist" 
-          (~(got by files.data) [namespace.table.c name.table.c])
+          (~(got by files.usr-data) [namespace.table.c name.table.c])
     ::
     =/  col-map  (malt (turn columns.table |=(a=column:ast [+<.a a])))  
     =/  cols=(list column:ast)  ?~  columns.c
@@ -144,7 +144,7 @@
     |-
     ?~  value-table  
       :-
-        (finalize-data dbs dbrow data file bowl table.c)
+        (finalize-data dbs dbrow usr-data file bowl table.c)
         ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
@@ -357,24 +357,28 @@
     a  [[-.col ascending.b] a]
   ==
 ++  drop-tbl
-  |=  [dbs=databases =bowl:gall =drop-table:ast]
+  |=  [dbs=databases =bowl:gall d=drop-table:ast]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
-  =/  dbrow  ~|("database {<database.table.drop-table>} does not exist" (~(got by dbs) database.table.drop-table))
+  =/  dbrow  ~|  "database {<database.table.d>} does not exist" 
+             (~(got by dbs) database.table.d)
   =/  db-internals=internals  -.sys.dbrow
   =/  usr-data=data           -.user-data.dbrow
-  ?.  (~(has by namespaces.db-internals) namespace.table.drop-table)
+  ?.  (~(has by namespaces.db-internals) namespace.table.d)
     ~|("namespace {<namespaces.internals>} does not exist" !!)
   =/  tables  
-    ~|  "{<name.table.drop-table>} does not exists in {<namespace.table.drop-table>}"
+    ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
     %+  map-delete
         tables.db-internals
-        [namespace.table.drop-table name.table.drop-table]
-   =/  files  
-    ~|  "{<name.table.drop-table>} does not exists in {<namespace.table.drop-table>}"
+        [namespace.table.d name.table.d]
+  =/  file  ~|  "table {<namespace.table.d>}.{<name.table.d>} does not exist" 
+            (~(got by files.usr-data) [namespace.table.d name.table.d])
+  ?:  ?&((gth length.file 0) =(force.d %.n))
+    ~|("table {<name.table.d>} has data, use FORCE to DROP" !!)
+  =/  files  
     %+  map-delete
         files.usr-data
-        [namespace.table.drop-table name.table.drop-table]
+        [namespace.table.d name.table.d]
   =.  -.sys.dbrow  %:  internals
                        %internals
                        %agent
@@ -389,7 +393,7 @@
                              now.bowl
                              files
                              ==
-  (~(put by dbs) database.table.drop-table dbrow)  :: prefer upd
+  (~(put by dbs) database.table.d dbrow)  :: prefer upd
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases

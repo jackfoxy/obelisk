@@ -356,8 +356,22 @@
 ::  Drop table
 ++  dropped-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys3 one-col-tbl-sys sys1] user-data=~[user-data-1-a user-data-2 user-data-1]]] ~ ~]
+++  dropped-tbl-db-force
+  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys4 one-col-tbl-sys sys1] user-data=~[user-data-4 user-data-1b user-data-2 user-data-1]]] ~ ~]
 ++  sys3
   [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
+++  sys4
+  [%internals agent=%agent tmsp=~2000.1.4 namespaces=[[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
+++  user-data-4
+  [%data ~zod agent=%agent tmsp=~2000.1.4 ~]
+++  user-data-1b
+  [%data ~zod agent=%agent tmsp=~2000.1.3 files=files-4]
+++  files-4
+ [n=[p=[%dbo %my-table] q=[%file ship=~zod agent=%agent tmsp=~2000.1.3 clustered=%.y key=~[[%t %.y]] pri-idx=files-4-pri-idx length=1 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]]] l=~ r=~]
+++  files-4-pri-idx
+  [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
+::
+::  drop table no data
 ++  test-drop-tbl
   =|  run=@ud
   =/  cmd
@@ -382,6 +396,54 @@
     !>  dropped-tbl-db
     !>  databases.state
   ==
+::
+::  drop table with data force
+++  test-drop-tbl-force
+  =|  run=@ud
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
+  =.  run  +(run)
+  =^  mov2  agent  
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"]))
+
+  =.  run  +(run)
+  =^  mov3  agent  
+    (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"]))
+  =.  run  +(run)
+  =^  mov4  agent  
+    (~(on-poke agent (bowl [run ~2000.1.4])) %obelisk-action !>([%commands ~[cmd]]))
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq                         :: expected results
+    !>  %results
+    !>  ->+>+>-.mov4
+  %+  expect-eq                         :: expected results
+    !>  [%result-da 'system time' ~2000.1.4]
+    !>  ->+>+>+<.mov4
+  %+  expect-eq                         :: expected state
+    !>  dropped-tbl-db-force
+    !>  databases.state
+  ==
+::
+::  fail drop table with data no force
+++  test-fail-drop-tbl-with-data
+  =|  run=@ud
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.n]
+  =^  mov1  agent  
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
+  =.  run  +(run)
+  =^  mov2  agent  
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"]))
+
+  =.  run  +(run)
+  =^  mov3  agent  
+    (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"]))
+  =.  run  +(run)
+  %-  expect-fail
+  |.  (~(on-poke agent (bowl [run ~2000.1.4])) %obelisk-action !>([%commands ~[cmd]]))
 ++  test-fail-drop-tbl-db-not-exist     :: fail on database does not exist
   =|  run=@ud
   =/  cmd
@@ -409,7 +471,5 @@
   =.  run  +(run)
   %-  expect-fail
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[cmd]]))
-
-::  To Do: test drop table force
 
 --
