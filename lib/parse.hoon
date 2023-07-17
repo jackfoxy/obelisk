@@ -46,6 +46,7 @@
   =/  check-empty  u.+3:q.+3:(whitespace [[1 1] script])
   ?:  =(0 (lent q.q:check-empty))                   :: trailing whitespace after last end-command (;)
     (flop commands)
+  ~&  >  "script-position:  {<script-position>}"
   =/  command-nail  u.+3:q.+3:(parse-command [script-position script])
   ?-  `urql-command`p.command-nail
     %alter-index
@@ -689,7 +690,7 @@
   ==
 ++  cook-numbers                                    :: works for insert values
   |=  a=(list @t)
-  (scan a numeric-parser)
+  ~|("error on numeric parser {<a>} " (scan a numeric-parser))
 ++  sear-numbers                                    :: works for predicate values
   |=  a=(list @t)
   =/  parsed  (numeric-parser [[1 1] a])
