@@ -10,8 +10,6 @@
   =|  result=tang
   ::
   =?  result  !=(q.expected q.actual)
-  ~&  >  "q.expected:  {<q.expected>}"
-  ~&  >  "q.actual:  {<q.actual>}"
     %+  weld  result
     ^-  tang
     :~  [%palm [": " ~ ~ ~] [leaf+"expected" (sell expected) ~]]
@@ -40,7 +38,39 @@
   =/  b  (mule a)
   ?-  -.b
     %|  ~
-    %&  [leaf+"expected failure - succeeded" ~]
+    %&  ['expected failure - succeeded' ~]
+  ==
+::  +expect-runs: kicks a trap, expecting success; returns trace on failure
+::
+++  expect-success
+  |=  a=(trap)
+  ^-  tang
+  =/  b  (mule a)
+  ?-  -.b
+    %&  ~
+    %|  ['expected success - failed' p.b]
+  ==
+::  $a-test-chain: a sequence of tests to be run
+::
+::  NB: arms shouldn't start with `test-` so that `-test % ~` runs
+::
++$  a-test-chain
+  $_
+  |?
+  ?:  =(0 0)
+    [%& p=*tang]
+  [%| p=[tang=*tang next=^?(..$)]]
+::  +run-chain: run a sequence of tests, stopping at first failure
+::
+++  run-chain
+  |=  seq=a-test-chain
+  ^-  tang
+  =/  res  $:seq
+  ?-  -.res
+    %&  p.res
+    %|  ?.  =(~ tang.p.res)
+          tang.p.res
+        $(seq next.p.res)
   ==
 ::  +category: prepends a name to an error result; passes successes unchanged
 ::

@@ -628,7 +628,7 @@
   (stag %ub (full bay:ag))                          :: formatted @ub, no leading 0s
   (stag %ux ;~(pfix (jest '0x') (full hex:ag)))     :: formatted @ux
   (full tash:so)                                    :: @sd or @sx
-  (stag %rs (full royl-rs:so))                      :: @rs
+  ;~(pfix dot (stag %rs (full royl-rs:so)))         :: @rs
   (stag %rd (full royl-rd:so))                      :: @rd
   (stag %uw (full wiz:ag))                          :: formatted @uw base-64 unsigned
   ==

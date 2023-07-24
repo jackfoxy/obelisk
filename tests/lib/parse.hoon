@@ -764,11 +764,11 @@
     [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~] values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]]]]] ~ ~]]
   =/  urql1  " iNsert  iNto  db.ns.my-table  ".
 "( col1 ,  col2 ,  col3 ,  col4 ,  col5 ,  col6 ,  col7 ,  col8 ,  col9 )".
-" Values  ('cord',3.14,-20,20,3.14,~nomryg-nilref,-3.14, 'cor\\'d', --3)".
+" Values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
 "  (Default,.195.198.143.90, 195.198.143.900)"
   =/  urql2  "insert into db..my-table ".
 "(col1, col2, col3, col4, col5, col6, col7, col8, col9)".
-"valueS ('cord',3.14,-20,20,3.14,~nomryg-nilref,-3.14, 'cor\\'d', --3)"
+"valueS ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)"
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') (weld urql1 (weld ";" urql2)))
@@ -778,9 +778,9 @@
   =/  expected  
     [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~ values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]] ~ ~]]
   =/  urql  "insert into my-table ".
-"values ('cord',3.14,-20,20,3.14,~nomryg-nilref,-3.14, 'cor\\'d', --3)".
+"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
 " (default,.195.198.143.90, 195.198.143.900)".
-" (2.222,2222,195.198.143.900,3.14,-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
+" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -792,7 +792,7 @@
   =/  urql  "insert into db.ns.my-table ".
 "values ('cord',~nomryg-nilref,nomryg-nilref,~2020.12.25..7.15.0..1ef5,2020.12.25..7.15.0..1ef5,".
 "~d71.h19.m26.s24..9d55, d71.h19.m26.s24..9d55,.195.198.143.90,.0.0.0.0.0.1c.c3c6.8f5a,y,n,Y,N,".
-"2.222,2222,195.198.143.900,3.14,-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
+"2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -804,7 +804,7 @@
   =/  urql  "insert into db.ns.my-table ".
 "values ( 'cor,d' , ~nomryg-nilref , nomryg-nilref , ~2020.12.25..7.15.0..1ef5 , 2020.12.25..7.15.0..1ef5 , ".
 "~d71.h19.m26.s24..9d55 ,  d71.h19.m26.s24..9d55 , .195.198.143.90 , .0.0.0.0.0.1c.c3c6.8f5a , y , n , Y , N , ".
-"2.222 , 2222 , 195.198.143.900 , 3.14 , -3.14 , ~3.14 , ~-3.14 , 0x12.6401 , 10.1011 , -20 , --20 , e2O.l4Xpm , pm.l4e2O.l4Xpm )"
+"2.222 , 2222 , 195.198.143.900 , .3.14 , .-3.14 , ~3.14 , ~-3.14 , 0x12.6401 , 10.1011 , -20 , --20 , e2O.l4Xpm , pm.l4e2O.l4Xpm )"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
