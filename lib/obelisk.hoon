@@ -273,7 +273,7 @@
   =/  db-internals=internals  -.sys.dbrow
   =/  usr-data=data           -.user-data.dbrow
   ?.  (~(has by namespaces.db-internals) namespace.table.create-table)
-    ~|("namespace {<namespaces.db-internals>} does not exist" !!)
+    ~|("namespace {<namespace.table.create-table>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
     ~|("dulicate column names {<columns.create-table>}" !!)
