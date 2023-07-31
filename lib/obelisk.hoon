@@ -107,10 +107,107 @@
     %update
       !!
     %query
-      !!
+      [dbs (do-query dbs bowl -.rtree)]
+  ::    ~&  >  "-.rtree: {<-.rtree>}"
+  ::    ~&  >  "+.rtree: {<+.rtree>}"
+  ::    ?>  ?=(query:ast -.rtree)
+  ::    `query:ast`-.rtree
+  ::    -.rtree
+
+  ::    !!
     %merge
       !!
     == 
+  ++  do-query
+    |=  [dbs=databases =bowl:gall q=query:ast]
+    ^-  (list cmd-result)
+    ?~  from.q  !!
+    =/  =from:ast  (need from.q)
+    =/  =table-set:ast  object.from
+    ?:  ?&(?=(qualified-object:ast object.table-set) =(namespace.object.table-set 'sys')) 
+      ~[(sys-views dbs bowl object.table-set)]
+    !!
+  ++  sys-views
+    |=  [dbs=databases =bowl:gall q=qualified-object:ast]
+    ^-  cmd-result
+    =/  dbrow  
+      ~|  "database {<database.q>} does not exist" 
+      (~(got by dbs) database.q)
+    =/  sys=internals  -.sys.dbrow
+    =/  =tables        tables.sys
+    =/  udata=data          -.user-data.dbrow
+    ?+  name.q  !!
+::    %columns
+      
+::      ~&  >  "q:  {<q>}"  !!
+    ::
+    %databases
+      ?.  =(database.q 'sys')  ~|("database view only in 'sys' database" !!)
+      =/  foo  |=(a=db-row ~[name.a created-by-agent.a created-tmsp.a])
+      :^
+      %result-set
+      ~.sys.sys.databases
+      ~[[%name %tas] [%created-by-agent %tas] [%created-tmsp %da]]
+      (turn ~(val by dbs) foo)
+    ::
+    %namespaces
+      :^
+      %result-set
+      `@ta`(crip (weld (trip database.q) ".sys.namespaces"))
+      ~[[%namespace %tas]]
+      (turn ~(val by namespaces.sys) |=(a=@tas ~[a]))
+    ::
+    %tables
+      :^
+      %result-set
+      `@ta`(crip (weld (trip database.q) ".sys.tables"))
+       :~  [%namespace %tas] 
+           [%name %tas] 
+           [%ship %p] 
+           [%agent %tas] 
+           [%tmsp %da] 
+           [%row-count %ud] 
+           [%clustered %f] 
+           [%key-ordinal %ud] 
+           [%key %tas] 
+           [%key-ascending %f] 
+           [%col-ordinal %ud]
+           [%col-name %tas]
+           [%col-type %tas]
+           ==
+      (turn ~(tap by files.udata) ~(foo sys-tables tables))
+    ::
+    %sys-logs
+      :^
+      %result-set
+      `@ta`(crip (weld (trip database.q) ".sys.sys-logs"))
+      ~[[%agent %tas] [%tmsp %da]]
+      (turn sys.dbrow |=(a=internals ~[agent.a tmsp.a]))
+    ::
+    %data-logs
+      :^
+      %result-set
+      `@ta`(crip (weld (trip database.q) ".sys.data-logs"))
+      ~[[%ship %p] [%agent %tas] [%tmsp %da]]
+      (turn user-data.dbrow |=(a=data ~[ship.a agent.a tmsp.a]))
+    ==
+  ++  sys-tables
+    |_  tables=(map [@tas @tas] table)
+    ++  foo
+      |=  [k=[@tas @tas] =file]
+      ^-  (list @)
+      =/  aa=(list @)
+        ~[-.k +.k ship.file agent.file tmsp.file length.file clustered.file]
+      =/  b
+        %^  spin  `(list [@tas ?])`key.file
+        1
+        |=([n=[@tas ?] a=@] [[a -.n +.n] +(a)])
+      =/  c
+      (turn p.b |=(p=[a=@ b=@ c=@] (weld aa ~[a.p b.p c.p])))
+      
+      ::(zing `(list (list @))`c)
+      (zing c)
+    --
   ++  do-insert
     |=  [dbs=databases =bowl:gall c=insert:ast]
     ^-  [databases (list cmd-result)]          

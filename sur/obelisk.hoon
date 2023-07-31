@@ -67,6 +67,7 @@
   $%  msg
       [%result-ud msg=@t count=@ud]
       [%result-da msg=@t date=@da]
+      [%result-set qualifier=@ta columns=(list [@tas @tas]) data=(list (list @))]
   ==
 +$  result  [%results (list cmd-result)]
 -- 
