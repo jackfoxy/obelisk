@@ -175,7 +175,7 @@
            [%col-name %tas]
            [%col-type %tas]
            ==
-      (turn ~(tap by files.udata) ~(foo sys-tables tables))
+      (zing (turn ~(tap by files.udata) ~(foo sys-tables tables)))
     ::
     %sys-logs
       :^
@@ -195,18 +195,20 @@
     |_  tables=(map [@tas @tas] table)
     ++  foo
       |=  [k=[@tas @tas] =file]
-      ^-  (list @)
+      ^-  (list (list @))
       =/  aa=(list @)
         ~[-.k +.k ship.file agent.file tmsp.file length.file clustered.file]
       =/  b
         %^  spin  `(list [@tas ?])`key.file
-        1
-        |=([n=[@tas ?] a=@] [[a -.n +.n] +(a)])
-      =/  c
-      (turn p.b |=(p=[a=@ b=@ c=@] (weld aa ~[a.p b.p c.p])))
-      
-      ::(zing `(list (list @))`c)
-      (zing c)
+            1
+            |=([n=[@tas ?] a=@] [[a -.n +.n] +(a)])
+      =/  pb=(list [@ @ @])  p.b
+      =/  c=(list (list @))  ~
+      |-  ?~  pb  c
+      %=  $
+      c    [(weld aa ~[-<.pb ->-.pb ->+.pb]) c]
+      pb  +.pb
+      ==
     --
   ++  do-insert
     |=  [dbs=databases =bowl:gall c=insert:ast]
