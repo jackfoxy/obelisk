@@ -7,8 +7,8 @@
   ?>  ?=(create-database:ast c)
   =/  ns=namespaces
     %:  my 
-        :~  [%sys %sys]
-            [%dbo %dbo]
+        :~  [%sys now.bowl]
+            [%dbo now.bowl]
             ==
         ==
   =/  tbs=tables  ~
@@ -154,8 +154,8 @@
       :^
       %result-set
       `@ta`(crip (weld (trip database.q) ".sys.namespaces"))
-      ~[[%namespace %tas]]
-      (turn ~(val by namespaces.sys) |=(a=@tas ~[a]))
+      ~[[%namespace %tas] [%tmsp %da]]
+      ~(val by (~(urn by namespaces.sys) |=([k=@tas v=@da] ~[k v])))
     ::
     %tables
       :^
@@ -353,7 +353,7 @@
                       %:  map-insert 
                           namespaces.db-internals 
                           name.create-namespace 
-                          name.create-namespace
+                          now.bowl
                       ==
   =.  -.sys.dbrow  %:  internals 
                        %internals 

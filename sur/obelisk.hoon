@@ -40,7 +40,7 @@
       data=(list (map @tas @))
       ::    =indices
   ==
-+$  namespaces  (map @tas @tas)
++$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
 +$  table
   $:  %table 
