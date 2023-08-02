@@ -130,25 +130,26 @@
   ++  sys-views
     |=  [dbs=databases =bowl:gall q=qualified-object:ast]
     ^-  cmd-result
+
+    ?:  =(%databases name.q)
+      ?.  ?&(=(%sys database.q) =(%sys namespace.q))
+        ~|("databases view only in database namespace 'sys.sys'" !!)
+      :^  %result-set
+          ~.sys.sys.databases
+          ~[[%database %tas] [%sys-agent %tas] [%sys-tmsp %da] [%data-agent %tas] [%data-tmsp %da]]
+          (turn ~(val by dbs) sys-view-databases)
+
     =/  dbrow  
       ~|  "database {<database.q>} does not exist" 
       (~(got by dbs) database.q)
     =/  sys=internals  -.sys.dbrow
     =/  =tables        tables.sys
-    =/  udata=data          -.user-data.dbrow
+    =/  udata=data     -.user-data.dbrow
     ?+  name.q  !!
 ::    %columns
       
 ::      ~&  >  "q:  {<q>}"  !!
-    ::
-    %databases
-      ?.  =(database.q 'sys')  ~|("database view only in 'sys' database" !!)
-      =/  foo  |=(a=db-row ~[name.a created-by-agent.a created-tmsp.a])
-      :^
-      %result-set
-      ~.sys.sys.databases
-      ~[[%name %tas] [%created-by-agent %tas] [%created-tmsp %da]]
-      (turn ~(val by dbs) foo)
+
     ::
     %namespaces
       :^
@@ -175,7 +176,7 @@
            [%col-name %tas]
            [%col-type %tas]
            ==
-      (zing (turn ~(tap by files.udata) ~(foo sys-tables tables)))
+      (zing (turn ~(tap by files.udata) ~(foo sys-view-tables tables)))
     ::
     %sys-logs
       :^
@@ -191,7 +192,11 @@
       ~[[%ship %p] [%agent %tas] [%tmsp %da]]
       (turn user-data.dbrow |=(a=data ~[ship.a agent.a tmsp.a]))
     ==
-  ++  sys-tables
+  ++  sys-view-databases
+    |=  a=db-row
+    :: ~[[%database %tas] [%sys-agent %tas] [%sys-tmsp %da] [%data-agent %tas] [%data-tmsp %da]]
+    ~[name.a created-by-agent.a created-tmsp.a]
+  ++  sys-view-tables
     |_  tables=(map [@tas @tas] table)
     ++  foo
       |=  [k=[@tas @tas] =file]
