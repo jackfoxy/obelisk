@@ -26,12 +26,12 @@
 ++  file-1col-1-2
   [%file ~zod %agent ~2000.1.2 %.y 0 [[%col1 [%t 0]] ~ ~] ~[[%t %.y]] ~ ~]
 ++  sys1
-  [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]] tables=~]
+  [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=~]
 ::  Create table
 ++  one-col-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-2 user-data-1]]] ~ ~]
 ++  one-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]] tables=one-col-tbls]
+  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=one-col-tbls]
 ++  one-col-tbls
  [[one-col-tbl-key one-col-tbl] ~ ~]
 ++  one-col-tbl-key

@@ -21,7 +21,7 @@
 --
 |%
 ++  internals-ns
-  [n=[p=%dbo q=%dbo] l=~ r=[n=[p=%sys q=%sys] l=~ r=~]]
+  [n=[p=%dbo q=~2023.7.9..22.24.54..4b8a] l=~ r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] l=~ r=~]]
 ++  internals-my-table
   [p=[%dbo %my-table] q=[%table pri-indx=[%index unique=%.y clustered=%.y columns=~[[%ordered-column name=%col1 is-ascending=%.y]]] columns=~[[%column name=%col1 type=%t]] indices=~]]
 ++  internals-table-3

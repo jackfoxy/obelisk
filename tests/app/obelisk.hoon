@@ -24,9 +24,9 @@
 ++  db1
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys1] user-data=~[user-data-1]]] ~ ~]
 ++  sys1
-  [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]] tables=~]
+  [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=~]
 ++  sys2
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%ns1 q=%ns1] ~ [[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
+  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%ns1 q=~2000.1.2] ~ [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
 ++  user-data-1
   [%data ~zod agent=%agent tmsp=~2000.1.1 ~]
 ++  user-data-1-a
@@ -142,7 +142,7 @@
 ++  one-col-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-2 user-data-1]]] ~ ~]
 ++  one-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]] tables=one-col-tbls]
+  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=one-col-tbls]
 ++  one-col-tbl-key
  [%dbo %my-table]
 ++  one-col-tbl
@@ -155,7 +155,7 @@
 ++  two-col-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-col-tbl-sys one-col-tbl-sys sys1] user-data=~[user-data-3 user-data-2 user-data-1]]] ~ ~]
 ++  two-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[%dbo %dbo] ~ [[%sys %sys] ~ ~]] tables=two-col-tbls]
+  [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-col-tbls]
 ++  two-col-tbl-key
   [%dbo %my-table-2]
 ++  two-col-tbl
@@ -168,7 +168,7 @@
 ++  two-comb-col-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1] user-data=~[user-data-3-a user-data-1]]] ~ ~]
 ++  two-comb-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo %dbo] ~ [[%sys %sys] ~ ~]] tables=two-col-tbls]
+  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-col-tbls]
 ::
 ++  test-cmd-create-1-col-tbl
   =|  run=@ud
@@ -359,9 +359,9 @@
 ++  dropped-tbl-db-force
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys4 one-col-tbl-sys sys1] user-data=~[user-data-4 user-data-1b user-data-2 user-data-1]]] ~ ~]
 ++  sys3
-  [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
+  [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
 ++  sys4
-  [%internals agent=%agent tmsp=~2000.1.4 namespaces=[[[p=%dbo q=%dbo] ~ [[p=%sys q=%sys] ~ ~]]] tables=~]
+  [%internals agent=%agent tmsp=~2000.1.4 namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
 ++  user-data-4
   [%data ~zod agent=%agent tmsp=~2000.1.4 ~]
 ++  user-data-1b
