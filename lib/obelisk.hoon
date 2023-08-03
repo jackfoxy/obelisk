@@ -124,21 +124,27 @@
     ?~  from.q  !!
     =/  =from:ast  (need from.q)
     =/  =table-set:ast  object.from
-    ?:  ?&(?=(qualified-object:ast object.table-set) =(namespace.object.table-set 'sys')) 
+    ?:  ?&  ?=(qualified-object:ast object.table-set)
+            =(namespace.object.table-set 'sys')
+        ==
       ~[(sys-views dbs bowl object.table-set)]
     !!
   ++  sys-views
     |=  [dbs=databases =bowl:gall q=qualified-object:ast]
     ^-  cmd-result
-
     ?:  =(%databases name.q)
       ?.  ?&(=(%sys database.q) =(%sys namespace.q))
         ~|("databases view only in database namespace 'sys.sys'" !!)
       :^  %result-set
           ~.sys.sys.databases
-          ~[[%database %tas] [%sys-agent %tas] [%sys-tmsp %da] [%data-agent %tas] [%data-tmsp %da]]
-          (turn ~(val by dbs) sys-view-databases)
-
+          :~  [%database %tas] 
+              [%sys-agent %tas] 
+              [%sys-tmsp %da] 
+              [%data-ship %p] 
+              [%data-agent %tas] 
+              [%data-tmsp %da]
+          ==
+          (zing (turn ~(val by dbs) sys-view-databases))
     =/  dbrow  
       ~|  "database {<database.q>} does not exist" 
       (~(got by dbs) database.q)
@@ -194,8 +200,40 @@
     ==
   ++  sys-view-databases
     |=  a=db-row
-    :: ~[[%database %tas] [%sys-agent %tas] [%sys-tmsp %da] [%data-agent %tas] [%data-tmsp %da]]
-    ~[name.a created-by-agent.a created-tmsp.a]
+    ^-  (list (list @))
+    =/  sys=(list internals)  (flop sys.a)
+    =/  udata=(list data)      (flop user-data.a)
+    =/  rslt=(list (list @))  ~
+    |-
+    ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
+    ?~  sys
+      %=  $
+      rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
+      udata  +.udata
+      ==
+    ?~  udata
+      ?>  !=(~ rslt)
+      %=  $
+      rslt  
+        [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
+      sys   +.sys
+      ==
+    ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
+      %=  $
+      rslt  [~[name.a ->-.sys ->+<.sys ->-.udata ->+<.udata ->+>-.udata] rslt]
+      sys   +.sys
+      udata  +.udata
+      ==
+    ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
+      %=  $
+      rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
+      udata  +.udata
+      ==
+    ?>  !=(~ rslt)
+    %=  $
+    rslt  [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
+    sys   +.sys
+    ==
   ++  sys-view-tables
     |_  tables=(map [@tas @tas] table)
     ++  foo
@@ -203,16 +241,24 @@
       ^-  (list (list @))
       =/  aa=(list @)
         ~[-.k +.k ship.file agent.file tmsp.file length.file clustered.file]
-      =/  b
-        %^  spin  `(list [@tas ?])`key.file
+      =/  tbl  (~(got by tables) [-.k +.k])
+      =/  keys
+        %^  spin  columns.pri-indx.tbl
             1
-            |=([n=[@tas ?] a=@] [[a -.n +.n] +(a)])
-      =/  pb=(list [@ @ @])  p.b
-      =/  c=(list (list @))  ~
-      |-  ?~  pb  c
+            |=([n=ordered-column:ast a=@] [~[a name.n ascending.n] +(a)])
+      =/  columns  
+        %^  spin  columns.tbl
+            1
+            |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
+      =/  aaa=(list (list @))  (turn p.keys |=(a=(list @) (weld aa a)))
+      =/  b=(list (list @))  ~
+      |-  ?~  aaa  b
       %=  $
-      c    [(weld aa ~[-<.pb ->-.pb ->+.pb]) c]
-      pb  +.pb
+      b  %:  weld 
+             (turn p.columns |=(a=(list @) (weld `(list @)`-.aaa `(list @)`a)))
+             b
+          ==
+      aaa  +.aaa
       ==
     --
   ++  do-insert
@@ -278,7 +324,7 @@
    =.  ship.data          src.bowl
    =.  agent.data         %agent
    =.  tmsp.data          now.bowl
-   =.  files.data         (~(put by files.data) [namespace.table name.table] file)
+   =.  files.data       (~(put by files.data) [namespace.table name.table] file)
    =.  -.user-data.db-row  data
    (~(put by dbs) database.table db-row)
 ++  key-atom
@@ -310,7 +356,7 @@
         0 
       ?:  =(p.p.a type.q.a)  q.p.a
       ~|("type of column {<name.q.a>} does not match input value type" !!)
-    ~|("row cell {<p.a>} not suppoerted" !!)                                           :: not supported
+    ~|("row cell {<p.a>} not suppoerted" !!)
   [name.q.a q]
 ++  make-key-pick
   |=  b=[key=@tas a=(list column:ast)]
@@ -352,7 +398,8 @@
   |=  [dbs=databases =bowl:gall =create-namespace:ast]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
-  =/  dbrow  ~|("database {<database-name.create-namespace>} does not exist" (~(got by dbs) database-name.create-namespace))
+  =/  dbrow  ~|  "database {<database-name.create-namespace>} does not exist" 
+                 (~(got by dbs) database-name.create-namespace)
   =/  db-internals=internals  -.sys.dbrow
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
@@ -372,8 +419,8 @@
   |=  [dbs=databases =bowl:gall =create-table:ast]
   ^-  databases
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
-  =/  dbrow  
-    ~|("database {<database.table.create-table>} does not exist" (~(got by dbs) database.table.create-table))
+  =/  dbrow  ~|  "database {<database.table.create-table>} does not exist"
+                 (~(got by dbs) database.table.create-table)
   =/  db-internals=internals  -.sys.dbrow
   =/  usr-data=data           -.user-data.dbrow
   ?.  (~(has by namespaces.db-internals) namespace.table.create-table)
@@ -501,7 +548,8 @@
 ++  update-state
   |=  [current=databases next=databases]
   ^-  databases
-  =/  a=(list [[@tas db-row] [@tas db-row]])  (fuse [~(tap by current) ~(tap by next)])
+  =/  a=(list [[@tas db-row] [@tas db-row]])  
+        (fuse [~(tap by current) ~(tap by next)])
   |-
   ?~  a  current
   =/  cur-db-row=db-row         -<+.a
@@ -511,11 +559,15 @@
   =/  cur-data=data             -.user-data.cur-db-row
   =/  next-data=data            -.user-data.next-db-row
   ::
-  ?:  ?&(=(tmsp.cur-internals tmsp.next-internals) =(tmsp.cur-data tmsp.next-data))
+  ?:  ?&  =(tmsp.cur-internals tmsp.next-internals) 
+          =(tmsp.cur-data tmsp.next-data)
+      ==
     $(a +.a)
   =/  dbrow=db-row  (~(got by current) -<-.a)
-  =?  sys.dbrow  !=(tmsp.cur-internals tmsp.next-internals)  [next-internals sys.dbrow]
-  =?  user-data.dbrow  !=(tmsp.cur-data tmsp.next-data)  [next-data user-data.dbrow]
+  =?  sys.dbrow  !=(tmsp.cur-internals tmsp.next-internals)  
+                 [next-internals sys.dbrow]
+  =?  user-data.dbrow  !=(tmsp.cur-data tmsp.next-data)  
+                       [next-data user-data.dbrow]
   $(a +.a, current (~(put by current) -<-.a dbrow))
 ++  name-set
   |*  a=(set)
