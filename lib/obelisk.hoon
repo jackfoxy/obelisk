@@ -135,6 +135,8 @@
     ?:  =(%databases name.q)
       ?.  ?&(=(%sys database.q) =(%sys namespace.q))
         ~|("databases view only in database namespace 'sys.sys'" !!)
+      =/  databases-order  ~[[%t %.y 0] [%da %.y 2] [%da %.y 5]]
+      =/  dbes             (turn ~(val by dbs) sys-view-databases)
       :^  %result-set
           ~.sys.sys.databases
           :~  [%database %tas] 
@@ -144,7 +146,7 @@
               [%data-agent %tas] 
               [%data-tmsp %da]
           ==
-          (zing (turn ~(val by dbs) sys-view-databases))
+      (sort `(list (list @))`(zing dbes) ~(order order-row databases-order))
     =/  dbrow  
       ~|  "database {<database.q>} does not exist" 
       (~(got by dbs) database.q)
@@ -152,19 +154,32 @@
     =/  =tables        tables.sys
     =/  udata=data     -.user-data.dbrow
     ?+  name.q  !!
-::    %columns
-      
-::      ~&  >  "q:  {<q>}"  !!
-
+    %columns
+      =/  columns-order  ~[[%t %.y 0] [%ud %.y 2]]
+      =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables))
+      :^
+      %result-set
+      `@ta`(crip (weld (trip database.q) ".sys.columns"))
+       :~  [%namespace %tas] 
+           [%name %tas]  
+           [%col-ordinal %ud]
+           [%col-name %tas]
+           [%col-type %tas]
+           ==
+      (sort `(list (list @))`(zing columns) ~(order order-row columns-order))
     ::
     %namespaces
+      =/  ns-order    ~[[%t %.y 0]]
+      =/  namespaces  (~(urn by namespaces.sys) |=([k=@tas v=@da] ~[k v]))
       :^
       %result-set
       `@ta`(crip (weld (trip database.q) ".sys.namespaces"))
       ~[[%namespace %tas] [%tmsp %da]]
-      ~(val by (~(urn by namespaces.sys) |=([k=@tas v=@da] ~[k v])))
+      (sort `(list (list @))`~(val by namespaces) ~(order order-row ns-order))
     ::
     %tables
+      =/  tables-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 7] [%ud %.y 10]]
+      =/  tbls  (turn ~(tap by files.udata) ~(foo sys-view-tables tables))
       :^
       %result-set
       `@ta`(crip (weld (trip database.q) ".sys.tables"))
@@ -182,7 +197,7 @@
            [%col-name %tas]
            [%col-type %tas]
            ==
-      (zing (turn ~(tap by files.udata) ~(foo sys-view-tables tables)))
+      (sort `(list (list @))`(zing tbls) ~(order order-row tables-order))
     ::
     %sys-logs
       :^
@@ -260,6 +275,19 @@
           ==
       aaa  +.aaa
       ==
+    --
+  ++  sys-view-columns
+    |_  tables=(map [@tas @tas] table)
+    ++  foo
+      |=  [k=[@tas @tas] =file]
+      ^-  (list (list @))
+      =/  aa=(list @)  ~[-.k +.k]
+      =/  tbl  (~(got by tables) [-.k +.k])
+      =/  columns  
+        %^  spin  columns.tbl
+            1
+            |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
+     (turn p.columns |=(a=(list @) (weld aa a)))
     --
   ++  do-insert
     |=  [dbs=databases =bowl:gall c=insert:ast]
@@ -600,5 +628,23 @@
     ?:  =(-<.k %t)  (aor -.p -.q)
     ?:  ->.k  (lth -.p -.q)
     (gth -.p -.q)
+  --
+++  order-row
+  |_  index=(list [@tas ascending=? offset=@ud])  :: to do: accomadate varying row types
+  ++  order
+  |=  [p=(list @) q=(list @)]
+  =/  k=(list [@tas ascending=? offset=@ud])  index
+  |-  ^-  ?
+  ?~  k  %.n
+  =/  pp=(list @)
+    ?:  =(0 ->+.k)  p                      ::offset of current index
+    (oust [0 ->+.k] p)
+  =/  qq=(list @)
+    ?:  =(0 ->+.k)  q                      ::offset of current index
+    (oust [0 ->+.k] q)
+  ?:  =(-.pp -.qq)  $(k +.k)
+  ?:  =(-<.k %t)  (aor -.pp -.qq)
+  ?:  ->-.k  (lth -.pp -.qq)
+  (gth -.pp -.qq)
   --
 --
