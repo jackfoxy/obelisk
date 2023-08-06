@@ -146,7 +146,7 @@
 ++  one-col-tbl-key
  [%dbo %my-table]
 ++  one-col-tbl
-  [%table [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
+  [%table agent=%agent tmsp=~2000.1.2 [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
 ++  one-col-tbls
  [[one-col-tbl-key one-col-tbl] ~ ~]
 ++  cmd-one-col
@@ -159,16 +159,20 @@
 ++  two-col-tbl-key
   [%dbo %my-table-2]
 ++  two-col-tbl
-  [%table [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
+  [%table agent=%agent tmsp=~2000.1.3 [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
 ++  two-col-tbls
  [[two-col-tbl-key two-col-tbl] ~ [[one-col-tbl-key one-col-tbl] ~ ~]]
 ++  cmd-two-col
     [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table-2'] ~[[%column 'col1' %t] [%column 'col2' %p]] %.n ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]] ~]
 ::
+++  two-comb-col-tbl
+  [%table agent=%agent tmsp=~2000.1.2 [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
+++  two-comb-col-tbls
+ [[two-col-tbl-key two-comb-col-tbl] ~ [[one-col-tbl-key one-col-tbl] ~ ~]]
 ++  two-comb-col-tbl-db
   [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1] user-data=~[user-data-3-a user-data-1]]] ~ ~]
 ++  two-comb-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-col-tbls]
+  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-comb-col-tbls]
 ::
 ++  test-cmd-create-1-col-tbl
   =|  run=@ud
