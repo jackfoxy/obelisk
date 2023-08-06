@@ -199,20 +199,53 @@
            ==
       (sort `(list (list @))`(zing tbls) ~(order order-row tables-order))
     ::
-    %sys-logs
+    %sys-log
+      :: to do: rewrite as jagged when architecture available
+      =/  sys-order   ~[[%t %.n 0] [%t %.y 2] [%t %.y 3]]
+      =/  namespaces  (zing (turn sys.dbrow sys-view-sys-log-ns))
+      =/  tbls        (zing (turn sys.dbrow sys-view-sys-log-tbl))
+      =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
       :^
       %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.sys-logs"))
-      ~[[%agent %tas] [%tmsp %da]]
-      (turn sys.dbrow |=(a=internals ~[agent.a tmsp.a]))
+      `@ta`(crip (weld (trip database.q) ".sys.sys-log"))
+      ~[[%tmsp %da] [%agent %tas] [%component %tas] [%name %tas]]
+      (sort `(list (list @))`log ~(order order-row sys-order))
     ::
-    %data-logs
+    %data-log
+      =/  data-order   ~[[%t %.n 0] [%t %.y 3] [%t %.y 4]]
+      =/  tbls        (zing (turn user-data.dbrow sys-view-data-log))
       :^
       %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.data-logs"))
-      ~[[%ship %p] [%agent %tas] [%tmsp %da]]
-      (turn user-data.dbrow |=(a=data ~[ship.a agent.a tmsp.a]))
+      `@ta`(crip (weld (trip database.q) ".sys.data-log"))
+      ~[[%tmsp %da] [%ship %p] [%agent %tas] [%namespace %tas] [%table %tas]]
+      (sort `(list (list @))`tbls ~(order order-row data-order))
     ==
+  ++  sys-view-data-log
+    |=  a=data
+    ^-  (list (list @))
+    =/  tbls  %:  skim
+                  %~  val  by
+                      (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
+                  |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
+              ==
+    (turn tbls |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a agent.a -.k.b +.k.b]))
+  ++  sys-view-sys-log-tbl
+    |=  a=internals
+    ^-  (list (list @))
+    =/  tbls  %:  skim
+                  %~  val  by
+                      (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
+                  |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
+               ==
+    (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a agent.a -.k.b +.k.b]))
+  ++  sys-view-sys-log-ns
+    |=  a=internals
+    ^-  (list (list @))
+    =/  namespaces  %:  skim  
+                    ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
+                    |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
+                    ==
+    (turn namespaces |=(b=[ns=@tas tmsp=@da] ~[tmsp.a agent.a %namespace ns.b]))
   ++  sys-view-databases
     |=  a=db-row
     ^-  (list (list @))
@@ -465,6 +498,8 @@
   ::
   =/  table  %:  table
                  %table
+                 %agent
+                 now.bowl
                  %:  index
                      %index
                      %.y

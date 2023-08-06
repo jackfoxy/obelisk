@@ -43,7 +43,9 @@
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
 +$  table
-  $:  %table 
+  $:  %table
+      agent=@tas
+      tmsp=@da
       pri-indx=index 
       columns=(list column)             ::  canonical column list
       indices=(list index)
