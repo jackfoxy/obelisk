@@ -121,7 +121,7 @@
   ++  do-query
     |=  [dbs=databases =bowl:gall q=query:ast]
     ^-  (list cmd-result)
-    ?~  from.q  !!
+    ?~  from.q  ~[(select-literals columns.selection.q)]
     =/  =from:ast  (need from.q)
     =/  =table-set:ast  object.from
     ?:  ?&  ?=(qualified-object:ast object.table-set)
@@ -129,6 +129,28 @@
         ==
       ~[(sys-views dbs bowl object.table-set)]
     !!
+  ++  select-literals
+    |=  columns=(list selected-column:ast)
+    ^-  cmd-result
+    =/  i  0
+    =/  cols=(list [@tas @tas])  ~
+    =/  vals=(list @)  ~
+    |-
+    ?~  columns  :^(%result-set ~.literals cols ~[vals])
+    ?.  ?=(selected-value:ast -.columns)
+      ~|("selected value {<-.columns>} not a literal" !!)
+    =/  column=selected-value:ast  -.columns
+    =/  heading=[@tas @tas]  
+      ?~  alias.column  [(crip "literal-{<i>}") p.value.column]
+      [(need alias.column) p.value.column]
+    %=  $
+      i        +(i)
+      columns  +.columns
+      cols  [heading cols]
+      vals  [q.value.column vals]
+    ==
+
+    
   ++  sys-views
     |=  [dbs=databases =bowl:gall q=qualified-object:ast]
     ^-  cmd-result
