@@ -19,45 +19,56 @@
       ==
 --
 |%
-++  user-data-2  
-  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
-++  user-data-1
-  [%data ~zod agent=%agent tmsp=~2000.1.1 ~]
-++  file-1col-1-2
-  [%file ~zod %agent ~2000.1.2 %.y 0 [[%col1 [%t 0]] ~ ~] ~[[%t %.y]] ~ ~]
-++  sys1
-  [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=~]
-::  Create table
-++  one-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-2 user-data-1]]] ~ ~]
-++  one-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=one-col-tbls]
-++  one-col-tbls
- [[one-col-tbl-key one-col-tbl] ~ ~]
-++  one-col-tbl-key
- [%dbo %my-table]
-++  one-col-tbl
-  [%table agent=%agent tmsp=~2000.1.2 [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
-++  cmd-one-col
-    [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table'] ~[[%column 'col1' %t]] %.y ~[[%ordered-column 'col1' %.y]] ~]
 ::
-++  test-cmd-create-1-col-tbl
+:: system views
+++  test-data-log
   =|  run=@ud
+  =/  col-row  ~[[%tmsp %da] [%ship %p] [%agent %tas] [%namespace %tas] [%table %tas]]
+  =/  row1  ~[~2000.1.10 0 'agent' %ref %my-table-4]
+  =/  row2  ~[~2000.1.9 0 'agent' %ref %my-table-4]
+  =/  row3  ~[~2000.1.8 0 'agent' %dbo %my-table-4]
+  =/  row4  ~[~2000.1.7 0 'agent' %dbo %my-table-4]
+  =/  row5  ~[~2000.1.5 0 'agent' %dbo %my-table-2]
+  =/  row6  ~[~2000.1.4 0 'agent' %dbo %my-table-2]
+  =/  row7  ~[~2000.1.4 0 'agent' %dbo %my-table-3]
+  =/  row8  ~[~2000.1.3 0 'agent' %dbo %my-table]
+  =/  row9  ~[~2000.1.2 0 'agent' %dbo %my-table]
+  =/  expected  ~[%results ~[%result-set ~.db1.sys.data-log col-row row1 row2 row3 row4 row5 row6 row7 row8 row9]]
+  =/  cmd
+    [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]
   =^  mov1  agent  
-    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%cmd-create-db [%create-database 'db1']]))
+    (~(on-poke agent (bowl [run ~2000.1.1])) %obelisk-action !>([%tape-create-db "CREATE DATABASE db1"]))
   =.  run  +(run)
   =^  mov2  agent  
-    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%commands ~[cmd-one-col]]))
-  =+  !<(=state on-save:agent)
-  ;:  weld
+    (~(on-poke agent (bowl [run ~2000.1.2])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table (col1 @t, col2 @t) PRIMARY KEY (col1, col2 DESC)"]))
+    =.  run  +(run)
+  =^  mov3  agent  
+    (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%tape %db1 "INSERT INTO db1..my-table (col1, col2) VALUES ('cord', 'cord2')"]))
+  =.  run  +(run)
+  =^  mov4  agent  
+    (~(on-poke agent (bowl [run ~2000.1.4])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table-2 (col1 @p, col2 @t) PRIMARY KEY (col1 desc, col2); CREATE TABLE db1..my-table-3 (col1 @p, col2 @t, col3 @ud) PRIMARY KEY (col1)"]))
+    =.  run  +(run)
+  =^  mov5  agent  
+    (~(on-poke agent (bowl [run ~2000.1.5])) %obelisk-action !>([%tape %db1 "INSERT INTO db1..my-table-2 (col1, col2) VALUES (~zod, 'cord2')"]))
+  =.  run  +(run)
+  =^  mov6  agent  
+    (~(on-poke agent (bowl [run ~2000.1.6])) %obelisk-action !>([%tape %db1 "CREATE NAMESPACE ref"]))
+  =.  run  +(run)
+  =^  mov7  agent  
+    (~(on-poke agent (bowl [run ~2000.1.7])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1..my-table-4 (col1 @p, col2 @t, col3 @ud) PRIMARY KEY (col1, col3)"]))
+    =.  run  +(run)
+  =^  mov8  agent  
+    (~(on-poke agent (bowl [run ~2000.1.8])) %obelisk-action !>([%tape %db1 "INSERT INTO db1..my-table-4 (col1, col2, col3) VALUES (~zod, 'cord2', 42)"]))
+  =.  run  +(run)
+  =^  mov9  agent  
+    (~(on-poke agent (bowl [run ~2000.1.9])) %obelisk-action !>([%tape %db1 "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) PRIMARY KEY (col1, col3)"]))
+    =.  run  +(run)
+  =^  mov10  agent  
+    (~(on-poke agent (bowl [run ~2000.1.10])) %obelisk-action !>([%tape %db1 "INSERT INTO db1.ref.my-table-4 (col1, col2, col3) VALUES (~zod, 'cord2', 16)"]))
+  =.  run  +(run)
+  =^  mov11  agent  
+    (~(on-poke agent (bowl [run ~2000.1.11])) %obelisk-action !>([%tape %db1 "FROM sys.data-log SELECT *"]))
   %+  expect-eq                         :: expected results
-    !>  %results
-    !>  ->+>+>-.mov2
-  %+  expect-eq                         :: expected results
-    !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
-  %+  expect-eq                         :: expected state
-    !>  one-col-tbl-db
-    !>  databases.state
-  ==
+    !>  expected
+    !>  ->+>+>.mov11
 --

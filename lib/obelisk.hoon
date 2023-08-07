@@ -155,7 +155,7 @@
     =/  udata=data     -.user-data.dbrow
     ?+  name.q  !!
     %columns
-      =/  columns-order  ~[[%t %.y 0] [%ud %.y 2]]
+      =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
       =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables))
       :^
       %result-set
@@ -201,7 +201,7 @@
     ::
     %sys-log
       :: to do: rewrite as jagged when architecture available
-      =/  sys-order   ~[[%t %.n 0] [%t %.y 2] [%t %.y 3]]
+      =/  sys-order   ~[[%da %.n 0] [%t %.y 2] [%t %.y 3]]
       =/  namespaces  (zing (turn sys.dbrow sys-view-sys-log-ns))
       =/  tbls        (zing (turn sys.dbrow sys-view-sys-log-tbl))
       =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
@@ -212,7 +212,7 @@
       (sort `(list (list @))`log ~(order order-row sys-order))
     ::
     %data-log
-      =/  data-order   ~[[%t %.n 0] [%t %.y 3] [%t %.y 4]]
+      =/  data-order   ~[[%da %.n 0] [%t %.y 3] [%t %.y 4]]
       =/  tbls        (zing (turn user-data.dbrow sys-view-data-log))
       :^
       %result-set
