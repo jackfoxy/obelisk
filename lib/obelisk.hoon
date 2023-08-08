@@ -136,7 +136,7 @@
     =/  cols=(list [@tas @tas])  ~
     =/  vals=(list @)  ~
     |-
-    ?~  columns  :^(%result-set ~.literals cols ~[vals])
+    ?~  columns  :^(%result-set ~.literals (flop cols) ~[(flop vals)])
     ?.  ?=(selected-value:ast -.columns)
       ~|("selected value {<-.columns>} not a literal" !!)
     =/  column=selected-value:ast  -.columns
@@ -146,11 +146,9 @@
     %=  $
       i        +(i)
       columns  +.columns
-      cols  [heading cols]
-      vals  [q.value.column vals]
+      cols     [heading cols]
+      vals     [q.value.column vals]
     ==
-
-    
   ++  sys-views
     |=  [dbs=databases =bowl:gall q=qualified-object:ast]
     ^-  cmd-result

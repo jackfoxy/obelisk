@@ -66,18 +66,25 @@
   =/  my-select  "SELECT 0"
   =/  x  (process-cmds [start-dbs (bowl [run ~2023.2.1]) (parse:parse(default-database 'db1') my-select)])
   %+  expect-eq                         
-    !>  [%results ~[[%result-set qualifier=~.literals columns=~[[%literal-0 %ud]] data=[i=~[0] t=~]]]]         :: expected results
+    !>  [%results ~[[%result-set qualifier=~.literals columns=~[[%literal-0 %ud]] data=[i=~[0] t=~]]]]
     !>  -.x
 ::
 ::  select all literals mixed with aliases
 ++  test-select-literals
   =|  run=@ud 
-  =/  my-select  "SELECT 'cord',~nomryg-nilref,nomryg-nilref,~2020.12.25..7.15.0..1ef5,2020.12.25..7.15.0..1ef5,".
-"~d71.h19.m26.s24..9d55, d71.h19.m26.s24..9d55,.195.198.143.90,.0.0.0.0.0.1c.c3c6.8f5a,y,n,Y,N,".
-"2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm"
+  =/  rslt-cols  ~[[%date %da] [%literal-1 %da] [%literal-2 %da] [%literal-3 %da] [%literal-4 %da] [%literal-5 %da] [%timespan %dr] [%literal-7 %dr] [%literal-8 %dr] [%literal-9 %dr] [%literal-10 %dr] [%loobean %f] [%literal-12 %f] [%ipv4-address %if] [%ipv6-address %is] [%ship %p] [%single-float %rs] [%literal-17 %rs] [%double-float %rd] [%literal-19 %rd] [%signed-binary %sb] [%literal-21 %sb] [%signed-decimal %sd] [%literal-23 %sd] [%signed-base32 %sv] [%literal-25 %sv] [%signed-base64 %sw] [%literal-27 %sw] [%signed-hexadecimal %sx] [%literal-29 %sx] [%unsigned-binary %ub] [%unsigned-decimal %ud] [%literal-32 %ud] [%unsigned-hexadecimal %ux]]
+  =/  rslt-data  ~[~[~2020.12.25 ~2020.12.25..7.15.0 ~2020.12.25..7.15.0..1ef5 ~2020.12.25 ~2020.12.25..7.15.0 ~2020.12.25..7.15.0..1ef5 ~d71.h19.m26.s24..9d55 ~d71.h19.m26.s24 ~d71.h19.m26 ~d71.h19 ~d71 %.y %.n .195.198.143.90 .0.0.0.0.0.1c.c3c6.8f5a ~sampel-palnet .3.14 .-3.14 .~3.14 .~-3.14 --0b10.0000 -0b10.0000 --20 -20 --0v201.4gvml.245kc -0v201.4gvml.245kc --0w2.04AfS.G8xqc -0w2.04AfS.G8xqc --0x2004.90fd -0x2004.90fd 0b10.1011 2.222 2.222 0x12.6401]]
+  =/  my-select  "SELECT ~2020.12.25 AS Date, ~2020.12.25..7.15.0, ".
+  "~2020.12.25..7.15.0..1ef5, 2020.12.25, 2020.12.25..7.15.0, 2020.12.25..7.15.0..1ef5, ".
+  "~d71.h19.m26.s24..9d55 AS Timespan, ~d71.h19.m26.s24, ~d71.h19.m26, ~d71.h19, ~d71, ".
+  "Y AS Loobean, N, .195.198.143.90 AS IPv4-address, .0.0.0.0.0.1c.c3c6.8f5a as IPv6-address, ".
+  "~sampel-palnet AS Ship, .3.14 AS Single-float, .-3.14, ~3.14 AS Double-float, ~-3.14, ".
+  "--0b10.0000 AS Signed-binary, -0b10.0000, --20 AS Signed-decimal, -20, ".
+  "--0v201.4gvml.245kc AS Signed-base32, -0v201.4gvml.245kc, --0w2.04AfS.G8xqc AS Signed-base64, ".
+  "-0w2.04AfS.G8xqc, --0x2004.90fd AS Signed-hexadecimal, -0x2004.90fd, ".
+  "10.1011 AS Unsigned-binary, 2.222 AS Unsigned-decimal, 2222, 0x12.6401 AS Unsigned-hexadecimal"
   =/  x  (process-cmds [start-dbs (bowl [run ~2023.2.1]) (parse:parse(default-database 'db1') my-select)])
-  ~&  >  -.x
   %+  expect-eq                         
-    !>  [%results ~[[%result-set qualifier=~.literals columns=~[[%literal-0 %ud]] data=[i=~[0] t=~]]]]         :: expected results
+    !>  [%results ~[[%result-set qualifier=~.literals rslt-cols rslt-data]]]
     !>  -.x
 --
