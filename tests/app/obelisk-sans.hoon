@@ -7,7 +7,7 @@
 ++  bowl
   |=  [run=@ud now=@da]
   ^-  bowl:gall
-  :*  [~zod ~zod %obelisk]                            :: (our src dap)
+  :*  [~zod ~zod %obelisk `path`(limo ~[%test-agent])] :: (our src dap sap)
       [~ ~ ~]                                         :: (wex sup sky)
       [run `@uvJ`(shax run) now [~zod %base ud+run]]  :: (act eny now byk)
   ==
@@ -24,15 +24,15 @@
 ++  test-data-log
   =|  run=@ud
   =/  col-row  ~[[%tmsp %da] [%ship %p] [%agent %tas] [%namespace %tas] [%table %tas]]
-  =/  row1  ~[~2000.1.10 0 'agent' %ref %my-table-4]
-  =/  row2  ~[~2000.1.9 0 'agent' %ref %my-table-4]
-  =/  row3  ~[~2000.1.8 0 'agent' %dbo %my-table-4]
-  =/  row4  ~[~2000.1.7 0 'agent' %dbo %my-table-4]
-  =/  row5  ~[~2000.1.5 0 'agent' %dbo %my-table-2]
-  =/  row6  ~[~2000.1.4 0 'agent' %dbo %my-table-2]
-  =/  row7  ~[~2000.1.4 0 'agent' %dbo %my-table-3]
-  =/  row8  ~[~2000.1.3 0 'agent' %dbo %my-table]
-  =/  row9  ~[~2000.1.2 0 'agent' %dbo %my-table]
+  =/  row1  ~[~2000.1.10 0 '/test-agent' %ref %my-table-4]
+  =/  row2  ~[~2000.1.9 0 '/test-agent' %ref %my-table-4]
+  =/  row3  ~[~2000.1.8 0 '/test-agent' %dbo %my-table-4]
+  =/  row4  ~[~2000.1.7 0 '/test-agent' %dbo %my-table-4]
+  =/  row5  ~[~2000.1.5 0 '/test-agent' %dbo %my-table-2]
+  =/  row6  ~[~2000.1.4 0 '/test-agent' %dbo %my-table-2]
+  =/  row7  ~[~2000.1.4 0 '/test-agent' %dbo %my-table-3]
+  =/  row8  ~[~2000.1.3 0 '/test-agent' %dbo %my-table]
+  =/  row9  ~[~2000.1.2 0 '/test-agent' %dbo %my-table]
   =/  expected  ~[%results ~[%result-set ~.db1.sys.data-log col-row row1 row2 row3 row4 row5 row6 row7 row8 row9]]
   =/  cmd
     [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]

@@ -42,7 +42,6 @@
                  bowl
                  (parse(default-database +<.act) +>.act)
                  ==
-    ~&  >  "results:  {<-.res>}"
     :_  this(databases +.res)
     ::https://github.com/urbit/urbit/issues/6692
     :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
@@ -51,7 +50,6 @@
   ::
   %commands
     =/  res  (process-cmds databases bowl +.act)
-    ~&  >  "results:  {<-.res>}"
     :_  this(databases +.res)
     :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]

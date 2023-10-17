@@ -5,14 +5,14 @@
 +$  db-row
   $:  %db-row
       name=@tas
-      created-by-agent=@tas
+      created-by-provenance=@t
       created-tmsp=@da
       sys=(list internals)
       user-data=(list data)
   ==
 +$  internals
   $:  %internals
-      agent=@tas
+      provenance=@t
       tmsp=@da
       =namespaces
       =tables
@@ -23,14 +23,14 @@
 +$  data
   $:  %data
       ship=@p
-      agent=@tas
+      provenance=@t
       tmsp=@da
       files=(map [@tas @tas] file)
   ==
 +$  file
   $:  %file
       ship=@p
-      agent=@tas
+      provenance=@t
       tmsp=@da
       clustered=?
       length=@ud
@@ -44,7 +44,7 @@
 +$  tables  (map [@tas @tas] table)
 +$  table
   $:  %table
-      agent=@tas
+      provenance=@t
       tmsp=@da
       pri-indx=index 
       columns=(list column)             ::  canonical column list

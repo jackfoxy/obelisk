@@ -9,9 +9,9 @@
 ++  bowl
   |=  [run=@ud now=@da]
   ^-  bowl:gall
-  :*  [~zod ~zod %obelisk]                            :: (our src dap)
-      [~ ~ ~]                                         :: (wex sup sky)
-      [run `@uvJ`(shax run) now [~zod %base ud+run]]  :: (act eny now byk)
+  :*  [~zod ~zod %obelisk `path`(limo ~[%test-agent])] :: (our src dap sap)
+      [~ ~ ~]                                          :: (wex sup sky)
+      [run `@uvJ`(shax run) now [~zod %base ud+run]]   :: (act eny now byk)
   ==
 ::  Build a reference state mold.
 ::
@@ -22,33 +22,33 @@
 --
 |%
 ++  db1
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys1] user-data=~[user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[sys1] user-data=~[user-data-1]]] ~ ~]
 ++  sys1
-  [%internals agent=%agent tmsp=~2000.1.1 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=~]
+  [%internals agent='/test-agent' tmsp=~2000.1.1 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=~]
 ++  sys2
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%ns1 q=~2000.1.2] ~ [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
+  [%internals agent='/test-agent' tmsp=~2000.1.2 namespaces=[[p=%ns1 q=~2000.1.2] ~ [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
 ++  user-data-1
-  [%data ~zod agent=%agent tmsp=~2000.1.1 ~]
+  [%data ~zod agent='/test-agent' tmsp=~2000.1.1 ~]
 ++  user-data-1-a
-  [%data ~zod agent=%agent tmsp=~2000.1.3 ~]
+  [%data ~zod agent='/test-agent' tmsp=~2000.1.3 ~]
 ++  user-data-2  
-  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
+  [%data ~zod '/test-agent' ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
 ++  user-data-3  
-  [%data ~zod %agent ~2000.1.3 [[[%dbo %my-table-2] file-2col-1-3] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
+  [%data ~zod '/test-agent' ~2000.1.3 [[[%dbo %my-table-2] file-2col-1-3] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
 ++  user-data-3-a
-  [%data ~zod %agent ~2000.1.2 [[[%dbo %my-table-2] file-2col-1-2] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
+  [%data ~zod '/test-agent' ~2000.1.2 [[[%dbo %my-table-2] file-2col-1-2] ~ [[[%dbo %my-table] file-1col-1-2] ~ ~]]]
 
 ++  file-1col-1-2
-  [%file ~zod %agent ~2000.1.2 %.y 0 [[%col1 [%t 0]] ~ ~] ~[[%t %.y]] ~ ~]
+  [%file ~zod '/test-agent' ~2000.1.2 %.y 0 [[%col1 [%t 0]] ~ ~] ~[[%t %.y]] ~ ~]
 
 ++  file-2col-1-2
-  [%file ~zod %agent ~2000.1.2 %.n 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~[[%t %.y] [%p %.y]] ~ ~]
+  [%file ~zod '/test-agent' ~2000.1.2 %.n 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~[[%t %.y] [%p %.y]] ~ ~]
 
 ++  file-2col-1-3
-  [%file ~zod %agent ~2000.1.3 %.n 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~[[%t %.y] [%p %.y]] ~ ~]
+  [%file ~zod '/test-agent' ~2000.1.3 %.n 0 [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]] ~[[%t %.y] [%p %.y]] ~ ~]
 
 ++  db2
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys2 sys1] user-data=~[user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[sys2 sys1] user-data=~[user-data-1]]] ~ ~]
 ::  Create database
 ++  test-tape-create-db
   =|  run=@ud 
@@ -140,39 +140,39 @@
   |.  (~(on-poke agent (bowl [run ~2000.1.3])) %obelisk-action !>([%commands ~[[%create-namespace %db2 %ns1]]]))
 ::  Create table
 ++  one-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-2 user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[one-col-tbl-sys sys1] user-data=~[user-data-2 user-data-1]]] ~ ~]
 ++  one-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=one-col-tbls]
+  [%internals agent='/test-agent' tmsp=~2000.1.2 namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]] tables=one-col-tbls]
 ++  one-col-tbl-key
  [%dbo %my-table]
 ++  one-col-tbl
-  [%table agent=%agent tmsp=~2000.1.2 [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
+  [%table agent='/test-agent' tmsp=~2000.1.2 [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]] ~[[%column name=%col1 column-type=%t]] ~]
 ++  one-col-tbls
  [[one-col-tbl-key one-col-tbl] ~ ~]
 ++  cmd-one-col
     [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table'] ~[[%column 'col1' %t]] %.y ~[[%ordered-column 'col1' %.y]] ~]
 ::
 ++  two-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-col-tbl-sys one-col-tbl-sys sys1] user-data=~[user-data-3 user-data-2 user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[two-col-tbl-sys one-col-tbl-sys sys1] user-data=~[user-data-3 user-data-2 user-data-1]]] ~ ~]
 ++  two-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-col-tbls]
+  [%internals agent='/test-agent' tmsp=~2000.1.3 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-col-tbls]
 ++  two-col-tbl-key
   [%dbo %my-table-2]
 ++  two-col-tbl
-  [%table agent=%agent tmsp=~2000.1.3 [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
+  [%table agent='/test-agent' tmsp=~2000.1.3 [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
 ++  two-col-tbls
  [[two-col-tbl-key two-col-tbl] ~ [[one-col-tbl-key one-col-tbl] ~ ~]]
 ++  cmd-two-col
     [%create-table [%qualified-object ~ 'db1' 'dbo' 'my-table-2'] ~[[%column 'col1' %t] [%column 'col2' %p]] %.n ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]] ~]
 ::
 ++  two-comb-col-tbl
-  [%table agent=%agent tmsp=~2000.1.2 [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
+  [%table agent='/test-agent' tmsp=~2000.1.2 [%index %.y %.n ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]] ~[[%column %col1 %t] [%column %col2 %p]] ~]
 ++  two-comb-col-tbls
  [[two-col-tbl-key two-comb-col-tbl] ~ [[one-col-tbl-key one-col-tbl] ~ ~]]
 ++  two-comb-col-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1] user-data=~[user-data-3-a user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[two-comb-col-tbl-sys sys1] user-data=~[user-data-3-a user-data-1]]] ~ ~]
 ++  two-comb-col-tbl-sys
-  [%internals agent=%agent tmsp=~2000.1.2 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-comb-col-tbls]
+  [%internals agent='/test-agent' tmsp=~2000.1.2 namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]] tables=two-comb-col-tbls]
 ::
 ++  test-cmd-create-1-col-tbl
   =|  run=@ud
@@ -359,19 +359,19 @@
 ::
 ::  Drop table
 ++  dropped-tbl-db
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys3 one-col-tbl-sys sys1] user-data=~[user-data-1-a user-data-2 user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[sys3 one-col-tbl-sys sys1] user-data=~[user-data-1-a user-data-2 user-data-1]]] ~ ~]
 ++  dropped-tbl-db-force
-  [[%db1 [%db-row name=%db1 created-by-agent=%agent created-tmsp=~2000.1.1 sys=~[sys4 one-col-tbl-sys sys1] user-data=~[user-data-4 user-data-1b user-data-2 user-data-1]]] ~ ~]
+  [[%db1 [%db-row name=%db1 created-by-agent='/test-agent' created-tmsp=~2000.1.1 sys=~[sys4 one-col-tbl-sys sys1] user-data=~[user-data-4 user-data-1b user-data-2 user-data-1]]] ~ ~]
 ++  sys3
-  [%internals agent=%agent tmsp=~2000.1.3 namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
+  [%internals agent='/test-agent' tmsp=~2000.1.3 namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
 ++  sys4
-  [%internals agent=%agent tmsp=~2000.1.4 namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
+  [%internals agent='/test-agent' tmsp=~2000.1.4 namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]] tables=~]
 ++  user-data-4
-  [%data ~zod agent=%agent tmsp=~2000.1.4 ~]
+  [%data ~zod agent='/test-agent' tmsp=~2000.1.4 ~]
 ++  user-data-1b
-  [%data ~zod agent=%agent tmsp=~2000.1.3 files=files-4]
+  [%data ~zod agent='/test-agent' tmsp=~2000.1.3 files=files-4]
 ++  files-4
- [n=[p=[%dbo %my-table] q=[%file ship=~zod agent=%agent tmsp=~2000.1.3 clustered=%.y length=1 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] key=~[[%t %.y]] pri-idx=files-4-pri-idx data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]]] l=~ r=~]
+ [n=[p=[%dbo %my-table] q=[%file ship=~zod agent='/test-agent' tmsp=~2000.1.3 clustered=%.y length=1 column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~] key=~[[%t %.y]] pri-idx=files-4-pri-idx data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]]] l=~ r=~]
 ++  files-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::
@@ -480,11 +480,11 @@
 ++  test-sys-sys-databases
   =|  run=@ud
   =/  col-row  ~[[%database %tas] [%sys-agent %tas] [%sys-tmsp %da] [%data-ship %p] [%data-agent %tas] [%data-tmsp %da]]
-  =/  row1  ~[%db1 'agent' ~2000.1.1 0 'agent' ~2000.1.1]
-  =/  row2  ~[%db1 'agent' ~2000.1.2 0 'agent' ~2000.1.2]
-  =/  row3  ~[%db1 'agent' ~2000.1.2 0 'agent' ~2000.1.3]
-  =/  row4  ~[%db2 'agent' ~2000.1.4 0 'agent' ~2000.1.4]
-  =/  row5  ~[%db2 'agent' ~2000.1.5 0 'agent' ~2000.1.5]
+  =/  row1  ~[%db1 '/test-agent' ~2000.1.1 0 '/test-agent' ~2000.1.1]
+  =/  row2  ~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.2]
+  =/  row3  ~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.3]
+  =/  row4  ~[%db2 '/test-agent' ~2000.1.4 0 '/test-agent' ~2000.1.4]
+  =/  row5  ~[%db2 '/test-agent' ~2000.1.5 0 '/test-agent' ~2000.1.5]
   =/  expected  ~[%results ~[%result-set 'sys.sys.databases' col-row row1 row2 row3 row4 row5]]
   =/  cmd
     [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]
@@ -511,29 +511,29 @@
 ++  test-sys-tables
   =|  run=@ud
   =/  col-row  ~[[%namespace %tas] [%name %tas] [%ship %p] [%agent %tas] [%tmsp %da] [%row-count %ud] [%clustered %f] [%key-ordinal %ud] [%key %tas] [%key-ascending %f] [%col-ordinal %ud] [%col-name %tas] [%col-type %tas]]
-  =/  row1  ~[%dbo %my-table 0 'agent' ~2000.1.3 1 0 1 %col1 0 1 %col1 %t]
-  =/  row2  ~[%dbo %my-table 0 'agent' ~2000.1.3 1 0 1 %col1 0 2 %col2 %t]
-  =/  row3  ~[%dbo %my-table 0 'agent' ~2000.1.3 1 0 2 %col2 1 1 %col1 %t]
-  =/  row4  ~[%dbo %my-table 0 'agent' ~2000.1.3 1 0 2 %col2 1 2 %col2 %t]
-  =/  row5  ~[%dbo %my-table-2 0 'agent' ~2000.1.4 0 0 1 %col1 1 1 %col1 %p]
-  =/  row6  ~[%dbo %my-table-2 0 'agent' ~2000.1.4 0 0 1 %col1 1 2 %col2 %t]
-  =/  row7  ~[%dbo %my-table-2 0 'agent' ~2000.1.4 0 0 2 %col2 0 1 %col1 %p]
-  =/  row8  ~[%dbo %my-table-2 0 'agent' ~2000.1.4 0 0 2 %col2 0 2 %col2 %t]
-  =/  row9  ~[%dbo %my-table-3 0 'agent' ~2000.1.4 0 0 1 %col1 0 1 %col1 %p]
-  =/  row10  ~[%dbo %my-table-3 0 'agent' ~2000.1.4 0 0 1 %col1 0 2 %col2 %t]
-  =/  row11  ~[%dbo %my-table-3 0 'agent' ~2000.1.4 0 0 1 %col1 0 3 %col3 %ud]
-  =/  row12  ~[%dbo %my-table-4 0 'agent' ~2000.1.6 0 0 1 %col1 0 1 %col1 %p]
-  =/  row13  ~[%dbo %my-table-4 0 'agent' ~2000.1.6 0 0 1 %col1 0 2 %col2 %t]
-  =/  row14  ~[%dbo %my-table-4 0 'agent' ~2000.1.6 0 0 1 %col1 0 3 %col3 %ud]
-  =/  row15  ~[%dbo %my-table-4 0 'agent' ~2000.1.6 0 0 2 %col3 0 1 %col1 %p]
-  =/  row16  ~[%dbo %my-table-4 0 'agent' ~2000.1.6 0 0 2 %col3 0 2 %col2 %t]
-  =/  row17  ~[%dbo %my-table-4 0 'agent' ~2000.1.6 0 0 2 %col3 0 3 %col3 %ud]
-  =/  row18  ~[%ref %my-table-4 0 'agent' ~2000.1.7 0 0 1 %col1 0 1 %col1 %p]
-  =/  row19  ~[%ref %my-table-4 0 'agent' ~2000.1.7 0 0 1 %col1 0 2 %col2 %t]
-  =/  row20  ~[%ref %my-table-4 0 'agent' ~2000.1.7 0 0 1 %col1 0 3 %col3 %ud]
-  =/  row21  ~[%ref %my-table-4 0 'agent' ~2000.1.7 0 0 2 %col3 0 1 %col1 %p]
-  =/  row22  ~[%ref %my-table-4 0 'agent' ~2000.1.7 0 0 2 %col3 0 2 %col2 %t]
-  =/  row23  ~[%ref %my-table-4 0 'agent' ~2000.1.7 0 0 2 %col3 0 3 %col3 %ud]
+  =/  row1  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 1 %col1 0 1 %col1 %t]
+  =/  row2  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 1 %col1 0 2 %col2 %t]
+  =/  row3  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 2 %col2 1 1 %col1 %t]
+  =/  row4  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 2 %col2 1 2 %col2 %t]
+  =/  row5  ~[%dbo %my-table-2 0 '/test-agent' ~2000.1.4 0 0 1 %col1 1 1 %col1 %p]
+  =/  row6  ~[%dbo %my-table-2 0 '/test-agent' ~2000.1.4 0 0 1 %col1 1 2 %col2 %t]
+  =/  row7  ~[%dbo %my-table-2 0 '/test-agent' ~2000.1.4 0 0 2 %col2 0 1 %col1 %p]
+  =/  row8  ~[%dbo %my-table-2 0 '/test-agent' ~2000.1.4 0 0 2 %col2 0 2 %col2 %t]
+  =/  row9  ~[%dbo %my-table-3 0 '/test-agent' ~2000.1.4 0 0 1 %col1 0 1 %col1 %p]
+  =/  row10  ~[%dbo %my-table-3 0 '/test-agent' ~2000.1.4 0 0 1 %col1 0 2 %col2 %t]
+  =/  row11  ~[%dbo %my-table-3 0 '/test-agent' ~2000.1.4 0 0 1 %col1 0 3 %col3 %ud]
+  =/  row12  ~[%dbo %my-table-4 0 '/test-agent' ~2000.1.6 0 0 1 %col1 0 1 %col1 %p]
+  =/  row13  ~[%dbo %my-table-4 0 '/test-agent' ~2000.1.6 0 0 1 %col1 0 2 %col2 %t]
+  =/  row14  ~[%dbo %my-table-4 0 '/test-agent' ~2000.1.6 0 0 1 %col1 0 3 %col3 %ud]
+  =/  row15  ~[%dbo %my-table-4 0 '/test-agent' ~2000.1.6 0 0 2 %col3 0 1 %col1 %p]
+  =/  row16  ~[%dbo %my-table-4 0 '/test-agent' ~2000.1.6 0 0 2 %col3 0 2 %col2 %t]
+  =/  row17  ~[%dbo %my-table-4 0 '/test-agent' ~2000.1.6 0 0 2 %col3 0 3 %col3 %ud]
+  =/  row18  ~[%ref %my-table-4 0 '/test-agent' ~2000.1.7 0 0 1 %col1 0 1 %col1 %p]
+  =/  row19  ~[%ref %my-table-4 0 '/test-agent' ~2000.1.7 0 0 1 %col1 0 2 %col2 %t]
+  =/  row20  ~[%ref %my-table-4 0 '/test-agent' ~2000.1.7 0 0 1 %col1 0 3 %col3 %ud]
+  =/  row21  ~[%ref %my-table-4 0 '/test-agent' ~2000.1.7 0 0 2 %col3 0 1 %col1 %p]
+  =/  row22  ~[%ref %my-table-4 0 '/test-agent' ~2000.1.7 0 0 2 %col3 0 2 %col2 %t]
+  =/  row23  ~[%ref %my-table-4 0 '/test-agent' ~2000.1.7 0 0 2 %col3 0 3 %col3 %ud]
   =/  expected  ~[%results ~[%result-set ~.db1.sys.tables col-row row1 row2 row3 row4 row5 row6 row7 row8 row9 row10 row11 row12 row13 row14 row15 row16 row17 row18 row19 row20 row21 row22 row23]]
   =/  cmd
     [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]
@@ -602,14 +602,14 @@
 ++  test-sys-log
   =|  run=@ud
   =/  col-row  ~[[%tmsp %da] [%agent %tas] [%component %tas] [%name %tas]]
-  =/  row1  ~[~2000.1.7 'agent' %ref %my-table-4]
-  =/  row2  ~[~2000.1.6 'agent' %dbo %my-table-4]
-  =/  row3  ~[~2000.1.5 'agent' %namespace %ref]
-  =/  row4  ~[~2000.1.4 'agent' %dbo %my-table-2]
-  =/  row5  ~[~2000.1.4 'agent' %dbo %my-table-3]
-  =/  row6  ~[~2000.1.2 'agent' %dbo %my-table]
-  =/  row7  ~[~2000.1.1 'agent' %namespace %dbo]
-  =/  row8  ~[~2000.1.1 'agent' %namespace %sys]
+  =/  row1  ~[~2000.1.7 '/test-agent' %ref %my-table-4]
+  =/  row2  ~[~2000.1.6 '/test-agent' %dbo %my-table-4]
+  =/  row3  ~[~2000.1.5 '/test-agent' %namespace %ref]
+  =/  row4  ~[~2000.1.4 '/test-agent' %dbo %my-table-2]
+  =/  row5  ~[~2000.1.4 '/test-agent' %dbo %my-table-3]
+  =/  row6  ~[~2000.1.2 '/test-agent' %dbo %my-table]
+  =/  row7  ~[~2000.1.1 '/test-agent' %namespace %dbo]
+  =/  row8  ~[~2000.1.1 '/test-agent' %namespace %sys]
   =/  expected  ~[%results ~[%result-set ~.db1.sys.sys-log col-row row1 row2 row3 row4 row5 row6 row7 row8]]
   =/  cmd
     [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]
@@ -639,15 +639,15 @@
 ++  test-data-log
   =|  run=@ud
   =/  col-row  ~[[%tmsp %da] [%ship %p] [%agent %tas] [%namespace %tas] [%table %tas]]
-  =/  row1  ~[~2000.1.10 0 'agent' %ref %my-table-4]
-  =/  row2  ~[~2000.1.9 0 'agent' %ref %my-table-4]
-  =/  row3  ~[~2000.1.8 0 'agent' %dbo %my-table-4]
-  =/  row4  ~[~2000.1.7 0 'agent' %dbo %my-table-4]
-  =/  row5  ~[~2000.1.5 0 'agent' %dbo %my-table-2]
-  =/  row6  ~[~2000.1.4 0 'agent' %dbo %my-table-2]
-  =/  row7  ~[~2000.1.4 0 'agent' %dbo %my-table-3]
-  =/  row8  ~[~2000.1.3 0 'agent' %dbo %my-table]
-  =/  row9  ~[~2000.1.2 0 'agent' %dbo %my-table]
+  =/  row1  ~[~2000.1.10 0 '/test-agent' %ref %my-table-4]
+  =/  row2  ~[~2000.1.9 0 '/test-agent' %ref %my-table-4]
+  =/  row3  ~[~2000.1.8 0 '/test-agent' %dbo %my-table-4]
+  =/  row4  ~[~2000.1.7 0 '/test-agent' %dbo %my-table-4]
+  =/  row5  ~[~2000.1.5 0 '/test-agent' %dbo %my-table-2]
+  =/  row6  ~[~2000.1.4 0 '/test-agent' %dbo %my-table-2]
+  =/  row7  ~[~2000.1.4 0 '/test-agent' %dbo %my-table-3]
+  =/  row8  ~[~2000.1.3 0 '/test-agent' %dbo %my-table]
+  =/  row9  ~[~2000.1.2 0 '/test-agent' %dbo %my-table]
   =/  expected  ~[%results ~[%result-set ~.db1.sys.data-log col-row row1 row2 row3 row4 row5 row6 row7 row8 row9]]
   =/  cmd
     [%drop-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] %.y]

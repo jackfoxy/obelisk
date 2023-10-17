@@ -16,10 +16,10 @@
   %:  map-insert  dbs  +.c  %:  db-row 
                                 %db-row 
                                 +.c 
-                                %agent 
+                                (crip (spud sap.bowl))
                                 now.bowl 
-                                ~[(internals %internals %agent now.bowl ns tbs)]
-                                ~[(data %data src.bowl %agent now.bowl ~)]
+                                ~[(internals %internals (crip (spud sap.bowl)) now.bowl ns tbs)]
+                                ~[(data %data src.bowl (crip (spud sap.bowl)) now.bowl ~)]
                                 ==
       ==
   `cmd-result`[%result-da 'system time' now.bowl]
@@ -248,7 +248,7 @@
                       (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
                   |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
               ==
-    (turn tbls |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a agent.a -.k.b +.k.b]))
+    (turn tbls |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a provenance.a -.k.b +.k.b]))
   ++  sys-view-sys-log-tbl
     |=  a=internals
     ^-  (list (list @))
@@ -257,7 +257,7 @@
                       (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
                   |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
                ==
-    (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a agent.a -.k.b +.k.b]))
+    (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a provenance.a -.k.b +.k.b]))
   ++  sys-view-sys-log-ns
     |=  a=internals
     ^-  (list (list @))
@@ -265,7 +265,7 @@
                     ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
                     |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
                     ==
-    (turn namespaces |=(b=[ns=@tas tmsp=@da] ~[tmsp.a agent.a %namespace ns.b]))
+    (turn namespaces |=(b=[ns=@tas tmsp=@da] ~[tmsp.a provenance.a %namespace ns.b]))
   ++  sys-view-databases
     |=  a=db-row
     ^-  (list (list @))
@@ -308,7 +308,7 @@
       |=  [k=[@tas @tas] =file]
       ^-  (list (list @))
       =/  aa=(list @)
-        ~[-.k +.k ship.file agent.file tmsp.file length.file clustered.file]
+        ~[-.k +.k ship.file provenance.file tmsp.file length.file clustered.file]
       =/  tbl  (~(got by tables) [-.k +.k])
       =/  keys
         %^  spin  columns.pri-indx.tbl
@@ -400,10 +400,10 @@
 ++  finalize-data
   |=  [dbs=databases =db-row =data =file =bowl:gall table=qualified-object:ast]
    =.  ship.file          src.bowl
-   =.  agent.file         %agent
+   =.  provenance.file    (crip (spud sap.bowl))
    =.  tmsp.file          now.bowl
    =.  ship.data          src.bowl
-   =.  agent.data         %agent
+   =.  provenance.data    (crip (spud sap.bowl))
    =.  tmsp.data          now.bowl
    =.  files.data       (~(put by files.data) [namespace.table name.table] file)
    =.  -.user-data.db-row  data
@@ -490,7 +490,7 @@
                       ==
   =.  -.sys.dbrow  %:  internals 
                        %internals 
-                       %agent 
+                       (crip (spud sap.bowl))
                        now.bowl 
                        namespaces 
                        tables.db-internals
@@ -518,7 +518,7 @@
   ::
   =/  table  %:  table
                  %table
-                 %agent
+                 (crip (spud sap.bowl))
                  now.bowl
                  %:  index
                      %index
@@ -542,7 +542,7 @@
   =/  file  %:  file
                 %file
                 src.bowl
-                %agent
+                (crip (spud sap.bowl))
                 now.bowl
                 clustered.create-table
                 0
@@ -561,7 +561,7 @@
   ::
   =.  -.sys.dbrow  %:  internals
                        %internals
-                       %agent
+                       (crip (spud sap.bowl))
                        now.bowl
                        namespaces.db-internals
                        tables
@@ -569,7 +569,7 @@
   =.  -.user-data.dbrow  %:  data
                              %data
                              src.bowl
-                             %agent
+                             (crip (spud sap.bowl))
                              now.bowl
                              files
                              ==
@@ -615,7 +615,7 @@
         [namespace.table.d name.table.d]
   =.  -.sys.dbrow  %:  internals
                        %internals
-                       %agent
+                       (crip (spud sap.bowl))
                        now.bowl
                        namespaces.db-internals
                        tables
@@ -623,7 +623,7 @@
   =.  -.user-data.dbrow  %:  data
                              %data
                              src.bowl
-                             %agent
+                             (crip (spud sap.bowl))
                              now.bowl
                              files
                              ==
