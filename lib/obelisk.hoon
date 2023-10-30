@@ -666,13 +666,13 @@
 ++  map-insert
   |*  [m=(map) key=* value=*]
   ^+  m
-  ?:  (~(has by m) key)  ~|("cannot add duplicate key: {<key>}" !!)
+  ?:  (~(has by m) key)  ~|("duplicate key: {<key>}" !!)
   (~(put by m) key value)
 ++  map-delete
   |*  [m=(map) key=*]
   ^+  m
   ?:  (~(has by m) key)  (~(del by m) key)
-  ~|("key does not exist for deletion: {<key>}" !!)
+  ~|("deletion key does not exist: {<key>}" !!)
 ++  idx-comp 
   |_  index=(list [@tas ascending=?])
   ++  order
