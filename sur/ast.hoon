@@ -37,9 +37,9 @@
 ::
 ::  command component types
 ::
-+$  value-literal-list
++$  value-literals
   $:
-    %value-literal-list
+    %value-literals
     dime
   ==
 +$  ordered-column
@@ -94,7 +94,7 @@
 +$  ops-and-conjs        
  ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component  
-  ?(ops-and-conjs qualified-column dime value-literal-list aggregate)
+  ?(ops-and-conjs qualified-column dime value-literals aggregate)
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column dime)
 +$  datum-or-scalar      $@(datum scalar-function)
@@ -271,6 +271,7 @@
     %delete
     table=qualified-object
     predicate=(unit predicate)
+    as-of=(unit as-of)
   ==
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
@@ -281,6 +282,7 @@
     table=qualified-object
     columns=(unit (list @t))
     values=insert-values
+    as-of=(unit as-of)
   ==
 +$  value-or-default     ?(%default datum)
 ::
@@ -292,6 +294,7 @@
     columns=(list @t)
     values=(list value-or-default)
     predicate=(unit predicate)
+    as-of=(unit as-of)
   ==
 ::
 ::  $merge: merge from source table-set into target table-set
@@ -305,6 +308,7 @@
     matched=(list matching)
     unmatched-by-target=(list matching)
     unmatched-by-source=(list matching)
+    as-of=(unit as-of)
   ==
 +$  matching
   $:
@@ -315,19 +319,32 @@
 +$  matching-action  ?(%insert %update %delete)
 +$  matching-profile
   $%([%insert (list [@t datum])] [%update (list [@t datum])] %delete)
++$  matching-lists
+  $:  matched=(list matching)
+    not-target=(list matching)
+    not-source=(list matching)
+  ==
 ::
 ::  $truncate-table:
 +$  truncate-table
   $:
     %truncate-table
     table=qualified-object
+    as-of=(unit as-of)
   ==
 ::
 ::  create ASTs
 ::
++$  as-of-offset
+  $:
+    %as-of-offset
+    offset=@ud
+    units=?(%seconds %minutes %hours %days %weeks %months %years)
+  ==
++$  as-of  ?(@da as-of-offset)
 ::
 ::  $create-database: $:([%create-database name=@tas])
-+$  create-database      $:([%create-database name=@tas])
++$  create-database      $:([%create-database name=@tas as-of=(unit as-of)])
 ::
 ::  $create-index:
 +$  create-index
@@ -340,18 +357,23 @@
     columns=(list ordered-column)
   ==
 ::
-::  $create-namespace: $:([%create-namespace database-name=@tas name=@tas])
-+$  create-namespace     $:([%create-namespace database-name=@tas name=@tas])
+::  $create-namespace
++$  create-namespace
+  $:  %create-namespace 
+    database-name=@tas 
+    name=@tas
+    as-of=(unit as-of)
+  ==
 ::
-::  $create-table:
+::  $create-table
 +$  create-table
-  $:
-    %create-table
+  $:  %create-table
     table=qualified-object
     columns=(list column)
     clustered=?
     pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
+    as-of=(unit as-of)
   ==
 ::
 ::  $create-trigger: TBD
@@ -389,14 +411,14 @@
 ::
 ::  $drop-namespace: database-name=@tas name=@tas force=?
 +$  drop-namespace       
-  $:([%drop-namespace database-name=@tas name=@tas force=?])
+  $:([%drop-namespace database-name=@tas name=@tas force=? as-of=(unit as-of)])
 ::
 ::  $drop-table: table=qualified-object force=?
 +$  drop-table
-  $:
-    %drop-table
+  $:  %drop-table
     table=qualified-object
     force=?
+    as-of=(unit as-of)
   ==
 ::
 ::  $drop-trigger: TBD
@@ -433,13 +455,13 @@
 ::
 ::  $alter-namespace: move an object from one namespace to another
 +$  alter-namespace
-  $:
-    %alter-namespace
+  $:  %alter-namespace
     database-name=@tas
     source-namespace=@tas
     object-type=object-type
     target-namespace=@tas
     target-name=@tas
+    as-of=(unit as-of)
   ==
 ::
 ::  $alter-table: to do - this could be simpler
@@ -452,6 +474,7 @@
     drop-columns=(list @tas)
     add-foreign-keys=(list foreign-key)
     drop-foreign-keys=(list @tas)
+    as-of=(unit as-of)
   ==
 ::
 ::  $alter-trigger: TBD

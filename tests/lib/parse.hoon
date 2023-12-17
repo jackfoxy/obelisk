@@ -66,21 +66,57 @@
 :: alter namespace
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, alter namespace db.ns db.ns2.table ; ns db..table
-++  test-alter-namespace-1
-  =/  expected1  [%alter-namespace database-name='db' source-namespace='ns' object-type=%table target-namespace='ns2' target-name='table']
-  =/  expected2  [%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table']
+++  test-alter-namespace-00
+  =/  expected1  [%alter-namespace database-name='db' source-namespace='ns' object-type=%table target-namespace='ns2' target-name='table' as-of=~]
+  =/  expected2  [%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table' as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'db1') " ALtER NAmESPACE   db.ns   TRANsFER   TaBLE  db.ns2.table \0a;\0a ALTER NAMESPACE ns TRANSFER TABLE db..table ")
 ::
 :: alter namespace  ns table
-++  test-alter-namespace-2
-  =/  expected  [%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table']  %+  expect-eq
+++  test-alter-namespace-01
+  =/  expected  [%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table' as-of=~]  %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER NAMESPACE ns TRANSFER TABLE table ")
 ::
+:: alter namespace db.ns db.ns2.table as of now
+++  test-alter-namespace-02
+  %+  expect-eq
+    !>  ~[[%alter-namespace database-name='db' source-namespace='ns' object-type=%table target-namespace='ns2' target-name='table' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "alter namespace db.ns transfer table db.ns2.table as of now")
+::
+:: alter namespace db.ns db.ns2.table as of ~2023.12.25..7.15.0..1ef5
+++  test-alter-namespace-03
+  %+  expect-eq
+    !>  ~[[%alter-namespace database-name='db' source-namespace='ns' object-type=%table target-namespace='ns2' target-name='table' as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'db1') "alter namespace db.ns transfer table db.ns2.table as of ~2023.12.25..7.15.0..1ef5")
+::
+:: alter namespace db.ns db.ns2.table as of 5 days ago
+++  test-alter-namespace-04
+  %+  expect-eq
+    !>  ~[[%alter-namespace database-name='db' source-namespace='ns' object-type=%table target-namespace='ns2' target-name='table' as-of=[~ %as-of-offset 5 %days]]]
+    !>  (parse:parse(default-database 'db1') "alter namespace db.ns transfer table db.ns2.table as of 5 days ago")
+::
+:: alter namespace ns table as of now
+++  test-alter-namespace-05
+  %+  expect-eq
+    !>  ~[[%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "alter namespace ns transfer table table as of now")
+::
+:: alter namespace ns table as of ~2023.12.25..7.15.0..1ef5
+++  test-alter-namespace-06
+  %+  expect-eq
+    !>  ~[[%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table' as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'db1') "alter namespace ns transfer table table as of ~2023.12.25..7.15.0..1ef5")
+::
+:: alter namespace ns table as of 5 days ago
+++  test-alter-namespace-07
+  %+  expect-eq
+    !>  ~[[%alter-namespace database-name='db1' source-namespace='ns' object-type=%table target-namespace='dbo' target-name='table' as-of=[~ %as-of-offset 5 %days]]]
+    !>  (parse:parse(default-database 'db1') "alter namespace ns transfer table table as of 5 days ago")
+::
 :: fail when namespace qualifier is not a term
-++  test-fail-alter-namespace-3
+++  test-fail-alter-namespace-08
   %-  expect-fail
   |.  (parse:parse(default-database 'db2') "ALTER NAMESPACE db.nS TRANSFER TABLE db.ns2.table")
 ::
@@ -94,96 +130,258 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
 :: alter column db.ns.table 3 columns ; alter column db..table 1 column
-++  test-alter-table-1
-  =/  expected1  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
-  =/  expected2  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
+++  test-alter-table-00
+  =/  expected1  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected2  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'db1') " ALtER  TaBLE  db.ns.table  AdD  COlUMN  ( col1  @t ,  col2  @p ,  col3  @ud ) \0a;\0a ALTER TABLE db..table ADD COLUMN (col1 @t) ")
 ::
 :: alter column table 3 columns
-++  test-alter-table-2
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
+++  test-alter-table-01
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 @t, col2 @p, col3 @ud)")
 ::
 :: alter column table 1 column
-++  test-alter-table-3
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~]
+++  test-alter-table-02
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 @t)")
 ::
 :: drop column table 3 columns
-++  test-alter-table-4
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~]
+++  test-alter-table-03
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table DROP COLUMN (col1, col2, col3)")
 ::
 :: drop column table 1 column
-++  test-alter-table-5
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~]
+++  test-alter-table-04
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table DROP COLUMN (col1)")
 ::
 :: add 2 foreign keys, extra spaces and mixed case key words
-++  test-alter-table-6
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~]
+++  test-alter-table-05
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=~]
   =/  urql  "ALTER TABLE table ADD FOREIGN KEY fk  ( col1 , col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE, fk2  ( col1 ,  col2  desc )  reFerences  fk-table2  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: drop 2 foreign keys, extra spaces
-++  test-alter-table-7
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~]]
+++  test-alter-table-06
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') " ALTER  TABLE  mytable  DROP  FOREIGN  KEY  ( fk1,  fk2 )")
 ::
 :: drop 2 foreign keys, no extra spaces
-++  test-alter-table-8
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~]]
+++  test-alter-table-07
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE db..mytable DROP FOREIGN KEY (fk1,fk2)")
 ::
 :: drop 1 foreign key
-++  test-alter-table-9
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='ns' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' ~]]
+++  test-alter-table-08
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='ns' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE ns.mytable DROP FOREIGN KEY (fk1)")
 ::
+::  add column as of now
+++  test-alter-table-09
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+    %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table  db.ns.table  add  column  ( col1  @t ,  col2  @p ,  col3  @ud ) as of now")
+::
+::  add column as of now
+++  test-alter-table-10
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]]
+    %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table  db.ns.table  add  column  ( col1  @t ,  col2  @p ,  col3  @ud ) as of ~2023.12.25..7.15.0..1ef5")
+::
+::  add column as of 1 weeks ago
+++  test-alter-table-11
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%as-of-offset 1 %weeks]]]
+    %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table  db.ns.table  add  column  ( col1  @t ,  col2  @p ,  col3  @ud ) as of 1 weeks ago")
+::
+:: alter column as of now
+++  test-alter-table-12
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table table alter column (col1 @t, col2 @p) as of now")
+::
+:: alter column as of ~2023.12.25..7.15.0..1ef5
+++  test-alter-table-13
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table table alter column (col1 @t, col2 @p, col3 @ud) as of ~2023.12.25..7.15.0..1ef5")
+::
+:: alter column as of 5 days ago
+++  test-alter-table-14
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table table alter column (col1 @t) as of 5 days ago")
+::
+:: drop column as of now
+++  test-alter-table-15
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table table drop column (col1, col2) as of now")
+::
+:: drop column as of ~2023.12.25..7.15.0..1ef5
+++  test-alter-table-16
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table table drop column (col1) as of ~2023.12.25..7.15.0..1ef5")
+::
+:: drop column as of 5 days ago
+++  test-alter-table-17
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter table table drop column (col1, col2, col3) as of 5 days ago")
+::
+:: add 2 foreign keys as of now
+++  test-alter-table-18
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=~]
+  =/  urql  "alter table table add foreign key fk  ( col1 , col2  desc )  references  fk-table  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade, fk2  ( col1 ,  col2  desc )  references  fk-table2  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade as of now"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: add 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
+++  test-alter-table-19
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]]
+  =/  urql  "alter table table add foreign key fk  ( col1 , col2  desc )  references  fk-table  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade, fk2  ( col1 ,  col2  desc )  references  fk-table2  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade as of ~2023.12.25..7.15.0..1ef5"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: add 2 foreign keys as of 5 days ago
+++  test-alter-table-20
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
+  =/  urql  "alter table table add foreign key fk  ( col1 , col2  desc )  references  fk-table  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade, fk2  ( col1 ,  col2  desc )  references  fk-table2  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade as of 5 days ago"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: drop 2 foreign keys as of now
+++  test-alter-table-21
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of now")
+::
+:: drop 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
+++  test-alter-table-22
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=[~ ~2023.12.25..7.15.0..1ef5]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of ~2023.12.25..7.15.0..1ef5")
+::
+:: drop 2 foreign keys as of 5 days ago
+++  test-alter-table-23
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=[~ %as-of-offset 5 %days]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of 5 days ago")
+::
 :: fail when table name not a term
-++  test-fail-alter-table-10
+++  test-fail-alter-table-24
 %-  expect-fail
   |.  (parse:parse(default-database 'db1') "ALTER TABLE ns.myTable DROP FOREIGN KEY (fk1)")
 ::
 :: create database
 ::
 :: tests 1, 3, and extra whitespace characters
-++  test-create-database-1
+++  test-create-database-00
   %+  expect-eq
-    !>  ~[[%create-database name='my-database']]
+    !>  ~[[%create-database name='my-database' as-of=~]]
     !>  (parse:parse(default-database 'dummy') "cReate datAbase \0a  my-database ")
 ::
-:: subsequent commands ignored
-++  test-create-database-2
+:: as of now
+++  test-create-database-01
   %+  expect-eq
-    !>  ~[[%create-database name='my-database']]
+    !>  ~[[%create-database name='my-db' as-of=~]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of now")
+::
+:: as of date-time
+++  test-create-database-02
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of ~2023.12.25..7.15.0..1ef5")
+::
+:: as of seconds ago
+++  test-create-database-03
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 5 seconds ago")
+::
+:: as of minutes ago
+++  test-create-database-04
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 15 %minutes]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 15 minutes ago")
+::
+:: as of hours ago
+++  test-create-database-05
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 9 %hours]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 9 hours ago")
+::
+:: as of days ago
+++  test-create-database-06
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 3 %days]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 3 days ago")
+::
+:: as of weeks ago
+++  test-create-database-07
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 2 %weeks]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 2 weeks ago")
+::
+:: as of months ago
+++  test-create-database-08
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 7 %months]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 7 months ago")
+::
+:: as of years ago
+++  test-create-database-09
+  %+  expect-eq
+    !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 4 %years]]]]
+    !>  (parse:parse(default-database 'dummy') "create database my-db as of 4 years ago")
+::
+:: subsequent commands ignored
+++  test-create-database-10
+  %+  expect-eq
+    !>  ~[[%create-database name='my-database' as-of=~]]
     !>  (parse:parse(default-database 'dummy') "cReate datAbase \0a  my-database; cReate namesPace my-db.another-namespace")
 ::
 :: fail when database name is not a term
-++  test-fail-create-database-3
+++  test-fail-create-database-11
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "cReate datAbase  My-database")
 ::
 :: fail when commands are prior to create database
-++  test-fail-create-database-4
+++  test-fail-create-database-12
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "create namespace my-namespace ; cReate datAbase my-database")
 ::
@@ -204,7 +402,7 @@
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "  \0d CREATE clusTered INDEX my-index ON ns.table (col1, col2 desc, col3);")
 ::
-:: create look-up index... table (col1 desc, col2 asc, col3)"
+:: create look-up index... table (col1 desc, col2 asc, col3)
 ++  test-create-index-3
   =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] is-unique=%.n is-clustered=%.n columns=~[[%ordered-column name='col1' is-ascending=%.n] [%ordered-column name='col2' is-ascending=%.y] [%ordered-column name='col3' is-ascending=%.y]]]
   %+  expect-eq
@@ -243,35 +441,143 @@
 :: create namespace
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
-++  test-create-namespace-1
-  =/  expected1  [%create-namespace database-name='other-db' name='my-namespace']
-  =/  expected2  [%create-namespace database-name='my-db' name='another-namespace']
+++  test-create-namespace-00
+  =/  expected1  [%create-namespace database-name='db1' name='ns1' as-of=~]
+  =/  expected2  [%create-namespace database-name='my-db' name='another-namespace' as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'other-db') "cReate\0d\09  namespace my-namespace ; cReate namesPace my-db.another-namespace")
+    !>  (parse:parse(default-database 'db1') "cReate\0d\09  namespace ns1 ; cReate namesPace my-db.another-namespace")
 ::
 :: leading and trailing whitespace characters, end delimiter not required on single
-++  test-create-namespace-2
+++  test-create-namespace-01
   %+  expect-eq
-    !>  ~[[%create-namespace database-name='other-db' name='my-namespace']]
-    !>  (parse:parse(default-database 'other-db') "   \09cReate\0d\09  namespace my-namespace ")
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "   \09cReate\0d\09  namespace ns1 ")
+::
+:: as of now simple name
+++  test-create-namespace-02
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of now")
+::
+:: as of now qualified name
+++  test-create-namespace-03
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of now")
+::
+:: as of date-time simple name
+++  test-create-namespace-04
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: as of date-time qualified name
+++  test-create-namespace-05
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: as of seconds ago simple name
+++  test-create-namespace-06
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of 5 seconds ago")
+::
+:: as of seconds ago qualified name
+++  test-create-namespace-07
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of 5 seconds ago")
+::
+:: as of minutes ago simple name
+++  test-create-namespace-08
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 15 %minutes]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of 15 minutes ago")
+::
+:: as of minutes ago qualified name
+++  test-create-namespace-09
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 15 %minutes]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of 15 minutes ago")
+::
+:: as of hours ago simple name
+++  test-create-namespace-10
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 9 %hours]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of 9 hours ago")
+::
+:: as of hours ago qualified name
+++  test-create-namespace-11
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 9 %hours]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of 9 hours ago")
+::
+:: as of days ago simple name
+++  test-create-namespace-12
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 3 %days]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1  as of3 days ago")
+::
+:: as of days ago qualified name
+++  test-create-namespace-13
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 3 %days]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1  as of3 days ago")
+::
+:: as of weeks ago simple name
+++  test-create-namespace-14
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 2 %weeks]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of 2 weeks ago")
+::
+:: as of weeks ago qualified name
+++  test-create-namespace-15
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 2 %weeks]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of 2 weeks ago")
+::
+:: as of months ago simple name
+++  test-create-namespace-16
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 7 %months]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of 7 months ago")
+::
+:: as of months ago qualified name
+++  test-create-namespace-17
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 7 %months]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of 7 months ago")
+::
+:: as of years ago simple name
+++  test-create-namespace-18
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%as-of-offset 4 %years]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of 4 years ago")
+::
+:: as of years ago qualified name
+++  test-create-namespace-19
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%as-of-offset 4 %years]]]]
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of 4 years ago")
 ::
 :: fail when database qualifier is not a term
-++  test-fail-create-namespace-3
+++  test-fail-create-namespace-20
   %-  expect-fail
-  |.  (parse:parse(default-database 'other-db') "cReate namesPace Bad-face.another-namespace")
+  |.  (parse:parse(default-database 'db1') "cReate namesPace Bad-face.another-namespace")
 ::
 :: fail when namespace is not a term
-++  test-fail-create-namespace-4
+++  test-fail-create-namespace-21
   %-  expect-fail
-  |.  (parse:parse(default-database 'other-db') "cReate namesPace my-db.Bad-face")
+  |.  (parse:parse(default-database 'db1') "cReate namesPace my-db.Bad-face")
 ::
 :: create table
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, db.ns.table clustered on delete cascade on update cascade; db..table look-up on update cascade on delete cascade
-++  test-create-table-1
-  =/  expected1  [%create-table table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]]]
-  =/  expected2  [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.n pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]]]
+++  test-create-table-00
+  =/  expected1  [%create-table table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]] as-of=~]
+  =/  expected2  [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.n pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]] as-of=~]
   =/  urql1  "crEate  taBle  db.ns.my-table  ( col1  @t ,  col2  @p ,  col3  @ud )  pRimary  kEy  clusTered  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
   =/  urql2  "crEate  taBle  db..my-table  ( col1  @t ,  col2  @p ,  col3  @ud )  pRimary  kEy  look-up  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  UPdATE  CAsCADE  oN  dELETE  CAScADE "
   %+  expect-eq
@@ -279,69 +585,101 @@
     !>  (parse:parse(default-database 'db1') (weld urql1 (weld "\0a;\0a" urql2)))
 ::
 :: leading whitespace characters, whitespace after end delimiter, create look-up table... table ... references  ns.fk-table  on update no action on delete no action
-++  test-create-table-2
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.n pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~]]]
-  =/  urql2  "  \0acreate table my-table (col1 @t,col2 @p,col3 @ud) primary key look-up (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete no action; "
+++  test-create-table-01
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.n pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~]] as-of=~]
+  =/  urql  "  \0acreate table my-table (col1 @t,col2 @p,col3 @ud) primary key look-up (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete no action; "
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') urql2)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... references  ns.fk-table  on update no action on delete cascade
-++  test-create-table-3
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade]]]]
+++  test-create-table-02
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade]]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete cascade"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... references fk-table on update cascade on delete no action
-++  test-create-table-4
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%update-cascade]]]]
+++  test-create-table-03
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%update-cascade]]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences fk-table (col19, col20) on update cascade on delete no action"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... single column indices... references fk-table on update cascade
-++  test-create-table-5
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~[%update-cascade]]]]
+++  test-create-table-04
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~[%update-cascade]]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) on update cascade"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... single column indices... references fk-table
-++  test-create-table-6
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~]]]
+++  test-create-table-05
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) "
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table...  no foreign key
-++  test-create-table-7
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~]
+++  test-create-table-06
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table...  2 foreign keys
-++  test-create-table-8
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col20' ~] referential-integrity=~] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~]]]
+++  test-create-table-07
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col20' ~] referential-integrity=~] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20), fk2 (col1, col2 desc) reFerences fk-table2 (col19, col20)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: fail when database qualifier on foreign key table db.ns.fk-table
-++  test-fail-create-table-9
+::
+:: create table as of simple name as of now
+++  test-create-table-08
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of now"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: create table as of ns-qualified name as of datetime
+++  test-create-table-09
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]]
+  =/  urql  "create table ns1.my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of ~2023.12.25..7.15.0..1ef5"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: create table as of db-qualified name
+++  test-create-table-10
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 5 %seconds]]]
+  =/  urql  "create table db2..my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of 5 seconds ago"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: create table as of db-ns-qualified name
+++  test-create-table-11
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 15 %minutes]]]
+  =/  urql  "create table db2.ns1.my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of 15 minutes ago"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+++  test-fail-create-table-12
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences db.ns.fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
 ::
 :: fail when database qualifier on foreign key table db..fk-table
-++  test-fail-create-table-10
+++  test-fail-create-table-13
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences db..fk-table (col20) "
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') urql)
@@ -368,47 +706,176 @@
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo']
 ::
 :: delete from foo;delete  foo
-++  test-delete-01
-  =/  expected1  [%transform ctes=~ [[%delete table=foo-table ~] ~ ~]]
-  =/  expected2  [%transform ctes=~ [[%delete table=foo-table ~] ~ ~]]
+++  test-delete-00
+  =/  expected1  [%transform ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
+  =/  expected2  [%transform ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'db1') "delete from foo;delete  foo")
 ::
-:: delete with predicate
+:: delete from foo as of now;delete foo as of now
+++  test-delete-01
+  =/  expected1  [%transform ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
+  =/  expected2  [%transform ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  (parse:parse(default-database 'db1') "delete from foo as of now;delete  foo as of now")
+::
+:: delete from foo as of ~2023.12.25..7.15.0..1ef5;delete foo as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-02
-  =/  expected  [%transform ctes=~ [[%delete table=foo-table delete-pred] ~ ~]]
+  =/  expected1  [%transform ctes=~ [[%delete table=foo-table ~ [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]
+  =/  expected2  [%transform ctes=~ [[%delete table=foo-table ~ [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  (parse:parse(default-database 'db1') "delete from foo as of 2023.12.25..7.15.0..1ef5;delete  foo as of ~2023.12.25..7.15.0..1ef5")
+::
+:: delete from foo as of 5 seconds ago;delete foo as of 5 seconds ago
+++  test-delete-03
+  =/  expected1  [%transform ctes=~ [[%delete table=foo-table ~ [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+  =/  expected2  [%transform ctes=~ [[%delete table=foo-table ~ [~ [%as-of-offset 4 %seconds]]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  (parse:parse(default-database 'db1') "delete from foo as of 5 seconds ago;delete  foo as of 4 seconds ago")
+::
+:: delete with predicate as
+++  test-delete-04
+  =/  expected  [%transform ctes=~ [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "delete from foo  where foo=bar")
 ::
+:: delete with predicate of now
+++  test-delete-05
+  =/  expected  [%transform ctes=~ [[%delete table=foo-table delete-pred ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of now")
+::
+:: delete with predicate of ~2023.12.25..7.15.0..1ef5
+++  test-delete-06
+  =/  expected  [%transform ctes=~ [[%delete table=foo-table delete-pred [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+::
+:: delete with predicate of 5 seconds ago
+++  test-delete-07
+  =/  expected  [%transform ctes=~ [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of 5 seconds ago")
+::
 :: delete with one cte and predicate
-++  test-delete-03
-  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table delete-pred] ~ ~]]
+++  test-delete-08
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar")
 ::
+:: delete with one cte and predicate as of now
+++  test-delete-09
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table delete-pred ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of now")
+::
+:: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-delete-10
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table delete-pred [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+::
+:: delete with one cte and predicate as of 5 seconds ago
+++  test-delete-11
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of 5 seconds ago")
+::
 :: delete with two ctes and predicate
-++  test-delete-04
-  =/  expected  [%transform ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred] ~ ~]]
+++  test-delete-12
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar")
 ::
+:: delete with two ctes and predicate as of now
+++  test-delete-13
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of now")
+::
+:: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-delete-14
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+::
+:: delete with two ctes and predicate as of 5 seconds ago
+++  test-delete-15
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of 5 seconds ago")
+::
 :: delete with three ctes and predicate
-++  test-delete-05
-  =/  expected  [%transform ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred] ~ ~]
+++  test-delete-16
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar")
 ::
+:: delete with three ctes and predicate as of now
+++  test-delete-17
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of now")
+::
+:: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-delete-18
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+::
+:: delete with three ctes and predicate as of 5 seconds ago
+++  test-delete-19
+  =/  expected  [%transform ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of 5 seconds ago")
+::
 :: delete cte with no predicate
-++  test-delete-06
-  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table ~] ~ ~]]
+++  test-delete-20
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table ~ ~] ~ ~]]
   %+  expect-eq
   !>  ~[expected]
   !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo")
+::
+:: delete cte with no predicate as of now
+++  test-delete-21
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table ~ ~] ~ ~]]
+  %+  expect-eq
+  !>  ~[expected]
+  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of now")
+::
+:: delete cte with no predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-delete-22
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table ~ [~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]
+  %+  expect-eq
+  !>  ~[expected]
+  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of ~2023.12.25..7.15.0..1ef5")
+::
+:: delete cte with no predicate as of 5 seconds ago
+++  test-delete-23
+  =/  expected  [%transform ctes=~[cte-t1] [[%delete table=foo-table ~ [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+  %+  expect-eq
+  !>  ~[expected]
+  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of 5 seconds ago")
 ::
 :: drop database
 ::
@@ -475,98 +942,206 @@
 :: drop namespace
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, force db.name, name
-++  test-drop-namespace-1
-  =/  expected1  [%drop-namespace database-name='db' name='name' force=%.n]
-  =/  expected2  [%drop-namespace database-name='other-db' name='name' force=%.y]
+++  test-drop-namespace-00
+  =/  expected1  [%drop-namespace database-name='db' name='name' force=%.n as-of=~]
+  =/  expected2  [%drop-namespace database-name='other-db' name='name' force=%.y as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') "droP  Namespace  db.name;droP \0d\09 Namespace FORce  \0a name")
 ::
 :: leading and trailing whitespace characters, end delimiter not required on single, force name
-++  test-drop-namespace-2
+++  test-drop-namespace-01
   %+  expect-eq
-    !>  ~[[%drop-namespace database-name='other-db' name='name' force=%.y]]
+    !>  ~[[%drop-namespace database-name='other-db' name='name' force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "   \09drOp\0d\09  naMespace\0a force name ")
-  ::
-  :: db.name
-++  test-drop-namespace-3
+::
+:: db.name
+++  test-drop-namespace-02
   %+  expect-eq
-    !>  ~[[%drop-namespace database-name='db' name='name' force=%.n]]
+    !>  ~[[%drop-namespace database-name='db' name='name' force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop namespace db.name")
 ::
+::  name, as of now
+++  test-drop-namespace-03
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of now")
+::
+::  name, as of date
+++  test-drop-namespace-04
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of ~2023.12.25..7.15.0..1ef5")
+::
+::  name, as of 5 seconds ago
+++  test-drop-namespace-05
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of 5 seconds ago")
+::
+::  force name as of now
+++  test-drop-namespace-06
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.y as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force ns1 as of now")
+::
+::  force name as of date
+++  test-drop-namespace-07
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.y as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force ns1 as of ~2023.12.25..7.15.0..1ef5")
+::
+::  force name as of 5 seconds ago
+++  test-drop-namespace-08
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.y as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force ns1 as of 5 seconds ago")
+::
+:: db name as of now
+++  test-drop-namespace-09
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.n as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db1.ns1 as of now")
+::
+:: db name as of date
+++  test-drop-namespace-10
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.n as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db1.ns1 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: db name as of 5 seconds ago
+++  test-drop-namespace-11
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.n as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db1.ns1 as of 5 seconds ago")
+::
+:: force db name as of
+++  test-drop-namespace-12
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.y as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force db1.ns1 as of now")
+::
+:: force db name as of
+++  test-drop-namespace-13
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.y as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force db1.ns1 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: force db name as of
+++  test-drop-namespace-14
+  %+  expect-eq
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.y as-of=[~ [%as-of-offset 15 %minutes]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force db1.ns1 as of 15 minutes ago")
+::
 :: fail when database qualifier is not a term
-++  test-fail-drop-namespace-4
+++  test-fail-drop-namespace-15
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') "DROP NAMESPACE Db.name")
 ::
 :: fail when namespace is not a term
-++  test-fail-drop-namespace-5
+++  test-fail-drop-namespace-16
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') "DROP NAMESPACE nAme")
 ::
 :: drop table
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
-++  test-drop-table-1
-  =/  expected1  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.y]
-  =/  expected2  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.n]
+++  test-drop-table-00
+  =/  expected1  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.y as-of=~]
+  =/  expected2  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.n as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') "droP  table FORce db.ns.name;droP  table  \0a db.ns.name")
 ::
 :: leading and trailing whitespace characters, end delimiter not required on single, force db..name
-++  test-drop-table-2
+++  test-drop-table-01
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.y]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "   \09drop\0d\09  table\0aforce db..name ")
 ::
 :: db..name
-++  test-drop-table-3
+++  test-drop-table-02
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.n]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table db..name")
 ::
 :: force ns.name
-++  test-drop-table-4
+++  test-drop-table-03
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.y]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table force ns.name")
 ::
 :: ns.name
-++  test-drop-table-5
+++  test-drop-table-04
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.n]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table ns.name")
 ::
 :: force name
-++  test-drop-table-6
+++  test-drop-table-05
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.y]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "DROP table FORCE name")
 ::
 :: name
-++  test-drop-table-7
+++  test-drop-table-06
   %+  expect-eq
-   !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.n]]
+   !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "DROP table name")
 ::
+:: force db.ns.name as of now
+++  test-drop-table-07
+  %+  expect-eq
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.y as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop table force db.ns.name as of now")
+::
+:: force db..name as of date
+++  test-drop-table-08
+  %+  expect-eq
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.y as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'other-db') "drop table force db..name as of ~2023.12.25..7.15.0..1ef5")
+::
+:: force ns.name as of weeks ago
+++  test-drop-table-09
+  %+  expect-eq
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.y as-of=[~ [%as-of-offset 10 %weeks]]]]
+    !>  (parse:parse(default-database 'other-db') "drop table force ns.name as of 10 weeks ago")
+::
+:: name as of now
+++  test-drop-table-10
+  %+  expect-eq
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.n as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop table db.ns.name as of now")
+::
+:: db..name as of date
+++  test-drop-table-11
+  %+  expect-eq
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.n as-of=[~ ~2023.12.25..7.15.0..1ef5]]]
+    !>  (parse:parse(default-database 'other-db') "drop table db..name as of ~2023.12.25..7.15.0..1ef5")
+::
+:: name as of weeks ago
+++  test-drop-table-12
+  %+  expect-eq
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.n as-of=[~ [%as-of-offset 10 %weeks]]]]
+    !>  (parse:parse(default-database 'other-db') "drop table name as of 10 weeks ago")
+::
 :: fail when database qualifier is not a term
-++  test-fail-drop-table-8
+++  test-fail-drop-table-13
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') "DROP table Db.ns.name")
 ::
 :: fail when namespace qualifier is not a term
-++  test-fail-drop-table-9
+++  test-fail-drop-table-14
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') "DROP table db.nS.name")
 ::
 :: fail when table name is not a term
-++  test-fail-drop-table-10
+++  test-fail-drop-table-15
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') "DROP table db.ns.nAme")
 ::
 :: fail when table name is qualified with ship
-++  test-fail-drop-table-11
+++  test-fail-drop-table-16
   %-  expect-fail
   |.  (parse:parse(default-database 'other-db') "DROP table ~zod.db.ns.name")
 ::
@@ -757,11 +1332,29 @@
 ::       1) validity of columns re parent table
 ::       2) match column count to values count
 ::       3) enforce consistent value counts across rows
-++  test-insert-1
+++  test-insert-00
   =/  expected1  
-    [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~] values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]] ~ ~]]
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                as-of=~
+            ==
+        ~
+        ~
   =/  expected2  
-    [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~] values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]]]]] ~ ~]]
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]]]]
+                as-of=~
+            ==
+        ~
+        ~
   =/  urql1  " iNsert  iNto  db.ns.my-table  ".
 "( col1 ,  col2 ,  col3 ,  col4 ,  col5 ,  col6 ,  col7 ,  col8 ,  col9 )".
 " Values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
@@ -773,10 +1366,19 @@
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') (weld urql1 (weld ";" urql2)))
 ::
-:: table, no columns, 3 rows
-++  test-insert-2
+:: no columns, 3 rows
+++  test-insert-01
   =/  expected  
-    [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~ values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]] ~ ~]]
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                columns=~
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                as-of=~
+            ==
+        ~
+        ~
   =/  urql  "insert into my-table ".
 "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
 " (default,.195.198.143.90, 195.198.143.900)".
@@ -785,10 +1387,148 @@
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
 ::
-:: every column type, no spaces around values
-++  test-insert-3
+:: no columns, 3 rows, as of now
+++  test-insert-02
   =/  expected  
-    [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~ values=[%data ~[~[[~.t 1.685.221.219] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]] ~ ~]]
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                columns=~
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                as-of=~
+            ==
+        ~
+        ~
+  =/  urql  "insert into my-table ".
+"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+" (default,.195.198.143.90, 195.198.143.900)".
+" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)".
+" as of now"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: no columns, 3 rows, as of ~2023.12.25..7.15.0..1ef5
+++  test-insert-03
+  =/  expected  
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                columns=~
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                as-of=[~ ~2023.12.25..7.15.0..1ef5]
+            ==
+        ~
+        ~
+  =/  urql  "insert into my-table ".
+"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+" (default,.195.198.143.90, 195.198.143.900)".
+" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)".
+" as of ~2023.12.25..7.15.0..1ef5"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: no columns, 3 rows, as of 5 days ago
+++  test-insert-04
+  =/  expected  
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                columns=~
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                as-of=[~ %as-of-offset 5 %days]
+            ==
+        ~
+        ~
+  =/  urql  "insert into my-table ".
+"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+" (default,.195.198.143.90, 195.198.143.900)".
+" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)".
+" as of 5 days ago"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') urql)
+::
+:: no columns, 3 rows, as of now
+++  test-insert-05
+  =/  expected
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                as-of=~
+            ==
+        ~
+        ~
+  =/  urql  "insert  into  db.ns.my-table ".
+"(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
+" values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+"  (default,.195.198.143.90, 195.198.143.900) as of now"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'other-db') urql)
+::
+:: no columns, 3 rows, as of now
+++  test-insert-06
+  =/  expected
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                as-of=[~ ~2023.12.25..7.15.0..1ef5]
+            ==
+        ~
+        ~
+  =/  urql  "insert  into  db.ns.my-table ".
+"(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
+" values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+"  (default,.195.198.143.90, 195.198.143.900) as of ~2023.12.25..7.15.0..1ef5"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'other-db') urql)
+::
+:: no columns, 3 rows, as of offset
+++  test-insert-07
+  =/  expected
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
+                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                as-of=[~ %as-of-offset 5 %days]
+            ==
+        ~
+        ~
+  =/  urql  "insert  into  db.ns.my-table ".
+"(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
+" values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+"  (default,.195.198.143.90, 195.198.143.900) as of 5 days ago"
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'other-db') urql)
+::
+:: every column type, no spaces around values
+++  test-insert-08
+  =/  expected  
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                columns=~
+                values=[%data ~[~[[~.t 1.685.221.219] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                as-of=~
+            ==
+        ~
+        ~
   =/  urql  "insert into db.ns.my-table ".
 "values ('cord',~nomryg-nilref,nomryg-nilref,~2020.12.25..7.15.0..1ef5,2020.12.25..7.15.0..1ef5,".
 "~d71.h19.m26.s24..9d55, d71.h19.m26.s24..9d55,.195.198.143.90,.0.0.0.0.0.1c.c3c6.8f5a,y,n,Y,N,".
@@ -798,9 +1538,18 @@
     !>  (parse:parse(default-database 'db1') urql)
 ::
 :: every column type, spaces on all sides of values, comma inside cord
-++  test-insert-4
+++  test-insert-09
   =/  expected  
-    [%transform ctes=~ [[%insert table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~ values=[%data ~[~[[~.t 430.242.426.723] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]] ~ ~]]
+    :+  %transform
+        ctes=~
+        :+  :*  %insert
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                columns=~
+                values=[%data ~[~[[~.t 430.242.426.723] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                as-of=~
+            ==
+        ~
+        ~
   =/  urql  "insert into db.ns.my-table ".
 "values ( 'cor,d' , ~nomryg-nilref , nomryg-nilref , ~2020.12.25..7.15.0..1ef5 , 2020.12.25..7.15.0..1ef5 , ".
 "~d71.h19.m26.s24..9d55 ,  d71.h19.m26.s24..9d55 , .195.198.143.90 , .0.0.0.0.0.1c.c3c6.8f5a , y , n , Y , N , ".
@@ -928,8 +1677,8 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
 ++  test-truncate-table-1
-  =/  expected1  [%truncate-table table=[%qualified-object ship=[~ ~zod] database='db' namespace='ns' name='name']]
-  =/  expected2  [%truncate-table table=[%qualified-object ship=[~ ~sampel-palnet] database='db' namespace='dbo' name='name']]
+  =/  expected1  [%truncate-table table=[%qualified-object ship=[~ ~zod] database='db' namespace='ns' name='name'] as-of=~]
+  =/  expected2  [%truncate-table table=[%qualified-object ship=[~ ~sampel-palnet] database='db' namespace='dbo' name='name'] as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'dummy') " \0atrUncate TAble\0d ~zod.db.ns.name\0a; truncate table ~sampel-palnet.db..name")
@@ -937,25 +1686,25 @@
 :: leading and trailing whitespace characters, end delimiter not required on single, db.ns.name
 ++  test-truncate-table-2
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name']]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] as-of=~]]
     !>  (parse:parse(default-database 'dummy') "   \09truncate\0d\09  TaBle\0a db.ns.name ")
 ::
 :: db..name
 ++  test-truncate-table-3
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name']]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] as-of=~]]
     !>  (parse:parse(default-database 'dummy') "truncate table db..name")
 ::
 :: ns.name
 ++  test-truncate-table-4
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='ns' name='name']]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='ns' name='name'] as-of=~]]
     !>  (parse:parse(default-database 'dummy') "truncate table ns.name")
 ::
 :: name
 ++  test-truncate-table-5
   %+  expect-eq
-   !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='dbo' name='name']]]
+   !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='dbo' name='name'] as-of=~]]
    !>  (parse:parse(default-database 'dummy') "truncate table name")
 ::
 :: fail when database qualifier is not a term
@@ -1320,7 +2069,7 @@
   [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN' 'A1'] 'species' ~] ~ ~]
 ++  a2-species
   [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN' 'A2'] 'species' ~] ~ ~]
-++  value-literal-list   [[%value-literal-list %ud '3;2;1'] ~ ~]
+++  value-literals   [[%value-literals %ud '3;2;1'] ~ ~]
 ++  aggregate-count-foobar
   [%aggregate function='count' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar'] column='foobar' alias=~]]
 ++  literal-10           [[%ud 10] ~ ~]
@@ -1330,9 +2079,9 @@
 ++  foobar-lte-bar       [%lte foobar bar]
 ++  foo-eq-1             [%eq foo [[%ud 1] ~ ~]]
 ++  t1-foo-gt-foo2       [%gt t1-foo foo2]
-++  t2-bar-in-list       [%in t2-bar value-literal-list]
+++  t2-bar-in-list       [%in t2-bar value-literals]
 ++  t1-foo2-eq-zod       [%eq t1-foo2 [[%p 0] ~ ~]]
-++  t1-foo3-lt-any-list  [%lt t1-foo3 [%any value-literal-list ~]]
+++  t1-foo3-lt-any-list  [%lt t1-foo3 [%any value-literals ~]]
 ::
 ::  re-used predicates with conjunctions
 ++  and-fb-gte-f--fb-lte-b   [%and foobar-gte-foo foobar-lte-bar]
@@ -1516,7 +2265,7 @@
     " WHERE T1.foo not in (1,2,3) ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%in t1-foo value-literal-list] ~]
+  =/  pred=(tree predicate-component:ast)      [%not [%in t1-foo value-literals] ~]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -1538,7 +2287,7 @@
     " WHERE T1.foo in (1,2,3) ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literal-list]
+  =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literals]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -2179,35 +2928,124 @@
   [%and one-eq-1 [%eq [col2 ~ ~] [[value-type=%ud value=4] ~ ~]]]
 ::
 :: update one column, no predicate
-++  test-update-01
+++  test-update-00
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~] ~ ~]]]
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') "update foo set col1='hello'")
 ::
-:: update two columns, no predicate
+:: update one column, no predicate as of now
+++  test-update-01
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of now")
+::
+:: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-02
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello'")
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of ~2023.12.25..7.15.0..1ef5")
 ::
-:: update two columns, with predicate
+:: update one column, no predicate as of 4 seconds ago
 ++  test-update-03
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
-
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of 4 seconds ago")
 ::
-:: update with one cte and predicate
+:: update two columns, no predicate
 ++  test-update-04
   %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello'")
 ::
-:: update with three ctes and predicate
+:: update two columns, no predicate as of now
 ++  test-update-05
   %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred] ~ ~]]]
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of now")
+::
+:: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-06
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update two columns, no predicate as of 4 seconds ago
+++  test-update-07
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of 4 seconds ago")
+::
+:: update two columns, with predicate
+++  test-update-08
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+::
+:: update two columns, with predicate as of now
+++  test-update-09
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+::
+:: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-10
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update two columns, with predicate as of 4 seconds ago
+++  test-update-11
+  %+  expect-eq
+    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+::
+:: update with one cte and predicate
+++  test-update-12
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+::
+:: update with one cte and predicate as of now
+++  test-update-13
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+::
+:: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-14
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update with one cte and predicate as of 4 seconds ago
+++  test-update-15
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+::
+:: update with three ctes and predicate
+++  test-update-16
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+::
+:: update with three ctes and predicate as of now
+++  test-update-17
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+::
+:: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-18
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update with three ctes and predicate as of 4 seconds ago
+++  test-update-19
+  %+  expect-eq
+    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
 ::
 :: fail update cte with no predicate
 ::++  test-fail-update-06
@@ -2242,7 +3080,7 @@
 " WHEN MATCHED THEN ".
 "    UPDATE SET foobar = src.foo "
   =/  expected  
-    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'tgt']] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'tgt']] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2257,7 +3095,7 @@
 "    UPDATE SET foobar = src.foo, ".
 "    bar = bar "
   =/  expected  
-    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'tgt']] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'tgt']] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2274,7 +3112,7 @@
 "    INSERT (bar, foobar) ".
 "    VALUES (src.bar, 99)"
   =/  expected  
-    [%transform ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='src'] alias=~] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='src'] alias=~] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2288,7 +3126,7 @@
 " WHEN MATCHED THEN ".
 "    UPDATE SET foobar = src.foo "
   =/  expected  
-    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2302,7 +3140,7 @@
 " WHEN MATCHED THEN ".
 "    UPDATE SET foobar = src.foo "
   =/  expected  
-    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2316,7 +3154,7 @@
 " WHEN MATCHED THEN ".
 "    UPDATE SET foobar = src.foo "
   =/  expected
-    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2332,7 +3170,7 @@
 "    INSERT (bar, foobar) ".
 "    VALUES (src.bar, 99)"
   =/  expected 
-    [%transform ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2348,7 +3186,7 @@
 "    INSERT (bar, foobar) ".
 "    VALUES (src.bar, 99)"
   =/  expected
-    [%transform ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2364,9 +3202,218 @@
 "    INSERT (bar, foobar) ".
 "    VALUES (src.bar, 99)"
   =/  expected
-    [%transform ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~] ~ ~]]
+    [%transform ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
 :: to do: tests for merge to new file
+::
+:: block comment
+::
+++  test-block-cmnt-00
+  %+  expect-eq
+    !>  ~
+    !>  %-  parse:parse(default-database 'other-db')  ~
+::
+++  m-cmnt-1  "/* line1\0a  line2 \0a line3\0a*/"
+++  m-cmnt-2  "\0a/* linea\0a  lineb \0a linec \0a*/"
+++  m-cmnt-3  "\0a/* linea1 \0a lineb2 \0a linec3 \0a*/"
+::
+++  test-block-cmnt-01
+  %+  expect-eq
+    !>  ~
+    !>  %-  parse:parse(default-database 'other-db')  %-  zing  ~[m-cmnt-1]
+++  test-block-cmnt-02
+  =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
+  =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+                %-  limo  :~  m-cmnt-1 
+                              "cReate" 
+                              m-cmnt-2 
+                              "  namespace ns1\0a" 
+                              " ; \0a" 
+                              "cReate namesPace db1.db1-ns1\0a" 
+                              m-cmnt-3
+                              ==
+++  test-block-cmnt-03
+  =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
+  =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+                %-  limo  :~  "cReate\0a" 
+                              m-cmnt-1 
+                              "  namespace ns1\0a" 
+                              m-cmnt-2 
+                              " ; \0a" 
+                              m-cmnt-3 
+                              "cReate namesPace db1.db1-ns1\0a"
+                              ==
+
+++  test-block-cmnt-04
+  =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
+  =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+                %-  limo  :~  m-cmnt-1 
+                              "\0acReate\0a" 
+                              "  namespace ns1\0a" 
+                              m-cmnt-2 
+                              m-cmnt-3 
+                              " ; \0a" 
+                              "cReate namesPace db1.db1-ns1\0a"
+                              ==
+
+++  test-block-cmnt-05
+  =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
+  =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+                %-  limo  :~  "cReate\0a" 
+                              "  namespace ns1\0a" 
+                              m-cmnt-1 
+                              " ; \0a" 
+                              m-cmnt-2 
+                              "cReate namesPace db1.db1-ns1\0a" 
+                              m-cmnt-3
+                              ==
+
+++  test-block-cmnt-06
+  =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
+  =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
+  %+  expect-eq
+    !>  ~[expected1 expected2]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+                %-  limo  :~  "cReate\0a" 
+                              "  namespace ns1\0a" 
+                              m-cmnt-1 
+                              " ; " 
+                              m-cmnt-2 
+                              "cReate namesPace db1.db1-ns1" 
+                              m-cmnt-3
+                              ==
+::
+++  vfas-tar  [%selected-value value=[p=~.t q=10.799] alias=~]
+++  vcol-col  [%selected-value value=[p=~.t q=14.906] alias=~]
+++  vtar-fas  [%selected-value value=[p=~.t q=12.074] alias=~]
+++  va-fas-tar-a  [%selected-value value=[p=~.t q=539.635.488] alias=~]
+++  va-col-col-a  [%selected-value value=[p=~.t q=540.686.880] alias=~]
+++  va-tar-fas-a  [%selected-value value=[p=~.t q=539.961.888] alias=~]
+::
+++  s1  ~[vfas-tar vtar-fas vcol-col va-fas-tar-a va-tar-fas-a va-col-col-a]
+++  s2  ~[va-col-col-a vfas-tar vtar-fas vcol-col va-fas-tar-a va-tar-fas-a]
+++  s3  ~[va-tar-fas-a va-col-col-a vfas-tar vtar-fas vcol-col va-fas-tar-a]
+::
+++  q1  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s1] order-by=~]
+++  q2  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s2] order-by=~]
+++  q3  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s3] order-by=~]
+::
+++  t1  [%transform ctes=~ set-functions=[q1 ~ ~]]
+++  t2  [%transform ctes=~ set-functions=[q2 ~ ~]]
+++  t3  [%transform ctes=~ set-functions=[q3 ~ ~]]
+::
+++  test-block-cmnt-07
+  %+  expect-eq
+    !>  ~[t1 t2 t3]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+                %-  limo  :~  "select '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f ', ' :: '\0a" 
+                              m-cmnt-1 
+                              "select ' :: ', '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f '\0a" 
+                              m-cmnt-2 
+                              "select ' *\2f ', ' :: ', '\2f\2a', '*\2f', '::', ' \2f\2a '"  
+                              m-cmnt-3
+                              ==
+::
+:: line comment
+::
+++  s1a  ~[vfas-tar vtar-fas]
+++  s2a  ~[va-col-col-a vfas-tar vtar-fas]
+++  s3a  ~[va-tar-fas-a va-col-col-a vfas-tar vtar-fas]
+++  s3b  ~[va-tar-fas-a]
+::
+++  q1a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s1a] order-by=~]
+++  q2a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s2a] order-by=~]
+++  q3a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s3a] order-by=~]
+++  q3b  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s3b] order-by=~]
+::
+++  t1a  [%transform ctes=~ set-functions=[q1a ~ ~]]
+++  t2a  [%transform ctes=~ set-functions=[q2a ~ ~]]
+++  t3a  [%transform ctes=~ set-functions=[q3a ~ ~]]
+++  t3b  [%transform ctes=~ set-functions=[q3b ~ ~]]
+::
+++  test-line-cmnt-00
+  %+  expect-eq
+    !>  ~
+    !>  %-  parse:parse(default-database 'other-db')  ~
+++  test-line-cmnt-01
+  %+  expect-eq
+    !>  ~
+    !>  %-  parse:parse(default-database 'other-db')  %-  zing  ~["::line cmnt"]
+++  test-line-cmnt-02
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 \0a::line cmnt")
+++  test-line-cmnt-03
+  %+  expect-eq
+    !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 ::line cmnt")
+++  test-line-cmnt-04
+  %+  expect-eq
+    !>  ~[t1a t2 t3]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+            %-  limo  
+            :~  "select '\2f\2a', '*\2f' ::, ' \2f\2a ', ' *\2f ', ' :: '\0a" 
+                m-cmnt-1 
+                "select ' :: ', '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f '" 
+                m-cmnt-2 
+                "select ' *\2f ', ' :: ', '\2f\2a', '*\2f', '::', ' \2f\2a '"  
+                m-cmnt-3
+                ==
+++  test-line-cmnt-05
+  %+  expect-eq
+    !>  ~[t1 t2a t3]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+            %-  limo  
+            :~  "select '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f ', ' :: '\0a" 
+                m-cmnt-1 
+                "select ' :: ', '\2f\2a', '*\2f'::, ' \2f\2a ', ' *\2f '" 
+                m-cmnt-2 
+                "select ' *\2f ', ' :: ', '\2f\2a', '*\2f', '::', ' \2f\2a '"  
+                m-cmnt-3
+                ==
+++  test-line-cmnt-06
+  %+  expect-eq
+    !>  ~[t1 t2 t3a]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+            %-  limo  
+            :~  "select '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f ', ' :: '\0a" 
+                m-cmnt-1 
+                "select ' :: ', '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f '" 
+                m-cmnt-2 
+                "select ' *\2f ', ' :: ', '\2f\2a', '*\2f' ::, ' \2f\2a '"  
+                m-cmnt-3
+                ==
+++  test-line-cmnt-07
+  %+  expect-eq
+    !>  ~[t1 t2a t3b]
+    !>  %-  parse:parse(default-database 'other-db') 
+            %-  zing 
+            %-  limo  
+            :~  "select '\2f\2a', '*\2f', '::', ' \2f\2a ', ' *\2f ', ' :: '\0a" 
+                "select ' :: ', '\2f\2a', '*\2f'::, ' \2f\2a ', ' *\2f '\0a" 
+                "select ' *\2f '  :: ', '\2f\2a', '*\2f', '::', ' \2f\2a '"
+                ==
 --
