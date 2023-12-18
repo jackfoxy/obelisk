@@ -87,4 +87,72 @@
   %+  expect-eq                         
     !>  [%results ~[[%result-set qualifier=~.literals rslt-cols rslt-data]]]
     !>  -.x
+
+::
+::  set-tmsp back 0 seconds
+++  test-set-tmsp-00
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %seconds) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 seconds
+++  test-set-tmsp-01
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.13.55..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %seconds) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 0 minutes
+++  test-set-tmsp-02
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %minutes) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 minutes
+++  test-set-tmsp-03
+  %+  expect-eq                         
+    !>  ~2023.12.25..6.10.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %minutes) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 0 hours
+++  test-set-tmsp-04
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %hours) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 hours
+++  test-set-tmsp-05
+  %+  expect-eq                         
+    !>  ~2023.12.22..14.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %hours) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 0 days
+++  test-set-tmsp-06
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %days) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 days
+++  test-set-tmsp-07
+  %+  expect-eq                         
+    !>  ~2023.10.21..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %days) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 0 weeks
+++  test-set-tmsp-08
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %weeks) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 weeks
+++  test-set-tmsp-09
+  %+  expect-eq                         
+    !>  ~2022.9.26..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %weeks) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp leap year
+++  test-set-tmsp-10
+  %+  expect-eq                         
+    !>  ~2020.2.27..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 7 %days) ~2020.3.5..7.15.0..1ef5])
+
 --

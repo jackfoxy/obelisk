@@ -3,7 +3,7 @@
 ++  new-database
   |=  [dbs=databases =bowl:gall c=command:ast]
   ^-  [databases cmd-result]
-  ?:  =(+.c %sys)  ~|("database name cannot be 'sys'" !!)
+  ?:  =(+<.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
   =/  ns=namespaces
     %:  my 
@@ -13,9 +13,9 @@
         ==
   =/  tbs=tables  ~
   :-
-  %:  map-insert  dbs  +.c  %:  db-row 
+  %:  map-insert  dbs  +<.c  %:  db-row 
                                 %db-row 
-                                +.c 
+                                +<.c 
                                 (crip (spud sap.bowl))
                                 now.bowl 
                                 ~[(internals %internals (crip (spud sap.bowl)) now.bowl ns tbs)]
@@ -702,4 +702,24 @@
   ?:  ->-.k  (lth -.pp -.qq)
   (gth -.pp -.qq)
   --
+++  set-tmsp
+  |=  [p=(unit as-of:ast) q=@da]
+  ^-  @da
+  ?~  p  q
+  =/  as-of=as-of:ast  (need p)
+  ?:  ?=(@da as-of)  as-of
+  ?-  units.as-of
+    %seconds
+      (sub q `@dr`(yule `tarp`[0 0 0 offset:as-of ~]))
+    %minutes
+      (sub q `@dr`(yule `tarp`[0 0 offset:as-of 0 ~]))
+    %hours
+      (sub q `@dr`(yule `tarp`[0 offset:as-of 0 0 ~]))
+    %days
+      (sub q `@dr`(yule `tarp`[offset:as-of 0 0 0 ~]))
+    %weeks
+      (sub q `@dr`(yule `tarp`[(mul offset:as-of 7) 0 0 0 ~]))
+    %months  !!
+    %years  !!
+  ==
 --
