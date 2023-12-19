@@ -32,126 +32,109 @@
 ::@@@@@@@@@@@@@@@@@@@@@@@@@
 
 ::
-:: update one column, no predicate
-++  test-update-00
-  %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello'")
+:: drop namespace
 ::
-:: update one column, no predicate as of now
-++  test-update-01
+:: tests 1, 2, 3, 5, and extra whitespace characters, force db.name, name
+++  test-drop-namespace-00
+  =/  expected1  [%drop-namespace database-name='db' name='name' force=%.n as-of=~]
+  =/  expected2  [%drop-namespace database-name='other-db' name='name' force=%.y as-of=~]
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of now")
+    !>  ~[expected1 expected2]
+    !>  (parse:parse(default-database 'other-db') "droP  Namespace  db.name;droP \0d\09 Namespace FORce  \0a name")
 ::
-:: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-update-02
+:: leading and trailing whitespace characters, end delimiter not required on single, force name
+++  test-drop-namespace-01
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[[%drop-namespace database-name='other-db' name='name' force=%.y as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "   \09drOp\0d\09  naMespace\0a force name ")
 ::
-:: update one column, no predicate as of 4 seconds ago
-++  test-update-03
+:: db.name
+++  test-drop-namespace-02
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of 4 seconds ago")
+    !>  ~[[%drop-namespace database-name='db' name='name' force=%.n as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db.name")
 ::
-:: update two columns, no predicate
-++  test-update-04
+::  name, as of now
+++  test-drop-namespace-03
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello'")
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of now")
 ::
-:: update two columns, no predicate as of now
-++  test-update-05
+::  name, as of date
+++  test-drop-namespace-04
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of now")
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of ~2023.12.25..7.15.0..1ef5")
 ::
-:: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-update-06
+::  name, as of 5 seconds ago
+++  test-drop-namespace-05
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of 5 seconds ago")
 ::
-:: update two columns, no predicate as of 4 seconds ago
-++  test-update-07
+::  force name as of now
+++  test-drop-namespace-06
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of 4 seconds ago")
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.y as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force ns1 as of now")
 ::
-:: update two columns, with predicate
-++  test-update-08
+::  force name as of date
+++  test-drop-namespace-07
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.y as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force ns1 as of ~2023.12.25..7.15.0..1ef5")
 ::
-:: update two columns, with predicate as of now
-++  test-update-09
+::  force name as of 5 seconds ago
+++  test-drop-namespace-08
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+    !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.y as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force ns1 as of 5 seconds ago")
 ::
-:: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-update-10
+:: db name as of now
+++  test-drop-namespace-09
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.n as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db1.ns1 as of now")
 ::
-:: update two columns, with predicate as of 4 seconds ago
-++  test-update-11
+:: db name as of date
+++  test-drop-namespace-10
   %+  expect-eq
-    !>  ~[[%transform ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.n as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db1.ns1 as of ~2023.12.25..7.15.0..1ef5")
 ::
-:: update with one cte and predicate
-++  test-update-12
+:: db name as of 5 seconds ago
+++  test-drop-namespace-11
   %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.n as-of=[~ [%as-of-offset 5 %seconds]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace db1.ns1 as of 5 seconds ago")
 ::
-:: update with one cte and predicate as of now
-++  test-update-13
+:: force db name as of
+++  test-drop-namespace-12
   %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.y as-of=~]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force db1.ns1 as of now")
 ::
-:: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-update-14
+:: force db name as of
+++  test-drop-namespace-13
   %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.y as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force db1.ns1 as of ~2023.12.25..7.15.0..1ef5")
 ::
-:: update with one cte and predicate as of 4 seconds ago
-++  test-update-15
+:: force db name as of
+++  test-drop-namespace-14
   %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+    !>  ~[[%drop-namespace database-name='db1' name='ns1' force=%.y as-of=[~ [%as-of-offset 15 %minutes]]]]
+    !>  (parse:parse(default-database 'other-db') "drop namespace force db1.ns1 as of 15 minutes ago")
 ::
-:: update with three ctes and predicate
-++  test-update-16
-  %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+:: fail when database qualifier is not a term
+++  test-fail-drop-namespace-15
+  %-  expect-fail
+  |.  (parse:parse(default-database 'other-db') "DROP NAMESPACE Db.name")
 ::
-:: update with three ctes and predicate as of now
-++  test-update-17
-  %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
-::
-:: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-update-18
-  %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ ~2023.12.25..7.15.0..1ef5]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
-::
-:: update with three ctes and predicate as of 4 seconds ago
-++  test-update-19
-  %+  expect-eq
-    !>  ~[[%transform ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
-
+:: fail when namespace is not a term
+++  test-fail-drop-namespace-16
+  %-  expect-fail
+  |.  (parse:parse(default-database 'other-db') "DROP NAMESPACE nAme")
 
 ::@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ::

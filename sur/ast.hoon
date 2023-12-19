@@ -341,7 +341,7 @@
     offset=@ud
     units=?(%seconds %minutes %hours %days %weeks %months %years)
   ==
-+$  as-of  ?(@da as-of-offset)
++$  as-of  ?([%da @] [%dr @] as-of-offset)
 ::
 ::  $create-database: $:([%create-database name=@tas])
 +$  create-database      $:([%create-database name=@tas as-of=(unit as-of)])

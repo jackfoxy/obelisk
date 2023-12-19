@@ -707,7 +707,8 @@
   ^-  @da
   ?~  p  q
   =/  as-of=as-of:ast  (need p)
-  ?:  ?=(@da as-of)  as-of
+  ?:  ?=([%da @] as-of)  +.as-of
+  ?:  ?=([%dr @] as-of)  (sub q +.as-of)
   ?-  units.as-of
     %seconds
       (sub q `@dr`(yule `tarp`[0 0 0 offset:as-of ~]))
@@ -719,7 +720,25 @@
       (sub q `@dr`(yule `tarp`[offset:as-of 0 0 0 ~]))
     %weeks
       (sub q `@dr`(yule `tarp`[(mul offset:as-of 7) 0 0 0 ~]))
-    %months  !!
-    %years  !!
+    %months
+      =/  foo    (yore q)
+      =/  years  (div offset:as-of 12)
+      =/  months  (sub offset:as-of (mul years 12))
+      ?:  =(m.foo months)
+        %-  year  :+  [a=%.y y=(sub y.foo (add years 1))]
+                      m=12
+                      t=[d=d.t.foo h=h.t.foo m=m.t.foo s=s.t.foo f=f.t.foo]
+      ?:  (gth m.foo months)
+        %-  year  :+  [a=%.y y=(sub y.foo years)]
+                      m=(sub m.foo months)
+                      t=[d=d.t.foo h=h.t.foo m=m.t.foo s=s.t.foo f=f.t.foo]
+      %-  year  :+  [a=%.y y=(sub y.foo (add years 1))]
+                    m=(sub (add m.foo 12) months)
+                    t=[d=d.t.foo h=h.t.foo m=m.t.foo s=s.t.foo f=f.t.foo]
+    %years
+      =/  foo  (yore q)
+      %-  year  :+  [a=%.y y=(sub y.foo offset:as-of)]
+                    m=m.foo
+                    t=[d=d.t.foo h=h.t.foo m=m.t.foo s=s.t.foo f=f.t.foo]
   ==
 --

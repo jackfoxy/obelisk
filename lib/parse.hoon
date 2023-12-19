@@ -200,7 +200,7 @@
                                           +<.parsed
                                           +>->+>-.parsed
                                           +>->+>+.parsed
-                                          [~ +>+>+.parsed]
+                                          [~ +>+>.parsed]
                                           ==
                   commands
             :-  %:  alter-namespace:ast  %alter-namespace
@@ -327,7 +327,7 @@
                                       ~
                                       ~
                                       ~
-                                      [~ +>+>.parsed]
+                                      [~ +>+.parsed]
                                       ==
                   commands
             :-  %:  alter-table:ast  %alter-table
@@ -368,7 +368,7 @@
                                       ~
                                       ~
                                       ~
-                                      [~ +>+>.parsed]
+                                      [~ +>+.parsed]
                                       ==
                   commands
             :-  %:  alter-table:ast  %alter-table
@@ -409,7 +409,7 @@
                                       +<+.parsed
                                       ~
                                       ~
-                                      [~ +>+>.parsed]
+                                      [~ +>+.parsed]
                                       ==
                   commands
             :-  %:  alter-table:ast  %alter-table
@@ -450,7 +450,7 @@
                                       ~
                                       (build-foreign-keys [-.parsed +<+.parsed])
                                       ~
-                                      [~ +>+>.parsed]
+                                      [~ +>+.parsed]
                                       ==
                   commands
             :-  %:  alter-table:ast  %alter-table
@@ -491,7 +491,7 @@
                                       ~
                                       ~
                                       +<+.parsed
-                                      [~ +>+>.parsed]
+                                      [~ +>+.parsed]
                                       ==
                   commands
             :-  %:  alter-table:ast  %alter-table
@@ -533,7 +533,7 @@
           script  ""
           commands  :-  %:  create-database:ast  %create-database
                                                 -.parsed
-                                                [~ `@da`+>+.parsed]
+                                                [~ +>.parsed]
                                                 ==
                         commands
         ==
@@ -658,8 +658,7 @@
                         commands
         ==
       =/  id  -.parsed
-      =/  asof  +>.parsed
-      ?:  =(%now asof)
+      ?:  =(%now +>.parsed)
         %=  $
           script        q.q.u.+3.q:create-ns-nail
           commands  ?@  id  
@@ -668,6 +667,7 @@
           :-  (create-namespace:ast %create-namespace -.id +.id ~)
               commands
         ==
+      =/  asof  +>.parsed
       ?:  ?=([@ @] asof)
         %=  $
           script    q.q.u.+3.q:create-ns-nail
@@ -675,13 +675,13 @@
             :-  %:  create-namespace:ast  %create-namespace
                                           default-database
                                           id
-                                          [~ `@da`+.asof]
+                                          [~ asof]
                                           ==
                 commands
           :-  %:  create-namespace:ast  %create-namespace
                                         -.id
                                         +.id
-                                        [~ `@da`+.asof]
+                                        [~ asof]
                                         ==
               commands
         ==
@@ -748,7 +748,7 @@
                                               +>->-.parsed
                                               +>->+.parsed
                                               ~
-                                              [~ +>+>+.parsed]
+                                              [~ +>+>.parsed]
                                               ==
                         commands
         ==
@@ -900,7 +900,7 @@
                                           default-database
                                           -.parsed
                                           %.n
-                                          [~ +>+.parsed]
+                                          [~ +>.parsed]
                                           ==
                   commands
             :-  %:  drop-namespace:ast  %drop-namespace
@@ -932,7 +932,7 @@
                                           default-database
                                           ->.parsed
                                           %.y
-                                          [~ +>+.parsed]
+                                          [~ +>.parsed]
                                           ==
                   commands
             :-  %:  drop-namespace:ast  %drop-namespace 
@@ -959,7 +959,7 @@
                                           -<.parsed
                                           ->.parsed
                                           %.n
-                                          [~ +>+.parsed]
+                                          [~ +>.parsed]
                                           ==
                   commands
             :-  %:  drop-namespace:ast  %drop-namespace
@@ -991,7 +991,7 @@
                                           ->-.parsed
                                           ->+.parsed
                                           %.y
-                                          [~ +>+.parsed]
+                                          [~ +>.parsed]
                                           ==
                   commands
             :-  %:  drop-namespace:ast  %drop-namespace
@@ -1051,7 +1051,7 @@
             ?:  =(%now +>.parsed)
               [(drop-table:ast %drop-table ->.parsed %.y ~) commands]
             ?:  ?=([@ @] +>.parsed)
-              :-  (drop-table:ast %drop-table ->.parsed %.y [~ +>+.parsed])
+              :-  (drop-table:ast %drop-table ->.parsed %.y [~ +>.parsed])
                   commands
             :-  %:  drop-table:ast  %drop-table
                                     ->.parsed
@@ -1071,7 +1071,7 @@
             ?:  =(%now +>.parsed)
               [(drop-table:ast %drop-table -.parsed %.n ~) commands]
             ?:  ?=([@ @] +>.parsed)
-              :-  (drop-table:ast %drop-table -.parsed %.n [~ +>+.parsed])
+              :-  (drop-table:ast %drop-table -.parsed %.n [~ +>.parsed])
                   commands
             :-  %:  drop-table:ast  %drop-table
                                     -.parsed
@@ -2043,7 +2043,7 @@
   ?:  ?=([* [%as-of %now] %end-command ~] a) 
     (delete:ast %delete -.a ~ ~)
   ?:  ?=([* [%as-of [@ @]] %end-command ~] a)  :: delete from foo as of date
-    (delete:ast %delete -.a ~ [~ +<+>.a])
+    (delete:ast %delete -.a ~ [~ +<+.a])
   ?:  ?=([* [%as-of *] %end-command ~] a)      :: delete from foo as of offset
     %:  delete:ast  %delete
                     -.a
@@ -2058,7 +2058,7 @@
     %:  delete:ast  %delete
                     -.a
                     `(produce-predicate (predicate-list +>-.a))
-                    [~ +>+<+>.a]
+                    [~ +>+<+.a]
                     ==
   ?:  ?=([* %where * [%as-of *] %end-command ~] a)
     %:  delete:ast  %delete
@@ -2114,7 +2114,7 @@
   ?:  ?=([[[* %values * %as-of %now] @ @]] a)  :: insert rows as of now
     (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) ~)
   ?:  ?=([[[* %values * %as-of [@ @]]] @ @] a)  :: insert rows as of date
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) [~ ->+>+>.a])
+    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) [~ ->+>+.a])
   ?:  ?=([[[* %values * %as-of *]] @ @] a)  :: insert rows as of offset
     %:  insert:ast  %insert
                     -<.a 
@@ -2129,7 +2129,7 @@
                     -<.a
                     `->-<.a
                     (insert-values:ast %data ->+<.a)
-                    [~ ->+>+>.a]
+                    [~ ->+>+.a]
                     ==
   ?:  ?=([[* [* %values] * %as-of *] @ @] a) :: insert cols rows as of offset
      %:  insert:ast  %insert
@@ -2537,7 +2537,7 @@
   ?:  ?=([* %set * ~ %as-of %now] a)
     (update:ast %update table -.columns-values +.columns-values ~ ~)
   ?:  ?=([* %set * ~ %as-of [@ @]] a)
-    (update:ast %update table -.columns-values +.columns-values ~ [~ +>+>+>.a])
+    (update:ast %update table -.columns-values +.columns-values ~ [~ +>+>+.a])
   ?:  ?=([* %set * ~ %as-of *] a)
     %:  update:ast  %update
                     table
@@ -2560,7 +2560,7 @@
                     -.columns-values
                     +.columns-values
                     `(produce-predicate (predicate-list +>+<.a))
-                    [~ +>+>+>.a]
+                    [~ +>+>+.a]
                     ==
 
   ?:  ?=([* %set * * %as-of *] a)

@@ -191,7 +191,90 @@
   %+  expect-eq                         
     !>  ~2020.2.27..7.15.0..1ef5
     !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 7 %days) ~2020.3.5..7.15.0..1ef5])
-
+::
+::  set-tmsp back 0 months
+++  test-set-tmsp-11
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %months) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 months
+++  test-set-tmsp-12
+  %+  expect-eq                         
+    !>  ~2018.7.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %months) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 3 months
+++  test-set-tmsp-13
+  %+  expect-eq                         
+    !>  ~2019.12.5..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 3 %months) ~2020.3.5..7.15.0..1ef5])
+::
+::  set-tmsp back 2 months
+++  test-set-tmsp-14
+  %+  expect-eq                         
+    !>  ~2020.1.5..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 2 %months) ~2020.3.5..7.15.0..1ef5])
+::
+::  set-tmsp back 0 years
+++  test-set-tmsp-15
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 0 %years) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back 65 years
+++  test-set-tmsp-16
+  %+  expect-eq                         
+    !>  ~1958.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`(as-of-offset:ast %as-of-offset 65 %years) ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp to ~1962.2.2..7.15.0..1ef5
+++  test-set-tmsp-17
+  %+  expect-eq                         
+    !>  ~1962.2.2..7.15.0..1ef5
+    !>  (set-tmsp [`[%da ~1962.2.2..7.15.0..1ef5] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~s65
+++  test-set-tmsp-18
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.13.55..1ef5
+    !>  (set-tmsp [`[%dr ~s65] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~m65
+++  test-set-tmsp-19
+  %+  expect-eq                         
+    !>  ~2023.12.25..6.10.0..1ef5
+    !>  (set-tmsp [`[%dr ~m65] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~m65.s65
+++  test-set-tmsp-20
+  %+  expect-eq                         
+    !>  ~2023.12.25..6.8.55..1ef5
+    !>  (set-tmsp [`[%dr ~m65.s65] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~h2.m12.s5
+++  test-set-tmsp-21
+  %+  expect-eq                         
+    !>  ~2023.12.25..5.2.55..1ef5
+    !>  (set-tmsp [`[%dr ~h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~d5.h2.m12.s5
+++  test-set-tmsp-22
+  %+  expect-eq                         
+    !>  ~2023.12.20..5.2.55..1ef5
+    !>  (set-tmsp [`[%dr ~d5.h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~s0
+++  test-set-tmsp-23
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`[%dr ~s0] ~2023.12.25..7.15.0..1ef5])
+::
+::  set-tmsp back ~d0.h0.m0.s0
+++  test-set-tmsp-24
+  %+  expect-eq                         
+    !>  ~2023.12.25..7.15.0..1ef5
+    !>  (set-tmsp [`[%dr ~d0.h0.m0.s0] ~2023.12.25..7.15.0..1ef5])
 ::
 :: insert rows without columns to populated table fail on col wrong type
 ++  test-fail-ins-no-cols-col-type
