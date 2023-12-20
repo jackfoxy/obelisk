@@ -18,7 +18,7 @@
                                 +<.c 
                                 (crip (spud sap.bowl))
                                 now.bowl 
-                                ~[(internals %internals (crip (spud sap.bowl)) now.bowl ns tbs)]
+                                ~[(schema %schema (crip (spud sap.bowl)) now.bowl ns tbs)]
                                 ~[(data %data src.bowl (crip (spud sap.bowl)) now.bowl ~)]
                                 ==
       ==
@@ -170,7 +170,7 @@
     =/  dbrow  
       ~|  "database {<database.q>} does not exist" 
       (~(got by dbs) database.q)
-    =/  sys=internals  -.sys.dbrow
+    =/  sys=schema  -.sys.dbrow
     =/  =tables        tables.sys
     =/  udata=data     -.user-data.dbrow
     ?+  name.q  !!
@@ -250,7 +250,7 @@
               ==
     (turn tbls |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a provenance.a -.k.b +.k.b]))
   ++  sys-view-sys-log-tbl
-    |=  a=internals
+    |=  a=schema
     ^-  (list (list @))
     =/  tbls  %:  skim
                   %~  val  by
@@ -259,7 +259,7 @@
                ==
     (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a provenance.a -.k.b +.k.b]))
   ++  sys-view-sys-log-ns
-    |=  a=internals
+    |=  a=schema
     ^-  (list (list @))
     =/  namespaces  %:  skim  
                     ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
@@ -269,7 +269,7 @@
   ++  sys-view-databases
     |=  a=db-row
     ^-  (list (list @))
-    =/  sys=(list internals)  (flop sys.a)
+    =/  sys=(list schema)  (flop sys.a)
     =/  udata=(list data)      (flop user-data.a)
     =/  rslt=(list (list @))  ~
     |-
@@ -348,7 +348,7 @@
     =/  dbrow  
         ~|  "database {<database.table.c>} does not exist" 
         (~(got by dbs) database.table.c)
-    =/  db-internals=internals  -.sys.dbrow
+    =/  db-schema=schema  -.sys.dbrow
     =/  =table
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
         (~(got by `tables`->+>+.sys.dbrow) [namespace.table.c name.table.c])
@@ -481,19 +481,19 @@
   ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
   =/  dbrow  ~|  "database {<database-name.create-namespace>} does not exist" 
                  (~(got by dbs) database-name.create-namespace)
-  =/  db-internals=internals  -.sys.dbrow
+  =/  db-schema=schema  -.sys.dbrow
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
-                          namespaces.db-internals 
+                          namespaces.db-schema 
                           name.create-namespace 
                           now.bowl
                       ==
-  =.  -.sys.dbrow  %:  internals 
-                       %internals 
+  =.  -.sys.dbrow  %:  schema 
+                       %schema 
                        (crip (spud sap.bowl))
                        now.bowl 
                        namespaces 
-                       tables.db-internals
+                       tables.db-schema
                        ==
   (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
 ++  create-tbl
@@ -502,9 +502,9 @@
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
   =/  dbrow  ~|  "database {<database.table.create-table>} does not exist"
                  (~(got by dbs) database.table.create-table)
-  =/  db-internals=internals  -.sys.dbrow
+  =/  db-schema=schema  -.sys.dbrow
   =/  usr-data=data           -.user-data.dbrow
-  ?.  (~(has by namespaces.db-internals) namespace.table.create-table)
+  ?.  (~(has by namespaces.db-schema) namespace.table.create-table)
     ~|("namespace {<namespace.table.create-table>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
@@ -532,7 +532,7 @@
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert
-        tables.db-internals
+        tables.db-schema
         [namespace.table.create-table name.table.create-table]
         table
     ==
@@ -559,11 +559,11 @@
         file
     ==
   ::
-  =.  -.sys.dbrow  %:  internals
-                       %internals
+  =.  -.sys.dbrow  %:  schema
+                       %schema
                        (crip (spud sap.bowl))
                        now.bowl
-                       namespaces.db-internals
+                       namespaces.db-schema
                        tables
                        ==
   =.  -.user-data.dbrow  %:  data
@@ -596,14 +596,14 @@
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
   =/  dbrow  ~|  "database {<database.table.d>} does not exist" 
              (~(got by dbs) database.table.d)
-  =/  db-internals=internals  -.sys.dbrow
+  =/  db-schema=schema  -.sys.dbrow
   =/  usr-data=data           -.user-data.dbrow
-  ?.  (~(has by namespaces.db-internals) namespace.table.d)
-    ~|("namespace {<namespaces.internals>} does not exist" !!)
+  ?.  (~(has by namespaces.db-schema) namespace.table.d)
+    ~|("namespace {<namespaces.schema>} does not exist" !!)
   =/  tables  
     ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
     %+  map-delete
-        tables.db-internals
+        tables.db-schema
         [namespace.table.d name.table.d]
   =/  file  ~|  "table {<namespace.table.d>}.{<name.table.d>} does not exist" 
             (~(got by files.usr-data) [namespace.table.d name.table.d])
@@ -613,11 +613,11 @@
     %+  map-delete
         files.usr-data
         [namespace.table.d name.table.d]
-  =.  -.sys.dbrow  %:  internals
-                       %internals
+  =.  -.sys.dbrow  %:  schema
+                       %schema
                        (crip (spud sap.bowl))
                        now.bowl
-                       namespaces.db-internals
+                       namespaces.db-schema
                        tables
                        ==
   =.  -.user-data.dbrow  %:  data
@@ -637,18 +637,18 @@
   ?~  a  current
   =/  cur-db-row=db-row         -<+.a
   =/  next-db-row=db-row        ->+.a
-  =/  cur-internals=internals   -.sys.cur-db-row
-  =/  next-internals=internals  -.sys.next-db-row
+  =/  cur-schema=schema   -.sys.cur-db-row
+  =/  next-schema=schema  -.sys.next-db-row
   =/  cur-data=data             -.user-data.cur-db-row
   =/  next-data=data            -.user-data.next-db-row
   ::
-  ?:  ?&  =(tmsp.cur-internals tmsp.next-internals) 
+  ?:  ?&  =(tmsp.cur-schema tmsp.next-schema) 
           =(tmsp.cur-data tmsp.next-data)
       ==
     $(a +.a)
   =/  dbrow=db-row  (~(got by current) -<-.a)
-  =?  sys.dbrow  !=(tmsp.cur-internals tmsp.next-internals)  
-                 [next-internals sys.dbrow]
+  =?  sys.dbrow  !=(tmsp.cur-schema tmsp.next-schema)  
+                 [next-schema sys.dbrow]
   =?  user-data.dbrow  !=(tmsp.cur-data tmsp.next-data)  
                        [next-data user-data.dbrow]
   $(a +.a, current (~(put by current) -<-.a dbrow))

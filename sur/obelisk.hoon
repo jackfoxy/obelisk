@@ -7,11 +7,11 @@
       name=@tas
       created-by-provenance=@t
       created-tmsp=@da
-      sys=(list internals)
+      sys=(list schema)
       user-data=(list data)
   ==
-+$  internals
-  $:  %internals
++$  schema
+  $:  %schema
       provenance=@t
       tmsp=@da
       =namespaces

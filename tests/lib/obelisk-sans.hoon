@@ -22,11 +22,11 @@
 |%
 ::
 ::
-++  internals-ns
+++  schema-ns
   [n=[p=%dbo q=~2023.7.9..22.24.54..4b8a] l=~ r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] l=~ r=~]]
-++  internals-my-table
+++  schema-my-table
   [p=[%dbo %my-table] q=[%table agent='/test-agent' tmsp=~2023.7.9..22.24.54..4b8a pri-indx=[%index unique=%.y clustered=%.y columns=~[[%ordered-column name=%col1 is-ascending=%.y]]] columns=~[[%column name=%col1 type=%t]] indices=~]]
-++  internals-table-3
+++  schema-table-3
   [p=[%dbo %my-table-3] q=[%table agent='/test-agent' tmsp=~2023.7.9..22.24.54..4b8a pri-indx=pri-indx-table-3 columns=~[[%column name=%col1 type=%t] [%column name=%col2 type=%p] [%column name=%col3 type=%ud]] indices=~]]
 ++  pri-indx-table-3
   [%index unique=%.y clustered=%.y columns=~[[%ordered-column name=%col1 is-ascending=%.y] [%ordered-column name=%col3 is-ascending=%.n]]]
@@ -39,11 +39,11 @@
   [n=[p=%col3 q=[%ud 2]] l=[n=[p=%col2 q=[%p 1]] l=~ r=~] r=[n=[p=%col1 q=[%t 0]] l=~ r=~]]
 ::
 ++  gen0-intrnl
-  [%internals agent='/test-agent' tmsp=~2023.7.9..22.24.54..4b8a namespaces=internals-ns tables=~]
+  [%schema agent='/test-agent' tmsp=~2023.7.9..22.24.54..4b8a namespaces=schema-ns tables=~]
 ++  gen1-intrnl
-  [%internals agent='/test-agent' tmsp=~2023.7.9..22.27.32..49e3 namespaces=internals-ns tables=[n=internals-my-table l=~ r=~]]
+  [%schema agent='/test-agent' tmsp=~2023.7.9..22.27.32..49e3 namespaces=schema-ns tables=[n=schema-my-table l=~ r=~]]
 ++  gen2-intrnl
-  [%internals agent='/test-agent' tmsp=~2023.7.9..22.35.34..7e90 namespaces=internals-ns tables=[n=internals-my-table l=[n=internals-table-3 l=~ r=~] r=~]]
+  [%schema agent='/test-agent' tmsp=~2023.7.9..22.35.34..7e90 namespaces=schema-ns tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]]
 ::
 ++  gen0-data
   [%data ship=~zod agent='/test-agent' tmsp=~2023.7.9..22.24.54..4b8a files=~]
