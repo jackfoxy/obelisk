@@ -18,9 +18,21 @@
                                 +<.c 
                                 (crip (spud sap.bowl))
                                 now.bowl 
-                                ~[(schema %schema (crip (spud sap.bowl)) now.bowl ns tbs)]
-                                ~[(data %data src.bowl (crip (spud sap.bowl)) now.bowl ~)]
+                                :~  %:  schema  %schema
+                                                (crip (spud sap.bowl))
+                                                now.bowl
+                                                ns
+                                                tbs
+                                    ==
                                 ==
+                                :~  %:  data  %data
+                                              src.bowl
+                                              (crip (spud sap.bowl))
+                                              now.bowl
+                                              ~
+                                    ==
+                                ==
+                              ==
       ==
   `cmd-result`[%result-da 'system time' now.bowl]
 ++  process-cmds
@@ -248,7 +260,10 @@
                       (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
                   |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
               ==
-    (turn tbls |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a provenance.a -.k.b +.k.b]))
+    %:  turn
+          tbls
+          |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a provenance.a -.k.b +.k.b])
+        ==
   ++  sys-view-sys-log-tbl
     |=  a=schema
     ^-  (list (list @))
@@ -265,7 +280,10 @@
                     ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
                     |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
                     ==
-    (turn namespaces |=(b=[ns=@tas tmsp=@da] ~[tmsp.a provenance.a %namespace ns.b]))
+    %:  turn
+          namespaces
+          |=(b=[ns=@tas tmsp=@da] ~[tmsp.a provenance.a %namespace ns.b])
+        ==
   ++  sys-view-databases
     |=  a=db-row
     ^-  (list (list @))
@@ -307,8 +325,14 @@
     ++  foo
       |=  [k=[@tas @tas] =file]
       ^-  (list (list @))
-      =/  aa=(list @)
-        ~[-.k +.k ship.file provenance.file tmsp.file length.file clustered.file]
+      =/  aa=(list @)  :~  -.k
+                          +.k
+                          ship.file
+                          provenance.file
+                          tmsp.file
+                          length.file
+                          clustered.file
+                        ==
       =/  tbl  (~(got by tables) [-.k +.k])
       =/  keys
         %^  spin  columns.pri-indx.tbl
@@ -685,7 +709,8 @@
     (gth -.p -.q)
   --
 ++  order-row
-  |_  index=(list [@tas ascending=? offset=@ud])  :: to do: accomadate varying row types
+  |_  index=(list [@tas ascending=? offset=@ud])  
+  :: to do: accomadate varying row types
   ++  order
   |=  [p=(list @) q=(list @)]
   =/  k=(list [@tas ascending=? offset=@ud])  index
