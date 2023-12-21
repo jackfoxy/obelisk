@@ -5,10 +5,11 @@
   ^-  [databases cmd-result]
   ?:  =(+<.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
+  =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
   =/  ns=namespaces
     %:  my 
-        :~  [%sys now.bowl]
-            [%dbo now.bowl]
+        :~  [%sys sys-time]
+            [%dbo sys-time]
             ==
         ==
   =/  tbs=tables  ~
@@ -17,10 +18,10 @@
                                 %db-row 
                                 +<.c 
                                 (crip (spud sap.bowl))
-                                now.bowl 
+                                sys-time 
                                 :~  %:  schema  %schema
                                                 (crip (spud sap.bowl))
-                                                now.bowl
+                                                sys-time
                                                 ns
                                                 tbs
                                     ==
@@ -28,13 +29,13 @@
                                 :~  %:  data  %data
                                               src.bowl
                                               (crip (spud sap.bowl))
-                                              now.bowl
+                                              sys-time
                                               ~
                                     ==
                                 ==
                               ==
       ==
-  `cmd-result`[%result-da 'system time' now.bowl]
+  `cmd-result`[%result-da 'system time' sys-time]
 ++  process-cmds
   |=  [state-dbs=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
