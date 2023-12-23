@@ -37,6 +37,8 @@
   |=  [state-dbs=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
   =/  dbs  state-dbs
+  =/  next-schemas=(map @tas schema)  ~
+  =/  next-data=(map @tas data)  ~
   =/  results=(list cmd-result)  ~
   |-  
   ?~  cmds  [[%results (flop results)] (update-state [state-dbs dbs])]
@@ -47,15 +49,15 @@
       !!
     %alter-table
       !!
-    %create-database
-      !!
+    %create-database  ~|("create database must be only command in script" !!)
     %create-index
       !!
     %create-namespace
+      =/  r=[@da (map @tas schema)]  (create-ns dbs bowl -.cmds next-schemas)
       %=  $
-        dbs      (create-ns dbs bowl -.cmds)
-        cmds     +.cmds
-        results  [`cmd-result`[%result-da 'system time' now.bowl] results]
+        next-schemas  +.r
+        cmds          +.cmds
+        results       [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %create-table
       %=  $
@@ -498,26 +500,25 @@
     ~
   --
 ++  create-ns
-  |=  [dbs=databases =bowl:gall =create-namespace:ast]
-  ^-  databases
-  ?.  =(our.bowl src.bowl)  ~|("namespace must be created by local agent" !!)
+  |=  [dbs=databases =bowl:gall =create-namespace:ast next-schemas=(map @tas schema)]
+  ^-  [@da (map @tas schema)]
+  ?.  =(our.bowl src.bowl)  ~|("schema changes must be by local agent" !!)
   =/  dbrow  ~|  "database {<database-name.create-namespace>} does not exist" 
                  (~(got by dbs) database-name.create-namespace)
   =/  db-schema=schema  -.sys.dbrow
+  =/  schema=schema  ?.  (~(has by next-schemas) database-name.create-namespace)
+                        (~(got by next-schemas) database-name.create-namespace)
+                      db-schema
+  =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
+
+  
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
-                          namespaces.db-schema 
+                          namespaces.schema 
                           name.create-namespace 
-                          now.bowl
+                          sys-time
                       ==
-  =.  -.sys.dbrow  %:  schema 
-                       %schema 
-                       (crip (spud sap.bowl))
-                       now.bowl 
-                       namespaces 
-                       tables.db-schema
-                       ==
-  (~(put by dbs) database-name.create-namespace dbrow)  :: prefer upd
+  [sys-time (~(put by next-schemas) database-name.create-namespace schema)]
 ++  create-tbl
   |=  [dbs=databases =bowl:gall =create-table:ast]
   ^-  databases
