@@ -6,36 +6,33 @@
   ?:  =(+<.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
   =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
-  =/  ns=namespaces
-    %:  my 
-        :~  [%sys sys-time]
-            [%dbo sys-time]
-            ==
-        ==
+  =/  ns=namespaces  %:  my  :~  [%sys sys-time]
+                                [%dbo sys-time]
+                            ==
+                    ==
   =/  tbs=tables  ~
-  :-
-  %:  map-insert  dbs  +<.c  %:  db-row 
-                                %db-row 
-                                +<.c 
-                                (crip (spud sap.bowl))
-                                sys-time 
-                                :~  %:  schema  %schema
-                                                (crip (spud sap.bowl))
-                                                sys-time
-                                                ns
-                                                tbs
+  :-  %:  map-insert  dbs  +<.c  %:  db-row 
+                                    %db-row 
+                                    +<.c 
+                                    (crip (spud sap.bowl))
+                                    sys-time 
+                                    :~  %:  schema  %schema
+                                                    (crip (spud sap.bowl))
+                                                    sys-time
+                                                    ns
+                                                    tbs
+                                        ==
                                     ==
-                                ==
-                                :~  %:  data  %data
-                                              src.bowl
-                                              (crip (spud sap.bowl))
-                                              sys-time
-                                              ~
+                                    :~  %:  data  %data
+                                                  src.bowl
+                                                  (crip (spud sap.bowl))
+                                                  sys-time
+                                                  ~
+                                        ==
                                     ==
-                                ==
-                              ==
-      ==
-  `cmd-result`[%result-da 'system time' sys-time]
+                                  ==
+          ==
+      `cmd-result`[%result-da 'system time' sys-time]
 ++  process-cmds
   |=  [state-dbs=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
