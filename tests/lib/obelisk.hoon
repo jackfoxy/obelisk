@@ -8,7 +8,7 @@
 ++  bowl
   |=  [run=@ud now=@da]
   ^-  bowl:gall
-  :*  [~zod ~zod %obelisk `path`(limo ~[%test-agent])] :: (our src dap sap)
+  :*  [~zod ~zod %obelisk `path`(limo `path`/test-agent)] :: (our src dap sap)
       [~ ~ ~]                                          :: (wex sup sky)
       [run `@uvJ`(shax run) now [~zod %base ud+run]]   :: (act eny now byk)
   ==
@@ -27,12 +27,12 @@
 ++  schema-my-table
   :-  p=[%dbo %my-table] 
       :*  %table
-          agent='/test-agent'
+          provenance=`path`/test-agent
           tmsp=~2023.7.9..22.24.54..4b8a
           :*  %index
               unique=%.y
               clustered=%.y
-              columns=~[[%ordered-column name=%col1 is-ascending=%.y]]
+              columns=~[[%ordered-column name=%col1 ascending=%.y]]
           ==
           columns=~[[%column name=%col1 type=%t]]
           indices=~
@@ -40,7 +40,7 @@
 ++  schema-table-3
   :-  p=[%dbo %my-table-3] 
       :*  %table
-          agent='/test-agent'
+          provenance=`path`/test-agent
           tmsp=~2023.7.9..22.24.54..4b8a
           pri-indx=pri-indx-table-3
           :~  [%column name=%col1 type=%t]
@@ -53,8 +53,8 @@
   :*  %index
       unique=%.y
       clustered=%.y
-      :~  [%ordered-column name=%col1 is-ascending=%.y]
-          [%ordered-column name=%col3 is-ascending=%.n]
+      :~  [%ordered-column name=%col1 ascending=%.y]
+          [%ordered-column name=%col3 ascending=%.n]
       ==
   ==
 ::
@@ -62,7 +62,7 @@
   :-  p=[%dbo %my-table] 
       :*  %file
           ship=~zod
-          agent='/test-agent'
+          provenance=`path`/test-agent
           tmsp=~2023.7.9..22.27.32..49e3
           clustered=%.y
           length=0
@@ -75,7 +75,7 @@
   :-  p=[%dbo %my-table-3] 
       :*  %file
           ship=~zod
-          agent='/test-agent'
+          provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.34..7e90
           clustered=%.y
           length=0
@@ -91,47 +91,52 @@
 ::
 ++  gen0-intrnl
   :*  %schema
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2023.7.9..22.24.54..4b8a
       namespaces=schema-ns
        tables=~
   ==
 ++  gen1-intrnl
   :*  %schema
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2023.7.9..22.27.32..49e3
       namespaces=schema-ns
       tables=[n=schema-my-table l=~ r=~]
   ==
 ++  gen2-intrnl
   :*  %schema
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2023.7.9..22.35.34..7e90
       namespaces=schema-ns
       tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
   ==
 ::
 ++  gen0-data
-  [%data ship=~zod agent='/test-agent' tmsp=~2023.7.9..22.24.54..4b8a files=~]
+  :*  %data
+      ship=~zod
+      provenance=`path`/test-agent
+      tmsp=~2023.7.9..22.24.54..4b8a
+      files=~
+  ==
 ++  gen1-data
   :*  %data
       ship=~zod
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2023.7.9..22.27.32..49e3
       files=[n=file-my-table l=~ r=~]
   ==
 ++  gen2-data
   :*  %data
       ship=~zod
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2023.7.9..22.35.34..7e90
       files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]
   ==
 ::
 ++  start-db1-row
-  :*  %db-row
+  :*  %database
       name=%db1
-      created-by-agent='/test-agent'
+      created-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
       sys=~[gen2-intrnl gen1-intrnl gen0-intrnl]
       user-data=~[gen2-data gen1-data gen0-data]
@@ -143,7 +148,7 @@
   :-  p=[%dbo %my-table-3] 
   :*  %file
       ship=~zod
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2030.1.1
       clustered=%.y
       length=2
@@ -171,15 +176,15 @@
 ++  gen3-data
   :*  %data
       ship=~zod
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2030.1.1
       files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
   ==
 ::
 ++  gen3-db1-row
-  :*  %db-row
+  :*  %database
       name=%db1
-      created-by-agent='/test-agent'
+      created-by-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
       sys=~[gen2-intrnl gen1-intrnl gen0-intrnl]
       user-data=~[gen3-data gen2-data gen1-data gen0-data]
@@ -209,7 +214,7 @@
   :-  p=[%dbo %my-table-3]
       :*  %file
           ship=~zod
-          agent='/test-agent'
+          provenance=`path`/test-agent
           tmsp=~2030.2.1
           clustered=%.y
           length=4
@@ -221,14 +226,14 @@
 ++  gen4-data
   :*  %data
       ship=~zod
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2030.2.1
       files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
   ==
 ++  gen4-db1-row
-  :*  %db-row
+  :*  %database
       name=%db1
-      created-by-agent='/test-agent'
+      created-by-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
       sys=~[gen2-intrnl gen1-intrnl gen0-intrnl]
       user-data=~[gen4-data gen3-data gen2-data gen1-data gen0-data]

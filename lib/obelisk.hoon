@@ -11,13 +11,13 @@
                             ==
                     ==
   =/  tbs=tables  ~
-  :-  %:  map-insert  dbs  +<.c  %:  db-row 
-                                    %db-row 
+  :-  %:  map-insert  dbs  +<.c  %:  database 
+                                    %database 
                                     +<.c 
-                                    (crip (spud sap.bowl))
+                                    :: (crip (spud sap.bowl))
                                     sys-time 
                                     :~  %:  schema  %schema
-                                                    (crip (spud sap.bowl))
+                                                    sap.bowl
                                                     sys-time
                                                     ns
                                                     tbs
@@ -25,23 +25,23 @@
                                     ==
                                     :~  %:  data  %data
                                                   src.bowl
-                                                  (crip (spud sap.bowl))
+                                                  sap.bowl
                                                   sys-time
-                                                  ~
+                                                  ~[* *]
                                         ==
                                     ==
                                   ==
           ==
       `cmd-result`[%result-da 'system time' sys-time]
 ++  process-cmds
-  |=  [state-dbs=databases =bowl:gall cmds=(list command:ast)]
+  |=  [state=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
-  =/  dbs  state-dbs
-  =/  next-schemas=(map @tas schema)  ~
-  =/  next-data=(map @tas data)  ~
+  =/  next-schemas=(map @tas [(unit schema) (unit data)])  ~
+  =/  next-data=(map @tas [(unit schema) (unit data)])  ~
   =/  results=(list cmd-result)  ~
   |-  
-  ?~  cmds  [[%results (flop results)] (update-state [state-dbs dbs])]
+  ?~  cmds  :-  [%results (flop results)]
+                (update-state state next-schemas next-data)
   ?-  -<.cmds
     %alter-index
       !!
@@ -53,17 +53,21 @@
     %create-index
       !!
     %create-namespace
-      =/  r=[@da (map @tas schema)]  (create-ns dbs bowl -.cmds next-schemas)
+      =/  r=[@da (map @tas [(unit schema) (unit data)])]
+            (create-ns state bowl -.cmds next-schemas)
       %=  $
         next-schemas  +.r
         cmds          +.cmds
         results       [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %create-table
+      =/  r=table-return
+            (create-tbl state bowl -.cmds next-schemas next-data)
       %=  $
-        dbs      (create-tbl dbs bowl -.cmds)
+        next-schemas  +<.r
+        next-data     +>.r
         cmds     +.cmds
-        results  [`cmd-result`[%result-da 'system time' now.bowl] results]
+        results  [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %create-view
       !!
@@ -74,10 +78,13 @@
     %drop-namespace
       !!
     %drop-table
+      =/  r=table-return  
+            (drop-tbl state bowl -.cmds next-schemas next-data)
       %=  $
-        dbs      (drop-tbl dbs bowl -.cmds)
-        cmds     +.cmds
-        results  [`cmd-result`[%result-da 'system time' now.bowl] results]
+        next-schemas  +<.r
+        next-data     +>.r
+        cmds          +.cmds
+        results       [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %drop-view
       !!
@@ -86,40 +93,47 @@
     %revoke
       !!
     %transform
-      =/  a  `[databases (list cmd-result)]`(do-transform dbs bowl -.cmds)
+      =/  a  (do-transform state bowl -.cmds next-data)
       %=  $
-        dbs      -.a
-        cmds     +.cmds
-        results  (weld +.a results)
+        next-data  -.a
+        cmds       +.cmds
+        results    (weld +.a results)
       ==
     %truncate-table
       !!
   ==
 ++  do-transform
-  |=  [dbs=databases =bowl:gall =transform:ast]
-  ^-  [databases (list cmd-result)]
+  |=  $:  dbs=databases
+          =bowl:gall
+          =transform:ast
+          next-data=(map @tas [(unit schema) (unit data)])
+      ==
+  ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]
 
   =/  ctes=(list cte:ast)  ctes.transform  :: To Do - map CTEs
-  (do-set-functions dbs bowl set-functions.transform)
+  (do-set-functions dbs bowl set-functions.transform next-data)
 ++  do-set-functions
-  |=  [dbs=databases =bowl:gall =(tree set-function:ast)]
-
+  |=  $:  dbs=databases
+          =bowl:gall
+          =(tree set-function:ast)
+          next-data=(map @tas [(unit schema) (unit data)])
+      ==
   ::  =/  rtree  ^+((~(rdc of tree) foo) tree)
   ::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
   ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
   ::  ?~  rtree  !!  :: fuse loop
-  ^-  [databases (list cmd-result)] 
+  ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)] 
   =/  rtree  (~(rdc of tree) rdc-set-func)
 
   ?-  -<.rtree
     %delete
       !!
     %insert
-      (do-insert dbs bowl -.rtree)
+      (do-insert dbs bowl -.rtree next-data)
     %update
       !!
     %query
-      [dbs (do-query dbs bowl -.rtree)]
+      [next-data (do-query dbs bowl -.rtree)]
   ::    ~&  >  "-.rtree: {<-.rtree>}"
   ::    ~&  >  "+.rtree: {<+.rtree>}"
   ::    ?>  ?=(query:ast -.rtree)
@@ -179,12 +193,12 @@
               [%data-tmsp %da]
           ==
       (sort `(list (list @))`(zing dbes) ~(order order-row databases-order))
-    =/  dbrow  
+    =/  db  
       ~|  "database {<database.q>} does not exist" 
       (~(got by dbs) database.q)
-    =/  sys=schema  -.sys.dbrow
-    =/  =tables        tables.sys
-    =/  udata=data     -.user-data.dbrow
+    =/  sys=schema  -.sys.db
+    =/  =tables     tables.sys
+    =/  udata=data  -.user-data.db
     ?+  name.q  !!
     %columns
       =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
@@ -234,8 +248,8 @@
     %sys-log
       :: to do: rewrite as jagged when architecture available
       =/  sys-order   ~[[%da %.n 0] [%t %.y 2] [%t %.y 3]]
-      =/  namespaces  (zing (turn sys.dbrow sys-view-sys-log-ns))
-      =/  tbls        (zing (turn sys.dbrow sys-view-sys-log-tbl))
+      =/  namespaces  (zing (turn sys.db sys-view-sys-log-ns))
+      =/  tbls        (zing (turn sys.db sys-view-sys-log-tbl))
       =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
       :^
       %result-set
@@ -245,7 +259,7 @@
     ::
     %data-log
       =/  data-order   ~[[%da %.n 0] [%t %.y 3] [%t %.y 4]]
-      =/  tbls        (zing (turn user-data.dbrow sys-view-data-log))
+      =/  tbls        (zing (turn user-data.db sys-view-data-log))
       :^
       %result-set
       `@ta`(crip (weld (trip database.q) ".sys.data-log"))
@@ -262,7 +276,7 @@
               ==
     %:  turn
           tbls
-          |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a provenance.a -.k.b +.k.b])
+          |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k.b +.k.b])
         ==
   ++  sys-view-sys-log-tbl
     |=  a=schema
@@ -272,7 +286,7 @@
                       (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
                   |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
                ==
-    (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a provenance.a -.k.b +.k.b]))
+    (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k.b +.k.b]))
   ++  sys-view-sys-log-ns
     |=  a=schema
     ^-  (list (list @))
@@ -282,44 +296,45 @@
                     ==
     %:  turn
           namespaces
-          |=(b=[ns=@tas tmsp=@da] ~[tmsp.a provenance.a %namespace ns.b])
+          |=(b=[ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns.b])
         ==
   ++  sys-view-databases
-    |=  a=db-row
+    |=  a=database
     ^-  (list (list @))
-    =/  sys=(list schema)  (flop sys.a)
-    =/  udata=(list data)      (flop user-data.a)
+    =/  sys=(list schema)     (flop sys.a)
+    =/  udata=(list data)     (flop user-data.a)
     =/  rslt=(list (list @))  ~
-    |-
-    ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
-    ?~  sys
-      %=  $
-      rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
-      udata  +.udata
-      ==
-    ?~  udata
-      ?>  !=(~ rslt)
-      %=  $
-      rslt  
-        [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
-      sys   +.sys
-      ==
-    ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
-      %=  $
-      rslt  [~[name.a ->-.sys ->+<.sys ->-.udata ->+<.udata ->+>-.udata] rslt]
-      sys   +.sys
-      udata  +.udata
-      ==
-    ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
-      %=  $
-      rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
-      udata  +.udata
-      ==
-    ?>  !=(~ rslt)
-    %=  $
-    rslt  [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
-    sys   +.sys
-    ==
+    rslt  ::to do: fix as a result of changing provenance to path
+    ::    |-
+    ::    ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
+    ::    ?~  sys
+    ::      %=  $
+    ::        rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
+    ::        udata  +.udata
+    ::      ==
+    ::    ?~  udata
+    ::      ?>  !=(~ rslt)
+    ::      %=  $
+    ::        rslt  
+    ::          [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
+    ::        sys   +.sys
+    ::      ==
+    ::    ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
+    ::      %=  $
+    ::        rslt  [~[name.a ->-.sys ->+<.sys ->-.udata ->+<.udata ->+>-.udata] rslt]
+    ::        sys   +.sys
+    ::        udata  +.udata
+    ::      ==
+    ::    ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
+    ::      %=  $
+    ::        rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
+    ::        udata  +.udata
+    ::      ==
+    ::    ?>  !=(~ rslt)
+    ::    %=  $
+    ::      rslt  [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
+    ::      sys   +.sys
+    ::    ==
   ++  sys-view-tables
     |_  tables=(map [@tas @tas] table)
     ++  foo
@@ -328,7 +343,7 @@
       =/  aa=(list @)  :~  -.k
                           +.k
                           ship.file
-                          provenance.file
+                          (crip (spud provenance.file))
                           tmsp.file
                           length.file
                           clustered.file
@@ -367,19 +382,31 @@
      (turn p.columns |=(a=(list @) (weld aa a)))
     --
   ++  do-insert
-    |=  [dbs=databases =bowl:gall c=insert:ast]
-    ^-  [databases (list cmd-result)]          
-    =/  dbrow  
+    |=  $:  dbs=databases
+            =bowl:gall
+            c=insert:ast
+            next-data=(map @tas [(unit schema) (unit data)])
+        ==
+    ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]          
+    =/  db  
         ~|  "database {<database.table.c>} does not exist" 
         (~(got by dbs) database.table.c)
-    =/  db-schema=schema  -.sys.dbrow
+    =/  sys-time  (set-tmsp as-of.c now.bowl)
     =/  =table
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
-        (~(got by `tables`->+>+.sys.dbrow) [namespace.table.c name.table.c])
-    =/  usr-data=data  -.user-data.dbrow
+        (~(got by `tables`->+>+.sys.db) [namespace.table.c name.table.c])
+    =/  usr-data=data  -.user-data.db
+    =/  data=data  ?:  (~(has by next-data) database.table.c)
+                        (need +:(~(got by next-data) database.table.c))
+                      usr-data
+    ?:  (lth sys-time tmsp.data)
+      ~|("table {<name.table.c>} as-of time out of order" !!)
+    ?:  ?&(=(usr-data data) =(tmsp.data sys-time))
+      ~|("insert table {<name.table.c>} as-of time out of order" !!)
+    ::
     =/  =file  
           ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist" 
-          (~(got by files.usr-data) [namespace.table.c name.table.c])
+          (~(got by files.data) [namespace.table.c name.table.c])
     ::
     =/  col-map  (malt (turn columns.table |=(a=column:ast [+<.a a])))  
     =/  cols=(list column:ast)  ?~  columns.c
@@ -399,8 +426,8 @@
     |-
     ?~  value-table  
       :-
-        (finalize-data dbs dbrow usr-data file bowl table.c)
-        ~[[%result-ud 'row count' i] [%result-da 'data time' now.bowl]]
+        (finalize-data data file bowl sys-time table.c next-data)
+        ~[[%result-ud 'row count' i] [%result-da 'data time' sys-time]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
     =/  key-pick  %:  turn 
@@ -422,16 +449,22 @@
     =.  length.file           +(length.file)
     $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ++  finalize-data
-  |=  [dbs=databases =db-row =data =file =bowl:gall table=qualified-object:ast]
-   =.  ship.file          src.bowl
-   =.  provenance.file    (crip (spud sap.bowl))
-   =.  tmsp.file          now.bowl
-   =.  ship.data          src.bowl
-   =.  provenance.data    (crip (spud sap.bowl))
-   =.  tmsp.data          now.bowl
-   =.  files.data       (~(put by files.data) [namespace.table name.table] file)
-   =.  -.user-data.db-row  data
-   (~(put by dbs) database.table db-row)
+  |=  $:  =data
+          =file
+          =bowl:gall
+          sys-time=@da
+          table=qualified-object:ast
+          next-data=(map @tas [(unit schema) (unit data)])
+      ==
+  =.  ship.file          src.bowl
+  =.  provenance.file    sap.bowl
+  =.  tmsp.file          sys-time
+  ::
+  =.  ship.data          src.bowl
+  =.  provenance.data    sap.bowl
+  =.  tmsp.data          now.bowl
+  =.  files.data       (~(put by files.data) [namespace.table name.table] file)
+  (~(put by next-data) database.table [~ `data])
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
@@ -500,34 +533,71 @@
     ~
   --
 ++  create-ns
-  |=  [dbs=databases =bowl:gall =create-namespace:ast next-schemas=(map @tas schema)]
-  ^-  [@da (map @tas schema)]
+  |=  $:  dbs=databases
+          =bowl:gall
+          =create-namespace:ast
+          next-schemas=(map @tas [(unit schema) (unit data)])
+      ==
+  ^-  [@da (map @tas [(unit schema) (unit data)])]
   ?.  =(our.bowl src.bowl)  ~|("schema changes must be by local agent" !!)
-  =/  dbrow  ~|  "database {<database-name.create-namespace>} does not exist" 
+  =/  db  ~|  "database {<database-name.create-namespace>} does not exist" 
                  (~(got by dbs) database-name.create-namespace)
-  =/  db-schema=schema  -.sys.dbrow
-  =/  schema=schema  ?.  (~(has by next-schemas) database-name.create-namespace)
-                        (~(got by next-schemas) database-name.create-namespace)
-                      db-schema
+  =/  db-schema=schema  -.sys.db
+  =/  nxt-schema=schema  
+        ?:  (~(has by next-schemas) database-name.create-namespace)
+          (need -:(~(got by next-schemas) database-name.create-namespace))
+        db-schema
   =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
-
-  
+  ?:  (lth sys-time tmsp.nxt-schema)
+    ~|("namespace {<name.create-namespace>} as-of time out of order" !!)
+  ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))
+    ~|("namespace {<name.create-namespace>} as-of time out of order" !!)
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
-                          namespaces.schema 
+                          namespaces.nxt-schema 
                           name.create-namespace 
                           sys-time
                       ==
-  [sys-time (~(put by next-schemas) database-name.create-namespace schema)]
+  =.  namespaces.nxt-schema  namespaces
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  :-  sys-time
+      (~(put by next-schemas) database-name.create-namespace [`nxt-schema ~])
 ++  create-tbl
-  |=  [dbs=databases =bowl:gall =create-table:ast]
-  ^-  databases
+  |=  $:  dbs=databases
+          =bowl:gall
+          =create-table:ast
+          next-schemas=(map @tas [(unit schema) (unit data)])
+          next-data=(map @tas [(unit schema) (unit data)])
+          ==
+  ^-  table-return
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
-  =/  dbrow  ~|  "database {<database.table.create-table>} does not exist"
+  =/  db  ~|  "database {<database.table.create-table>} does not exist"
                  (~(got by dbs) database.table.create-table)
-  =/  db-schema=schema  -.sys.dbrow
-  =/  usr-data=data           -.user-data.dbrow
-  ?.  (~(has by namespaces.db-schema) namespace.table.create-table)
+  =/  sys-time  (set-tmsp as-of.create-table now.bowl)
+  ::
+  =/  db-schema=schema  -.sys.db
+  =/  usr-data=data     -.user-data.db
+  ::
+  =/  nxt-schema=schema
+        ?:  (~(has by next-schemas) database.table.create-table)
+          (need -:(~(got by next-schemas) database.table.create-table))
+        db-schema
+  ?:  (lth sys-time tmsp.nxt-schema)
+    ~|("table {<name.table.create-table>} as-of time out of order" !!)
+  ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))
+    ~|("table {<name.table.create-table>} as-of time out of order" !!)
+  ::
+  =/  nxt-data=data
+        ?:  (~(has by next-data) database.table.create-table)
+          (need +:(~(got by next-data) database.table.create-table))
+        usr-data
+  ?:  (lth sys-time tmsp.nxt-data)
+    ~|("table {<name.table.create-table>} as-of time out of order" !!)
+  ?:  ?&(=(usr-data nxt-data) =(tmsp.nxt-data sys-time))
+    ~|("table {<name.table.create-table>} as-of time out of order" !!)
+  ::
+  ?.  (~(has by namespaces.nxt-schema) namespace.table.create-table)
     ~|("namespace {<namespace.table.create-table>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
@@ -541,8 +611,8 @@
   ::
   =/  table  %:  table
                  %table
-                 (crip (spud sap.bowl))
-                 now.bowl
+                 sap.bowl
+                 sys-time
                  %:  index
                      %index
                      %.y
@@ -555,18 +625,21 @@
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert
-        tables.db-schema
+        tables.nxt-schema
         [namespace.table.create-table name.table.create-table]
         table
     ==
+  =.  tables.nxt-schema      tables
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
   ::
   =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
   ::
   =/  file  %:  file
                 %file
                 src.bowl
-                (crip (spud sap.bowl))
-                now.bowl
+                sap.bowl
+                sys-time
                 clustered.create-table
                 0
                 column-look-up
@@ -577,26 +650,17 @@
   =/  files  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
     %:  map-insert
-        files.usr-data
+        files.nxt-data
         [namespace.table.create-table name.table.create-table]
         file
     ==
+  =.  files.nxt-data       files
+  =.  tmsp.nxt-data        sys-time
+  =.  provenance.nxt-data  sap.bowl
   ::
-  =.  -.sys.dbrow  %:  schema
-                       %schema
-                       (crip (spud sap.bowl))
-                       now.bowl
-                       namespaces.db-schema
-                       tables
-                       ==
-  =.  -.user-data.dbrow  %:  data
-                             %data
-                             src.bowl
-                             (crip (spud sap.bowl))
-                             now.bowl
-                             files
-                             ==
-  (~(put by dbs) database.table.create-table dbrow)  :: prefer upd
+  :+  sys-time
+      (~(put by next-schemas) database.table.create-table [`nxt-schema ~])
+      (~(put by next-data) database.table.create-table [~ `nxt-data])
 ++  make-col-lu-data
     |=  [=column:ast a=@]
     ^-  [[@tas [@tas @ud]] @ud]
@@ -614,67 +678,82 @@
     a  [[-.col ascending.b] a]
   ==
 ++  drop-tbl
-  |=  [dbs=databases =bowl:gall d=drop-table:ast]
-  ^-  databases
+  |=  $:  dbs=databases
+          =bowl:gall
+          d=drop-table:ast
+          next-schemas=(map @tas [(unit schema) (unit data)])
+          next-data=(map @tas [(unit schema) (unit data)])
+          ==
+  ^-  table-return
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
-  =/  dbrow  ~|  "database {<database.table.d>} does not exist" 
+  =/  db  ~|  "database {<database.table.d>} does not exist" 
              (~(got by dbs) database.table.d)
-  =/  db-schema=schema  -.sys.dbrow
-  =/  usr-data=data           -.user-data.dbrow
-  ?.  (~(has by namespaces.db-schema) namespace.table.d)
+  =/  sys-time  (set-tmsp as-of.d now.bowl)
+  ::
+  =/  db-schema=schema  -.sys.db
+  =/  schema=schema  ?:  (~(has by next-schemas) database.table.d)
+                        (need -:(~(got by next-schemas) database.table.d))
+                      db-schema
+  ?:  (lth sys-time tmsp.schema)
+    ~|("drop table {<name.table.d>} as-of time out of order" !!)
+  ?:  ?&(=(db-schema schema) =(tmsp.schema sys-time))
+    ~|("drop table {<name.table.d>} as-of time out of order" !!)
+  ::
+  =/  usr-data=data           -.user-data.db
+  =/  data=data  ?:  (~(has by next-data) database.table.d)
+                        (need +:(~(got by next-data) database.table.d))
+                      usr-data
+  ?:  (lth sys-time tmsp.data)
+    ~|("drop table {<name.table.d>} as-of time out of order" !!)
+  ?:  ?&(=(usr-data data) =(tmsp.data sys-time))
+    ~|("drop table {<name.table.d>} as-of time out of order" !!)
+  ::
+  ?.  (~(has by namespaces.schema) namespace.table.d)
     ~|("namespace {<namespaces.schema>} does not exist" !!)
+  ::
   =/  tables  
     ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
     %+  map-delete
-        tables.db-schema
+        tables.schema
         [namespace.table.d name.table.d]
+  =.  tables.schema      tables
+  =.  tmsp.schema        sys-time
+  =.  provenance.schema  sap.bowl
+  ::
   =/  file  ~|  "table {<namespace.table.d>}.{<name.table.d>} does not exist" 
-            (~(got by files.usr-data) [namespace.table.d name.table.d])
+            (~(got by files.data) [namespace.table.d name.table.d])
   ?:  ?&((gth length.file 0) =(force.d %.n))
     ~|("table {<name.table.d>} has data, use FORCE to DROP" !!)
   =/  files  
     %+  map-delete
         files.usr-data
         [namespace.table.d name.table.d]
-  =.  -.sys.dbrow  %:  schema
-                       %schema
-                       (crip (spud sap.bowl))
-                       now.bowl
-                       namespaces.db-schema
-                       tables
-                       ==
-  =.  -.user-data.dbrow  %:  data
-                             %data
-                             src.bowl
-                             (crip (spud sap.bowl))
-                             now.bowl
-                             files
-                             ==
-  (~(put by dbs) database.table.d dbrow)  :: prefer upd
-++  update-state
-  |=  [current=databases next=databases]
-  ^-  databases
-  =/  a=(list [[@tas db-row] [@tas db-row]])  
-        (fuse [~(tap by current) ~(tap by next)])
-  |-
-  ?~  a  current
-  =/  cur-db-row=db-row         -<+.a
-  =/  next-db-row=db-row        ->+.a
-  =/  cur-schema=schema   -.sys.cur-db-row
-  =/  next-schema=schema  -.sys.next-db-row
-  =/  cur-data=data             -.user-data.cur-db-row
-  =/  next-data=data            -.user-data.next-db-row
+  =.  files.data       files
+  =.  tmsp.data        sys-time
+  =.  provenance.data  sap.bowl
   ::
-  ?:  ?&  =(tmsp.cur-schema tmsp.next-schema) 
-          =(tmsp.cur-data tmsp.next-data)
+  :+  sys-time
+      (~(put by next-schemas) database.table.d [`schema ~])
+      (~(put by next-data) database.table.d [~ `data])
+++  update-state
+  |=  $:  state=databases
+          next-schemas=(map @tas [(unit schema) (unit data)])
+          next-data=(map @tas [(unit schema) (unit data)])
       ==
-    $(a +.a)
-  =/  dbrow=db-row  (~(got by current) -<-.a)
-  =?  sys.dbrow  !=(tmsp.cur-schema tmsp.next-schema)  
-                 [next-schema sys.dbrow]
-  =?  user-data.dbrow  !=(tmsp.cur-data tmsp.next-data)  
-                       [next-data user-data.dbrow]
-  $(a +.a, current (~(put by current) -<-.a dbrow))
+  ^-  databases
+  =/  a=(list [[@tas [(unit schema) (unit data)]]])
+        ~(tap by (~(uni2 by2 next-schemas) next-data))
+  |-
+  ?~  a  state
+  =/  db=database  (~(got by state) -<.a)
+  =/  next-db-state  %:  database  %database 
+                        name.db 
+                        created-provenance.db
+                        created-tmsp.db
+                        ?~  ->-.a  sys.db  [(need ->-.a) sys.db]
+                        ?~  ->+.a  user-data.db  [(need ->+.a) user-data.db]
+                        ==
+  $(a +.a, state (~(put by state) -<.a next-db-state))
 ++  name-set
   |*  a=(set)
   ^-  (set @tas)
@@ -765,4 +844,38 @@
                     m=m.foo
                     t=[d=d.t.foo h=h.t.foo m=m.t.foo s=s.t.foo f=f.t.foo]
   ==
+++  by2
+  =|  a=(tree (pair * [* *]))  ::  (map)
+  |@
+  ++  uni2
+    |*  b=_a
+    |-  ^+  a
+    ?~  b  a
+    ?~  a  b
+    ?:  =(p.n.b p.n.a)
+        b(n [p.n.b [-.q.n.a +.q.n.b]], l $(a l.a, b l.b), r $(a r.a, b r.b))
+    ?:  (mor p.n.a p.n.b)
+      ?:  (gor p.n.b p.n.a)
+        $(l.a $(a l.a, r.b ~), b r.b)
+      $(r.a $(a r.a, l.b ~), b l.b)
+    ?:  (gor p.n.a p.n.b)
+      $(l.b $(b l.b, r.a ~), a r.a)
+    $(r.b $(b r.b, l.a ~), a l.a)
+  ++  int2                                               ::  intersection
+    |*  b=_a
+    |-  ^+  a
+    ?~  b  ~
+    ?~  a  ~
+    ?:  (mor p.n.a p.n.b)
+      ?:  =(p.n.b p.n.a)
+        b(n [p.n.b [-.q.n.a +.q.n.b]], l $(a l.a, b l.b), r $(a r.a, b r.b))
+      ?:  (gor p.n.b p.n.a)
+        %-  uni2(a $(a l.a, r.b ~))  $(b r.b)
+      %-  uni2(a $(a r.a, l.b ~))  $(b l.b)
+    ?:  =(p.n.a p.n.b)
+      b(l $(b l.b, a l.a), r $(b r.b, a r.a))
+    ?:  (gor p.n.a p.n.b)
+      %-  uni2(a $(b l.b, r.a ~))  $(a r.a)
+    %-  uni2(a $(b r.b, l.a ~))  $(a l.a)
+    --
 --

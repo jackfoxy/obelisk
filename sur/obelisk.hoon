@@ -1,18 +1,18 @@
 /-  *ast
 ^?
 |%
-+$  databases  (map @tas db-row)
-+$  db-row
-  $:  %db-row
++$  databases  (map @tas database)
++$  database
+  $:  %database
       name=@tas
-      created-by-provenance=@t
+      created-provenance=path
       created-tmsp=@da
       sys=(list schema)
       user-data=(list data)
   ==
 +$  schema
   $:  %schema
-      provenance=@t
+      provenance=path
       tmsp=@da
       =namespaces
       =tables
@@ -23,14 +23,14 @@
 +$  data
   $:  %data
       ship=@p
-      provenance=@t
+      provenance=path
       tmsp=@da
       files=(map [@tas @tas] file)
   ==
 +$  file
   $:  %file
       ship=@p
-      provenance=@t
+      provenance=path
       tmsp=@da
       clustered=?
       length=@ud
@@ -44,7 +44,7 @@
 +$  tables  (map [@tas @tas] table)
 +$  table
   $:  %table
-      provenance=@t
+      provenance=path
       tmsp=@da
       pri-indx=index 
       columns=(list column)             ::  canonical column list
@@ -76,5 +76,10 @@
       ==
   ==
 +$  result  [%results (list cmd-result)]
++$  table-return
+  $:  @da
+      (map @tas [(unit schema) (unit data)])
+      (map @tas [(unit schema) (unit data)])
+  ==
 -- 
  
