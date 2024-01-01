@@ -7,6 +7,10 @@
   |=  [expected=vase actual=vase]
   ^-  tang
   ::
+  ::~&  "expected: {<q.expected>}"
+  ::~&  ""
+  ::~&  "actual: {<q.actual>}"
+  ::
   =|  result=tang
   ::
   =?  result  !=(q.expected q.actual)

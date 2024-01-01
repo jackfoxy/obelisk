@@ -9,7 +9,7 @@
 ++  bowl
   |=  [run=@ud now=@da]
   ^-  bowl:gall
-  :*  [~zod ~zod %obelisk `path`(limo ~[%test-agent])] :: (our src dap sap)
+  :*  [~zod ~zod %obelisk `path`(limo `path`/test-agent)] :: (our src dap sap)
       [~ ~ ~]                                          :: (wex sup sky)
       [run `@uvJ`(shax run) now [~zod %base ud+run]]   :: (act eny now byk)
   ==
@@ -23,9 +23,9 @@
 |%
 ++  db1
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[sys1]
               user-data=~[user-data-1]
@@ -33,15 +33,15 @@
       ~
       ~
 ++  sys1
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.1
       namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
       tables=~
   ==
 ++  sys2
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.2
       :+  [p=%ns1 q=~2000.1.2]
           ~
@@ -49,15 +49,15 @@
       tables=~
   ==
 ++  user-data-1
-  [%data ~zod agent='/test-agent' tmsp=~2000.1.1 ~]
+  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.1 ~]
 ++  user-data-1-a
-  [%data ~zod agent='/test-agent' tmsp=~2000.1.3 ~]
+  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 ~]
 ++  user-data-2  
-  [%data ~zod '/test-agent' ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
+  [%data ~zod `path`/test-agent ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
 ++  user-data-3  
   :*  %data
       ~zod
-      '/test-agent'
+      `path`/test-agent
       ~2000.1.3
       :+  [[%dbo %my-table-2] file-2col-1-3]
           ~
@@ -66,7 +66,7 @@
 ++  user-data-3-a
   :*  %data
       ~zod
-      '/test-agent'
+      `path`/test-agent
       ~2000.1.2
       :+  [[%dbo %my-table-2] file-2col-1-2]
           ~
@@ -75,7 +75,7 @@
 ++  file-1col-1-2
   :*  %file
       ~zod
-      '/test-agent'
+      `path`/test-agent
       ~2000.1.2
       %.y
       0
@@ -87,7 +87,7 @@
 ++  file-2col-1-2
   :*  %file
       ~zod
-      '/test-agent'
+      `path`/test-agent
       ~2000.1.2
       %.n
       0
@@ -99,7 +99,7 @@
 ++  file-2col-1-3
   :*  %file
       ~zod
-      '/test-agent'
+      `path`/test-agent
       ~2000.1.3
       %.n
       0
@@ -110,9 +110,9 @@
   ==
 ++  db2
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[sys2 sys1]
               user-data=~[user-data-1]
@@ -141,7 +141,7 @@
   =^  move  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
@@ -195,13 +195,13 @@
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   =^  mov2  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.2]))
         %obelisk-action
-        !>([%commands ~[[%create-namespace %db1 %ns1]]])
+        !>([%commands ~[[%create-namespace %db1 %ns1 ~]]])
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
@@ -220,39 +220,39 @@
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   =^  mov2  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.2]))
         %obelisk-action
-        !>([%commands ~[[%create-namespace %db1 %ns1]]])
+        !>([%commands ~[[%create-namespace %db1 %ns1 ~]]])
     ==
   =.  run  +(run)
   %-  expect-fail
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
           %obelisk-action
-          !>([%commands ~[[%create-namespace %db1 %ns1]]])
+          !>([%commands ~[[%create-namespace %db1 %ns1 ~]]])
       ==
 ++  test-fail-ns-db-does-not-exist
   =|  run=@ud 
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
           %obelisk-action
-          !>([%commands ~[[%create-namespace %db2 %ns1]]])
+          !>([%commands ~[[%create-namespace %db2 %ns1 ~]]])
       ==
 ::  Create table
 ++  one-col-tbl-db
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[one-col-tbl-sys sys1]
               user-data=~[user-data-2 user-data-1]
@@ -260,8 +260,8 @@
       ~
       ~
 ++  one-col-tbl-sys
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.2
       namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
       tables=one-col-tbls
@@ -270,7 +270,7 @@
   [%dbo %my-table]
 ++  one-col-tbl
   :*  %table
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2000.1.2
       :^  %index
           unique=%.y
@@ -288,13 +288,14 @@
       %.y
       ~[[%ordered-column 'col1' %.y]]
       ~
+      ~
   ==
 ::
 ++  two-col-tbl-db
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[two-col-tbl-sys one-col-tbl-sys sys1]
               user-data=~[user-data-3 user-data-2 user-data-1]
@@ -302,8 +303,8 @@
       ~
       ~
 ++  two-col-tbl-sys
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.3
       namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
       tables=two-col-tbls
@@ -312,7 +313,7 @@
   [%dbo %my-table-2]
 ++  two-col-tbl
   :*  %table
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2000.1.3
       :*  %index
           %.y
@@ -331,11 +332,12 @@
       %.n
       ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
       ~
+      ~
   ==
 ::
 ++  two-comb-col-tbl
   :*  %table
-      agent='/test-agent'
+      provenance=`path`/test-agent
       tmsp=~2000.1.2
       :*  %index
           %.y
@@ -351,9 +353,9 @@
       [[one-col-tbl-key one-col-tbl] ~ ~]
 ++  two-comb-col-tbl-db
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[two-comb-col-tbl-sys sys1]
               user-data=~[user-data-3-a user-data-1]
@@ -361,8 +363,8 @@
        ~
        ~
 ++  two-comb-col-tbl-sys
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.2
       namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
       tables=two-comb-col-tbls
@@ -373,7 +375,7 @@
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   =^  mov2  agent  
@@ -425,7 +427,7 @@
  =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   =^  mov2  agent  
@@ -491,7 +493,7 @@
  =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   =^  mov2  agent  
@@ -552,17 +554,19 @@
   =/  cmd
     :*  %create-table
         [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
-        :+  [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
-            [%column name='col3' column-type='@ud']
+            [%column name='col3' column-type=%ud]
+        ==
         clustered=%.n
-        primary-key=~[[%ordered-column column-name='col1' ascending=%.y]]
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
+        as-of=~
     ==
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -580,17 +584,19 @@
             namespace='ns1'
             name='my-table'
         ==
-        :+  [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
-            [%column name='col3' column-type='@ud']
+            [%column name='col3' column-type=%ud]
+        ==
         clustered=%.n
-        primary-key=~[[%ordered-column column-name='col1' ascending=%.y]]
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
+        as-of=~
     == 
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -608,17 +614,19 @@
             namespace='dbo'
             name='my-table'
         ==
-        :+  [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
-            [%column name='col3' column-type='@ud']
+            [%column name='col3' column-type=%ud]
+        ==
         clustered=%.n
-        primary-key=~[[%ordered-column column-name='col1' ascending=%.y]]
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
+        as-of=~
     ==
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   =^  mov2  agent  
@@ -632,7 +640,7 @@
           %obelisk-action
           !>([%commands ~[cmd]])
     ==
-  ++  test-fail-tbl-dup-cols     :: fail on duplicate column names
+++  test-fail-tbl-dup-cols     :: fail on duplicate column names
   =|  run=@ud
   =/  cmd
     :*  %create-table
@@ -642,17 +650,19 @@
             namespace='dbo'
             name='my-table'
         ==
-        :+  [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
             [%column name='col1' column-type=%t]
+        ==
         clustered=%.n
-        primary-key=~[[%ordered-column column-name='col1' ascending=%.y]]
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
+        as-of=~
     ==
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -670,19 +680,21 @@
             namespace='dbo'
             name='my-table'
         ==
-        :+  [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
-            [%column name='col3' column-type='@ud']
+            [%column name='col3' column-type=%ud]
+        ==
         clustered=%.n
         :~  [%ordered-column column-name='col1' ascending=%.y]
             [%ordered-column column-name='col1' ascending=%.y]
         ==
         foreign-keys=~
+        as-of=~
     ==
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -701,19 +713,21 @@
             namespace='dbo'
             name='my-table'
         ==
-        :+  [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
-            [%column name='col3' column-type='@ud']
+            [%column name='col3' column-type=%ud]
+        ==
         clustered=%.n
         :~  [%ordered-column column-name='col1' ascending=%.y]
             [%ordered-column column-name='col4' ascending=%.y]
         ==
         foreign-keys=~
+        as-of=~
     == 
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -725,9 +739,9 @@
 ::  Drop table
 ++  dropped-tbl-db
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[sys3 one-col-tbl-sys sys1]
               user-data=~[user-data-1-a user-data-2 user-data-1]
@@ -736,9 +750,9 @@
       ~
 ++  dropped-tbl-db-force
   :+  :-  %db1
-          :*  %db-row
+          :*  %database
               name=%db1
-              created-by-agent='/test-agent'
+              created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=~[sys4 one-col-tbl-sys sys1]
               user-data=~[user-data-4 user-data-1b user-data-2 user-data-1]
@@ -746,28 +760,28 @@
       ~
       ~
 ++  sys3
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.3
       namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
       tables=~
   ==
 ++  sys4
-  :*  %internals
-      agent='/test-agent'
+  :*  %schema
+      provenance=`path`/test-agent
       tmsp=~2000.1.4
       namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
       tables=~
   ==
 ++  user-data-4
-  [%data ~zod agent='/test-agent' tmsp=~2000.1.4 ~]
+  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]
 ++  user-data-1b
-  [%data ~zod agent='/test-agent' tmsp=~2000.1.3 files=files-4]
+  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]
 ++  files-4
   :+  :-  p=[%dbo %my-table]
           :*  %file
               ship=~zod
-              agent='/test-agent'
+              provenance=`path`/test-agent
               tmsp=~2000.1.3
               clustered=%.y
               length=1
@@ -785,7 +799,7 @@
 ++  test-drop-tbl
   =|  run=@ud
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -793,6 +807,7 @@
             name='my-table'
         ==
         %.n
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -829,7 +844,7 @@
 ++  test-drop-tbl-force
   =|  run=@ud
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -837,6 +852,7 @@
             name='my-table'
         ==
         %.y
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -879,7 +895,7 @@
 ++  test-fail-drop-tbl-with-data
   =|  run=@ud
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -887,6 +903,7 @@
             name='my-table'
         ==
         %.n
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -915,13 +932,14 @@
 ++  test-fail-drop-tbl-db-not-exist     :: fail on database does not exist
   =|  run=@ud
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
         %.n
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -932,7 +950,7 @@
 ++  test-fail-drop-tbl-ns-not-exist     :: fail on namespace does not exist
   =|  run=@ud
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -940,10 +958,11 @@
             name='my-table'
         ==
         %.n
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -954,7 +973,7 @@
 ++  test-fail-drop-tbl-not-exist        :: fail on table name does not exist
   =|  run=@ud
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -962,10 +981,11 @@
             name='my-table'
         ==
         %.n
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1']])
+        !>([%cmd-create-db [%create-database 'db1' ~]])
     ==
   =.  run  +(run)
   %-  expect-fail
@@ -1001,7 +1021,7 @@
                     ==
                 ==
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -1009,6 +1029,7 @@
             name='my-table'
         ==
         %.y
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1367,7 +1388,7 @@
                     ==
                 ==
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -1375,6 +1396,7 @@
             name='my-table'
         ==
         %.y
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1476,7 +1498,7 @@
                         row10
                     ==
                 ==
-  =/  cmd  :+  %drop-table
+  =/  cmd  :^  %drop-table
               :*  %qualified-object
                   ship=~
                   database='db1'
@@ -1484,6 +1506,7 @@
                   name='my-table'
               ==
               %.y
+              ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1559,7 +1582,7 @@
                     ==
                 ==
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -1567,6 +1590,7 @@
             name='my-table'
         ==
         %.y
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1658,7 +1682,7 @@
                     ==
                 ==
   =/  cmd
-    :+  %drop-table
+    :^  %drop-table
         :*  %qualified-object
             ship=~
             database='db1'
@@ -1666,6 +1690,7 @@
             name='my-table'
         ==
         %.y
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action

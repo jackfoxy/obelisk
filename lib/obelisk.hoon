@@ -1,20 +1,17 @@
 /-  ast, *obelisk
 |%
 ++  new-database
-  |=  [dbs=databases =bowl:gall c=command:ast]
+  |=  [state=databases =bowl:gall c=command:ast]
   ^-  [databases cmd-result]
   ?:  =(+<.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
   =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
-  =/  ns=namespaces  %:  my  :~  [%sys sys-time]
-                                [%dbo sys-time]
-                            ==
-                    ==
+  =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
   =/  tbs=tables  ~
-  :-  %:  map-insert  dbs  +<.c  %:  database 
+  :-  %:  map-insert  state  +<.c  %:  database 
                                     %database 
                                     +<.c 
-                                    :: (crip (spud sap.bowl))
+                                    sap.bowl
                                     sys-time 
                                     :~  %:  schema  %schema
                                                     sap.bowl
@@ -27,7 +24,7 @@
                                                   src.bowl
                                                   sap.bowl
                                                   sys-time
-                                                  ~[* *]
+                                                  ~
                                         ==
                                     ==
                                   ==
@@ -103,7 +100,7 @@
       !!
   ==
 ++  do-transform
-  |=  $:  dbs=databases
+  |=  $:  state=databases
           =bowl:gall
           =transform:ast
           next-data=(map @tas [(unit schema) (unit data)])
@@ -111,9 +108,9 @@
   ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]
 
   =/  ctes=(list cte:ast)  ctes.transform  :: To Do - map CTEs
-  (do-set-functions dbs bowl set-functions.transform next-data)
+  (do-set-functions state bowl set-functions.transform next-data)
 ++  do-set-functions
-  |=  $:  dbs=databases
+  |=  $:  state=databases
           =bowl:gall
           =(tree set-function:ast)
           next-data=(map @tas [(unit schema) (unit data)])
@@ -129,11 +126,11 @@
     %delete
       !!
     %insert
-      (do-insert dbs bowl -.rtree next-data)
+      (do-insert state bowl -.rtree next-data)
     %update
       !!
     %query
-      [next-data (do-query dbs bowl -.rtree)]
+      [next-data (do-query state bowl -.rtree)]
   ::    ~&  >  "-.rtree: {<-.rtree>}"
   ::    ~&  >  "+.rtree: {<+.rtree>}"
   ::    ?>  ?=(query:ast -.rtree)
@@ -145,7 +142,7 @@
       !!
     == 
   ++  do-query
-    |=  [dbs=databases =bowl:gall q=query:ast]
+    |=  [state=databases =bowl:gall q=query:ast]
     ^-  (list cmd-result)
     ?~  from.q  ~[(select-literals columns.selection.q)]
     =/  =from:ast  (need from.q)
@@ -153,7 +150,7 @@
     ?:  ?&  ?=(qualified-object:ast object.table-set)
             =(namespace.object.table-set 'sys')
         ==
-      ~[(sys-views dbs bowl object.table-set)]
+      ~[(sys-views state bowl object.table-set)]
     !!
   ++  select-literals
     |=  columns=(list selected-column:ast)
@@ -176,13 +173,13 @@
       vals     [q.value.column vals]
     ==
   ++  sys-views
-    |=  [dbs=databases =bowl:gall q=qualified-object:ast]
+    |=  [state=databases =bowl:gall q=qualified-object:ast]
     ^-  cmd-result
     ?:  =(%databases name.q)
       ?.  ?&(=(%sys database.q) =(%sys namespace.q))
         ~|("databases view only in database namespace 'sys.sys'" !!)
       =/  databases-order  ~[[%t %.y 0] [%da %.y 2] [%da %.y 5]]
-      =/  dbes             (turn ~(val by dbs) sys-view-databases)
+      =/  dbes             (turn ~(val by state) sys-view-databases)
       :^  %result-set
           ~.sys.sys.databases
           :~  [%database %tas] 
@@ -195,7 +192,7 @@
       (sort `(list (list @))`(zing dbes) ~(order order-row databases-order))
     =/  db  
       ~|  "database {<database.q>} does not exist" 
-      (~(got by dbs) database.q)
+      (~(got by state) database.q)
     =/  sys=schema  -.sys.db
     =/  =tables     tables.sys
     =/  udata=data  -.user-data.db
@@ -269,72 +266,101 @@
   ++  sys-view-data-log
     |=  a=data
     ^-  (list (list @))
-    =/  tbls  %:  skim
+    =/  tbls  %+  skim
                   %~  val  by
                       (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
                   |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
-              ==
-    %:  turn
+    %+  turn
           tbls
-          |=(b=[k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k.b +.k.b])
-        ==
+   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k])
   ++  sys-view-sys-log-tbl
     |=  a=schema
     ^-  (list (list @))
-    =/  tbls  %:  skim
+    =/  tbls  %+  skim
                   %~  val  by
                       (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
                   |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
-               ==
-    (turn tbls |=(b=[k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k.b +.k.b]))
+    %+  turn  tbls
+      |=([k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k +.k])
   ++  sys-view-sys-log-ns
     |=  a=schema
     ^-  (list (list @))
-    =/  namespaces  %:  skim  
+    =/  namespaces  %+  skim  
                     ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
                     |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
-                    ==
-    %:  turn
-          namespaces
-          |=(b=[ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns.b])
-        ==
+    %+  turn  namespaces
+      |=([ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns])
   ++  sys-view-databases
     |=  a=database
     ^-  (list (list @))
     =/  sys=(list schema)     (flop sys.a)
     =/  udata=(list data)     (flop user-data.a)
     =/  rslt=(list (list @))  ~
-    rslt  ::to do: fix as a result of changing provenance to path
-    ::    |-
-    ::    ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
-    ::    ?~  sys
-    ::      %=  $
-    ::        rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
-    ::        udata  +.udata
-    ::      ==
-    ::    ?~  udata
-    ::      ?>  !=(~ rslt)
-    ::      %=  $
-    ::        rslt  
-    ::          [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
-    ::        sys   +.sys
-    ::      ==
-    ::    ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
-    ::      %=  $
-    ::        rslt  [~[name.a ->-.sys ->+<.sys ->-.udata ->+<.udata ->+>-.udata] rslt]
-    ::        sys   +.sys
-    ::        udata  +.udata
-    ::      ==
-    ::    ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
-    ::      %=  $
-    ::        rslt  [~[name.a ->-.rslt ->+<.rslt ->-.udata ->+<.udata ->+>-.udata] rslt]
-    ::        udata  +.udata
-    ::      ==
-    ::    ?>  !=(~ rslt)
-    ::    %=  $
-    ::      rslt  [~[name.a ->-.sys ->+<.sys ->+>-.rslt ->+>+<.rslt ->+>+>-.rslt] rslt]
-    ::      sys   +.sys
-    ::    ==
+        |-
+        ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
+        ?~  sys
+          %=  $
+            rslt  :-  :~  name.a
+                          ->-.rslt
+                          ->+<.rslt
+                          ->-.udata
+                          (crip (spud ->+<.udata))
+                          ->+>-.udata
+                      ==
+                      rslt
+            udata  +.udata
+          ==
+::to do: test cases for sys ahead and behind of udata
+        ?~  udata
+          ?>  !=(~ rslt)
+          %=  $
+            rslt  :-  :~  name.a
+                          (crip (spud ->-.sys))
+                          ->+<:sys
+                          ->+>-.rslt
+                          ->+>+<.rslt
+                          ->+>+>-.rslt
+                      ==
+                      rslt
+            sys   +.sys
+          ==
+        ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
+          %=  $
+            rslt  :-  :~  name.a
+                          (crip (spud ->-.sys))
+                          ->+<.sys
+                          ->-.udata
+                          (crip (spud ->+<.udata))
+                          ->+>-.udata
+                      ==
+                      rslt
+            sys   +.sys
+            udata  +.udata
+          ==
+        ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
+          %=  $
+            rslt  :-  :~  name.a
+                          ->-.rslt
+                          ->+<.rslt
+                          ->-.udata
+                          (crip (spud ->+<.udata))
+                          ->+>-.udata
+                      ==
+                      rslt
+            udata  +.udata
+          ==
+        ?>  !=(~ rslt)
+        %=  $
+          rslt  :-  :~  name.a
+                        (crip (spud ->-.sys))
+                        ->+<.sys
+                        ->+>-.rslt
+                        ->+>+<.rslt
+                        ->+>+>-.rslt
+                    ==
+                    rslt
+          sys   +.sys
+        ==
   ++  sys-view-tables
     |_  tables=(map [@tas @tas] table)
     ++  foo
@@ -361,10 +387,9 @@
       =/  b=(list (list @))  ~
       |-  ?~  aaa  b
       %=  $
-      b  %:  weld 
+      b  %+  weld 
              (turn p.columns |=(a=(list @) (weld `(list @)`-.aaa `(list @)`a)))
              b
-          ==
       aaa  +.aaa
       ==
     --
@@ -382,7 +407,7 @@
      (turn p.columns |=(a=(list @) (weld aa a)))
     --
   ++  do-insert
-    |=  $:  dbs=databases
+    |=  $:  state=databases
             =bowl:gall
             c=insert:ast
             next-data=(map @tas [(unit schema) (unit data)])
@@ -390,7 +415,7 @@
     ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]          
     =/  db  
         ~|  "database {<database.table.c>} does not exist" 
-        (~(got by dbs) database.table.c)
+        (~(got by state) database.table.c)
     =/  sys-time  (set-tmsp as-of.c now.bowl)
     =/  =table
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
@@ -416,10 +441,9 @@
       ?.  .=  ~(wyt by column-lookup.file) 
               ~(wyt in (silt `(list @t)`(need columns.c)))
         ~|("invalid column: {<columns.c>}" !!)
-      %:  turn 
+      %+  turn 
           `(list @t)`(need columns.c) 
           |=(a=@t ~|("invalid column: {<a>}" (~(got by col-map) a)))
-      ==
     ?.  ?=([%data *] values.c)  ~|("not implemented: {<values.c>}" !!)
     =/  value-table  `(list (list value-or-default:ast))`+.values.c
     =/  i=@ud  0
@@ -430,15 +454,13 @@
         ~[[%result-ud 'row count' i] [%result-da 'data time' sys-time]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
-    =/  key-pick  %:  turn 
+    =/  key-pick  %+  turn 
                       columns.pri-indx.table 
                       |=(a=ordered-column:ast (make-key-pick name.a cols))
-                  ==
     =/  row-key  
-        %:  turn
+        %+  turn
             key-pick 
             |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map]))
-        ==
     =/  map-row=(map @tas @)  (malt (row-cells row cols))
     =/  mycomp  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key.file))
     =.  pri-idx.file
@@ -533,7 +555,7 @@
     ~
   --
 ++  create-ns
-  |=  $:  dbs=databases
+  |=  $:  state=databases
           =bowl:gall
           =create-namespace:ast
           next-schemas=(map @tas [(unit schema) (unit data)])
@@ -541,7 +563,7 @@
   ^-  [@da (map @tas [(unit schema) (unit data)])]
   ?.  =(our.bowl src.bowl)  ~|("schema changes must be by local agent" !!)
   =/  db  ~|  "database {<database-name.create-namespace>} does not exist" 
-                 (~(got by dbs) database-name.create-namespace)
+                 (~(got by state) database-name.create-namespace)
   =/  db-schema=schema  -.sys.db
   =/  nxt-schema=schema  
         ?:  (~(has by next-schemas) database-name.create-namespace)
@@ -564,7 +586,7 @@
   :-  sys-time
       (~(put by next-schemas) database-name.create-namespace [`nxt-schema ~])
 ++  create-tbl
-  |=  $:  dbs=databases
+  |=  $:  state=databases
           =bowl:gall
           =create-table:ast
           next-schemas=(map @tas [(unit schema) (unit data)])
@@ -573,7 +595,7 @@
   ^-  table-return
   ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
   =/  db  ~|  "database {<database.table.create-table>} does not exist"
-                 (~(got by dbs) database.table.create-table)
+                 (~(got by state) database.table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
   ::
   =/  db-schema=schema  -.sys.db
@@ -678,7 +700,7 @@
     a  [[-.col ascending.b] a]
   ==
 ++  drop-tbl
-  |=  $:  dbs=databases
+  |=  $:  state=databases
           =bowl:gall
           d=drop-table:ast
           next-schemas=(map @tas [(unit schema) (unit data)])
@@ -687,7 +709,7 @@
   ^-  table-return
   ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
   =/  db  ~|  "database {<database.table.d>} does not exist" 
-             (~(got by dbs) database.table.d)
+             (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
   ::
   =/  db-schema=schema  -.sys.db
