@@ -7,8 +7,8 @@
       name=@tas
       created-provenance=path
       created-tmsp=@da
-      sys=(list schema)
-      user-data=(list data)
+      sys=(tree [@da schema])
+      content=(list data)
   ==
 +$  schema
   $:  %schema

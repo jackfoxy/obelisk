@@ -19,25 +19,28 @@
       ==
 --
 |%
+++  schema-key  ((on @da schema) gth)
 ++  db1
   :+  :-  %db1
           :*  %database
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[sys1]
-              user-data=~[user-data-1]
+              sys=(gas:schema-key *((mop @da schema) gth) ~[sys1])
+              content=~[content-1]
           ==
       ~
       ~
 ++  sys1
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.1
-      namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-      tables=~
-  ==
+  :-  ~2000.1.1
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.1
+        namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+        tables=~
+    ==
 ++  sys2
+  :-  ~2000.1.2
   :*  %schema
       provenance=`path`/test-agent
       tmsp=~2000.1.2
@@ -52,18 +55,24 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[sys4 one-col-tbl-sys sys1]
-              user-data=~[user-data-4 user-data-1b user-data-2 user-data-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[sys4 one-col-tbl-sys sys1]
+              content=~[content-4 content-1b content-2 content-1]
           ==
       ~
       ~
-++  user-data-1
+++  content-1
   [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.1 ~]
-++  user-data-1-a
+++  content-1-a
   [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 ~]
-++  user-data-2  
-  [%data ~zod `path`/test-agent ~2000.1.2 [[[%dbo %my-table] file-1col-1-2] ~ ~]]
-++  user-data-3  
+++  content-2  
+  :*  %data
+      ~zod
+      `path`/test-agent
+      ~2000.1.2
+      [[[%dbo %my-table] file-1col-1-2] ~ ~]
+  ==
+++  content-3  
   :*  %data
       ~zod
       `path`/test-agent
@@ -72,7 +81,7 @@
           ~
           [[[%dbo %my-table] file-1col-1-2] ~ ~]
   ==
-++  user-data-3-a
+++  content-3-a
   :*  %data
       ~zod
       `path`/test-agent
@@ -123,8 +132,8 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[sys2 sys1]
-              user-data=~[user-data-1]
+              sys=(gas:schema-key *((mop @da schema) gth) ~[sys2 sys1])
+              content=~[content-1]
           ==
       ~
       ~
@@ -136,25 +145,29 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[one-col-tbl-sys sys1]
-              user-data=~[user-data-2 user-data-1]
+              (gas:schema-key *((mop @da schema) gth) ~[one-col-tbl-sys sys1])
+              content=~[content-2 content-1]
           ==
       ~
       ~
 ++  one-col-tbl-sys
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-      tables=one-col-tbls
-  ==
+  :-  ~2000.1.2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+        tables=one-col-tbls
+    ==
 ++  one-col-tbl-key
   [%dbo %my-table]
 ++  one-col-tbl
   :*  %table
       provenance=`path`/test-agent
       tmsp=~2000.1.2
-      [%index unique=%.y clustered=%.y ~[[%ordered-column name=%col1 ascending=%.y]]]
+      :^  %index
+          unique=%.y
+          clustered=%.y
+          ~[[%ordered-column name=%col1 ascending=%.y]]
       ~[[%column name=%col1 column-type=%t]]
       ~
   ==
@@ -176,18 +189,20 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[two-col-tbl-sys one-col-tbl-sys sys1]
-              user-data=~[user-data-3 user-data-2 user-data-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[two-col-tbl-sys one-col-tbl-sys sys1]
+              content=~[content-3 content-2 content-1]
           ==
       ~
       ~
 ++  two-col-tbl-sys
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.3
-      namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-      tables=two-col-tbls
-  ==
+  :-  ~2000.1.3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.3
+        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
+        tables=two-col-tbls
+    ==
 ++  two-col-tbl-key
   [%dbo %my-table-2]
 ++  two-col-tbl
@@ -236,18 +251,20 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[two-comb-col-tbl-sys sys1]
-              user-data=~[user-data-3-a user-data-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[two-comb-col-tbl-sys sys1]
+              content=~[content-3-a content-1]
           ==
        ~
        ~
 ++  two-comb-col-tbl-sys
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-      tables=two-comb-col-tbls
-  ==
+  :-  ~2000.1.2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
+        tables=two-comb-col-tbls
+    ==
 ::
 ::  Drop table
 ++  dropped-tbl-db
@@ -256,29 +273,32 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=~[sys3 one-col-tbl-sys sys1]
-              user-data=~[user-data-1-a user-data-2 user-data-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[sys3 one-col-tbl-sys sys1]
+              content=~[content-1-a content-2 content-1]
           ==
       ~
       ~
 ++  sys3
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.3
-      namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
-      tables=~
-  ==
-++  user-data-1b
+  :-  ~2000.1.3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.3
+        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
+        tables=~
+    ==
+++  content-1b
   [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]
-++  user-data-4
+++  content-4
   [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]
 ++  sys4
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.4
-      namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
-      tables=~
-  ==
+  :-  ~2000.1.4
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.4
+        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
+        tables=~
+    ==
 ++  files-4
   :+  :-  p=[%dbo %my-table]
           :*  %file

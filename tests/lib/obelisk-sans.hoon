@@ -39,11 +39,29 @@
   [n=[p=%col3 q=[%ud 2]] l=[n=[p=%col2 q=[%p 1]] l=~ r=~] r=[n=[p=%col1 q=[%t 0]] l=~ r=~]]
 ::
 ++  gen0-intrnl
-  [%schema provenance=`path`/test-agent tmsp=~2023.7.9..22.24.54..4b8a namespaces=schema-ns tables=~]
+  :-  ~2023.7.9..22.24.54..4b8a
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.24.54..4b8a
+        namespaces=schema-ns
+        tables=~
+    ==
 ++  gen1-intrnl
-  [%schema provenance=`path`/test-agent tmsp=~2023.7.9..22.27.32..49e3 namespaces=schema-ns tables=[n=schema-my-table l=~ r=~]]
+  :-  ~2023.7.9..22.27.32..49e3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.27.32..49e3
+        namespaces=schema-ns
+        tables=[n=schema-my-table l=~ r=~]
+    ==
 ++  gen2-intrnl
-  [%schema provenance=`path`/test-agent tmsp=~2023.7.9..22.35.34..7e90 namespaces=schema-ns tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]]
+  :-  ~2023.7.9..22.35.34..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.34..7e90
+        namespaces=schema-ns
+        tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
+    ==
 ::
 ++  gen0-data
   [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.24.54..4b8a files=~]
@@ -53,8 +71,13 @@
   [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.35.34..7e90 files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]]
 ::
 ++  start-db1-row
-  [%database name=%db1 created-by-provenance=`path`/test-agent created-tmsp=~2023.7.9..22.24.54..4b8a sys=~[gen2-intrnl gen1-intrnl gen0-intrnl] user-data=~[gen2-data gen1-data gen0-data]]
-::
+  :*  %database
+      name=%db1
+      created-provenance=`path`/test-agent
+      created-tmsp=~2023.7.9..22.24.54..4b8a
+      sys=(gas:schema-key *((mop @da schema) gth) ~[gen2-intrnl gen1-intrnl gen0-intrnl])
+      content=~[gen2-data gen1-data gen0-data]
+      ==
 ::
 ++  gen3-file-my-table-3
   :-  p=[%dbo %my-table-3] 
@@ -93,13 +116,14 @@
       files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
   ==
 ::
+++  schema-key  ((on @da schema) gth)
 ++  gen3-db1-row
   :*  %database
       name=%db1
       created-by-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
-      sys=~[gen2-intrnl gen1-intrnl gen0-intrnl]
-      user-data=~[gen3-data gen2-data gen1-data gen0-data]
+      sys=(gas:schema-key *((mop @da schema) gth) ~[gen2-intrnl gen1-intrnl gen0-intrnl])
+      content=~[gen3-data gen2-data gen1-data gen0-data]
   ==
 ++  gen3-dbs
   [n=[p=%db1 q=gen3-db1-row] l=~ r=~]
@@ -147,8 +171,8 @@
       name=%db1
       created-by-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
-      sys=~[gen2-intrnl gen1-intrnl gen0-intrnl]
-      user-data=~[gen4-data gen3-data gen2-data gen1-data gen0-data]
+      sys=(gas:schema-key *((mop @da schema) gth) ~[gen2-intrnl gen1-intrnl gen0-intrnl])
+      content=~[gen4-data gen3-data gen2-data gen1-data gen0-data]
   ==
 ++  gen4-dbs
   [n=[p=%db1 q=gen4-db1-row] l=~ r=~]

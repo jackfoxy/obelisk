@@ -12,14 +12,16 @@
                                     %database 
                                     +<.c 
                                     sap.bowl
-                                    sys-time 
-                                    :~  %:  schema  %schema
-                                                    sap.bowl
-                                                    sys-time
-                                                    ns
-                                                    tbs
-                                        ==
-                                    ==
+                                    sys-time
+                                    :+  :-  sys-time
+                                            %:  schema  %schema
+                                                        sap.bowl
+                                                        sys-time
+                                                        ns
+                                                        tbs
+                                            ==
+                                        ~
+                                        ~
                                     :~  %:  data  %data
                                                   src.bowl
                                                   sap.bowl
@@ -193,9 +195,9 @@
     =/  db  
       ~|  "database {<database.q>} does not exist" 
       (~(got by state) database.q)
-    =/  sys=schema  -.sys.db
+    =/  sys=schema  (get-schema now.bowl sys.db)
     =/  =tables     tables.sys
-    =/  udata=data  -.user-data.db
+    =/  udata=data  -.content.db
     ?+  name.q  !!
     %columns
       =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
@@ -245,8 +247,10 @@
     %sys-log
       :: to do: rewrite as jagged when architecture available
       =/  sys-order   ~[[%da %.n 0] [%t %.y 2] [%t %.y 3]]
-      =/  namespaces  (zing (turn sys.db sys-view-sys-log-ns))
-      =/  tbls        (zing (turn sys.db sys-view-sys-log-tbl))
+      =/  sys=(list schema)
+            (turn (tap:schema-key sys.db) |=(b=[@da schema] +.b))
+      =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
+      =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
       =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
       :^
       %result-set
@@ -256,7 +260,7 @@
     ::
     %data-log
       =/  data-order   ~[[%da %.n 0] [%t %.y 3] [%t %.y 4]]
-      =/  tbls        (zing (turn user-data.db sys-view-data-log))
+      =/  tbls        (zing (turn content.db sys-view-data-log))
       :^
       %result-set
       `@ta`(crip (weld (trip database.q) ".sys.data-log"))
@@ -293,8 +297,9 @@
   ++  sys-view-databases
     |=  a=database
     ^-  (list (list @))
-    =/  sys=(list schema)     (flop sys.a)
-    =/  udata=(list data)     (flop user-data.a)
+    ::=/  sys=(list schema)     (flop sys.a)
+    =/  sys  (flop (turn (tap:schema-key sys.a) |=(b=[@da schema] +.b)))
+    =/  udata=(list data)     (flop content.a)
     =/  rslt=(list (list @))  ~
         |-
         ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
@@ -419,8 +424,9 @@
     =/  sys-time  (set-tmsp as-of.c now.bowl)
     =/  =table
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
-        (~(got by `tables`->+>+.sys.db) [namespace.table.c name.table.c])
-    =/  usr-data=data  -.user-data.db
+        %-  ~(got by tables:(get-schema sys-time sys.db))
+            [namespace.table.c name.table.c]
+    =/  usr-data=data  -.content.db
     =/  data=data  ?:  (~(has by next-data) database.table.c)
                         (need +:(~(got by next-data) database.table.c))
                       usr-data
@@ -462,11 +468,10 @@
             key-pick 
             |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map]))
     =/  map-row=(map @tas @)  (malt (row-cells row cols))
-    =/  mycomp  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key.file))
     =.  pri-idx.file
-      ?:  (has:mycomp pri-idx.file row-key)  
+      ?:  (has:(pri-key key.file) pri-idx.file row-key)  
         ~|("cannot add duplicate key: {<row-key>}" !!)
-      (put:mycomp pri-idx.file row-key map-row)
+      (put:(pri-key key.file) pri-idx.file row-key map-row)
     =.  data.file             [map-row data.file]
     =.  length.file           +(length.file)
     $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
@@ -564,12 +569,12 @@
   ?.  =(our.bowl src.bowl)  ~|("schema changes must be by local agent" !!)
   =/  db  ~|  "database {<database-name.create-namespace>} does not exist" 
                  (~(got by state) database-name.create-namespace)
-  =/  db-schema=schema  -.sys.db
+  =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
+  =/  db-schema=schema  (get-schema sys-time sys.db)
   =/  nxt-schema=schema  
         ?:  (~(has by next-schemas) database-name.create-namespace)
           (need -:(~(got by next-schemas) database-name.create-namespace))
         db-schema
-  =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
   ?:  (lth sys-time tmsp.nxt-schema)
     ~|("namespace {<name.create-namespace>} as-of time out of order" !!)
   ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))
@@ -598,8 +603,8 @@
                  (~(got by state) database.table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
   ::
-  =/  db-schema=schema  -.sys.db
-  =/  usr-data=data     -.user-data.db
+  =/  db-schema=schema  (get-schema sys-time sys.db)
+  =/  usr-data=data     -.content.db
   ::
   =/  nxt-schema=schema
         ?:  (~(has by next-schemas) database.table.create-table)
@@ -712,7 +717,7 @@
              (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
   ::
-  =/  db-schema=schema  -.sys.db
+  =/  db-schema=schema  (get-schema sys-time sys.db)
   =/  schema=schema  ?:  (~(has by next-schemas) database.table.d)
                         (need -:(~(got by next-schemas) database.table.d))
                       db-schema
@@ -721,7 +726,7 @@
   ?:  ?&(=(db-schema schema) =(tmsp.schema sys-time))
     ~|("drop table {<name.table.d>} as-of time out of order" !!)
   ::
-  =/  usr-data=data           -.user-data.db
+  =/  usr-data=data           -.content.db
   =/  data=data  ?:  (~(has by next-data) database.table.d)
                         (need +:(~(got by next-data) database.table.d))
                       usr-data
@@ -772,8 +777,9 @@
                         name.db 
                         created-provenance.db
                         created-tmsp.db
-                        ?~  ->-.a  sys.db  [(need ->-.a) sys.db]
-                        ?~  ->+.a  user-data.db  [(need ->+.a) user-data.db]
+                        ?~  ->-.a  sys.db
+                          (put:schema-key sys.db ->->+>-.a (need ->-.a))
+                        ?~  ->+.a  content.db  [(need ->+.a) content.db]
                         ==
   $(a +.a, state (~(put by state) -<.a next-db-state))
 ++  name-set
@@ -808,6 +814,18 @@
     ?:  ->.k  (lth -.p -.q)
     (gth -.p -.q)
   --
+++  pri-key
+  |=  key=(list [@tas ?])
+  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
+++  schema-key  ((on @da schema) gth)
+++  get-schema
+  |=  [time=@da sys=(tree [@da schema])]
+  ^-  schema
+  =/  exact  (get:schema-key sys time)
+  ?^  exact  (need exact)
+  =/  prior  (pry:schema-key (lot:schema-key sys `time ~))
+  ?~  prior  ~|("schema not available for {<time>}" !!)
+  +:(need prior)
 ++  order-row
   |_  index=(list [@tas ascending=? offset=@ud])  
   :: to do: accomadate varying row types
