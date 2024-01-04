@@ -8,7 +8,7 @@
       created-provenance=path
       created-tmsp=@da
       sys=(tree [@da schema])
-      content=(list data)
+      content=(tree [@da data])
   ==
 +$  schema
   $:  %schema

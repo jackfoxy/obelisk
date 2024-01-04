@@ -64,11 +64,11 @@
     ==
 ::
 ++  gen0-data
-  [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.24.54..4b8a files=~]
+  [~2023.7.9..22.24.54..4b8a [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.24.54..4b8a files=~]]
 ++  gen1-data
-  [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.27.32..49e3 files=[n=file-my-table l=~ r=~]]
+  [~2023.7.9..22.27.32..49e3 [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.27.32..49e3 files=[n=file-my-table l=~ r=~]]]
 ++  gen2-data
-  [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.35.34..7e90 files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]]
+  [~2023.7.9..22.35.34..7e90 [%data ship=~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.35.34..7e90 files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]]]
 ::
 ++  start-db1-row
   :*  %database
@@ -76,7 +76,7 @@
       created-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
       sys=(gas:schema-key *((mop @da schema) gth) ~[gen2-intrnl gen1-intrnl gen0-intrnl])
-      content=~[gen2-data gen1-data gen0-data]
+      content=(gas:data-key *((mop @da data) gth) ~[gen2-data gen1-data gen0-data])
       ==
 ::
 ++  gen3-file-my-table-3
@@ -109,21 +109,23 @@
 ++  file-data-my-table-3
   ~[row2 row1]
 ++  gen3-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2030.1.1
-      files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
-  ==
+  :-  ~2030.1.1
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2030.1.1
+        files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
+    ==
 ::
 ++  schema-key  ((on @da schema) gth)
+++  data-key  ((on @da data) gth)
 ++  gen3-db1-row
   :*  %database
       name=%db1
       created-by-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
       sys=(gas:schema-key *((mop @da schema) gth) ~[gen2-intrnl gen1-intrnl gen0-intrnl])
-      content=~[gen3-data gen2-data gen1-data gen0-data]
+      content=(gas:data-key *((mop @da data) gth) ~[gen3-data gen2-data gen1-data gen0-data])
   ==
 ++  gen3-dbs
   [n=[p=%db1 q=gen3-db1-row] l=~ r=~]
@@ -160,19 +162,20 @@
           data=gen4-file-data-my-table-3
       ==
 ++  gen4-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2030.2.1
-      files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
-  ==
+  :-  ~2030.2.1
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2030.2.1
+        files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
+    ==
 ++  gen4-db1-row
   :*  %database
       name=%db1
       created-by-provenance=`path`/test-agent
       created-tmsp=~2023.7.9..22.24.54..4b8a
       sys=(gas:schema-key *((mop @da schema) gth) ~[gen2-intrnl gen1-intrnl gen0-intrnl])
-      content=~[gen4-data gen3-data gen2-data gen1-data gen0-data]
+      content=(gas:data-key *((mop @da data) gth) ~[gen4-data gen3-data gen2-data gen1-data gen0-data])
   ==
 ++  gen4-dbs
   [n=[p=%db1 q=gen4-db1-row] l=~ r=~]

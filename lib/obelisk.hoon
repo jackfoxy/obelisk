@@ -9,27 +9,29 @@
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
   =/  tbs=tables  ~
   :-  %:  map-insert  state  +<.c  %:  database 
-                                    %database 
-                                    +<.c 
-                                    sap.bowl
-                                    sys-time
-                                    :+  :-  sys-time
-                                            %:  schema  %schema
-                                                        sap.bowl
-                                                        sys-time
-                                                        ns
-                                                        tbs
-                                            ==
-                                        ~
-                                        ~
-                                    :~  %:  data  %data
-                                                  src.bowl
-                                                  sap.bowl
-                                                  sys-time
-                                                  ~
-                                        ==
-                                    ==
-                                  ==
+                                        %database 
+                                        +<.c 
+                                        sap.bowl
+                                        sys-time
+                                        :+  :-  sys-time
+                                                %:  schema  %schema
+                                                            sap.bowl
+                                                            sys-time
+                                                            ns
+                                                            tbs
+                                                ==
+                                            ~
+                                            ~
+                                        :+  :-  sys-time
+                                                %:  data  %data
+                                                          src.bowl
+                                                          sap.bowl
+                                                          sys-time
+                                                          ~
+                                                ==
+                                            ~
+                                            ~
+                                      ==
           ==
       `cmd-result`[%result-da 'system time' sys-time]
 ++  process-cmds
@@ -197,7 +199,7 @@
       (~(got by state) database.q)
     =/  sys=schema  (get-schema now.bowl sys.db)
     =/  =tables     tables.sys
-    =/  udata=data  -.content.db
+    =/  udata=data  (get-data now.bowl content.db)
     ?+  name.q  !!
     %columns
       =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
@@ -260,7 +262,10 @@
     ::
     %data-log
       =/  data-order   ~[[%da %.n 0] [%t %.y 3] [%t %.y 4]]
-      =/  tbls        (zing (turn content.db sys-view-data-log))
+      =/  tbls  
+            %-  zing  
+                %+  turn  (turn (tap:data-key content.db) |=(b=[@da data] +.b)) 
+                          sys-view-data-log
       :^
       %result-set
       `@ta`(crip (weld (trip database.q) ".sys.data-log"))
@@ -297,9 +302,10 @@
   ++  sys-view-databases
     |=  a=database
     ^-  (list (list @))
-    ::=/  sys=(list schema)     (flop sys.a)
-    =/  sys  (flop (turn (tap:schema-key sys.a) |=(b=[@da schema] +.b)))
-    =/  udata=(list data)     (flop content.a)
+    =/  sys=(list schema)
+          (flop (turn (tap:schema-key sys.a) |=(b=[@da schema] +.b)))
+    =/  udata=(list data)
+          (flop (turn (tap:data-key content.a) |=(b=[@da data] +.b)))
     =/  rslt=(list (list @))  ~
         |-
         ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
@@ -426,7 +432,7 @@
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
         %-  ~(got by tables:(get-schema sys-time sys.db))
             [namespace.table.c name.table.c]
-    =/  usr-data=data  -.content.db
+    =/  usr-data=data  (get-data sys-time content.db)
     =/  data=data  ?:  (~(has by next-data) database.table.c)
                         (need +:(~(got by next-data) database.table.c))
                       usr-data
@@ -604,7 +610,7 @@
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
   ::
   =/  db-schema=schema  (get-schema sys-time sys.db)
-  =/  usr-data=data     -.content.db
+  =/  usr-data=data     (get-data sys-time content.db)
   ::
   =/  nxt-schema=schema
         ?:  (~(has by next-schemas) database.table.create-table)
@@ -726,7 +732,7 @@
   ?:  ?&(=(db-schema schema) =(tmsp.schema sys-time))
     ~|("drop table {<name.table.d>} as-of time out of order" !!)
   ::
-  =/  usr-data=data           -.content.db
+  =/  usr-data=data  (get-data sys-time content.db)
   =/  data=data  ?:  (~(has by next-data) database.table.d)
                         (need +:(~(got by next-data) database.table.d))
                       usr-data
@@ -779,7 +785,8 @@
                         created-tmsp.db
                         ?~  ->-.a  sys.db
                           (put:schema-key sys.db ->->+>-.a (need ->-.a))
-                        ?~  ->+.a  content.db  [(need ->+.a) content.db]
+                        ?~  ->+.a  content.db
+                          (put:data-key content.db ->+>+>+<.a (need ->+.a))
                         ==
   $(a +.a, state (~(put by state) -<.a next-db-state))
 ++  name-set
@@ -818,6 +825,7 @@
   |=  key=(list [@tas ?])
   ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
 ++  schema-key  ((on @da schema) gth)
+++  data-key  ((on @da data) gth)
 ++  get-schema
   |=  [time=@da sys=(tree [@da schema])]
   ^-  schema
@@ -825,6 +833,14 @@
   ?^  exact  (need exact)
   =/  prior  (pry:schema-key (lot:schema-key sys `time ~))
   ?~  prior  ~|("schema not available for {<time>}" !!)
+  +:(need prior)
+++  get-data
+  |=  [time=@da sys=(tree [@da data])]
+  ^-  data
+  =/  exact  (get:data-key sys time)
+  ?^  exact  (need exact)
+  =/  prior  (pry:data-key (lot:data-key sys `time ~))
+  ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
 ++  order-row
   |_  index=(list [@tas ascending=? offset=@ud])  

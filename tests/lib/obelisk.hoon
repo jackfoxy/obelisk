@@ -31,7 +31,8 @@
           created-tmsp=~2023.7.9..22.24.54..4b8a
           %+  gas:schema-key  *((mop @da schema) gth)
                               ~[gen2-sys gen1-sys gen0-sys]
-          content=~[gen2-data gen1-data gen0-data]
+          %+  gas:data-key  *((mop @da data) gth)
+                            ~[gen2-data gen1-data gen0-data]
       ==
     ~
     ~
@@ -44,7 +45,8 @@
           created-tmsp=~2023.7.9..22.24.54..4b8a
           %+  gas:schema-key  *((mop @da schema) gth)
                               ~[gen2-sys gen1-sys gen0-sys]
-          content=~[gen3-data gen2-data gen1-data gen0-data]
+          %+  gas:data-key  *((mop @da data) gth)
+                            ~[gen3-data gen2-data gen1-data gen0-data]
       ==
     ~
     ~
@@ -57,7 +59,8 @@
           created-tmsp=~2023.7.9..22.24.54..4b8a
           %+  gas:schema-key  *((mop @da schema) gth)
                               ~[gen2-sys gen1-sys gen0-sys]
-          content=~[gen4-data gen3-data gen2-data gen1-data gen0-data]
+          %+  gas:data-key  *((mop @da data) gth)
+                            ~[gen4-data gen3-data gen2-data gen1-data gen0-data]
       ==
     ~
     ~
@@ -94,41 +97,47 @@
       r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] l=~ r=~]
 ::
 ::  content
+++  data-key  ((on @da data) gth)
 ++  gen0-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2023.7.9..22.24.54..4b8a
-      files=~
-  ==
+  :-  ~2023.7.9..22.24.54..4b8a
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.24.54..4b8a
+        files=~
+    ==
 ++  gen1-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2023.7.9..22.27.32..49e3
-      files=[n=file-my-table l=~ r=~]
-  ==
+  :-  ~2023.7.9..22.27.32..49e3
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.27.32..49e3
+        files=[n=file-my-table l=~ r=~]
+    ==
 ++  gen2-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2023.7.9..22.35.34..7e90
-      files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]
-  ==
+  :-  ~2023.7.9..22.35.34..7e90
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.34..7e90
+        files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]
+    ==
 ++  gen3-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2030.1.1
-      files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
-  ==
+  :-  ~2030.1.1
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2030.1.1
+        files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
+    ==
 ++  gen4-data
-  :*  %data
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2030.2.1
-      files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
-  ==
+  :-  ~2030.2.1
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2030.2.1
+        files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
+    ==
 ::
 ::  files
 ++  file-my-table

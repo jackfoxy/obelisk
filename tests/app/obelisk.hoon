@@ -30,7 +30,7 @@
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=(gas:schema-key *((mop @da schema) gth) ~[sys1])
-              content=~[content-1]
+              content=(gas:data-key *((mop @da data) gth) ~[content-1])
           ==
       ~
       ~
@@ -41,7 +41,7 @@
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
               sys=(gas:schema-key *((mop @da schema) gth) ~[sys2 sys1])
-              content=~[content-1]
+              content=(gas:data-key *((mop @da data) gth) ~[content-1])
           ==
       ~
       ~
@@ -51,8 +51,8 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[one-col-tbl-sys sys1])
-              content=~[content-2 content-1]
+              (gas:schema-key *((mop @da schema) gth) ~[one-col-tbl-sys sys1])
+              (gas:data-key *((mop @da data) gth) ~[content-2 content-1])
           ==
       ~
       ~
@@ -62,8 +62,10 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[two-col-tbl-sys one-col-tbl-sys sys1])
-              content=~[content-3 content-2 content-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[two-col-tbl-sys one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-3 content-2 content-1]
           ==
       ~
       ~
@@ -73,8 +75,10 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[two-comb-col-tbl-sys sys1])
-              content=~[content-3-a content-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[two-comb-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-3-a content-1]
           ==
        ~
        ~
@@ -84,8 +88,10 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[sys3 one-col-tbl-sys sys1])
-              content=~[content-1-a content-2 content-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[sys3 one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-1-a content-2 content-1]
           ==
       ~
       ~
@@ -95,8 +101,10 @@
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[sys4 one-col-tbl-sys sys1])
-              content=~[content-4 content-1b content-2 content-1]
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[sys4 one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-4 content-1b content-2 content-1]
           ==
       ~
       ~
@@ -163,44 +171,49 @@
     ==
 ::
 ::  content
+++  data-key  ((on @da data) gth)
 ++  content-1
-  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.1 ~]
+  [~2000.1.1 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.1 ~]]
 ++  content-1-a
-  :*  %data
-      ~zod
-      provenance=`path`/test-agent
-      tmsp=~2000.1.3
-      ~
-  ==
-++  content-2  
-  :*  %data
-      ~zod
-      `path`/test-agent
-      ~2000.1.2
-      [[[%dbo %my-table] file-1col-1-2] ~ ~]
-  ==
-++  content-3  
-  :*  %data
-      ~zod
-      `path`/test-agent
-      ~2000.1.3
-      :+  [[%dbo %my-table-2] file-2col-1-3]
-          ~
-          [[[%dbo %my-table] file-1col-1-2] ~ ~]
-  ==
+  :-  ~2000.1.3
+    :*  %data
+        ~zod
+        provenance=`path`/test-agent
+        tmsp=~2000.1.3
+        ~
+    ==
+++  content-2
+  :-  ~2000.1.2
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2000.1.2
+        [[[%dbo %my-table] file-1col-1-2] ~ ~]
+    ==
+++  content-3
+  :-  ~2000.1.3
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2000.1.3
+        :+  [[%dbo %my-table-2] file-2col-1-3]
+            ~
+            [[[%dbo %my-table] file-1col-1-2] ~ ~]
+    ==
 ++  content-3-a
-  :*  %data
-      ~zod
-      `path`/test-agent
-      ~2000.1.2
-      :+  [[%dbo %my-table-2] file-2col-1-2]
-          ~
-          [[[%dbo %my-table] file-1col-1-2] ~ ~]
-  ==
+  :-  ~2000.1.2
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2000.1.2
+        :+  [[%dbo %my-table-2] file-2col-1-2]
+            ~
+            [[[%dbo %my-table] file-1col-1-2] ~ ~]
+    ==
 ++  content-4
-  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]
+  [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
 ++  content-1b
-  [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]
+  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]]
 ::
 ::  files
 ++  file-1col-1-2
