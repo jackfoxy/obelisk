@@ -268,49 +268,6 @@
       r=[row4-idx l=[row1-idx ~ r=[row3-idx ~ ~]] ~]
 ++  gen4-file-data-my-table-3
   ~[row4 row3 row2 row1]
-
-::
-::  insert rows to table
-++  test-insert-db
-  =|  run=@ud 
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  =/  x  %-  process-cmds 
-            :+  start-dbs
-                (bowl [run ~2030.1.1])
-                (parse:parse(default-database 'db1') my-insert)
-  ;:  weld
-  %+  expect-eq                         
-    !>  :-  %results
-            :~  [%result-da msg='data time' date=~2030.1.1]
-                [%result-ud msg='row count' count=2]
-            ==
-    !>  -.x
-  %+  expect-eq
-    !>  gen3-dbs
-    !>  +.x
-  ==
-::
-::  insert rows without columns to populated table 
-++  test-insert-no-cols
-  =|  run=@ud 
-  =/  my-insert
-        "INSERT INTO db1..my-table-3 VALUES ('cord2',~nec,21) ('cord2',~bus, 1)"
-  =/  x  %-  process-cmds
-            :+  gen3-dbs
-                (bowl [run ~2030.2.1])
-                (parse:parse(default-database 'db1') my-insert)
-  ;:  weld
-  %+  expect-eq                         
-    !>  :-  %results
-            :~  [%result-da msg='data time' date=~2030.2.1]
-                [%result-ud msg='row count' count=2]
-            ==
-    !>  -.x
-  %+  expect-eq
-    !>  gen4-dbs
-    !>  +.x
-  ==
 ::
 ::  set-tmsp back 0 seconds
 ++  test-set-tmsp-00
@@ -496,6 +453,50 @@
     !>  ~2023.12.25..7.15.0..1ef5
     !>  (set-tmsp [`[%dr ~d0.h0.m0.s0] ~2023.12.25..7.15.0..1ef5])
 ::
+::  insert rows to table
+++  test-insert-db
+  =|  run=@ud 
+  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
+                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
+  =/  x  %-  process-cmds 
+            :+  start-dbs
+                (bowl [run ~2030.1.1])
+                (parse:parse(default-database 'db1') my-insert)
+  ;:  weld
+  %+  expect-eq                         
+    !>  :-  %results
+            :~  [%result-da msg='data time' date=~2030.1.1]
+                [%result-ud msg='row count' count=2]
+            ==
+    !>  -.x
+  %+  expect-eq
+    !>  gen3-dbs
+    !>  +.x
+  ==
+::
+::  insert rows without columns to populated table 
+++  test-insert-no-cols
+  =|  run=@ud 
+  =/  my-insert
+        "INSERT INTO db1..my-table-3 VALUES ('cord2',~nec,21) ('cord2',~bus, 1)"
+  =/  x  %-  process-cmds
+            :+  gen3-dbs
+                (bowl [run ~2030.2.1])
+                (parse:parse(default-database 'db1') my-insert)
+  ;:  weld
+  %+  expect-eq                         
+    !>  :-  %results
+            :~  [%result-da msg='data time' date=~2030.2.1]
+                [%result-ud msg='row count' count=2]
+            ==
+    !>  -.x
+  %+  expect-eq
+    !>  gen4-dbs
+    !>  +.x
+  ==
+::
+:: INSERT
+::
 :: insert rows without columns to populated table fail on col wrong type
 ++  test-fail-ins-no-cols-col-type
   =|  run=@ud
@@ -594,6 +595,8 @@
           :+  start-dbs
               (bowl [run ~2031.1.1])
               (parse:parse(default-database 'db1') my-insert)
+::
+::  SELECT
 ::
 ::  select one literal 
 ++  test-select-1-literal
@@ -705,4 +708,17 @@
   %+  expect-eq                         
     !>  [%results ~[[%result-set qualifier=~.literals rslt-cols rslt-data]]]
     !>  -.x
+::
+::  TIME
+::
+::  To DO:  create namespace  >
+::                            fail schema =, <, content =, <
+::          drop namespace    >
+::                            fail schema =, <, content =, <
+::          create table      >
+::                            fail schema =, <, content =, <
+::          drop table        >
+::                            fail schema =, <, content =, <
+::          insert            >
+::                            fail schema =, <, content =, <
 --
