@@ -1741,12 +1741,12 @@
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "truncate table db.nS.name")
 ::
-:: fail when view name is not a term
+:: fail when table name is not a term
 ++  test-fail-truncate-table-8
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "truncate table db.ns.nAme")
 ::
-:: fail when view name is not a term
+:: fail when table name is not a term
 ++  test-fail-truncate-table-9
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "truncate table db.ns.nAme")
