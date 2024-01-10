@@ -576,15 +576,13 @@
   =/  db  ~|  "database {<database-name.create-namespace>} does not exist" 
                  (~(got by state) database-name.create-namespace)
   =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
-  =/  db-schema=schema  (get-schema sys-time sys.db)
   =/  nxt-schema=schema  
-        ?:  (~(has by next-schemas) database-name.create-namespace)
-          (need -:(~(got by next-schemas) database-name.create-namespace))
-        db-schema
-  ?:  (lth sys-time tmsp.nxt-schema)
-    ~|("namespace {<name.create-namespace>} as-of time out of order" !!)
-  ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))
-    ~|("namespace {<name.create-namespace>} as-of time out of order" !!)
+        ~|  "namespace> {<name.create-namespace>} as-of time out of order"
+          %:  get-next-schema  sys.db
+                            next-schemas
+                            sys-time
+                            database-name.create-namespace
+                            ==
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
                           namespaces.nxt-schema 
@@ -608,19 +606,14 @@
   =/  db  ~|  "database {<database.table.create-table>} does not exist"
                  (~(got by state) database.table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
-  ::
-  =/  db-schema=schema  (get-schema sys-time sys.db)
   =/  usr-data=data     (get-data sys-time content.db)
-  ::
   =/  nxt-schema=schema
-        ?:  (~(has by next-schemas) database.table.create-table)
-          (need -:(~(got by next-schemas) database.table.create-table))
-        db-schema
-  ?:  (lth sys-time tmsp.nxt-schema)
-    ~|("table {<name.table.create-table>} as-of time out of order" !!)
-  ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))
-    ~|("table {<name.table.create-table>} as-of time out of order" !!)
-  ::
+        ~|  "table {<name.table.create-table>} as-of time out of order"
+          %:  get-next-schema  sys.db
+                              next-schemas
+                              sys-time
+                              database.table.create-table
+                              ==
   =/  nxt-data=data
         ?:  (~(has by next-data) database.table.create-table)
           (need +:(~(got by next-data) database.table.create-table))
@@ -718,20 +711,17 @@
           next-data=(map @tas [(unit schema) (unit data)])
           ==
   ^-  table-return
-  ?.  =(our.bowl src.bowl)  ~|("table must be dropd by local agent" !!)
+  ?.  =(our.bowl src.bowl)  ~|("table must be dropped by local agent" !!)
   =/  db  ~|  "database {<database.table.d>} does not exist" 
              (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
-  ::
-  =/  db-schema=schema  (get-schema sys-time sys.db)
-  =/  schema=schema  ?:  (~(has by next-schemas) database.table.d)
-                        (need -:(~(got by next-schemas) database.table.d))
-                      db-schema
-  ?:  (lth sys-time tmsp.schema)
-    ~|("drop table {<name.table.d>} as-of time out of order" !!)
-  ?:  ?&(=(db-schema schema) =(tmsp.schema sys-time))
-    ~|("drop table {<name.table.d>} as-of time out of order" !!)
-  ::
+  =/  nxt-schema=schema
+        ~|  "table {<name.table.d>} as-of time out of order"
+          %:  get-next-schema  sys.db
+                              next-schemas
+                              sys-time
+                              database.table.d
+                              ==
   =/  usr-data=data  (get-data sys-time content.db)
   =/  data=data  ?:  (~(has by next-data) database.table.d)
                         (need +:(~(got by next-data) database.table.d))
@@ -741,17 +731,17 @@
   ?:  ?&(=(usr-data data) =(tmsp.data sys-time))
     ~|("drop table {<name.table.d>} as-of time out of order" !!)
   ::
-  ?.  (~(has by namespaces.schema) namespace.table.d)
-    ~|("namespace {<namespaces.schema>} does not exist" !!)
+  ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
+    ~|("namespace {<namespaces.nxt-schema>} does not exist" !!)
   ::
   =/  tables  
     ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
     %+  map-delete
-        tables.schema
+        tables.nxt-schema
         [namespace.table.d name.table.d]
-  =.  tables.schema      tables
-  =.  tmsp.schema        sys-time
-  =.  provenance.schema  sap.bowl
+  =.  tables.nxt-schema      tables
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
   ::
   =/  file  ~|  "table {<namespace.table.d>}.{<name.table.d>} does not exist" 
             (~(got by files.data) [namespace.table.d name.table.d])
@@ -766,7 +756,7 @@
   =.  provenance.data  sap.bowl
   ::
   :+  sys-time
-      (~(put by next-schemas) database.table.d [`schema ~])
+      (~(put by next-schemas) database.table.d [`nxt-schema ~])
       (~(put by next-data) database.table.d [~ `data])
 ++  update-state
   |=  $:  state=databases
@@ -826,6 +816,8 @@
   ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
 ++  schema-key  ((on @da schema) gth)
 ++  data-key  ((on @da data) gth)
+::
+::  gets the schema with matching or highest timestamp prior to
 ++  get-schema
   |=  [time=@da sys=(tree [@da schema])]
   ^-  schema
@@ -834,6 +826,22 @@
   =/  prior  (pry:schema-key (lot:schema-key sys `time ~))
   ?~  prior  ~|("schema not available for {<time>}" !!)
   +:(need prior)
+::
+::  gets the schema with the highes timestamp
+++  get-next-schema
+  |=  $:  sys=(tree [@da schema])
+          next-schemas=(map @tas [(unit schema) (unit data)])
+          sys-time=@da
+          db-name=@tas
+      ==
+  ^-  schema
+  =/  db-schema  +:(need (pry:schema-key sys))  :: latest schema
+  =/  nxt-schema=schema  ?:  (~(has by next-schemas) db-name)
+                            (need -:(~(got by next-schemas) db-name))
+                          db-schema
+  ?:  (lth sys-time tmsp.nxt-schema)  !!
+  ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))  !!
+  nxt-schema
 ++  get-data
   |=  [time=@da sys=(tree [@da data])]
   ^-  data

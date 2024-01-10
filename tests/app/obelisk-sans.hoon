@@ -19,8 +19,8 @@
       ==
 --
 |%
-++  schema-key  ((on @da schema) gth)
-++  data-key  ((on @da data) gth)
+::
+::  databases
 ++  db1
   :+  :-  %db1
           :*  %database
@@ -32,24 +32,67 @@
           ==
       ~
       ~
-++  sys1
-  :-  ~2000.1.1
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2000.1.1
-        namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-        tables=~
-    ==
-++  sys2
-  :-  ~2000.1.2
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      :+  [p=%ns1 q=~2000.1.2]
-          ~
-          [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-      tables=~
-  ==
+++  db2
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              sys=(gas:schema-key *((mop @da schema) gth) ~[sys2 sys1])
+              content=(gas:data-key *((mop @da data) gth) ~[content-1])
+          ==
+      ~
+      ~
+++  one-col-tbl-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              (gas:schema-key *((mop @da schema) gth) ~[one-col-tbl-sys sys1])
+              (gas:data-key *((mop @da data) gth) ~[content-2 content-1])
+          ==
+      ~
+      ~
+++  two-col-tbl-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[two-col-tbl-sys one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-3 content-2 content-1]
+          ==
+      ~
+      ~
+++  two-comb-col-tbl-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[two-comb-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-3-a content-1]
+          ==
+       ~
+       ~
+++  dropped-tbl-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[sys3 one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-1-a content-2 content-1]
+          ==
+      ~
+      ~
 ++  dropped-tbl-db-force
   :+  :-  %db1
           :*  %database
@@ -58,14 +101,115 @@
               created-tmsp=~2000.1.1
               %+  gas:schema-key  *((mop @da schema) gth)
                                   ~[sys4 one-col-tbl-sys sys1]
-              content=(gas:data-key *((mop @da data) gth) ~[content-4 content-1b content-2 content-1])
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-4 content-1b content-2 content-1]
           ==
       ~
       ~
+++  db-time-create-ns
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              sys=(gas:schema-key *((mop @da schema) gth) ~[sys-time-create-ns my-table-2-sys sys1])
+              content=(gas:data-key *((mop @da data) gth) ~[content-time-2 content-1])
+          ==
+      ~
+      ~
+::
+::  schemas
+++  schema-key  ((on @da schema) gth)
+++  sys1
+  :-  ~2000.1.1
+  :*  %schema
+      provenance=`path`/test-agent
+      tmsp=~2000.1.1
+      namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+      tables=~
+  ==
+++  sys2
+  :-  ~2000.1.2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        :+  [p=%ns1 q=~2000.1.2]
+            ~
+            [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+        tables=~
+    ==
+++  one-col-tbl-sys
+  :-  ~2000.1.2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+        tables=one-col-tbls
+    ==
+++  two-col-tbl-sys
+  :-  ~2000.1.3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.3
+        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
+        tables=two-col-tbls
+    ==
+++  two-comb-col-tbl-sys
+  :-  ~2000.1.2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
+        tables=two-comb-col-tbls
+    ==
+++  my-table-2-sys
+  :-  ~2000.1.2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
+        tables=my-table-2
+    ==
+++  sys3
+  :-  ~2000.1.3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.3
+        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
+        tables=~
+    ==
+++  sys4
+  :-  ~2000.1.4
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2000.1.4
+        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
+        tables=~
+    ==
+
+++  sys-time-create-ns
+  :-  ~2023.7.9..22.35.35..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.35..7e90
+        :+  [p=%ns1 q=~2023.7.9..22.35.35..7e90]
+            ~
+            [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+        tables=my-table-2
+    ==
+::
+::  content
+++  data-key  ((on @da data) gth)
 ++  content-1
   [~2000.1.1 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.1 ~]]
 ++  content-1-a
-  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 ~]]
+  :-  ~2000.1.3
+    :*  %data
+        ~zod
+        provenance=`path`/test-agent
+        tmsp=~2000.1.3
+        ~
+    ==
 ++  content-2
   :-  ~2000.1.2
     :*  %data
@@ -73,6 +217,14 @@
         `path`/test-agent
         ~2000.1.2
         [[[%dbo %my-table] file-1col-1-2] ~ ~]
+    ==
+++  content-time-2
+  :-  ~2000.1.2
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2000.1.2
+        [[[%dbo %my-table-2] file-time-2] ~ ~]
     ==
 ++  content-3
   :-  ~2000.1.3
@@ -94,6 +246,12 @@
             ~
             [[[%dbo %my-table] file-1col-1-2] ~ ~]
     ==
+++  content-4
+  [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
+++  content-1b
+  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]]
+::
+::  files
 ++  file-1col-1-2
   :*  %file
       ~zod
@@ -118,6 +276,18 @@
       ~
       ~
   ==
+++  file-time-2
+  :*  %file
+      ~zod
+      `path`/test-agent
+      ~2000.1.2
+      %.y
+      0
+      [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+      ~[[%t %.y] [%p %.y]]
+      ~
+      ~
+  ==
 ++  file-2col-1-3
   :*  %file
       ~zod
@@ -130,179 +300,6 @@
       ~
       ~
   ==
-++  db2
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[sys2 sys1])
-              content=(gas:data-key *((mop @da data) gth) ~[content-1])
-          ==
-      ~
-      ~
-::
-::  Create table
-++  one-col-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              (gas:schema-key *((mop @da schema) gth) ~[one-col-tbl-sys sys1])
-              content=(gas:data-key *((mop @da data) gth) ~[content-2 content-1])
-          ==
-      ~
-      ~
-++  one-col-tbl-sys
-  :-  ~2000.1.2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2000.1.2
-        namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-        tables=one-col-tbls
-    ==
-++  one-col-tbl-key
-  [%dbo %my-table]
-++  one-col-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      :^  %index
-          unique=%.y
-          clustered=%.y
-          ~[[%ordered-column name=%col1 ascending=%.y]]
-      ~[[%column name=%col1 column-type=%t]]
-      ~
-  ==
-++  one-col-tbls
-  [[one-col-tbl-key one-col-tbl] ~ ~]
-++  cmd-one-col
-  :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table']
-      ~[[%column 'col1' %t]]
-      %.y
-      ~[[%ordered-column 'col1' %.y]]
-      ~
-      ~
-  ==
-::
-++  two-col-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[two-col-tbl-sys one-col-tbl-sys sys1]
-              content=(gas:data-key *((mop @da data) gth) ~[content-3 content-2 content-1])
-          ==
-      ~
-      ~
-++  two-col-tbl-sys
-  :-  ~2000.1.3
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2000.1.3
-        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-        tables=two-col-tbls
-    ==
-++  two-col-tbl-key
-  [%dbo %my-table-2]
-++  two-col-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.3
-      :*  %index
-          %.y
-          %.n
-          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-      ==
-      ~[[%column %col1 %t] [%column %col2 %p]]
-      ~
-  ==
-++  two-col-tbls
-  [[two-col-tbl-key two-col-tbl] ~ [[one-col-tbl-key one-col-tbl] ~ ~]]
-++  cmd-two-col
-  :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table-2']
-      ~[[%column 'col1' %t] [%column 'col2' %p]]
-      %.n
-      ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
-      ~
-      ~
-  ==
-::
-++  two-comb-col-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      :*  %index
-          %.y
-          %.n
-          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-      ==
-      ~[[%column %col1 %t] [%column %col2 %p]]
-      ~
-  ==
-++  two-comb-col-tbls
-  :+  [two-col-tbl-key two-comb-col-tbl]
-      ~
-      [[one-col-tbl-key one-col-tbl] ~ ~]
-++  two-comb-col-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[two-comb-col-tbl-sys sys1]
-              content=(gas:data-key *((mop @da data) gth) ~[content-3-a content-1])
-          ==
-       ~
-       ~
-++  two-comb-col-tbl-sys
-  :-  ~2000.1.2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2000.1.2
-        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-        tables=two-comb-col-tbls
-    ==
-::
-::  Drop table
-++  dropped-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[sys3 one-col-tbl-sys sys1]
-              content=(gas:data-key *((mop @da data) gth) ~[content-1-a content-2 content-1])
-          ==
-      ~
-      ~
-++  sys3
-  :-  ~2000.1.3
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2000.1.3
-        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
-        tables=~
-    ==
-++  content-1b
-  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]]
-++  content-4
-  [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
-++  sys4
-  :-  ~2000.1.4
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2000.1.4
-        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
-        tables=~
-    ==
 ++  files-4
   :+  :-  p=[%dbo %my-table]
           :*  %file
@@ -321,42 +318,85 @@
 ++  files-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::
-:: system views
-++  test-sys-sys-databases
+::  tables
+++  one-col-tbl
+  :*  %table
+      provenance=`path`/test-agent
+      tmsp=~2000.1.2
+      :^  %index
+          unique=%.y
+          clustered=%.y
+          ~[[%ordered-column name=%col1 ascending=%.y]]
+      ~[[%column name=%col1 column-type=%t]]
+      ~
+  ==
+++  two-col-tbl
+  :*  %table
+      provenance=`path`/test-agent
+      tmsp=~2000.1.3
+      :*  %index
+          %.y
+          %.n
+          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+      ==
+      ~[[%column %col1 %t] [%column %col2 %p]]
+      ~
+  ==
+++  two-comb-col-tbl
+  :*  %table
+      provenance=`path`/test-agent
+      tmsp=~2000.1.2
+      :*  %index
+          %.y
+          %.n
+          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+      ==
+      ~[[%column %col1 %t] [%column %col2 %p]]
+      ~
+  ==
+++  time-2-tbl
+  :*  %table
+      provenance=`path`/test-agent
+      tmsp=~2000.1.2
+      :*  %index
+          %.y
+          %.y
+          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+      ==
+      ~[[%column %col1 %t] [%column %col2 %p]]
+      ~
+  ==
+++  cmd-two-col
+  :*  %create-table
+      [%qualified-object ~ 'db1' 'dbo' 'my-table-2']
+      ~[[%column 'col1' %t] [%column 'col2' %p]]
+      %.n
+      ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
+      ~
+      ~
+  ==
+++  cmd-one-col
+  :*  %create-table
+      [%qualified-object ~ 'db1' 'dbo' 'my-table']
+      ~[[%column 'col1' %t]]
+      %.y
+      ~[[%ordered-column 'col1' %.y]]
+      ~
+      ~
+  ==
+++  one-col-tbls     [[[%dbo %my-table] one-col-tbl] ~ ~]
+++  two-col-tbls
+  [[[%dbo %my-table-2] two-col-tbl] ~ [[[%dbo %my-table] one-col-tbl] ~ ~]]
+++  my-table-2  [[[%dbo %my-table-2] time-2-tbl] ~ ~]
+++  two-comb-col-tbls
+  :+  [[%dbo %my-table-2] two-comb-col-tbl]
+      ~
+      [[[%dbo %my-table] one-col-tbl] ~ ~]
+::
+::
+::  time, create ns as of 1 second > schema
+++  test-time-create-ns-gt-schema
   =|  run=@ud
-  =/  col-row  :~  [%database %tas]
-                  [%sys-agent %tas]
-                  [%sys-tmsp %da]
-                  [%data-ship %p]
-                  [%data-agent %tas]
-                  [%data-tmsp %da]
-                ==
-  =/  row1  ~[%db1 '/test-agent' ~2000.1.1 0 '/test-agent' ~2000.1.1]
-  =/  row2  ~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.2]
-  =/  row3  ~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.3]
-  =/  row4  ~[%db2 '/test-agent' ~2000.1.4 0 '/test-agent' ~2000.1.4]
-  =/  row5  ~[%db2 '/test-agent' ~2000.1.5 0 '/test-agent' ~2000.1.5]
-  =/  expected  :~  %results
-                    :~  %result-set
-                        'sys.sys.databases'
-                        col-row
-                        row1
-                        row2
-                        row3
-                        row4
-                        row5
-                    ==
-                ==
-  =/  cmd
-    :^  %drop-table
-        :*  %qualified-object
-            ship=~
-            database='db1'
-            namespace='dbo'
-            name='my-table'
-        ==
-        %.y
-        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -368,35 +408,26 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2)"
     ==
-  =.  run  +(run)
-  =^  mov3  agent  
+    =.  run  +(run)
+      =^  mov2  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"])
     ==
-  =.  run  +(run)
-  =^  mov4  agent  
-    %:  ~(on-poke agent (bowl [run ~2000.1.4]))
-        %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db2"])
-    ==
-  =.  run  +(run)
-  =^  mov5  agent  
-    %:  ~(on-poke agent (bowl [run ~2000.1.5]))
-        %obelisk-action
-        !>  :+  %tape
-                %db1
-                "CREATE TABLE db2..my-table (col1 @t) PRIMARY KEY (col1)"
-    ==
-  =.  run  +(run)
-  =^  mov6  agent  
-    %:  ~(on-poke agent (bowl [run ~2000.1.5]))
-        %obelisk-action
-        !>([%tape %db1 "FROM sys.sys.databases SELECT *"])
-    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+%+  expect-eq
+    !>  %results
+    !>  ->+>+>-.mov2
   %+  expect-eq
-    !>  expected
-    !>  ->+>+>.mov6
+    !>  [%result-da 'system time' ~2023.7.9..22.35.35..7e90]
+    !>  ->+>+>+<.mov2
+  %+  expect-eq
+    !>  db-time-create-ns
+    !>  databases.state
+  ==
+
 --

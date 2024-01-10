@@ -64,6 +64,34 @@
       ==
     ~
     ~
+++  dbs-time-1
+  :+
+    :-  %db1
+      :*  %database
+          name=%db1
+          created-by-provenance=`path`/test-agent
+          created-tmsp=~2023.7.9..22.24.54..4b8a
+          %+  gas:schema-key  *((mop @da schema) gth)
+                              ~[sys-time-1 gen2-sys gen1-sys gen0-sys]
+          %+  gas:data-key  *((mop @da data) gth)
+                            ~[gen3-data gen2-data gen1-data gen0-data]
+      ==
+    ~
+    ~
+++  dbs-time-2
+  :+
+    :-  %db1
+      :*  %database
+          name=%db1
+          created-by-provenance=`path`/test-agent
+          created-tmsp=~2023.7.9..22.24.54..4b8a
+          %+  gas:schema-key  *((mop @da schema) gth)
+                              ~[sys-time-2 gen2-sys gen1-sys gen0-sys]
+          %+  gas:data-key  *((mop @da data) gth)
+                            ~[time2-data gen3-data gen2-data gen1-data gen0-data]
+      ==
+    ~
+    ~
 ::
 ::  schemas
 ++  schema-key  ((on @da schema) gth)
@@ -91,10 +119,32 @@
         namespaces=schema-ns
         tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
     ==
+++  sys-time-1
+  :-  ~2023.7.9..22.35.35..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.35..7e90
+        namespaces=schema-ns-2
+        tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
+    ==
+++  sys-time-2
+  :-  ~2023.7.9..22.35.35..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.35..7e90
+        namespaces=schema-ns
+        tables=[n=schema-my-table-2 l=[n=schema-table-3 l=~ r=~] r=[schema-my-table ~ ~]]
+    ==
 ++  schema-ns
   :+  n=[p=%dbo q=~2023.7.9..22.24.54..4b8a]
       l=~
       r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] l=~ r=~]
+++  schema-ns-2
+  :+  n=[p=%ns1 q=~2023.7.9..22.35.35..7e90]
+      l=~
+      :+  n=[p=%dbo q=~2023.7.9..22.24.54..4b8a] 
+          l=~ 
+          r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] ~ ~]
 ::
 ::  content
 ++  data-key  ((on @da data) gth)
@@ -138,6 +188,14 @@
         tmsp=~2030.2.1
         files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
     ==
+++  time2-data
+  :-  ~2023.7.9..22.35.35..7e90
+    :*  %data
+        ship=~zod
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.35..7e90
+        files=[n=file-my-table-2 l=[n=gen4-file-my-table-3 l=~ r=~] r=[file-my-table ~ ~]]
+    ==
 ::
 ::  files
 ++  file-my-table
@@ -150,6 +208,19 @@
           length=0
           column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~]
           key=~[[%t %.y]]
+          pri-idx=~
+          data=~
+      ==
+++  file-my-table-2
+  :-  p=[%dbo %my-table-2]
+      :*  %file
+          ship=~zod
+          provenance=/test-agent
+          tmsp=~2023.7.9..22.35.35..7e90
+          clustered=%.y
+          length=0
+          [n=[p=%col3 q=[%ud 2]] l=[n=[p=%col2 q=[%p 1]] l=~ r=~] r=[n=[p=%col1 q=[%t 0]] l=~ r=~]]
+          key=~[[%t %.y] [%p %.y]]
           pri-idx=~
           data=~
       ==
@@ -205,6 +276,19 @@
               columns=~[[%ordered-column name=%col1 ascending=%.y]]
           ==
           columns=~[[%column name=%col1 type=%t]]
+          indices=~
+      ==
+++  schema-my-table-2
+  :-  p=[%dbo %my-table-2] 
+      :*  %table
+          provenance=`path`/test-agent
+          tmsp=~2023.7.9..22.35.35..7e90
+          :*  %index
+              unique=%.y
+              clustered=%.y
+              columns=~[[%ordered-column name=%col1 ascending=%.y] [%ordered-column name=%col2 ascending=%.y]]
+          ==
+          columns=~[[%column name=%col1 type=%t] [%column name=%col2 type=%p] [%column name=%col3 type=%ud]]
           indices=~
       ==
 ++  schema-table-3
@@ -268,30 +352,16 @@
       r=[row4-idx l=[row1-idx ~ r=[row3-idx ~ ~]] ~]
 ++  gen4-file-data-my-table-3
   ~[row4 row3 row2 row1]
-::
-::
 
 ::
-::
-::  insert rows to table
-++  test-time-create-namespace-schema
-  =|  run=@ud 
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  =/  x  %-  process-cmds 
-            :+  start-dbs
-                (bowl [run ~2030.1.1])
-                (parse:parse(default-database 'db1') my-insert)
-  ;:  weld
-  %+  expect-eq                         
-    !>  :-  %results
-            :~  [%result-da msg='data time' date=~2030.1.1]
-                [%result-ud msg='row count' count=2]
-            ==
-    !>  -.x
-  %+  expect-eq
-    !>  gen3-dbs
-    !>  +.x
-  ==
+:: fail on time, create ns lt schema
+++  test-fail-time-create-ns-lt-schema
+  =|  run=@ud
+  =/  my-cmd  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.33..7e90"
+  %-  expect-fail
+  |.  %-  process-cmds 
+          :+  gen3-dbs
+              (bowl [run ~2031.1.1])
+              (parse:parse(default-database 'db1') my-cmd)
 
 --
