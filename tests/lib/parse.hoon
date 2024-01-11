@@ -343,19 +343,19 @@
 ++  test-create-database-01
   %+  expect-eq
     !>  ~[[%create-database name='my-db' as-of=~]]
-    !>  (parse:parse(default-database 'dummy') "create database my-db as of now")
+    !>  (parse:parse(default-database 'dummy') "create database my-db As   Of now")
 ::
 :: as of date-time
 ++  test-create-database-02
   %+  expect-eq
     !>  ~[[%create-database name='my-db' as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
-    !>  (parse:parse(default-database 'dummy') "create database my-db as of ~2023.12.25..7.15.0..1ef5")
+    !>  (parse:parse(default-database 'dummy') "create database my-db AS OF ~2023.12.25..7.15.0..1ef5")
 ::
 :: as of seconds ago
 ++  test-create-database-03
   %+  expect-eq
     !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 5 %seconds]]]]
-    !>  (parse:parse(default-database 'dummy') "create database my-db as of 5 seconds ago")
+    !>  (parse:parse(default-database 'dummy') "create database my-db as   of 5 seconds ago")
 ::
 :: as of minutes ago
 ++  test-create-database-04
@@ -482,25 +482,25 @@
 ++  test-create-namespace-02
   %+  expect-eq
     !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
-    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of now")
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 aS oF now")
 ::
 :: as of now qualified name
 ++  test-create-namespace-03
   %+  expect-eq
     !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=~]]
-    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of now")
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as   of now")
 ::
 :: as of date-time simple name
 ++  test-create-namespace-04
   %+  expect-eq
     !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
-    !>  (parse:parse(default-database 'db1') "create namespace ns1 as of ~2023.12.25..7.15.0..1ef5")
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 AS of ~2023.12.25..7.15.0..1ef5")
 ::
 :: as of date-time qualified name
 ++  test-create-namespace-05
   %+  expect-eq
     !>  ~[[%create-namespace database-name='db2' name='ns1' as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
-    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as of ~2023.12.25..7.15.0..1ef5")
+    !>  (parse:parse(default-database 'db1') "create namespace db2.ns1 as   OF ~2023.12.25..7.15.0..1ef5")
 ::
 :: as of seconds ago simple name
 ++  test-create-namespace-06
@@ -669,7 +669,7 @@
 :: create table as of simple name as of now
 ++  test-create-table-08
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
-  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of now"
+  =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) AS of now"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -677,7 +677,7 @@
 :: create table as of ns-qualified name as of datetime
 ++  test-create-table-09
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
-  =/  urql  "create table ns1.my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of ~2023.12.25..7.15.0..1ef5"
+  =/  urql  "create table ns1.my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as     OF ~2023.12.25..7.15.0..1ef5"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -685,7 +685,7 @@
 :: create table as of db-qualified name
 ++  test-create-table-10
   =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] clustered=%.y pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 5 %seconds]]]
-  =/  urql  "create table db2..my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of 5 seconds ago"
+  =/  urql  "create table db2..my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) aS Of 5 seconds ago"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -743,7 +743,7 @@
   =/  expected2  [%transform ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of now;delete  foo as of now")
+    !>  (parse:parse(default-database 'db1') "delete from foo as of now;delete  foo AS OF now")
 ::
 :: delete from foo as of ~2023.12.25..7.15.0..1ef5;delete foo as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-02
@@ -857,7 +857,7 @@
   =/  expected  [%transform ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of now")
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar aS  Of    NOw")
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-18
@@ -989,7 +989,7 @@
 ++  test-drop-namespace-03
   %+  expect-eq
     !>  ~[[%drop-namespace database-name='other-db' name='ns1' force=%.n as-of=~]]
-    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 as of now")
+    !>  (parse:parse(default-database 'other-db') "drop namespace ns1 AS OF NOW")
 ::
 ::  name, as of date
 ++  test-drop-namespace-04

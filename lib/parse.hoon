@@ -3053,7 +3053,7 @@
   ;~  pfix
     whitespace 
     ;~  plug
-      (cold %as-of (jest 'as of'))
+      (cold %as-of ;~(plug (jester 'as') whitespace (jester 'of')))
       ;~  pfix
         whitespace
         ;~  pose
@@ -3077,7 +3077,7 @@
             ==
           ==
           ;~(pose ;~(pfix sig crub-no-text) crub-no-text)
-          (cold %now (jest 'now'))
+          (cold %now (jester 'now'))
         ==
       ==
     ==
