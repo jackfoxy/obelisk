@@ -108,14 +108,42 @@
           ==
       ~
       ~
+++  db-time-create-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2023.7.9..22.35.35..7e90
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[time-1-sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-time-1]
+          ==
+      ~
+      ~
 ++  db-time-create-ns
   :+  :-  %db1
           :*  %database
               name=%db1
               created-provenance=`path`/test-agent
               created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[sys-time-create-ns my-table-2-sys sys1])
-              content=(gas:data-key *((mop @da data) gth) ~[content-time-2 content-1])
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[sys-time-create-ns time-2-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-time-2 content-1]
+          ==
+      ~
+      ~
+++  db-time-create-tbl
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2023.7.9..22.35.35..7e90
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[time-3-sys time-1-sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-time-3 content-time-1]
           ==
       ~
       ~
@@ -124,12 +152,20 @@
 ++  schema-key  ((on @da schema) gth)
 ++  sys1
   :-  ~2000.1.1
-  :*  %schema
-      provenance=`path`/test-agent
-      tmsp=~2000.1.1
-      namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-      tables=~
-  ==
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=~2000.1.1
+          namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+          tables=~
+      ==
+++  time-1-sys1
+  :-  ~2023.7.9..22.35.35..7e90
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=~2023.7.9..22.35.35..7e90
+          namespaces=[[p=%dbo q=~2023.7.9..22.35.35..7e90] ~ [[p=%sys q=~2023.7.9..22.35.35..7e90] ~ ~]]
+          tables=~
+      ==
 ++  sys2
   :-  ~2000.1.2
     :*  %schema
@@ -146,7 +182,7 @@
         provenance=`path`/test-agent
         tmsp=~2000.1.2
         namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-        tables=one-col-tbls
+        tables=[one-col-tbl ~ ~]
     ==
 ++  two-col-tbl-sys
   :-  ~2000.1.3
@@ -154,7 +190,7 @@
         provenance=`path`/test-agent
         tmsp=~2000.1.3
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-        tables=two-col-tbls
+        tables=[two-col-tbl ~ [one-col-tbl ~ ~]]
     ==
 ++  two-comb-col-tbl-sys
   :-  ~2000.1.2
@@ -162,15 +198,23 @@
         provenance=`path`/test-agent
         tmsp=~2000.1.2
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-        tables=two-comb-col-tbls
+        tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
     ==
-++  my-table-2-sys
+++  time-2-sys
   :-  ~2000.1.2
     :*  %schema
         provenance=`path`/test-agent
         tmsp=~2000.1.2
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-        tables=my-table-2
+        tables=[time-2-tbl ~ ~]
+    ==
+++  time-3-sys
+  :-  ~2023.7.9..22.35.36..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.36..7e90
+        namespaces=[[%dbo ~2023.7.9..22.35.35..7e90] ~ [[%sys ~2023.7.9..22.35.35..7e90] ~ ~]]
+        tables=[time-3-tbl ~ ~]
     ==
 ++  sys3
   :-  ~2000.1.3
@@ -197,13 +241,16 @@
         :+  [p=%ns1 q=~2023.7.9..22.35.35..7e90]
             ~
             [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-        tables=my-table-2
+        tables=[time-2-tbl ~ ~]
     ==
 ::
 ::  content
 ++  data-key  ((on @da data) gth)
 ++  content-1
   [~2000.1.1 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.1 ~]]
+++  content-time-1
+  :-  ~2023.7.9..22.35.35..7e90
+      [%data ~zod provenance=`path`/test-agent tmsp=~2023.7.9..22.35.35..7e90 ~]
 ++  content-1-a
   :-  ~2000.1.3
     :*  %data
@@ -218,7 +265,7 @@
         ~zod
         `path`/test-agent
         ~2000.1.2
-        [[[%dbo %my-table] file-1col-1-2] ~ ~]
+        [file-1col-1-2 ~ ~]
     ==
 ++  content-time-2
   :-  ~2000.1.2
@@ -226,7 +273,15 @@
         ~zod
         `path`/test-agent
         ~2000.1.2
-        [[[%dbo %my-table-2] file-time-2] ~ ~]
+        [file-time-2 ~ ~]
+    ==
+++  content-time-3
+  :-  ~2023.7.9..22.35.36..7e90
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2023.7.9..22.35.36..7e90
+        [file-time-3 ~ ~]
     ==
 ++  content-3
   :-  ~2000.1.3
@@ -234,9 +289,9 @@
         ~zod
         `path`/test-agent
         ~2000.1.3
-        :+  [[%dbo %my-table-2] file-2col-1-3]
+        :+  file-2col-1-3
             ~
-            [[[%dbo %my-table] file-1col-1-2] ~ ~]
+            [file-1col-1-2 ~ ~]
     ==
 ++  content-3-a
   :-  ~2000.1.2
@@ -244,65 +299,82 @@
         ~zod
         `path`/test-agent
         ~2000.1.2
-        :+  [[%dbo %my-table-2] file-2col-1-2]
+        :+  file-2col-1-2
             ~
-            [[[%dbo %my-table] file-1col-1-2] ~ ~]
+            [file-1col-1-2 ~ ~]
     ==
 ++  content-4
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
 ++  content-1b
-  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 files=files-4]]
+  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 file-4]]
 ::
 ::  files
 ++  file-1col-1-2
-  :*  %file
-      ~zod
-      `path`/test-agent
-      ~2000.1.2
-      %.y
-      0
-      [[%col1 [%t 0]] ~ ~]
-      ~[[%t %.y]]
-      ~
-      ~
-  ==
+  :-  [%dbo %my-table]
+      :*  %file
+          ~zod
+          `path`/test-agent
+          ~2000.1.2
+          %.y
+          0
+          [[%col1 [%t 0]] ~ ~]
+          ~[[%t %.y]]
+          ~
+          ~
+      ==
 ++  file-2col-1-2
-  :*  %file
-      ~zod
-      `path`/test-agent
-      ~2000.1.2
-      %.n
-      0
-      [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-      ~[[%t %.y] [%p %.y]]
-      ~
-      ~
-  ==
+  :-  [%dbo %my-table-2]
+      :*  %file
+          ~zod
+          `path`/test-agent
+          ~2000.1.2
+          %.n
+          0
+          [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          ~[[%t %.y] [%p %.y]]
+          ~
+          ~
+      ==
 ++  file-time-2
-  :*  %file
-      ~zod
-      `path`/test-agent
-      ~2000.1.2
-      %.y
-      0
-      [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-      ~[[%t %.y] [%p %.y]]
-      ~
-      ~
-  ==
+  :-  [%dbo %my-table-2]
+      :*  %file
+          ~zod
+          `path`/test-agent
+          ~2000.1.2
+          %.y
+          0
+          [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          ~[[%t %.y] [%p %.y]]
+          ~
+          ~
+      ==
+++  file-time-3
+  :-  [%dbo %my-table-2]
+      :*  %file
+          ~zod
+          `path`/test-agent
+          ~2023.7.9..22.35.36..7e90
+          %.y
+          0
+          [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          ~[[%t %.y] [%p %.y]]
+          ~
+          ~
+      ==
 ++  file-2col-1-3
-  :*  %file
-      ~zod
-      `path`/test-agent
-      ~2000.1.3
-      %.n
-      0
-      [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-      ~[[%t %.y] [%p %.y]]
-      ~
-      ~
-  ==
-++  files-4
+  :-  [%dbo %my-table-2]
+      :*  %file
+          ~zod
+          `path`/test-agent
+          ~2000.1.3
+          %.n
+          0
+          [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          ~[[%t %.y] [%p %.y]]
+          ~
+          ~
+      ==
+++  file-4
   :+  :-  p=[%dbo %my-table]
           :*  %file
               ship=~zod
@@ -312,62 +384,81 @@
               length=1
               column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~]
               key=~[[%t %.y]]
-              pri-idx=files-4-pri-idx
+              pri-idx=file-4-pri-idx
               data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
           ==
       l=~
       r=~
-++  files-4-pri-idx
+++  file-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::
 ::  tables
 ++  one-col-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      :^  %index
-          unique=%.y
-          clustered=%.y
-          ~[[%ordered-column name=%col1 ascending=%.y]]
-      ~[[%column name=%col1 column-type=%t]]
-      ~
-  ==
+  :-  [%dbo %my-table]
+      :*  %table
+          provenance=`path`/test-agent
+          tmsp=~2000.1.2
+          :^  %index
+              unique=%.y
+              clustered=%.y
+              ~[[%ordered-column name=%col1 ascending=%.y]]
+          ~[[%column name=%col1 column-type=%t]]
+          ~
+      ==
 ++  two-col-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.3
-      :*  %index
-          %.y
-          %.n
-          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+  :-  [%dbo %my-table-2]
+      :*  %table
+          provenance=`path`/test-agent
+          tmsp=~2000.1.3
+          :*  %index
+              %.y
+              %.n
+              ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+          ==
+          ~[[%column %col1 %t] [%column %col2 %p]]
+          ~
       ==
-      ~[[%column %col1 %t] [%column %col2 %p]]
-      ~
-  ==
 ++  two-comb-col-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      :*  %index
-          %.y
-          %.n
-          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+  :-  [%dbo %my-table-2]
+      :*  %table
+          provenance=`path`/test-agent
+          tmsp=~2000.1.2
+          :*  %index
+              %.y
+              %.n
+              ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+          ==
+          ~[[%column %col1 %t] [%column %col2 %p]]
+          ~
       ==
-      ~[[%column %col1 %t] [%column %col2 %p]]
-      ~
-  ==
 ++  time-2-tbl
-  :*  %table
-      provenance=`path`/test-agent
-      tmsp=~2000.1.2
-      :*  %index
-          %.y
-          %.y
-          ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-      ==
-      ~[[%column %col1 %t] [%column %col2 %p]]
-      ~
-  ==
+  :-  [%dbo %my-table-2]
+    :*  %table
+        provenance=`path`/test-agent
+        tmsp=~2000.1.2
+        :*  %index
+            %.y
+            %.y
+            ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+        ==
+        ~[[%column %col1 %t] [%column %col2 %p]]
+        ~
+    ==
+++  time-3-tbl
+  :-  [%dbo %my-table-2]
+    :*  %table
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.36..7e90
+        :*  %index
+            %.y
+            %.y
+            ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+        ==
+        ~[[%column %col1 %t] [%column %col2 %p]]
+        ~
+    ==
+::
+::  commands
 ++  cmd-two-col
   :*  %create-table
       [%qualified-object ~ 'db1' 'dbo' 'my-table-2']
@@ -386,14 +477,6 @@
       ~
       ~
   ==
-++  one-col-tbls     [[[%dbo %my-table] one-col-tbl] ~ ~]
-++  two-col-tbls
-  [[[%dbo %my-table-2] two-col-tbl] ~ [[[%dbo %my-table] one-col-tbl] ~ ~]]
-++  my-table-2  [[[%dbo %my-table-2] time-2-tbl] ~ ~]
-++  two-comb-col-tbls
-  :+  [[%dbo %my-table-2] two-comb-col-tbl]
-      ~
-      [[[%dbo %my-table] one-col-tbl] ~ ~]
 ::
 ::  Create database
 ++  test-tape-create-db
@@ -1920,13 +2003,34 @@
 ::
 ::  To DO:  create namespace  > content
 ::                            fail content =, <
-::          create table      > schema , > content
+::          create table      > content
 ::                            fail schema =, <, content =, <
 ::          drop table        > schema , > content
 ::                            fail schema =, <, content =, <
 ::          insert            > schema , > content
 ::                            fail schema =, <, content =, <
 
+::
+::  time, create database
+++  test-time-create-database
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %obelisk-result
+    !>  ->+>-.mov1
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.35..7e90]
+    !>  ->+>+>.mov1
+  %+  expect-eq
+    !>  db-time-create-db
+    !>  databases.state
+  ==
 ::
 ::  time, create ns as of 1 second > schema
 ++  test-time-create-ns-gt-schema
@@ -1945,15 +2049,15 @@
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
                 "PRIMARY KEY (col1, col2)"
     ==
-    =.  run  +(run)
-      =^  mov2  agent  
+  =.  run  +(run)
+  =^  mov2  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.3]))
         %obelisk-action
         !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"])
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
-%+  expect-eq
+  %+  expect-eq
     !>  %results
     !>  ->+>+>-.mov2
   %+  expect-eq
@@ -1963,63 +2067,70 @@
     !>  db-time-create-ns
     !>  databases.state
   ==
-
-::  =|  run=@ud 
-::  =/  my-cmd
-::        "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
-::  =/  x  %-  process-cmds
-::            :+  gen3-dbs
-::                (bowl [run ~2030.2.1])
-::                (parse:parse(default-database 'db1') my-cmd)
-::  ;:  weld
-::  %+  expect-eq                         
-::    !>  :-  %results
-::            :~  [%result-da msg='system time' date=~2023.7.9..22.35.35..7e90]
-::            ==
-::    !>  -.x
-::  %+  expect-eq
-::    !>  dbs-time-1
-::    !>  +.x
-::  ==
 ::
 :: fail on time, create ns = schema
-::++  test-fail-time-create-ns-eq-schema
-::  =|  run=@ud
-::  =/  my-cmd  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
-::  %-  expect-fail
-::  |.  %-  process-cmds 
-::          :+  gen3-dbs
-::              (bowl [run ~2031.1.1])
-::              (parse:parse(default-database 'db1') my-cmd)
+++  test-fail-time-create-ns-eq-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db 
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :-  %tape-create-db
+                  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
+      ==
 ::
 :: fail on time, create ns lt schema
-::++  test-fail-time-create-ns-lt-schema
-::  =|  run=@ud
-::  =/  my-cmd  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.33..7e90"
-::  %-  expect-fail
-::  |.  %-  process-cmds 
-::          :+  gen3-dbs
-::              (bowl [run ~2031.1.1])
-::              (parse:parse(default-database 'db1') my-cmd)
+++  test-fail-time-create-ns-lt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db 
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :-  %tape-create-db
+                  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
+      ==
 ::
-::  time, create table as of 1 second > schema
-::++  test-time-create-table-gt-schema
-::  =|  run=@ud 
-::  =/  my-cmd
-::        "create table my-table-2 (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) as of ~2023.7.9..22.35.35..7e90"
-::  =/  x  %-  process-cmds
-::            :+  gen3-dbs
-::                (bowl [run ~2030.2.1])
-::                (parse:parse(default-database 'db1') my-cmd)
-::  ;:  weld
-::  %+  expect-eq                         
-::    !>  :-  %results
-::            :~  [%result-da msg='system time' date=~2023.7.9..22.35.35..7e90]
-::            ==
-::    !>  -.x
-::  %+  expect-eq
-::    !>  dbs-time-2
-::    !>  +.x
-::  ==
-
+::  time, create table as of 1 second > content
+++  test-time-create-table-gt-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "as of ~2023.7.9..22.35.36..7e90"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-.mov2
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
+    !>  ->+>+>+<.mov2
+  %+  expect-eq
+    !>  db-time-create-tbl
+    !>  databases.state
+  ==
 --
