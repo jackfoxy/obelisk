@@ -40,28 +40,35 @@
   =/  next-schemas=(map @tas [(unit schema) (unit data)])  ~
   =/  next-data=(map @tas [(unit schema) (unit data)])  ~
   =/  results=(list cmd-result)  ~
+  =/  query-has-run=?  %.n
   |-  
   ?~  cmds  :-  [%results (flop results)]
                 (update-state state next-schemas next-data)
   ?-  -<.cmds
     %alter-index
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %alter-namespace
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %alter-table
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %create-database  ~|("create database must be only command in script" !!)
     %create-index
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %create-namespace
+      ?:  query-has-run  ~|("state change after query in script" !!)
       =/  r=[@da (map @tas [(unit schema) (unit data)])]
-            (create-ns state bowl -.cmds next-schemas)
+            (create-ns state bowl -.cmds next-schemas next-data)
       %=  $
         next-schemas  +.r
         cmds          +.cmds
         results       [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %create-table
+      ?:  query-has-run  ~|("state change after query in script" !!)
       =/  r=table-return
             (create-tbl state bowl -.cmds next-schemas next-data)
       %=  $
@@ -71,14 +78,18 @@
         results  [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %create-view
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %drop-database
       !!
     %drop-index
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %drop-namespace
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %drop-table
+      ?:  query-has-run  ~|("state change after query in script" !!)
       =/  r=table-return  
             (drop-tbl state bowl -.cmds next-schemas next-data)
       %=  $
@@ -88,53 +99,76 @@
         results       [`cmd-result`[%result-da 'system time' -.r] results]
       ==
     %drop-view
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %grant
       !!
     %revoke
       !!
     %transform
-      =/  a  (do-transform state bowl -.cmds next-data)
+      =/  r=[? [(map @tas [(unit schema) (unit data)]) (list cmd-result)]]
+            %:  do-transform  query-has-run
+                              state
+                              bowl
+                              -.cmds
+                              next-data
+                              next-schemas
+                              ==
       %=  $
-        next-data  -.a
-        cmds       +.cmds
-        results    (weld +.a results)
+        query-has-run   -.r
+        next-data       +<.r
+        cmds            +.cmds
+        results         +>.r
       ==
     %truncate-table
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
   ==
 ++  do-transform
-  |=  $:  state=databases
+  |=  $:  query-has-run=?
+          state=databases
           =bowl:gall
           =transform:ast
           next-data=(map @tas [(unit schema) (unit data)])
+          next-schemas=(map @tas [(unit schema) (unit data)])
       ==
-  ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]
+  ^-  [? [(map @tas [(unit schema) (unit data)]) (list cmd-result)]]
 
   =/  ctes=(list cte:ast)  ctes.transform  :: To Do - map CTEs
-  (do-set-functions state bowl set-functions.transform next-data)
+  %:  do-set-functions  query-has-run
+                        state 
+                        bowl
+                        set-functions.transform
+                        next-data
+                        next-schemas
+                        ==
 ++  do-set-functions
-  |=  $:  state=databases
+  |=  $:  query-has-run=?
+          state=databases
           =bowl:gall
           =(tree set-function:ast)
           next-data=(map @tas [(unit schema) (unit data)])
+          next-schemas=(map @tas [(unit schema) (unit data)])
       ==
   ::  =/  rtree  ^+((~(rdc of tree) foo) tree)
   ::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
   ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
   ::  ?~  rtree  !!  :: fuse loop
-  ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)] 
+  
+  ^-  [? [(map @tas [(unit schema) (unit data)]) (list cmd-result)]]
   =/  rtree  (~(rdc of tree) rdc-set-func)
-
   ?-  -<.rtree
     %delete
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %insert
-      (do-insert state bowl -.rtree next-data)
+      ?:  query-has-run  ~|("state change after query in script" !!)
+      [%.n (do-insert state bowl -.rtree next-data next-schemas)]
     %update
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     %query
-      [next-data (do-query state bowl -.rtree)]
+      [%.y [next-data (do-query state bowl -.rtree)]]
   ::    ~&  >  "-.rtree: {<-.rtree>}"
   ::    ~&  >  "+.rtree: {<+.rtree>}"
   ::    ?>  ?=(query:ast -.rtree)
@@ -143,6 +177,7 @@
 
   ::    !!
     %merge
+      ?:  query-has-run  ~|("state change after query in script" !!)
       !!
     == 
   ++  do-query
@@ -321,7 +356,7 @@
                       rslt
             udata  +.udata
           ==
-::to do: test cases for sys ahead and behind of udata
+    ::to do: test cases for sys ahead and behind of udata
         ?~  udata
           ?>  !=(~ rslt)
           %=  $
@@ -422,28 +457,35 @@
             =bowl:gall
             c=insert:ast
             next-data=(map @tas [(unit schema) (unit data)])
+            next-schemas=(map @tas [(unit schema) (unit data)])
         ==
-    ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]          
+    ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]
     =/  db  
         ~|  "database {<database.table.c>} does not exist" 
         (~(got by state) database.table.c)
     =/  sys-time  (set-tmsp as-of.c now.bowl)
+    =/  nxt-data=data
+        ~|  "insert into table {<name.table.c>} as-of data time out of order"
+          %:  get-next-data  content.db
+                              next-data
+                              sys-time
+                              database.table.c
+                              ==
+    =/  nxt-schema=schema
+          ~|  "insert into table {<name.table.c>} ".
+              "as-of schema time out of order"
+          %:  get-next-schema  sys.db
+                            next-schemas
+                            sys-time
+                            database.table.c
+                            ==
     =/  =table
         ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist"
-        %-  ~(got by tables:(get-schema sys-time sys.db))
+        %-  ~(got by tables:nxt-schema)
             [namespace.table.c name.table.c]
-    =/  usr-data=data  (get-data sys-time content.db)
-    =/  data=data  ?:  (~(has by next-data) database.table.c)
-                        (need +:(~(got by next-data) database.table.c))
-                      usr-data
-    ?:  (lth sys-time tmsp.data)
-      ~|("table {<name.table.c>} as-of time out of order" !!)
-    ?:  ?&(=(usr-data data) =(tmsp.data sys-time))
-      ~|("insert table {<name.table.c>} as-of time out of order" !!)
-    ::
     =/  =file  
           ~|  "table {<namespace.table.c>}.{<name.table.c>} does not exist" 
-          (~(got by files.data) [namespace.table.c name.table.c])
+          (~(got by files.nxt-data) [namespace.table.c name.table.c])
     ::
     =/  col-map  (malt (turn columns.table |=(a=column:ast [+<.a a])))  
     =/  cols=(list column:ast)  ?~  columns.c
@@ -461,9 +503,8 @@
     =/  i=@ud  0
     |-
     ?~  value-table  
-      :-
-        (finalize-data data file bowl sys-time table.c next-data)
-        ~[[%result-ud 'row count' i] [%result-da 'data time' sys-time]]
+      :-  (finalize-data nxt-data file bowl sys-time table.c next-data)
+          ~[[%result-ud 'row count' i] [%result-da 'data time' sys-time]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
     =/  key-pick  %+  turn 
@@ -482,22 +523,24 @@
     =.  length.file           +(length.file)
     $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ++  finalize-data
-  |=  $:  =data
+  |=  $:  nxt-data=data
           =file
           =bowl:gall
           sys-time=@da
           table=qualified-object:ast
           next-data=(map @tas [(unit schema) (unit data)])
       ==
+  ^-  (map @tas [(unit schema) (unit data)])
   =.  ship.file          src.bowl
   =.  provenance.file    sap.bowl
   =.  tmsp.file          sys-time
   ::
-  =.  ship.data          src.bowl
-  =.  provenance.data    sap.bowl
-  =.  tmsp.data          now.bowl
-  =.  files.data       (~(put by files.data) [namespace.table name.table] file)
-  (~(put by next-data) database.table [~ `data])
+  =.  ship.nxt-data        src.bowl
+  =.  provenance.nxt-data  sap.bowl
+  =.  files.nxt-data
+        (~(put by files.nxt-data) [namespace.table name.table] file)
+  =.  tmsp.nxt-data        sys-time
+  (~(put by next-data) database.table [~ `nxt-data])
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
@@ -535,7 +578,6 @@
   |-
   ?:  =(key.b name:(snag i a.b))  [key.b i]
   $(i +(i))
-
 ++  rdc-set-func
   |=  =(tree set-function:ast)
   ?~  tree  ~
@@ -570,6 +612,7 @@
           =bowl:gall
           =create-namespace:ast
           next-schemas=(map @tas [(unit schema) (unit data)])
+          next-data=(map @tas [(unit schema) (unit data)])
       ==
   ^-  [@da (map @tas [(unit schema) (unit data)])]
   ?.  =(our.bowl src.bowl)  ~|("schema changes must be by local agent" !!)
@@ -577,12 +620,19 @@
                  (~(got by state) database-name.create-namespace)
   =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
   =/  nxt-schema=schema  
-        ~|  "namespace> {<name.create-namespace>} as-of time out of order"
+        ~|  "namespace {<name.create-namespace>} as-of schema time out of order"
           %:  get-next-schema  sys.db
                             next-schemas
                             sys-time
                             database-name.create-namespace
                             ==
+  =/  dummy  
+        ~|  "drop table {<name.create-namespace>} as-of data time out of order"
+          %:  get-next-data  content.db  :: for date checking purposes
+                              next-data
+                              sys-time
+                              database-name.create-namespace
+                              ==
   =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
                       %:  map-insert 
                           namespaces.nxt-schema 
@@ -606,32 +656,30 @@
   =/  db  ~|  "database {<database.table.create-table>} does not exist"
                  (~(got by state) database.table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
-  =/  usr-data=data     (get-data sys-time content.db)
   =/  nxt-schema=schema
-        ~|  "table {<name.table.create-table>} as-of time out of order"
+        ~|  "table {<name.table.create-table>} as-of schema time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
                               sys-time
                               database.table.create-table
                               ==
   =/  nxt-data=data
-        ?:  (~(has by next-data) database.table.create-table)
-          (need +:(~(got by next-data) database.table.create-table))
-        usr-data
-  ?:  (lth sys-time tmsp.nxt-data)
-    ~|("table {<name.table.create-table>} as-of time out of order" !!)
-  ?:  ?&(=(usr-data nxt-data) =(tmsp.nxt-data sys-time))
-    ~|("table {<name.table.create-table>} as-of time out of order" !!)
+        ~|  "table {<name.table.create-table>} as-of data time out of order"
+          %:  get-next-data  content.db
+                              next-data
+                              sys-time
+                              database.table.create-table
+                              ==
   ::
   ?.  (~(has by namespaces.nxt-schema) namespace.table.create-table)
     ~|("namespace {<namespace.table.create-table>} does not exist" !!)
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
-    ~|("dulicate column names {<columns.create-table>}" !!)
+    ~|("duplicate column names {<columns.create-table>}" !!)
   =/  key-col-set  (name-set (silt pri-indx.create-table))
   =/  key-count  ~(wyt in key-col-set)
   ?.  =((lent pri-indx.create-table) key-count)
-    ~|("dulicate column names in key {<columns.create-table>}" !!)
+    ~|("duplicate column names in key {<columns.create-table>}" !!)
   ?.  =(key-count ~(wyt in (~(int in col-set) key-col-set)))
     ~|("key column not in column definitions {<pri-indx.create-table>}" !!)
   ::
@@ -716,20 +764,19 @@
              (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
   =/  nxt-schema=schema
-        ~|  "table {<name.table.d>} as-of time out of order"
+        ~|  "drop table {<name.table.d>} as-of schema time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
                               sys-time
                               database.table.d
                               ==
-  =/  usr-data=data  (get-data sys-time content.db)
-  =/  data=data  ?:  (~(has by next-data) database.table.d)
-                        (need +:(~(got by next-data) database.table.d))
-                      usr-data
-  ?:  (lth sys-time tmsp.data)
-    ~|("drop table {<name.table.d>} as-of time out of order" !!)
-  ?:  ?&(=(usr-data data) =(tmsp.data sys-time))
-    ~|("drop table {<name.table.d>} as-of time out of order" !!)
+  =/  nxt-data=data
+        ~|  "drop table {<name.table.d>} as-of data time out of order"
+          %:  get-next-data  content.db
+                              next-data
+                              sys-time
+                              database.table.d
+                              ==
   ::
   ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
     ~|("namespace {<namespaces.nxt-schema>} does not exist" !!)
@@ -744,20 +791,20 @@
   =.  provenance.nxt-schema  sap.bowl
   ::
   =/  file  ~|  "table {<namespace.table.d>}.{<name.table.d>} does not exist" 
-            (~(got by files.data) [namespace.table.d name.table.d])
+            (~(got by files.nxt-data) [namespace.table.d name.table.d])
   ?:  ?&((gth length.file 0) =(force.d %.n))
     ~|("table {<name.table.d>} has data, use FORCE to DROP" !!)
   =/  files  
     %+  map-delete
-        files.usr-data
+        files.nxt-data
         [namespace.table.d name.table.d]
-  =.  files.data       files
-  =.  tmsp.data        sys-time
-  =.  provenance.data  sap.bowl
+  =.  files.nxt-data       files
+  =.  tmsp.nxt-data        sys-time
+  =.  provenance.nxt-data  sap.bowl
   ::
   :+  sys-time
       (~(put by next-schemas) database.table.d [`nxt-schema ~])
-      (~(put by next-data) database.table.d [~ `data])
+      (~(put by next-data) database.table.d [~ `nxt-data])
 ++  update-state
   |=  $:  state=databases
           next-schemas=(map @tas [(unit schema) (unit data)])
@@ -827,7 +874,7 @@
   ?~  prior  ~|("schema not available for {<time>}" !!)
   +:(need prior)
 ::
-::  gets the schema with the highes timestamp
+::  gets the schema with the highest timestamp for mutation
 ++  get-next-schema
   |=  $:  sys=(tree [@da schema])
           next-schemas=(map @tas [(unit schema) (unit data)])
@@ -842,6 +889,8 @@
   ?:  (lth sys-time tmsp.nxt-schema)  !!
   ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))  !!
   nxt-schema
+::
+::  gets the data with matching or highest timestamp prior to
 ++  get-data
   |=  [time=@da sys=(tree [@da data])]
   ^-  data
@@ -850,6 +899,23 @@
   =/  prior  (pry:data-key (lot:data-key sys `time ~))
   ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
+::
+::  gets the data with the highest timestamp for mutation
+++  get-next-data
+  |=  $:  content=(tree [@da data])
+          next-data=(map @tas [(unit schema) (unit data)])
+          sys-time=@da
+          db-name=@tas
+      ==
+  ^-  data
+  =/  db-data  +:(need (pry:data-key content))  :: latest data
+  =/  nxt-data=data  ?:  (~(has by next-data) db-name)
+                        (need +:(~(got by next-data) db-name))
+                      db-data
+  ?:  (lth sys-time tmsp.nxt-data)  !!
+  ?:  ?&(=(db-data nxt-data) =(tmsp.nxt-data sys-time))  !!
+  nxt-data
+::
 ++  order-row
   |_  index=(list [@tas ascending=? offset=@ud])  
   :: to do: accomadate varying row types

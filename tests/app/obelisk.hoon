@@ -130,7 +130,7 @@
               %+  gas:schema-key  *((mop @da schema) gth)
                                   ~[sys-time-create-ns time-2-sys sys1]
               %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-time-2 content-1]
+                                ~[content-1]
           ==
       ~
       ~
@@ -144,6 +144,34 @@
                                   ~[time-3-sys time-1-sys1]
               %+  gas:data-key  *((mop @da data) gth)
                                 ~[content-time-3 content-time-1]
+          ==
+      ~
+      ~
+++  db-time-drop-tbl
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[time-5-sys time-4-sys time-3a-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-time-5 content-time-3 content-1]
+          ==
+      ~
+      ~
+++  db-time-insert-tbl
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[time-2-sys1 sys1]
+::                                  ~[sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-insert content-my-table content-1]
+::                                ~[content-1]
           ==
       ~
       ~
@@ -163,8 +191,20 @@
       :*  %schema
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
-          namespaces=[[p=%dbo q=~2023.7.9..22.35.35..7e90] ~ [[p=%sys q=~2023.7.9..22.35.35..7e90] ~ ~]]
+          :+  [p=%dbo q=~2023.7.9..22.35.35..7e90]
+              ~
+              [[p=%sys q=~2023.7.9..22.35.35..7e90] ~ ~]
           tables=~
+      ==
+++  time-2-sys1
+  :-  ~2023.7.9..22.35.35..7e90
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=~2023.7.9..22.35.35..7e90
+          :+  [p=%dbo q=~2000.1.1]
+              ~
+              [[p=%sys q=~2000.1.1] ~ ~]
+          tables=[time-one-col-tbl ~ ~]
       ==
 ++  sys2
   :-  ~2000.1.2
@@ -201,20 +241,54 @@
         tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
     ==
 ++  time-2-sys
-  :-  ~2000.1.2
+  :-  ~2023.7.9..22.35.35..7e90
     :*  %schema
         provenance=`path`/test-agent
-        tmsp=~2000.1.2
-        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-        tables=[time-2-tbl ~ ~]
+        tmsp=~2023.7.9..22.35.35..7e90
+        :+  [%ns1 ~2023.7.9..22.35.35..7e90]
+            ~
+            [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
+        tables=~
     ==
 ++  time-3-sys
   :-  ~2023.7.9..22.35.36..7e90
     :*  %schema
         provenance=`path`/test-agent
         tmsp=~2023.7.9..22.35.36..7e90
-        namespaces=[[%dbo ~2023.7.9..22.35.35..7e90] ~ [[%sys ~2023.7.9..22.35.35..7e90] ~ ~]]
+        :+  [%dbo ~2023.7.9..22.35.35..7e90]
+            ~
+            [[%sys ~2023.7.9..22.35.35..7e90] ~ ~]
         tables=[time-3-tbl ~ ~]
+    ==
+++  time-3a-sys
+  :-  ~2023.7.9..22.35.36..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.36..7e90
+        :+  [%dbo ~2000.1.1]
+            ~
+            [[%sys ~2000.1.1] ~ ~]
+        tables=[time-3-tbl ~ ~]
+    ==
+++  time-4-sys
+  :-  ~2023.7.9..22.35.37..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.37..7e90
+        :+  [%ns1 ~2023.7.9..22.35.37..7e90]
+            ~
+            [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
+        tables=[time-3-tbl ~ ~]
+    ==
+++  time-5-sys
+  :-  ~2023.7.9..22.35.38..7e90
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=~2023.7.9..22.35.38..7e90
+        :+  [%ns1 ~2023.7.9..22.35.37..7e90]
+            ~
+            [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
+        tables=~
     ==
 ++  sys3
   :-  ~2000.1.3
@@ -234,14 +308,16 @@
     ==
 
 ++  sys-time-create-ns
-  :-  ~2023.7.9..22.35.35..7e90
+  :-  ~2023.7.9..22.35.36..7e90
     :*  %schema
         provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.35..7e90
-        :+  [p=%ns1 q=~2023.7.9..22.35.35..7e90]
+        tmsp=~2023.7.9..22.35.36..7e90
+        :+  [%ns1 ~2023.7.9..22.35.35..7e90]
             ~
-            [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-        tables=[time-2-tbl ~ ~]
+            :+  [%dbo ~2000.1.1]
+                ~
+                [[%ns2 ~2023.7.9..22.35.36..7e90] ~ [[%sys ~2000.1.1] ~ ~]]
+        tables=~
     ==
 ::
 ::  content
@@ -303,10 +379,38 @@
             ~
             [file-1col-1-2 ~ ~]
     ==
+++  content-my-table
+  :-  ~2023.7.9..22.35.35..7e90
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2023.7.9..22.35.35..7e90
+        :+  file-my-table
+            ~
+            ~
+    ==
+++  content-insert
+  :-  ~2023.7.9..22.35.36..7e90
+    :*  %data
+        ~zod
+        `path`/test-agent
+        ~2023.7.9..22.35.36..7e90
+        :+  file-insert
+            ~
+            ~
+    ==
 ++  content-4
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
 ++  content-1b
   [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 file-4]]
+++  content-time-5
+      :-  ~2023.7.9..22.35.38..7e90
+          :*  %data
+              ~zod
+              provenance=`path`/test-agent
+              tmsp=~2023.7.9..22.35.38..7e90
+              ~
+          ==
 ::
 ::  files
 ++  file-1col-1-2
@@ -389,6 +493,32 @@
           ==
       l=~
       r=~
+++  file-my-table
+  :-  p=[%dbo %my-table]
+      :*  %file
+          ship=~zod
+          provenance=`path`/test-agent
+          tmsp=~2023.7.9..22.35.35..7e90
+          clustered=%.y
+          length=0
+          column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~]
+          key=~[[%t %.y]]
+          pri-idx=~
+          data=~
+      ==
+++  file-insert
+  :-  p=[%dbo %my-table]
+      :*  %file
+          ship=~zod
+          provenance=`path`/test-agent
+          tmsp=~2023.7.9..22.35.36..7e90
+          clustered=%.y
+          length=1
+          column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~]
+          key=~[[%t %.y]]
+          pri-idx=file-4-pri-idx
+          data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
+      ==
 ++  file-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::
@@ -398,6 +528,18 @@
       :*  %table
           provenance=`path`/test-agent
           tmsp=~2000.1.2
+          :^  %index
+              unique=%.y
+              clustered=%.y
+              ~[[%ordered-column name=%col1 ascending=%.y]]
+          ~[[%column name=%col1 column-type=%t]]
+          ~
+      ==
+++  time-one-col-tbl
+  :-  [%dbo %my-table]
+      :*  %table
+          provenance=`path`/test-agent
+          tmsp=~2023.7.9..22.35.35..7e90
           :^  %index
               unique=%.y
               clustered=%.y
@@ -2001,16 +2143,6 @@
 ::
 ::  TIME
 ::
-::  To DO:  create namespace  > content
-::                            fail content =, <
-::          create table      > content
-::                            fail schema =, <, content =, <
-::          drop table        > schema , > content
-::                            fail schema =, <, content =, <
-::          insert            > schema , > content
-::                            fail schema =, <, content =, <
-
-::
 ::  time, create database
 ++  test-time-create-database
   =|  run=@ud
@@ -2042,27 +2174,24 @@
     ==
   =.  run  +(run)
   =^  mov2  agent  
-    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
-        %obelisk-action
-        !>  :+  %tape
-                %db1
-                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
-                "PRIMARY KEY (col1, col2)"
-    ==
-  =.  run  +(run)
-  =^  mov2  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.3]))
         %obelisk-action
         !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns2 as of ~2023.7.9..22.35.36..7e90"])
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-.mov3
   %+  expect-eq
-    !>  [%result-da 'system time' ~2023.7.9..22.35.35..7e90]
-    !>  ->+>+>+<.mov2
+    !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
+    !>  ->+>+>+<.mov3
   %+  expect-eq
     !>  db-time-create-ns
     !>  databases.state
@@ -2102,8 +2231,76 @@
                   "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
       ==
 ::
+::  fail on time, create ns = content
+++  test-fail-time-create-ns-eq-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %tape
+                  %db1
+                  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
+      ==
+::
+::  fail on time, create ns lt content
+++  test-fail-time-create-ns-lt-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %tape
+                  %db1
+                  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
+      ==
+::
 ::  time, create table as of 1 second > content
-++  test-time-create-table-gt-content
+++  test-time-create-table-gt-schema
   =|  run=@ud
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
@@ -2133,4 +2330,495 @@
     !>  db-time-create-tbl
     !>  databases.state
   ==
+::
+::  fail on time, create table = schema
+++  test-fail-time-create-table-eq-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "as of ~2023.7.9..22.35.35..7e90"
+    ==
+::
+::  fail on time, create table lt schema
+++  test-fail-time-create-table-lt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "as of ~2023.7.9..22.35.34..7e90"
+    ==
+::
+::  fail on time, create table = content
+++  test-fail-time-create-table-eq-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %tape
+                  %db1
+                  "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) ".
+                  "AS OF ~2023.7.9..22.35.35..7e90"
+      ==
+::
+::  fail on time, create table < content
+++  test-fail-time-create-table-lt-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %tape
+                  %db1
+                  "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) ".
+                  "AS OF ~2023.7.9..22.35.35..7e90"
+      ==
+::
+::  time, drop table as of 1 second > content
+++  test-time-drop-table-gt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "DROP TABLE db1..my-table-2 ".
+                "AS OF ~2023.7.9..22.35.38..7e90"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-.mov3
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.38..7e90]
+    !>  ->+>+>+<.mov3
+  %+  expect-eq
+    !>  db-time-drop-tbl
+    !>  databases.state
+  ==
+::
+::  fail on time, drop table = schema
+++  test-fail-time-drop-table-eq-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "DROP TABLE db1..my-table-2 ".
+                "AS OF ~2023.7.9..22.35.37..7e90"
+    ==
+::
+::  fail on time, drop table lt schema
+++  test-fail-time-drop-table-lt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "DROP TABLE db1..my-table-2 ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+::
+::  fail on time, drop table = content
+++  test-fail-time-drop-table-eq-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %tape
+                  %db1
+                  "DROP TABLE db1..my-table as of ~2023.7.9..22.35.35..7e90"
+      ==
+::
+::  fail on time, drop table < content
+++  test-fail-time-drop-table-lt-content
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %tape
+                  %db1
+                  "DROP TABLE db1..my-table as of ~2023.7.9..22.35.34..7e90"
+      ==
+::
+::  time, insert as of 1 second > schema
+++  test-time-insert-gt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  :-  %results
+          :~  [%result-da 'data time' ~2023.7.9..22.35.36..7e90]
+              [%result-ud 'row count' 1]
+              ==
+    !>  ->+>+>.mov3
+  %+  expect-eq
+    !>  db-time-insert-tbl
+    !>  databases.state
+  ==
+::
+::  fail on time,  insert = schema
+++  test-fail-insert-eq-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.36..7e90"])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+::
+::  fail on time,  insert < schema
+++  test-fail-insert-lt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.9..22.35.34..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.36..7e90"])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+::
+::  fail on time,  insert = data
+++  test-fail-insert-eq-data
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.9..22.35.34..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('foo') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+::
+::  fail on time,  insert < data
+++  test-fail-insert-lt-data
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.9..22.35.33..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape 
+                %db1 
+                "INSERT INTO db1..my-table (col1) VALUES ('foo') ".
+                "AS OF ~2023.7.9..22.35.34..7e90"
+    ==
+::
+::  fail on changing state after select in script
+++  test-fail-state-update-action-after-select
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1 
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                "SELECT 0;".
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') "
+    ==
 --
