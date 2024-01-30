@@ -1227,8 +1227,10 @@
     !>  %results
     !>  ->+>+>-<.mov4
   %+  expect-eq
-    !>  [%result-da 'system time' ~2000.1.4]
-    !>  ->+>+>->-.mov4
+    !>  :~  [%result-da 'system time' ~2000.1.4]
+            [%result-da 'data time' ~2000.1.4]
+            ==
+    !>  ->+>+>->.mov4
   %+  expect-eq
     !>  dropped-tbl-db-force
     !>  databases.state

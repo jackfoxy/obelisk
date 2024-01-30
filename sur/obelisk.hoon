@@ -77,7 +77,7 @@
   ==
 +$  result  [%results (list cmd-result)]
 +$  table-return
-  $:  @da
+  $:  [@da ?]
       (map @tas [(unit schema) (unit data)])
       (map @tas [(unit schema) (unit data)])
   ==

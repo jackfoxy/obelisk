@@ -619,12 +619,19 @@
   ==
 ::
 ::
-::
-::
-::
-::  time, insert as of 1 second > schema
-++  test-time-insert-gt-schema
+:::  drop table with data force
+++  test-drop-tbl-force
   =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        %.y
+        ~
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -636,28 +643,32 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
-                "AS OF ~2023.7.9..22.35.35..7e90"
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent  
-    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape 
-                %db1 
-                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
-                "AS OF ~2023.7.9..22.35.36..7e90"
+        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+    ==
+  =.  run  +(run)
+  =^  mov4  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  :-  %results
-          :~  [%result-ud 'row count' 1]
-              [%result-da 'data time' ~2023.7.9..22.35.36..7e90]
-              ==
-    !>  ->+>+>-.mov3
+    !>  %results
+    !>  ->+>+>-<.mov4
   %+  expect-eq
-    !>  db-time-insert-tbl
+    !>  :~  [%result-da 'system time' ~2000.1.4]
+            [%result-da 'data time' ~2000.1.4]
+            ==
+    !>  ->+>+>->.mov4
+  %+  expect-eq
+    !>  dropped-tbl-db-force
     !>  databases.state
   ==
 --

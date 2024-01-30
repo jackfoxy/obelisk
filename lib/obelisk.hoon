@@ -82,10 +82,10 @@
         next-schemas  +<.r
         next-data     +>.r
         cmds          +.cmds
-        results       :-
-                        :-  %results
-                            (limo ~[`cmd-result`[%result-da 'system time' -.r]])
-                          results
+        results     :-
+                      :-  %results
+                          (limo ~[`cmd-result`[%result-da 'system time' -<.r]])
+                        results
       ==
     %create-view
       ?:  query-has-run  ~|("create view state change after query in script" !!)
@@ -107,10 +107,17 @@
         next-schemas  +<.r
         next-data     +>.r
         cmds          +.cmds
-        results       :-
-                        :-  %results
-                            (limo ~[`cmd-result`[%result-da 'system time' -.r]])
-                          results
+        results
+          ?:  ->.r
+            :-  :-  %results
+                    %-  limo  :~  `cmd-result`[%result-da 'system time' -<.r]
+                                  `cmd-result`[%result-da 'data time' -<.r]
+                                  ==
+                results
+          :-
+            :-  %results
+                (limo ~[`cmd-result`[%result-da 'system time' -<.r]])
+            results
       ==
     %drop-view
       ?:  query-has-run  ~|("drop view state change after query in script" !!)
@@ -750,7 +757,7 @@
   =.  tmsp.nxt-data        sys-time
   =.  provenance.nxt-data  sap.bowl
   ::
-  :+  sys-time
+  :+  [sys-time %.n]
       (~(put by next-schemas) database.table.create-table [`nxt-schema ~])
       (~(put by next-data) database.table.create-table [~ `nxt-data])
 ++  make-col-lu-data
@@ -777,10 +784,6 @@
           next-data=(map @tas [(unit schema) (unit data)])
           ==
   ^-  table-return
-
-
-  :: to do: FORCE
-
   ?.  =(our.bowl src.bowl)  ~|("table must be dropped by local agent" !!)
   =/  db  ~|  "database {<database.table.d>} does not exist" 
              (~(got by state) database.table.d)
@@ -817,6 +820,7 @@
             (~(got by files.nxt-data) [namespace.table.d name.table.d])
   ?:  ?&((gth length.file 0) =(force.d %.n))
     ~|("drop table {<name.table.d>} has data, use FORCE to DROP" !!)
+  =/  dropped-data=?  (gth length.file 0)
   =/  files  
     %+  map-delete
         files.nxt-data
@@ -825,7 +829,7 @@
   =.  tmsp.nxt-data        sys-time
   =.  provenance.nxt-data  sap.bowl
   ::
-  :+  sys-time
+  :+  [sys-time dropped-data]
       (~(put by next-schemas) database.table.d [`nxt-schema ~])
       (~(put by next-data) database.table.d [~ `nxt-data])
 ++  update-state
