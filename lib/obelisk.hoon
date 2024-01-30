@@ -36,70 +36,84 @@
       `cmd-result`[%result-da 'system time' sys-time]
 ++  process-cmds
   |=  [state=databases =bowl:gall cmds=(list command:ast)]
-  ^-  [(list cmd-result) databases]
+  ^-  [(list (list cmd-result)) databases]
   =/  next-schemas=(map @tas [(unit schema) (unit data)])  ~
   =/  next-data=(map @tas [(unit schema) (unit data)])  ~
-  =/  results=(list cmd-result)  ~
+  =/  results=(list (list cmd-result))  ~
   =/  query-has-run=?  %.n
   |-  
-  ?~  cmds  :-  [%results (flop results)]
+  ?~  cmds  :-  (flop results)
                 (update-state state next-schemas next-data)
   ?-  -<.cmds
     %alter-index
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("alter index state change after query in script" !!)
       !!
     %alter-namespace
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  
+        ~|("alter namespace state change after query in script" !!)
       !!
     %alter-table
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("alter table state change after query in script" !!)
       !!
     %create-database  ~|("create database must be only command in script" !!)
     %create-index
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run
+        ~|("create-index state change after query in script" !!)
       !!
     %create-namespace
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run
+        ~|("create namespace state change after query in script" !!)
       =/  r=[@da (map @tas [(unit schema) (unit data)])]
             (create-ns state bowl -.cmds next-schemas next-data)
       %=  $
         next-schemas  +.r
         cmds          +.cmds
-        results       [`cmd-result`[%result-da 'system time' -.r] results]
+        results       :- 
+                          :-  %results
+                            (limo ~[`cmd-result`[%result-da 'system time' -.r]])
+                          results
       ==
     %create-table
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run
+        ~|("create table state change after query in script" !!)
       =/  r=table-return
             (create-tbl state bowl -.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>.r
-        cmds     +.cmds
-        results  [`cmd-result`[%result-da 'system time' -.r] results]
+        cmds          +.cmds
+        results       :-
+                        :-  %results
+                            (limo ~[`cmd-result`[%result-da 'system time' -.r]])
+                          results
       ==
     %create-view
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("create view state change after query in script" !!)
       !!
     %drop-database
       !!
     %drop-index
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("drop index state change after query in script" !!)
       !!
     %drop-namespace
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run
+        ~|("drop namespace state change after query in script" !!)
       !!
     %drop-table
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("drop table state change after query in script" !!)
       =/  r=table-return  
             (drop-tbl state bowl -.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>.r
         cmds          +.cmds
-        results       [`cmd-result`[%result-da 'system time' -.r] results]
+        results       :-
+                        :-  %results
+                            (limo ~[`cmd-result`[%result-da 'system time' -.r]])
+                          results
       ==
     %drop-view
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("drop view state change after query in script" !!)
       !!
     %grant
       !!
@@ -118,10 +132,11 @@
         query-has-run   -.r
         next-data       +<.r
         cmds            +.cmds
-        results         +>.r
+        results         [[%results +>.r] results]
       ==
     %truncate-table
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run
+        ~|("truncate table state change after query in script" !!)
       !!
   ==
 ++  do-transform
@@ -159,13 +174,13 @@
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %delete
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("delete state change after query in script" !!)
       !!
     %insert
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("insert state change after query in script" !!)
       [%.n (do-insert state bowl -.rtree next-data next-schemas)]
     %update
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("update state change after query in script" !!)
       !!
     %query
       [%.y [next-data (do-query state bowl -.rtree)]]
@@ -177,7 +192,7 @@
 
   ::    !!
     %merge
-      ?:  query-has-run  ~|("state change after query in script" !!)
+      ?:  query-has-run  ~|("merge state change after query in script" !!)
       !!
     == 
   ++  do-query
@@ -459,6 +474,9 @@
             next-data=(map @tas [(unit schema) (unit data)])
             next-schemas=(map @tas [(unit schema) (unit data)])
         ==
+
+    :: to do: aura validation?
+
     ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]
     =/  db  
         ~|  "database {<database.table.c>} does not exist" 
@@ -494,10 +512,10 @@
       ::  validate columns.c length matches, no dups
       ?.  .=  ~(wyt by column-lookup.file) 
               ~(wyt in (silt `(list @t)`(need columns.c)))
-        ~|("invalid column: {<columns.c>}" !!)
+        ~|("insert invalid column: {<columns.c>}" !!)
       %+  turn 
           `(list @t)`(need columns.c) 
-          |=(a=@t ~|("invalid column: {<a>}" (~(got by col-map) a)))
+          |=(a=@t ~|("insert invalid column: {<a>}" (~(got by col-map) a)))
     ?.  ?=([%data *] values.c)  ~|("not implemented: {<values.c>}" !!)
     =/  value-table  `(list (list value-or-default:ast))`+.values.c
     =/  i=@ud  0
@@ -627,7 +645,7 @@
                             database-name.create-namespace
                             ==
   =/  dummy  
-        ~|  "drop table {<name.create-namespace>} as-of data time out of order"
+       ~|  "namespace {<name.create-namespace>} as-of content time out of order"
           %:  get-next-data  content.db  :: for date checking purposes
                               next-data
                               sys-time
@@ -759,6 +777,10 @@
           next-data=(map @tas [(unit schema) (unit data)])
           ==
   ^-  table-return
+
+
+  :: to do: FORCE
+
   ?.  =(our.bowl src.bowl)  ~|("table must be dropped by local agent" !!)
   =/  db  ~|  "database {<database.table.d>} does not exist" 
              (~(got by state) database.table.d)
@@ -790,10 +812,11 @@
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
   ::
-  =/  file  ~|  "table {<namespace.table.d>}.{<name.table.d>} does not exist" 
+  =/  file
+        ~|  "drop table {<namespace.table.d>}.{<name.table.d>} does not exist" 
             (~(got by files.nxt-data) [namespace.table.d name.table.d])
   ?:  ?&((gth length.file 0) =(force.d %.n))
-    ~|("table {<name.table.d>} has data, use FORCE to DROP" !!)
+    ~|("drop table {<name.table.d>} has data, use FORCE to DROP" !!)
   =/  files  
     %+  map-delete
         files.nxt-data

@@ -548,10 +548,11 @@
                 (parse:parse(default-database 'db1') my-insert)
   ;:  weld
   %+  expect-eq                         
-    !>  :-  %results
-            :~  [%result-da msg='data time' date=~2030.1.1]
-                [%result-ud msg='row count' count=2]
-            ==
+    !>  :~  :-  %results
+                :~  [%result-ud msg='row count' count=2]
+                    [%result-da msg='data time' date=~2030.1.1]
+                ==
+        ==
     !>  -.x
   %+  expect-eq
     !>  gen3-dbs
@@ -569,10 +570,11 @@
                 (parse:parse(default-database 'db1') my-insert)
   ;:  weld
   %+  expect-eq                         
-    !>  :-  %results
-            :~  [%result-da msg='data time' date=~2030.2.1]
-                [%result-ud msg='row count' count=2]
-            ==
+    !>  :~  :-  %results
+                :~  [%result-ud msg='row count' count=2]
+                    [%result-da msg='data time' date=~2030.2.1]
+                ==
+        ==
     !>  -.x
   %+  expect-eq
     !>  gen4-dbs
@@ -691,13 +693,14 @@
                 (bowl [run ~2023.2.1])
                 (parse:parse(default-database 'db1') my-select)
   %+  expect-eq                         
-    !>  :-  %results
-            :~  :*  %result-set
-                    qualifier=~.literals
-                    columns=~[[%literal-0 %ud]]
-                    data=[i=~[0] t=~]
+    !>  :~  :-  %results
+                :~  :*  %result-set
+                        qualifier=~.literals
+                        columns=~[[%literal-0 %ud]]
+                        data=[i=~[0] t=~]
+                    ==
                 ==
-            ==
+        ==
     !>  -.x
 ::
 ::  select all literals mixed with aliases
@@ -790,6 +793,6 @@
                               (bowl [run ~2023.2.1])
                               (parse:parse(default-database 'db1') my-select)
   %+  expect-eq                         
-    !>  [%results ~[[%result-set qualifier=~.literals rslt-cols rslt-data]]]
+    !>  ~[[%results ~[[%result-set qualifier=~.literals rslt-cols rslt-data]]]]
     !>  -.x
 --

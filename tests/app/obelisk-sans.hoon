@@ -618,8 +618,12 @@
       ~
   ==
 ::
-::  fail on changing state after select in script
-++  test-state-update-action-after-select
+::
+::
+::
+::
+::  time, insert as of 1 second > schema
+++  test-time-insert-gt-schema
   =|  run=@ud
   =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
@@ -627,13 +631,33 @@
         !>([%tape-create-db "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
-  %-  expect-fail
-  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
         !>  :+  %tape 
                 %db1 
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
-                "SELECT 0;".
-                "INSERT INTO db1..my-table (col1) VALUES ('cord') "
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
     ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  :-  %results
+          :~  [%result-ud 'row count' 1]
+              [%result-da 'data time' ~2023.7.9..22.35.36..7e90]
+              ==
+    !>  ->+>+>-.mov3
+  %+  expect-eq
+    !>  db-time-insert-tbl
+    !>  databases.state
+  ==
 --

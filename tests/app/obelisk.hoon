@@ -168,10 +168,8 @@
               created-tmsp=~2000.1.1
               %+  gas:schema-key  *((mop @da schema) gth)
                                   ~[time-2-sys1 sys1]
-::                                  ~[sys1]
               %+  gas:data-key  *((mop @da data) gth)
                                 ~[content-insert content-my-table content-1]
-::                                ~[content-1]
           ==
       ~
       ~
@@ -684,12 +682,12 @@
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
-%+  expect-eq
+  %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  db2
     !>  databases.state
@@ -712,10 +710,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  db2
     !>  databases.state
@@ -773,10 +771,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  one-col-tbl-db
     !>  databases.state
@@ -801,10 +799,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  one-col-tbl-db
     !>  databases.state
@@ -812,7 +810,7 @@
 ::
 ++  test-cmd-create-2-col-tbl
   =|  run=@ud
- =^  mov1  agent  
+  =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
         !>([%cmd-create-db [%create-database 'db1' ~]])
@@ -832,10 +830,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov3
+    !>  ->+>+>-<.mov3
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.3]
-    !>  ->+>+>+<.mov3
+    !>  ->+>+>->-.mov3
   %+  expect-eq
     !>  two-col-tbl-db
     !>  databases.state
@@ -843,7 +841,7 @@
 ::
 ++  test-tape-create-2-col-tbl
   =|  run=@ud
- =^  mov1  agent  
+  =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
         !>([%tape-create-db "CREATE DATABASE db1"])
@@ -869,10 +867,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov3
+    !>  ->+>+>-<.mov3
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.3]
-    !>  ->+>+>+<.mov3
+    !>  ->+>+>->-.mov3
   %+  expect-eq
     !>  two-col-tbl-db
     !>  databases.state
@@ -880,7 +878,7 @@
 ::
 ++  test-cmd-create-comb-2-col-tbl
   =|  run=@ud
- =^  mov1  agent  
+  =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
         !>([%cmd-create-db [%create-database 'db1' ~]])
@@ -895,10 +893,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  two-comb-col-tbl-db
     !>  databases.state
@@ -906,7 +904,7 @@
 ::
 ++  test-tape-create-comb-2-col-tbl
   =|  run=@ud
- =^  mov1  agent  
+  =^  mov1  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
         !>([%tape-create-db "CREATE DATABASE db1"])
@@ -925,10 +923,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.2]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  two-comb-col-tbl-db
     !>  databases.state
@@ -1176,10 +1174,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov3
+    !>  ->+>+>-<.mov3
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.3]
-    !>  ->+>+>+<.mov3
+    !>  ->+>+>->-.mov3
   %+  expect-eq
     !>  dropped-tbl-db
     !>  databases.state
@@ -1227,10 +1225,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov4
+    !>  ->+>+>-<.mov4
   %+  expect-eq
     !>  [%result-da 'system time' ~2000.1.4]
-    !>  ->+>+>+<.mov4
+    !>  ->+>+>->-.mov4
   %+  expect-eq
     !>  dropped-tbl-db-force
     !>  databases.state
@@ -1355,21 +1353,16 @@
                   [%data-agent %tas]
                   [%data-tmsp %da]
                 ==
-  =/  row1  ~[%db1 '/test-agent' ~2000.1.1 0 '/test-agent' ~2000.1.1]
-  =/  row2  ~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.2]
-  =/  row3  ~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.3]
-  =/  row4  ~[%db2 '/test-agent' ~2000.1.4 0 '/test-agent' ~2000.1.4]
-  =/  row5  ~[%db2 '/test-agent' ~2000.1.5 0 '/test-agent' ~2000.1.5]
+  =/  row1  `(list @)`~[%db1 '/test-agent' ~2000.1.1 0 '/test-agent' ~2000.1.1]
+  =/  row2  `(list @)`~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.2]
+  =/  row3  `(list @)`~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.3]
+  =/  row4  `(list @)`~[%db2 '/test-agent' ~2000.1.4 0 '/test-agent' ~2000.1.4]
+  =/  row5  `(list @)`~[%db2 '/test-agent' ~2000.1.5 0 '/test-agent' ~2000.1.5]
   =/  expected  :~  %results
-                    :~  %result-set
+                    :^  %result-set
                         'sys.sys.databases'
-                        col-row
-                        row1
-                        row2
-                        row3
-                        row4
-                        row5
-                    ==
+                        (limo col-row)
+                        (limo ~[row1 row2 row3 row4 row5])
                 ==
   =/  cmd
     :^  %drop-table
@@ -1422,24 +1415,24 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>.mov6
+    !>  ->+>+>-.mov6
 ::
 ++  test-sys-tables
   =|  run=@ud
   =/  col-row  :~  [%namespace %tas]
-                  [%name %tas]
-                  [%ship %p]
-                  [%agent %tas]
-                  [%tmsp %da]
-                  [%row-count %ud]
-                  [%clustered %f]
-                  [%key-ordinal %ud]
-                  [%key %tas]
-                  [%key-ascending %f]
-                  [%col-ordinal %ud]
-                  [%col-name %tas]
-                  [%col-type %tas]
-                ==
+                   [%name %tas]
+                   [%ship %p]
+                   [%agent %tas]
+                   [%tmsp %da]
+                   [%row-count %ud]
+                   [%clustered %f]
+                   [%key-ordinal %ud]
+                   [%key %tas]
+                   [%key-ascending %f]
+                   [%col-ordinal %ud]
+                   [%col-name %tas]
+                   [%col-type %tas]
+                   ==
   =/  row1  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 1 %col1 0 1 %col1 %t]
   =/  row2  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 1 %col1 0 2 %col2 %t]
   =/  row3  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 2 %col2 1 1 %col1 %t]
@@ -1711,33 +1704,33 @@
                 %ud
               ==
   =/  expected  :~  %results
-                    :~  %result-set
+                    :^  %result-set
                         ~.db1.sys.tables
-                        col-row
-                        row1
-                        row2
-                        row3
-                        row4
-                        row5
-                        row6
-                        row7
-                        row8
-                        row9
-                        row10
-                        row11
-                        row12
-                        row13
-                        row14
-                        row15
-                        row16
-                        row17
-                        row18
-                        row19
-                        row20
-                        row21
-                        row22
-                        row23
-                    ==
+                        (limo col-row)
+                        %-  limo  :~  `(list @)`row1
+                                      `(list @)`row2
+                                      `(list @)`row3
+                                      `(list @)`row4
+                                      `(list @)`row5
+                                      `(list @)`row6
+                                      `(list @)`row7
+                                      `(list @)`row8
+                                      `(list @)`row9
+                                      `(list @)`row10
+                                      `(list @)`row11
+                                      `(list @)`row12
+                                      `(list @)`row13
+                                      `(list @)`row14
+                                      `(list @)`row15
+                                      `(list @)`row16
+                                      `(list @)`row17
+                                      `(list @)`row18
+                                      `(list @)`row19
+                                      `(list @)`row20
+                                      `(list @)`row21
+                                      `(list @)`row22
+                                      `(list @)`row23
+                                      ==
                 ==
   =/  cmd
     :^  %drop-table
@@ -1815,41 +1808,41 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>.mov8
+    !>  ->+>+>-.mov8
 ::
 ++  test-sys-columns
   =|  run=@ud
   =/  col-row  :~  [%namespace %tas]
-                  [%name %tas]
-                  [%col-ordinal %ud]
-                  [%col-name %tas]
-                  [%col-type %tas]
+                   [%name %tas]
+                   [%col-ordinal %ud]
+                   [%col-name %tas]
+                   [%col-type %tas]
                 ==
-  =/  row1  ~[%dbo %my-table-2 1 %col1 %p]
-  =/  row2  ~[%dbo %my-table-2 2 %col2 %t]
-  =/  row3  ~[%dbo %my-table-3 1 %col1 %p]
-  =/  row4  ~[%dbo %my-table-3 2 %col2 %t]
-  =/  row5  ~[%dbo %my-table-3 3 %col3 %ud]
-  =/  row6  ~[%dbo %my-table-4 1 %col1 %p]
-  =/  row7  ~[%dbo %my-table-4 2 %col2 %t]
-  =/  row8  ~[%dbo %my-table-4 3 %col3 %ud]
-  =/  row9  ~[%ref %my-table 1 %col1 %t]
-  =/  row10  ~[%ref %my-table 2 %col2 %t]
+  =/  row1   `(list @)`~[%dbo %my-table-2 1 %col1 %p]
+  =/  row2   `(list @)`~[%dbo %my-table-2 2 %col2 %t]
+  =/  row3   `(list @)`~[%dbo %my-table-3 1 %col1 %p]
+  =/  row4   `(list @)`~[%dbo %my-table-3 2 %col2 %t]
+  =/  row5   `(list @)`~[%dbo %my-table-3 3 %col3 %ud]
+  =/  row6   `(list @)`~[%dbo %my-table-4 1 %col1 %p]
+  =/  row7   `(list @)`~[%dbo %my-table-4 2 %col2 %t]
+  =/  row8   `(list @)`~[%dbo %my-table-4 3 %col3 %ud]
+  =/  row9   `(list @)`~[%ref %my-table 1 %col1 %t]
+  =/  row10  `(list @)`~[%ref %my-table 2 %col2 %t]
   =/  expected  :~  %results
-                    :~  %result-set
+                    :^  %result-set
                         ~.db1.sys.columns
-                        col-row
-                        row1
-                        row2
-                        row3
-                        row4
-                        row5
-                        row6
-                        row7
-                        row8
-                        row9
-                        row10
-                    ==
+                        (limo col-row)
+                        %-  limo  :~  row1
+                                      row2
+                                      row3
+                                      row4
+                                      row5
+                                      row6
+                                      row7
+                                      row8
+                                      row9
+                                      row10
+                                      ==
                 ==
   =/  cmd  :^  %drop-table
               :*  %qualified-object
@@ -1908,7 +1901,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>.mov6
+    !>  ->+>+>-.mov6
 ::
 ++  test-sys-log
   =|  run=@ud
@@ -1922,18 +1915,18 @@
   =/  row7  ~[~2000.1.1 '/test-agent' %namespace %dbo]
   =/  row8  ~[~2000.1.1 '/test-agent' %namespace %sys]
   =/  expected  :~  %results
-                    :~  %result-set
+                    :^  %result-set
                         ~.db1.sys.sys-log
-                        col-row
-                        row1
-                        row2
-                        row3
-                        row4
-                        row5
-                        row6
-                        row7
-                        row8
-                    ==
+                        (limo col-row)
+                        %-  limo  :~  `(list @)`row1
+                                      `(list @)`row2
+                                      `(list @)`row3
+                                      `(list @)`row4
+                                      `(list @)`row5
+                                      `(list @)`row6
+                                      `(list @)`row7
+                                      `(list @)`row8
+                                      ==
                 ==
   =/  cmd
     :^  %drop-table
@@ -2002,15 +1995,15 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>.mov7
+    !>  ->+>+>-.mov7
 ::
 ++  test-data-log
   =|  run=@ud
   =/  col-row  :~  [%tmsp %da]
-                  [%ship %p]
-                  [%agent %tas]
-                  [%namespace %tas]
-                  [%table %tas]
+                   [%ship %p]
+                   [%agent %tas]
+                   [%namespace %tas]
+                   [%table %tas]
                 ==
   =/  row1  ~[~2000.1.10 0 '/test-agent' %ref %my-table-4]
   =/  row2  ~[~2000.1.9 0 '/test-agent' %ref %my-table-4]
@@ -2022,19 +2015,19 @@
   =/  row8  ~[~2000.1.3 0 '/test-agent' %dbo %my-table]
   =/  row9  ~[~2000.1.2 0 '/test-agent' %dbo %my-table]
   =/  expected  :~  %results
-                    :~  %result-set
+                    :^  %result-set
                         ~.db1.sys.data-log
-                        col-row
-                        row1
-                        row2
-                        row3
-                        row4
-                        row5
-                        row6
-                        row7
-                        row8
-                        row9
-                    ==
+                        (limo col-row)
+                        %-  limo  :~  `(list @)`row1
+                                      `(list @)`row2
+                                      `(list @)`row3
+                                      `(list @)`row4
+                                      `(list @)`row5
+                                      `(list @)`row6
+                                      `(list @)`row7
+                                      `(list @)`row8
+                                      `(list @)`row9
+                                      ==
                 ==
   =/  cmd
     :^  %drop-table
@@ -2139,7 +2132,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>.mov11
+    !>  ->+>+>-.mov11
 ::
 ::  TIME
 ::
@@ -2188,10 +2181,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov3
+    !>  ->+>+>-<.mov3
   %+  expect-eq
     !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
-    !>  ->+>+>+<.mov3
+    !>  ->+>+>->-.mov3
   %+  expect-eq
     !>  db-time-create-ns
     !>  databases.state
@@ -2322,10 +2315,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov2
+    !>  ->+>+>-<.mov2
   %+  expect-eq
     !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
-    !>  ->+>+>+<.mov2
+    !>  ->+>+>->-.mov2
   %+  expect-eq
     !>  db-time-create-tbl
     !>  databases.state
@@ -2479,10 +2472,10 @@
   ;:  weld
   %+  expect-eq
     !>  %results
-    !>  ->+>+>-.mov3
+    !>  ->+>+>-<.mov3
   %+  expect-eq
     !>  [%result-da 'system time' ~2023.7.9..22.35.38..7e90]
-    !>  ->+>+>+<.mov3
+    !>  ->+>+>->-.mov3
   %+  expect-eq
     !>  db-time-drop-tbl
     !>  databases.state
@@ -2656,10 +2649,10 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-          :~  [%result-da 'data time' ~2023.7.9..22.35.36..7e90]
-              [%result-ud 'row count' 1]
+          :~  [%result-ud 'row count' 1]
+              [%result-da 'data time' ~2023.7.9..22.35.36..7e90]
               ==
-    !>  ->+>+>.mov3
+    !>  ->+>+>-.mov3
   %+  expect-eq
     !>  db-time-insert-tbl
     !>  databases.state
