@@ -3660,8 +3660,8 @@
             working-tree  [-.working-tree [-.parsed [+<.parsed ~ ~] ~] ~]
             parsed        +>.parsed
           ==
-        ~|
-    "invalid combination of unary operators {<-.working-tree>} and {<-.parsed>}"
+        ~|  "invalid combination of unary operators ".
+            "{<-.working-tree>} and {<-.parsed>}"
             !!
       ?~  r.working-tree  ~|("unary-op, right tree empty  {<working-tree>}" !!)
       ~|("unary-op can't get here  {<working-tree>}" !!)
@@ -3754,8 +3754,8 @@
                     ~
               parsed        +>+>.parsed
             ==
-          ~|
-  "unary-op {<+<.parsed>} after qualified-column, working-tree {<working-tree>}"
+          ~|  "unary-op {<+<.parsed>} after qualified-column, ".
+              "working-tree {<working-tree>}"
               !!
         ?:  =(%between +<.parsed)
           ?:  =(%and +>+<.parsed)
@@ -3773,8 +3773,8 @@
                   (produce-predicate ~[-.parsed %lte +>+<.parsed])
             parsed  +>+>.parsed
           ==
-        ~|
-        "qualified-column after {<+<.parsed>} , working-tree {<working-tree>}"
+        ~|  "qualified-column after {<+<.parsed>} , ".
+            "working-tree {<working-tree>}"
             !!
       ?~  l.working-tree
         %=  $
@@ -3826,8 +3826,8 @@
                 [%not (produce-predicate ~[-.parsed %in +>+<.parsed]) ~]
               parsed        +>+>.parsed
             ==
-          ~|
-    "unary-op {<+<.parsed>} after value-literal, working-tree {<working-tree>}"
+          ~|  "unary-op {<+<.parsed>} after value-literal, ".
+              "working-tree {<working-tree>}"
               !!
         ?:  =(%between +<.parsed)
           ?:  =(%and +>+<.parsed)

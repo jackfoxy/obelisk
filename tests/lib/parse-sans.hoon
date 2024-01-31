@@ -69,7 +69,14 @@
 ++  and-fb-gte-f--fb-lte-b   [%and foobar-gte-foo foobar-lte-bar]
 ++  and-fb-gte-f--t1f2-eq-z  [%and foobar-gte-foo t1-foo2-eq-zod]
 ++  and-f-eq-1--t1f3-lt-any  [%and foo-eq-1 t1-foo3-lt-any-list]
-++  and-and                  [%and and-fb-gte-f--fb-lte-b t1-foo2-eq-zod]
+++  and-and
+      :+  %and
+          :+  %and
+              foobar-gte-foo
+              foobar-lte-bar
+          :+  %eq
+              t1-foo2
+              [[%p 0] ~ ~]
 ++  and-and-or               [%or and-and t2-bar-in-list]
 ++  and-and-or-and           [%or and-and and-fb-gte-f--t1f2-eq-z]
 ++  and-and-or-and-or-and    [%or and-and-or-and and-f-eq-1--t1f3-lt-any]
@@ -92,18 +99,28 @@
 ::@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ::
 :: expected/actual match
-::++  test-predicate-26
-::  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-::    " WHERE foobar >=foo And foobar<=bar ".
-::    " and T1.foo2 = ~zod ".
-::    " SELECT *"
-::  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-::  =/  pred=(tree predicate-component:ast)      and-and
-::  =/  expected
-::    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
+++  test-predicate-27
+  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
+    " WHERE foobar >=foo And foobar<=bar ".
+    " and T1.foo2 = ~zod ".
+    " or T2.bar in (1,2,3)".
+    " SELECT *"
+  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
+  =/  pred=(tree predicate-component:ast)
+        :+  %or
+            :+  %and
+                [%gte foobar foo]
+                :+  %and
+                    [%lte foobar bar]
+                    :+  %eq
+                        t1-foo2
+                        [[%p 0] ~ ~]
+            t2-bar-in-list
+  =/  expected
+    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
 
 
 --
