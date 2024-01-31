@@ -2,7 +2,7 @@
 |%
 ++  new-database
   |=  [state=databases =bowl:gall c=command:ast]
-  ^-  [databases cmd-result]
+  ^-  [databases result]
   ?:  =(+<.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
   =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
@@ -33,13 +33,13 @@
                                             ~
                                       ==
           ==
-      `cmd-result`[%result-da 'system time' sys-time]
+      [%result-da 'system time' sys-time]
 ++  process-cmds
   |=  [state=databases =bowl:gall cmds=(list command:ast)]
-  ^-  [(list (list cmd-result)) databases]
+  ^-  [(list cmd-result) databases]
   =/  next-schemas=(map @tas [(unit schema) (unit data)])  ~
   =/  next-data=(map @tas [(unit schema) (unit data)])  ~
-  =/  results=(list (list cmd-result))  ~
+  =/  results=(list cmd-result)  ~
   =/  query-has-run=?  %.n
   |-  
   ?~  cmds  :-  (flop results)
@@ -70,7 +70,7 @@
         cmds          +.cmds
         results       :- 
                           :-  %results
-                            (limo ~[`cmd-result`[%result-da 'system time' -.r]])
+                            (limo ~[[%result-da 'system time' -.r]])
                           results
       ==
     %create-table
@@ -84,7 +84,7 @@
         cmds          +.cmds
         results     :-
                       :-  %results
-                          (limo ~[`cmd-result`[%result-da 'system time' -<.r]])
+                          (limo ~[[%result-da 'system time' -<.r]])
                         results
       ==
     %create-view
@@ -108,15 +108,16 @@
         next-data     +>.r
         cmds          +.cmds
         results
-          ?:  ->.r
+          ?:  ->-.r
             :-  :-  %results
-                    %-  limo  :~  `cmd-result`[%result-da 'system time' -<.r]
-                                  `cmd-result`[%result-da 'data time' -<.r]
+                    %-  limo  :~  [%result-da 'system time' -<.r]
+                                  [%result-da 'data time' -<.r]
+                                  [%result-ud 'row count' ->+.r]
                                   ==
                 results
           :-
             :-  %results
-                (limo ~[`cmd-result`[%result-da 'system time' -<.r]])
+                (limo ~[[%result-da 'system time' -<.r]])
             results
       ==
     %drop-view
@@ -127,7 +128,7 @@
     %revoke
       !!
     %transform
-      =/  r=[? [(map @tas [(unit schema) (unit data)]) (list cmd-result)]]
+      =/  r=[? [(map @tas [(unit schema) (unit data)]) (list result)]]
             %:  do-transform  query-has-run
                               state
                               bowl
@@ -144,7 +145,23 @@
     %truncate-table
       ?:  query-has-run
         ~|("truncate table state change after query in script" !!)
-      !!
+      =/  r=table-return  
+            (truncate-tbl state bowl -.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>.r
+        cmds          +.cmds
+        results
+          ?.  ->-.r
+            :-  [%results (limo ~[[%message 'no data in table to truncate']])]
+                results
+          :-  :-  %results 
+                  %-  limo  :~  [%result-da 'data time' -<.r]
+                                [%result-ud 'row count' ->+.r]
+                                ==
+              results
+          
+      ==
   ==
 ++  do-transform
   |=  $:  query-has-run=?
@@ -154,7 +171,7 @@
           next-data=(map @tas [(unit schema) (unit data)])
           next-schemas=(map @tas [(unit schema) (unit data)])
       ==
-  ^-  [? [(map @tas [(unit schema) (unit data)]) (list cmd-result)]]
+  ^-  [? [(map @tas [(unit schema) (unit data)]) (list result)]]
 
   =/  ctes=(list cte:ast)  ctes.transform  :: To Do - map CTEs
   %:  do-set-functions  query-has-run
@@ -177,7 +194,7 @@
   ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
   ::  ?~  rtree  !!  :: fuse loop
   
-  ^-  [? [(map @tas [(unit schema) (unit data)]) (list cmd-result)]]
+  ^-  [? [(map @tas [(unit schema) (unit data)]) (list result)]]
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %delete
@@ -204,7 +221,7 @@
     == 
   ++  do-query
     |=  [state=databases =bowl:gall q=query:ast]
-    ^-  (list cmd-result)
+    ^-  (list result)
     ?~  from.q  ~[(select-literals columns.selection.q)]
     =/  =from:ast  (need from.q)
     =/  =table-set:ast  object.from
@@ -215,7 +232,7 @@
     !!
   ++  select-literals
     |=  columns=(list selected-column:ast)
-    ^-  cmd-result
+    ^-  result
     =/  i  0
     =/  cols=(list [@tas @tas])  ~
     =/  vals=(list @)  ~
@@ -235,7 +252,7 @@
     ==
   ++  sys-views
     |=  [state=databases =bowl:gall q=qualified-object:ast]
-    ^-  cmd-result
+    ^-  result
     ?:  =(%databases name.q)
       ?.  ?&(=(%sys database.q) =(%sys namespace.q))
         ~|("databases view only in database namespace 'sys.sys'" !!)
@@ -484,7 +501,7 @@
 
     :: to do: aura validation?
 
-    ^-  [(map @tas [(unit schema) (unit data)]) (list cmd-result)]
+    ^-  [(map @tas [(unit schema) (unit data)]) (list result)]
     =/  db  
         ~|  "database {<database.table.c>} does not exist" 
         (~(got by state) database.table.c)
@@ -757,7 +774,7 @@
   =.  tmsp.nxt-data        sys-time
   =.  provenance.nxt-data  sap.bowl
   ::
-  :+  [sys-time %.n]
+  :+  [sys-time %.n 0]
       (~(put by next-schemas) database.table.create-table [`nxt-schema ~])
       (~(put by next-data) database.table.create-table [~ `nxt-data])
 ++  make-col-lu-data
@@ -829,7 +846,62 @@
   =.  tmsp.nxt-data        sys-time
   =.  provenance.nxt-data  sap.bowl
   ::
-  :+  [sys-time dropped-data]
+  :+  [sys-time dropped-data length.file]
+      (~(put by next-schemas) database.table.d [`nxt-schema ~])
+      (~(put by next-data) database.table.d [~ `nxt-data])
+++  truncate-tbl
+  |=  $:  state=databases
+          =bowl:gall
+          d=truncate-table:ast
+          next-schemas=(map @tas [(unit schema) (unit data)])
+          next-data=(map @tas [(unit schema) (unit data)])
+          ==
+  ^-  table-return
+  =/  db  ~|  "database {<database.table.d>} does not exist" 
+             (~(got by state) database.table.d)
+  =/  sys-time  (set-tmsp as-of.d now.bowl)
+  =/  nxt-schema=schema
+        ~|  "truncate table {<name.table.d>} as-of schema time out of order"
+          %:  get-next-schema  sys.db
+                              next-schemas
+                              sys-time
+                              database.table.d
+                              ==
+  =/  nxt-data=data
+        ~|  "truncate table {<name.table.d>} as-of data time out of order"
+          %:  get-next-data  content.db
+                              next-data
+                              sys-time
+                              database.table.d
+                              ==
+  ::
+  ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
+    ~|("namespace {<namespaces.nxt-schema>} does not exist" !!)
+  ::
+  =/  tables  
+    ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
+    %-  ~(got by tables:nxt-schema)
+        [namespace.table.d name.table.d]
+  ::
+  =/  file
+    ~|  "truncate table {<namespace.table.d>}.{<name.table.d>} does not exist" 
+        (~(got by files.nxt-data) [namespace.table.d name.table.d])
+  =/  dropped-data=?  (gth length.file 0)
+  ?.  dropped-data
+    :+  [sys-time dropped-data 0]
+      (~(put by next-schemas) database.table.d [`nxt-schema ~])
+      (~(put by next-data) database.table.d [~ `nxt-data])
+  ::
+  =/  dropped-rows  length.file
+  =.  data.file     ~
+  =.  length.file   0
+  =.  tmsp.file     sys-time
+  =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
+  =.  files.nxt-data       files
+  =.  tmsp.nxt-data        sys-time
+  =.  provenance.nxt-data  sap.bowl
+  ::
+  :+  [sys-time dropped-data dropped-rows]
       (~(put by next-schemas) database.table.d [`nxt-schema ~])
       (~(put by next-data) database.table.d [~ `nxt-data])
 ++  update-state

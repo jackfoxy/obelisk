@@ -108,6 +108,32 @@
           ==
       ~
       ~
+++  truncated-no-data-tbl-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-2 content-1]
+          ==
+      ~
+      ~
+++  truncated-tbl-db
+  :+  :-  %db1
+          :*  %database
+              name=%db1
+              created-provenance=`path`/test-agent
+              created-tmsp=~2000.1.1
+              %+  gas:schema-key  *((mop @da schema) gth)
+                                  ~[one-col-tbl-sys sys1]
+              %+  gas:data-key  *((mop @da data) gth)
+                                ~[content-1c content-1b content-2 content-1]
+          ==
+      ~
+      ~
 ++  db-time-create-db
   :+  :-  %db1
           :*  %database
@@ -401,6 +427,8 @@
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
 ++  content-1b
   [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 file-4]]
+++  content-1c
+  [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 file-5]]
 ++  content-time-5
       :-  ~2023.7.9..22.35.38..7e90
           :*  %data
@@ -488,6 +516,21 @@
               key=~[[%t %.y]]
               pri-idx=file-4-pri-idx
               data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
+          ==
+      l=~
+      r=~
+++  file-5
+  :+  :-  p=[%dbo %my-table]
+          :*  %file
+              ship=~zod
+              provenance=`path`/test-agent
+              tmsp=~2000.1.4
+              clustered=%.y
+              length=0
+              column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~]
+              key=~[[%t %.y]]
+              pri-idx=file-4-pri-idx
+              data=~
           ==
       l=~
       r=~
@@ -1229,6 +1272,7 @@
   %+  expect-eq
     !>  :~  [%result-da 'system time' ~2000.1.4]
             [%result-da 'data time' ~2000.1.4]
+            [%result-ud 'row count' 1]
             ==
     !>  ->+>+>->.mov4
   %+  expect-eq
@@ -1344,6 +1388,171 @@
           %obelisk-action
           !>([%commands ~[cmd]])
     ==
+::
+::  Truncate table
+::
+::  truncate table with no data
+++  test-truncate-tbl-no-data
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov3
+  %+  expect-eq
+    !>  [%message 'no data in table to truncate']
+    !>  ->+>+>->-.mov3
+  %+  expect-eq
+    !>  truncated-no-data-tbl-db
+    !>  databases.state
+  ==
+::
+::  truncate table with data
+++  test-truncate-tbl
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+    ==
+  =.  run  +(run)
+  =^  mov4  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov4
+  %+  expect-eq
+    !>  :~  [%result-da 'data time' ~2000.1.4]
+            [%result-ud 'row count' 1]
+            ==
+    !>  ->+>+>->.mov4
+  %+  expect-eq
+    !>  truncated-tbl-db
+    !>  databases.state
+  ==
+::
+::  fail on database does not exist
+++  test-fail-truncate-tbl-db-not-exist     
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on namespace does not exist
+++  test-fail-truncate-tbl-ns-not-exist     
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='ns1'
+            name='my-table'
+        ==
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on table name does not exist
+++  test-fail-truncate-tbl-not-exist        
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  %-  expect-fail
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+          %obelisk-action
+          !>([%commands ~[cmd]])
+      ==
 ::
 :: system views
 ++  test-sys-sys-databases

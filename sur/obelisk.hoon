@@ -64,9 +64,9 @@
       [%tape-create-db urql=tape]
       [%cmd-create-db cmd=create-database]   
   ==
-+$  msg  @t
-+$  cmd-result
-  $%  msg
++$  cmd-result  [%results (list result)]
++$  result
+  $%  [%message msg=@t]
       [%result-ud msg=@t count=@ud]
       [%result-da msg=@t date=@da]
       $:  %result-set
@@ -75,9 +75,8 @@
           data=(list (list @))
       ==
   ==
-+$  result  [%results (list cmd-result)]
 +$  table-return
-  $:  [@da ?]
+  $:  [@da ? @ud]
       (map @tas [(unit schema) (unit data)])
       (map @tas [(unit schema) (unit data)])
   ==
