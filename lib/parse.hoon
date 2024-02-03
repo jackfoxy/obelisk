@@ -3,6 +3,163 @@
 :: a library for parsing urQL tapes
 :: (parse:parse(default-database '<db>') "<script>")
 |_  default-database=@tas
+
+::
+::    +split-at: [(list T) index:@] -> [(list T) (list T)]
+++  split-at
+  |*  [p=(list) i=@]
+  [(scag i p) (slag i p)]
+::
+::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
+++  fold
+  |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
+  |-  ^+  b
+  ?~  a  b
+  $(a t.a, b (c i.a b))
+
+::++  fold
+::  |*  [a=(list) b=* c=_|=(^ [** +<+])]
+::  |-  ^-  _b
+::  ?~  a  b
+::  $(a t.a, b (c i.a b))
+
+
++$  pred-folder-state
+  $:
+    displ=@
+    level=@
+    cmpnt-level=@
+    cmpnt=(unit raw-pred-cmpnt)
+    cmpnt-displ=@
+    the-list=(list raw-pred-cmpnt)
+  ==
+::
+::    +pred-folder  [raw-pred-cmpnt pred-folder-state] -> pred-folder-state
+++  pred-folder
+  |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
+  ^-  pred-folder-state
+::  ~&  "state:  {<state>}"
+  ?+  pred-comp  [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    ::
+    :: parens alter the level
+    %pal
+      [(dec displ.state) (dec level.state) cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    %par
+      [(dec displ.state) +(level.state) cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    ::
+    :: these operators have equivalent precendence, choose first in lowest level
+    unary-op:ast     :: ?(%not %exists)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    ternary-op:ast   :: %between
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    all-any-op:ast   :: ?(%all %any)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+    ::
+    :: 2nd highest precedence
+    %and  :: skip if the %and is of a %between
+      ?:  ?&((gth displ.state 3) =((snag (sub displ.state 3) the-list.state) %between))
+        [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+      ?:  ?|(=(`%and cmpnt.state) =(`%or cmpnt.state))
+        [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+      [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+    ::
+    :: highest precedence
+    %or
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+      ?:  =(`%or cmpnt.state)
+        [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
+      [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
+  ==
+
+::    +last-n: [(list  T) count:@] -> (list  T)
+::
+::  Returns the last N elements of the list.
+++  last-n
+  |*  [p=(list) q=@]
+  (flop (scag q (flop p)))
+
+++  produce-predicate2
+  |=  parsed=(list raw-pred-cmpnt)
+  ~+
+  ^-  predicate:ast
+  =/  state  (fold (flop parsed) [(lent parsed) 0 0 ~ 0 parsed] pred-folder)
+  ?~  cmpnt.state  (pred-leaf parsed)
+  =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
+        (split-at parsed cmpnt-displ.state)
+
+::~&  "cmpnt.state:  {<cmpnt.state>}"
+::~&  "cmpnt-displ.state:  {<cmpnt-displ.state>}"
+::~&  "p:  {<p.r>}"
+::~&  "q:  {<q.r>}"
+
+  ?.  ?=(predicate-component:ast -.q.r)
+    ~|("unknown predicate node {<-.q.r>}" !!)
+  ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
+    unary-op:ast
+      ~|("unary-op p:  {<p.r>}  q:  {<+.q.r>}" !!)
+    binary-op:ast
+      :+  -.q.r
+          (produce-predicate2 (last-n p.r (sub (lent p.r) level.state)))
+          %-  produce-predicate2
+              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
+    ternary-op:ast
+      ?:  =(%and +>-.q.r)
+        :+  %between
+            :+  %gte
+                (pred-leaf p.r)
+                (pred-leaf (limo ~[+<.q.r]))
+            :+  %lte
+                (pred-leaf p.r)
+                (pred-leaf (limo +>+.q.r))
+      :+  %between
+        :+  %gte
+            (pred-leaf p.r)
+            (pred-leaf (limo ~[+<.q.r]))
+        :+  %lte
+            (pred-leaf p.r)
+            (pred-leaf (limo +>.q.r))
+    conjunction:ast
+      :+  -.q.r
+          (produce-predicate2 (last-n p.r (sub (lent p.r) level.state)))
+          %-  produce-predicate2
+              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
+    all-any-op:ast
+      ~|("all-any-op p:  {<p.r>}  q:  {<+.q.r>}" !!)
+  ==
+
+
+::
+::  parsed list is a predicate leaf
+++  pred-leaf
+  |=  parsed=(list raw-pred-cmpnt)
+  ^-  predicate:ast
+  ?.  ?=(predicate-component:ast -.parsed)
+    ~|("unknown predicate node {<-.parsed>}" !!)
+  ?+  -.parsed  ~|("unknown predicate leaf {<-.parsed>}" !!)
+    qualified-column:ast
+      [-.parsed ~ ~]
+    dime
+      [-.parsed ~ ~]
+    aggregate:ast
+      [-.parsed ~ ~]
+    value-literals:ast
+      [-.parsed ~ ~]
+  ==
+
 ::
 ::  +parse: parse urQL script, emitting list of high level AST structures
 ++  parse
@@ -2588,8 +2745,7 @@
     columns=(list ordered-column:ast)
   ==
 +$  parens        ?(%pal %par)
-+$  raw-predicate-component  ?(parens predicate-component:ast predicate:ast)
-+$  raw-predicate-component2  ?(parens predicate-component:ast)
++$  raw-pred-cmpnt  ?(parens predicate-component:ast)
 +$  group-by-list  (list grouping-column:ast)
 +$  order-by-list  (list ordering-column:ast)
 ::
@@ -3514,8 +3670,8 @@
   ==
 ++  predicate-list  ~+
   |=  a=*
-  ^-  (list raw-predicate-component2)
-  =/  new-list=(list raw-predicate-component2)  ~
+  ^-  (list raw-pred-cmpnt)
+  =/  new-list=(list raw-pred-cmpnt)  ~
   |-
   ?:  =(a ~)  (flop new-list)
   ?:  ?=(parens -.a)
@@ -3614,18 +3770,21 @@
 ::                            1=2  3=3
 ::
 ++  produce-predicate
-  |=  parsed=(list raw-predicate-component2)
+  |=  parsed=(list raw-pred-cmpnt)
   ~+
   ^-  predicate:ast
+  ~&  "{<parsed>}"
   =/  working-tree=predicate:ast       ~
   =/  tree-stack=(list predicate:ast)  ~
   |-
-  ?:  =((lent parsed) 0)
+  ?~  parsed
     |-
       ?~  tree-stack
         working-tree
       %=  $
         working-tree
+
+
           ?~  ->-.tree-stack  [-<.tree-stack working-tree ~]
             [-<.tree-stack ->-.tree-stack working-tree]
         tree-stack    +.tree-stack
@@ -3666,9 +3825,6 @@
       ?~  r.working-tree  ~|("unary-op, right tree empty  {<working-tree>}" !!)
       ~|("unary-op can't get here  {<working-tree>}" !!)
     binary-op:ast
-      ?~  working-tree    !!
-      ?~  l.working-tree  ~|("binary-op, left tree empty  {<working-tree>}" !!)
-      ?~  r.working-tree  ~|("binary-op, right tree empty  {<working-tree>}" !!)
       ~|("binary-op can't get here  {<working-tree>}" !!)
     ternary-op:ast
       ?~  working-tree    !!
@@ -3692,8 +3848,8 @@
       ==
     all-any-op:ast
       ?~  working-tree
-        ~|
-        "operator {<-.parsed>} can only follow equality or inequality operator"
+        ~|  "operator {<-.parsed>} can only follow equality or ".
+            "inequality operator"
             !!
       ?~  r.working-tree
         ?:  ?&(?=(binary-op:ast n.working-tree) ?!(=(%in n.working-tree)))
@@ -3709,14 +3865,14 @@
                 [-.working-tree +<.working-tree [-.parsed [+<.parsed ~ ~] ~]]
               parsed        +>.parsed
             ==
-          ~|
-        "all-any-op {<-.parsed>} must target CTE or literal list {<+<.parsed>}"
+          ~|  "all-any-op {<-.parsed>} must target CTE or literal list ".
+              "{<+<.parsed>}"
               !!
-        ~|
-      "all-any-op {<-.parsed>} can only follow equality or inequality operator"
+        ~|  "all-any-op {<-.parsed>} can only follow equality or ".
+            "inequality operator"
             !!
-      ~|
-        "all-any-op {<-.parsed>} can't get here, working-tree {<working-tree>}"
+      ~|  "all-any-op {<-.parsed>} can't get here, working-tree ".
+          "{<working-tree>}"
           !!
     qualified-column:ast
       ?~  working-tree
@@ -3897,8 +4053,8 @@
                 [%not (produce-predicate ~[-.parsed %in +>+<.parsed]) ~]
               parsed        +>+>.parsed
             ==
-          ~|
-        "unary-op {<+<.parsed>} after aggregate, working-tree {<working-tree>}"
+          ~|  "unary-op {<+<.parsed>} after aggregate, ".
+              "working-tree {<working-tree>}"
               !!
         ?:  =(%between +<.parsed)
           ?:  =(%and +>+<.parsed)
@@ -3916,8 +4072,7 @@
                   (produce-predicate ~[-.parsed %lte +>+<.parsed])
             parsed  +>+>.parsed
           ==
-        ~|  "aggregate after {<+<.parsed>} , working-tree {<working-tree>}"
-            !!
+        ~|("aggregate after {<+<.parsed>} , working-tree {<working-tree>}" !!)
       ?~  l.working-tree
         %=  $
           working-tree  [-.working-tree [-.parsed ~ ~] ~]
