@@ -2223,7 +2223,7 @@
     " WHERE foobar  Not  Between foo  And bar ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%between foobar-gte-foo foobar-lte-bar] ~]
+  =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -2234,7 +2234,7 @@
     " WHERE foobar  Not  Between foo   bar ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%between foobar-gte-foo foobar-lte-bar] ~]
+  =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -2278,7 +2278,7 @@
     " WHERE T1.foo nOt In bar ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%in t1-foo bar] ~]
+  =/  pred=(tree predicate-component:ast)      [%not-in t1-foo bar]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -2289,7 +2289,7 @@
     " WHERE T1.foo not in (1,2,3) ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%in t1-foo value-literals] ~]
+  =/  pred=(tree predicate-component:ast)      [%not-in t1-foo value-literals]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -2322,7 +2322,7 @@
     " WHERE NOT  EXISTS  T1.foo ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%exists t1-foo ~] ~]
+  =/  pred=(tree predicate-component:ast)      [%not-exists t1-foo ~]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
@@ -2333,7 +2333,7 @@
     " WHERE NOT  exists  foo ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not [%exists foo ~] ~]
+  =/  pred=(tree predicate-component:ast)      [%not-exists foo ~]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq

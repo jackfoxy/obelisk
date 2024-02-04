@@ -3,145 +3,6 @@
 :: a library for parsing urQL tapes
 :: (parse:parse(default-database '<db>') "<script>")
 |_  default-database=@tas
-
-::
-::    +split-at: [(list T) index:@] -> [(list T) (list T)]
-++  split-at
-  |*  [p=(list) i=@]
-  [(scag i p) (slag i p)]
-::
-::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
-++  fold
-  |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
-  |-  ^+  b
-  ?~  a  b
-  $(a t.a, b (c i.a b))
-
-::++  fold
-::  |*  [a=(list) b=* c=_|=(^ [** +<+])]
-::  |-  ^-  _b
-::  ?~  a  b
-::  $(a t.a, b (c i.a b))
-
-
-+$  pred-folder-state
-  $:
-    displ=@
-    level=@
-    cmpnt-level=@
-    cmpnt=(unit raw-pred-cmpnt)
-    cmpnt-displ=@
-    the-list=(list raw-pred-cmpnt)
-  ==
-::
-::    +pred-folder  [raw-pred-cmpnt pred-folder-state] -> pred-folder-state
-++  pred-folder
-  |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
-  ^-  pred-folder-state
-::  ~&  "state:  {<state>}"
-  ?+  pred-comp  [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    ::
-    :: parens alter the level
-    %pal
-      [(dec displ.state) (dec level.state) cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    %par
-      [(dec displ.state) +(level.state) cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    ::
-    :: these operators have equivalent precendence, choose first in lowest level
-    unary-op:ast     :: ?(%not %exists)
-      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
-        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
-      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
-        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    ternary-op:ast   :: %between
-      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
-        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    all-any-op:ast   :: ?(%all %any)
-      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
-        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-      [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-    ::
-    :: 2nd highest precedence
-    %and  :: skip if the %and is of a %between
-      ?:  ?&((gth displ.state 3) =((snag (sub displ.state 3) the-list.state) %between))
-        [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-
-      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
-        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-      ?:  ?|(=(`%and cmpnt.state) =(`%or cmpnt.state))
-        [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-      [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-    ::
-    :: highest precedence
-    %or
-      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
-        [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-      ?:  =(`%or cmpnt.state)
-        [(dec displ.state) level.state cmpnt-level.state cmpnt.state cmpnt-displ.state the-list.state]
-      [(dec displ.state) level.state level.state `pred-comp (dec displ.state) the-list.state]
-  ==
-
-::    +last-n: [(list  T) count:@] -> (list  T)
-::
-::  Returns the last N elements of the list.
-++  last-n
-  |*  [p=(list) q=@]
-  (flop (scag q (flop p)))
-
-++  produce-predicate2
-  |=  parsed=(list raw-pred-cmpnt)
-  ~+
-  ^-  predicate:ast
-  =/  state  (fold (flop parsed) [(lent parsed) 0 0 ~ 0 parsed] pred-folder)
-  ?~  cmpnt.state  (pred-leaf parsed)
-  =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
-        (split-at parsed cmpnt-displ.state)
-
-::~&  "cmpnt.state:  {<cmpnt.state>}"
-::~&  "cmpnt-displ.state:  {<cmpnt-displ.state>}"
-::~&  "p:  {<p.r>}"
-::~&  "q:  {<q.r>}"
-
-  ?.  ?=(predicate-component:ast -.q.r)
-    ~|("unknown predicate node {<-.q.r>}" !!)
-  ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
-    unary-op:ast
-      ~|("unary-op p:  {<p.r>}  q:  {<+.q.r>}" !!)
-    binary-op:ast
-      :+  -.q.r
-          (produce-predicate2 (last-n p.r (sub (lent p.r) level.state)))
-          %-  produce-predicate2
-              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
-    ternary-op:ast
-      ?:  =(%and +>-.q.r)
-        :+  %between
-            :+  %gte
-                (pred-leaf p.r)
-                (pred-leaf (limo ~[+<.q.r]))
-            :+  %lte
-                (pred-leaf p.r)
-                (pred-leaf (limo +>+.q.r))
-      :+  %between
-        :+  %gte
-            (pred-leaf p.r)
-            (pred-leaf (limo ~[+<.q.r]))
-        :+  %lte
-            (pred-leaf p.r)
-            (pred-leaf (limo +>.q.r))
-    conjunction:ast
-      :+  -.q.r
-          (produce-predicate2 (last-n p.r (sub (lent p.r) level.state)))
-          %-  produce-predicate2
-              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
-    all-any-op:ast
-      ~|("all-any-op p:  {<p.r>}  q:  {<+.q.r>}" !!)
-  ==
-
-
 ::
 ::  parsed list is a predicate leaf
 ++  pred-leaf
@@ -3650,20 +3511,29 @@
     (cold %lte ;~(pose (jest '<=') (jest '!>')))
     (cold %gt (just '>'))
     (cold %lt (just '<'))
-    (cold %and ;~(plug (jester 'and') whitespace))
-    (cold %or ;~(plug (jester 'or') whitespace))
+    (cold %in ;~(plug (jester 'in') whitespace))
+    %:  cold  %not-in
+              ;~(plug (jester 'not') whitespace (jester 'in') whitespace)
+              ==
     (cold %equiv ;~(plug (jester 'equiv') whitespace))
     %:  cold  %not-equiv
               ;~(plug (jester 'not') whitespace (jester 'equiv') whitespace)
-    ==
+              ==
+      :: conjunctions
+    (cold %and ;~(plug (jester 'and') whitespace))
+    (cold %or ;~(plug (jester 'or') whitespace))
+      :: ternary operators
+    (cold %between ;~(plug (jester 'between') whitespace))
+    %:  cold  %not-between
+              ;~(plug (jester 'not') whitespace (jester 'between') whitespace)
+              ==
       :: unary operators
-    (cold %not ;~(plug (jester 'not') whitespace))
+    %:  cold  %not-exists
+              ;~(plug (jester 'not') whitespace (jester 'exists') whitespace)
+              ==
     (cold %exists ;~(plug (jester 'exists') whitespace))
-    (cold %in ;~(plug (jester 'in') whitespace))
     (cold %any ;~(plug (jester 'any') whitespace))
     (cold %all ;~(plug (jester 'all') whitespace))
-      :: ternary operator
-    (cold %between ;~(plug (jester 'between') whitespace))
       :: nesting
     (cold %pal pal)
     (cold %par par)
@@ -3773,333 +3643,160 @@
   |=  parsed=(list raw-pred-cmpnt)
   ~+
   ^-  predicate:ast
-  ~&  "{<parsed>}"
-  =/  working-tree=predicate:ast       ~
-  =/  tree-stack=(list predicate:ast)  ~
-  |-
-  ?~  parsed
-    |-
-      ?~  tree-stack
-        working-tree
-      %=  $
-        working-tree
+  =/  state  (fold (flop parsed) [(lent parsed) 0 0 ~ 0 parsed] pred-folder)
+  ?~  cmpnt.state  (pred-leaf parsed)
+  =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
+        (split-at parsed cmpnt-displ.state)
 
+::~&  "cmpnt.state:  {<cmpnt.state>}"
+::~&  "cmpnt-displ.state:  {<cmpnt-displ.state>}"
+::~&  "p:  {<p.r>}"
+::~&  "q:  {<q.r>}"
 
-          ?~  ->-.tree-stack  [-<.tree-stack working-tree ~]
-            [-<.tree-stack ->-.tree-stack working-tree]
-        tree-stack    +.tree-stack
-      ==
-  ?-  -.parsed
-    %pal              :: push working predicate onto the stack
-      ?~  working-tree  $(parsed +.parsed)
-      %=  $
-        tree-stack    [working-tree tree-stack]
-        working-tree  ~
-        parsed        +.parsed
-      ==
-    %par              :: pop the stack, updating next working tree
-      ?~  tree-stack  $(parsed +.parsed)
-      %=  $
-        tree-stack    +.tree-stack
-        working-tree
-          ?~  ->-.tree-stack  [-<.tree-stack working-tree ~]
-          [-<.tree-stack ->-.tree-stack working-tree]
-        parsed        +.parsed
-      ==
-    unary-op:ast
-      ?~  working-tree
-        %=  $
-          working-tree  [-.parsed ~ ~]
-          parsed        +.parsed
-        ==
-      ?~  l.working-tree
-        ?:  ?&(=(%not -.working-tree) =(%exists -.parsed))
-          ?>  ?=(qualified-column:ast +<.parsed)
-          %=  $
-            working-tree  [-.working-tree [-.parsed [+<.parsed ~ ~] ~] ~]
-            parsed        +>.parsed
-          ==
-        ~|  "invalid combination of unary operators ".
-            "{<-.working-tree>} and {<-.parsed>}"
-            !!
-      ?~  r.working-tree  ~|("unary-op, right tree empty  {<working-tree>}" !!)
-      ~|("unary-op can't get here  {<working-tree>}" !!)
-    binary-op:ast
-      ~|("binary-op can't get here  {<working-tree>}" !!)
-    ternary-op:ast
-      ?~  working-tree    !!
-      ?~  l.working-tree  ~|("ternary-op, left tree empty  {<working-tree>}" !!)
-      ?~  r.working-tree
-        ~|("ternary-op, right tree empty  {<working-tree>}" !!)
-      ~|("ternary-op can't get here  {<working-tree>}" !!)
-    conjunction:ast
-      ?~  working-tree
-        %=  $
-          working-tree  [-.parsed ~ ~]
-          parsed        +.parsed
-        ==
-      ?~  l.working-tree
-        ~|("conjunction, left tree empty  {<working-tree>}" !!)
-      ?~  r.working-tree
-        ~|("conjunction, right tree empty  {<working-tree>}" !!)
-      %=  $
-        working-tree  [-.parsed working-tree ~]
-        parsed        +.parsed
-      ==
-    all-any-op:ast
-      ?~  working-tree
-        ~|  "operator {<-.parsed>} can only follow equality or ".
-            "inequality operator"
-            !!
-      ?~  r.working-tree
-        ?:  ?&(?=(binary-op:ast n.working-tree) ?!(=(%in n.working-tree)))
-          ?:  ?=(value-literals:ast +<.parsed)
-            %=  $
-              working-tree
-                [-.working-tree +<.working-tree [-.parsed [+<.parsed ~ ~] ~]]
-              parsed        +>.parsed
-            ==
-          ?:  ?=(qualified-column:ast +<.parsed)
-            %=  $
-              working-tree
-                [-.working-tree +<.working-tree [-.parsed [+<.parsed ~ ~] ~]]
-              parsed        +>.parsed
-            ==
-          ~|  "all-any-op {<-.parsed>} must target CTE or literal list ".
-              "{<+<.parsed>}"
-              !!
-        ~|  "all-any-op {<-.parsed>} can only follow equality or ".
-            "inequality operator"
-            !!
-      ~|  "all-any-op {<-.parsed>} can't get here, working-tree ".
-          "{<working-tree>}"
-          !!
-    qualified-column:ast
-      ?~  working-tree
-        ?:  ?=(binary-op:ast +<.parsed)
-          %=  $
-            working-tree  [+<.parsed [-.parsed ~ ~] ~]
-            parsed        +>.parsed
-          ==
-        ?:  ?=(unary-op:ast +<.parsed)
-          ?:  ?&(=(%not +<.parsed) =(%between +>-.parsed))
-            ?:  =(%and +>+>-.parsed)
-              %=  $
-                working-tree
-                  :+  %not
-                      :+  %between
-                          (produce-predicate ~[-.parsed %gte +>+<.parsed])
-                          (produce-predicate ~[-.parsed %lte +>+>+<.parsed])
-                      ~
-                parsed  +>+>+>.parsed
-              ==
-            %=  $
-              working-tree
-                :+  %not
-                    :+  %between
-                        (produce-predicate ~[-.parsed %gte +>+<.parsed])
-                        (produce-predicate ~[-.parsed %lte +>+>-.parsed])
-                    ~
-              parsed  +>+>+.parsed
-            ==
-          ?:  =(%in +>-.parsed)
-            %=  $
-              working-tree
-                :+  %not
-                    (produce-predicate ~[-.parsed %in +>+<.parsed])
-                    ~
-              parsed        +>+>.parsed
-            ==
-          ~|  "unary-op {<+<.parsed>} after qualified-column, ".
-              "working-tree {<working-tree>}"
-              !!
-        ?:  =(%between +<.parsed)
-          ?:  =(%and +>+<.parsed)
-            %=  $
-              working-tree
-                :+  %between
-                    (produce-predicate ~[-.parsed %gte +>-.parsed])
-                    (produce-predicate ~[-.parsed %lte +>+>-.parsed])
-              parsed  +>+>+.parsed
-            ==
-          %=  $
-            working-tree
-              :+  %between
-                  (produce-predicate ~[-.parsed %gte +>-.parsed])
-                  (produce-predicate ~[-.parsed %lte +>+<.parsed])
-            parsed  +>+>.parsed
-          ==
-        ~|  "qualified-column after {<+<.parsed>} , ".
-            "working-tree {<working-tree>}"
-            !!
-      ?~  l.working-tree
-        %=  $
-          working-tree  [-.working-tree [-.parsed ~ ~] ~]
-          parsed        +.parsed
-        ==
-      ?~  r.working-tree
-        ?:  ?=(conjunction:ast -.working-tree)
-          %=  $
-            working-tree  ~
-            tree-stack    [working-tree tree-stack]
-          ==
-        %=  $
-          working-tree  [-.working-tree +<.working-tree [-.parsed ~ ~]]
-          parsed        +.parsed
-        ==
-      ~|("qualified-column can't get here" !!)
-    dime
-      ?~  working-tree
-        ?:  ?=(binary-op:ast +<.parsed)
-          %=  $
-            working-tree  [+<.parsed [-.parsed ~ ~] ~]
-            parsed        +>.parsed
-          ==
-        ?:  ?=(unary-op:ast +<.parsed)
-          ?:  ?&(=(%not +<.parsed) =(%between +>-.parsed))
-            ?:  =(%and +>+>-.parsed)
-              %=  $
-                working-tree
-                  :+  %not
-                      :+  %between
-                          (produce-predicate ~[-.parsed %gte +>+<.parsed])
-                          (produce-predicate ~[-.parsed %lte +>+>+<.parsed])
-                      ~
-                parsed  +>+>+>.parsed
-              ==
-            %=  $
-              working-tree
-                :+  %not
-                    :+  %between
-                        (produce-predicate ~[-.parsed %gte +>+<.parsed])
-                        (produce-predicate ~[-.parsed %lte +>+>-.parsed])
-                    ~
-              parsed  +>+>+.parsed
-            ==
-          ?:  =(%in +>-.parsed)
-            %=  $
-              working-tree
-                [%not (produce-predicate ~[-.parsed %in +>+<.parsed]) ~]
-              parsed        +>+>.parsed
-            ==
-          ~|  "unary-op {<+<.parsed>} after value-literal, ".
-              "working-tree {<working-tree>}"
-              !!
-        ?:  =(%between +<.parsed)
-          ?:  =(%and +>+<.parsed)
-            %=  $
-              working-tree
-                :+  %between
-                    (produce-predicate ~[-.parsed %gte +>-.parsed])
-                    (produce-predicate ~[-.parsed %lte +>+>-.parsed])
-              parsed  +>+>+.parsed
-            ==
-          %=  $
-            working-tree
-              :+  %between
-                  (produce-predicate ~[-.parsed %gte +>-.parsed])
-                  (produce-predicate ~[-.parsed %lte +>+<.parsed])
-            parsed  +>+>.parsed
-          ==
-        ~|  "value-literal after {<+<.parsed>} , working-tree {<working-tree>}"
-            !!
-      ?~  l.working-tree
-        %=  $
-          working-tree  [-.working-tree [-.parsed ~ ~] ~]
-          parsed        +.parsed
-        ==
-      ?~  r.working-tree
-        ?:  ?=(conjunction:ast -.working-tree)
-          %=  $
-            working-tree  ~
-            tree-stack    [working-tree tree-stack]
-          ==
-        %=  $
-          working-tree  [-.working-tree +<.working-tree [-.parsed ~ ~]]
-          parsed        +.parsed
-        ==
-      ~|("value-literal can't get here" !!)
-    aggregate:ast
-      ?~  working-tree
-        ?:  ?=(binary-op:ast +<.parsed)
-          %=  $
-            working-tree  [+<.parsed [-.parsed ~ ~] ~]
-            parsed        +>.parsed
-          ==
-        ?:  ?=(unary-op:ast +<.parsed)
-          ?:  ?&(=(%not +<.parsed) =(%between +>-.parsed))
-            ?:  =(%and +>+>-.parsed)
-              %=  $
-                working-tree
-                  :+  %not
-                      :+  %between
-                          (produce-predicate ~[-.parsed %gte +>+<.parsed])
-                          (produce-predicate ~[-.parsed %lte +>+>+<.parsed])
-                      ~
-                parsed  +>+>+>.parsed
-              ==
-            %=  $
-              working-tree
-                :+  %not
-                    :+  %between
-                        (produce-predicate ~[-.parsed %gte +>+<.parsed])
-                        (produce-predicate ~[-.parsed %lte +>+>-.parsed])
-                    ~
-              parsed  +>+>+.parsed
-            ==
-          ?:  =(%in +>-.parsed)
-            %=  $
-              working-tree
-                [%not (produce-predicate ~[-.parsed %in +>+<.parsed]) ~]
-              parsed        +>+>.parsed
-            ==
-          ~|  "unary-op {<+<.parsed>} after aggregate, ".
-              "working-tree {<working-tree>}"
-              !!
-        ?:  =(%between +<.parsed)
-          ?:  =(%and +>+<.parsed)
-            %=  $
-              working-tree
-                :+  %between
-                    (produce-predicate ~[-.parsed %gte +>-.parsed])
-                    (produce-predicate ~[-.parsed %lte +>+>-.parsed])
-              parsed  +>+>+.parsed
-            ==
-          %=  $
-            working-tree
-              :+  %between
-                  (produce-predicate ~[-.parsed %gte +>-.parsed])
-                  (produce-predicate ~[-.parsed %lte +>+<.parsed])
-            parsed  +>+>.parsed
-          ==
-        ~|("aggregate after {<+<.parsed>} , working-tree {<working-tree>}" !!)
-      ?~  l.working-tree
-        %=  $
-          working-tree  [-.working-tree [-.parsed ~ ~] ~]
-          parsed        +.parsed
-        ==
-      ?~  r.working-tree
-        ?:  ?=(conjunction:ast -.working-tree)
-          %=  $
-            working-tree  ~
-            tree-stack    [working-tree tree-stack]
-          ==
-        %=  $
-          working-tree  [-.working-tree +<.working-tree [-.parsed ~ ~]]
-          parsed        +.parsed
-        ==
-      ~|("selected-aggregate can't get here" !!)
-    value-literals:ast
-      ?~  working-tree
-        ~|("Literal list in a predicate can only follow the IN operator" !!)
-      ?~  l.working-tree  !!
-      ?~  r.working-tree
-        %=  $
-          working-tree  [-.working-tree +<.working-tree [-.parsed ~ ~]]
-          parsed        +.parsed
-        ==
-      ~|("value-literal-list can't get here" !!)
+  ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
+    unary-op:ast     :: ?(%not-exists %exists)
+      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+    binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
+      :+  -.q.r
+          (produce-predicate (last-n p.r (sub (lent p.r) level.state)))
+          %-  produce-predicate
+              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
+    ternary-op:ast   :: %between
+      ?:  =(%and +>-.q.r)
+        :+  -.q.r
+            :+  %gte
+                (pred-leaf p.r)
+                (pred-leaf (limo ~[+<.q.r]))
+            :+  %lte
+                (pred-leaf p.r)
+                (pred-leaf (limo +>+.q.r))
+      :+  -.q.r
+        :+  %gte
+            (pred-leaf p.r)
+            (pred-leaf (limo ~[+<.q.r]))
+        :+  %lte
+            (pred-leaf p.r)
+            (pred-leaf (limo +>.q.r))
+    conjunction:ast  :: ?(%and %or)
+      :+  -.q.r
+          (produce-predicate (last-n p.r (sub (lent p.r) level.state)))
+          %-  produce-predicate
+              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
+    all-any-op:ast   :: ?(%all %any)
+      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
   ==
+::
+::    +split-at: [(list T) index:@] -> [(list T) (list T)]
+++  split-at
+  |*  [p=(list) i=@]
+  [(scag i p) (slag i p)]
+::
+::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
+++  fold
+  |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
+  |-  ^+  b
+  ?~  a  b
+  $(a t.a, b (c i.a b))
++$  pred-folder-state
+  $:
+    displ=@
+    level=@
+    cmpnt-level=@
+    cmpnt=(unit raw-pred-cmpnt)
+    cmpnt-displ=@
+    the-list=(list raw-pred-cmpnt)
+  ==
+++  update-pred-folder-state
+  |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
+  ^-  pred-folder-state
+  :*  (dec displ.state)
+      level.state
+      level.state
+      `pred-comp 
+      (dec displ.state) 
+      the-list.state
+      ==
+++  advance-pred-folder-state
+  |=  state=pred-folder-state
+  ^-  pred-folder-state
+  :*  (dec displ.state)
+      level.state
+      cmpnt-level.state
+      cmpnt.state
+      cmpnt-displ.state
+      the-list.state
+      ==
+::
+::    +pred-folder  [raw-pred-cmpnt pred-folder-state] -> pred-folder-state
+++  pred-folder
+  |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
+  ^-  pred-folder-state
+  ?+  pred-comp  (advance-pred-folder-state state)
+    ::
+    :: parens alter the level
+    %pal
+      :*  (dec displ.state)
+          (dec level.state)
+          cmpnt-level.state
+          cmpnt.state
+          cmpnt-displ.state
+          the-list.state
+          ==
+    %par
+      :*  (dec displ.state)
+          +(level.state)
+          cmpnt-level.state
+          cmpnt.state
+          cmpnt-displ.state
+          the-list.state
+          ==
+    ::
+    :: these operators have equivalent precendence, choose first in lowest level
+    unary-op:ast     :: ?(%not %exists)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        (update-pred-folder-state pred-comp state)
+      (advance-pred-folder-state state)
+    binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        (update-pred-folder-state pred-comp state)
+      (advance-pred-folder-state state)
+    ternary-op:ast   :: ?(%between %not-between)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        (update-pred-folder-state pred-comp state)
+      (advance-pred-folder-state state)
+    all-any-op:ast   :: ?(%all %any)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        (update-pred-folder-state pred-comp state)
+      (advance-pred-folder-state state)
+    ::
+    :: 2nd highest precedence
+    %and  :: skip if the %and is of a ternary-op
+      ?:  ?&  (gth displ.state 3)
+              ?|  =((snag (sub displ.state 3) the-list.state) %between)
+                  =((snag (sub displ.state 3) the-list.state) %not-between)
+                  ==
+              ==
+        (advance-pred-folder-state state)
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        (update-pred-folder-state pred-comp state)
+      ?:  ?|(=(`%and cmpnt.state) =(`%or cmpnt.state))
+        (advance-pred-folder-state state)
+      (update-pred-folder-state pred-comp state)
+    ::
+    :: highest precedence
+    %or
+      ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
+        (update-pred-folder-state pred-comp state)
+      ?:  =(`%or cmpnt.state)
+        (advance-pred-folder-state state)
+      (update-pred-folder-state pred-comp state)
+  ==
+::    +last-n: [(list  T) count:@] -> (list  T)
+::
+::  Returns the last N elements of the list.
+++  last-n
+  |*  [p=(list) q=@]
+  (flop (scag q (flop p)))
 ::
 ::  parse scalar
 ::

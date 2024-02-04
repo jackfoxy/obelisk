@@ -85,16 +85,16 @@
 ::
 :: { = | <> | != | > | >= | !> | < | <= | !< | BETWEEN...AND... 
 ::       | IS DISTINCT FROM | IS NOT DISTINCT FROM }
-+$  ternary-op           %between
++$  ternary-op           ?(%between %not-between)
 +$  inequality-op        ?(%neq %gt %gte %lt %lte)
 +$  all-any-op           ?(%all %any)
-+$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in)
-+$  unary-op             ?(%not %exists)
++$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
++$  unary-op             ?(%exists %not-exists)
 +$  conjunction          ?(%and %or)
 +$  ops-and-conjs        
- ?(ternary-op binary-op unary-op all-any-op conjunction)
+      ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component  
-  ?(ops-and-conjs qualified-column dime value-literals aggregate)
+      ?(ops-and-conjs qualified-column dime value-literals aggregate)
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column dime)
 +$  datum-or-scalar      $@(datum scalar-function)
