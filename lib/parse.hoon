@@ -3643,13 +3643,6 @@
   |=  parsed=(list raw-pred-cmpnt)
   ~+
   ^-  predicate:ast
-
-~&  ""
-~&  "@@@@@@@@@@@@@@@@@@@@@@@"
-~&  ""
-~&  "parsed:  {<parsed>}"
-~&  ""
-
   =/  length  (lent parsed)
   =/  state  (fold (flop parsed) [length 0 ~ 0 parsed] pred-folder)
   ?~  cmpnt.state
@@ -3658,13 +3651,6 @@
     (pred-leaf parsed)
   =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
         (split-at parsed cmpnt-displ.state)
-
-~&  "cmpnt.state:  {<cmpnt.state>}"
-~&  "cmpnt-displ.state:  {<cmpnt-displ.state>}"
-~&  "level.state:  {<level.state>}"
-~&  "p:  {<p.r>}"
-~&  "q:  {<q.r>}"
-
   ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
     unary-op:ast     :: ?(%not-exists %exists)
       [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
@@ -3716,6 +3702,8 @@
         (update-pred-folder-state pred-comp state)
       :: binary-op takes precedence over all-any-op
       ?:  ?&  =(level.state 0)
+              !=(cmpnt.state `%and)
+              !=(cmpnt.state `%or)
               ?|  =((snag displ.state the-list.state) %all)
                   =((snag displ.state the-list.state) %any)
                   ==
@@ -3744,7 +3732,9 @@
         (update-pred-folder-state pred-comp state)
       ?:  ?|(=(`%and cmpnt.state) =(`%or cmpnt.state))
         (advance-pred-folder-state state)
-      (update-pred-folder-state pred-comp state)
+      ?:  =(level.state 0)
+        (update-pred-folder-state pred-comp state)
+      (advance-pred-folder-state state)
     ::
     :: highest precedence
     %or
@@ -3752,7 +3742,9 @@
         (update-pred-folder-state pred-comp state)
       ?:  =(`%or cmpnt.state)
         (advance-pred-folder-state state)
-      (update-pred-folder-state pred-comp state)
+      ?:  =(level.state 0)
+        (update-pred-folder-state pred-comp state)
+      (advance-pred-folder-state state)
   ==
 +$  pred-folder-state
   $:

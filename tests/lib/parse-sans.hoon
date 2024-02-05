@@ -98,16 +98,22 @@
 
 ::@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 ::  
-:: simple nesting
-++  test-predicate-30
+::  complext predicate, bug test
+++  test-predicate-36
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE (foobar > foo OR foobar < bar) ".
-    " AND T1.foo>foo2 ".
-    " AND T2.bar IN (1,2,3) ".
-    " AND (T1.foo3< any (1,2,3) OR T1.foo2=~zod AND foo=1 ) ".
+    " WHERE  A1.adoption-email = A2.adoption-email  ".
+    "  AND     A1.adoption-date = A2.adoption-date  ".
+    "  AND    foo = bar  ".
+    "  AND ((A1.name = A2.name AND A1.species > A2.species) ".
+    "       OR ".
+    "       (A1.name > A2.name AND A1.species = A2.species) ".
+    "       OR ".
+    "      (A1.name > A2.name AND A1.species > A2.species) ".
+    "     ) ".
     " SELECT *"
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      king-and
+  =/  pred=(tree predicate-component:ast)
+    [%and [%and [%and [%eq a1-adoption-email a2-adoption-email] [%eq a1-adoption-date a2-adoption-date]] [%eq foo bar]] [%or [%or [%and [%eq a1-name a2-name] [%gt a1-species a2-species]] [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]] [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]]]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
