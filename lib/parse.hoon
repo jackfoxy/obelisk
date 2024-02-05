@@ -3643,24 +3643,33 @@
   |=  parsed=(list raw-pred-cmpnt)
   ~+
   ^-  predicate:ast
+
+~&  ""
+~&  "@@@@@@@@@@@@@@@@@@@@@@@"
+~&  ""
+~&  "parsed:  {<parsed>}"
+~&  ""
+
   =/  state  (fold (flop parsed) [(lent parsed) 0 0 ~ 0 parsed] pred-folder)
   ?~  cmpnt.state  (pred-leaf parsed)
   =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
         (split-at parsed cmpnt-displ.state)
 
-::~&  "cmpnt.state:  {<cmpnt.state>}"
-::~&  "cmpnt-displ.state:  {<cmpnt-displ.state>}"
-::~&  "p:  {<p.r>}"
-::~&  "q:  {<q.r>}"
+~&  "cmpnt.state:  {<cmpnt.state>}"
+~&  "cmpnt-displ.state:  {<cmpnt-displ.state>}"
+~&  "level.state:  {<level.state>}"
+~&  "cmpnt-level.state:  {<cmpnt-level.state>}"
+~&  "p:  {<p.r>}"
+~&  "q:  {<q.r>}"
 
   ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
     unary-op:ast     :: ?(%not-exists %exists)
       [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
     binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
       :+  -.q.r
-          (produce-predicate (last-n p.r (sub (lent p.r) level.state)))
+          (produce-predicate (last-n p.r (sub (lent p.r) cmpnt-level.state)))
           %-  produce-predicate
-              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
+              (scag (sub (lent +.q.r) cmpnt-level.state) `(list raw-pred-cmpnt)`+.q.r)
     ternary-op:ast   :: %between
       ?:  =(%and +>-.q.r)
         :+  -.q.r
@@ -3679,53 +3688,12 @@
             (pred-leaf (limo +>.q.r))
     conjunction:ast  :: ?(%and %or)
       :+  -.q.r
-          (produce-predicate (last-n p.r (sub (lent p.r) level.state)))
+          (produce-predicate (last-n p.r (sub (lent p.r) cmpnt-level.state)))
           %-  produce-predicate
-              (scag (sub (lent +.q.r) level.state) `(list raw-pred-cmpnt)`+.q.r)
+              (scag (sub (lent +.q.r) cmpnt-level.state) `(list raw-pred-cmpnt)`+.q.r)
     all-any-op:ast   :: ?(%all %any)
       [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
   ==
-::
-::    +split-at: [(list T) index:@] -> [(list T) (list T)]
-++  split-at
-  |*  [p=(list) i=@]
-  [(scag i p) (slag i p)]
-::
-::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
-++  fold
-  |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
-  |-  ^+  b
-  ?~  a  b
-  $(a t.a, b (c i.a b))
-+$  pred-folder-state
-  $:
-    displ=@
-    level=@
-    cmpnt-level=@
-    cmpnt=(unit raw-pred-cmpnt)
-    cmpnt-displ=@
-    the-list=(list raw-pred-cmpnt)
-  ==
-++  update-pred-folder-state
-  |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
-  ^-  pred-folder-state
-  :*  (dec displ.state)
-      level.state
-      level.state
-      `pred-comp 
-      (dec displ.state) 
-      the-list.state
-      ==
-++  advance-pred-folder-state
-  |=  state=pred-folder-state
-  ^-  pred-folder-state
-  :*  (dec displ.state)
-      level.state
-      cmpnt-level.state
-      cmpnt.state
-      cmpnt-displ.state
-      the-list.state
-      ==
 ::
 ::    +pred-folder  [raw-pred-cmpnt pred-folder-state] -> pred-folder-state
 ++  pred-folder
@@ -3759,6 +3727,11 @@
     binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
       ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
         (update-pred-folder-state pred-comp state)
+      :: binary-op takes precedence over all-any-op
+      ?:  ?|  =((snag displ.state the-list.state) %all)
+              =((snag displ.state the-list.state) %any)
+              ==
+        (update-pred-folder-state pred-comp state)
       (advance-pred-folder-state state)
     ternary-op:ast   :: ?(%between %not-between)
       ?:  ?|((gth cmpnt-level.state level.state) =(cmpnt.state ~))
@@ -3791,6 +3764,47 @@
         (advance-pred-folder-state state)
       (update-pred-folder-state pred-comp state)
   ==
++$  pred-folder-state
+  $:
+    displ=@
+    level=@
+    cmpnt-level=@
+    cmpnt=(unit raw-pred-cmpnt)
+    cmpnt-displ=@
+    the-list=(list raw-pred-cmpnt)
+  ==
+::
+::    +split-at: [(list T) index:@] -> [(list T) (list T)]
+++  split-at
+  |*  [p=(list) i=@]
+  [(scag i p) (slag i p)]
+::
+::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
+++  fold
+  |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
+  |-  ^+  b
+  ?~  a  b
+  $(a t.a, b (c i.a b))
+++  update-pred-folder-state
+  |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
+  ^-  pred-folder-state
+  :*  (dec displ.state)
+      level.state
+      level.state
+      `pred-comp 
+      (dec displ.state) 
+      the-list.state
+      ==
+++  advance-pred-folder-state
+  |=  state=pred-folder-state
+  ^-  pred-folder-state
+  :*  (dec displ.state)
+      level.state
+      cmpnt-level.state
+      cmpnt.state
+      cmpnt-displ.state
+      the-list.state
+      ==
 ::    +last-n: [(list  T) count:@] -> (list  T)
 ::
 ::  Returns the last N elements of the list.

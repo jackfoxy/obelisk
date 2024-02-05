@@ -2374,7 +2374,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
-
+::
 :: expected/actual match
 ++  test-predicate-26
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
@@ -2384,73 +2384,71 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)
         :+  %and
-          [%gte foobar foo]
-          :+  %and
-              [%lte foobar bar]
-              :+  %eq
-                  t1-foo2
-                  [[%p 0] ~ ~]
+            :+  %and
+                [%gte foobar foo]
+                [%lte foobar bar]
+            :+  %eq
+                t1-foo2
+                [[%p 0] ~ ~]
   =/  expected
     [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
-
-:: expected/actual match
-::++  test-predicate-27
-::  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-::    " WHERE foobar >=foo And foobar<=bar ".
-::    " and T1.foo2 = ~zod ".
-::    " or T2.bar in (1,2,3)".
-::    " SELECT *"
-::  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-::  =/  pred=(tree predicate-component:ast)      and-and-or
-::  =/  expected
-::    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-
-:: expected/actual match
-::++  test-predicate-28
-::  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-::    " WHERE foobar >=foo And foobar<=bar ".
-::    " and T1.foo2 = ~zod ".
-::    " or  ".
-::    " foobar>=foo ".
-::    " AND   T1.foo2=~zod ".
-::    " SELECT *"
-::  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-::  =/  pred=(tree predicate-component:ast)      and-and-or-and
-::  =/  expected
-::    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-
-:: expected/actual match
-::++  test-predicate-29
-::  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-::    " WHERE foobar >=foo And foobar<=bar ".
-::    " and T1.foo2 = ~zod ".
-::    " or  ".
-::    " foobar>=foo ".
-::    " AND   T1.foo2=~zod ".
-::    "  OR ".
-::    " foo = 1 ".
-::    " AND T1.foo3 < any (1,2,3) ".
-::    " SELECT *"
-::  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-::  =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
-::  =/  expected
-::    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-
 ::
-::  simple nesting
 :: expected/actual match
+++  test-predicate-27
+  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
+    " WHERE foobar >=foo And foobar<=bar ".
+    " and T1.foo2 = ~zod ".
+    " or T2.bar in (1,2,3)".
+    " SELECT *"
+  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
+  =/  pred=(tree predicate-component:ast)      and-and-or
+  =/  expected
+    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+:: expected/actual match
+++  test-predicate-28
+  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
+    " WHERE foobar >=foo And foobar<=bar ".
+    " and T1.foo2 = ~zod ".
+    " or  ".
+    " foobar>=foo ".
+    " AND   T1.foo2=~zod ".
+    " SELECT *"
+  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
+  =/  pred=(tree predicate-component:ast)      and-and-or-and
+  =/  expected
+    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+:: expected/actual match
+++  test-predicate-29
+  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
+    " WHERE foobar >=foo And foobar<=bar ".
+    " and T1.foo2 = ~zod ".
+    " or  ".
+    " foobar>=foo ".
+    " AND   T1.foo2=~zod ".
+    "  OR ".
+    " foo = 1 ".
+    " AND T1.foo3 < any (1,2,3) ".
+    " SELECT *"
+  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
+  =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
+  =/  expected
+    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::  
+:: simple nesting
 ::++  test-predicate-30
 ::  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
 ::    " WHERE (foobar > foo OR foobar < bar) ".
@@ -2465,7 +2463,6 @@
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
-
 ::
 ::  nesting
 :: expected/actual match
