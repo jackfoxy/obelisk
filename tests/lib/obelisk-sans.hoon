@@ -352,16 +352,16 @@
       r=[row4-idx l=[row1-idx ~ r=[row3-idx ~ ~]] ~]
 ++  gen4-file-data-my-table-3
   ~[row4 row3 row2 row1]
-
 ::
 :: fail on time, create ns lt schema
 ++  test-fail-time-create-ns-lt-schema
   =|  run=@ud
   =/  my-cmd  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.33..7e90"
-  %-  expect-fail
-  |.  %-  process-cmds 
-          :+  gen3-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-cmd)
+  %+  expect-fail-message
+      'namespace %ns1 as-of schema time out of order'
+      |.  %-  process-cmds 
+              :+  gen3-dbs
+                  (bowl [run ~2031.1.1])
+                  (parse:parse(default-database 'db1') my-cmd)
 
 --

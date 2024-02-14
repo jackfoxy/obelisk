@@ -729,8 +729,9 @@
       ==
     %create-table
       ~|  "create table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  table-nail  (parse-create-table [[1 1] q.q.command-nail])
+      =/  table-nail  ~>  %bout.[0 %parse]  (parse-create-table [[1 1] q.q.command-nail])
       =/  parsed  (wonk table-nail)
+      ~&  "CREATE TABLE {<-.parsed>}"
       ?:  ?=([* * [@ @ *]] parsed)
         %=  $                                       :: no foreign keys
           script    q.q.u.+3.q:table-nail
@@ -1162,11 +1163,13 @@
       !!
     %insert
       ~|  "insert error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  insert-nail  (parse-insert [[1 1] q.q.command-nail])
+      =/  insert-nail  ~>  %bout.[0 %parse]  (parse-insert [[1 1] q.q.command-nail])
       =/  parsed  (wonk insert-nail)
+      =/  ins  ~>  %bout.[0 %produce]  (produce-insert parsed)
+      ~&  "INSERT {<table.ins>}"
       %=  $
         script    q.q.u.+3.q:insert-nail
-        commands  :-  (transform:ast %transform ~ [(produce-insert parsed) ~ ~])
+        commands  :-  (transform:ast %transform ~ [ins ~ ~])
                       commands
       ==
     %merge

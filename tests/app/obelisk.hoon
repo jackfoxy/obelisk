@@ -2429,11 +2429,13 @@
     ==
   =.  run  +(run)
   %-  expect-fail
-  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
-          %obelisk-action
-          !>  :-  %tape-create-db
-                  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
-      ==
+::  %+  expect-fail-message
+::      'namespace %ns1 as-of schema time out of order'
+      |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+              %obelisk-action
+              !>  :-  %tape-create-db
+                      "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
+          ==
 ::
 ::  fail on time, create ns = content
 ++  test-fail-time-create-ns-eq-content

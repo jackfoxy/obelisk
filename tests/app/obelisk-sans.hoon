@@ -662,28 +662,22 @@
   ==
 ::
 ::
-::  fail on table name does not exist
-++  test-fail-truncate-tbl-not-exist        
-  =|  run=@ud
-  =/  cmd
-    :+  %truncate-table
-        :*  %qualified-object
-            ship=~
-            database='db1'
-            namespace='dbo'
-            name='my-table'
-        ==
-        ~
-  =^  mov1  agent  
-    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
-        %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1' ~]])
-    ==
-  =.  run  +(run)
-  %-  expect-fail
-  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
-          %obelisk-action
-          !>([%commands ~[cmd]])
-      ==
+:: fail on time, create ns lt schema
+::++  test-fail-time-create-ns-lt-schema
+::  =|  run=@ud
+::  =^  mov1  agent  
+::    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+::        %obelisk-action
+::        !>  :-  %tape-create-db 
+::                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+::    ==
+::  =.  run  +(run)
+::  %+  expect-fail-message
+::      'namespace %ns1 as-of schema time out of order'
+::      |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+::              %obelisk-action
+::              !>  :-  %tape-create-db
+::                      "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
+::          ==
 
 --

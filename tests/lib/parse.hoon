@@ -23,13 +23,35 @@
 ::
 :: alter index
 ::
-:: tests 1, 2, 3, 5, and extra whitespace characters, alter index... db.ns.index db.ns.table columns action; alter index db..index db..table one column
+:: tests 1, 2, 3, 4, 5
+::       extra whitespace characters
+::       multiple command script:
+::         alter index... db.ns.index db.ns.table columns action %disable
+::         alter index db..index db..table one column action %rebuild
 ++  test-alter-index-1
-  =/  expected1  [%alter-index name=[%qualified-object ship=~ database='db' namespace='ns' name='my-index'] object=[%qualified-object ship=~ database='db' namespace='ns' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] action=%disable]
-  =/  expected2  [%alter-index name=[%qualified-object ship=~ database='db' namespace='dbo' name='my-index'] object=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y]] action=%rebuild]
+  =/  expected1
+    :*  %alter-index
+        [%qualified-object ship=~ database='db' namespace='ns' name='my-index'] 
+        [%qualified-object ship=~ database='db' namespace='ns' name='table']
+        :~  [%ordered-column name='col1' is-ascending=%.y]
+            [%ordered-column name='col2' is-ascending=%.n]
+            [%ordered-column name='col3' is-ascending=%.y]
+            ==
+        %disable
+        ==
+  =/  expected2
+    :*  %alter-index
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-index']
+        [%qualified-object ship=~ database='db' namespace='dbo' name='table']
+        ~[[%ordered-column name='col1' is-ascending=%.y]]
+        %rebuild
+        ==
   %+  expect-eq
     !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "aLter \0d INdEX\09db.ns.my-index On db.ns.table  ( col1  asc , col2\0a desc  , col3) \0a dIsable \0a;\0a aLter \0d INdEX\09db..my-index On db..table  ( col1  asc ) \0a \0a rEBuild ")
+    !>  %-  parse:parse(default-database 'db1')
+      "aLter \0d INdEX\09db.ns.my-index On db.ns.table  ".
+      "( col1  asc , col2\0a desc  , col3) \0a dIsable \0a;\0a aLter \0d ".
+      "INdEX\09db..my-index On db..table  ( col1  asc ) \0a \0a rEBuild "
 ::
 :: alter index 1 column without action
 ++  test-alter-index-2

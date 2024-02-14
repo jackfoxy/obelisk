@@ -1,3 +1,5 @@
+CREATE NAMESPACE reference;
+
 CREATE TABLE reference.common-person-names
 (
   rank  @ud,

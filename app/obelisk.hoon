@@ -40,10 +40,10 @@
     =/  res  %:  process-cmds
                  databases
                  bowl
-                 (parse(default-database +<.act) +>.act)
+                 ~>  %bout.[0 %process-cmds]  (parse(default-database +<.act) +>.act)
                  ==
+    ~&  "{<-.res>}"
     :_  this(databases +.res)
-    ::https://github.com/urbit/urbit/issues/6692
     :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]
     ==

@@ -534,24 +534,24 @@
       ::  use canonical column list
       columns.table
       ::  validate columns.c length matches, no dups
-      ?.  .=  ~(wyt by column-lookup.file) 
-              ~(wyt in (silt `(list @t)`(need columns.c)))
+      ?.  =(~(wyt by column-lookup.file) (lent (need columns.c)))
         ~|("insert invalid column: {<columns.c>}" !!)
       %+  turn 
           `(list @t)`(need columns.c) 
           |=(a=@t ~|("insert invalid column: {<a>}" (~(got by col-map) a)))
+    ::
     ?.  ?=([%data *] values.c)  ~|("not implemented: {<values.c>}" !!)
     =/  value-table  `(list (list value-or-default:ast))`+.values.c
     =/  i=@ud  0
+    =/  key-pick  %+  turn 
+                      columns.pri-indx.table 
+                      |=(a=ordered-column:ast (make-key-pick name.a cols))
     |-
     ?~  value-table  
       :-  (finalize-data nxt-data file bowl sys-time table.c next-data)
           ~[[%result-ud 'row count' i] [%result-da 'data time' sys-time]]
     ~|  "insert {<namespace.table.c>}.{<name.table.c>} row {<+(i)>}"
     =/  row=(list value-or-default:ast)  -.value-table
-    =/  key-pick  %+  turn 
-                      columns.pri-indx.table 
-                      |=(a=ordered-column:ast (make-key-pick name.a cols))
     =/  row-key  
         %+  turn
             key-pick 
