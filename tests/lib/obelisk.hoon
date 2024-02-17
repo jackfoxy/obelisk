@@ -102,6 +102,7 @@
         tmsp=~2023.7.9..22.24.54..4b8a
         namespaces=schema-ns
         tables=~
+        views=~
     ==
 ++  gen1-sys
   :-  ~2023.7.9..22.27.32..49e3
@@ -110,6 +111,7 @@
         tmsp=~2023.7.9..22.27.32..49e3
         namespaces=schema-ns
         tables=[n=schema-my-table l=~ r=~]
+        views=~
     ==
 ++  gen2-sys
   :-  ~2023.7.9..22.35.34..7e90
@@ -118,6 +120,7 @@
         tmsp=~2023.7.9..22.35.34..7e90
         namespaces=schema-ns
         tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
+        views=~
     ==
 ++  sys-time-1
   :-  ~2023.7.9..22.35.35..7e90
@@ -126,6 +129,7 @@
         tmsp=~2023.7.9..22.35.35..7e90
         namespaces=schema-ns-2
         tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
+        views=~
     ==
 ++  sys-time-2
   :-  ~2023.7.9..22.35.35..7e90
@@ -134,6 +138,7 @@
         tmsp=~2023.7.9..22.35.35..7e90
         namespaces=schema-ns
         tables=[n=schema-my-table-2 l=[n=schema-table-3 l=~ r=~] r=[schema-my-table ~ ~]]
+        views=~
     ==
 ++  schema-ns
   :+  n=[p=%dbo q=~2023.7.9..22.24.54..4b8a]

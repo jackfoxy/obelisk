@@ -1,4 +1,5 @@
 /-  ast, *obelisk
+/+  *sys-views
 |%
 ++  new-database
   |=  [state=databases =bowl:gall c=command:ast]
@@ -8,6 +9,21 @@
   =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
   =/  tbs=tables  ~
+  ::
+  =/  db-views  :~  :-  [%sys %sys-namespaces sys-time]
+                        (sys-namespaces-view +<.c sap.bowl sys-time)
+                    :-  [%sys %sys-tables sys-time]
+                        (sys-tables-view +<.c sap.bowl sys-time)
+                    :-  [%sys %sys-columns sys-time]
+                        (sys-columns-view +<.c sap.bowl sys-time)
+                    :-  [%sys %sys-sys-log sys-time]
+                        (sys-sys-log-view +<.c sap.bowl sys-time)
+                    :-  [%sys %sys-data-log sys-time]
+                        (sys-data-log-view +<.c sap.bowl sys-time)
+                    ==
+  =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                                      (limo db-views)
+  ::
   :-  %:  map-insert  state  +<.c  %:  database 
                                         %database 
                                         +<.c 
@@ -19,6 +35,7 @@
                                                             sys-time
                                                             ns
                                                             tbs
+                                                            vws
                                                 ==
                                             ~
                                             ~
@@ -228,16 +245,15 @@
     ?:  ?&  ?=(qualified-object:ast object.table-set)
             =(namespace.object.table-set 'sys')
         ==
-      ~[(sys-views state bowl object.table-set)]
+      ~[(system-views state bowl object.table-set)]
     !!
   ++  select-literals
     |=  columns=(list selected-column:ast)
     ^-  result
-    =/  i  0
-    =/  cols=(list [@tas @tas])  ~
-    =/  vals=(list @)  ~
+    =/  i  0             ::to do: return row count
+    =/  vals=(list cell)  ~
     |-
-    ?~  columns  :^(%result-set ~.literals (flop cols) ~[(flop vals)])
+    ?~  columns  [%result-set (limo ~[[%row (flop vals)]])]
     ?.  ?=(selected-value:ast -.columns)
       ~|("selected value {<-.columns>} not a literal" !!)
     =/  column=selected-value:ast  -.columns
@@ -247,250 +263,249 @@
     %=  $
       i        +(i)
       columns  +.columns
-      cols     [heading cols]
-      vals     [q.value.column vals]
+      vals     [[-.heading value.column] vals]
     ==
-  ++  sys-views
+  ++  system-views
     |=  [state=databases =bowl:gall q=qualified-object:ast]
     ^-  result
-    ?:  =(%databases name.q)
-      ?.  ?&(=(%sys database.q) =(%sys namespace.q))
-        ~|("databases view only in database namespace 'sys.sys'" !!)
-      =/  databases-order  ~[[%t %.y 0] [%da %.y 2] [%da %.y 5]]
-      =/  dbes             (turn ~(val by state) sys-view-databases)
-      :^  %result-set
-          ~.sys.sys.databases
-          :~  [%database %tas] 
-              [%sys-agent %tas] 
-              [%sys-tmsp %da] 
-              [%data-ship %p] 
-              [%data-agent %tas] 
-              [%data-tmsp %da]
-          ==
-      (sort `(list (list @))`(zing dbes) ~(order order-row databases-order))
-    =/  db  
-      ~|  "database {<database.q>} does not exist" 
-      (~(got by state) database.q)
-    =/  sys=schema  (get-schema now.bowl sys.db)
-    =/  =tables     tables.sys
-    =/  udata=data  (get-data now.bowl content.db)
+::    ?:  =(%databases name.q)
+::      ?.  ?&(=(%sys database.q) =(%sys namespace.q))
+::        ~|("databases view only in database namespace 'sys.sys'" !!)
+::      =/  databases-order  ~[[%t %.y 0] [%da %.y 2] [%da %.y 5]]
+::      =/  dbes             (turn ~(val by state) sys-view-databases)
+::      :^  %result-set
+::          ~.sys.sys.databases
+::          :~  [%database %tas] 
+::              [%sys-agent %tas] 
+::              [%sys-tmsp %da] 
+::              [%data-ship %p] 
+::              [%data-agent %tas] 
+::              [%data-tmsp %da]
+::          ==
+::      (sort `(list (list @))`(zing dbes) ~(order order-row databases-order))
+::    =/  db  
+::      ~|  "database {<database.q>} does not exist" 
+::      (~(got by state) database.q)
+::    =/  sys=schema  (get-schema now.bowl sys.db)
+::    =/  =tables     tables.sys
+::    =/  udata=data  (get-data now.bowl content.db)
     ?+  name.q  !!
-    %columns
-      =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
-      =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables))
-      :^
-      %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.columns"))
-       :~  [%namespace %tas] 
-           [%name %tas]  
-           [%col-ordinal %ud]
-           [%col-name %tas]
-           [%col-type %tas]
-           ==
-      (sort `(list (list @))`(zing columns) ~(order order-row columns-order))
+    %columns  !!
+::      =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
+::      =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables))
+::      :^
+::      %result-set
+::      `@ta`(crip (weld (trip database.q) ".sys.columns"))
+::       :~  [%namespace %tas] 
+::           [%name %tas]  
+::           [%col-ordinal %ud]
+::           [%col-name %tas]
+::           [%col-type %tas]
+::           ==
+::      (sort `(list (list @))`(zing columns) ~(order order-row columns-order))
     ::
-    %namespaces
-      =/  ns-order    ~[[%t %.y 0]]
-      =/  namespaces  (~(urn by namespaces.sys) |=([k=@tas v=@da] ~[k v]))
-      :^
-      %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.namespaces"))
-      ~[[%namespace %tas] [%tmsp %da]]
-      (sort `(list (list @))`~(val by namespaces) ~(order order-row ns-order))
+    %namespaces  !!
+::      =/  ns-order    ~[[%t %.y 0]]
+::      =/  namespaces  (~(urn by namespaces.sys) |=([k=@tas v=@da] ~[k v]))
+::      :^
+::      %result-set
+::      `@ta`(crip (weld (trip database.q) ".sys.namespaces"))
+::      ~[[%namespace %tas] [%tmsp %da]]
+::      (sort `(list (list @))`~(val by namespaces) ~(order order-row ns-order))
     ::
-    %tables
-      =/  tables-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 7] [%ud %.y 10]]
-      =/  tbls  (turn ~(tap by files.udata) ~(foo sys-view-tables tables))
-      :^
-      %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.tables"))
-       :~  [%namespace %tas] 
-           [%name %tas] 
-           [%ship %p] 
-           [%agent %tas] 
-           [%tmsp %da] 
-           [%row-count %ud] 
-           [%clustered %f] 
-           [%key-ordinal %ud] 
-           [%key %tas] 
-           [%key-ascending %f] 
-           [%col-ordinal %ud]
-           [%col-name %tas]
-           [%col-type %tas]
-           ==
-      (sort `(list (list @))`(zing tbls) ~(order order-row tables-order))
+    %tables  !!
+::      =/  tables-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 7] [%ud %.y 10]]
+::      =/  tbls  (turn ~(tap by files.udata) ~(foo sys-view-tables tables))
+::      :^
+::      %result-set
+::      `@ta`(crip (weld (trip database.q) ".sys.tables"))
+::       :~  [%namespace %tas] 
+::           [%name %tas] 
+::           [%ship %p] 
+::           [%agent %tas] 
+::           [%tmsp %da] 
+::           [%row-count %ud] 
+::           [%clustered %f] 
+::           [%key-ordinal %ud] 
+::           [%key %tas] 
+::           [%key-ascending %f] 
+::           [%col-ordinal %ud]
+::           [%col-name %tas]
+::           [%col-type %tas]
+::           ==
+::      (sort `(list (list @))`(zing tbls) ~(order order-row tables-order))
     ::
-    %sys-log
-      :: to do: rewrite as jagged when architecture available
-      =/  sys-order   ~[[%da %.n 0] [%t %.y 2] [%t %.y 3]]
-      =/  sys=(list schema)
-            (turn (tap:schema-key sys.db) |=(b=[@da schema] +.b))
-      =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
-      =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
-      =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
-      :^
-      %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.sys-log"))
-      ~[[%tmsp %da] [%agent %tas] [%component %tas] [%name %tas]]
-      (sort `(list (list @))`log ~(order order-row sys-order))
+    %sys-log  !!
+::      :: to do: rewrite as jagged when architecture available
+::      =/  sys-order   ~[[%da %.n 0] [%t %.y 2] [%t %.y 3]]
+::      =/  sys=(list schema)
+::            (turn (tap:schema-key sys.db) |=(b=[@da schema] +.b))
+::      =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
+::      =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
+::      =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
+::      :^
+::      %result-set
+::      `@ta`(crip (weld (trip database.q) ".sys.sys-log"))
+::      ~[[%tmsp %da] [%agent %tas] [%component %tas] [%name %tas]]
+::      (sort `(list (list @))`log ~(order order-row sys-order))
     ::
-    %data-log
-      =/  data-order   ~[[%da %.n 0] [%t %.y 3] [%t %.y 4]]
-      =/  tbls  
-            %-  zing  
-                %+  turn  (turn (tap:data-key content.db) |=(b=[@da data] +.b)) 
-                          sys-view-data-log
-      :^
-      %result-set
-      `@ta`(crip (weld (trip database.q) ".sys.data-log"))
-      ~[[%tmsp %da] [%ship %p] [%agent %tas] [%namespace %tas] [%table %tas]]
-      (sort `(list (list @))`tbls ~(order order-row data-order))
+    %data-log  !!
+::      =/  data-order   ~[[%da %.n 0] [%t %.y 3] [%t %.y 4]]
+::      =/  tbls  
+::            %-  zing  
+::                %+  turn  (turn (tap:data-key content.db) |=(b=[@da data] +.b)) 
+::                          sys-view-data-log
+::      :^
+::      %result-set
+::      `@ta`(crip (weld (trip database.q) ".sys.data-log"))
+::      ~[[%tmsp %da] [%ship %p] [%agent %tas] [%namespace %tas] [%table %tas]]
+::      (sort `(list (list @))`tbls ~(order order-row data-order))
     ==
-  ++  sys-view-data-log
-    |=  a=data
-    ^-  (list (list @))
-    =/  tbls  %+  skim
-                  %~  val  by
-                      (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
-                  |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
-    %+  turn
-          tbls
-   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k])
-  ++  sys-view-sys-log-tbl
-    |=  a=schema
-    ^-  (list (list @))
-    =/  tbls  %+  skim
-                  %~  val  by
-                      (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
-                  |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
-    %+  turn  tbls
-      |=([k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k +.k])
-  ++  sys-view-sys-log-ns
-    |=  a=schema
-    ^-  (list (list @))
-    =/  namespaces  %+  skim  
-                    ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
-                    |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
-    %+  turn  namespaces
-      |=([ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns])
-  ++  sys-view-databases
-    |=  a=database
-    ^-  (list (list @))
-    =/  sys=(list schema)
-          (flop (turn (tap:schema-key sys.a) |=(b=[@da schema] +.b)))
-    =/  udata=(list data)
-          (flop (turn (tap:data-key content.a) |=(b=[@da data] +.b)))
-    =/  rslt=(list (list @))  ~
-        |-
-        ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
-        ?~  sys
-          %=  $
-            rslt  :-  :~  name.a
-                          ->-.rslt
-                          ->+<.rslt
-                          ->-.udata
-                          (crip (spud ->+<.udata))
-                          ->+>-.udata
-                      ==
-                      rslt
-            udata  +.udata
-          ==
-    ::to do: test cases for sys ahead and behind of udata
-        ?~  udata
-          ?>  !=(~ rslt)
-          %=  $
-            rslt  :-  :~  name.a
-                          (crip (spud ->-.sys))
-                          ->+<:sys
-                          ->+>-.rslt
-                          ->+>+<.rslt
-                          ->+>+>-.rslt
-                      ==
-                      rslt
-            sys   +.sys
-          ==
-        ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
-          %=  $
-            rslt  :-  :~  name.a
-                          (crip (spud ->-.sys))
-                          ->+<.sys
-                          ->-.udata
-                          (crip (spud ->+<.udata))
-                          ->+>-.udata
-                      ==
-                      rslt
-            sys   +.sys
-            udata  +.udata
-          ==
-        ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
-          %=  $
-            rslt  :-  :~  name.a
-                          ->-.rslt
-                          ->+<.rslt
-                          ->-.udata
-                          (crip (spud ->+<.udata))
-                          ->+>-.udata
-                      ==
-                      rslt
-            udata  +.udata
-          ==
-        ?>  !=(~ rslt)
-        %=  $
-          rslt  :-  :~  name.a
-                        (crip (spud ->-.sys))
-                        ->+<.sys
-                        ->+>-.rslt
-                        ->+>+<.rslt
-                        ->+>+>-.rslt
-                    ==
-                    rslt
-          sys   +.sys
-        ==
-  ++  sys-view-tables
-    |_  tables=(map [@tas @tas] table)
-    ++  foo
-      |=  [k=[@tas @tas] =file]
-      ^-  (list (list @))
-      =/  aa=(list @)  :~  -.k
-                          +.k
-                          ship.file
-                          (crip (spud provenance.file))
-                          tmsp.file
-                          length.file
-                          clustered.file
-                        ==
-      =/  tbl  (~(got by tables) [-.k +.k])
-      =/  keys
-        %^  spin  columns.pri-indx.tbl
-            1
-            |=([n=ordered-column:ast a=@] [~[a name.n ascending.n] +(a)])
-      =/  columns  
-        %^  spin  columns.tbl
-            1
-            |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
-      =/  aaa=(list (list @))  (turn p.keys |=(a=(list @) (weld aa a)))
-      =/  b=(list (list @))  ~
-      |-  ?~  aaa  b
-      %=  $
-      b  %+  weld 
-             (turn p.columns |=(a=(list @) (weld `(list @)`-.aaa `(list @)`a)))
-             b
-      aaa  +.aaa
-      ==
-    --
-  ++  sys-view-columns
-    |_  tables=(map [@tas @tas] table)
-    ++  foo
-      |=  [k=[@tas @tas] =file]
-      ^-  (list (list @))
-      =/  aa=(list @)  ~[-.k +.k]
-      =/  tbl  (~(got by tables) [-.k +.k])
-      =/  columns  
-        %^  spin  columns.tbl
-            1
-            |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
-     (turn p.columns |=(a=(list @) (weld aa a)))
-    --
+::  ++  sys-view-data-log
+::    |=  a=data
+::    ^-  (list (list @))
+::    =/  tbls  %+  skim
+::                  %~  val  by
+::                      (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
+::                  |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
+::    %+  turn
+::          tbls
+::   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k])
+::  ++  sys-view-sys-log-tbl
+::    |=  a=schema
+::    ^-  (list (list @))
+::    =/  tbls  %+  skim
+::                  %~  val  by
+::                      (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
+::                  |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
+::    %+  turn  tbls
+::      |=([k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k +.k])
+::  ++  sys-view-sys-log-ns
+::    |=  a=schema
+::    ^-  (list (list @))
+::    =/  namespaces  %+  skim  
+::                    ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
+::                    |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
+::    %+  turn  namespaces
+::      |=([ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns])
+::  ++  sys-view-databases
+::    |=  a=database
+::    ^-  (list (list @))
+::    =/  sys=(list schema)
+::          (flop (turn (tap:schema-key sys.a) |=(b=[@da schema] +.b)))
+::    =/  udata=(list data)
+::          (flop (turn (tap:data-key content.a) |=(b=[@da data] +.b)))
+::    =/  rslt=(list (list @))  ~
+::        |-
+::        ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
+::        ?~  sys
+::          %=  $
+::            rslt  :-  :~  name.a
+::                          ->-.rslt
+::                          ->+<.rslt
+::                          ->-.udata
+::                          (crip (spud ->+<.udata))
+::                          ->+>-.udata
+::                      ==
+::                      rslt
+::            udata  +.udata
+::          ==
+::    ::to do: test cases for sys ahead and behind of udata
+::        ?~  udata
+::          ?>  !=(~ rslt)
+::          %=  $
+::            rslt  :-  :~  name.a
+::                          (crip (spud ->-.sys))
+::                          ->+<:sys
+::                          ->+>-.rslt
+::                          ->+>+<.rslt
+::                          ->+>+>-.rslt
+::                      ==
+::                      rslt
+::            sys   +.sys
+::          ==
+::        ?:  =(->+<.sys ->+>-.udata)                   :: timestamps equal?
+::          %=  $
+::            rslt  :-  :~  name.a
+::                          (crip (spud ->-.sys))
+::                          ->+<.sys
+::                          ->-.udata
+::                          (crip (spud ->+<.udata))
+::                          ->+>-.udata
+::                      ==
+::                      rslt
+::            sys   +.sys
+::            udata  +.udata
+::          ==
+::        ?:  (gth ->+<.sys ->+>-.udata)                :: sys ahead of udata?
+::          %=  $
+::            rslt  :-  :~  name.a
+::                          ->-.rslt
+::                          ->+<.rslt
+::                          ->-.udata
+::                          (crip (spud ->+<.udata))
+::                          ->+>-.udata
+::                      ==
+::                      rslt
+::            udata  +.udata
+::          ==
+::        ?>  !=(~ rslt)
+::        %=  $
+::          rslt  :-  :~  name.a
+::                        (crip (spud ->-.sys))
+::                        ->+<.sys
+::                        ->+>-.rslt
+::                        ->+>+<.rslt
+::                        ->+>+>-.rslt
+::                    ==
+::                    rslt
+::          sys   +.sys
+::        ==
+::  ++  sys-view-tables
+::    |_  tables=(map [@tas @tas] table)
+::    ++  foo
+::      |=  [k=[@tas @tas] =file]
+::      ^-  (list (list @))
+::      =/  aa=(list @)  :~  -.k
+::                          +.k
+::                          ship.file
+::                          (crip (spud provenance.file))
+::                          tmsp.file
+::                          length.file
+::                          clustered.file
+::                        ==
+::      =/  tbl  (~(got by tables) [-.k +.k])
+::      =/  keys
+::        %^  spin  columns.pri-indx.tbl
+::            1
+::            |=([n=ordered-column:ast a=@] [~[a name.n ascending.n] +(a)])
+::      =/  columns  
+::        %^  spin  columns.tbl
+::            1
+::            |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
+::      =/  aaa=(list (list @))  (turn p.keys |=(a=(list @) (weld aa a)))
+::      =/  b=(list (list @))  ~
+::      |-  ?~  aaa  b
+::      %=  $
+::      b  %+  weld 
+::             (turn p.columns |=(a=(list @) (weld `(list @)`-.aaa `(list @)`a)))
+::             b
+::      aaa  +.aaa
+::      ==
+::    --
+::  ++  sys-view-columns
+::    |_  tables=(map [@tas @tas] table)
+::    ++  foo
+::      |=  [k=[@tas @tas] =file]
+::      ^-  (list (list @))
+::      =/  aa=(list @)  ~[-.k +.k]
+::      =/  tbl  (~(got by tables) [-.k +.k])
+::      =/  columns  
+::        %^  spin  columns.tbl
+::            1
+::            |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
+::     (turn p.columns |=(a=(list @) (weld aa a)))
+::    --
   ++  do-insert
     |=  $:  state=databases
             =bowl:gall
@@ -959,9 +974,18 @@
   --
 ++  pri-key
   |=  key=(list [@tas ?])
-  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
+        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
 ++  schema-key  ((on @da schema) gth)
-++  data-key  ((on @da data) gth)
+++  data-key    ((on @da data) gth)
+
+++  ns-obj-comp 
+  |=  [p=data-obj-key q=data-obj-key]
+  ^-  ?
+  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
+  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
+  (gth time.p time.q)
+++  ns-objs-key
+    ((on data-obj-key view) ns-obj-comp)
 ::
 ::  gets the schema with matching or highest timestamp prior to
 ++  get-schema

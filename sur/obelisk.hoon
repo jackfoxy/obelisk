@@ -17,7 +17,7 @@
       =namespaces
       =tables
   :: indices  ::  indices other than primary key
-  :: views
+      =views
   :: permissions
   ==
 +$  data
@@ -40,6 +40,11 @@
       data=(list (map @tas @))
       ::    =indices
   ==
++$  data-obj-key
+  $:  ns=@tas
+      obj=@tas
+      time=@da
+  ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
 +$  table
@@ -50,12 +55,30 @@
       columns=(list column)             ::  canonical column list
       indices=(list index)
   ==
++$  views  (tree [data-obj-key view])
++$  view
+  $:  %view
+      provenance=path
+      tmsp=@da
+      is-dirty=?
+      =transform
+  ::    columns=(list column)             ::  canonical column list
+      data=(tree [@tas @tas @da] view-data)
+  ::    content=(list (list cell))
+  ==
++$  view-data
+  $:  %view-data
+      columns=(list column)
+      content=(list (list cell))
+      ==
 +$  index
   $:  %index
       unique=?
       clustered=?
       columns=(list ordered-column)
   ==
++$  cell  [p=@tas q=dime]
++$  row   [%row (list cell)]
   :: $| validator mold for adding rows with FKs
 ::
 +$  action
@@ -69,12 +92,8 @@
   $%  [%message msg=@t]
       [%result-ud msg=@t count=@ud]
       [%result-da msg=@t date=@da]
-      $:  %result-set
-          qualifier=@ta
-          columns=(list [@tas @tas])
-          data=(list (list @))
+      [%result-set (list row)]
       ==
-  ==
 +$  table-return
   $:  [@da ? @ud]
       (map @tas [(unit schema) (unit data)])
