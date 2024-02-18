@@ -698,90 +698,49 @@
                 (bowl [run ~2023.2.1])
                 (parse:parse(default-database 'db1') my-select)
   %+  expect-eq                         
-    !>  :~  :-  %results
-                :~  :*  %result-set
-                        qualifier=~.literals
-                        columns=~[[%literal-0 %ud]]
-                        data=[i=~[0] t=~]
-                    ==
-                ==
-        ==
+    !>  ~[[%results ~[[%result-set ~[[%row ~[[%literal-0 ~.ud 0]]]]]]]]
     !>  -.x
 ::
 ::  select all literals mixed with aliases
 ++  test-select-literals
   =|  run=@ud 
-  =/  rslt-cols  :~  [%date %da]
-                    [%literal-1 %da]
-                    [%literal-2 %da]
-                    [%literal-3 %da]
-                    [%literal-4 %da]
-                    [%literal-5 %da]
-                    [%timespan %dr]
-                    [%literal-7 %dr]
-                    [%literal-8 %dr]
-                    [%literal-9 %dr]
-                    [%literal-10 %dr]
-                    [%loobean %f]
-                    [%literal-12 %f]
-                    [%ipv4-address %if]
-                    [%ipv6-address %is]
-                    [%ship %p]
-                    [%single-float %rs]
-                    [%literal-17 %rs]
-                    [%double-float %rd]
-                    [%literal-19 %rd]
-                    [%signed-binary %sb]
-                    [%literal-21 %sb]
-                    [%signed-decimal %sd]
-                    [%literal-23 %sd]
-                    [%signed-base32 %sv]
-                    [%literal-25 %sv]
-                    [%signed-base64 %sw]
-                    [%literal-27 %sw]
-                    [%signed-hexadecimal %sx]
-                    [%literal-29 %sx]
-                    [%unsigned-binary %ub]
-                    [%unsigned-decimal %ud]
-                    [%literal-32 %ud]
-                    [%unsigned-hexadecimal %ux]
-                  ==
-  =/  rslt-data  :~  :~  ~2020.12.25
-                        ~2020.12.25..7.15.0
-                        ~2020.12.25..7.15.0..1ef5
-                        ~2020.12.25
-                        ~2020.12.25..7.15.0
-                        ~2020.12.25..7.15.0..1ef5
-                        ~d71.h19.m26.s24..9d55
-                        ~d71.h19.m26.s24
-                        ~d71.h19.m26
-                        ~d71.h19
-                        ~d71
-                        %.y
-                        %.n
-                        .195.198.143.90
-                        .0.0.0.0.0.1c.c3c6.8f5a
-                        ~sampel-palnet
-                        .3.14
-                        .-3.14
-                        .~3.14
-                        .~-3.14
-                        --0b10.0000
-                        -0b10.0000
-                        --20
-                        -20
-                        --0v201.4gvml.245kc
-                        -0v201.4gvml.245kc
-                        --0w2.04AfS.G8xqc
-                        -0w2.04AfS.G8xqc
-                        --0x2004.90fd
-                        -0x2004.90fd
-                        0b10.1011
-                        2.222
-                        2.222
-                        0x12.6401
+  =/  rslt-data  :~  :-  %row
+                         :~  [%date ~.da ~2020.12.25]
+                             [%literal-1 ~.da ~2020.12.25..7.15.0]
+                             [%literal-2 ~.da ~2020.12.25..7.15.0..1ef5]
+                             [%literal-3 ~.da ~2020.12.25]
+                             [%literal-4 ~.da ~2020.12.25..7.15.0]
+                             [%literal-5 ~.da ~2020.12.25..7.15.0..1ef5]
+                             [%timespan ~.dr ~d71.h19.m26.s24..9d55]
+                             [%literal-7 ~.dr ~d71.h19.m26.s24]
+                             [%literal-8 ~.dr ~d71.h19.m26]
+                             [%literal-9 ~.dr ~d71.h19]
+                             [%literal-10 ~.dr ~d71]
+                             [%loobean ~.f %.y]
+                             [%literal-12 ~.f %.n]
+                             [%ipv4-address ~.if .195.198.143.90]
+                             [%ipv6-address ~.is .0.0.0.0.0.1c.c3c6.8f5a]
+                             [%ship ~.p ~sampel-palnet]
+                             [%single-float ~.rs .3.14]
+                             [%literal-17 ~.rs .-3.14]
+                             [%double-float ~.rd .~3.14]
+                             [%literal-19 ~.rd .~-3.14]
+                             [%signed-binary ~.sb --0b10.0000]
+                             [%literal-21 ~.sb -0b10.0000]
+                             [%signed-decimal ~.sd --20]
+                             [%literal-23 ~.sd -20]
+                             [%signed-base32 ~.sv --0v201.4gvml.245kc]
+                             [%literal-25 ~.sv -0v201.4gvml.245kc]
+                             [%signed-base64 ~.sw --0w2.04AfS.G8xqc]
+                             [%literal-27 ~.sw -0w2.04AfS.G8xqc]
+                             [%signed-hexadecimal ~.sx --0x2004.90fd]
+                             [%literal-29 ~.sx -0x2004.90fd]
+                             [%unsigned-binary ~.ub 0b10.1011]
+                             [%unsigned-decimal ~.ud 2.222]
+                             [%literal-32 ~.ud 2.222]
+                             [%unsigned-hexadecimal ~.ux 0x12.6401]
+                             ==
                       ==
-                ==
   =/  my-select  "SELECT ~2020.12.25 AS Date, ~2020.12.25..7.15.0, ".
   "~2020.12.25..7.15.0..1ef5, 2020.12.25, 2020.12.25..7.15.0, ".
   "2020.12.25..7.15.0..1ef5, ~d71.h19.m26.s24..9d55 AS Timespan, ".
@@ -798,6 +757,6 @@
                               (bowl [run ~2023.2.1])
                               (parse:parse(default-database 'db1') my-select)
   %+  expect-eq                         
-    !>  ~[[%results ~[[%result-set qualifier=~.literals rslt-cols rslt-data]]]]
+    !>  ~[[%results ~[[%result-set rslt-data]]]]
     !>  -.x
 --

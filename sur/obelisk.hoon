@@ -61,16 +61,11 @@
       provenance=path
       tmsp=@da
       is-dirty=?
+      is-tombstoned=?
       =transform
   ::    columns=(list column)             ::  canonical column list
-      data=(tree [@tas @tas @da] view-data)
-  ::    content=(list (list cell))
+      content=(list (list @))
   ==
-+$  view-data
-  $:  %view-data
-      columns=(list column)
-      content=(list (list cell))
-      ==
 +$  index
   $:  %index
       unique=?

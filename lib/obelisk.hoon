@@ -977,7 +977,6 @@
         ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
 ++  schema-key  ((on @da schema) gth)
 ++  data-key    ((on @da data) gth)
-
 ++  ns-obj-comp 
   |=  [p=data-obj-key q=data-obj-key]
   ^-  ?

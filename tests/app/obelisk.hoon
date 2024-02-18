@@ -1,7 +1,7 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
 /-  ast, *obelisk
-/+  *test
+/+  *test, *sys-views
 /=  agent  /app/obelisk
 |%
 ::
@@ -201,6 +201,32 @@
       ~
 ::
 ::  schemas
+++  ns-obj-comp 
+  |=  [p=data-obj-key q=data-obj-key]
+  ^-  ?
+  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
+  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
+  (gth time.p time.q)
+++  ns-objs-key
+    ((on data-obj-key view) ns-obj-comp)
+++  db-views
+    |=  [db=@tas sys-time=@da]
+    :~  :-  [%sys %sys-namespaces sys-time]
+            (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-tables sys-time]
+            (sys-tables-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-columns sys-time]
+            (sys-columns-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-sys-log sys-time]
+            (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-data-log sys-time]
+            (sys-data-log-view db `path`(limo `path`/test-agent) sys-time)
+        ==
+++  sys-views
+    |=  [db=@tas sys-time=@da]
+    ^-  views
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (limo (db-views db sys-time))
 ++  schema-key  ((on @da schema) gth)
 ++  sys1
   :-  ~2000.1.1
@@ -209,7 +235,7 @@
           tmsp=~2000.1.1
           namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
           tables=~
-          views=~
+          views=(sys-views %db1 ~2000.1.1)
       ==
 ++  time-1-sys1
   :-  ~2023.7.9..22.35.35..7e90
@@ -220,7 +246,7 @@
               ~
               [[p=%sys q=~2023.7.9..22.35.35..7e90] ~ ~]
           tables=~
-          views=~
+          views=(sys-views %db1 ~2023.7.9..22.35.35..7e90)
       ==
 ++  time-2-sys1
   :-  ~2023.7.9..22.35.35..7e90
@@ -231,7 +257,7 @@
               ~
               [[p=%sys q=~2000.1.1] ~ ~]
           tables=[time-one-col-tbl ~ ~]
-          views=~
+          views=(sys-views %db1 ~2023.7.9..22.35.35..7e90)
       ==
 ++  sys2
   :-  ~2000.1.2
@@ -242,7 +268,7 @@
             ~
             [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
         tables=~
-        views=~
+        views=(sys-views %db1 ~2000.1.2)
     ==
 ++  one-col-tbl-sys
   :-  ~2000.1.2
@@ -251,7 +277,7 @@
         tmsp=~2000.1.2
         namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
         tables=[one-col-tbl ~ ~]
-        views=~
+        views=(sys-views %db1 ~2000.1.2)
     ==
 ++  two-col-tbl-sys
   :-  ~2000.1.3
@@ -260,7 +286,7 @@
         tmsp=~2000.1.3
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
         tables=[two-col-tbl ~ [one-col-tbl ~ ~]]
-        views=~
+        views=(sys-views %db1 ~2000.1.3)
     ==
 ++  two-comb-col-tbl-sys
   :-  ~2000.1.2
@@ -269,7 +295,7 @@
         tmsp=~2000.1.2
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
         tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
-        views=~
+        views=(sys-views %db1 ~2000.1.2)
     ==
 ++  time-2-sys
   :-  ~2023.7.9..22.35.35..7e90
@@ -280,7 +306,7 @@
             ~
             [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
         tables=~
-        views=~
+        views=(sys-views %db1 ~2023.7.9..22.35.35..7e90)
     ==
 ++  time-3-sys
   :-  ~2023.7.9..22.35.36..7e90
@@ -291,7 +317,7 @@
             ~
             [[%sys ~2023.7.9..22.35.35..7e90] ~ ~]
         tables=[time-3-tbl ~ ~]
-        views=~
+        views=(sys-views %db1 ~2023.7.9..22.35.36..7e90)
     ==
 ++  time-3a-sys
   :-  ~2023.7.9..22.35.36..7e90
@@ -302,7 +328,7 @@
             ~
             [[%sys ~2000.1.1] ~ ~]
         tables=[time-3-tbl ~ ~]
-        views=~
+        views=(sys-views %db1 ~2023.7.9..22.35.36..7e90)
     ==
 ++  time-4-sys
   :-  ~2023.7.9..22.35.37..7e90
@@ -313,7 +339,7 @@
             ~
             [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
         tables=[time-3-tbl ~ ~]
-        views=~
+        views=(sys-views %db1 ~2023.7.9..22.35.37..7e90)
     ==
 ++  time-5-sys
   :-  ~2023.7.9..22.35.38..7e90
@@ -324,7 +350,7 @@
             ~
             [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
         tables=~
-        views=~
+        views=(sys-views %db1 ~2023.7.9..22.35.38..7e90)
     ==
 ++  sys3
   :-  ~2000.1.3
@@ -333,7 +359,7 @@
         tmsp=~2000.1.3
         namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
         tables=~
-        views=~
+        views=(sys-views %db1 ~2000.1.3)
     ==
 ++  sys4
   :-  ~2000.1.4
@@ -342,7 +368,7 @@
         tmsp=~2000.1.4
         namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
         tables=~
-        views=~
+        views=(sys-views %db1 ~2000.1.4)
     ==
 
 ++  sys-time-create-ns
@@ -356,7 +382,7 @@
                 ~
                 [[%ns2 ~2023.7.9..22.35.36..7e90] ~ [[%sys ~2000.1.1] ~ ~]]
         tables=~
-        views=~
+        views=(sys-views %db1 ~2023.7.9..22.35.36..7e90)
     ==
 ::
 ::  content
