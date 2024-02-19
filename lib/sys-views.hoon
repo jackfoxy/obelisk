@@ -11,6 +11,13 @@
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             sys-sys-dbs-query              ::query
+        :~  [%column %database ~.tas]   ::columns=(list column)
+            [%column %sys-agent ~.tas] 
+            [%column %sys-tmsp ~.da] 
+            [%column %data-ship ~.p] 
+            [%column %data-agent ~.tas] 
+            [%column %data-tmsp ~.da]
+            ==
         ~                              ::content=(list (list cell))
         ==
 ++  sys-sys-dbs-query
@@ -139,6 +146,9 @@
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-namespaces-query db)      ::query
+        :~  [%column %namespace ~.tas]  ::columns=(list column)
+            [%column %tmsp ~.da]
+            ==
         ~                              ::content=(list (list cell))
         ==
 ++  sys-namespaces-query
@@ -210,6 +220,20 @@
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
+        :~  [%column %namespace ~.tas]  ::columns=(list column)
+            [%column %name ~.tas] 
+            [%column %ship ~.p] 
+            [%column %agent ~.tas] 
+            [%column %tmsp ~.da] 
+            [%column %row-count ~.ud] 
+            [%column %clustered ~.f] 
+            [%column %key-ordinal ~.ud] 
+            [%column %key ~.tas] 
+            [%column %key-ascending ~.f] 
+            [%column %col-ordinal ~.ud]
+            [%column %col-name ~.tas]
+            [%column %col-type ~.tas]
+           ==
         ~                              ::content=(list (list cell))
         ==
 ++  sys-tables-query
@@ -413,6 +437,12 @@
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-columns-query db)         ::query
+        :~  [%column %namespace ~.tas]  ::columns=(list column)
+            [%column %name ~.tas]  
+            [%column %col-ordinal ~.ud]
+            [%column %col-name ~.tas]
+            [%column %col-type ~.tas]
+            ==
         ~                              ::content=(list (list cell))
         ==
 ++  sys-columns-query
@@ -533,6 +563,11 @@
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-sys-log-query database)   ::query
+        :~  [%column %tmsp ~.da]        ::columns=(list column)
+            [%column %agent ~.tas]
+            [%column %component ~.tas]
+            [%column %name ~.tas]
+            ==
         ~                              ::content=(list (list cell))
         ==
 ++  sys-sys-log-query
@@ -644,6 +679,12 @@
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-data-log-query database)  ::query
+        :~  [%column %tmsp ~.da]        ::columns=(list column)
+            [%column %ship ~.p]
+            [%column %agent ~.tas]
+            [%column %namespace ~.tas]
+            [%column %table ~.tas]
+            ==
         ~                              ::content=(list (list cell))
         ==
 ++  sys-data-log-query

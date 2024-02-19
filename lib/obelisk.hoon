@@ -8,7 +8,6 @@
   ?>  ?=(create-database:ast c)
   =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
-  =/  tbs=tables  ~
   ::
   =/  db-views  :~  :-  [%sys %sys-namespaces sys-time]
                         (sys-namespaces-view +<.c sap.bowl sys-time)
@@ -24,33 +23,75 @@
   =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
                                       (limo db-views)
   ::
-  :-  %:  map-insert  state  +<.c  %:  database 
-                                        %database 
-                                        +<.c 
-                                        sap.bowl
-                                        sys-time
-                                        :+  :-  sys-time
-                                                %:  schema  %schema
-                                                            sap.bowl
-                                                            sys-time
-                                                            ns
-                                                            tbs
-                                                            vws
-                                                ==
-                                            ~
-                                            ~
-                                        :+  :-  sys-time
-                                                %:  data  %data
-                                                          src.bowl
-                                                          sap.bowl
-                                                          sys-time
-                                                          ~
-                                                ==
-                                            ~
-                                            ~
-                                      ==
-          ==
+  ::  first time add sys database
+  =/  next-state  ?.  (~(has by state) %sys)
+                    (sys-database state bowl sys-time)
+                  state
+  ::
+  :-  %:  map-insert  next-state  
+                      +<.c  
+                      %:  database  %database 
+                                    +<.c 
+                                    sap.bowl
+                                    sys-time
+                                    :+  :-  sys-time
+                                            %:  schema  %schema
+                                                        sap.bowl
+                                                        sys-time
+                                                        ns
+                                                        ~
+                                                        vws
+                                            ==
+                                        ~
+                                        ~
+                                    :+  :-  sys-time
+                                            %:  data  %data
+                                                      src.bowl
+                                                      sap.bowl
+                                                      sys-time
+                                                      ~
+                                            ==
+                                        ~
+                                        ~
+                                  ==
+                        ==
       [%result-da 'system time' sys-time]
+++  sys-database
+  |=  [state=databases =bowl:gall sys-time=@da]
+  ^-  databases
+  =/  ns=namespaces  (my ~[[%sys sys-time]])
+  =/  db-views  :~  :-  [%sys %sys-namespaces sys-time]
+                        (sys-sys-dbs-view sap.bowl sys-time)
+                    ==
+  =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                                      (limo db-views)
+  %:  map-insert  state  
+                  %sys  
+                  %:  database  %database 
+                                %sys 
+                                sap.bowl
+                                sys-time
+                                :+  :-  sys-time
+                                        %:  schema  %schema
+                                                    sap.bowl
+                                                    sys-time
+                                                    ns
+                                                    ~
+                                                    vws
+                                        ==
+                                    ~
+                                    ~
+                                :+  :-  sys-time
+                                        %:  data  %data
+                                                  src.bowl
+                                                  sap.bowl
+                                                  sys-time
+                                                  ~
+                                        ==
+                                    ~
+                                    ~
+                              ==
+                    ==
 ++  process-cmds
   |=  [state=databases =bowl:gall cmds=(list command:ast)]
   ^-  [(list cmd-result) databases]
@@ -224,7 +265,7 @@
       ?:  query-has-run  ~|("update state change after query in script" !!)
       !!
     %query
-      [%.y [next-data (do-query state bowl -.rtree)]]
+      [%.y [next-data (do-query state bowl -.rtree next-data next-schemas)]]
   ::    ~&  >  "-.rtree: {<-.rtree>}"
   ::    ~&  >  "+.rtree: {<+.rtree>}"
   ::    ?>  ?=(query:ast -.rtree)
@@ -237,7 +278,12 @@
       !!
     == 
   ++  do-query
-    |=  [state=databases =bowl:gall q=query:ast]
+    |=  $:  state=databases
+            =bowl:gall
+            q=query:ast
+            next-data=(map @tas [(unit schema) (unit data)])
+            next-schemas=(map @tas [(unit schema) (unit data)])
+            ==
     ^-  (list result)
     ?~  from.q  ~[(select-literals columns.selection.q)]
     =/  =from:ast  (need from.q)
@@ -290,19 +336,6 @@
 ::    =/  =tables     tables.sys
 ::    =/  udata=data  (get-data now.bowl content.db)
     ?+  name.q  !!
-    %columns  !!
-::      =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
-::      =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables))
-::      :^
-::      %result-set
-::      `@ta`(crip (weld (trip database.q) ".sys.columns"))
-::       :~  [%namespace %tas] 
-::           [%name %tas]  
-::           [%col-ordinal %ud]
-::           [%col-name %tas]
-::           [%col-type %tas]
-::           ==
-::      (sort `(list (list @))`(zing columns) ~(order order-row columns-order))
     ::
     %namespaces  !!
 ::      =/  ns-order    ~[[%t %.y 0]]
@@ -334,6 +367,20 @@
 ::           [%col-type %tas]
 ::           ==
 ::      (sort `(list (list @))`(zing tbls) ~(order order-row tables-order))
+    ::
+    %columns  !!
+::      =/  columns-order  ~[[%t %.y 0] [%t %.y 1] [%ud %.y 2]]
+::      =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables))
+::      :^
+::      %result-set
+::      `@ta`(crip (weld (trip database.q) ".sys.columns"))
+::       :~  [%namespace %tas] 
+::           [%name %tas]  
+::           [%col-ordinal %ud]
+::           [%col-name %tas]
+::           [%col-type %tas]
+::           ==
+::      (sort `(list (list @))`(zing columns) ~(order order-row columns-order))
     ::
     %sys-log  !!
 ::      :: to do: rewrite as jagged when architecture available

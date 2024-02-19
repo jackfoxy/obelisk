@@ -63,7 +63,7 @@
       is-dirty=?
       is-tombstoned=?
       =transform
-  ::    columns=(list column)             ::  canonical column list
+      columns=(list column)             ::  canonical column list
       content=(list (list @))
   ==
 +$  index
