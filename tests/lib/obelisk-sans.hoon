@@ -358,15 +358,25 @@
 ++  gen4-file-data-my-table-3
   ~[row4 row3 row2 row1]
 ::
-:: fail on time, create ns lt schema
-++  test-fail-time-create-ns-lt-schema
-  =|  run=@ud
-  =/  my-cmd  "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.33..7e90"
-  %+  expect-fail-message
-      'namespace %ns1 as-of schema time out of order'
-      |.  %-  process-cmds 
-              :+  gen3-dbs
-                  (bowl [run ~2031.1.1])
-                  (parse:parse(default-database 'db1') my-cmd)
-
+::  insert rows to table
+++  test-insert-db
+  =|  run=@ud 
+  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
+                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
+  =/  x  %-  process-cmds 
+            :+  start-dbs
+                (bowl [run ~2030.1.1])
+                (parse:parse(default-database 'db1') my-insert)
+  ;:  weld
+  %+  expect-eq                         
+    !>  :~  :-  %results
+                :~  [%result-ud msg='row count' count=2]
+                    [%result-da msg='data time' date=~2030.1.1]
+                ==
+        ==
+    !>  -.x
+  %+  expect-eq
+    !>  gen3-dbs
+    !>  +.x
+  ==
 --

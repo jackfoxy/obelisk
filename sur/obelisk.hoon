@@ -64,6 +64,7 @@
       is-tombstoned=?
       =transform
       columns=(list column)             ::  canonical column list
+      ordering=(list column-order)
       content=(list (list @))
   ==
 +$  index
@@ -74,6 +75,7 @@
   ==
 +$  cell  [p=@tas q=dime]
 +$  row   [%row (list cell)]
++$  column-order  [aor=? ascending=? offset=@ud]
   :: $| validator mold for adding rows with FKs
 ::
 +$  action
