@@ -45,14 +45,14 @@
 ++  expect-eq
   |=  [expected=vase actual=vase]
   ^-  tang
-  ::
-  ::~&  "expected: {<q.expected>}"
-  ::~&  ""
-  ::~&  "actual: {<q.actual>}"
-  ::
   =|  result=tang
   ::
   =?  result  !=(q.expected q.actual)
+      ::
+      ::~&  "expected: {<q.expected>}"
+      ::~&  ""
+      ::~&  "actual: {<q.actual>}"
+      ::
     =/  diff=(pair tank tank)  (vary [expected actual])
     %+  weld  result
     ^-  tang

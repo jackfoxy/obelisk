@@ -1,13 +1,22 @@
 /-  *ast
 ^?
 |%
+++  ns-obj-comp 
+  |=  [p=data-obj-key q=data-obj-key]
+  ^-  ?
+  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
+  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
+  (gth time.p time.q)
+++  ns-objs-key
+    ((on data-obj-key view) ns-obj-comp)
+::@@@@@@@@@@@@@@@@@@@@@@@@
 +$  databases  (map @tas database)
 +$  database
   $:  %database
       name=@tas
       created-provenance=path
       created-tmsp=@da
-      sys=(tree [@da schema])
+      sys=((mop @da schema) gth)     ::(tree [@da schema])
       content=(tree [@da data])
   ==
 +$  schema
@@ -55,7 +64,7 @@
       columns=(list column)             ::  canonical column list
       indices=(list index)
   ==
-+$  views  (tree [data-obj-key view])
++$  views  ((mop data-obj-key view) ns-obj-comp)  ::(tree [data-obj-key view])
 +$  view
   $:  %view
       provenance=path

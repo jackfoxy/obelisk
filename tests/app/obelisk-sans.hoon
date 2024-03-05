@@ -1,5 +1,7 @@
+::  Demonstrate unit testing on a Gall agent with %obelisk.
+::
 /-  ast, *obelisk
-/+  *test
+/+  *test, *sys-views, *utils
 /=  agent  /app/obelisk
 |%
 ::
@@ -21,195 +23,155 @@
 |%
 ::
 ::  databases
-++  db1
-  :+  :-  %db1
+++  mk-db
+  |=  [name=@tas sys-time=@da schemas=(list [@da =schema]) contents=(list [@da =data])]
+  %-  ~(gas by `(map @tas database)`~)
+  :~  :-  name
           :*  %database
-              name=%db1
+              name=name
               created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[sys1])
-              content=(gas:data-key *((mop @da data) gth) ~[content-1])
+              created-tmsp=sys-time
+              sys=(gas:schema-key *((mop @da schema) gth) schemas)
+              content=(gas:data-key *((mop @da data) gth) contents)
           ==
-      ~
-      ~
-++  db2
-  :+  :-  %db1
+      (sys-database sys-time)
+      ==
+::
+++  sys-database
+  |=  sys-time=@da
+  :-  %sys
           :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              sys=(gas:schema-key *((mop @da schema) gth) ~[sys2 sys1])
-              content=(gas:data-key *((mop @da data) gth) ~[content-1])
-          ==
-      ~
-      ~
-++  one-col-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              (gas:schema-key *((mop @da schema) gth) ~[one-col-tbl-sys sys1])
-              (gas:data-key *((mop @da data) gth) ~[content-2 content-1])
-          ==
-      ~
-      ~
-++  two-col-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
+              %sys
+              `path`/test-agent
+              sys-time
               %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[two-col-tbl-sys one-col-tbl-sys sys1]
+                                  :~  :-  sys-time
+                                        :*  %schema
+                                            `path`/test-agent
+                                            sys-time
+                                            [[%sys sys-time] ~ ~]
+                                            ~
+                                            %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                                                                 (limo ~[(sys-sys-databases-view sys-time)])
+                                            ==
+                                      ==
               %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-3 content-2 content-1]
+                            ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
+              ==
+::
+::  views
+++  db-views
+    |=  [db=@tas sys-time=@da]
+    ^-  (list [[@tas @tas @da] view])
+    %-  limo
+    :~  :-  [%sys %sys-namespaces sys-time]
+            %-  apply-ordering 
+                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-tables sys-time]
+            %-  apply-ordering
+                (sys-tables-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-columns sys-time]
+            %-  apply-ordering
+                (sys-columns-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-sys-log sys-time]
+            %-  apply-ordering
+                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %sys-data-log sys-time]
+            %-  apply-ordering
+                (sys-data-log-view db `path`(limo `path`/test-agent) sys-time)
+        ==
+++  sys-sys-databases-view
+  |=  sys-time=@da
+  :-  [%sys %sys-databases sys-time]
+      :*  %view
+          [~.test-agent /]
+          sys-time
+          %.y
+          %.n
+          :+  %transform
+              ~
+              sys-sys-dbs-query
+          :~  [%column %database ~.tas]
+              [%column name=%sys-agent type=~.tas]
+              [%column name=%sys-tmsp type=~.da]
+              [%column name=%data-ship type=~.p]
+              [%column name=%data-agent type=~.tas]
+              [%column name=%data-tmsp type=~.da]
+              ==
+          :~  [aor=%.y ascending=%.y offset=0]
+              [aor=%.n ascending=%.y offset=2]
+              [aor=%.n ascending=%.y offset=5]
+              ==
+          ~
           ==
-      ~
-      ~
-++  two-comb-col-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[two-comb-col-tbl-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-3-a content-1]
-          ==
-       ~
-       ~
-++  dropped-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[sys3 one-col-tbl-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-1-a content-2 content-1]
-          ==
-      ~
-      ~
-++  truncated-no-data-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[one-col-tbl-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-2 content-1]
-          ==
-      ~
-      ~
-++  truncated-tbl-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[one-col-tbl-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-1c content-1b content-2 content-1]
-          ==
-      ~
-      ~
-++  dropped-tbl-db-force
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[sys4 one-col-tbl-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-4 content-1b content-2 content-1]
-          ==
-      ~
-      ~
-++  db-time-create-db
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2023.7.9..22.35.35..7e90
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[time-1-sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-time-1]
-          ==
-      ~
-      ~
-++  db-time-create-ns
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[sys-time-create-ns time-2-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-1]
-          ==
-      ~
-      ~
-++  db-time-create-tbl
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2023.7.9..22.35.35..7e90
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[time-3-sys time-1-sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-time-3 content-time-1]
-          ==
-      ~
-      ~
-++  db-time-drop-tbl
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[time-5-sys time-4-sys time-3a-sys sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-time-5 content-time-3 content-1]
-          ==
-      ~
-      ~
-++  db-time-insert-tbl
-  :+  :-  %db1
-          :*  %database
-              name=%db1
-              created-provenance=`path`/test-agent
-              created-tmsp=~2000.1.1
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  ~[time-2-sys1 sys1]
-::                                  ~[sys1]
-              %+  gas:data-key  *((mop @da data) gth)
-                                ~[content-insert content-my-table content-1]
-::                                ~[content-1]
-          ==
-      ~
-      ~
+++  ns-sys-views
+    |*  [db=@tas sys-time=@da]
+    ^-  views
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (limo (db-views db sys-time))
+++  ns-sys-views2
+    |*  [db=@tas sys-time1=@da sys-time2=@da]
+    ^-  views
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (weld (db-views db sys-time1) (db-views db sys-time2))
+
+++  ns-sys-views2-ns
+    |*  [db=@tas sys-time1=@da sys-time2=@da]
+    ^-  views
+    =/  ns-views=(list [[@tas @tas @da] view])  %-  limo  :~  
+         :-  [%sys %sys-namespaces sys-time2]
+            %-  apply-ordering 
+                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time2)
+        :-  [%sys %sys-sys-log sys-time2]
+            %-  apply-ordering
+                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time2)
+        ==
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (weld (db-views db sys-time1) ns-views)
+++  ns-sys-views3
+    |*  [db=@tas sys-time1=@da sys-time2=@da sys-time3=@da]
+    ^-  views
+    =/  ns-views=(list [[@tas @tas @da] view])  %-  limo  :~  
+        :-  [%sys %sys-namespaces sys-time1]
+            %-  apply-ordering 
+                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time1)
+        :-  [%sys %sys-sys-log sys-time1]
+            %-  apply-ordering
+                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time1)
+        :-  [%sys %sys-namespaces sys-time3]
+            %-  apply-ordering 
+                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time3)
+        :-  [%sys %sys-sys-log sys-time3]
+            %-  apply-ordering
+                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time3)
+
+        :-  [%sys %sys-namespaces sys-time2]
+            %-  apply-ordering 
+                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time2)
+        :-  [%sys %sys-sys-log sys-time2]
+            %-  apply-ordering
+                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time2)
+        :-  [%sys %sys-namespaces sys-time3]
+            %-  apply-ordering 
+                (sys-namespaces-view db `path`(limo `path`/test-agent) sys-time3)
+        :-  [%sys %sys-sys-log sys-time3]
+            %-  apply-ordering
+                (sys-sys-log-view db `path`(limo `path`/test-agent) sys-time3)
+        ==
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (weld (db-views db sys-time1) ns-views)
 ::
 ::  schemas
-++  schema-key  ((on @da schema) gth)
 ++  sys1
-  :-  ~2000.1.1
+  |=  sys-time=@da
+  ^-  [@da =schema]
+  :-  sys-time
       :*  %schema
           provenance=`path`/test-agent
-          tmsp=~2000.1.1
-          namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
+          tmsp=sys-time
+          namespaces=[[p=%dbo q=sys-time] ~ [[p=%sys q=sys-time] ~ ~]]
           tables=~
-          views=~
+          views=(ns-sys-views %db1 sys-time)
       ==
 ++  time-1-sys1
   :-  ~2023.7.9..22.35.35..7e90
@@ -220,7 +182,7 @@
               ~
               [[p=%sys q=~2023.7.9..22.35.35..7e90] ~ ~]
           tables=~
-          views=~
+          views=(ns-sys-views %db1 ~2023.7.9..22.35.35..7e90)
       ==
 ++  time-2-sys1
   :-  ~2023.7.9..22.35.35..7e90
@@ -231,7 +193,7 @@
               ~
               [[p=%sys q=~2000.1.1] ~ ~]
           tables=[time-one-col-tbl ~ ~]
-          views=~
+          views=(ns-sys-views %db1 ~2000.1.1)
       ==
 ++  sys2
   :-  ~2000.1.2
@@ -242,16 +204,18 @@
             ~
             [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
         tables=~
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
 ++  one-col-tbl-sys
-  :-  ~2000.1.2
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
     :*  %schema
         provenance=`path`/test-agent
-        tmsp=~2000.1.2
-        namespaces=[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-        tables=[one-col-tbl ~ ~]
-        views=~
+        tmsp=sys-time2
+        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+        tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
+        views=`((mop data-obj-key view) ns-obj-comp)`(ns-sys-views2-ns %db1 sys-time1 sys-time2)
     ==
 ++  two-col-tbl-sys
   :-  ~2000.1.3
@@ -260,7 +224,7 @@
         tmsp=~2000.1.3
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
         tables=[two-col-tbl ~ [one-col-tbl ~ ~]]
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
 ++  two-comb-col-tbl-sys
   :-  ~2000.1.2
@@ -269,29 +233,31 @@
         tmsp=~2000.1.2
         namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
         tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
-++  time-2-sys
-  :-  ~2023.7.9..22.35.35..7e90
+++  sys-ns1-time2
+  |=  [sys-time1=@da sys-time2=@da]
+  :-  sys-time2
     :*  %schema
         provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.35..7e90
-        :+  [%ns1 ~2023.7.9..22.35.35..7e90]
+        tmsp=sys-time2
+        :+  [%ns1 sys-time2]
             ~
-            [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
+            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=~
-        views=~
+        views=(ns-sys-views2-ns %db1 sys-time1 sys-time2)
     ==
 ++  time-3-sys
-  :-  ~2023.7.9..22.35.36..7e90
+  |=  [sys-time1=@da sys-time2=@da]
+  :-  sys-time2
     :*  %schema
         provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.36..7e90
-        :+  [%dbo ~2023.7.9..22.35.35..7e90]
+        tmsp=sys-time2
+        :+  [%dbo sys-time1]
             ~
-            [[%sys ~2023.7.9..22.35.35..7e90] ~ ~]
+            [[%sys sys-time1] ~ ~]
         tables=[time-3-tbl ~ ~]
-        views=~
+        views=(ns-sys-views2 %db1 sys-time1 sys-time2)
     ==
 ++  time-3a-sys
   :-  ~2023.7.9..22.35.36..7e90
@@ -302,7 +268,7 @@
             ~
             [[%sys ~2000.1.1] ~ ~]
         tables=[time-3-tbl ~ ~]
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
 ++  time-4-sys
   :-  ~2023.7.9..22.35.37..7e90
@@ -313,7 +279,7 @@
             ~
             [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
         tables=[time-3-tbl ~ ~]
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
 ++  time-5-sys
   :-  ~2023.7.9..22.35.38..7e90
@@ -324,7 +290,7 @@
             ~
             [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
         tables=~
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
 ++  sys3
   :-  ~2000.1.3
@@ -333,7 +299,7 @@
         tmsp=~2000.1.3
         namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
         tables=~
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
 ++  sys4
   :-  ~2000.1.4
@@ -342,21 +308,21 @@
         tmsp=~2000.1.4
         namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
         tables=~
-        views=~
+        views=(ns-sys-views %db1 ~2000.1.1)
     ==
-
-++  sys-time-create-ns
-  :-  ~2023.7.9..22.35.36..7e90
+++  sys-ns1-ns2
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
+  :-  sys-time3
     :*  %schema
         provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.36..7e90
-        :+  [%ns1 ~2023.7.9..22.35.35..7e90]
+        tmsp=sys-time3
+        :+  [%ns1 sys-time2]
             ~
-            :+  [%dbo ~2000.1.1]
+            :+  [%dbo sys-time1]
                 ~
-                [[%ns2 ~2023.7.9..22.35.36..7e90] ~ [[%sys ~2000.1.1] ~ ~]]
+                [[%ns2 sys-time3] ~ [[%sys sys-time1] ~ ~]]
         tables=~
-        views=~
+        views=(ns-sys-views3 %db1 sys-time1 sys-time2 sys-time3)
     ==
 ::
 ::  content
@@ -580,6 +546,7 @@
 ::
 ::  tables
 ++  one-col-tbl
+::  ^-  [[@tas @tas] @table]
   :-  [%dbo %my-table]
       :*  %table
           provenance=`path`/test-agent
@@ -587,8 +554,8 @@
           :^  %index
               unique=%.y
               clustered=%.y
-              ~[[%ordered-column name=%col1 ascending=%.y]]
-          ~[[%column name=%col1 column-type=%t]]
+              ~[`ordered-column:ast`[%ordered-column name=%col1 ascending=%.y]]
+          ~[`column:ast`[%column name=%col1 column-type=%t]]
           ~
       ==
 ++  time-one-col-tbl
@@ -676,23 +643,133 @@
       ~
   ==
 ::
+::  time, create ns as of 1 second > schema
+::  to do: think through system view creation
+++  test-time-create-ns-gt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns2 as of ~2023.7.9..22.35.36..7e90"])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov3
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
+    !>  ->+>+>->-.mov3
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(sys-ns1-ns2 ~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)] ~[content-1])
+    !>  databases.state
+  ==
 ::
-:: fail on time, create ns lt schema
-::++  test-fail-time-create-ns-lt-schema
+::  time, create table as of 1 second > content
+::  to do: sys view creation
+++  test-time-create-table-gt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "as of ~2023.7.9..22.35.36..7e90"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov2
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
+    !>  ->+>+>->-.mov2
+  %+  expect-eq
+    !>  (mk-db %db1 ~2023.7.9..22.35.35..7e90 ~[(time-3-sys ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) time-1-sys1] ~[content-time-3 content-time-1])
+    !>  databases.state
+  ==
+::
+::  time, create ns as of 1 second > schema
+::  to do: think through system view creation
+::++  test-time-create-ns-gt-schema
 ::  =|  run=@ud
 ::  =^  mov1  agent  
 ::    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
 ::        %obelisk-action
-::        !>  :-  %tape-create-db 
-::                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+::        !>([%tape-create-db "CREATE DATABASE db1"])
 ::    ==
 ::  =.  run  +(run)
-::  %+  expect-fail-message
-::      'namespace %ns1 as-of schema time out of order'
-::      |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
-::              %obelisk-action
-::              !>  :-  %tape-create-db
-::                      "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
-::          ==
+::  =^  mov2  agent  
+::    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+::        %obelisk-action
+::        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"])
+::    ==
+::  =.  run  +(run)
+::  =^  mov3  agent  
+::    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+::        %obelisk-action
+::        !>([%tape %db1 "CREATE NAMESPACE ns2 as of ~2023.7.9..22.35.36..7e90"])
+::    ==
+::  =+  !<(=state on-save:agent)
+::  ;:  weld
+::  %+  expect-eq
+::    !>  %results
+::    !>  ->+>+>-<.mov3
+::  %+  expect-eq
+::    !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
+::    !>  ->+>+>->-.mov3
+::  %+  expect-eq
+::    !>  (db-time-create-ns ~2000.1.1)   ****
+::    !>  databases.state
+::  ==
+
+::
+::  Create namespace
+++  test-tape-create-ns
+  =|  run=@ud 
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1"])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov2
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>->-.mov2
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1])
+    !>  databases.state
+  ==
 
 --

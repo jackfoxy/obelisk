@@ -11,18 +11,23 @@
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
   ::
   =/  db-views  :~  :-  [%sys %sys-namespaces sys-time]
-                        (apply-ordering (sys-namespaces-view +<.c sap.bowl sys-time))
+                        %-  apply-ordering
+                            (sys-namespaces-view +<.c sap.bowl sys-time)
                     :-  [%sys %sys-tables sys-time]
-                        (apply-ordering (sys-tables-view +<.c sap.bowl sys-time))
+                        %-  apply-ordering
+                            (sys-tables-view +<.c sap.bowl sys-time)
                     :-  [%sys %sys-columns sys-time]
-                        (apply-ordering (sys-columns-view +<.c sap.bowl sys-time))
+                        %-  apply-ordering
+                            (sys-columns-view +<.c sap.bowl sys-time)
                     :-  [%sys %sys-sys-log sys-time]
-                        (apply-ordering (sys-sys-log-view +<.c sap.bowl sys-time))
+                        %-  apply-ordering
+                            (sys-sys-log-view +<.c sap.bowl sys-time)
                     :-  [%sys %sys-data-log sys-time]
-                        (apply-ordering (sys-data-log-view +<.c sap.bowl sys-time))
+                        %-  apply-ordering
+                            (sys-data-log-view +<.c sap.bowl sys-time)
                     ==
-  =/  vws=views  %+  gas:ns-objs-key:u  *((mop data-obj-key view) ns-obj-comp:u)
-                                        (limo db-views)
+  =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                                      (limo db-views)
   ::
   ::  first time add sys database
   =/  next-state  ?.  (~(has by state) %sys)
@@ -61,11 +66,11 @@
   |=  [state=databases =bowl:gall sys-time=@da]
   ^-  databases
   =/  ns=namespaces  (my ~[[%sys sys-time]])
-  =/  db-views  :~  :-  [%sys %sys-namespaces sys-time]
+  =/  db-views  :~  :-  [%sys %sys-databases sys-time]
                         (apply-ordering (sys-sys-dbs-view sap.bowl sys-time))
                     ==
-  =/  vws=views  %+  gas:ns-objs-key:u  *((mop data-obj-key view) ns-obj-comp:u)
-                                        (limo db-views)
+  =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                                      (limo db-views)
   %:  map-insert:u  state  
                   %sys  
                   %:  database  %database 
@@ -331,14 +336,15 @@
   =/  vw  ~|  "view ".
                 "{<database.q>}.{<namespace.q>}.{<name.q>}".
                 " does not exist"
-            (got:ns-objs-key:u views.schema [namespace.q name.q sys-time])
+            (got:ns-objs-key views.schema [namespace.q name.q sys-time])
   =/  clean-vw  ?:  =(is-dirty.vw %.y)
-                  ?:  =(namespace.q 'sys')  %:  populate-system-view  state
-                                                                      db 
-                                                                      schema 
-                                                                      vw
-                                                                      name.q
-                                                                      ==
+                  ?:  =(namespace.q 'sys')  
+                    %:  populate-system-view  state
+                                              db 
+                                              schema 
+                                              vw
+                                              name.q
+                                              ==
                   !!  :: to do:  implement view refresh for non-sys
                 vw
   content.clean-vw
@@ -527,8 +533,25 @@
   =.  namespaces.nxt-schema  namespaces
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
+  ::
+  =/  next-db-views  :~  :-  [%sys %sys-namespaces sys-time]
+                             %-  apply-ordering
+                                 (sys-namespaces-view database-name.create-namespace sap.bowl sys-time)
+                         :-  [%sys %sys-sys-log sys-time]
+                             %-  apply-ordering
+                                 (sys-sys-log-view database-name.create-namespace sap.bowl sys-time)
+                         ==
+  =.  views.nxt-schema  (add-next-views views.nxt-schema next-db-views)
+  ::
   :-  sys-time
       (~(put by next-schemas) database-name.create-namespace [`nxt-schema ~])
+++  add-next-views
+    |=  [=views next-views=(list [=data-obj-key =view])]
+    ?~  next-views  views
+    %=  $
+        views  (put:ns-objs-key views -<.next-views ->.next-views)
+        next-views  +.next-views
+    ==
 ++  create-tbl
   |=  $:  state=databases
           =bowl:gall
@@ -591,6 +614,24 @@
   =.  tables.nxt-schema      tables
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
+  ::
+  =/  next-db-views  :~  :-  [%sys %sys-namespaces sys-time]
+                             %-  apply-ordering
+                                 (sys-namespaces-view database.table.create-table sap.bowl sys-time)
+                         :-  [%sys %sys-tables sys-time]
+                             %-  apply-ordering
+                                 (sys-tables-view database.table.create-table sap.bowl sys-time)
+                         :-  [%sys %sys-columns sys-time]
+                             %-  apply-ordering
+                                 (sys-columns-view database.table.create-table sap.bowl sys-time)
+                         :-  [%sys %sys-sys-log sys-time]
+                             %-  apply-ordering
+                                 (sys-sys-log-view database.table.create-table sap.bowl sys-time)
+                         :-  [%sys %sys-data-log sys-time]
+                             %-  apply-ordering
+                                 (sys-data-log-view database.table.create-table sap.bowl sys-time)
+                         ==
+  =.  views.nxt-schema  (add-next-views views.nxt-schema next-db-views)
   ::
   =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
   ::
@@ -688,6 +729,24 @@
   =.  files.nxt-data       files
   =.  tmsp.nxt-data        sys-time
   =.  provenance.nxt-data  sap.bowl
+  ::
+  =/  next-db-views  :~  :-  [%sys %sys-namespaces sys-time]
+                             %-  apply-ordering
+                                 (sys-namespaces-view database.table.d sap.bowl sys-time)
+                         :-  [%sys %sys-tables sys-time]
+                             %-  apply-ordering
+                                 (sys-tables-view database.table.d sap.bowl sys-time)
+                         :-  [%sys %sys-columns sys-time]
+                             %-  apply-ordering
+                                 (sys-columns-view database.table.d sap.bowl sys-time)
+                         :-  [%sys %sys-sys-log sys-time]
+                             %-  apply-ordering
+                                 (sys-sys-log-view database.table.d sap.bowl sys-time)
+                         :-  [%sys %sys-data-log sys-time]
+                             %-  apply-ordering
+                                 (sys-data-log-view database.table.d sap.bowl sys-time)
+                         ==
+  =.  views.nxt-schema  (add-next-views views.nxt-schema next-db-views)
   ::
   :+  [sys-time dropped-data length.file]
       (~(put by next-schemas) database.table.d [`nxt-schema ~])

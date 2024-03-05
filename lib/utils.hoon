@@ -25,14 +25,14 @@
   |=  key=(list [@tas ?])
         ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
 ++  data-key    ((on @da data) gth)
-++  ns-obj-comp 
-  |=  [p=data-obj-key q=data-obj-key]
-  ^-  ?
-  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
-  (gth time.p time.q)
-++  ns-objs-key
-    ((on data-obj-key view) ns-obj-comp)
+::++  ns-obj-comp 
+::  |=  [p=data-obj-key q=data-obj-key]
+::  ^-  ?
+::  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
+::  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
+::  (gth time.p time.q)
+::++  ns-objs-key
+::    ((on data-obj-key view) ns-obj-comp)
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
