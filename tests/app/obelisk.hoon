@@ -740,7 +740,7 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[sys2 (sys1 ~2000.1.1)] ~[content-1])
+    !>  (mk-db %db1 ~2000.1.1 ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1])
     !>  databases.state
   ==
 ::
