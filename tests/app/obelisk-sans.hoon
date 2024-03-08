@@ -114,6 +114,16 @@
     ^-  views
     %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
                          (weld (db-views db sys-time1) (db-views db sys-time2))
+++  ns-sys-3views
+    |*  [db=@tas sys-time1=@da sys-time2=@da sys-time3=@da]
+    ^-  views
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (weld (weld (db-views db sys-time1) (db-views db sys-time2)) (db-views db sys-time3))
+++  ns-sys-4views
+    |*  [db=@tas sys-time1=@da sys-time2=@da sys-time3=@da sys-time4=@da]
+    ^-  views
+    %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
+                         (weld (weld (weld (db-views db sys-time1) (db-views db sys-time2)) (db-views db sys-time3)) (db-views db sys-time4))                 
 ++  ns-2-ns-sys-views
     |*  [db=@tas sys-time1=@da sys-time2=@da]
     ^-  views
@@ -172,6 +182,7 @@
           tables=~
           views=(ns-sys-views %db1 sys-time)
       ==
+:: ~> %ns1 ~> %ns2
 ++  sys-ns1-ns2
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
   :-  sys-time3
@@ -195,6 +206,26 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
         views=(ns-sys-2views %db1 sys-time1 sys-time2)
+    ==
+:: ~> tbl ~> drop
+++  one-col-tbl-drop-sys
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time3
+        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+        tables=~
+        views=(ns-sys-3views %db1 sys-time1 sys-time2 sys-time3)
+    ==
+:: ~> tbl ~> insert ~> drop
+++  sys4
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time3
+        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+        tables=~
+        views=(ns-sys-3views %db1 sys-time1 sys-time2 sys-time3)
     ==
 ::  ~> %ns1
 ++  sys-ns1-time2
@@ -226,16 +257,55 @@
         tmsp=sys-time3
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[two-col-tbl ~ [one-col-tbl ~ ~]]
-        views=(ns-sys-2views %db1 sys-time1 sys-time3)
+        views=(ns-sys-3views %db1 sys-time1 sys-time2 sys-time3)
+    ==
+::  ~> tbl ~> tbl
+++  two-comb-col-tbl-sys
+  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time2
+        namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
+        tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
+        views=(ns-sys-2views %db1 sys-time1 sys-time2)
+    ==
+++  time-3a-sys
+  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time2
+        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+        tables=[time-3-tbl ~ ~]
+        views=(ns-sys-2views %db1 sys-time1 sys-time2)
+    ==
+++  time-4-sys
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time3
+        :+  [%ns1 sys-time3]
+            ~
+            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+        tables=[time-3-tbl ~ ~]
+        views=(ns-sys-3views %db1 sys-time1 sys-time2 sys-time3)
+    ==
+++  time-5-sys
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da sys-time4=@da]  ^-  [@da schema]  :-  sys-time4
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time4
+        :+  [%ns1 sys-time3]
+            ~
+            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+        tables=~
+        views=(ns-sys-4views %db1 sys-time1 sys-time2 sys-time3 sys-time4)
     ==
 ::++  time-2-sys1
 ::  :-  ~2023.7.9..22.35.35..7e90
 ::      :*  %schema
 ::          provenance=`path`/test-agent
 ::          tmsp=~2023.7.9..22.35.35..7e90
-::          :+  [p=%dbo q=~2000.1.1]
-::              ~
-::              [[p=%sys q=~2000.1.1] ~ ~]
+::          namespaces=[[p=%dbo q=sys-time] ~ [[p=%sys q=sys-time] ~ ~]]
 ::          tables=[time-one-col-tbl ~ ~]
 ::          views=(ns-sys-views %db1 ~2000.1.1)
 ::      ==
@@ -247,66 +317,6 @@
 ::        :+  [p=%ns1 q=~2000.1.2]
 ::            ~
 ::            [[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]
-::        tables=~
-::        views=(ns-sys-views %db1 ~2000.1.1)
-::    ==
-::++  two-comb-col-tbl-sys
-::  :-  ~2000.1.2
-::    :*  %schema
-::        provenance=`path`/test-agent
-::        tmsp=~2000.1.2
-::        namespaces=[[%dbo ~2000.1.1] ~ [[%sys ~2000.1.1] ~ ~]]
-::        tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
-::        views=(ns-sys-views %db1 ~2000.1.1)
-::    ==
-::++  time-3a-sys
-::  :-  ~2023.7.9..22.35.36..7e90
-::    :*  %schema
-::        provenance=`path`/test-agent
-::        tmsp=~2023.7.9..22.35.36..7e90
-::        :+  [%dbo ~2000.1.1]
-::            ~
-::            [[%sys ~2000.1.1] ~ ~]
-::        tables=[time-3-tbl ~ ~]
-::        views=(ns-sys-views %db1 ~2000.1.1)
-::    ==
-::++  time-4-sys
-::  :-  ~2023.7.9..22.35.37..7e90
-::    :*  %schema
-::        provenance=`path`/test-agent
-::        tmsp=~2023.7.9..22.35.37..7e90
-::        :+  [%ns1 ~2023.7.9..22.35.37..7e90]
-::            ~
-::            [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
-::        tables=[time-3-tbl ~ ~]
-::        views=(ns-sys-views %db1 ~2000.1.1)
-::    ==
-::++  time-5-sys
-::  :-  ~2023.7.9..22.35.38..7e90
-::    :*  %schema
-::        provenance=`path`/test-agent
-::        tmsp=~2023.7.9..22.35.38..7e90
-::        :+  [%ns1 ~2023.7.9..22.35.37..7e90]
-::            ~
-::            [[%dbo ~2000.1.1] l=~ r=[[%sys ~2000.1.1] ~ ~]]
-::        tables=~
-::        views=(ns-sys-views %db1 ~2000.1.1)
-::    ==
-::++  sys3
-::  :-  ~2000.1.3
-::    :*  %schema
-::        provenance=`path`/test-agent
-::        tmsp=~2000.1.3
-::        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
-::        tables=~
-::        views=(ns-sys-views %db1 ~2000.1.1)
-::    ==
-::++  sys4
-::  :-  ~2000.1.4
-::    :*  %schema
-::        provenance=`path`/test-agent
-::        tmsp=~2000.1.4
-::        namespaces=[[[p=%dbo q=~2000.1.1] ~ [[p=%sys q=~2000.1.1] ~ ~]]]
 ::        tables=~
 ::        views=(ns-sys-views %db1 ~2000.1.1)
 ::    ==
@@ -864,6 +874,356 @@
     !>  ->+>+>->-.mov3
   %+  expect-eq
     !>  (mk-db %db1 ~2000.1.1 ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3 content-2 content-1])
+    !>  databases.state
+  ==
+::
+++  test-tape-create-2-col-tbl
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) ".
+                "PRIMARY KEY CLUSTERED (col1)"
+    ==
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY LOOK-UP (col1, col2)"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov3
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2000.1.3]
+    !>  ->+>+>->-.mov3
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3 content-2 content-1])
+    !>  databases.state
+  ==
+::
+++  test-cmd-create-comb-2-col-tbl
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>([%commands ~[cmd-two-col cmd-one-col]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov2
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>->-.mov2
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3-a content-1])
+    !>  databases.state
+  ==
+++  test-tape-create-comb-2-col-tbl
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY LOOK-UP (col1, col2)"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov2
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2000.1.2]
+    !>  ->+>+>->-.mov2
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3-a content-1])
+    !>  databases.state
+  ==
+++  test-drop-tbl
+  =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        %.n
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov3
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2000.1.3]
+    !>  ->+>+>->-.mov3
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1-a content-2 content-1])
+    !>  databases.state
+  ==
+::
+::  drop table with data force
+++  test-drop-tbl-force
+  =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        %.y
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+    ==
+  =.  run  +(run)
+  =^  mov4  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov4
+  %+  expect-eq
+    !>  :~  [%result-da 'system time' ~2000.1.4]
+            [%result-da 'data time' ~2000.1.4]
+            [%result-ud 'row count' 1]
+            ==
+    !>  ->+>+>->.mov4
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-4 content-1b content-2 content-1])
+          
+    !>  databases.state
+  ==
+::
+::  truncate table with no data
+++  test-truncate-tbl-no-data
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov3
+  %+  expect-eq
+    !>  [%message 'no data in table to truncate']
+    !>  ->+>+>->-.mov3
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-2 content-1])
+    !>  databases.state
+  ==
+++  test-truncate-tbl
+  =|  run=@ud
+  =/  cmd
+    :+  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        ~
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+    ==
+  =.  run  +(run)
+  =^  mov4  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov4
+  %+  expect-eq
+    !>  :~  [%result-da 'data time' ~2000.1.4]
+            [%result-ud 'row count' 1]
+            ==
+    !>  ->+>+>->.mov4
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1c content-1b content-2 content-1])
+    !>  databases.state
+  ==
+++  test-time-create-database
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"])
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %obelisk-result
+    !>  ->+>-.mov1
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.35..7e90]
+    !>  ->+>+>.mov1
+  %+  expect-eq
+    !>  (mk-db %db1 ~2023.7.9..22.35.35..7e90 ~[(sys1 ~2023.7.9..22.35.35..7e90)] ~[content-time-1])
+    !>  databases.state
+  ==
+::
+::  time, drop table as of 1 second > content
+++  test-time-drop-table-gt-schema
+  =|  run=@ud
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "DROP TABLE db1..my-table-2 ".
+                "AS OF ~2023.7.9..22.35.38..7e90"
+    ==
+  =+  !<(=state on-save:agent)
+  ;:  weld
+  %+  expect-eq
+    !>  %results
+    !>  ->+>+>-<.mov3
+  %+  expect-eq
+    !>  [%result-da 'system time' ~2023.7.9..22.35.38..7e90]
+    !>  ->+>+>->-.mov3
+  %+  expect-eq
+    !>  (mk-db %db1 ~2000.1.1 ~[(time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90) (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90) (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90) (sys1 ~2000.1.1)] ~[content-time-5 content-time-3 content-1])
     !>  databases.state
   ==
 --
