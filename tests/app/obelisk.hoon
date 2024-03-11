@@ -264,6 +264,37 @@
         tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
         views=(ns-sys-2views %db1 sys-time1 sys-time2)
     ==
+++  time-3a-sys
+  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time2
+        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+        tables=[time-3-tbl ~ ~]
+        views=(ns-sys-2views %db1 sys-time1 sys-time2)
+    ==
+++  time-4-sys
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time3
+        :+  [%ns1 sys-time3]
+            ~
+            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+        tables=[time-3-tbl ~ ~]
+        views=(ns-sys-3views %db1 sys-time1 sys-time2 sys-time3)
+    ==
+++  time-5-sys
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da sys-time4=@da]  ^-  [@da schema]  :-  sys-time4
+    :*  %schema
+        provenance=`path`/test-agent
+        tmsp=sys-time4
+        :+  [%ns1 sys-time3]
+            ~
+            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+        tables=~
+        views=(ns-sys-4views %db1 sys-time1 sys-time2 sys-time3 sys-time4)
+    ==
 ::++  time-2-sys1
 ::  :-  ~2023.7.9..22.35.35..7e90
 ::      :*  %schema
@@ -2669,7 +2700,7 @@
     !>  [%result-da 'system time' ~2023.7.9..22.35.38..7e90]
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[time-5-sys time-4-sys time-3a-sys (sys1 ~2000.1.1)] ~[content-time-5 content-time-3 content-1])
+    !>  (mk-db %db1 ~2000.1.1 ~[(time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90) (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90) (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90) (sys1 ~2000.1.1)] ~[content-time-5 content-time-3 content-1])
     !>  databases.state
   ==
 ::

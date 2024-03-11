@@ -56,8 +56,8 @@
     =/  diff=(pair tank tank)  (vary [expected actual])
     %+  weld  result
     ^-  tang
-    :~  [%palm [": " ~ ~ ~] [leaf+"expected" p.diff ~]]
-        [%palm [": " ~ ~ ~] [leaf+"actual  " q.diff ~]]
+    :~  [%palm [": " ~ ~ ~] [leaf+"expected" -.p.diff ~]]
+        [%palm [": " ~ ~ ~] [leaf+"actual  " -.q.diff ~]]
     ==
   ::
   =?  result  !(~(nest ut p.actual) | p.expected)
@@ -66,8 +66,8 @@
     ^-  tang
     :~  :+  %palm  [": " ~ ~ ~]
         :~  [%leaf "failed to nest"]
-            p.diff
-            q.diff
+            -.p.diff
+            -.q.diff
     ==  ==
   result
 ::  +expect: compares :actual to %.y and pretty-prints anything else
