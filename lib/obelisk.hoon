@@ -524,34 +524,48 @@
                               sys-time
                               database-name.create-namespace
                               ==
-  =/  namespaces  ~|  "namespace {<name.create-namespace>} already exists"
-                      %:  map-insert:u 
-                          namespaces.nxt-schema 
-                          name.create-namespace 
-                          sys-time
-                      ==
-  =.  namespaces.nxt-schema  namespaces
+  =.  namespaces.nxt-schema
+        ~|  "namespace {<name.create-namespace>} already exists"
+        %:  map-insert:u 
+            namespaces.nxt-schema 
+            name.create-namespace 
+            sys-time
+        ==
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
-  ::
-  =/  next-db-views  :~  :-  [%sys %sys-namespaces sys-time]
-                             %-  apply-ordering
-                                 (sys-namespaces-view database-name.create-namespace sap.bowl sys-time)
-                         :-  [%sys %sys-sys-log sys-time]
-                             %-  apply-ordering
-                                 (sys-sys-log-view database-name.create-namespace sap.bowl sys-time)
-                         ==
-  =.  views.nxt-schema  (add-next-views views.nxt-schema next-db-views)
+  =.  views.nxt-schema  
+      (next-views views.nxt-schema database-name.create-namespace bowl sys-time)
   ::
   :-  sys-time
       (~(put by next-schemas) database-name.create-namespace [`nxt-schema ~])
-++  add-next-views
-    |=  [=views next-views=(list [=data-obj-key =view])]
-    ?~  next-views  views
-    %=  $
-        views  (put:ns-objs-key views -<.next-views ->.next-views)
-        next-views  +.next-views
-    ==
+++  filter  skim
+++  next-views
+    |=  [=views db=@tas =bowl:gall sys-time=@da]
+    ^+  views 
+    ::  To Do: remove all except most most recent of non-sys views
+    =/  a  |=([=data-obj-key =view] !=(%sys ns.data-obj-key))
+    =/  next-db-views=(list [=data-obj-key =view])
+          %-  limo  :~  :-  [%sys %sys-namespaces sys-time]
+                             %-  apply-ordering
+                                 (sys-namespaces-view db sap.bowl sys-time)
+                         :-  [%sys %sys-tables sys-time]
+                             %-  apply-ordering
+                                 (sys-tables-view db sap.bowl sys-time)
+                         :-  [%sys %sys-columns sys-time]
+                             %-  apply-ordering
+                                 (sys-columns-view db sap.bowl sys-time)
+                         :-  [%sys %sys-sys-log sys-time]
+                             %-  apply-ordering
+                                 (sys-sys-log-view db sap.bowl sys-time)
+                         :-  [%sys %sys-data-log sys-time]
+                             %-  apply-ordering
+                                 (sys-data-log-view db sap.bowl sys-time)
+                         ==
+    %:  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp) 
+                         %:  weld  (filter (tap:ns-objs-key views) a) 
+                                   `(list [=data-obj-key =view])`next-db-views
+                                   ==
+                         ==
 ++  create-tbl
   |=  $:  state=databases
           =bowl:gall
@@ -614,24 +628,8 @@
   =.  tables.nxt-schema      tables
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
-  ::
-  =/  next-db-views  :~  :-  [%sys %sys-namespaces sys-time]
-                             %-  apply-ordering
-                                 (sys-namespaces-view database.table.create-table sap.bowl sys-time)
-                         :-  [%sys %sys-tables sys-time]
-                             %-  apply-ordering
-                                 (sys-tables-view database.table.create-table sap.bowl sys-time)
-                         :-  [%sys %sys-columns sys-time]
-                             %-  apply-ordering
-                                 (sys-columns-view database.table.create-table sap.bowl sys-time)
-                         :-  [%sys %sys-sys-log sys-time]
-                             %-  apply-ordering
-                                 (sys-sys-log-view database.table.create-table sap.bowl sys-time)
-                         :-  [%sys %sys-data-log sys-time]
-                             %-  apply-ordering
-                                 (sys-data-log-view database.table.create-table sap.bowl sys-time)
-                         ==
-  =.  views.nxt-schema  (add-next-views views.nxt-schema next-db-views)
+  =.  views.nxt-schema  
+        (next-views views.nxt-schema database.table.create-table bowl sys-time)
   ::
   =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
   ::
@@ -729,24 +727,8 @@
   =.  files.nxt-data       files
   =.  tmsp.nxt-data        sys-time
   =.  provenance.nxt-data  sap.bowl
-  ::
-  =/  next-db-views  :~  :-  [%sys %sys-namespaces sys-time]
-                             %-  apply-ordering
-                                 (sys-namespaces-view database.table.d sap.bowl sys-time)
-                         :-  [%sys %sys-tables sys-time]
-                             %-  apply-ordering
-                                 (sys-tables-view database.table.d sap.bowl sys-time)
-                         :-  [%sys %sys-columns sys-time]
-                             %-  apply-ordering
-                                 (sys-columns-view database.table.d sap.bowl sys-time)
-                         :-  [%sys %sys-sys-log sys-time]
-                             %-  apply-ordering
-                                 (sys-sys-log-view database.table.d sap.bowl sys-time)
-                         :-  [%sys %sys-data-log sys-time]
-                             %-  apply-ordering
-                                 (sys-data-log-view database.table.d sap.bowl sys-time)
-                         ==
-  =.  views.nxt-schema  (add-next-views views.nxt-schema next-db-views)
+  =.  views.nxt-schema  
+        (next-views views.nxt-schema database.table.d bowl sys-time)
   ::
   :+  [sys-time dropped-data length.file]
       (~(put by next-schemas) database.table.d [`nxt-schema ~])
