@@ -5,6 +5,7 @@
 ::  generic urQL command
 ::
 +$  command
+  $+  command
   $%
     alter-index
     alter-namespace
@@ -55,6 +56,7 @@
     type=@ta
   ==
 +$  qualified-object
+  $+  qualified-object
   $:
     %qualified-object
     ship=(unit @p)
@@ -63,6 +65,7 @@
     name=@tas
   ==
 +$  qualified-column
+  $+  qualified-column
   $:
     %qualified-column
     qualifier=qualified-object

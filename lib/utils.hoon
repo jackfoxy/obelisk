@@ -25,14 +25,6 @@
   |=  key=(list [@tas ?])
         ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
 ++  data-key    ((on @da data) gth)
-::++  ns-obj-comp 
-::  |=  [p=data-obj-key q=data-obj-key]
-::  ^-  ?
-::  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-::  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
-::  (gth time.p time.q)
-::++  ns-objs-key
-::    ((on data-obj-key view) ns-obj-comp)
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
@@ -45,11 +37,11 @@
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
 ++  get-schema
-    |=  [sys=(tree [@da schema]) time=@da]
+    |=  [sys=((mop @da schema) gth) time=@da]
     ^-  schema
-    =/  time-key  (sub time `@dr`(yule `tarp`[0 0 0 1 ~]))  :: one second prior
+    =/  time-key  (add time `@dr`(yule `tarp`[0 0 0 1 ~]))  :: one second after
     ~|  "schema not available for {<time>}"
-    +>:(ram:schema-key (lot:schema-key sys ~ `time-key))
+    ->:(pop:schema-key (lot:schema-key sys `time-key ~))
 ::
 ++  order-row
   |_  index=(list column-order)  

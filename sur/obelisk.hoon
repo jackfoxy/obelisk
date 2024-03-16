@@ -1,15 +1,6 @@
 /-  *ast
 ^?
 |%
-++  ns-obj-comp 
-  |=  [p=data-obj-key q=data-obj-key]
-  ^-  ?
-  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
-  (gth time.p time.q)
-++  ns-objs-key
-    ((on data-obj-key view) ns-obj-comp)
-::@@@@@@@@@@@@@@@@@@@@@@@@
 +$  databases  (map @tas database)
 +$  database
   $:  %database
@@ -57,6 +48,7 @@
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
 +$  table
+  $+  table
   $:  %table
       provenance=path
       tmsp=@da
@@ -64,8 +56,9 @@
       columns=(list column)             ::  canonical column list
       indices=(list index)
   ==
-+$  views  ((mop data-obj-key view) ns-obj-comp)  ::(tree [data-obj-key view])
++$  views  ((mop data-obj-key view) ns-obj-comp)
 +$  view
+  $+  view
   $:  %view
       provenance=path
       tmsp=@da
@@ -105,5 +98,14 @@
       (map @tas [(unit schema) (unit data)])
       (map @tas [(unit schema) (unit data)])
   ==
+::
+::  view comparer
+++  ns-obj-comp 
+  |=  [p=data-obj-key q=data-obj-key]
+  ^-  ?
+  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
+  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
+  (gth time.p time.q)
+++  view-key  ((on data-obj-key view) ns-obj-comp)
 -- 
  

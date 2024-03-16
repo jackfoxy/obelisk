@@ -10,24 +10,24 @@
   =/  sys-time  (set-tmsp as-of:`create-database:ast`c now.bowl)
   =/  ns=namespaces  (my ~[[%sys sys-time] [%dbo sys-time]])
   ::
-  =/  db-views  :~  :-  [%sys %sys-namespaces sys-time]
+  =/  db-views  :~  :-  [%sys %namespaces sys-time]
                         %-  apply-ordering
                             (sys-namespaces-view +<.c sap.bowl sys-time)
-                    :-  [%sys %sys-tables sys-time]
+                    :-  [%sys %tables sys-time]
                         %-  apply-ordering
                             (sys-tables-view +<.c sap.bowl sys-time)
-                    :-  [%sys %sys-columns sys-time]
+                    :-  [%sys %columns sys-time]
                         %-  apply-ordering
                             (sys-columns-view +<.c sap.bowl sys-time)
-                    :-  [%sys %sys-sys-log sys-time]
+                    :-  [%sys %sys-log sys-time]
                         %-  apply-ordering
                             (sys-sys-log-view +<.c sap.bowl sys-time)
-                    :-  [%sys %sys-data-log sys-time]
+                    :-  [%sys %data-log sys-time]
                         %-  apply-ordering
                             (sys-data-log-view +<.c sap.bowl sys-time)
                     ==
-  =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
-                                      (limo db-views)
+  =/  vws=views  %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
+                                   (limo db-views)
   ::
   ::  first time add sys database
   =/  next-state  ?.  (~(has by state) %sys)
@@ -66,11 +66,11 @@
   |=  [state=databases =bowl:gall sys-time=@da]
   ^-  databases
   =/  ns=namespaces  (my ~[[%sys sys-time]])
-  =/  db-views  :~  :-  [%sys %sys-databases sys-time]
+  =/  db-views  :~  :-  [%sys %databases sys-time]
                         (apply-ordering (sys-sys-dbs-view sap.bowl sys-time))
                     ==
-  =/  vws=views  %+  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp)
-                                      (limo db-views)
+  =/  vws=views  %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
+                                   (limo db-views)
   %:  map-insert:u  state  
                   %sys  
                   %:  database  %database 
@@ -330,13 +330,18 @@
   ^-  (list (list @))
   =/  db=database  ~|  "database {<database.q>} does not exist"
                   (~(got by state) database.q)
-  =/  =schema  
+  =/  =schema
         ~|  "database {<database.q>} does not exist at time {<sys-time>}"
-        (get-schema:u [sys.db sys-time])
+        (get-schema:u [sys.db sys-time])  ~&  "schema:  {<schema>}"
+
+      ~&  "views.schema:  {<views.schema>}"
+      ~&  "namespace.q:  {<namespace.q>}"
+      ~&  "name.q:  {<name.q>}"
+      ~&  "sys-time:  {<sys-time>}"
   =/  vw  ~|  "view ".
                 "{<database.q>}.{<namespace.q>}.{<name.q>}".
                 " does not exist"
-            (got:ns-objs-key views.schema [namespace.q name.q sys-time])
+            (got:view-key views.schema [namespace.q name.q sys-time])
   =/  clean-vw  ?:  =(is-dirty.vw %.y)
                   ?:  =(namespace.q 'sys')  
                     %:  populate-system-view  state
@@ -545,27 +550,27 @@
     ::  To Do: remove all except most most recent of non-sys views
     =/  a  |=([=data-obj-key =view] !=(%sys ns.data-obj-key))
     =/  next-db-views=(list [=data-obj-key =view])
-          %-  limo  :~  :-  [%sys %sys-namespaces sys-time]
+          %-  limo  :~  :-  [%sys %namespaces sys-time]
                              %-  apply-ordering
                                  (sys-namespaces-view db sap.bowl sys-time)
-                         :-  [%sys %sys-tables sys-time]
+                         :-  [%sys %tables sys-time]
                              %-  apply-ordering
                                  (sys-tables-view db sap.bowl sys-time)
-                         :-  [%sys %sys-columns sys-time]
+                         :-  [%sys %columns sys-time]
                              %-  apply-ordering
                                  (sys-columns-view db sap.bowl sys-time)
-                         :-  [%sys %sys-sys-log sys-time]
+                         :-  [%sys %sys-log sys-time]
                              %-  apply-ordering
                                  (sys-sys-log-view db sap.bowl sys-time)
-                         :-  [%sys %sys-data-log sys-time]
+                         :-  [%sys %data-log sys-time]
                              %-  apply-ordering
                                  (sys-data-log-view db sap.bowl sys-time)
                          ==
-    %:  gas:ns-objs-key  *((mop data-obj-key view) ns-obj-comp) 
-                         %:  weld  (filter (tap:ns-objs-key views) a) 
-                                   `(list [=data-obj-key =view])`next-db-views
-                                   ==
-                         ==
+    %:  gas:view-key  *((mop data-obj-key view) ns-obj-comp) 
+                      %:  weld  (filter (tap:view-key views) a) 
+                                `(list [=data-obj-key =view])`next-db-views
+                                ==
+                      ==
 ++  create-tbl
   |=  $:  state=databases
           =bowl:gall
@@ -823,7 +828,7 @@
 ::
 ::  gets the schema with the highest timestamp for mutation
 ++  get-next-schema
-  |=  $:  sys=(tree [@da schema])
+  |=  $:  sys=((mop @da schema) gth)
           next-schemas=(map @tas [(unit schema) (unit data)])
           sys-time=@da
           db-name=@tas
