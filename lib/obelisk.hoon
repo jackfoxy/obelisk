@@ -294,14 +294,14 @@
   ?~  from.q  ~[(select-literals columns.selection.q)]
   =/  =from:ast  (need from.q)
   =/  =table-set:ast  object.from
-  :: to do: restore after backing out %query-row
-  ::=/  data=(list (list @))  ?:   =(namespace.object.table-set 'sys')
-  ::                            (view-data state now.bowl object.table-set)
-  ::                          `(list (list @))`~
   =/  query-obj=qualified-object:ast
         ?:  ?=(qualified-object:ast object.table-set)
           `qualified-object:ast`object.table-set
         ~|("not supported" !!)
+  :: to do: restore after backing out %query-row
+  ::=/  data=(list (list @))  ?:   =(namespace.object.table-set 'sys')
+  ::                            (view-data state now.bowl object.table-set)
+  ::                          `(list (list @))`~
   =/  data=(list (list @))  ?:   =(namespace.query-obj 'sys')
                               (view-data state now.bowl query-obj)
                             `(list (list @))`~
@@ -334,7 +334,7 @@
         ~|  "database {<database.q>} does not exist at time {<sys-time>}"
         (get-schema:u [sys.db sys-time])  ~&  "schema:  {<schema>}"
   =/  vw  (get-view:u [namespace.q name.q sys-time] views.schema)
-  =/  clean-vw  ?:  =(is-dirty.vw %.y)
+  ::=/  clean-vw  ?:  =(is-dirty.vw %.y)
                   ?:  =(namespace.q 'sys')  
                     %:  populate-system-view  state
                                               db 
@@ -343,8 +343,8 @@
                                               name.q
                                               ==
                   !!  :: to do:  implement view refresh for non-sys
-                vw
-  content.clean-vw
+  ::              vw
+  ::content.clean-vw
 ::
 ++  do-insert
   |=  $:  state=databases

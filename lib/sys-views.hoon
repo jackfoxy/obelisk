@@ -816,9 +816,9 @@
   ::  =/  udata=data  (get-data now.bowl content.db)
     ?+  name  ~|("unknown system view" !!)
     ::
-    %databases  !!
-      ::    =/  dbes             (turn ~(val by state) sys-view-databases)
-      ::(sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
+    %databases
+      =/  dbes             (turn ~(val by databases) sys-view-databases)
+      (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
     ::
     %namespaces  !!
         ::      =/  ns-order    ~[[%t %.y 0]]
