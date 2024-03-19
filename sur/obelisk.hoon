@@ -99,13 +99,15 @@
       (map @tas [(unit schema) (unit data)])
   ==
 ::
-::  view comparer
+::  view and table comparer
 ++  ns-obj-comp 
   |=  [p=data-obj-key q=data-obj-key]
   ^-  ?
   ?.  =(ns.p ns.q)  (gth ns.p ns.q)
   ?.  =(obj.p obj.q)  (gth obj.p obj.q)
   (gth time.p time.q)
+::
+::  view key
 ++  view-key  ((on data-obj-key view) ns-obj-comp)
 -- 
  

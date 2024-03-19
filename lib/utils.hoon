@@ -43,9 +43,17 @@
     ~|  "schema not available for {<time>}"
     ->:(pop:schema-key (lot:schema-key sys `time-key ~))
 ::
+:: get view with current or most recent previous time
+++  view-key  ((on data-obj-key view) ns-obj-comp)
+++  get-view
+  |=  [key=data-obj-key =views]
+  ^-  view
+  ~|  "view {<ns.key>}.{<obj.key>} does not exist for time {<time.key>}"
+  ->:(tab:view-key views `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
+::
 ++  order-row
   |_  index=(list column-order)  
-  :: to do: accomadate varying row types
+  :: to do: accommodate varying row types
   ++  order
   |=  [p=(list @) q=(list @)]
   =/  k=(list [aor=? ascending=? offset=@ud])  index

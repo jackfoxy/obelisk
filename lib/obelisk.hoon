@@ -333,15 +333,7 @@
   =/  =schema
         ~|  "database {<database.q>} does not exist at time {<sys-time>}"
         (get-schema:u [sys.db sys-time])  ~&  "schema:  {<schema>}"
-
-      ~&  "views.schema:  {<views.schema>}"
-      ~&  "namespace.q:  {<namespace.q>}"
-      ~&  "name.q:  {<name.q>}"
-      ~&  "sys-time:  {<sys-time>}"
-  =/  vw  ~|  "view ".
-                "{<database.q>}.{<namespace.q>}.{<name.q>}".
-                " does not exist"
-            (got:view-key views.schema [namespace.q name.q sys-time])
+  =/  vw  (get-view:u [namespace.q name.q sys-time] views.schema)
   =/  clean-vw  ?:  =(is-dirty.vw %.y)
                   ?:  =(namespace.q 'sys')  
                     %:  populate-system-view  state
