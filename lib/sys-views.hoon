@@ -7,8 +7,6 @@
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
-        %.y                            ::is-dirty=?
-        %.n                            ::is-tombstoned=?
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             sys-sys-dbs-query              ::query
@@ -20,7 +18,6 @@
             [%column %data-tmsp ~.da]
             ==
         ~                              ::ordering=(list column-order)
-        ~                              ::content=(list (list cell))
         ==
 ++  sys-sys-dbs-query
     ^-  (tree set-function:ast)
@@ -143,8 +140,6 @@
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
-        %.y                            ::is-dirty=?
-        %.n                            ::is-tombstoned=?
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-namespaces-query db)      ::query
@@ -152,7 +147,6 @@
             [%column %tmsp ~.da]
             ==
         ~                              ::ordering=(list column-order)
-        ~                              ::content=(list (list cell))
         ==
 ++  sys-namespaces-query
     |=  database=@tas
@@ -218,8 +212,6 @@
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
-        %.y                            ::is-dirty=?
-        %.n                            ::is-tombstoned=?
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
@@ -238,7 +230,6 @@
             [%column %col-type ~.tas]
            ==
         ~                              ::ordering=(list column-order)
-        ~                              ::content=(list (list cell))
         ==
 ++  sys-tables-query
     |=  database=@tas
@@ -436,8 +427,6 @@
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
-        %.y                            ::is-dirty=?
-        %.n                            ::is-tombstoned=?
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-columns-query db)         ::query
@@ -448,7 +437,6 @@
             [%column %col-type ~.tas]
             ==
         ~                              ::ordering=(list column-order)
-        ~                              ::content=(list (list cell))
         ==
 ++  sys-columns-query
     |=  database=@tas
@@ -563,8 +551,6 @@
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
-        %.y                            ::is-dirty=?
-        %.n                            ::is-tombstoned=?
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-sys-log-query database)   ::query
@@ -574,7 +560,6 @@
             [%column %name ~.tas]
             ==
         ~                              ::ordering=(list column-order)
-        ~                              ::content=(list (list cell))
         ==
 ++  sys-sys-log-query
     |=  database=@tas
@@ -680,8 +665,6 @@
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
-        %.y                            ::is-dirty=?
-        %.n                            ::is-tombstoned=?
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-data-log-query database)  ::query
@@ -692,7 +675,6 @@
             [%column %table ~.tas]
             ==
         ~                              ::ordering=(list column-order)
-        ~                              ::content=(list (list cell))
         ==
 ++  sys-data-log-query
     |=  database=@tas

@@ -18,6 +18,7 @@
       =tables
   :: indices  ::  indices other than primary key
       =views
+      view-cache=((mop data-obj-key (list (list @))) ns-obj-comp)
   :: permissions
   ==
 +$  data
@@ -62,12 +63,9 @@
   $:  %view
       provenance=path
       tmsp=@da
-      is-dirty=?
-      is-tombstoned=?
       =transform
       columns=(list column)             ::  canonical column list
       ordering=(list column-order)
-      content=(list (list @))
   ==
 +$  index
   $:  %index

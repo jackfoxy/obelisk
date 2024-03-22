@@ -53,6 +53,7 @@
                                             ~
                                             %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
                                                                  (limo ~[(sys-sys-databases-view sys-time)])
+                                            ~
                                             ==
                                       ==
               %+  gas:data-key  *((mop @da data) gth)
@@ -86,8 +87,6 @@
       :*  %view
           [~.test-agent /]
           sys-time
-          %.y
-          %.n
           :+  %transform
               ~
               sys-sys-dbs-query
@@ -102,7 +101,6 @@
               [aor=%.n ascending=%.y offset=2]
               [aor=%.n ascending=%.y offset=5]
               ==
-          ~
           ==
 ++  ns-sys-views
     |*  [db=@tas sys-time=@da]
@@ -121,6 +119,7 @@
           namespaces=[[p=%dbo q=sys-time] ~ [[p=%sys q=sys-time] ~ ~]]
           tables=~
           views=(ns-sys-views %db1 sys-time)
+          ~
       ==
 :: ~> %ns1 ~> %ns2
 ++  sys-ns1-ns2
@@ -136,6 +135,7 @@
                 [[%ns2 sys-time3] ~ [[%sys sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time3)
+        ~
     ==
 :: ~> tbl
 ++  one-col-tbl-sys
@@ -146,6 +146,7 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time2)
+        ~
     ==
 :: ~> tbl ~> drop
 ++  one-col-tbl-drop-sys
@@ -156,6 +157,7 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time3)
+        ~
     ==
 :: ~> tbl ~> insert ~> drop
 ++  sys4
@@ -166,6 +168,7 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time3)
+        ~
     ==
 ::  ~> %ns1
 ++  sys-ns1-time2
@@ -178,6 +181,7 @@
             [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time2)
+        ~
     ==
 ::  ~> tbl
 ++  time-3-sys
@@ -188,6 +192,7 @@
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[time-3-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time2)
+        ~
     ==
 ::  ~> tbl ~> tbl
 ++  two-col-tbl-sys
@@ -198,6 +203,7 @@
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[two-col-tbl ~ [one-col-tbl ~ ~]]
         views=(ns-sys-views %db1 sys-time3)
+        ~
     ==
 ::  ~> tbl ~> tbl
 ++  two-comb-col-tbl-sys
@@ -208,6 +214,7 @@
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
         views=(ns-sys-views %db1 sys-time2)
+        ~
     ==
 ++  time-3a-sys
   |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
@@ -217,6 +224,7 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=[time-3-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time2)
+        ~
     ==
 ++  time-4-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
@@ -229,6 +237,7 @@
             [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=[time-3-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time3)
+        ~
     ==
 ++  time-5-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da sys-time4=@da]
@@ -241,6 +250,7 @@
             [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time4)
+        ~
     ==
 ++  time-2-sys1
   |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
@@ -250,6 +260,7 @@
           namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
           tables=[time-one-col-tbl ~ ~]
           views=(ns-sys-views %db1 sys-time2)
+          ~
       ==
 ::
 ::  content
