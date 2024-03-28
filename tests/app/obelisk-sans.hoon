@@ -584,23 +584,16 @@
 
 ++  test-sys-sys-databases
   =|  run=@ud
-  =/  col-row  :~  [%database %tas]
-                  [%sys-agent %tas]
-                  [%sys-tmsp %da]
-                  [%data-ship %p]
-                  [%data-agent %tas]
-                  [%data-tmsp %da]
-                ==
-  =/  row1  `(list @)`~[%db1 '/test-agent' ~2000.1.1 0 '/test-agent' ~2000.1.1]
-  =/  row2  `(list @)`~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.2]
-  =/  row3  `(list @)`~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.3]
-  =/  row4  `(list @)`~[%db2 '/test-agent' ~2000.1.4 0 '/test-agent' ~2000.1.4]
-  =/  row5  `(list @)`~[%db2 '/test-agent' ~2000.1.5 0 '/test-agent' ~2000.1.5]
+  =/  row1  [%row ~[[%database [~.tas %db1]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.1]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.1]]]] 
+  =/  row2  [%row ~[[%database [~.tas %db1]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.2]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.2]]]] 
+  =/  row3  [%row ~[[%database [~.tas %db1]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.2]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.3]]]] 
+  =/  row4  [%row ~[[%database [~.tas %db2]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.4]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.4]]]] 
+  =/  row5  [%row ~[[%database [~.tas %db2]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.5]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.5]]]] 
+  =/  row6  [%row ~[[%database [~.tas %sys]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.1]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.1]]]]
+  ::
   =/  expected  :~  %results
-                    :^  %result-set
-                        'sys.sys.databases'
-                        (limo col-row)
-                        (limo ~[row1 row2 row3 row4 row5])
+                    :-  %result-set
+                        ~[row1 row2 row3 row4 row5 row6]
                 ==
   =/  cmd
     :^  %drop-table

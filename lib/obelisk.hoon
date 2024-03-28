@@ -301,40 +301,37 @@
           `qualified-object:ast`object.table-set
         ~|("not supported" !!)
   :: to do: restore after backing out %query-row
-  ::=/  data=(list (list @))  ?:   =(namespace.object.table-set 'sys')
-  ::                            (view-data state now.bowl object.table-set)
-  ::                          `(list (list @))`~
-  =/  data=(list (list @))  ?:   =(namespace.query-obj 'sys')
+  =/  data=(list row)  ?:   =(namespace.query-obj 'sys')
                               (view-data state now.bowl query-obj)
-                            `(list (list @))`~
-  !!
+                            `(list row)`~
+  ~[[%result-set data]]
 ++  select-literals
   |=  columns=(list selected-column:ast)
   ^-  result
   =/  i  0             ::to do: return row count
   =/  vals=(list cell)  ~
   |-
-  ?~  columns  [%result-set (limo ~[[%row (flop vals)]])]
+  ?~  columns  [%result-set (limo ~[(row %row (flop vals))])]
   ?.  ?=(selected-value:ast -.columns)
     ~|("selected value {<-.columns>} not a literal" !!)
   =/  column=selected-value:ast  -.columns
-  =/  heading=[@tas @tas]  
+  =/  heading=@tas
     ?~  alias.column  [(crip "literal-{<i>}") p.value.column]
-    [(need alias.column) p.value.column]
+    (need alias.column)
   %=  $
     i        +(i)
     columns  +.columns
-    vals     [[-.heading value.column] vals]
+    vals     [(cell heading value.column) vals]
   ==
 ::
 ++  view-data
   |=  [state=databases sys-time=@da q=qualified-object:ast]
-  ^-  (list (list @))
+  ^-  (list row)
   =/  db=database  ~|  "database {<database.q>} does not exist"
                   (~(got by state) database.q)
   =/  =schema
         ~|  "database {<database.q>} does not exist at time {<sys-time>}"
-        (get-schema:u [sys.db sys-time])  ~&  "schema:  {<schema>}"
+        (get-schema:u [sys.db sys-time])
   =/  vw  (get-view:u [namespace.q name.q sys-time] views.schema)
   ::=/  clean-vw  ?:  =(is-dirty.vw %.y)
                   ?:  =(namespace.q 'sys')  
@@ -935,4 +932,12 @@
       %-  uni2(a $(b l.b, r.a ~))  $(a r.a)
     %-  uni2(a $(b r.b, l.a ~))  $(a l.a)
     --
+::
+::  helper types
+::
++$  table-return
+  $:  [@da ? @ud]
+      (map @tas [(unit schema) (unit data)])
+      (map @tas [(unit schema) (unit data)])
+  ==
 --

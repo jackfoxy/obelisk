@@ -100,4 +100,23 @@
   ?~  a  ~
   ?:  =(name name.i.a)  `[i type.i.a]
   $(a t.a, i +(i))
+::
+::  +make-rows: [(list (list @)) (lest column)] -> (list row)
+++  make-rows
+    |=  [data=(list (list @)) columns=(lest column:ast)]
+    ^-  (list row)
+    =/  rows=(list row)  ~
+    |-
+    ?~  data  (flop rows)
+    =/  in-row  i.data
+    =/  out-row=(list cell)  ~
+    =/  cols=(list column:ast)  columns
+        |-
+        ?~  in-row  ^$(data t.data, rows [(row %row (flop out-row)) rows])
+        ?~  cols  ~|("can't get here" !!)
+        %=  $
+          out-row  [(cell name.i.cols [p=type.i.cols q=i.in-row]) out-row]
+          cols  t.cols
+          in-row  t.in-row
+        ==  
 --

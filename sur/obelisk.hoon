@@ -18,7 +18,7 @@
       =tables
   :: indices  ::  indices other than primary key
       =views
-      view-cache=((mop data-obj-key (list (list @))) ns-obj-comp)
+      view-cache=((mop data-obj-key (list row)) ns-obj-comp)
   :: permissions
   ==
 +$  data
@@ -64,7 +64,7 @@
       provenance=path
       tmsp=@da
       =transform
-      columns=(list column)             ::  canonical column list
+      columns=(lest column)             ::  canonical column list
       ordering=(list column-order)
   ==
 +$  index
@@ -74,7 +74,10 @@
       columns=(list ordered-column)
   ==
 +$  cell  [p=@tas q=dime]
-+$  row   [%row (list cell)]
++$  row   
+    $:  %row
+        (lest cell)
+    ==
 +$  column-order  [aor=? ascending=? offset=@ud]
   :: $| validator mold for adding rows with FKs
 ::
@@ -91,11 +94,6 @@
       [%result-da msg=@t date=@da]
       [%result-set (list row)]
       ==
-+$  table-return
-  $:  [@da ? @ud]
-      (map @tas [(unit schema) (unit data)])
-      (map @tas [(unit schema) (unit data)])
-  ==
 ::
 ::  view and table comparer
 ++  ns-obj-comp 

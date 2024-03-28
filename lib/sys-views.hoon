@@ -793,14 +793,16 @@
 ::
 ++  populate-system-view
     |=  [=databases =database =schema =view name=@tas]
-    ::^-  view
+    ^-  (list row)
   ::  =/  =tables     tables.sys
   ::  =/  udata=data  (get-data now.bowl content.db)
     ?+  name  ~|("unknown system view" !!)
     ::
     %databases
       =/  dbes             (turn ~(val by databases) sys-view-databases)
-      (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
+      %+  make-rows
+          (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
+          columns.view
     ::
     %namespaces  !!
         ::      =/  ns-order    ~[[%t %.y 0]]
