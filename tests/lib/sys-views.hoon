@@ -25,23 +25,58 @@
 :: system views
 ++  test-sys-sys-databases
   =|  run=@ud
-  =/  col-row  :~  [%database %tas]
-                  [%sys-agent %tas]
-                  [%sys-tmsp %da]
-                  [%data-ship %p]
-                  [%data-agent %tas]
-                  [%data-tmsp %da]
-                ==
-  =/  row1  `(list @)`~[%db1 '/test-agent' ~2000.1.1 0 '/test-agent' ~2000.1.1]
-  =/  row2  `(list @)`~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.2]
-  =/  row3  `(list @)`~[%db1 '/test-agent' ~2000.1.2 0 '/test-agent' ~2000.1.3]
-  =/  row4  `(list @)`~[%db2 '/test-agent' ~2000.1.4 0 '/test-agent' ~2000.1.4]
-  =/  row5  `(list @)`~[%db2 '/test-agent' ~2000.1.5 0 '/test-agent' ~2000.1.5]
+  =/  row1  :-  %row 
+                :~  [%database [~.tas %db1]] 
+                    [%sys-agent [~.tas '/test-agent']] 
+                    [%sys-tmsp [~.da ~2000.1.1]] 
+                    [%data-ship [~.p 0]] 
+                    [%data-agent [~.tas '/test-agent']] 
+                    [%data-tmsp [~.da ~2000.1.1]]
+                    ==
+  =/  row2  :-  %row
+                :~  [%database [~.tas %db1]] 
+                    [%sys-agent [~.tas '/test-agent']]
+                    [%sys-tmsp [~.da ~2000.1.2]]
+                    [%data-ship [~.p 0]]
+                    [%data-agent [~.tas '/test-agent']]
+                    [%data-tmsp [~.da ~2000.1.2]]
+                    ==
+  =/  row3  :-  %row 
+                :~  [%database [~.tas %db1]] 
+                    [%sys-agent [~.tas '/test-agent']]
+                    [%sys-tmsp [~.da ~2000.1.2]]
+                    [%data-ship [~.p 0]]
+                    [%data-agent [~.tas '/test-agent']]
+                    [%data-tmsp [~.da ~2000.1.3]]
+                    ==
+  =/  row4  :-  %row 
+                :~  [%database [~.tas %db2]] 
+                    [%sys-agent [~.tas '/test-agent']]
+                    [%sys-tmsp [~.da ~2000.1.4]]
+                    [%data-ship [~.p 0]]
+                    [%data-agent [~.tas '/test-agent']]
+                    [%data-tmsp [~.da ~2000.1.4]]
+                    ==
+  =/  row5  :-  %row 
+                :~  [%database [~.tas %db2]] 
+                    [%sys-agent [~.tas '/test-agent']]
+                    [%sys-tmsp [~.da ~2000.1.5]]
+                    [%data-ship [~.p 0]]
+                    [%data-agent [~.tas '/test-agent']]
+                    [%data-tmsp [~.da ~2000.1.5]]
+                    ==
+  =/  row6  :-  %row 
+                :~  [%database [~.tas %sys]] 
+                    [%sys-agent [~.tas '/test-agent']]
+                    [%sys-tmsp [~.da ~2000.1.1]]
+                    [%data-ship [~.p 0]]
+                    [%data-agent [~.tas '/test-agent']]
+                    [%data-tmsp [~.da ~2000.1.1]]
+                    ==
+  ::
   =/  expected  :~  %results
-                    :^  %result-set
-                        'sys.sys.databases'
-                        (limo col-row)
-                        (limo ~[row1 row2 row3 row4 row5])
+                    :-  %result-set
+                        ~[row1 row2 row3 row4 row5 row6]
                 ==
   =/  cmd
     :^  %drop-table
@@ -98,318 +133,377 @@
 ::
 ++  test-sys-tables
   =|  run=@ud
-  =/  col-row  :~  [%namespace %tas]
-                   [%name %tas]
-                   [%ship %p]
-                   [%agent %tas]
-                   [%tmsp %da]
-                   [%row-count %ud]
-                   [%clustered %f]
-                   [%key-ordinal %ud]
-                   [%key %tas]
-                   [%key-ascending %f]
-                   [%col-ordinal %ud]
-                   [%col-name %tas]
-                   [%col-type %tas]
-                   ==
-  =/  row1  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 1 %col1 0 1 %col1 %t]
-  =/  row2  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 1 %col1 0 2 %col2 %t]
-  =/  row3  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 2 %col2 1 1 %col1 %t]
-  =/  row4  ~[%dbo %my-table 0 '/test-agent' ~2000.1.3 1 0 2 %col2 1 2 %col2 %t]
-  =/  row5  :~  %dbo
-                %my-table-2
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                1
-                %col1
-                1
-                1
-                %col1
-                %p
+  =/  row1  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.3]]
+                [%row-count [~.ud 1]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row6  :~  %dbo
-                %my-table-2
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                1
-                %col1
-                1
-                2
-                %col2
-                %t
+  =/  row2  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.3]]
+                [%row-count [~.ud 1]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row7  :~  %dbo
-                %my-table-2
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                2
-                %col2
-                0
-                1
-                %col1
-                %p
+  =/  row3  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.3]]
+                [%row-count [~.ud 1]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col2]]
+                [%key-ascending [~.f 1]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row8  :~  %dbo
-                %my-table-2
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                2
-                %col2
-                0
-                2
-                %col2
-                %t
+  =/  row4  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.3]]
+                [%row-count [~.ud 1]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col2]]
+                [%key-ascending [~.f 1]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row9  :~  %dbo
-                %my-table-3
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                1
-                %col1
-                0
-                1
-                %col1
-                %p
+  =/  row5  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-2]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 1]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
               ==
-  =/  row10  :~  %dbo
-                %my-table-3
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                1
-                %col1
-                0
-                2
-                %col2
-                %t
+  =/  row6  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-2]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 1]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row11  :~  %dbo
-                %my-table-3
-                0
-                '/test-agent'
-                ~2000.1.4
-                0
-                0
-                1
-                %col1
-                0
-                3
-                %col3
-                %ud
+  =/  row7  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-2]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col2]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
               ==
-  =/  row12  :~  %dbo
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.6
-                0
-                0
-                1
-                %col1
-                0
-                1
-                %col1
-                %p
+  =/  row8  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-2]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col2]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row13  :~  %dbo
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.6
-                0
-                0
-                1
-                %col1
-                0
-                2
-                %col2
-                %t
+  =/  row9  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-3]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
               ==
-  =/  row14  :~  %dbo
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.6
-                0
-                0
-                1
-                %col1
-                0
-                3
-                %col3
-                %ud
+  =/  row10  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-3]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row15  :~  %dbo
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.6
-                0
-                0
-                2
-                %col3
-                0
-                1
-                %col1
-                %p
+  =/  row11  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-3]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.4]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 3]]
+                [%col-name [~.tas %col3]]
+                [%col-type [~.tas %ud]]
               ==
-  =/  row16  :~  %dbo
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.6
-                0
-                0
-                2
-                %col3
-                0
-                2
-                %col2
-                %t
+  =/  row12  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.6]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
               ==
-  =/  row17  :~  %dbo
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.6
-                0
-                0
-                2
-                %col3
-                0
-                3
-                %col3
-                %ud
+  =/  row13  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.6]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row18  :~  %ref
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.7
-                0
-                0
-                1
-                %col1
-                0
-                1
-                %col1
-                %p
+  =/  row14  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.6]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 3]]
+                [%col-name [~.tas %col3]]
+                [%col-type [~.tas %ud]]
               ==
-  =/  row19  :~  %ref
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.7
-                0
-                0
-                1
-                %col1
-                0
-                2
-                %col2
-                %t
+  =/  row15  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.6]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col3]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
               ==
-  =/  row20  :~  %ref
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.7
-                0
-                0
-                1
-                %col1
-                0
-                3
-                %col3
-                %ud
+  =/  row16  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.6]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col3]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
               ==
-  =/  row21  :~  %ref
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.7
-                0
-                0
-                2
-                %col3
-                0
-                1
-                %col1
-                %p
+  =/  row17  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.6]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col3]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 3]]
+                [%col-name [~.tas %col3]]
+                [%col-type [~.tas %ud]]
               ==
-  =/  row22  :~  %ref
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.7
-                0
-                0
-                2
-                %col3
-                0
-                2
-                %col2
-                %t
+  =/  row18  :-  %row
+                :~  [%namespace [~.tas %ref]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.7]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
               ==
-  =/  row23  :~  %ref
-                %my-table-4
-                0
-                '/test-agent'
-                ~2000.1.7
-                0
-                0
-                2
-                %col3
-                0
-                3
-                %col3
-                %ud
+  =/  row19  :-  %row
+                :~  [%namespace [~.tas %ref]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.7]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
+              ==
+  =/  row20  :-  %row
+                :~  [%namespace [~.tas %ref]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.7]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 1]]
+                [%key [~.tas %col1]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 3]]
+                [%col-name [~.tas %col3]]
+                [%col-type [~.tas %ud]]
+              ==
+  =/  row21  :-  %row
+                :~  [%namespace [~.tas %ref]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.7]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col3]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 1]]
+                [%col-name [~.tas %col1]]
+                [%col-type [~.tas %p]]
+              ==
+  =/  row22  :-  %row
+                :~  [%namespace [~.tas %ref]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.7]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col3]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 2]]
+                [%col-name [~.tas %col2]]
+                [%col-type [~.tas %t]]
+              ==
+  =/  row23  :-  %row
+                :~  [%namespace [~.tas %ref]]
+                [%name [~.tas %my-table-4]]
+                [%ship [~.p 0]]
+                [%agent [~.tas '/test-agent']]
+                [%tmsp [~.da ~2000.1.7]]
+                [%row-count [~.ud 0]]
+                [%clustered [~.f 0]]
+                [%key-ordinal [~.ud 2]]
+                [%key [~.tas %col3]]
+                [%key-ascending [~.f 0]]
+                [%col-ordinal [~.ud 3]]
+                [%col-name [~.tas %col3]]
+                [%col-type [~.tas %ud]]
               ==
   =/  expected  :~  %results
-                    :^  %result-set
-                        ~.db1.sys.tables
-                        (limo col-row)
-                        %-  limo  :~  `(list @)`row1
-                                      `(list @)`row2
-                                      `(list @)`row3
-                                      `(list @)`row4
-                                      `(list @)`row5
-                                      `(list @)`row6
-                                      `(list @)`row7
-                                      `(list @)`row8
-                                      `(list @)`row9
-                                      `(list @)`row10
-                                      `(list @)`row11
-                                      `(list @)`row12
-                                      `(list @)`row13
-                                      `(list @)`row14
-                                      `(list @)`row15
-                                      `(list @)`row16
-                                      `(list @)`row17
-                                      `(list @)`row18
-                                      `(list @)`row19
-                                      `(list @)`row20
-                                      `(list @)`row21
-                                      `(list @)`row22
-                                      `(list @)`row23
-                                      ==
+                    :-  %result-set
+                        :~  row1
+                            row2
+                            row3
+                            row4
+                            row5
+                            row6
+                            row7
+                            row8
+                            row9
+                            row10
+                            row11
+                            row12
+                            row13
+                            row14
+                            row15
+                            row16
+                            row17
+                            row18
+                            row19
+                            row20
+                            row21
+                            row22
+                            row23
+                            ==
                 ==
   =/  cmd
     :^  %drop-table
@@ -491,37 +585,79 @@
 ::
 ++  test-sys-columns
   =|  run=@ud
-  =/  col-row  :~  [%namespace %tas]
-                   [%name %tas]
-                   [%col-ordinal %ud]
-                   [%col-name %tas]
-                   [%col-type %tas]
+  =/  row1   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-2]]
+                    [%col-ordinal [~.ud 1]]
+                    [%col-name [~.tas %col1]]
+                    [%col-type [~.tas %p]]
+                  ==
+  =/  row2   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-2]]
+                    [%col-ordinal [~.ud 2]]
+                    [%col-name [~.tas %col2]]
+                    [%col-type [~.tas %t]]
+                  ==
+  =/  row3   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-3]]
+                    [%col-ordinal [~.ud 1]]
+                    [%col-name [~.tas %col1]]
+                    [%col-type [~.tas %p]]
+                  ==
+  =/  row4   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-3]]
+                    [%col-ordinal [~.ud 2]]
+                    [%col-name [~.tas %col2]]
+                    [%col-type [~.tas %t]]
+                  ==
+  =/  row5   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-3]]
+                    [%col-ordinal [~.ud 3]]
+                    [%col-name [~.tas %col3]]
+                    [%col-type [~.tas %ud]]
+                  ==
+  =/  row6   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-4]]
+                    [%col-ordinal [~.ud 1]]
+                    [%col-name [~.tas %col1]]
+                    [%col-type [~.tas %p]]
+                  ==
+  =/  row7   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-4]]
+                    [%col-ordinal [~.ud 2]]
+                    [%col-name [~.tas %col2]]
+                    [%col-type [~.tas %t]]
+                  ==
+  =/  row8   :-  %row 
+                :~  [%namespace [~.tas %dbo]]
+                    [%name [~.tas %my-table-4]]
+                    [%col-ordinal [~.ud 3]]
+                    [%col-name [~.tas %col3]]
+                    [%col-type [~.tas %ud]]
+                  ==
+  =/  row9   :-  %row 
+                :~  [%namespace [~.tas %ref]]
+                    [%name [~.tas %my-table]]
+                    [%col-ordinal [~.ud 1]]
+                    [%col-name [~.tas %col1]]
+                    [%col-type [~.tas %t]]
+                  ==
+  =/  row10  :-  %row 
+                :~  [%namespace [~.tas %ref]]
+                    [%name [~.tas %my-table]]
+                    [%col-ordinal [~.ud 2]]
+                    [%col-name [~.tas %col2]]
+                    [%col-type [~.tas %t]]
                 ==
-  =/  row1   `(list @)`~[%dbo %my-table-2 1 %col1 %p]
-  =/  row2   `(list @)`~[%dbo %my-table-2 2 %col2 %t]
-  =/  row3   `(list @)`~[%dbo %my-table-3 1 %col1 %p]
-  =/  row4   `(list @)`~[%dbo %my-table-3 2 %col2 %t]
-  =/  row5   `(list @)`~[%dbo %my-table-3 3 %col3 %ud]
-  =/  row6   `(list @)`~[%dbo %my-table-4 1 %col1 %p]
-  =/  row7   `(list @)`~[%dbo %my-table-4 2 %col2 %t]
-  =/  row8   `(list @)`~[%dbo %my-table-4 3 %col3 %ud]
-  =/  row9   `(list @)`~[%ref %my-table 1 %col1 %t]
-  =/  row10  `(list @)`~[%ref %my-table 2 %col2 %t]
   =/  expected  :~  %results
-                    :^  %result-set
-                        ~.db1.sys.columns
-                        (limo col-row)
-                        %-  limo  :~  row1
-                                      row2
-                                      row3
-                                      row4
-                                      row5
-                                      row6
-                                      row7
-                                      row8
-                                      row9
-                                      row10
-                                      ==
+                    :-  %result-set
+                        ~[row1 row2 row3 row4 row5 row6 row7 row8 row9 row10]
                 ==
   =/  cmd  :^  %drop-table
               :*  %qualified-object
@@ -584,28 +720,57 @@
 ::
 ++  test-sys-log
   =|  run=@ud
-  =/  col-row  ~[[%tmsp %da] [%agent %tas] [%component %tas] [%name %tas]]
-  =/  row1  ~[~2000.1.7 '/test-agent' %ref %my-table-4]
-  =/  row2  ~[~2000.1.6 '/test-agent' %dbo %my-table-4]
-  =/  row3  ~[~2000.1.5 '/test-agent' %namespace %ref]
-  =/  row4  ~[~2000.1.4 '/test-agent' %dbo %my-table-2]
-  =/  row5  ~[~2000.1.4 '/test-agent' %dbo %my-table-3]
-  =/  row6  ~[~2000.1.2 '/test-agent' %dbo %my-table]
-  =/  row7  ~[~2000.1.1 '/test-agent' %namespace %dbo]
-  =/  row8  ~[~2000.1.1 '/test-agent' %namespace %sys]
+  =/  row1   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.7]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %ref]]
+                    [%name [~.tas %my-table-4]]
+                    ==
+  =/  row2   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.6]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %dbo]]
+                    [%name [~.tas %my-table-4]]
+                    ==
+  =/  row3   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.5]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %namespace]]
+                    [%name [~.tas %ref]]
+                    ==
+  =/  row4    :-  %row 
+                :~  [%tmsp [~.da ~2000.1.4]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %dbo]]
+                    [%name [~.tas %my-table-2]]
+                    ==
+  =/  row5   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.4]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %dbo]]
+                    [%name [~.tas %my-table-3]]
+                    ==
+  =/  row6   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.2]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %dbo]]
+                    [%name [~.tas %my-table]]
+                    ==
+  =/  row7   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.1]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %namespace]]
+                    [%name [~.tas %dbo]]
+                    ==
+  =/  row8   :-  %row 
+                :~  [%tmsp [~.da ~2000.1.1]]
+                    [%agent [~.tas '/test-agent']]
+                    [%component [~.tas %namespace]]
+                    [%name [~.tas %sys]]
+                    ==
   =/  expected  :~  %results
-                    :^  %result-set
-                        ~.db1.sys.sys-log
-                        (limo col-row)
-                        %-  limo  :~  `(list @)`row1
-                                      `(list @)`row2
-                                      `(list @)`row3
-                                      `(list @)`row4
-                                      `(list @)`row5
-                                      `(list @)`row6
-                                      `(list @)`row7
-                                      `(list @)`row8
-                                      ==
+                    :-  %result-set
+                        ~[row1 row2 row3 row4 row5 row6 row7 row8]
                 ==
   =/  cmd
     :^  %drop-table
@@ -678,35 +843,72 @@
 ::
 ++  test-data-log
   =|  run=@ud
-  =/  col-row  :~  [%tmsp %da]
-                   [%ship %p]
-                   [%agent %tas]
-                   [%namespace %tas]
-                   [%table %tas]
-                ==
-  =/  row1  ~[~2000.1.10 0 '/test-agent' %ref %my-table-4]
-  =/  row2  ~[~2000.1.9 0 '/test-agent' %ref %my-table-4]
-  =/  row3  ~[~2000.1.8 0 '/test-agent' %dbo %my-table-4]
-  =/  row4  ~[~2000.1.7 0 '/test-agent' %dbo %my-table-4]
-  =/  row5  ~[~2000.1.5 0 '/test-agent' %dbo %my-table-2]
-  =/  row6  ~[~2000.1.4 0 '/test-agent' %dbo %my-table-2]
-  =/  row7  ~[~2000.1.4 0 '/test-agent' %dbo %my-table-3]
-  =/  row8  ~[~2000.1.3 0 '/test-agent' %dbo %my-table]
-  =/  row9  ~[~2000.1.2 0 '/test-agent' %dbo %my-table]
+  =/  row1  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.10]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %ref]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row2  :-  %row 
+                    :~  [%tmsp [~.da ~2000.1.9]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %ref]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row3  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.8]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row4  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.7]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row5  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.5]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-2]]
+                    ==
+  =/  row6  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.4]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-2]]
+                    ==
+  =/  row7  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.4]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-3]]
+                    ==
+  =/  row8  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.3]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table]]
+                    ==
+  =/  row9  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.2]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table]]
+                    ==
   =/  expected  :~  %results
-                    :^  %result-set
-                        ~.db1.sys.data-log
-                        (limo col-row)
-                        %-  limo  :~  `(list @)`row1
-                                      `(list @)`row2
-                                      `(list @)`row3
-                                      `(list @)`row4
-                                      `(list @)`row5
-                                      `(list @)`row6
-                                      `(list @)`row7
-                                      `(list @)`row8
-                                      `(list @)`row9
-                                      ==
+                    :-  %result-set
+                        ~[row1 row2 row3 row4 row5 row6 row7 row8 row9]
                 ==
   =/  cmd
     :^  %drop-table

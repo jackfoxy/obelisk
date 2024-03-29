@@ -315,9 +315,8 @@
   ?.  ?=(selected-value:ast -.columns)
     ~|("selected value {<-.columns>} not a literal" !!)
   =/  column=selected-value:ast  -.columns
-  =/  heading=@tas
-    ?~  alias.column  [(crip "literal-{<i>}") p.value.column]
-    (need alias.column)
+  =/  heading=@tas  ?~  alias.column  (crip "literal-{<i>}")
+                    (need alias.column)
   %=  $
     i        +(i)
     columns  +.columns
@@ -832,16 +831,6 @@
   ?:  (lth sys-time tmsp.nxt-schema)  !!
   ?:  ?&(=(db-schema nxt-schema) =(tmsp.nxt-schema sys-time))  !!
   nxt-schema
-::
-::  gets the data with matching or highest timestamp prior to
-++  get-data
-  |=  [time=@da sys=(tree [@da data])]
-  ^-  data
-  =/  exact  (get:data-key:u sys time)
-  ?^  exact  (need exact)
-  =/  prior  (pry:data-key:u (lot:data-key:u sys `time ~))
-  ?~  prior  ~|("data not available for {<time>}" !!)
-  +:(need prior)
 ::
 ::  gets the data with the highest timestamp for mutation
 ++  get-next-data

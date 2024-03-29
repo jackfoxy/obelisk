@@ -42,6 +42,8 @@
                  bowl
                  ~>  %bout.[0 %process-cmds]  (parse(default-database +<.act) +>.act)
                  ==
+    ~&  "%obelisk-result:".
+        "{<-.res>}"
     :_  this(databases +.res)
     :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]

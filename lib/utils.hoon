@@ -39,9 +39,20 @@
 ++  get-schema
     |=  [sys=((mop @da schema) gth) time=@da]
     ^-  schema
-    =/  time-key  (add time `@dr`(yule `tarp`[0 0 0 1 ~]))  :: one second after
+    ::=/  time-key  (add time `@dr`(yule `tarp`[0 0 0 1 ~]))  :: one second after
+    =/  time-key  (add time 1)
     ~|  "schema not available for {<time>}"
     ->:(pop:schema-key (lot:schema-key sys `time-key ~))
+::
+::  gets the data with matching or highest timestamp prior to
+++  get-data
+  |=  [time=@da sys=((mop @da data) gth)]
+  ^-  data
+  =/  exact  (get:data-key sys time)
+  ?^  exact  (need exact)
+  =/  prior  (pry:data-key (lot:data-key sys `time ~))
+  ?~  prior  ~|("data not available for {<time>}" !!)
+  +:(need prior)
 ::
 :: get view with current or most recent previous time
 ++  view-key  ((on data-obj-key view) ns-obj-comp)

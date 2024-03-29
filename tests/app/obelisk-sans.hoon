@@ -581,19 +581,74 @@
       ~
   ==
 ::
-
-++  test-sys-sys-databases
+++  test-data-log
   =|  run=@ud
-  =/  row1  [%row ~[[%database [~.tas %db1]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.1]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.1]]]] 
-  =/  row2  [%row ~[[%database [~.tas %db1]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.2]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.2]]]] 
-  =/  row3  [%row ~[[%database [~.tas %db1]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.2]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.3]]]] 
-  =/  row4  [%row ~[[%database [~.tas %db2]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.4]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.4]]]] 
-  =/  row5  [%row ~[[%database [~.tas %db2]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.5]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.5]]]] 
-  =/  row6  [%row ~[[%database [~.tas %sys]] [%sys-agent [~.tas '/test-agent']] [%sys-tmsp [~.da ~2000.1.1]] [%data-ship [~.p 0]] [%data-agent [~.tas '/test-agent']] [%data-tmsp [~.da ~2000.1.1]]]]
-  ::
+  =/  row1  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.10]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %ref]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row2  :-  %row 
+                    :~  [%tmsp [~.da ~2000.1.9]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %ref]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row3  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.8]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row4  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.7]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-4]]
+                    ==
+  =/  row5  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.5]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-2]]
+                    ==
+  =/  row6  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.4]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-2]]
+                    ==
+  =/  row7  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.4]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table-3]]
+                    ==
+  =/  row8  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.3]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table]]
+                    ==
+  =/  row9  :-  %row 
+                :~  [%tmsp [~.da ~2000.1.2]]
+                    [%ship [~.p 0]]
+                    [%agent [~.tas '/test-agent']]
+                    [%namespace [~.tas %dbo]]
+                    [%table [~.tas %my-table]]
+                    ==
   =/  expected  :~  %results
                     :-  %result-set
-                        ~[row1 row2 row3 row4 row5 row6]
+                        ~[row1 row2 row3 row4 row5 row6 row7 row8 row9]
                 ==
   =/  cmd
     :^  %drop-table
@@ -616,35 +671,88 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+                "CREATE TABLE db1..my-table (col1 @t, col2 @t) ".
+                "PRIMARY KEY (col1, col2 DESC)"
     ==
-  =.  run  +(run)
+    =.  run  +(run)
   =^  mov3  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1, col2) ".
+                "VALUES ('cord', 'cord2')"
     ==
   =.  run  +(run)
   =^  mov4  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.4]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db2"])
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @p, col2 @t) ".
+                "PRIMARY KEY (col1 desc, col2); ".
+                "CREATE TABLE db1..my-table-3 (col1 @p, col2 @t, col3 @ud) ".
+                "PRIMARY KEY (col1)"
     ==
-  =.  run  +(run)
+    =.  run  +(run)
   =^  mov5  agent  
     %:  ~(on-poke agent (bowl [run ~2000.1.5]))
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db2..my-table (col1 @t) PRIMARY KEY (col1)"
+                "INSERT INTO db1..my-table-2 (col1, col2) ".
+                "VALUES (~zod, 'cord2')"
     ==
   =.  run  +(run)
   =^  mov6  agent  
-    %:  ~(on-poke agent (bowl [run ~2000.1.5]))
+    %:  ~(on-poke agent (bowl [run ~2000.1.6]))
         %obelisk-action
-        !>([%tape %db1 "FROM sys.sys.databases SELECT *"])
+        !>([%tape %db1 "CREATE NAMESPACE ref"])
+    ==
+  =.  run  +(run)
+  =^  mov7  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.7]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-4 (col1 @p, col2 @t, col3 @ud) ".
+                "PRIMARY KEY (col1, col3)"
+    ==
+    =.  run  +(run)
+  =^  mov8  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.8]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table-4 (col1, col2, col3) ".
+                "VALUES (~zod, 'cord2', 42)"
+    ==
+  =.  run  +(run)
+  =^  mov9  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.9]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
+                "PRIMARY KEY (col1, col3)"
+    ==
+    =.  run  +(run)
+  =^  mov10  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.10]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1.ref.my-table-4 (col1, col2, col3) ".
+                "VALUES (~zod, 'cord2', 16)"
+    ==
+  =.  run  +(run)
+  =^  mov11  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape %db1 "FROM sys.data-log SELECT *"])
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov6
+    !>  ->+>+>-.mov11
+
 --
