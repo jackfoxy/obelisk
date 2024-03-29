@@ -227,7 +227,7 @@
             [%column %key-ascending ~.f] 
             [%column %col-ordinal ~.ud]
             [%column %col-name ~.tas]
-            [%column %col-type ~.tas]
+            [%column %col-type ~.ta]
            ==
         ~                              ::ordering=(list column-order)
         ==
@@ -434,7 +434,7 @@
             [%column %name ~.tas]  
             [%column %col-ordinal ~.ud]
             [%column %col-name ~.tas]
-            [%column %col-type ~.tas]
+            [%column %col-type ~.ta]
             ==
         ~                              ::ordering=(list column-order)
         ==
@@ -794,7 +794,6 @@
 ++  populate-system-view
     |=  [=databases =database =schema =view name=@tas]
     ^-  (list row)
-  ::  =/  udata=data  (get-data now.bowl content.db)
     ?+  name  ~|("unknown system view" !!)
     ::
     %databases
@@ -803,26 +802,28 @@
           (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
           columns.view
     ::
-    %namespaces  !!
-        ::      =/  namespaces  (~(urn by namespaces.sys) |=([k=@tas v=@da] ~[k v]))
-        ::      :^
-        ::      %result-set
-        ::      `@ta`(crip (weld (trip database.q) ".sys.namespaces"))
-        ::      ~[[%namespace %tas] [%tmsp %da]]
-        ::      (sort `(list (list @))`~(val by namespaces) ~(order order-row ns-order))
+    %namespaces
+        =/  namespaces  (~(urn by namespaces.schema) |=([k=@tas v=@da] ~[k v]))
+        %+  make-rows
+            %+  sort  `(list (list @))`~(val by namespaces)
+                      ~(order order-row ordering.view)
+            columns.view
     ::
     %tables
       =/  udata=data  (get-data tmsp.view content.database)
-      =/  tbls  (turn ~(tap by files.udata) ~(foo sys-view-tables tables.schema))
+      =/  tbls  %+  turn  ~(tap by files.udata)
+                          ~(foo sys-view-tables tables.schema)
       %+  make-rows
           (sort `(list (list @))`(zing tbls) ~(order order-row ordering.view))
           columns.view
     ::
     %columns
         =/  udata=data  (get-data tmsp.view content.database)
-        =/  columns  (turn ~(tap by files.udata) ~(foo sys-view-columns tables.schema))
+        =/  columns  %+  turn  ~(tap by files.udata)
+                               ~(foo sys-view-columns tables.schema)
         %+  make-rows
-            (sort `(list (list @))`(zing columns) ~(order order-row ordering.view))
+            %+  sort  `(list (list @))`(zing columns)
+                      ~(order order-row ordering.view)
             columns.view
     ::
     %sys-log
@@ -839,7 +840,8 @@
     %data-log
         =/  tbls  
               %-  zing  
-                  %+  turn  (turn (tap:data-key content.database) |=(b=[@da data] +.b)) 
+                  %+  turn  %+  turn  (tap:data-key content.database) 
+                                      |=(b=[@da data] +.b)
                             sys-view-data-log
         %+  make-rows
             (sort `(list (list @))`tbls ~(order order-row ordering.view))

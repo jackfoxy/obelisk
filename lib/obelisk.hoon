@@ -1,6 +1,5 @@
 /-  ast, *obelisk
-/+  *sys-views, u=utils  ::to do: recreate 2 faceless bug /+  *sys-views, *utils
-::/+  *utils, *sys-views
+/+  *sys-views, *utils
 |%
 ++  new-database
   |=  [state=databases =bowl:gall c=command:ast]
@@ -34,7 +33,7 @@
                     (sys-database state bowl sys-time)
                   state
   ::
-  :-  %:  map-insert:u  next-state  
+  :-  %:  map-insert  next-state  
                         +<.c  
                         %:  database  %database 
                                       +<.c 
@@ -72,7 +71,7 @@
                     ==
   =/  vws=views  %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
                                    (limo db-views)
-  %:  map-insert:u  state  
+  %:  map-insert  state  
                   %sys  
                   %:  database  %database 
                                 %sys 
@@ -330,8 +329,8 @@
                   (~(got by state) database.q)
   =/  =schema
         ~|  "database {<database.q>} does not exist at time {<sys-time>}"
-        (get-schema:u [sys.db sys-time])
-  =/  vw  (get-view:u [namespace.q name.q sys-time] views.schema)
+        (get-schema [sys.db sys-time])
+  =/  vw  (get-view [namespace.q name.q sys-time] views.schema)
   ::=/  clean-vw  ?:  =(is-dirty.vw %.y)
                   ?:  =(namespace.q 'sys')  
                     %:  populate-system-view  state
@@ -407,12 +406,12 @@
   =/  row-key  
       %+  turn
           key-pick 
-          |=(a=[p=@tas q=@ud] (key-atom:u [p.a (snag q.a row) col-map]))
+          |=(a=[p=@tas q=@ud] (key-atom [p.a (snag q.a row) col-map]))
   =/  map-row=(map @tas @)  (malt (row-cells row cols))
   =.  pri-idx.file
-    ?:  (has:(pri-key:u key.file) pri-idx.file row-key)  
+    ?:  (has:(pri-key key.file) pri-idx.file row-key)  
       ~|("cannot add duplicate key: {<row-key>}" !!)
-    (put:(pri-key:u key.file) pri-idx.file row-key map-row)
+    (put:(pri-key key.file) pri-idx.file row-key map-row)
   =.  data.file             [map-row data.file]
   =.  length.file           +(length.file)
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
@@ -521,7 +520,7 @@
                               ==
   =.  namespaces.nxt-schema
         ~|  "namespace {<name.create-namespace>} already exists"
-        %:  map-insert:u 
+        %:  map-insert 
             namespaces.nxt-schema 
             name.create-namespace 
             sys-time
@@ -615,7 +614,7 @@
              ==
   =/  tables  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
-    %:  map-insert:u
+    %:  map-insert
         tables.nxt-schema
         [namespace.table.create-table name.table.create-table]
         table
@@ -642,7 +641,7 @@
             ==
   =/  files  
     ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
-    %:  map-insert:u
+    %:  map-insert
         files.nxt-data
         [namespace.table.create-table name.table.create-table]
         file
@@ -702,7 +701,7 @@
   ::
   =/  tables  
     ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
-    %+  map-delete:u
+    %+  map-delete
         tables.nxt-schema
         [namespace.table.d name.table.d]
   =.  tables.nxt-schema      tables
@@ -716,7 +715,7 @@
     ~|("drop table {<name.table.d>} has data, use FORCE to DROP" !!)
   =/  dropped-data=?  (gth length.file 0)
   =/  files  
-    %+  map-delete:u
+    %+  map-delete
         files.nxt-data
         [namespace.table.d name.table.d]
   =.  files.nxt-data       files
@@ -799,9 +798,9 @@
                         created-provenance.db
                         created-tmsp.db
                         ?~  ->-.a  sys.db
-                          (put:schema-key:u sys.db ->->+>-.a (need ->-.a))
+                          (put:schema-key sys.db ->->+>-.a (need ->-.a))
                         ?~  ->+.a  content.db
-                          (put:data-key:u content.db ->+>+>+<.a (need ->+.a))
+                          (put:data-key content.db ->+>+>+<.a (need ->+.a))
                         ==
   $(a +.a, state (~(put by state) -<.a next-db-state))
 ++  name-set
@@ -824,7 +823,7 @@
           db-name=@tas
       ==
   ^-  schema
-  =/  db-schema  +:(need (pry:schema-key:u sys))    :: latest schema
+  =/  db-schema  +:(need (pry:schema-key sys))    :: latest schema
   =/  nxt-schema=schema  ?:  (~(has by next-schemas) db-name)
                             (need -:(~(got by next-schemas) db-name))
                           db-schema
@@ -840,7 +839,7 @@
           db-name=@tas
       ==
   ^-  data
-  =/  db-data  +:(need (pry:data-key:u content))  :: latest data
+  =/  db-data  +:(need (pry:data-key content))  :: latest data
   =/  nxt-data=data  ?:  (~(has by next-data) db-name)
                         (need +:(~(got by next-data) db-name))
                       db-data

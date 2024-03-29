@@ -146,7 +146,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row2  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -161,7 +161,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row3  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -176,7 +176,7 @@
                 [%key-ascending [~.f 1]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row4  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -191,7 +191,7 @@
                 [%key-ascending [~.f 1]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row5  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -206,7 +206,7 @@
                 [%key-ascending [~.f 1]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row6  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -221,7 +221,7 @@
                 [%key-ascending [~.f 1]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row7  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -236,7 +236,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row8  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -251,7 +251,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row9  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -266,7 +266,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row10  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -281,7 +281,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row11  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -296,7 +296,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 3]]
                 [%col-name [~.tas %col3]]
-                [%col-type [~.tas %ud]]
+                [%col-type [~.ta ~.ud]]
               ==
   =/  row12  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -311,7 +311,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row13  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -326,7 +326,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row14  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -341,7 +341,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 3]]
                 [%col-name [~.tas %col3]]
-                [%col-type [~.tas %ud]]
+                [%col-type [~.ta ~.ud]]
               ==
   =/  row15  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -356,7 +356,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row16  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -371,7 +371,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row17  :-  %row
                 :~  [%namespace [~.tas %dbo]]
@@ -386,7 +386,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 3]]
                 [%col-name [~.tas %col3]]
-                [%col-type [~.tas %ud]]
+                [%col-type [~.ta ~.ud]]
               ==
   =/  row18  :-  %row
                 :~  [%namespace [~.tas %ref]]
@@ -401,7 +401,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row19  :-  %row
                 :~  [%namespace [~.tas %ref]]
@@ -416,7 +416,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row20  :-  %row
                 :~  [%namespace [~.tas %ref]]
@@ -431,7 +431,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 3]]
                 [%col-name [~.tas %col3]]
-                [%col-type [~.tas %ud]]
+                [%col-type [~.ta ~.ud]]
               ==
   =/  row21  :-  %row
                 :~  [%namespace [~.tas %ref]]
@@ -446,7 +446,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 1]]
                 [%col-name [~.tas %col1]]
-                [%col-type [~.tas %p]]
+                [%col-type [~.ta ~.p]]
               ==
   =/  row22  :-  %row
                 :~  [%namespace [~.tas %ref]]
@@ -461,7 +461,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 2]]
                 [%col-name [~.tas %col2]]
-                [%col-type [~.tas %t]]
+                [%col-type [~.ta ~.t]]
               ==
   =/  row23  :-  %row
                 :~  [%namespace [~.tas %ref]]
@@ -476,7 +476,7 @@
                 [%key-ascending [~.f 0]]
                 [%col-ordinal [~.ud 3]]
                 [%col-name [~.tas %col3]]
-                [%col-type [~.tas %ud]]
+                [%col-type [~.ta ~.ud]]
               ==
   =/  expected  :~  %results
                     :-  %result-set
@@ -590,70 +590,70 @@
                     [%name [~.tas %my-table-2]]
                     [%col-ordinal [~.ud 1]]
                     [%col-name [~.tas %col1]]
-                    [%col-type [~.tas %p]]
+                    [%col-type [~.ta ~.p]]
                   ==
   =/  row2   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-2]]
                     [%col-ordinal [~.ud 2]]
                     [%col-name [~.tas %col2]]
-                    [%col-type [~.tas %t]]
+                    [%col-type [~.ta ~.t]]
                   ==
   =/  row3   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-3]]
                     [%col-ordinal [~.ud 1]]
                     [%col-name [~.tas %col1]]
-                    [%col-type [~.tas %p]]
+                    [%col-type [~.ta ~.p]]
                   ==
   =/  row4   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-3]]
                     [%col-ordinal [~.ud 2]]
                     [%col-name [~.tas %col2]]
-                    [%col-type [~.tas %t]]
+                    [%col-type [~.ta ~.t]]
                   ==
   =/  row5   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-3]]
                     [%col-ordinal [~.ud 3]]
                     [%col-name [~.tas %col3]]
-                    [%col-type [~.tas %ud]]
+                    [%col-type [~.ta ~.ud]]
                   ==
   =/  row6   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-4]]
                     [%col-ordinal [~.ud 1]]
                     [%col-name [~.tas %col1]]
-                    [%col-type [~.tas %p]]
+                    [%col-type [~.ta ~.p]]
                   ==
   =/  row7   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-4]]
                     [%col-ordinal [~.ud 2]]
                     [%col-name [~.tas %col2]]
-                    [%col-type [~.tas %t]]
+                    [%col-type [~.ta ~.t]]
                   ==
   =/  row8   :-  %row 
                 :~  [%namespace [~.tas %dbo]]
                     [%name [~.tas %my-table-4]]
                     [%col-ordinal [~.ud 3]]
                     [%col-name [~.tas %col3]]
-                    [%col-type [~.tas %ud]]
+                    [%col-type [~.ta ~.ud]]
                   ==
   =/  row9   :-  %row 
                 :~  [%namespace [~.tas %ref]]
                     [%name [~.tas %my-table]]
                     [%col-ordinal [~.ud 1]]
                     [%col-name [~.tas %col1]]
-                    [%col-type [~.tas %t]]
+                    [%col-type [~.ta ~.t]]
                   ==
   =/  row10  :-  %row 
                 :~  [%namespace [~.tas %ref]]
                     [%name [~.tas %my-table]]
                     [%col-ordinal [~.ud 2]]
                     [%col-name [~.tas %col2]]
-                    [%col-type [~.tas %t]]
+                    [%col-type [~.ta ~.t]]
                 ==
   =/  expected  :~  %results
                     :-  %result-set
