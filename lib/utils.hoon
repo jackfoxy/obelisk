@@ -24,7 +24,6 @@
 ++  pri-key
   |=  key=(list [@tas ?])
         ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
-++  data-key    ((on @da data) gth)
 ++  key-atom
   |=  a=[p=@tas q=value-or-default:ast r=(map @tas column:ast)]
   ^-  @
@@ -39,10 +38,30 @@
 ++  get-schema
     |=  [sys=((mop @da schema) gth) time=@da]
     ^-  schema
-    ::=/  time-key  (add time `@dr`(yule `tarp`[0 0 0 1 ~]))  :: one second after
+    ::=/  time-key  (add time `@dr`(yule `tarp`[0 0 0 1 ~])) :: one second after
     =/  time-key  (add time 1)
     ~|  "schema not available for {<time>}"
     ->:(pop:schema-key (lot:schema-key sys `time-key ~))
+::
+::  +get-next-schema
+::  gets the schema with the highest timestamp for mutation
+::  if schema is already mutated
+::    then sys-time may = tmsp.schema  !!!!!!
+::  else sys-time must be > tmsp.schema
+++  get-next-schema
+  |=  $:  sys=((mop @da schema) gth)
+          next-schemas=(map @tas @da)
+          sys-time=@da
+          db-name=@tas
+      ==
+  ^-  schema
+  =/  nxt-schema=schema  +:(need (pry:schema-key sys))
+  ?:  (lth sys-time tmsp.nxt-schema)  !!
+  ?:  =(tmsp.nxt-schema sys-time)
+    ?:  =((~(got by next-schemas) db-name) sys-time)  nxt-schema
+    !!
+  nxt-schema
+++  data-key    ((on @da data) gth)
 ::
 ::  gets the data with matching or highest timestamp prior to
 ++  get-data
@@ -53,6 +72,21 @@
   =/  prior  (pry:data-key (lot:data-key sys `time ~))
   ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
+::
+::  gets the data with the highest timestamp for mutation
+++  get-next-data
+  |=  $:  content=(tree [@da data])
+          next-data=(map @tas @da)
+          sys-time=@da
+          db-name=@tas
+      ==
+  ^-  data
+  =/  nxt-data=data  +:(need (pry:data-key content))
+  ?:  (lth sys-time tmsp.nxt-data)  !!
+  ?:  =(tmsp.nxt-data sys-time)
+    ?:  =((~(got by next-data) db-name) sys-time)  nxt-data
+    !!
+  nxt-data
 ::
 :: get view with current or most recent previous time
 ++  view-key  ((on data-obj-key view) ns-obj-comp)

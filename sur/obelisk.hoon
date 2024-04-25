@@ -9,6 +9,7 @@
       created-tmsp=@da
       sys=((mop @da schema) gth)     ::(tree [@da schema])
       content=(tree [@da data])
+      view-cache=((mop data-obj-key (list row)) ns-obj-comp)
   ==
 +$  schema
   $:  %schema
@@ -18,7 +19,6 @@
       =tables
   :: indices  ::  indices other than primary key
       =views
-      view-cache=((mop data-obj-key (list row)) ns-obj-comp)
   :: permissions
   ==
 +$  data

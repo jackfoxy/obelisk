@@ -33,6 +33,7 @@
                               ~[gen2-sys gen1-sys gen0-sys]
           %+  gas:data-key  *((mop @da data) gth)
                             ~[gen2-data gen1-data gen0-data]
+          ~
       ==
     ~
     ~
@@ -47,6 +48,7 @@
                               ~[gen2-sys gen1-sys gen0-sys]
           %+  gas:data-key  *((mop @da data) gth)
                             ~[gen3-data gen2-data gen1-data gen0-data]
+          ~
       ==
     ~
     ~
@@ -61,6 +63,7 @@
                               ~[gen2-sys gen1-sys gen0-sys]
           %+  gas:data-key  *((mop @da data) gth)
                             ~[gen4-data gen3-data gen2-data gen1-data gen0-data]
+          ~
       ==
     ~
     ~
@@ -75,6 +78,7 @@
                               ~[sys-time-1 gen2-sys gen1-sys gen0-sys]
           %+  gas:data-key  *((mop @da data) gth)
                             ~[gen3-data gen2-data gen1-data gen0-data]
+          ~
       ==
     ~
     ~
@@ -89,6 +93,7 @@
                               ~[sys-time-2 gen2-sys gen1-sys gen0-sys]
           %+  gas:data-key  *((mop @da data) gth)
                             ~[time2-data gen3-data gen2-data gen1-data gen0-data]
+          ~
       ==
     ~
     ~
@@ -103,7 +108,6 @@
         namespaces=schema-ns
         tables=~
         views=~
-        view-cache=~
     ==
 ++  gen1-sys
   :-  ~2023.7.9..22.27.32..49e3
@@ -113,7 +117,6 @@
         namespaces=schema-ns
         tables=[n=schema-my-table l=~ r=~]
         views=~
-        view-cache=~
     ==
 ++  gen2-sys
   :-  ~2023.7.9..22.35.34..7e90
@@ -123,7 +126,6 @@
         namespaces=schema-ns
         tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
         views=~
-        view-cache=~
     ==
 ++  sys-time-1
   :-  ~2023.7.9..22.35.35..7e90
@@ -133,7 +135,6 @@
         namespaces=schema-ns-2
         tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
         views=~
-        view-cache=~
     ==
 ++  sys-time-2
   :-  ~2023.7.9..22.35.35..7e90
@@ -143,7 +144,6 @@
         namespaces=schema-ns
         tables=[n=schema-my-table-2 l=[n=schema-table-3 l=~ r=~] r=[schema-my-table ~ ~]]
         views=~
-        view-cache=~
     ==
 ++  schema-ns
   :+  n=[p=%dbo q=~2023.7.9..22.24.54..4b8a]

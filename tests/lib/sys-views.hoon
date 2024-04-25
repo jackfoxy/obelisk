@@ -131,6 +131,49 @@
     !>  expected
     !>  ->+>+>-.mov6
 ::
+++  test-sys-ns
+  =|  run=@ud
+  =/  row1  :-  %row
+                :~  [%namespace [~.tas %dbo]]
+                    [%tmsp [~.da ~2000.1.1]]
+                    ==
+  =/  row2  :-  %row
+                :~  [%namespace [~.tas %sys]]
+                    [%tmsp [~.da ~2000.1.1]]
+                    ==               
+  =/  row3  :-  %row
+                :~  [%namespace [~.tas %ns1]]
+                    [%tmsp [~.da ~2000.1.2]]
+                    ==
+  ::
+  =/  expected  :~  %results
+                    :-  %result-set
+                        ~[row1 row2 row3]
+                ==
+  ::
+  =^  mov1  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1 AS OF ~2000.1.1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE NAMESPACE ns1 AS OF ~2000.1.2"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent  
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>([%tape %db1 "FROM sys.namespaces SELECT *"])
+    ==
+  %+  expect-eq
+    !>  expected
+    !>  ->+>+>-.mov3
+::
 ++  test-sys-tables
   =|  run=@ud
   =/  row1  :-  %row

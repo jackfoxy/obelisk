@@ -198,6 +198,17 @@
                         %sys         ::namespace=@tas
                         %namespaces  ::name=@tas
                         ==
+                    %tmsp  ::column=@tas
+                    ~    ::alias=(unit @t)
+                    %.y  ::ascending=?
+                :+  %ordering-column
+                    :^  %qualified-column    ::qualified-column
+                    :*  %qualified-object  ::qualifier
+                        ~            ::ship=(unit @p)
+                        database     ::database=@tas
+                        %sys         ::namespace=@tas
+                        %namespaces  ::name=@tas
+                        ==
                     %namespace  ::column=@tas
                     ~    ::alias=(unit @t)
                     %.y  ::ascending=?
@@ -803,11 +814,11 @@
           columns.view
     ::
     %namespaces
-        =/  namespaces  (~(urn by namespaces.schema) |=([k=@tas v=@da] ~[k v]))
-        %+  make-rows
-            %+  sort  `(list (list @))`~(val by namespaces)
-                      ~(order order-row ordering.view)
-            columns.view
+      =/  namespaces  (~(urn by namespaces.schema) |=([k=@tas v=@da] ~[k v]))
+      %+  make-rows
+          %+  sort  `(list (list @))`~(val by namespaces)
+                    ~(order order-row ordering.view)
+          columns.view
     ::
     %tables
       =/  udata=data  (get-data tmsp.view content.database)

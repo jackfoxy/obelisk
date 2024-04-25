@@ -33,6 +33,7 @@
               created-tmsp=sys-time
               sys=(gas:schema-key *((mop @da schema) gth) schemas)
               content=(gas:data-key *((mop @da data) gth) contents)
+              ~
           ==
       (sys-database sys-time)
       ==
@@ -44,20 +45,21 @@
               %sys
               `path`/test-agent
               sys-time
-              %+  gas:schema-key  *((mop @da schema) gth)
-                                  :~  :-  sys-time
-                                        :*  %schema
-                                            `path`/test-agent
-                                            sys-time
-                                            [[%sys sys-time] ~ ~]
-                                            ~
-                                            %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
-                                                                 (limo ~[(sys-sys-databases-view sys-time)])
-                                            ~
-                                            ==
-                                      ==
+              %+  gas:schema-key
+                    *((mop @da schema) gth)
+                    :~  :-  sys-time
+                          :*  %schema
+                              `path`/test-agent
+                              sys-time
+                              [[%sys sys-time] ~ ~]
+                              ~
+                              %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
+                                                    (limo ~[(sys-sys-databases-view sys-time)])
+                              ==
+                        ==
               %+  gas:data-key  *((mop @da data) gth)
                             ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
+              ~
               ==
 ::
 ::  views
@@ -119,7 +121,6 @@
           namespaces=[[p=%dbo q=sys-time] ~ [[p=%sys q=sys-time] ~ ~]]
           tables=~
           views=(ns-sys-views %db1 sys-time)
-          ~
       ==
 :: ~> %ns1 ~> %ns2
 ++  sys-ns1-ns2
@@ -135,7 +136,6 @@
                 [[%ns2 sys-time3] ~ [[%sys sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time3)
-        ~
     ==
 :: ~> tbl
 ++  one-col-tbl-sys
@@ -146,7 +146,6 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time2)
-        ~
     ==
 :: ~> tbl ~> drop
 ++  one-col-tbl-drop-sys
@@ -157,18 +156,17 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time3)
-        ~
     ==
 :: ~> tbl ~> insert ~> drop
 ++  sys4
-  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
+  ^-  [@da schema]  :-  sys-time3
     :*  %schema
         provenance=`path`/test-agent
         tmsp=sys-time3
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time3)
-        ~
     ==
 ::  ~> %ns1
 ++  sys-ns1-time2
@@ -181,7 +179,6 @@
             [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time2)
-        ~
     ==
 ::  ~> tbl
 ++  time-3-sys
@@ -192,18 +189,17 @@
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[time-3-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time2)
-        ~
     ==
 ::  ~> tbl ~> tbl
 ++  two-col-tbl-sys
-  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
+  ^-  [@da schema]  :-  sys-time3
     :*  %schema
         provenance=`path`/test-agent
         tmsp=sys-time3
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[two-col-tbl ~ [one-col-tbl ~ ~]]
         views=(ns-sys-views %db1 sys-time3)
-        ~
     ==
 ::  ~> tbl ~> tbl
 ++  two-comb-col-tbl-sys
@@ -214,7 +210,6 @@
         namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
         tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
         views=(ns-sys-views %db1 sys-time2)
-        ~
     ==
 ++  time-3a-sys
   |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
@@ -224,7 +219,6 @@
         namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
         tables=[time-3-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time2)
-        ~
     ==
 ++  time-4-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
@@ -237,7 +231,6 @@
             [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=[time-3-tbl ~ ~]
         views=(ns-sys-views %db1 sys-time3)
-        ~
     ==
 ++  time-5-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da sys-time4=@da]
@@ -250,7 +243,6 @@
             [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
         tables=~
         views=(ns-sys-views %db1 sys-time4)
-        ~
     ==
 ++  time-2-sys1
   |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
@@ -260,7 +252,6 @@
           namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
           tables=[time-one-col-tbl ~ ~]
           views=(ns-sys-views %db1 sys-time2)
-          ~
       ==
 ::
 ::  content
@@ -652,7 +643,11 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -678,7 +673,11 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -739,7 +738,11 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -767,7 +770,11 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -798,7 +805,11 @@
     !>  [%result-da 'system time' ~2000.1.3]
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3 content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-3 content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -835,7 +846,11 @@
     !>  [%result-da 'system time' ~2000.1.3]
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3 content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-3 content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -861,7 +876,11 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3-a content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-3-a content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -891,7 +910,11 @@
     !>  [%result-da 'system time' ~2000.1.2]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-3-a content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-3-a content-1]
+                   ==
     !>  databases.state
   ==
 
@@ -1142,7 +1165,11 @@
     !>  [%result-da 'system time' ~2000.1.3]
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1-a content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-1-a content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1196,7 +1223,11 @@
             ==
     !>  ->+>+>->.mov4
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-4 content-1b content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-4 content-1b content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1351,7 +1382,11 @@
     !>  [%message 'no data in table to truncate']
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-2 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   ~[content-2 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1403,7 +1438,11 @@
             ==
     !>  ->+>+>->.mov4
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)] ~[content-1c content-1b content-2 content-1])
+    !>  %:  mk-db  %db1
+                  ~2000.1.1
+                  ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                  ~[content-1c content-1b content-2 content-1]
+                  ==
     !>  databases.state
   ==
 ::
@@ -1493,7 +1532,11 @@
     !>  [%result-da 'system time' ~2023.7.9..22.35.35..7e90]
     !>  ->+>+>.mov1
   %+  expect-eq
-    !>  (mk-db %db1 ~2023.7.9..22.35.35..7e90 ~[(sys1 ~2023.7.9..22.35.35..7e90)] ~[content-time-1])
+    !>  %:  mk-db  %db1
+                   ~2023.7.9..22.35.35..7e90
+                   ~[(sys1 ~2023.7.9..22.35.35..7e90)]
+                   ~[content-time-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1527,7 +1570,11 @@
     !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(sys-ns1-ns2 ~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)] ~[content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(sys-ns1-ns2 ~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)]
+                   ~[content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1664,7 +1711,11 @@
     !>  [%result-da 'system time' ~2023.7.9..22.35.36..7e90]
     !>  ->+>+>->-.mov2
   %+  expect-eq
-    !>  (mk-db %db1 ~2023.7.9..22.35.35..7e90 ~[(time-3-sys ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys1 ~2023.7.9..22.35.35..7e90)] ~[content-time-3 content-time-1])
+    !>  %:  mk-db  %db1
+                   ~2023.7.9..22.35.35..7e90
+                   ~[(time-3-sys ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys1 ~2023.7.9..22.35.35..7e90)]
+                   ~[content-time-3 content-time-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1821,7 +1872,11 @@
     !>  [%result-da 'system time' ~2023.7.9..22.35.38..7e90]
     !>  ->+>+>->-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90) (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90) (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90) (sys1 ~2000.1.1)] ~[content-time-5 content-time-3 content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90) (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90) (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90) (sys1 ~2000.1.1)]
+                   ~[content-time-5 content-time-3 content-1]
+                   ==
     !>  databases.state
   ==
 ::
@@ -1998,7 +2053,11 @@
               ==
     !>  ->+>+>-.mov3
   %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)] ~[content-insert content-my-table content-1])
+    !>  %:  mk-db  %db1
+                   ~2000.1.1
+                   ~[(time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)]
+                   ~[content-insert content-my-table content-1]
+                   ==
     !>  databases.state
   ==
 ::
