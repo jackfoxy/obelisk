@@ -5,7 +5,7 @@
   $%  state-0
   ==
 +$  state-0
-  $:  %0 
+  $:  %0
       =databases
   ==
 +$  card  card:agent:gall
@@ -40,10 +40,18 @@
     =/  res  %:  process-cmds
                  databases
                  bowl
-                 ~>  %bout.[0 %process-cmds]  (parse(default-database +<.act) +>.act)
+                 ::~>  %bout.[0 %process-cmds]  (parse(default-database +<.act) +>.act)
+                 (parse(default-database +<.act) +>.act)
                  ==
-    ~&  "%obelisk-result:".
-        "{<-.res>}"
+    ::
+    ::~&  "%obelisk-result:"
+    :: ~&  "{<-.res>}"
+    :: ~&      "{<-<+<-.res>}"
+    ::=/  x=[%result-set (list vector)]
+    ::  ?:  ?=([%result-set *] -<+<.res)  `[%result-set (list vector)]`-<+<.res
+    ::  [%result-set ~]
+    ::=/  x2  (turn `(list vector)`+.x |=(a=vector ~&("{<a>}" ~)))
+    ::
     :_  this(databases +.res)
     :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]
@@ -58,24 +66,25 @@
   ::
   %tape-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
-    =/  res  %:  new-database 
-                 databases 
-                 bowl 
+    =/  res  %:  new-database
+                 databases
+                 bowl
                  -:(parse(default-database 'dummy') +.act)
              ==
-    :_
-      %=  this
-        databases  -.res
-      ==
-    :~  [%give %fact ~[/databases] %obelisk-result !>(+.res)]
+    ::
+    ::~&  "%obelisk-result:".
+    ::"{<-.res>}"
+    ::
+    :_  this(databases +.res)
+    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]
     ==
   ::
   %cmd-create-db
     ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
     =/  res  (new-database databases bowl +.act)
-    :_  this(databases -.res)
-    :~  [%give %fact ~[/databases] %obelisk-result !>(+.res)]
+    :_  this(databases +.res)
+    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
         [%give %kick ~[/databases] ~]
     ==
   ==

@@ -2,6 +2,7 @@
 ::
 /-  ast, *obelisk
 /+  *test, *obelisk, parse
+/=  agent  /app/obelisk
 |%
 ::
 ::  Build an example bowl manually.
@@ -9,363 +10,23 @@
   |=  [run=@ud now=@da]
   ^-  bowl:gall
   :*  [~zod ~zod %obelisk `path`(limo `path`/test-agent)] :: (our src dap sap)
-      [~ ~ ~]                                          :: (wex sup sky)
-      [run `@uvJ`(shax run) now [~zod %base ud+run]]   :: (act eny now byk)
+      [~ ~ ~]                                             :: (wex sup sky)
+      [run `@uvJ`(shax run) now [~zod %base ud+run]]      :: (act eny now byk)
   ==
 ::
 ::  Build a reference state mold.
 +$  state
-  $:  %0 
+  $:  %0
       =databases
       ==
 --
 |%
 ::
-::  databases
-++  start-dbs
-  :+
-    :-  %db1
-      :*  %database
-          name=%db1
-          created-provenance=`path`/test-agent
-          created-tmsp=~2023.7.9..22.24.54..4b8a
-          %+  gas:schema-key  *((mop @da schema) gth)
-                              ~[gen2-sys gen1-sys gen0-sys]
-          %+  gas:data-key  *((mop @da data) gth)
-                            ~[gen2-data gen1-data gen0-data]
-          ~
-      ==
-    ~
-    ~
-++  gen3-dbs
-  :+
-    :-  %db1
-      :*  %database
-          name=%db1
-          created-by-provenance=`path`/test-agent
-          created-tmsp=~2023.7.9..22.24.54..4b8a
-          %+  gas:schema-key  *((mop @da schema) gth)
-                              ~[gen2-sys gen1-sys gen0-sys]
-          %+  gas:data-key  *((mop @da data) gth)
-                            ~[gen3-data gen2-data gen1-data gen0-data]
-          ~
-      ==
-    ~
-    ~
-++  gen4-dbs
-  :+
-    :-  %db1
-      :*  %database
-          name=%db1
-          created-by-provenance=`path`/test-agent
-          created-tmsp=~2023.7.9..22.24.54..4b8a
-          %+  gas:schema-key  *((mop @da schema) gth)
-                              ~[gen2-sys gen1-sys gen0-sys]
-          %+  gas:data-key  *((mop @da data) gth)
-                            ~[gen4-data gen3-data gen2-data gen1-data gen0-data]
-          ~
-      ==
-    ~
-    ~
-++  dbs-time-1
-  :+
-    :-  %db1
-      :*  %database
-          name=%db1
-          created-by-provenance=`path`/test-agent
-          created-tmsp=~2023.7.9..22.24.54..4b8a
-          %+  gas:schema-key  *((mop @da schema) gth)
-                              ~[sys-time-1 gen2-sys gen1-sys gen0-sys]
-          %+  gas:data-key  *((mop @da data) gth)
-                            ~[gen3-data gen2-data gen1-data gen0-data]
-          ~
-      ==
-    ~
-    ~
-++  dbs-time-2
-  :+
-    :-  %db1
-      :*  %database
-          name=%db1
-          created-by-provenance=`path`/test-agent
-          created-tmsp=~2023.7.9..22.24.54..4b8a
-          %+  gas:schema-key  *((mop @da schema) gth)
-                              ~[sys-time-2 gen2-sys gen1-sys gen0-sys]
-          %+  gas:data-key  *((mop @da data) gth)
-                            ~[time2-data gen3-data gen2-data gen1-data gen0-data]
-          ~
-      ==
-    ~
-    ~
-::
-::  schemas
-++  schema-key  ((on @da schema) gth)
-++  gen0-sys
-  :-  ~2023.7.9..22.24.54..4b8a
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.24.54..4b8a
-        namespaces=schema-ns
-        tables=~
-        views=~
-    ==
-++  gen1-sys
-  :-  ~2023.7.9..22.27.32..49e3
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.27.32..49e3
-        namespaces=schema-ns
-        tables=[n=schema-my-table l=~ r=~]
-        views=~
-    ==
-++  gen2-sys
-  :-  ~2023.7.9..22.35.34..7e90
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.34..7e90
-        namespaces=schema-ns
-        tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
-        views=~
-    ==
-++  sys-time-1
-  :-  ~2023.7.9..22.35.35..7e90
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.35..7e90
-        namespaces=schema-ns-2
-        tables=[n=schema-my-table l=[n=schema-table-3 l=~ r=~] r=~]
-        views=~
-    ==
-++  sys-time-2
-  :-  ~2023.7.9..22.35.35..7e90
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.35..7e90
-        namespaces=schema-ns
-        tables=[n=schema-my-table-2 l=[n=schema-table-3 l=~ r=~] r=[schema-my-table ~ ~]]
-        views=~
-    ==
-++  schema-ns
-  :+  n=[p=%dbo q=~2023.7.9..22.24.54..4b8a]
-      l=~
-      r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] l=~ r=~]
-++  schema-ns-2
-  :+  n=[p=%ns1 q=~2023.7.9..22.35.35..7e90]
-      l=~
-      :+  n=[p=%dbo q=~2023.7.9..22.24.54..4b8a] 
-          l=~ 
-          r=[n=[p=%sys q=~2023.7.9..22.24.54..4b8a] ~ ~]
-::
-::  content
-++  data-key  ((on @da data) gth)
-++  gen0-data
-  :-  ~2023.7.9..22.24.54..4b8a
-    :*  %data
-        ship=~zod
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.24.54..4b8a
-        files=~
-    ==
-++  gen1-data
-  :-  ~2023.7.9..22.27.32..49e3
-    :*  %data
-        ship=~zod
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.27.32..49e3
-        files=[n=file-my-table l=~ r=~]
-    ==
-++  gen2-data
-  :-  ~2023.7.9..22.35.34..7e90
-    :*  %data
-        ship=~zod
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.34..7e90
-        files=[n=file-my-table l=[n=file-my-table-3 l=~ r=~] r=~]
-    ==
-++  gen3-data
-  :-  ~2030.1.1
-    :*  %data
-        ship=~zod
-        provenance=`path`/test-agent
-        tmsp=~2030.1.1
-        files=[n=file-my-table l=[n=gen3-file-my-table-3 l=~ r=~] r=~]
-    ==
-++  gen4-data
-  :-  ~2030.2.1
-    :*  %data
-        ship=~zod
-        provenance=`path`/test-agent
-        tmsp=~2030.2.1
-        files=[n=file-my-table l=[n=gen4-file-my-table-3 l=~ r=~] r=~]
-    ==
-++  time2-data
-  :-  ~2023.7.9..22.35.35..7e90
-    :*  %data
-        ship=~zod
-        provenance=`path`/test-agent
-        tmsp=~2023.7.9..22.35.35..7e90
-        files=[n=file-my-table-2 l=[n=gen3-file-my-table-3 l=~ r=~] r=[file-my-table ~ ~]]
-    ==
-::
-::  files
-++  file-my-table
-  :-  p=[%dbo %my-table] 
-      :*  %file
-          ship=~zod
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.27.32..49e3
-          clustered=%.y
-          length=0
-          column-lookup=[n=[p=%col1 q=[%t 0]] l=~ r=~]
-          key=~[[%t %.y]]
-          pri-idx=~
-          data=~
-      ==
-++  file-my-table-2
-  :-  p=[%dbo %my-table-2]
-      :*  %file
-          ship=~zod
-          provenance=/test-agent
-          tmsp=~2023.7.9..22.35.35..7e90
-          clustered=%.y
-          length=0
-          [n=[p=%col3 q=[%ud 2]] l=[n=[p=%col2 q=[%p 1]] l=~ r=~] r=[n=[p=%col1 q=[%t 0]] l=~ r=~]]
-          key=~[[%t %.y] [%p %.y]]
-          pri-idx=~
-          data=~
-      ==
-++  file-my-table-3
-  :-  p=[%dbo %my-table-3] 
-      :*  %file
-          ship=~zod
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.35.34..7e90
-          clustered=%.y
-          length=0
-          column-lookup=col-lu-table-3
-          key=~[[%t %.y] [%ud %.n]]
-          pri-idx=~
-          data=~
-      ==
-  ++  gen3-file-my-table-3
-  :-  p=[%dbo %my-table-3] 
-  :*  %file
-      ship=~zod
-      provenance=`path`/test-agent
-      tmsp=~2030.1.1
-      clustered=%.y
-      length=2
-      column-lookup=col-lu-table-3
-      key=~[[%t %.y] [%ud %.n]]
-      pri-idx=file-pri-idx-my-table-3
-      data=file-data-my-table-3
-  ==
-++  gen4-file-my-table-3
-  :-  p=[%dbo %my-table-3]
-      :*  %file
-          ship=~zod
-          provenance=`path`/test-agent
-          tmsp=~2030.2.1
-          clustered=%.y
-          length=4
-          column-lookup=col-lu-table-3
-          key=~[[%t %.y] [%ud %.n]]
-          pri-idx=gen4-file-pri-idx-my-table-3
-          data=gen4-file-data-my-table-3
-      ==
-::
-::  tables
-++  schema-my-table
-  :-  p=[%dbo %my-table] 
-      :*  %table
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.24.54..4b8a
-          :*  %index
-              unique=%.y
-              clustered=%.y
-              columns=~[[%ordered-column name=%col1 ascending=%.y]]
-          ==
-          columns=~[[%column name=%col1 type=%t]]
-          indices=~
-      ==
-++  schema-my-table-2
-  :-  p=[%dbo %my-table-2] 
-      :*  %table
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.35.35..7e90
-          :*  %index
-              unique=%.y
-              clustered=%.y
-              columns=~[[%ordered-column name=%col1 ascending=%.y] [%ordered-column name=%col2 ascending=%.y]]
-          ==
-          columns=~[[%column name=%col1 type=%t] [%column name=%col2 type=%p] [%column name=%col3 type=%ud]]
-          indices=~
-      ==
-++  schema-table-3
-  :-  p=[%dbo %my-table-3] 
-      :*  %table
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.24.54..4b8a
-          pri-indx=pri-indx-table-3
-          :~  [%column name=%col1 type=%t]
-              [%column name=%col2 type=%p]
-              [%column name=%col3 type=%ud]
-          ==
-          indices=~
-      ==
-::
-++  pri-indx-table-3
-  :*  %index
-      unique=%.y
-      clustered=%.y
-      :~  [%ordered-column name=%col1 ascending=%.y]
-          [%ordered-column name=%col3 ascending=%.n]
-      ==
-  ==
-::
-++  col-lu-table-3
-  :+  n=[p=%col3 q=[%ud 2]]
-      l=[n=[p=%col2 q=[%p 1]] l=~ r=~]
-      r=[n=[p=%col1 q=[%t 0]] l=~ r=~]
-::
-++  row1
-  :+  n=[p=%col3 q=20]
-      l=[n=[p=%col2 q=28.242.037] l=~ r=~]
-      r=[n=[p=%col1 q=1.685.221.219] l=~ r=~]
-++  row1-idx
-  [~[1.685.221.219 20] row1]
-++  row2
-  :+  n=[p=%col3 q=0]
-      l=[n=[p=%col2 q=0] l=~ r=~]
-      r=[n=[p=%col1 q=32.770.348.699.510.084] l=~ r=~]
-++  row2-idx
-  [~[32.770.348.699.510.084 0] row2]
-++  file-pri-idx-my-table-3
-  [n=row2-idx l=~ r=[row1-idx ~ ~]]
-++  file-data-my-table-3
-  ~[row2 row1]
-++  row3
-  :+  n=[p=%col3 q=21]
-      l=[n=[p=%col2 q=1] l=~ r=~]
-      r=[n=[p=%col1 q=216.433.586.019] l=~ r=~]
-++  row3-idx
-  [~[216.433.586.019 21] row3]
-++  row4
-  :+  n=[p=%col3 q=1]
-      l=[n=[p=%col2 q=182] l=~ r=~]
-      r=[n=[p=%col1 q=216.433.586.019] l=~ r=~]
-++  row4-idx
-  [~[216.433.586.019 1] row4]
-++  gen4-file-pri-idx-my-table-3
-  :+  n=row2-idx
-      ~
-      r=[row4-idx l=[row1-idx ~ r=[row3-idx ~ ~]] ~]
-++  gen4-file-data-my-table-3
-  ~[row4 row3 row2 row1]
+::  Set TMSP
 ::
 ::  set-tmsp back 0 seconds
 ++  test-set-tmsp-00
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %seconds)
@@ -373,7 +34,7 @@
 ::
 ::  set-tmsp back 65 seconds
 ++  test-set-tmsp-01
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.13.55..1ef5
     !>  %-  set-tmsp
           :-  `(as-of-offset:ast %as-of-offset 65 %seconds)
@@ -381,7 +42,7 @@
 ::
 ::  set-tmsp back 0 minutes
 ++  test-set-tmsp-02
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %minutes)
@@ -389,7 +50,7 @@
 ::
 ::  set-tmsp back 65 minutes
 ++  test-set-tmsp-03
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..6.10.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 65 %minutes)
@@ -397,7 +58,7 @@
 ::
 ::  set-tmsp back 0 hours
 ++  test-set-tmsp-04
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %hours)
@@ -405,7 +66,7 @@
 ::
 ::  set-tmsp back 65 hours
 ++  test-set-tmsp-05
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.22..14.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 65 %hours)
@@ -413,7 +74,7 @@
 ::
 ::  set-tmsp back 0 days
 ++  test-set-tmsp-06
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %days)
@@ -421,7 +82,7 @@
 ::
 ::  set-tmsp back 65 days
 ++  test-set-tmsp-07
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.10.21..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 65 %days)
@@ -429,7 +90,7 @@
 ::
 ::  set-tmsp back 0 weeks
 ++  test-set-tmsp-08
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %weeks)
@@ -437,7 +98,7 @@
 ::
 ::  set-tmsp back 65 weeks
 ++  test-set-tmsp-09
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2022.9.26..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 65 %weeks)
@@ -445,7 +106,7 @@
 ::
 ::  set-tmsp leap year
 ++  test-set-tmsp-10
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2020.2.27..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 7 %days)
@@ -453,7 +114,7 @@
 ::
 ::  set-tmsp back 0 months
 ++  test-set-tmsp-11
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %months)
@@ -461,7 +122,7 @@
 ::
 ::  set-tmsp back 65 months
 ++  test-set-tmsp-12
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2018.7.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 65 %months)
@@ -469,7 +130,7 @@
 ::
 ::  set-tmsp back 3 months
 ++  test-set-tmsp-13
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2019.12.5..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 3 %months)
@@ -477,7 +138,7 @@
 ::
 ::  set-tmsp back 2 months
 ++  test-set-tmsp-14
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2020.1.5..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 2 %months)
@@ -485,7 +146,7 @@
 ::
 ::  set-tmsp back 0 years
 ++  test-set-tmsp-15
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 0 %years)
@@ -493,7 +154,7 @@
 ::
 ::  set-tmsp back 65 years
 ++  test-set-tmsp-16
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~1958.12.25..7.15.0..1ef5
     !>  %-  set-tmsp
             :-  `(as-of-offset:ast %as-of-offset 65 %years)
@@ -501,267 +162,850 @@
 ::
 ::  set-tmsp to ~1962.2.2..7.15.0..1ef5
 ++  test-set-tmsp-17
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~1962.2.2..7.15.0..1ef5
     !>  (set-tmsp [`[%da ~1962.2.2..7.15.0..1ef5] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~s65
 ++  test-set-tmsp-18
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.13.55..1ef5
     !>  (set-tmsp [`[%dr ~s65] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~m65
 ++  test-set-tmsp-19
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..6.10.0..1ef5
     !>  (set-tmsp [`[%dr ~m65] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~m65.s65
 ++  test-set-tmsp-20
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..6.8.55..1ef5
     !>  (set-tmsp [`[%dr ~m65.s65] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~h2.m12.s5
 ++  test-set-tmsp-21
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..5.2.55..1ef5
     !>  (set-tmsp [`[%dr ~h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~d5.h2.m12.s5
 ++  test-set-tmsp-22
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.20..5.2.55..1ef5
     !>  (set-tmsp [`[%dr ~d5.h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~s0
 ++  test-set-tmsp-23
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  (set-tmsp [`[%dr ~s0] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~d0.h0.m0.s0
 ++  test-set-tmsp-24
-  %+  expect-eq                         
+  %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
     !>  (set-tmsp [`[%dr ~d0.h0.m0.s0] ~2023.12.25..7.15.0..1ef5])
 ::
-::  insert rows to table
-++  test-insert-db
-  =|  run=@ud 
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  =/  x  %-  process-cmds 
-            :+  start-dbs
-                (bowl [run ~2030.1.1])
-                (parse:parse(default-database 'db1') my-insert)
-  ;:  weld
-  %+  expect-eq                         
-    !>  :~  :-  %results
-                :~  [%result-ud msg='row count' count=2]
-                    [%result-da msg='data time' date=~2030.1.1]
-                ==
+::  CREATE DATABASE
+::
+::  fail duplicate database
+++  test-fail-create-database-01
+  =|  run=@ud
+  =^  move  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  ::
+  %+  expect-fail-message
+        'database %db1 already exists'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+::
+::  CREATE NAMESPACE
+::
+::  fail on duplicate namepsace
+++  test-fail-create-namespace-01
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>([%commands ~[[%create-namespace %db1 %ns1 ~]]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 already exists'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[[%create-namespace %db1 %ns1 ~]]])
+    ==
+::
+::  fail on database does not exist
+++  test-fail-create-namespace-02
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'database %db2 does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[[%create-namespace %db2 %ns1 ~]]])
+    ==
+:: fail on time, create ns = schema
+++  test-fail-create-namespace-03
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 as-of schema time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+::
+:: fail on time, create ns lt schema
+++  test-fail-create-namespace-04
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 as-of schema time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
+    ==
+::
+::  fail on time, create ns = content
+++  test-fail-create-namespace-05
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 as-of content time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+::
+::  fail on time, create ns lt content
+++  test-fail-create-namespace-06
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 as-of content time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
+    ==
+::
+::  CREATE TABLE
+::  fail on database does not exist
+++  test-fail-create-table-01
+  =|  run=@ud
+  =/  cmd
+    :*  %create-table
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+        :~  [%column name='col1' column-type=%t]
+            [%column name='col2' column-type=%p]
+            [%column name='col3' column-type=%ud]
         ==
-    !>  -.x
-  %+  expect-eq
-    !>  gen3-dbs
-    !>  +.x
-  ==
+        clustered=%.n
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
+        foreign-keys=~
+        as-of=~
+    ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'database %db does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
 ::
-::  insert rows without columns to populated table 
-++  test-insert-no-cols
-  =|  run=@ud 
-  =/  my-insert
-        "INSERT INTO db1..my-table-3 VALUES ('cord2',~nec,21) ('cord2',~bus, 1)"
-  =/  x  %-  process-cmds
-            :+  gen3-dbs
-                (bowl [run ~2030.2.1])
-                (parse:parse(default-database 'db1') my-insert)
-  ;:  weld
-  %+  expect-eq                         
-    !>  :~  :-  %results
-                :~  [%result-ud msg='row count' count=2]
-                    [%result-da msg='data time' date=~2030.2.1]
-                ==
+::  fail on namespace does not exist
+++  test-fail-create-table-02
+  =|  run=@ud
+  =/  cmd
+    :*  %create-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='ns1'
+            name='my-table'
         ==
-    !>  -.x
-  %+  expect-eq
-    !>  gen4-dbs
-    !>  +.x
-  ==
+        :~  [%column name='col1' column-type=%t]
+            [%column name='col2' column-type=%p]
+            [%column name='col3' column-type=%ud]
+        ==
+        clustered=%.n
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
+        foreign-keys=~
+        as-of=~
+    ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
 ::
-:: INSERT
-::
-:: insert rows without columns to populated table fail on col wrong type
-++  test-fail-ins-no-cols-col-type
+::  fail on duplicate table name
+++  test-fail-create-table-03
   =|  run=@ud
-  =/  my-insert
-        "INSERT INTO db1..my-table-3 VALUES ('cord2',~nec,21) ('cord2',1, ~bus)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  gen3-dbs
-              (bowl [run ~2030.2.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =/  cmd
+    :*  %create-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        :~  [%column name='col1' column-type=%t]
+            [%column name='col2' column-type=%p]
+            [%column name='col3' column-type=%ud]
+        ==
+        clustered=%.n
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
+        foreign-keys=~
+        as-of=~
+    ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>([%commands ~[cmd]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        '%my-table exists in %dbo'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
 ::
-:: fail on dup rows
-++  test-fail-insert-dup-rows
+::  fail on duplicate column names
+++  test-fail-create-table-04
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  gen3-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =/  cmd
+    :*  %create-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        :~  [%column name='col1' column-type=%t]
+            [%column name='col2' column-type=%p]
+            [%column name='col1' column-type=%t]
+        ==
+        clustered=%.n
+        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
+        foreign-keys=~
+        as-of=~
+    ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'duplicate column names ~[[%column name=%col1 type=~.t] [%column name=%col2 type=~.p] [%column name=%col1 type=~.t]]'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
 ::
-:: fail on dup col names
-++  test-fail-insert-dup-cols
+::  fail on time, create table = content
+++  test-fail-create-table-05
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col2)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'table %my-table-2 as-of data time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) ".
+              "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
 ::
-:: fail on too few cols
-++  test-fail-insert-few-cols
+::  fail on time, create table < content
+++  test-fail-create-table-06
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2)  ".
-                "VALUES ('cord',~nomryg-nilref) ('Default',Default)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'table %my-table-2 as-of data time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) ".
+              "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
 ::
-:: fail on too many cols
-++  test-fail-insert-more-cols
+::  fail on time, create table = schema
+++  test-fail-create-table-07
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3, col4)  ".
-                "VALUES ('cord',~nomryg-nilref,20, 1) ('Default',Default, 0, 2)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'table %my-table-2 as-of schema time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+              "PRIMARY KEY (col1, col2) ".
+              "as of ~2023.7.9..22.35.35..7e90"
+    ==
 ::
-:: fail on col wrong type
-++  test-fail-insert-col-type
+::  fail on time, create table lt schema
+++  test-fail-create-table-08
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1, col2, col3)  ".
-                "VALUES (1,~nomryg-nilref,20) (2,Default, 0)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'table %my-table-2 as-of schema time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "as of ~2023.7.9..22.35.34..7e90"
+    ==
 ::
-:: fail on bad col name
-++  test-fail-insert-col-name     
+::  fail on key column not in column definitions
+++  test-fail-create-table-09
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-3 (col1a, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =/  cmd
+    :*  %create-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        :~  [%column name='col1' column-type=%t]
+            [%column name='col2' column-type=%p]
+            [%column name='col3' column-type=%ud]
+        ==
+        clustered=%.n
+        :~  [%ordered-column column-name='col1' ascending=%.y]
+            [%ordered-column column-name='col4' ascending=%.y]
+        ==
+        foreign-keys=~
+        as-of=~
+    ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'key column not in column definitions ~[[%ordered-column name=%col1 ascending=%.y] [%ordered-column name=%col4 ascending=%.y]]'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>([%commands ~[cmd]])
+    ==
 ::
-:: fail on bad tbl name
-++  test-fail-insert-tbl-name
+::  Drop table
+::
+::  fail on time, drop table = schema
+++  test-fail-drop-table-01
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table-2 (col1, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  %-  expect-fail
-  |.  %-  process-cmds
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'drop table %my-table-2 as-of schema time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "DROP TABLE db1..my-table-2 ".
+              "AS OF ~2023.7.9..22.35.37..7e90"
+    ==
 ::
-:: fail on bad namespace name
-++  test-fail-insert-ns-name
+::  fail on time, drop table lt schema
+++  test-fail-drop-table-02
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1.ns.my-table-3 (col1, col2, col3)  ".
-                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  %-  expect-fail
-  |.  %-  process-cmds 
-          :+  start-dbs
-              (bowl [run ~2031.1.1])
-              (parse:parse(default-database 'db1') my-insert)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :-  %tape-create-db
+                "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
+                "PRIMARY KEY (col1, col2) ".
+                "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'drop table %my-table-2 as-of schema time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "DROP TABLE db1..my-table-2 ".
+              "AS OF ~2023.7.9..22.35.36..7e90"
+    ==
 ::
-::  SELECT
+::  fail on time, drop table = content
+++  test-fail-drop-table-03
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'drop table %my-table as-of data time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "DROP TABLE db1..my-table as of ~2023.7.9..22.35.35..7e90"
+    ==
 ::
-::  select one literal 
-++  test-select-1-literal
-  =|  run=@ud 
-  =/  my-select  "SELECT 0"
-  =/  x  %-  process-cmds
-            :+  start-dbs
-                (bowl [run ~2023.2.1])
-                (parse:parse(default-database 'db1') my-select)
-  %+  expect-eq                         
-    !>  ~[[%results ~[[%result-set ~[[%row ~[[%literal-0 ~.ud 0]]]]]]]]
-    !>  -.x
+::  fail on time, drop table < content
+++  test-fail-drop-table-04
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2023.7.9..22.35.35..7e90]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
+                "AS OF ~2023.7.9..22.35.35..7e90"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'drop table %my-table as-of data time out of order'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "DROP TABLE db1..my-table as of ~2023.7.9..22.35.34..7e90"
+    ==
 ::
-::  select all literals mixed with aliases
-++  test-select-literals
-  =|  run=@ud 
-  =/  rslt-data  :~  :-  %row
-                         :~  [%date ~.da ~2020.12.25]
-                             [%literal-1 ~.da ~2020.12.25..7.15.0]
-                             [%literal-2 ~.da ~2020.12.25..7.15.0..1ef5]
-                             [%literal-3 ~.da ~2020.12.25]
-                             [%literal-4 ~.da ~2020.12.25..7.15.0]
-                             [%literal-5 ~.da ~2020.12.25..7.15.0..1ef5]
-                             [%timespan ~.dr ~d71.h19.m26.s24..9d55]
-                             [%literal-7 ~.dr ~d71.h19.m26.s24]
-                             [%literal-8 ~.dr ~d71.h19.m26]
-                             [%literal-9 ~.dr ~d71.h19]
-                             [%literal-10 ~.dr ~d71]
-                             [%loobean ~.f %.y]
-                             [%literal-12 ~.f %.n]
-                             [%ipv4-address ~.if .195.198.143.90]
-                             [%ipv6-address ~.is .0.0.0.0.0.1c.c3c6.8f5a]
-                             [%ship ~.p ~sampel-palnet]
-                             [%single-float ~.rs .3.14]
-                             [%literal-17 ~.rs .-3.14]
-                             [%double-float ~.rd .~3.14]
-                             [%literal-19 ~.rd .~-3.14]
-                             [%signed-binary ~.sb --0b10.0000]
-                             [%literal-21 ~.sb -0b10.0000]
-                             [%signed-decimal ~.sd --20]
-                             [%literal-23 ~.sd -20]
-                             [%signed-base32 ~.sv --0v201.4gvml.245kc]
-                             [%literal-25 ~.sv -0v201.4gvml.245kc]
-                             [%signed-base64 ~.sw --0w2.04AfS.G8xqc]
-                             [%literal-27 ~.sw -0w2.04AfS.G8xqc]
-                             [%signed-hexadecimal ~.sx --0x2004.90fd]
-                             [%literal-29 ~.sx -0x2004.90fd]
-                             [%unsigned-binary ~.ub 0b10.1011]
-                             [%unsigned-decimal ~.ud 2.222]
-                             [%literal-32 ~.ud 2.222]
-                             [%unsigned-hexadecimal ~.ux 0x12.6401]
-                             ==
-                      ==
-  =/  my-select  "SELECT ~2020.12.25 AS Date, ~2020.12.25..7.15.0, ".
-  "~2020.12.25..7.15.0..1ef5, 2020.12.25, 2020.12.25..7.15.0, ".
-  "2020.12.25..7.15.0..1ef5, ~d71.h19.m26.s24..9d55 AS Timespan, ".
-  "~d71.h19.m26.s24, ~d71.h19.m26, ~d71.h19, ~d71, Y AS Loobean, N,  ".
-  ".195.198.143.90 AS IPv4-address, .0.0.0.0.0.1c.c3c6.8f5a as IPv6-address, ".
-  "~sampel-palnet AS Ship, .3.14 AS Single-float, .-3.14,  ".
-  "~3.14 AS Double-float, ~-3.14, --0b10.0000 AS Signed-binary, -0b10.0000, ".
-  "--20 AS Signed-decimal, -20, --0v201.4gvml.245kc AS Signed-base32, ".
-  "-0v201.4gvml.245kc, --0w2.04AfS.G8xqc AS Signed-base64, -0w2.04AfS.G8xqc, ".
-  "--0x2004.90fd AS Signed-hexadecimal, -0x2004.90fd,  ".
-  "10.1011 AS Unsigned-binary, 2.222 AS Unsigned-decimal, 2222,  ".
-  "0x12.6401 AS Unsigned-hexadecimal"
-  =/  x  %-  process-cmds  :+  start-dbs 
-                              (bowl [run ~2023.2.1])
-                              (parse:parse(default-database 'db1') my-select)
-  %+  expect-eq                         
-    !>  ~[[%results ~[[%result-set rslt-data]]]]
-    !>  -.x
+::  fail drop table with data no force
+++  test-fail-drop-table-05
+  =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        %.n
+        ~
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+        %obelisk-action
+        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'drop table %my-table has data, use FORCE to DROP'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on database does not exist
+++  test-fail-drop-table-06
+  =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db'
+            namespace='dbo'
+            name='my-table'
+        ==
+        %.n
+        ~
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'database %db does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on namespace does not exist
+++  test-fail-drop-table-07
+  =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='ns1'
+            name='my-table'
+        ==
+        %.n
+        ~
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on table name does not exist
+++  test-fail-drop-table-08
+  =|  run=@ud
+  =/  cmd
+    :^  %drop-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+        %.n
+        ~
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        '%my-table does not exist in %dbo'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.4]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  Truncate table
+::
+::  fail on database does not exist
+++  test-fail-truncate-tbl-01
+  =|  run=@ud
+  =/  cmd
+    :-  %truncate-table
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'database %db does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on namespace does not exist
+++  test-fail-truncate-tbl-02
+  =|  run=@ud
+  =/  cmd
+    :-  %truncate-table
+        [%qualified-object ship=~ database='db1' namespace='ns1' name='my-table']
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'namespace %ns1 does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+::
+::  fail on table name does not exist
+++  test-fail-truncate-tbl-03
+  =|  run=@ud
+  =/  cmd
+    :-  %truncate-table
+        :*  %qualified-object
+            ship=~
+            database='db1'
+            namespace='dbo'
+            name='my-table'
+        ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%cmd-create-db [%create-database 'db1' ~]])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        '%my-table does not exists in %dbo'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.3]))
+      %obelisk-action
+      !>([%commands ~[cmd]])
+    ==
+
 --

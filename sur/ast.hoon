@@ -33,7 +33,7 @@
 +$  all-or-any           ?(%all %any)
 +$  bool-conjunction     ?(%and %or)
 +$  object-type          ?(%table %view)
-+$  join-type            
++$  join-type
   ?(%join %left-join %right-join %outer-join %outer-join-all %cross-join)
 ::
 ::  command component types
@@ -81,12 +81,12 @@
     reference-table=qualified-object                 :: reference (target) table
     reference-columns=(list @t)                      :: and columns
                   :: what to do when referenced item deletes or updates
-    referential-integrity=(list referential-integrity-action) 
+    referential-integrity=(list referential-integrity-action)
   ==
 ::
 ::  expressions
 ::
-:: { = | <> | != | > | >= | !> | < | <= | !< | BETWEEN...AND... 
+:: { = | <> | != | > | >= | !> | < | <= | !< | BETWEEN...AND...
 ::       | IS DISTINCT FROM | IS NOT DISTINCT FROM }
 +$  ternary-op           ?(%between %not-between)
 +$  inequality-op        ?(%neq %gt %gte %lt %lte)
@@ -94,9 +94,9 @@
 +$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
 +$  unary-op             ?(%exists %not-exists)
 +$  conjunction          ?(%and %or)
-+$  ops-and-conjs        
++$  ops-and-conjs
       ?(ternary-op binary-op unary-op all-any-op conjunction)
-+$  predicate-component  
++$  predicate-component
       ?(ops-and-conjs qualified-column dime value-literals aggregate)
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column dime)
@@ -163,12 +163,13 @@
     object=table-set
     joins=(list joined-object)
   ==
-+$  query-row
++$  joined-object
   $:
-    %query-row
-    (list @t)
+    %joined-object
+    join=join-type
+    object=table-set
+    predicate=(unit predicate)
   ==
-+$  query-source  $%(query-row qualified-object)
 ::
 ::  $table-set:
 +$  table-set
@@ -177,12 +178,12 @@
     object=query-source
     alias=(unit @t)
   ==
-+$  joined-object
+::
++$  query-source  $%(query-row qualified-object)
++$  query-row     ::  parses, not used for now, may never be used
   $:
-    %joined-object
-    join=join-type
-    object=table-set
-    predicate=(unit predicate)
+    %query-row
+    (list @t)
   ==
 ::
 ::  $select:
@@ -194,8 +195,19 @@
     columns=(list selected-column)
   ==
 +$  selected-column
-  $%(qualified-column qualified-object selected-aggregate selected-value) 
+  $%
+    qualified-column
+    qualified-object
+    selected-aggregate
+    selected-value
+    selected-all
+  ==
   :: scalar-function or selected-scalar) fish-loop
++$  selected-all
+  $:
+    %all
+    %all
+  ==
 +$  selected-aggregate
   $:
     %selected-aggregate
@@ -249,7 +261,7 @@
     name=@tas
     set-cmd
   ==
-+$  set-op  
++$  set-op
   $?
     %union
     %except
@@ -333,7 +345,6 @@
   $:
     %truncate-table
     table=qualified-object
-    as-of=(unit as-of)
   ==
 ::
 ::  create ASTs
@@ -362,8 +373,8 @@
 ::
 ::  $create-namespace
 +$  create-namespace
-  $:  %create-namespace 
-    database-name=@tas 
+  $:  %create-namespace
+    database-name=@tas
     name=@tas
     as-of=(unit as-of)
   ==
@@ -413,7 +424,7 @@
   ==
 ::
 ::  $drop-namespace: database-name=@tas name=@tas force=?
-+$  drop-namespace       
++$  drop-namespace
   $:([%drop-namespace database-name=@tas name=@tas force=? as-of=(unit as-of)])
 ::
 ::  $drop-table: table=qualified-object force=?
@@ -525,7 +536,7 @@
   ==
 ::
 ::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-object)
-+$  revoke-object        
++$  revoke-object
   ?([%database @t] [%namespace [@t @t]] %all qualified-object)
 ::
 ::  $revoke: permission=revoke-permission from=revoke-from revoke-target=revoke-object

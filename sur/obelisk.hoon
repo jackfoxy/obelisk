@@ -7,9 +7,19 @@
       name=@tas
       created-provenance=path
       created-tmsp=@da
-      sys=((mop @da schema) gth)     ::(tree [@da schema])
-      content=(tree [@da data])
-      view-cache=((mop data-obj-key (list row)) ns-obj-comp)
+      sys=((mop @da schema) gth)
+      content=((mop @da data) gth)
+      =view-cache
+  ==
++$  view-cache  ((mop data-obj-key cache) ns-obj-comp)
++$  cache
+  $:  %cache
+      tmsp=@da
+      content=(unit cache-content)
+  ==
++$  cache-content
+  $:  rowcount=@
+      rows=(list (map @tas @))
   ==
 +$  schema
   $:  %schema
@@ -34,17 +44,23 @@
       provenance=path
       tmsp=@da
       clustered=?
-      length=@ud
-      column-lookup=(map @tas [@tas @ud])   :: name [type index]
-      key=(list [@tas ?])
+      rowcount=@
       pri-idx=(tree [(list @) (map @tas @)])
-      data=(list (map @tas @))
+      rows=(list (map @tas @))
       ::    =indices
   ==
 +$  data-obj-key
   $:  ns=@tas
       obj=@tas
       time=@da
+  ==
++$  data-obj
+  $:  %data-obj
+      sys-time=@da
+      data-time=@da
+      columns=(list column)
+      rowcount=@
+      rows=(list vector)
   ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
@@ -53,9 +69,11 @@
   $:  %table
       provenance=path
       tmsp=@da
-      pri-indx=index 
-      columns=(list column)             ::  canonical column list
-      indices=(list index)
+      =column-lookup
+      key=(list [@tas ?])
+      pri-indx=index
+      columns=(list column)      ::  canonical column list
+      indices=(list index)      :: to do: indices indexed by (list column)
   ==
 +$  views  ((mop data-obj-key view) ns-obj-comp)
 +$  view
@@ -64,19 +82,22 @@
       provenance=path
       tmsp=@da
       =transform
-      columns=(lest column)             ::  canonical column list
+      =column-lookup
+      columns=(list column)      ::  canonical column list
       ordering=(list column-order)
+      :: indices  -  to do
   ==
++$  column-lookup  (map @tas [aura @])  :: name [type index]
 +$  index
   $:  %index
       unique=?
       clustered=?
       columns=(list ordered-column)
   ==
-+$  cell  [p=@tas q=dime]
-+$  row   
-    $:  %row
-        (lest cell)
++$  vector-cell  [p=@tas q=dime]
++$  vector
+    $:  %vector
+        (lest vector-cell)
     ==
 +$  column-order  [aor=? ascending=? offset=@ud]
   :: $| validator mold for adding rows with FKs
@@ -85,25 +106,34 @@
   $%  [%tape default-database=@tas urql=tape]
       [%commands cmds=(list command)]
       [%tape-create-db urql=tape]
-      [%cmd-create-db cmd=create-database]   
+      [%cmd-create-db cmd=create-database]
   ==
 +$  cmd-result  [%results (list result)]
 +$  result
   $%  [%message msg=@t]
-      [%result-ud msg=@t count=@ud]
-      [%result-da msg=@t date=@da]
-      [%result-set (list row)]
+      [%vector-count count=@ud]
+      [%server-time date=@da]
+      [%schema-time date=@da]
+      [%data-time date=@da]
+      [%result-set (list vector)]
       ==
 ::
+::  helper types
+::
++$  table-return
+  $:  [@da ? @ud]
+      changed-schemas=(map @tas @da)
+      changed-data=(map @tas @da)
+      state=databases
+  ==
+::
+::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
+::
 ::  view and table comparer
-++  ns-obj-comp 
+++  ns-obj-comp
   |=  [p=data-obj-key q=data-obj-key]
   ^-  ?
   ?.  =(ns.p ns.q)  (gth ns.p ns.q)
   ?.  =(obj.p obj.q)  (gth obj.p obj.q)
   (gth time.p time.q)
-::
-::  view key
-++  view-key  ((on data-obj-key view) ns-obj-comp)
--- 
- 
+--

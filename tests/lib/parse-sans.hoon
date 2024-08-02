@@ -5,7 +5,7 @@
 ::@@@@@@@@@@@@@@@@@@@@@@@@@
 
 ::  re-used components
-++  all-columns  [%qualified-object ship=~ database='ALL' namespace='ALL' name='ALL']
+++  all-columns  [%all %all]
 ++  select-all-columns  [%select top=~ bottom=~ columns=~[all-columns]]
 ++  foo
   [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo'] 'foo' ~] ~ ~]
@@ -97,27 +97,35 @@
 ++  king-and                 [%and [second-and] last-or]
 
 ::@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-::  
-::  complext predicate, bug test
-++  test-predicate-36
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE  A1.adoption-email = A2.adoption-email  ".
-    "  AND     A1.adoption-date = A2.adoption-date  ".
-    "  AND    foo = bar  ".
-    "  AND ((A1.name = A2.name AND A1.species > A2.species) ".
-    "       OR ".
-    "       (A1.name > A2.name AND A1.species = A2.species) ".
-    "       OR ".
-    "      (A1.name > A2.name AND A1.species > A2.species) ".
-    "     ) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)
-    [%and [%and [%and [%eq a1-adoption-email a2-adoption-email] [%eq a1-adoption-date a2-adoption-date]] [%eq foo bar]] [%or [%or [%and [%eq a1-name a2-name] [%gt a1-species a2-species]] [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]] [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]]]
-  =/  expected
-    [%transform ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
+++  mixed-all
+  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1'] column='ALL' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo'] column='foo' alias=[~ 'foobar']] column-bar [%all %all] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T2'] column='ALL' alias=~]]
+++  column-foo       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo'] column='foo' alias=~]
+++  column-foo2      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo2'] column='foo2' alias=~]
+++  column-foo3      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo3'] column='foo3' alias=~]
+++  column-bar       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar'] column='bar' alias=~]
+++  literal-zod      [value-type=%p value=0]
+++  literal-1        [value-type=%ud value=1]
+++  naked-coalesce   ~[%coalesce column-bar literal-zod literal-1 column-foo]
+++  simple-coalesce  [[%scalar %foobar] naked-coalesce]
+++  simple-if-naked  [%if [%eq [literal-1 0 0] literal-1 0 0] %then column-foo %else column-bar %endif]
+++  simple-if        [[%scalar %foobar] simple-if-naked]
+++  case-predicate   [%when [%eq [literal-1 0 0] literal-1 0 0] %then column-foo]
+++  case-datum       [%when column-foo2 %then column-foo]
+++  case-coalesce    [%when column-foo3 %then naked-coalesce]
+++  case-1           [[%scalar %foobar] [%case column-foo3 ~[case-predicate] %else column-bar %end]]
+++  case-2           [[%scalar %foobar] [%case column-foo3 ~[case-datum] %else column-bar %end]]
+++  case-3           [[%scalar %foobar] [%case column-foo3 ~[case-datum case-predicate] %else column-bar %end]]
+++  case-4           [[%scalar %foobar] [%case column-foo3 ~[case-datum case-predicate] %else simple-if-naked %end]]
+++  case-5           [[%scalar %foobar] [%case column-foo3 ~[case-datum case-predicate case-coalesce] %else simple-if-naked %end]]
+++  case-aggregate   [[%scalar %foobar] [%case [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3] %foo3 0] [[%when [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2] %foo2 0] %then %aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo] %foo 0] %end]]
+
+::
+::
+::  mixed all, object all, object alias all, column, aliased column
+++  test-select-14
+  =/  select  "select db..t1.* , foo as foobar , bar , * , T2.* "
   %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
+    !>  ~[[%transform ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') select)
 
 --

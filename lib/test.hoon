@@ -40,6 +40,30 @@
     %|  ~
     %&  ['expected failure - succeeded' ~]
   ==
+::  +expect-fail-message: kicks a trap, expecting crash with message.
+::
+++  expect-fail-message
+    |=  [msg=@t a=(trap)]
+    ^-  tang
+    =/  b  (mule a)
+
+    ::~&  "{<+.b>}"
+
+    ?-  -.b
+      %|  |^
+          =/  =tang  (flatten +.b)
+          ?:  ?=(^ (find (trip msg) tang))
+            ~
+          ['expected error message - not found' ~]
+          ++  flatten
+            |=  tang=(list tank)
+            =|  res=tape
+            |-  ^-  tape
+            ?~  tang  res
+            $(tang t.tang, res (weld ~(ram re i.tang) res))
+          --
+      %&  ['expected failure - succeeded' ~]
+    ==
 ::  +expect-runs: kicks a trap, expecting success; returns trace on failure
 ::
 ++  expect-success

@@ -1,22 +1,37 @@
 /-  ast, *obelisk
 /+  *utils
 |%
+::
+::  +sys-sys-dbs-view
+::
+::  view name: sys-databases
+::
+::      databases
+::         /\
+::      sys  content
+::
+::  *  only available in %sys database
+::  *  initial cache key created upon new database creation
+::  *  subsequent cache keys created upon creation of new user database schema
+::     and data keys
 ++  sys-sys-dbs-view
     |=  [provenance=path tmsp=@da]
     ^-  view
+    =/  columns=(list column:ast)  :~  [%column %database ~.tas]
+                                       [%column %sys-agent ~.tas]
+                                       [%column %sys-tmsp ~.da]
+                                       [%column %data-ship ~.p]
+                                       [%column %data-agent ~.tas]
+                                       [%column %data-tmsp ~.da]
+                                       ==
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             sys-sys-dbs-query              ::query
-        :~  [%column %database ~.tas]  ::columns=(list column)
-            [%column %sys-agent ~.tas] 
-            [%column %sys-tmsp ~.da] 
-            [%column %data-ship ~.p] 
-            [%column %data-agent ~.tas] 
-            [%column %data-tmsp ~.da]
-            ==
+        (malt (spun columns make-col-lu-data))  ::column-lookup
+        columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
 ++  sys-sys-dbs-query
@@ -48,7 +63,7 @@
                             %databases           ::name=@tas
                             ==
                         %database              ::column=@tas
-                        ~                      ::alias=(unit @t)
+                        `%database             ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -57,7 +72,7 @@
                             %databases           ::name=@tas
                             ==
                         %sys-agent             ::column=@tas
-                        ~                      ::alias=(unit @t)
+                        `%sys-agent            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                  ::ship=(unit @p)
@@ -66,7 +81,7 @@
                             %databases         ::name=@tas
                             ==
                         %sys-tmsp            ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        `%sys-tmsp           ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                  ::ship=(unit @p)
@@ -75,7 +90,7 @@
                             %databases         ::name=@tas
                             ==
                         %data-ship           ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        `%data-ship          ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                  ::ship=(unit @p)
@@ -84,7 +99,7 @@
                             %databases         ::name=@tas
                             ==
                         %data-agent          ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        `%data-agent         ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                  ::ship=(unit @p)
@@ -93,7 +108,7 @@
                             %databases         ::name=@tas
                             ==
                         %data-tmsp          ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        `%data-tmsp         ::alias=(unit @t)
                     ==
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
@@ -134,18 +149,30 @@
         ~
         ~
 ::
+::  +sys-namespaces-view
+::
+::  view name: sys-namespaces
+::
+::      schema
+::         \
+::        namespaces
+::
+::  *  initial cache key created upon database creation
+::  *  subsequent cache keys created upon create and drop namespace
 ++  sys-namespaces-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
+                                       [%column %tmsp ~.da]
+                                       ==
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-namespaces-query db)      ::query
-        :~  [%column %namespace ~.tas] ::columns=(list column)
-            [%column %tmsp ~.da]
-            ==
+        (malt (spun columns make-col-lu-data))  ::column-lookup
+        columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
 ++  sys-namespaces-query
@@ -172,22 +199,22 @@
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %namespaces        ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %namespaces          ::name=@tas
                             ==
-                        %namespace  ::column=@tas
-                        ~  ::alias=(unit @t)
+                        %namespace             ::column=@tas
+                        `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %namespaces        ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %namespaces          ::name=@tas
                             ==
-                        %tmsp                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %tmsp                  ::column=@tas
+                        `%tmsp                 ::alias=(unit @t)
                     ==
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
@@ -217,29 +244,35 @@
         ~
         ~
 ::
+::  + sys-tables-view
+::
+::    tables  files
+::
+::  view name: sys-tables
+::
+::  *  initial cache key created upon table creation
+::  *  subsequent cache keys created upon...drop table, insert
 ++  sys-tables-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
+                                       [%column %name ~.tas]
+                                       [%column %ship ~.p]
+                                       [%column %agent ~.tas]
+                                       [%column %tmsp ~.da]
+                                       [%column %row-count ~.ud]
+                                       [%column %key-ordinal ~.ud]
+                                       [%column %key ~.tas]
+                                       [%column %key-ascending ~.f]
+                                       ==
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
-        :~  [%column %namespace ~.tas] ::columns=(list column)
-            [%column %name ~.tas] 
-            [%column %ship ~.p] 
-            [%column %agent ~.tas] 
-            [%column %tmsp ~.da] 
-            [%column %row-count ~.ud] 
-            [%column %clustered ~.f] 
-            [%column %key-ordinal ~.ud] 
-            [%column %key ~.tas] 
-            [%column %key-ascending ~.f] 
-            [%column %col-ordinal ~.ud]
-            [%column %col-name ~.tas]
-            [%column %col-type ~.ta]
-           ==
+        (malt (spun columns make-col-lu-data))  ::column-lookup
+        columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
 ++  sys-tables-query
@@ -266,49 +299,49 @@
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~           ::ship=(unit @p)
-                            database    ::database=@tas
-                            %sys        ::namespace=@tas
-                            %tables  ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %namespace  ::column=@tas
-                        ~  ::alias=(unit @t)
+                        %namespace             ::column=@tas
+                        `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %name                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %name                  ::column=@tas
+                        `%name                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %ship                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %ship                  ::column=@tas
+                        `%ship                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %agent               ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %agent                 ::column=@tas
+                        `%agent                ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %tmsp                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %tmsp                  ::column=@tas
+                        `%tmsp                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                  ::ship=(unit @p)
@@ -320,67 +353,31 @@
                         ~                    ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %clustered           ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %key-ordinal           ::column=@tas
+                        `%key-ordinal          ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %key-ordinal         ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %key                   ::column=@tas
+                        `%key                  ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %tables              ::name=@tas
                             ==
-                        %key                 ::column=@tas
-                        ~                    ::alias=(unit @t)
-                    :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
-                            ==
-                        %key-ascending       ::column=@tas
-                        ~                    ::alias=(unit @t)
-                    :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
-                            ==
-                        %col-ordinal         ::column=@tas
-                        ~                    ::alias=(unit @t)
-                    :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
-                            ==
-                        %col-name            ::column=@tas
-                        ~                    ::alias=(unit @t)
-                    :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %tables            ::name=@tas
-                            ==
-                        %col-type                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %key-ascending         ::column=@tas
+                        `%key-ascending        ::alias=(unit @t)
                     ==
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
@@ -416,17 +413,6 @@
                     %key-ordinal  ::column=@tas
                     ~  ::alias=(unit @t)
                     %.y  ::ascending=?
-                :+  %ordering-column
-                    :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
-                        ~           ::ship=(unit @p)
-                        database    ::database=@tas
-                        %sys        ::namespace=@tas
-                        %tables  ::name=@tas
-                        ==
-                    %col-ordinal  ::column=@tas
-                    ~    ::alias=(unit @t)
-                    %.y  ::ascending=?
                 ==
             ==
         ~
@@ -435,18 +421,20 @@
 ++  sys-columns-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
+                                       [%column %name ~.tas]
+                                       [%column %col-ordinal ~.ud]
+                                       [%column %col-name ~.tas]
+                                       [%column %col-type ~.ta]
+                                       ==
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-columns-query db)         ::query
-        :~  [%column %namespace ~.tas] ::columns=(list column)
-            [%column %name ~.tas]  
-            [%column %col-ordinal ~.ud]
-            [%column %col-name ~.tas]
-            [%column %col-type ~.ta]
-            ==
+        (malt (spun columns make-col-lu-data))  ::column-lookup
+        columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
 ++  sys-columns-query
@@ -473,49 +461,49 @@
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~           ::ship=(unit @p)
-                            database    ::database=@tas
-                            %sys        ::namespace=@tas
-                            %columns  ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %columns             ::name=@tas
                             ==
-                        %namespace  ::column=@tas
-                        ~  ::alias=(unit @t)
+                        %namespace             ::column=@tas
+                        `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %columns            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %columns             ::name=@tas
                             ==
-                        %name                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %name                  ::column=@tas
+                        `%name                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %columns            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %columns             ::name=@tas
                             ==
-                        %col-ordinal         ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %col-ordinal           ::column=@tas
+                        `%col-ordinal          ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %columns            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %columns             ::name=@tas
                             ==
-                        %col-name            ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %col-name              ::column=@tas
+                        `%col-name             ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %columns            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %columns             ::name=@tas
                             ==
-                        %col-type                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %col-type              ::column=@tas
+                        `%col-type             ::alias=(unit @t)
                     ==
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
@@ -559,17 +547,19 @@
 ++  sys-sys-log-view
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
+    =/  columns=(list column:ast)  :~  [%column %tmsp ~.da]
+                                       [%column %agent ~.tas]
+                                       [%column %component ~.tas]
+                                       [%column %name ~.tas]
+                                       ==
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-sys-log-query database)   ::query
-        :~  [%column %tmsp ~.da]       ::columns=(list column)
-            [%column %agent ~.tas]
-            [%column %component ~.tas]
-            [%column %name ~.tas]
-            ==
+        (malt (spun columns make-col-lu-data))  ::column-lookup
+        columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
 ++  sys-sys-log-query
@@ -596,40 +586,40 @@
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %sys-log           ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %sys-log             ::name=@tas
                             ==
-                        %tmsp                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %tmsp                  ::column=@tas
+                        `%tmsp                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %sys-log           ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %sys-log             ::name=@tas
                             ==
-                        %agent               ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %agent                 ::column=@tas
+                        `%agent                ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %sys-log           ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %sys-log             ::name=@tas
                             ==
-                        %component           ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %component             ::column=@tas
+                        `%component            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %sys-log            ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %sys-log             ::name=@tas
                             ==
-                        %name                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %name                  ::column=@tas
+                        `%name                 ::alias=(unit @t)
                     ==
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
@@ -673,18 +663,20 @@
 ++  sys-data-log-view
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
+    =/  columns=(list column:ast)  :~  [%column %tmsp ~.da]
+                                       [%column %ship ~.p]
+                                       [%column %agent ~.tas]
+                                       [%column %namespace ~.tas]
+                                       [%column %table ~.tas]
+                                       ==
     :*  %view
         provenance                     ::provenance=path
         tmsp                           ::tmsp=@da
         :+  %transform                 ::transform
             ~                              ::ctes=(list cte)
             (sys-data-log-query database)  ::query
-        :~  [%column %tmsp ~.da]        ::columns=(list column)
-            [%column %ship ~.p]
-            [%column %agent ~.tas]
-            [%column %namespace ~.tas]
-            [%column %table ~.tas]
-            ==
+        (malt (spun columns make-col-lu-data))  ::column-lookup
+        columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
 ++  sys-data-log-query
@@ -711,22 +703,22 @@
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %data-log           ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %data-log            ::name=@tas
                             ==
-                        %tmsp                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %tmsp                  ::column=@tas
+                        `%tmsp                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %data-log           ::name=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %data-log            ::name=@tas
                             ==
                         %ship                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        `%ship               ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
                             ~                  ::ship=(unit @p)
@@ -735,25 +727,25 @@
                             %data-log           ::name=@tas
                             ==
                         %agent               ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        `%agent              ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
                         :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
-                            %data-log           ::name=@tas
-                            ==
-                        %namespace           ::column=@tas
-                        ~                    ::alias=(unit @t)
-                    :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
-                            ~                  ::ship=(unit @p)
-                            database           ::database=@tas
-                            %sys               ::namespace=@tas
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
                             %data-log            ::name=@tas
                             ==
-                        %table                ::column=@tas
-                        ~                    ::alias=(unit @t)
+                        %namespace             ::column=@tas
+                        `%namespace            ::alias=(unit @t)
+                    :^  %qualified-column    ::qualified-column
+                        :*  %qualified-object  ::qualifier
+                            ~                    ::ship=(unit @p)
+                            database             ::database=@tas
+                            %sys                 ::namespace=@tas
+                            %data-log             ::name=@tas
+                            ==
+                        %table                 ::column=@tas
+                        `%table                ::alias=(unit @t)
                     ==
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
@@ -802,61 +794,66 @@
     ?~  +>+>+>+.qsf  v
     v(ordering (make-ordering columns.v +>+>+>+.qsf))
 ::
+::  +populate-system-view:
+::    [state=databases =database =schema =view name=@tas]
+::    -> (list (list @))
+::
+::  Side effect: populate view-cache
+::               theoretically a state change, but referentially transparent
 ++  populate-system-view
-    |=  [=databases =database =schema =view name=@tas]
-    ^-  (list row)
+    |=  [=databases =database =schema =view name=@tas cache-time=@da]
+    ^-  [@ (list (map @tas @))]
     ?+  name  ~|("unknown system view" !!)
     ::
     %databases
       =/  dbes  (turn ~(val by databases) sys-view-databases)
-      %+  make-rows
-          (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
-          columns.view
+      %+  atoms-2-mapped-row
+            (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
+            columns.view
     ::
     %namespaces
       =/  namespaces  (~(urn by namespaces.schema) |=([k=@tas v=@da] ~[k v]))
-      %+  make-rows
-          %+  sort  `(list (list @))`~(val by namespaces)
-                    ~(order order-row ordering.view)
-          columns.view
+      %+  atoms-2-mapped-row
+            %+  sort  `(list (list @))`~(val by namespaces)
+                        ~(order order-row ordering.view)
+            columns.view
     ::
     %tables
-      =/  udata=data  (get-data tmsp.view content.database)
+      =/  udata=data  (get-data content.database cache-time)
       =/  tbls  %+  turn  ~(tap by files.udata)
                           ~(foo sys-view-tables tables.schema)
-      %+  make-rows
+      %+  atoms-2-mapped-row
           (sort `(list (list @))`(zing tbls) ~(order order-row ordering.view))
           columns.view
     ::
     %columns
-        =/  udata=data  (get-data tmsp.view content.database)
-        =/  columns  %+  turn  ~(tap by files.udata)
+      =/  udata=data  (get-data content.database cache-time)
+      =/  columns  %+  turn  ~(tap by files.udata)
                                ~(foo sys-view-columns tables.schema)
-        %+  make-rows
-            %+  sort  `(list (list @))`(zing columns)
-                      ~(order order-row ordering.view)
-            columns.view
+      %+  atoms-2-mapped-row
+          %+  sort  `(list (list @))`(zing columns)
+                    ~(order order-row ordering.view)
+          columns.view
     ::
     %sys-log
         ::      :: to do: rewrite as jagged when architecture available
-        =/  sys=(list ^schema)
-              (turn (tap:schema-key sys.database) |=(b=[@da ^schema] +.b))
-        =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
-        =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
-        =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
-        %+  make-rows
-            (sort `(list (list @))`log ~(order order-row ordering.view))
-            columns.view
+      =/  sys=(list ^schema)
+            (turn (tap:schema-key sys.database) |=(b=[@da ^schema] +.b))
+      =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
+      =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
+      =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
+      %+  atoms-2-mapped-row
+          (sort `(list (list @))`log ~(order order-row ordering.view))
+          columns.view
     ::
     %data-log
-        =/  tbls  
-              %-  zing  
-                  %+  turn  %+  turn  (tap:data-key content.database) 
+      =/  tbls  %-  zing
+                  %+  turn  %+  turn  (tap:data-key content.database)
                                       |=(b=[@da data] +.b)
                             sys-view-data-log
-        %+  make-rows
-            (sort `(list (list @))`tbls ~(order order-row ordering.view))
-            columns.view
+      %+  atoms-2-mapped-row
+          (sort `(list (list @))`tbls ~(order order-row ordering.view))
+          columns.view
     ==
 ::
 ++  sys-view-databases
@@ -943,29 +940,16 @@
                         ship.file
                         (crip (spud provenance.file))
                         tmsp.file
-                        length.file
-                        clustered.file
+                        rowcount.file
                       ==
     =/  tbl  (~(got by tables) [-.k +.k])
     =/  keys
       %^  spin  columns.pri-indx.tbl
           1
           |=([n=ordered-column:ast a=@] [~[a name.n ascending.n] +(a)])
-    =/  columns  
-      %^  spin  columns.tbl
-          1
-          |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
-    =/  aaa=(list (list @))  (turn p.keys |=(a=(list @) (weld aa a)))
-    =/  b=(list (list @))  ~
-    |-  ?~  aaa  b
-    %=  $
-    b  %+  weld 
-           (turn p.columns |=(a=(list @) (weld `(list @)`-.aaa `(list @)`a)))
-           b
-    aaa  +.aaa
-    ==
+    (turn p.keys |=(a=(list @) (weld aa a)))
   --
-
+::
 ++  sys-view-columns
   |_  tables=(map [@tas @tas] table)
   ++  foo
@@ -973,20 +957,22 @@
     ^-  (list (list @))
     =/  aa=(list @)  ~[-.k +.k]
     =/  tbl  (~(got by tables) [-.k +.k])
-    =/  columns  
+    =/  columns
       %^  spin  columns.tbl
           1
           |=([n=column:ast a=@] [`(list @)`~[a name.n type.n] +(a)])
     (turn p.columns |=(a=(list @) (weld aa a)))
     --
+::
 ++  sys-view-sys-log-ns
   |=  a=schema
     ^-  (list (list @))
-    =/  namespaces  %+  skim  
+    =/  namespaces  %+  skim
                     ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
                     |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
     %+  turn  namespaces
       |=([ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns])
+::
 ++  sys-view-data-log
   |=  a=data
   ^-  (list (list @))
@@ -994,9 +980,9 @@
                 %~  val  by
                     (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
                 |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
-  %+  turn
-       tbls
-       |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k])
+  %+  turn  tbls
+   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k])
+::
 ++  sys-view-sys-log-tbl
   |=  a=schema
   ^-  (list (list @))
