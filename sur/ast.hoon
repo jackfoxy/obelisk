@@ -34,7 +34,7 @@
 +$  bool-conjunction     ?(%and %or)
 +$  object-type          ?(%table %view)
 +$  join-type
-  ?(%join %left-join %right-join %outer-join %outer-join-all %cross-join)
+  ?(%join %left-join %right-join %outer-join %cross-join)
 ::
 ::  command component types
 ::
@@ -161,12 +161,14 @@
   $:
     %from
     object=table-set
+    as-of=(unit as-of)
     joins=(list joined-object)
   ==
 +$  joined-object
   $:
     %joined-object
     join=join-type
+    as-of=(unit as-of)
     object=table-set
     predicate=(unit predicate)
   ==
@@ -345,6 +347,7 @@
   $:
     %truncate-table
     table=qualified-object
+    as-of=(unit as-of)
   ==
 ::
 ::  create ASTs
@@ -355,7 +358,7 @@
     offset=@ud
     units=?(%seconds %minutes %hours %days %weeks %months %years)
   ==
-+$  as-of  ?([%da @] [%dr @] as-of-offset)
++$  as-of  ?([%da @da] [%dr @dr] as-of-offset)
 ::
 ::  $create-database: $:([%create-database name=@tas])
 +$  create-database      $:([%create-database name=@tas as-of=(unit as-of)])
@@ -367,8 +370,8 @@
     name=@tas
     object-name=qualified-object
     unique=?
-    clustered=?
     columns=(list ordered-column)
+    as-of=(unit as-of)
   ==
 ::
 ::  $create-namespace
@@ -384,7 +387,6 @@
   $:  %create-table
     table=qualified-object
     columns=(list column)
-    clustered=?
     pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
     as-of=(unit as-of)
@@ -421,6 +423,7 @@
     %drop-index
     name=@tas
     object=qualified-object
+    as-of=(unit as-of)
   ==
 ::
 ::  $drop-namespace: database-name=@tas name=@tas force=?
@@ -465,6 +468,7 @@
     object=qualified-object
     columns=(list ordered-column)
     action=index-action
+    as-of=(unit as-of)
   ==
 ::
 ::  $alter-namespace: move an object from one namespace to another

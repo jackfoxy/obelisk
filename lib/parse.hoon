@@ -145,64 +145,58 @@
       ~|  "alter index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  index-nail  (parse-alter-index [[1 1] q.q.command-nail])
       =/  parsed  (wonk index-nail)
-      ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] @] [parsed])  ::"alter index action"
-          %=  $
-            script    q.q.u.+3.q:index-nail
-            commands  :-  %:  alter-index:ast  %alter-index
-                                              -.parsed
-                                              +<.parsed
-                                              ~
-                                              +>.parsed
-                                              ==
-                          commands
-          ==
-      :: alter index single column
-      ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] [[@ @ @] %~]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:index-nail
-          commands  :-  %:  alter-index:ast  %alter-index
-                                            -.parsed
-                                            +<.parsed
-                                            +>.parsed
-                                            %rebuild
-                                            ==
-                        commands
-        ==
-      :: alter index columns action
-      ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] * @] [parsed])
-        %=  $
-          script    q.q.u.+3.q:index-nail
-          commands  :-  %:  alter-index:ast  %alter-index
-                                            -.parsed
-                                            +<.parsed
-                                            +>-.parsed
-                                            +>+.parsed
-                                            ==
-                        commands
-        ==
-      :: alter index multiple columns
-      ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] *] [parsed])
-        %=  $
-          script    q.q.u.+3.q:index-nail
-          commands  :-  %:  alter-index:ast  %alter-index
-                                            -.parsed
-                                            +<.parsed
-                                            +>.parsed
-                                            %rebuild
-                                            ==
-                        commands
-        ==
-      !!
+      
+      %=  $
+        script    q.q.u.+3.q:index-nail
+        commands  
+          :-  ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] @] [parsed])
+                %:  alter-index:ast  %alter-index
+                                      -.parsed
+                                      +<.parsed
+                                      ~
+                                      +>.parsed
+                                      ~
+                                      ==
+              :: alter index single column
+              ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] [[@ @ @] %~]] [parsed])
+                %:  alter-index:ast  %alter-index
+                                      -.parsed
+                                      +<.parsed
+                                      +>.parsed
+                                      %rebuild
+                                      ~
+                                      ==
+              :: alter index columns action
+              ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] * @] [parsed])
+                %:  alter-index:ast  %alter-index
+                                     -.parsed
+                                     +<.parsed
+                                     +>-.parsed
+                                     +>+.parsed
+                                     ~
+                                     ==
+              :: alter index multiple columns
+              ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] *] [parsed])
+                %:  alter-index:ast  %alter-index
+                                     -.parsed
+                                     +<.parsed
+                                     +>.parsed
+                                     %rebuild
+                                     ~
+                                     ==
+              !!
+              commands
+      ==
     %alter-namespace
       ~|  "alter namespace error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  namespace-nail  (parse-alter-namespace [[1 1] q.q.command-nail])
       =/  parsed  (wonk namespace-nail)
-      ?:  =(%as-of +>+<.parsed)
-        %=  $
-          script    q.q.u.+3.q:namespace-nail
-          commands
-            ?:  =(%now +>+>.parsed)
-              :-  %:  alter-namespace:ast  %alter-namespace
+      %=  $
+        script    q.q.u.+3.q:namespace-nail
+        commands
+          :-  ?:  =(%as-of +>+<.parsed)
+                ?:  =(%now +>+>.parsed)
+                  %:  alter-namespace:ast  %alter-namespace
                                           -<.parsed
                                           ->.parsed
                                           +<.parsed
@@ -210,9 +204,8 @@
                                           +>->+>+.parsed
                                           ~
                                           ==
-                  commands
-            ?:  ?=([@ @] +>+>.parsed)
-              :-  %:  alter-namespace:ast  %alter-namespace
+                ?:  ?=([@ @] +>+>.parsed)
+                  %:  alter-namespace:ast  %alter-namespace
                                           -<.parsed
                                           ->.parsed
                                           +<.parsed
@@ -220,8 +213,7 @@
                                           +>->+>+.parsed
                                           [~ +>+>.parsed]
                                           ==
-                  commands
-            :-  %:  alter-namespace:ast  %alter-namespace
+                %:  alter-namespace:ast  %alter-namespace
                                         -<.parsed
                                         ->.parsed
                                         +<.parsed
@@ -233,19 +225,16 @@
                                                                   +>+>+<.parsed
                                                                   ==
                                         ==
-                commands
-        ==
-      %=  $
-        script    q.q.u.+3.q:namespace-nail
-        commands  :-  %:  alter-namespace:ast  %alter-namespace
-                                              -<.parsed
-                                              ->.parsed
-                                              +<.parsed
-                                              +>+>+<.parsed
-                                              +>+>+>.parsed
-                                              ~
-                                              ==
-                      commands
+              ::
+              %:  alter-namespace:ast  %alter-namespace
+                                      -<.parsed
+                                      ->.parsed
+                                      +<.parsed
+                                      +>+>+<.parsed
+                                      +>+>+>.parsed
+                                      ~
+                                      ==
+        commands
       ==
     %alter-table
       ~|  "alter table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -581,8 +570,8 @@
                                       -.parsed
                                       +<.parsed
                                       %.n
-                                      %.n
                                       +>.parsed
+                                      ~
                                       ==
                         commands
         ==
@@ -594,58 +583,8 @@
                                                   ->.parsed
                                                   +<.parsed
                                                   %.y
-                                                  %.n
                                                   +>.parsed
-                                                  ==
-                            commands
-            ==
-        ?:  =(-<.parsed %clustered)               ::"create clustered index ..."
-            %=  $
-              script    q.q.u.+3.q:index-nail
-              commands  :-  %:  create-index:ast  %create-index
-                                                  ->.parsed
-                                                  +<.parsed
-                                                  %.n
-                                                  %.y
-                                                  +>.parsed
-                                                  ==
-                            commands
-            ==
-        ?:  =(-<.parsed %look-up)              ::"create look-up index ..."
-            %=  $
-              script    q.q.u.+3.q:index-nail
-              commands  :-  %:  create-index:ast  %create-index
-                                                  ->.parsed
-                                                  +<.parsed
-                                                  %.n
-                                                  %.n
-                                                  +>.parsed
-                                                  ==
-                            commands
-            ==
-        !!
-      ?:  ?=([[@ @ @] [* *]] [parsed])
-        ?:  =(->-.parsed %clustered)       ::"create unique clustered index ..."
-            %=  $
-              script    q.q.u.+3.q:index-nail
-              commands  :-  %:  create-index:ast  %create-index
-                                                  ->+.parsed
-                                                  +<.parsed
-                                                  %.y
-                                                  %.y
-                                                  +>.parsed
-                                                  ==
-                            commands
-            ==
-        ?:  =(->-.parsed %look-up)           ::"create unique look-up index ..."
-            %=  $
-              script    q.q.u.+3.q:index-nail
-              commands  :-  %:  create-index:ast  %create-index
-                                                  ->+.parsed
-                                                  +<.parsed
-                                                  %.y
-                                                  %.n
-                                                  +>.parsed
+                                                  ~
                                                   ==
                             commands
             ==
@@ -733,54 +672,50 @@
       ::      %bout.[0 %parse]  (parse-create-table [[1 1] q.q.command-nail])
       =/  table-nail  (parse-create-table [[1 1] q.q.command-nail])
       =/  parsed  (wonk table-nail)
-      ?:  ?=([* * [@ @ *]] parsed)
+      ?:  ?=([* * [@ *]] parsed)
         %=  $                                       :: no foreign keys
           script    q.q.u.+3.q:table-nail
           commands  :-  %:  create-table:ast  %create-table
                                               -.parsed
                                               +<.parsed
-                                              +>+<.parsed
-                                              +>+>.parsed
+                                              +>+.parsed
                                               ~
                                               ~
                                               ==
                         commands
         ==
-      ?:  ?=([* * [@ @ *] %as-of %now] parsed)
+      ?:  ?=([* * [@ *] %as-of %now] parsed)
         %=  $                                       :: no foreign keys
           script    q.q.u.+3.q:table-nail
           commands  :-  %:  create-table:ast  %create-table
                                               -.parsed
                                               +<.parsed
-                                              +>->-.parsed
-                                              +>->+.parsed
+                                              +>->.parsed
                                               ~
                                               ~
                                               ==
                         commands
         ==
-      ?:  ?=([* * [@ @ *] %as-of [@ @]] parsed)
+      ?:  ?=([* * [@ *] %as-of [@ @]] parsed)
         %=  $                                       :: no foreign keys
           script    q.q.u.+3.q:table-nail
           commands  :-  %:  create-table:ast  %create-table
                                               -.parsed
                                               +<.parsed
-                                              +>->-.parsed
-                                              +>->+.parsed
+                                              +>->.parsed
                                               ~
                                               [~ +>+>.parsed]
                                               ==
                         commands
         ==
-      ?:  ?=([* * [@ @ *] %as-of [@ @ @]] parsed)
+      ?:  ?=([* * [@ *] %as-of [@ @ @]] parsed)
         %=  $                                       :: no foreign keys
           script    q.q.u.+3.q:table-nail
           commands
             :-  %:  create-table:ast  %create-table
                                       -.parsed
                                       +<.parsed
-                                      +>->-.parsed
-                                      +>->+.parsed
+                                      +>->.parsed
                                       ~
                                       :-  ~
                                           %:  as-of-offset:ast  %as-of-offset
@@ -796,8 +731,7 @@
           commands  :-  %:  create-table:ast  %create-table
                                               -.parsed
                                               +<.parsed
-                                              +>-<+<.parsed
-                                              +>-<+>.parsed
+                                              +>-<+.parsed
                                               %-  build-foreign-keys
                                                   [-.parsed +>->.parsed]
                                               ~
@@ -810,8 +744,7 @@
           commands  :-  %:  create-table:ast  %create-table
                                               -.parsed
                                               +<.parsed
-                                              +>-<+<.parsed
-                                              +>-<+>.parsed
+                                              +>-<+.parsed
                                               %-  build-foreign-keys
                                                   [-.parsed +>->.parsed]
                                               [~ +>+>+.parsed]
@@ -824,8 +757,7 @@
           commands  :-  %:  create-table:ast  %create-table
                                               -.parsed
                                               +<.parsed
-                                              +>-<+<.parsed
-                                              +>-<+>.parsed
+                                              +>-<+.parsed
                                               %-  build-foreign-keys
                                                   [-.parsed +>->.parsed]
                                               :-  ~
@@ -842,8 +774,7 @@
         commands  :-  %:  create-table:ast  %create-table
                                             -.parsed
                                             +<.parsed
-                                            +>->-.parsed
-                                            +>->+.parsed
+                                            +>->.parsed
                                             %-  build-foreign-keys
                                                 [-.parsed +>+.parsed]
                                             ~
@@ -886,7 +817,7 @@
       =/  parsed  (wonk drop-index-nail)
       %=  $
         script    q.q.u.+3.q:drop-index-nail
-        commands  [(drop-index:ast %drop-index -.parsed +.parsed) commands]
+        commands  [(drop-index:ast %drop-index -.parsed +.parsed ~) commands]
       ==
     %drop-namespace
       ~|  "drop namespace error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1232,12 +1163,31 @@
     %truncate-table
       ~|  "truncate table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  truncate-table-nail  (parse-truncate-table [[1 1] q.q.command-nail])
+      =/  parsed  (wonk truncate-table-nail)
       %=  $
-        script           q.q.u.+3.q:truncate-table-nail
-        commands  :-  %:  truncate-table:ast  %truncate-table
-                                              (wonk truncate-table-nail)
-                                              ==
-                      commands
+        script    q.q.u.+3.q:truncate-table-nail
+        commands
+          :-  ?:  ?=(qualified-object:ast parsed)
+                %^  truncate-table:ast  %truncate-table
+                                        parsed
+                                        ~
+              ?:  ?=([qualified-object:ast %as-of [@ @ @]] parsed)
+                %^  truncate-table:ast  %truncate-table
+                                        -.parsed
+                                        :-  ~
+                                            %^  as-of-offset:ast  %as-of-offset
+                                                                  +>-.parsed
+                                                                  +>+<.parsed
+              ?:  ?=([qualified-object:ast %as-of %now] parsed)
+                %^  truncate-table:ast  %truncate-table
+                                        -.parsed
+                                        ~
+              ?:  ?=([qualified-object:ast %as-of [@ @]] parsed)
+                %^  truncate-table:ast  %truncate-table
+                                        -.parsed  
+                                        [~ +>.parsed]
+              !!
+              commands
       ==
     %update
       ~|  "update error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1403,9 +1353,7 @@
   =/  unique  ;~(pfix whitespace (jester 'unique'))
   =/  index-name  ;~(pfix whitespace (jester 'index') parse-face)
   =/  type-and-name  ;~  pose
-    ;~(plug unique clustering index-name)
     ;~(plug unique index-name)
-    ;~(plug clustering index-name)
     index-name
     ==
   ;~  plug
@@ -1613,7 +1561,7 @@
   ==
 ++  parse-query02  ~+
   ;~  plug
-  parse-object-and-joins
+    parse-object-and-joins
     ::  (stag %scalars (star parse-scalar))
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-group-by
@@ -2022,7 +1970,13 @@
   ==
 ++  parse-truncate-table  ~+
   ;~  sfix
-    ;~(pfix whitespace parse-qualified-object)
+    ;~  pfix
+          whitespace
+          ;~  pose
+              ;~(plug parse-qualified-object parse-as-of)
+              parse-qualified-object
+          ==
+    ==
     end-or-next-command
   ==
 ::
@@ -2094,7 +2048,15 @@
 ++  produce-from
   |=  a=*
   ^-  from:ast
-  =/  query-object=table-set:ast  (make-query-object ->.a)
+  =/  from-object=table-set:ast
+        ?:  |(=(%table-set -<.a) =(%query-row -<.a))
+              `table-set:ast`(make-query-object ->.a)
+            `table-set:ast`(make-query-object -<+.a)
+  =/  from-as-of=(unit as-of:ast)
+        ?:  =(%as-of-offset ->-.a)  [~ ;;(as-of-offset:ast ->.a)]
+        ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
+        ?:  =(~.dr ->-.a)           [~ ;;(as-of:ast [%dr ->+.a])]
+        ~
   =/  raw-joined-objects  +.a
   =/  joined-objects=(list joined-object:ast)  ~
   =/  is-cross-join=?  %.n
@@ -2102,9 +2064,9 @@
   ?:  =(raw-joined-objects ~)
     ?:  is-cross-join
       ?:  =((lent joined-objects) 1)
-        (from:ast %from query-object (flop joined-objects))
+        (from:ast %from from-object from-as-of (flop joined-objects))
       ~|("cross join must be only join in query" !!)
-    (from:ast %from query-object (flop joined-objects))
+    (from:ast %from from-object from-as-of (flop joined-objects))
   ?:  ?=(%cross-join -.raw-joined-objects)
     %=  $
       joined-objects
@@ -2112,6 +2074,20 @@
           %:  joined-object:ast
             %joined-object
             %cross-join
+            :: as-of
+            ?:  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
+              [~ ;;(as-of-offset:ast +>.raw-joined-objects)]
+            ?:  ?|  ?=([[%table-set * *] %da @] +.raw-joined-objects)
+                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
+                    ==
+              [~ ;;(as-of:ast +>.raw-joined-objects)]
+            ~
+            ::  object
+            ?:  ?|  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
+                    ?=([[%table-set * *] %da @] +.raw-joined-objects)
+                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
+                    ==
+              (make-query-object +<+.raw-joined-objects)
             (make-query-object +>.raw-joined-objects)
             ~
           ==
@@ -2119,12 +2095,73 @@
       is-cross-join       %.y
       raw-joined-objects  ~
     ==
+  ::natural join
+  ?:  ?|  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
+              -.raw-joined-objects
+        ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]]
+              -.raw-joined-objects
+          ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] [%da @]]]
+              -.raw-joined-objects
+          ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] [%dr @]]]
+              -.raw-joined-objects
+          ==
+    %=  $
+      joined-objects
+        :-
+          %:  joined-object:ast
+            %joined-object
+            %join
+            :: as-of
+            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
+                    ->.raw-joined-objects
+                [~ ;;(as-of-offset:ast ->+.raw-joined-objects)]
+            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] [@ @]]
+                    ->.raw-joined-objects
+                [~ ;;(as-of:ast ->+.raw-joined-objects)]
+            ~
+            ::  object
+            ?:  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
+                -.raw-joined-objects
+                (make-query-object ->+.raw-joined-objects)
+            (make-query-object ->->.raw-joined-objects)
+            ~  :: predicate
+          ==
+          joined-objects
+      raw-joined-objects    +.raw-joined-objects
+    ==
+  :: all other joins
   ?>  ?=(join-type:ast -<.raw-joined-objects)
   =/  joined=joined-object:ast
     %:  joined-object:ast
       %joined-object
-      -<.raw-joined-objects
-      (make-query-object ->->.raw-joined-objects)
+      -<.raw-joined-objects                              :: join-type
+      ::  as-of
+      ?:  ?=(%as-of-offset ->->-.raw-joined-objects)        
+        [~ ;;(as-of-offset:ast ->->.raw-joined-objects)]
+      ?:  ?|  ?=(%da ->->-.raw-joined-objects)
+              ?=(%dr ->->-.raw-joined-objects)
+              ==
+        [~ ;;(as-of:ast ->->.raw-joined-objects)]
+      ~
+      ::  object
+      ?:  ?=(%query-row ->-<.raw-joined-objects)
+            (make-query-object ->-.raw-joined-objects)
+      ?:  ?=([%table-set [%qualified-object @ @ @ @] *] ->-<.raw-joined-objects)
+            (make-query-object ->-<+.raw-joined-objects)
+      ?:  ?=([[%qualified-object @ @ @ @] ~] ->->.raw-joined-objects)
+            (make-query-object ->->-.raw-joined-objects)
+      ?:  ?|  ?=([[%qualified-object @ @ @ @] [~ @]] ->->.raw-joined-objects)
+              ?=(%qualified-object ->->-.raw-joined-objects)
+              ==
+            (make-query-object ->->.raw-joined-objects)
+      ?:  ?=([%table-set [%qualified-object @ @ @ @] ~] ->+<.raw-joined-objects)
+            (make-query-object ->.raw-joined-objects)
+      ?:  ?=(%query-row ->->-<.raw-joined-objects)
+            (make-query-object ->->-.raw-joined-objects)
+      ?:  ?=(%table-set ->-<-.raw-joined-objects)
+            (make-query-object ->-<+.raw-joined-objects)
+          (make-query-object ->-<+.raw-joined-objects)
+      ::  predicate
       `(produce-predicate (predicate-list ->+.raw-joined-objects))
     ==
   %=  $
@@ -2378,7 +2415,7 @@
 ++  produce-query
   |=  a=*
   ~+
-  ^-  query:ast
+  ^-  query:ast     
   =/  from=(unit from:ast)  ~
   =/  scalars=(list scalar-function:ast)  ~
   =/  predicate=(unit predicate:ast)  ~
@@ -2400,7 +2437,6 @@
       (need select)
       order-by
     ==
-  ::?:  =(i.a %scalars)  $(a t.a, scalars  +.i.a)
   ?:  =(-<.a %scalars)        $(a +.a, scalars ~)
   ?:  =(-<.a %where)
     $(a +.a, predicate `(produce-predicate (predicate-list ->.a)))
@@ -2409,6 +2445,7 @@
   ?:  =(-<.a %order-by)       $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %table-set)     $(a +.a, from `(produce-from -.a))
   ?:  =(-<-.a %query-row)     $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %table-set)    $(a +.a, from `(produce-from -.a))
   ~|("cannot parse query  {<a>}" !!)
 +$  select-mold-1
   $:
@@ -2438,7 +2475,7 @@
       %all
         %=  $
           columns
-            :-  (selected-all:ast %all %all)  ::(qualified-object:ast %qualified-object ~ 'ALL' 'ALL' 'ALL')
+            :-  (selected-all:ast %all %all)
                 columns
           a        +.a
         ==
@@ -2609,7 +2646,6 @@
 +$  interim-key
   $:
     %interim-key
-    clustered=?
     columns=(list ordered-column:ast)
   ==
 +$  parens        ?(%pal %par)
@@ -2848,10 +2884,10 @@
   ;~  pose
     (stag %ud (full dem:ag))                      :: formatted @ud
     (stag %ud (full dim:ag))                   :: unformatted @ud, no leading 0s
+    ;~(pfix dot (stag %rs (full royl-rs:so)))     :: @rs
+    (full tash:so)                                :: @sd or @sx
     (stag %ub (full bay:ag))                     :: formatted @ub, no leading 0s
     (stag %ux ;~(pfix (jest '0x') (full hex:ag))) :: formatted @ux
-    (full tash:so)                                :: @sd or @sx
-    ;~(pfix dot (stag %rs (full royl-rs:so)))     :: @rs
     (stag %rd (full royl-rd:so))                  :: @rd
     (stag %uw (full wiz:ag))                   :: formatted @uw base-64 unsigned
   ==
@@ -2859,9 +2895,9 @@
   ;~  pose
     cord-literal
     ;~(pose ;~(pfix sig crub-no-text) crub-no-text)  :: @da, @dr, @p
+    (stag %f ;~(pose (cold & (jester 'y')) (cold | (jester 'n'))))  :: @if
     (stag %is ;~(pfix (just '.') bip:ag))            :: @is
     (stag %if ;~(pfix (just '.') lip:ag))            :: @if
-    (stag %f ;~(pose (cold & (jester 'y')) (cold | (jester 'n'))))  :: @if
   ==
 ++  cook-numbers  ~+                               :: works for insert values
   |=  a=(list @t)
@@ -2992,10 +3028,6 @@
               ==
   ==
 ++  ordering  ;~(pfix whitespace ;~(pose (jester 'asc') (jester 'desc')))
-++  clustering
-  ;~  pfix  whitespace
-            ;~(pose (jester 'clustered') (jester 'look-up'))
-            ==
 ++  ordered-column-list
   ;~  pfix
     whitespace
@@ -3086,18 +3118,25 @@
             ;~  pfix
               whitespace
               ;~  pose
-                (cold %seconds (jest 'seconds'))
-                (cold %minutes (jest 'minutes'))
-                (cold %hours (jest 'hours'))
-                (cold %days (jest 'days'))
-                (cold %weeks (jest 'weeks'))
-                (cold %months (jest 'months'))
-                (cold %years (jest 'years'))
+                (cold %seconds (jester 'seconds'))
+                (cold %minutes (jester 'minutes'))
+                (cold %hours (jester 'hours'))
+                (cold %days (jester 'days'))
+                (cold %weeks (jester 'weeks'))
+                (cold %months (jester 'months'))
+                (cold %years (jester 'years'))
+                (cold %seconds (jester 'second'))
+                (cold %minutes (jester 'minute'))
+                (cold %hours (jester 'hour'))
+                (cold %days (jester 'day'))
+                (cold %weeks (jester 'week'))
+                (cold %months (jester 'month'))
+                (cold %years (jester 'year'))
               ==
             ==
             ;~  pfix
               whitespace
-              (cold %ago (jest 'ago'))
+              (cold %ago (jester 'ago'))
             ==
           ==
           ;~(pose ;~(pfix sig crub-no-text) crub-no-text)
@@ -3206,9 +3245,8 @@
   |=  a=*
   ~+
   ?@  -.a
-    ?:  =(-.a 'clustered')  (interim-key %interim-key %.y +.a)
-      (interim-key %interim-key %.n +.a)
-  (interim-key %interim-key %.y a)
+    (interim-key %interim-key +.a)
+  (interim-key %interim-key a)
 ++  cook-foreign-key
   |=  a=*
   :: foreign key ns.table ... references fk-table ... on action on action
@@ -3312,7 +3350,7 @@
     cook-primary-key
     ;~  pfix
       ;~(plug whitespace (jester 'primary') whitespace (jester 'key'))
-      ;~(pose ;~(plug clustering ordered-column-list) ordered-column-list)
+      ordered-column-list
       ==
   ==
 ::
@@ -3330,18 +3368,34 @@
     ;~(plug (jester 'outer') whitespace)
     ;~(plug (jester 'cross') whitespace)
     ;~(plug (jester 'on') whitespace)
+    ;~(plug (jester 'as') whitespace)
   ==
 ++  query-object  ~+
   ;~  pose
-    ;~  plug
+    ;~  plug                :: AS <alias> <as-of-time>
+      parse-qualified-object
+      parse-as-of
+      ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias)) 
+    ==
+    ;~  plug                :: <alias> <as-of-time>
+      parse-qualified-object
+      parse-as-of
+      ;~(pfix whitespace ;~(less join-stop parse-alias))
+    ==
+    ;~  plug                :: <as-of-time>
+      parse-qualified-object
+      parse-as-of
+    == 
+    ;~  plug                  :: AS <alias>
       parse-qualified-object
       ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
     ==
-    ;~  plug
+    ;~  plug                  :: <alias>
       parse-qualified-object
       ;~(pfix whitespace ;~(less join-stop parse-alias))
     ==
-    parse-qualified-object
+    parse-qualified-object    :: no alias, no as-of
+    ::    
     %:  stag
       %query-row
       ;~(plug face-list ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias)))
@@ -3386,10 +3440,39 @@
     (table-set:ast %table-set parsed ~)
   ?:  ?=([[@ @ @ @ @] @] parsed)
     (table-set:ast %table-set -.parsed `+.parsed)
+  ::
+  ?:  ?=([[%qualified-object @ @ @ @] %as-of %now] parsed)
+    :-  (table-set:ast %table-set -.parsed ~)
+        (as-of-offset:ast %as-of-offset 0 %seconds)
+    ?:  ?=([[%qualified-object @ @ @ @] [%as-of %now] @] parsed)
+    :-  (table-set:ast %table-set -.parsed `+>.parsed)
+        (as-of-offset:ast %as-of-offset 0 %seconds)
+  ::
+  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @ %ago]] parsed)
+    :-  (table-set:ast %table-set -.parsed ~)
+        (as-of-offset:ast %as-of-offset +>-.parsed +>+<.parsed)
+  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @ %ago] @] parsed)
+    :-  (table-set:ast %table-set -.parsed `+>.parsed)
+        (as-of-offset:ast %as-of-offset +<+<.parsed +<+>-.parsed)
+  ::
+  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @]] parsed)
+    :-  (table-set:ast %table-set -.parsed ~)
+        [+>-.parsed +>+.parsed]
+  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @] @] parsed)
+    :-  (table-set:ast %table-set -.parsed `+>.parsed)
+        [+<+<.parsed +<+>.parsed]
+  ::
   ?:  =(%query-row -.parsed)  parsed
   ~|("cannot parse query-object  {<parsed>}" !!)
 ++  parse-cross-joined-object  ~+
   ;~(plug parse-cross-join-type parse-query-object)
+++  parse-natural-join
+  ;~  plug
+    ;~  pfix  whitespace
+      (cold %join (jester 'join'))
+    ==
+    parse-query-object
+  ==
 ++  parse-joined-object  ~+
   ;~  plug
     parse-join-type
@@ -3399,7 +3482,10 @@
 ++  parse-object-and-joins  ~+
   ;~  plug
     parse-query-object
-    ;~(pose parse-cross-joined-object (star parse-joined-object))
+    ;~  pose
+      parse-cross-joined-object
+      (star ;~(pose parse-joined-object parse-natural-join))
+    ==
   ==
 ++  make-query-object
   |=  a=*
@@ -3417,6 +3503,7 @@
       (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' -.a)
       `+.a
     ==
+  ::  %query-row not implemented
   =/  columns=(list @t)  ~
   =/  b  ?:  ?=([%query-row * @] a)  +<.a
     ?:  =(%query-row -.a)  +.a

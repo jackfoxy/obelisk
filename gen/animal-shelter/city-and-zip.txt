@@ -5,7 +5,7 @@ CREATE TABLE reference.cities
   county    @t,
   population  @ud
 )
-  PRIMARY KEY LOOK-UP (state, city)
+  PRIMARY KEY (state, city)
 ;
 
 INSERT INTO reference.cities
@@ -4083,7 +4083,7 @@ CREATE TABLE reference.city-zip-codes
   city    @t,
   zip-code  @t    
 )
-  PRIMARY KEY LOOK-UP (state, city, zip-code)
+  PRIMARY KEY (state, city, zip-code)
 ;
 
 INSERT INTO reference.city-zip-codes

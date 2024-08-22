@@ -5,7 +5,7 @@ CREATE TABLE reference.common-person-names
   male  @t,
   female  @t  
 )
-  PRIMARY KEY LOOK-UP (rank)
+  PRIMARY KEY (rank)
 ;
 
 INSERT INTO reference.common-person-names 
@@ -116,7 +116,7 @@ CREATE TABLE reference.species
 (
   species @t  
 )
-  PRIMARY KEY LOOK-UP (species)
+  PRIMARY KEY (species)
 ;
 
 INSERT INTO reference.species 
@@ -135,7 +135,7 @@ CREATE TABLE reference.species-vital-signs-ranges
   respiratory-rate-low  @ud,
   respiratory-rate-high  @ud
 )
-  PRIMARY KEY LOOK-UP (species)
+  PRIMARY KEY (species)
 ;
 
 INSERT INTO reference.species-vital-signs-ranges
@@ -151,7 +151,7 @@ CREATE TABLE reference.breeds
   breed  @t,
   url    @t
 )
-  PRIMARY KEY LOOK-UP (species, breed)
+  PRIMARY KEY (species, breed)
 ;
 
 INSERT INTO reference.breeds 
@@ -634,7 +634,7 @@ CREATE TABLE reference.common-animal-names
   male  @t,
   female  @t
 )
-  PRIMARY KEY LOOK-UP (species, rank)
+  PRIMARY KEY (species, rank)
 ;
 
 INSERT INTO reference.common-animal-names
@@ -945,7 +945,7 @@ CREATE TABLE reference.colors
 (
   color @t  
 )
-  PRIMARY KEY LOOK-UP (color)
+  PRIMARY KEY (color)
 ;
 
 INSERT INTO reference.colors 
@@ -959,7 +959,7 @@ CREATE TABLE reference.patterns
   species @t,
   pattern @t
 )
-  PRIMARY KEY LOOK-UP (species, pattern)
+  PRIMARY KEY (species, pattern)
 ;
 
 INSERT INTO reference.patterns 
@@ -975,7 +975,7 @@ CREATE TABLE reference.vaccines
 (
   vaccine @t  
 )
-  PRIMARY KEY LOOK-UP (vaccine)
+  PRIMARY KEY (vaccine)
 ;
 
 INSERT INTO reference.vaccines 
@@ -997,7 +997,7 @@ CREATE TABLE reference.species-vaccines
   species @t,
   vaccine @t
 )
-  PRIMARY KEY LOOK-UP (species, vaccine)
+  PRIMARY KEY (species, vaccine)
 ;
 
 INSERT INTO reference.species-vaccines 
@@ -1012,7 +1012,7 @@ CREATE TABLE reference.states
   state    @t, 
   state-code  @t
 )
-  PRIMARY KEY LOOK-UP (state)
+  PRIMARY KEY (state)
 ;
 
 INSERT INTO reference.states
@@ -1076,7 +1076,7 @@ CREATE TABLE reference.common-street-names
   rank @ud, 
   street @t
 )
-  PRIMARY KEY LOOK-UP (rank)
+  PRIMARY KEY (rank)
 ;
 
 INSERT INTO reference.common-street-names 
@@ -1096,7 +1096,7 @@ CREATE TABLE reference.federal-holidays-fixed
   month      @ud, 
   day-of-month  @ud
 )
-  PRIMARY KEY LOOK-UP (holiday)
+  PRIMARY KEY (holiday)
 ;
 
 INSERT INTO reference.federal-holidays-fixed 
@@ -1112,7 +1112,7 @@ CREATE TABLE reference.federal-holidays-floating
   date-max  @ud,
   day-of-week @ud
 )
-  PRIMARY KEY LOOK-UP (holiday)
+  PRIMARY KEY (holiday)
 ;
 
 INSERT INTO reference.federal-holidays-floating 
@@ -1135,7 +1135,7 @@ CREATE TABLE persons
   city    @t,
   zip-code  @t
 )
-  PRIMARY KEY LOOK-UP (email)
+  PRIMARY KEY (email)
 ;
 
 INSERT INTO persons
@@ -1266,7 +1266,7 @@ CREATE TABLE staff-roles
 (
   role @t  
 )
-  PRIMARY KEY LOOK-UP (role)
+  PRIMARY KEY (role)
 ;
 
 INSERT INTO staff-roles 
@@ -1280,7 +1280,7 @@ CREATE TABLE staff
   email    @t,
   hire-date  @da
 )
-  PRIMARY KEY LOOK-UP (email)  
+  PRIMARY KEY (email)  
 ;
 
 INSERT INTO staff
@@ -1302,7 +1302,7 @@ CREATE TABLE staff-assignments
   role    @t,
   assigned  @da
 )
-  PRIMARY KEY LOOK-UP (email, role)
+  PRIMARY KEY (email, role)
 ;
 
 INSERT INTO staff-assignments
@@ -1326,7 +1326,7 @@ CREATE TABLE adoptions
   adoption-date      @da,
   adoption-fee      @ud
 )
-  PRIMARY KEY LOOK-UP (name, species, adopter-email)
+  PRIMARY KEY (name, species, adopter-email)
 ;
 
 INSERT INTO adoptions

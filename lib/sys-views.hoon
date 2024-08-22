@@ -38,7 +38,7 @@
     ^-  (tree set-function:ast)
     :+  :*  %query
             :-  ~           ::from=(unit from)
-                :+  %from
+                :^  %from
                     :+  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
@@ -47,6 +47,7 @@
                             %databases
                             ==
                         ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
@@ -180,7 +181,7 @@
     ^-  (tree set-function:ast)
     :+  :*  %query
             :-  ~           ::from=(unit from)
-                :+  %from
+                :^  %from
                     :+  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
@@ -189,6 +190,7 @@
                             %namespaces
                             ==
                         ~                      ::alias=(unit @t)
+                    ~  ::(unit as-of)
                     ~               ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
@@ -280,7 +282,7 @@
     ^-  (tree set-function:ast)
     :+  :*  %query
             :-  ~            ::from=(unit from)
-                :+  %from
+                :^  %from
                     :+  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
@@ -289,6 +291,7 @@
                             %tables
                             ==
                         ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
@@ -442,7 +445,7 @@
     ^-  (tree set-function:ast)
     :+  :*  %query
             :-  ~          ::from=(unit from)
-                :+  %from
+                :^  %from
                     :+  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
@@ -451,6 +454,7 @@
                             %columns
                             ==
                         ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
@@ -567,7 +571,7 @@
     ^-  (tree set-function:ast)
     :+  :*  %query
             :-  ~            ::from=(unit from)
-                :+  %from
+                :^  %from
                     :+  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
@@ -576,6 +580,7 @@
                             %sys-log
                             ==
                         ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
@@ -684,7 +689,7 @@
     ^-  (tree set-function:ast)
     :+  :*  %query
             :-  ~           ::from=(unit from)
-                :+  %from
+                :^  %from
                     :+  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
@@ -693,7 +698,8 @@
                             %data-log
                             ==
                         ~                      ::alias=(unit @t)
-                    ~               ::joins=(list joined-object)
+                    ~       ::(unit as-of)
+                    ~       ::joins=(list joined-object)
             ~            ::scalars=(list scalar-function)
             ~            ::predicate=(unit predicate)
             ~            ::group-by=(list grouping-column)
@@ -791,7 +797,7 @@
     ^-  view
     ?~  set-functions.transform.v  ~|("can't get here" !!)
     =/  qsf=set-function:ast  `set-function:ast`n.set-functions.transform.v
-    ?~  +>+>+>+.qsf  v
+    ?~  +>+>+>+.qsf  v  
     v(ordering (make-ordering columns.v +>+>+>+.qsf))
 ::
 ::  +populate-system-view:

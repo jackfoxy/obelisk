@@ -10,7 +10,7 @@ CREATE TABLE reference.calendar
   weekday        @ud,
   year-week      @ud
 )
-  PRIMARY KEY LOOK-UP (date)
+  PRIMARY KEY (date)
 ;
 
 INSERT INTO reference.calendar
@@ -21938,7 +21938,7 @@ CREATE TABLE reference.calendar-us-fed-holiday
   date        @da,
   us-federal-holiday  @t
 )
-  PRIMARY KEY LOOK-UP (date)
+  PRIMARY KEY (date)
 ;
 
 INSERT INTO reference.calendar-us-fed-holiday

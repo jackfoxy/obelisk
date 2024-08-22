@@ -28,30 +28,18 @@
   =/  expected-rows
         :~
           :-  %vector
-              ::  :~  [%col1 [~.t 2.036.490.817]]
-              ::      [%col2 [~.da 170.141.184.492.111.779.796.175.933.613.172.326.400]]
-              ::      [%col3 [~.t 8.245.928.668.403.692.148]]
-              ::      [%col4 [~.t 829.910.898]]
               :~  [%col1 [~.t 'Abby']]
                   [%col2 [~.da ~1999.2.19]]
                   [%col3 [~.t 'tricolor']]
                   [%col4 [~.t 'row1']]
                   ==
           :-  %vector
-              ::  :~  [%col1 [~.t 6.644.545]]
-              ::      [%col2 [~.da 170.141.184.496.088.307.522.657.354.235.930.214.400]]
-              ::      [%col3 [~.t 32.210.658.860.951.924]]
-              ::      [%col4 [~.t 846.688.114]
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              ::  :~  [%col1 [~.t 465.557.745.217]]
-              ::      [%col2 [~.da 170.141.184.493.614.731.958.930.234.072.996.249.600]]
-              ::      [%col3 [~.t 122.476.989.805.940]]
-              ::      [%col4 [~.t 863.465.330]]
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
@@ -59,11 +47,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -78,7 +67,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -141,11 +130,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -160,7 +150,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -211,11 +201,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -230,7 +221,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -281,11 +272,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -300,7 +292,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -351,11 +343,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -370,7 +363,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -421,11 +414,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -440,7 +434,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -458,7 +452,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table SELECT col1 as c1,col2 as c2,col3 as c3,col4 as c4"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table SELECT col1 as c1,col2 as c2,col3 as c3,col4 as c4"
     ==
   %+  expect-eq
     !>  expected
@@ -474,8 +470,10 @@
           :-  %vector
               :~  [%literal-0 [~.t 430.242.426.723]]
                   [%literal-1 [~.p 28.242.037]]
-                  [%literal-2 [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]]
-                  [%literal-3 [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]]
+                  :-  %literal-2
+                      [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
+                  :-  %literal-3
+                      [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
                   [%literal-4 [~.dr 114.450.695.119.985.999.668.576.256]]
                   [%literal-5 [~.if 3.284.569.946]]
                   [%literal-6 [~.is 123.543.654.234]]
@@ -496,11 +494,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.4.30
-                    :-  %data-time  ~2012.4.30
-                    :-  %vector-count  1
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 1]
                 ==
 
   =/  select  "SELECT 'cor,d', ~nomryg-nilref, ~2020.12.25..7.15.0..1ef5, ".
@@ -533,8 +532,10 @@
           :-  %vector
               :~  [%cord1 [~.t 430.242.426.723]]
                   [%ship [~.p 28.242.037]]
-                  [%date1 [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]]
-                  [%date2 [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]]
+                  :-  %date1
+                      [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
+                  :-  %date2
+                      [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
                   [%timespan [~.dr 114.450.695.119.985.999.668.576.256]]
                   [%ip [~.if 3.284.569.946]]
                   [%ipfv6 [~.is 123.543.654.234]]
@@ -555,11 +556,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.4.30
-                    :-  %data-time  ~2012.4.30
-                    :-  %vector-count  1
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 1]
                 ==
   =/  select  "SELECT 'cor,d' as cord1, ~nomryg-nilref AS Ship, ".
               "~2020.12.25..7.15.0..1ef5 as date1, ".
@@ -630,11 +632,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -649,7 +652,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -667,7 +670,11 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table T1 SELECT 'cor\\'d' AS cord, col1 as C1, ~nomryg-nilref, col2, .-3.14 as pi, col3, col4, ~2023.12.25"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 ".
+              "SELECT 'cor\\'d' AS cord, col1 as C1, ~nomryg-nilref, col2, ".
+                     ".-3.14 as pi, col3, col4, ~2023.12.25"
     ==
   %+  expect-eq
     ::!>  expected
@@ -700,11 +707,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -719,7 +727,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -770,11 +778,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -789,7 +798,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -807,7 +816,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table SELECT col4 as c4,col3 as C3,col2 as c2,col1 as c1"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table SELECT col4 as c4,col3 as C3,col2 as c2,col1 as c1"
     ==
   %+  expect-eq
     !>  expected
@@ -840,11 +851,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -859,7 +871,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -877,7 +889,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table SELECT my-table.col1,my-table.col2,my-table.col3,my-table.col4"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table ".
+              "SELECT my-table.col1,my-table.col2,my-table.col3,my-table.col4"
     ==
   %+  expect-eq
     !>  expected
@@ -910,11 +925,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -929,7 +945,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -947,7 +963,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table T1 SELECT T1.col1,T1.col2,T1.col3,T1.col4"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT T1.col1,T1.col2,T1.col3,T1.col4"
     ==
   %+  expect-eq
     !>  expected
@@ -980,11 +998,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -999,7 +1018,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1017,7 +1036,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table SELECT my-table.col4,my-table.col3,my-table.col2,my-table.col1"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table ".
+              "SELECT my-table.col4,my-table.col3,my-table.col2,my-table.col1"
     ==
   %+  expect-eq
     !>  expected
@@ -1050,11 +1072,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1069,7 +1092,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1087,7 +1110,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table T1 SELECT T1.col4,T1.col3,T1.col2,T1.col1"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT T1.col4,T1.col3,T1.col2,T1.col1"
     ==
   %+  expect-eq
     !>  expected
@@ -1123,11 +1148,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1142,7 +1168,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1196,11 +1222,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1215,7 +1242,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1270,11 +1297,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1289,7 +1317,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1370,11 +1398,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1389,7 +1418,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1407,7 +1436,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
     ==
   %+  expect-eq
     ::!>  expected
@@ -1470,11 +1501,12 @@
                   ==
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  3
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1489,7 +1521,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -1507,7 +1539,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table T1 SELECT col1 as C1, T1.*, col2,col4, *"])
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT col1 as C1, T1.*, col2,col4, *"
     ==
   %+  expect-eq
     ::!>  expected
@@ -1556,11 +1590,12 @@
                              ==
                       ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.4.30
-                    :-  %data-time  ~2012.4.30
-                    :-  %vector-count  1
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 1]
                 ==
   =/  my-select  "SELECT ~2020.12.25 AS Date, ~2020.12.25..7.15.0, ".
   "~2020.12.25..7.15.0..1ef5, 2020.12.25, 2020.12.25..7.15.0, ".
@@ -1588,7 +1623,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov4  agent
@@ -1606,11 +1641,12 @@
 ++  test-simple-query-22
   =|  run=@ud
   =/  expected  :~  %results
-                    :-  %result-set  ~[[%vector ~[[%literal-0 ~.ud 0]]]]
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.4.30
-                    :-  %data-time  ~2012.4.30
-                    :-  %vector-count  1
+                    [%message 'SELECT']
+                    [%result-set ~[[%vector ~[[%literal-0 ~.ud 0]]]]]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 1]
                 ==
   ::
   =^  mov1  agent
@@ -1626,7 +1662,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov4  agent
@@ -1641,17 +1677,580 @@
     ::!>  ->+>+>-.mov4
     !>  ;;(cmd-result ->+>+>-.mov4)
 ::
+::  * (select all) not default DB
+++  test-simple-query-23
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
+                  ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
+                ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.29]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db2"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db2
+                "CREATE TABLE my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db2
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape %db1 "FROM db2..my-table SELECT *"])
+    ==
+  %+  expect-eq
+    !>  expected
+    ::!>  ;;(* expected)
+    ::!>  ->+>+>-.mov5
+    !>  ;;(cmd-result ->+>+>-.mov5)
+
+::
+::  time travel
+::
+++  time-expected-rows
+      :~
+        :-  %vector
+            :~  [%col1 [~.t 'Abby']]
+                [%col2 [~.da ~1999.2.19]]
+                [%col3 [~.t 'tricolor']]
+                [%col4 [~.t 'row1']]
+
+                [%col2 [~.da ~1999.2.19]]
+                [%col4 [~.t 'row1']]
+
+                [%col1 [~.t 'Abby']]
+                [%col2 [~.da ~1999.2.19]]
+                [%col3 [~.t 'tricolor']]
+                [%col4 [~.t 'row1']]
+
+                [%c1 [~.t 'Abby']]
+                ==
+        :-  %vector
+            :~  [%col1 [~.t 'Ace']]
+                [%col2 [~.da ~2005.12.19]]
+                [%col3 [~.t 'ticolor']]
+                [%col4 [~.t 'row2']]
+
+                [%col2 [~.da ~2005.12.19]]
+                [%col4 [~.t 'row2']]
+
+                [%col1 [~.t 'Ace']]
+                [%col2 [~.da ~2005.12.19]]
+                [%col3 [~.t 'ticolor']]
+                [%col4 [~.t 'row2']]
+
+                [%c1 [~.t 'Ace']]
+                ==
+        :-  %vector
+            :~  [%col1 [~.t 'Angel']]
+                [%col2 [~.da ~2001.9.19]]
+                [%col3 [~.t 'tuxedo']]
+                [%col4 [~.t 'row3']]
+
+                [%col2 [~.da ~2001.9.19]]
+                [%col4 [~.t 'row3']]
+
+                [%col1 [~.t 'Angel']]
+                [%col2 [~.da ~2001.9.19]]
+                [%col3 [~.t 'tuxedo']]
+                [%col4 [~.t 'row3']]
+
+                [%c1 [~.t 'Angel']]
+                ==
+          ==
+  ::
+++  time-new-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Baker']]
+                  [%col2 [~.da ~1998.3.8]]
+                  [%col3 [~.t 'caleco']]
+                  [%col4 [~.t 'row4']]
+
+                  [%col2 [~.da ~1998.3.8]]
+                  [%col4 [~.t 'row4']]
+
+                  [%col1 [~.t 'Baker']]
+                  [%col2 [~.da ~1998.3.8]]
+                  [%col3 [~.t 'caleco']]
+                  [%col4 [~.t 'row4']]
+
+                  [%c1 [~.t 'Baker']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Bandit']]
+                  [%col2 [~.da ~2006.12.23]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row5']]
+
+                  [%col2 [~.da ~2006.12.23]]
+                  [%col4 [~.t 'row5']]
+
+                  [%col1 [~.t 'Bandit']]
+                  [%col2 [~.da ~2006.12.23]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row5']]
+
+                  [%c1 [~.t 'Bandit']]
+                  ==
+          ==
+++  time-expected1  :~  %results
+                        [%message 'SELECT']
+                        [%result-set (weld time-expected-rows time-new-rows)]
+                        [%server-time ~2012.5.5]
+                        [%schema-time ~2012.5.1]
+                        [%data-time ~2012.5.3]
+                        [%vector-count 5]
+                        ==
+++  time-expected2  :~  %results
+                        [%message 'SELECT']
+                        [%result-set time-expected-rows]
+                        [%server-time ~2012.5.5]
+                        [%schema-time ~2012.5.1]
+                        [%data-time ~2012.5.2]
+                        [%vector-count 3]
+                        ==
+::
+::  as-of ~time
+::  *, two column names, table-name.*, one column alias
+++  test-time-query-01
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Baker', ~1998.3.8, 'caleco', 'row4')".
+                " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  =.  run  +(run)
+  =^  mov6  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table AS OF ~2012.5.2 T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  ;:  weld
+  %+  expect-eq
+    !>  time-expected1
+    ::!>  ->+>+>-.move5
+    !>  ;;(cmd-result ->+>+>-.mov5)
+  %+  expect-eq
+    !>  time-expected2
+    ::!>  ->+>+>-.mov6
+    !>  ;;(cmd-result ->+>+>-.mov6)
+  ==
+::
+::  as-of 3 days ago (data-time = days ago)
+::  *, two column names, table-name.*, one column alias
+++  test-time-query-02
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Baker', ~1998.3.8, 'caleco', 'row4')".
+                " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  =.  run  +(run)
+  =^  mov6  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table AS OF 3 DAYS AGO T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  ;:  weld
+  %+  expect-eq
+    !>  time-expected1
+    ::!>  ->+>+>-.move5
+    !>  ;;(cmd-result ->+>+>-.mov5)
+  %+  expect-eq
+    !>  time-expected2
+    ::!>  ->+>+>-.mov6
+    !>  ;;(cmd-result ->+>+>-.mov6)
+  ==
+::
+::  as-of 2 days ago (data-time < days ago)
+::  *, two column names, table-name.*, one column alias
+++  test-time-query-03
+  =|  run=@ud
+  =/  expected1  :~  %results
+                     [%message 'SELECT']
+                     [%result-set (weld time-expected-rows time-new-rows)]
+                     [%server-time ~2012.5.5]
+                     [%schema-time ~2012.5.1]
+                     [%data-time ~2012.5.4]
+                     [%vector-count 5]
+                     ==
+  ::
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Baker', ~1998.3.8, 'caleco', 'row4')".
+                " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  =.  run  +(run)
+  =^  mov6  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table AS OF 2 DAYS AGO T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  ;:  weld
+  %+  expect-eq
+    !>  expected1
+    ::!>  ->+>+>-.move5
+    !>  ;;(cmd-result ->+>+>-.mov5)
+  %+  expect-eq
+    !>  time-expected2
+    ::!>  ->+>+>-.mov6
+    !>  ;;(cmd-result ->+>+>-.mov6)
+  ==
+::
+::  as-of ~d3 (data-time = ~d3 ago)
+::  *, two column names, table-name.*, one column alias
+++  test-time-query-04
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Baker', ~1998.3.8, 'caleco', 'row4')".
+                " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  =.  run  +(run)
+  =^  mov6  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table AS OF ~d3 T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  ;:  weld
+  %+  expect-eq
+    !>  time-expected1
+    ::!>  ->+>+>-.move5
+    !>  ;;(cmd-result ->+>+>-.mov5)
+  %+  expect-eq
+    !>  time-expected2
+    ::!>  ->+>+>-.mov6
+    !>  ;;(cmd-result ->+>+>-.mov6)
+  ==
+::
+::  as-of ~d2 (data-time < ~d2 ago)
+::  *, two column names, table-name.*, one column alias
+++  test-time-query-05
+  =|  run=@ud
+  =/  expected1  :~  %results
+                     [%message 'SELECT']
+                     [%result-set (weld time-expected-rows time-new-rows)]
+                     [%server-time ~2012.5.5]
+                     [%schema-time ~2012.5.1]
+                     [%data-time ~2012.5.4]
+                     [%vector-count 5]
+                     ==
+  ::
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Baker', ~1998.3.8, 'caleco', 'row4')".
+                " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  =.  run  +(run)
+  =^  mov6  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape
+              %db1
+              "FROM my-table AS OF ~d2 T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+  ::
+  ;:  weld
+  %+  expect-eq
+    !>  expected1
+    ::!>  ->+>+>-.move5
+    !>  ;;(cmd-result ->+>+>-.mov5)
+  %+  expect-eq
+    !>  time-expected2
+    ::!>  ->+>+>-.mov6
+    !>  ;;(cmd-result ->+>+>-.mov6)
+  ==
+::
 ::  shrinking
 ::
 ::  shrinking one column to one vector
 ++  test-shrinking-01
   =|  run=@ud
   =/  expected  :~  %results
-                    :-  %result-set  ~[[%vector ~[[%col2 [~.da ~2005.12.19]]]]]
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  1
+                    [%message 'SELECT']
+                    [%result-set ~[[%vector ~[[%col2 [~.da ~2005.12.19]]]]]]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 1]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1666,7 +2265,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1700,11 +2299,12 @@
             [%vector ~[[%col3 [~.t 'tuxedo']]]]
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  2
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 2]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1719,7 +2319,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1753,11 +2353,12 @@
             [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tuxedo']]]]
             ==
   =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2012.5.3
-                    :-  %schema-time  ~2012.5.1
-                    :-  %data-time  ~2012.5.2
-                    :-  %vector-count  2
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 2]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -1772,7 +2373,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
     =.  run  +(run)
   =^  mov3  agent
@@ -1800,7 +2401,7 @@
 ::
 :: SELECT error messages
 ::
-::  SELECT prior to table existence
+::  fail on prior to table existence
 ++  test-fail-select-01
   =|  run=@ud
   =/  my-select  "FROM my-table SELECT ".
@@ -1819,7 +2420,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-                "PRIMARY KEY CLUSTERED (col1) ".
+                "PRIMARY KEY (col1) ".
                 "AS OF ~2012.5.3"
     ==
     =.  run  +(run)
@@ -1838,9 +2439,106 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'table %dbo.%my-table does not exist at schema time ~2012.4.30'
+        'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%tape %db1 my-select])
       ==
+::
+::  fail on bad column name
+++  test-fail-select-02
+  =|  run=@ud
+  =/  my-select  "FROM my-table SELECT ".
+                 "col4, foo"
+  ::
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1) ".
+                "AS OF ~2012.5.3"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
+                "AS OF ~2012.5.4"
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'SELECT: column %foo not found'
+  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+          %obelisk-action
+          !>([%tape %db1 my-select])
+      ==
+
+
+
+::
+::  fail on as-of ~d4 (schema-time < ~d4 ago)
+++  test-fail-time-query-01
+  =|  run=@ud
+  =/  expected1  :~  %results
+                     [%message 'SELECT']
+                     [%result-set (weld time-expected-rows time-new-rows)]
+                     [%server-time ~2012.5.5]
+                     [%schema-time ~2012.5.1]
+                     [%data-time ~2012.5.4]
+                     [%vector-count 5]
+                     ==
+  ::
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    ==
+    =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+    ==
+  %+  expect-fail-message
+    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "FROM my-table AS OF ~d4 T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+    ==
+
 --

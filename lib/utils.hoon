@@ -125,6 +125,15 @@
   =/  d=data  ->:(tab:content-key content ``@da`(add `@`sys-time 1) 1)
   (~(got by files.d) tbl-key)
 ::
+::  +is-content-populated:  [database @da] -> ?
+++  is-content-populated
+  |=  [=database sys-time=@da]
+  =/  d=data  ->:(tab:content-key content.database ``@da`(add `@`sys-time 1) 1)
+  ^-  ?
+      %^  fold  ~(tap by files.d)
+                `?`%.n
+                |=([[* =file] state=?] ?:(=(0 rowcount.file) state %.y))
+::
 ::  +select-columns:  [(list (map @tas @)) (list selected-column:ast)]
 ::                    -> (list (map @tas @))
 ++  select-columns
@@ -302,20 +311,28 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells     :-
-                  %:  foo-cell  %foo-cell
-                                column.i.selected
-                                %.y
-                                :-  (heading i.selected column.i.selected)
-                                    [(~(got by col-lookup) column.i.selected) 0]
-                                ==
-                    cells
+      cells
+            ~|  "SELECT: column {<column.i.selected>} not found"  
+            :-
+              %:  foo-cell  %foo-cell
+                            column.i.selected
+                            %.y
+                            :-  (heading i.selected column.i.selected)
+                                [(~(got by col-lookup) column.i.selected) 0]
+                            ==
+                cells
     ==
   ?:  ?=(selected-value:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells  [(foo-cell %foo-cell %foo %.n [(heading i.selected (crip "literal-{<i>}")) [p=+<-.i.selected q=+<+.i.selected]]) cells]
+      cells   :-  %:  foo-cell  %foo-cell
+                                %foo
+                                %.n
+                                :-  (heading i.selected (crip "literal-{<i>}"))
+                                    [p=+<-.i.selected q=+<+.i.selected]
+                                ==
+                  cells
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
@@ -364,7 +381,7 @@
 ++  to-column
   |=  [p=@t q=(map @tas [aura @])]
   ^-  column:ast
-  ~|  "insert invalid column: {<p>}"
+  ~|  "INSERT: invalid column: {<p>}"
   (column:ast %column p -:(~(got by q) p))
 ::
 ::  +upd-indices-views:  [databases qualified-object @da =views] -> databases
@@ -469,7 +486,8 @@
                   state
                   db
                   sys-time
-                  (weld (limo ~[[%sys %tables] [%sys %data-log]]) (need sys-vws))
+                  %+  weld  (limo ~[[%sys %tables] [%sys %data-log]])
+                            (need sys-vws)
                   ==
             sys-db
             sys-time
@@ -480,6 +498,24 @@
     %delete
       !!
   ==
+::
+::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
+::
+::  Applies a function to each element of the list, threading an
+::  accumulator argument through the computation. Take the second argument, and
+::  apply the function to it and the first element of the list. Then feed this
+::  result into the function along with the second element and so on. Return the
+::  final result. If the input function is f and the elements are i0...iN then
+::  computes f (... (f s i0) i1 ...) iN.
+::    Examples
+::      > (fold (gulf 1 5) 0 |=([n=@ state=@] (add state (mul n n))))
+::      55
+::    Source
+++  fold
+  |*  [a=(list) b=* c=_|=(^ [** +<+])]
+  |-  ^-  _b
+  ?~  a  b
+  $(a t.a, b (c i.a b))
 ::
 ++  upd-view-caches-db
   |=  $:  state=databases
@@ -532,7 +568,7 @@
       ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
       [name.q 0]
     ?:  =(p.p type.q)  [name.q q.p]
-    ~|  "type of column {<-.q>} {<+<.q>} ".
+    ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
         "does not match input value type {<p.p>}"
         !!
   ~|("row cell {<p>} not supported" !!)

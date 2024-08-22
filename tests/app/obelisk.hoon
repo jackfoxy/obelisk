@@ -54,27 +54,27 @@
 ++  sys-database
   |=  [sys-time=@da sys-caches=(list @da)]
   :-  %sys
-          :*  %database
-              %sys
-              `path`/test-agent
-              sys-time
-              %+  gas:schema-key
-                    *((mop @da schema) gth)
-                    :~  :-  sys-time
-                          :*  %schema
-                              `path`/test-agent
-                              sys-time
-                              [[%sys sys-time] ~ ~]
-                              ~
-                              %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
-                                                    (limo ~[(sys-sys-databases-view sys-time)])
-                              ==
-                        ==
-              %+  gas:data-key  *((mop @da data) gth)
-                            ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
-              %+  gas:view-cache-key  *((mop data-obj-key cache) ns-obj-comp)
-                    (turn sys-caches |=(a=@da [[%sys %databases a] [%cache a ~]]))
-              ==
+        :*  %database
+            %sys
+            `path`/test-agent
+            sys-time
+            %+  gas:schema-key
+                  *((mop @da schema) gth)
+                  :~  :-  sys-time
+                        :*  %schema
+                            `path`/test-agent
+                            sys-time
+                            [[%sys sys-time] ~ ~]
+                            ~
+                            %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
+                                              (limo ~[(sys-sys-databases-view sys-time)])
+                            ==
+                      ==
+            %+  gas:data-key  *((mop @da data) gth)
+                          ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
+            %+  gas:view-cache-key  *((mop data-obj-key cache) ns-obj-comp)
+                  (turn sys-caches |=(a=@da [[%sys %databases a] [%cache a ~]]))
+            ==
 ::
 ::  views
 ++  db-views
@@ -371,7 +371,6 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-          %.y
           0
           ~
           ~
@@ -382,7 +381,6 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-          %.n
           0
           ~
           ~
@@ -393,7 +391,6 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-          %.y
           0
           ~
           ~
@@ -404,7 +401,6 @@
           ~zod
           `path`/test-agent
           ~2023.7.9..22.35.36..7e90
-          %.y
           0
           ~
           ~
@@ -415,7 +411,6 @@
           ~zod
           `path`/test-agent
           ~2000.1.3
-          %.n
           0
           ~
           ~
@@ -426,7 +421,6 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.3
-              clustered=%.y
               length=1
               pri-idx=file-4-pri-idx
               data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
@@ -439,7 +433,6 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.4
-              clustered=%.y
               length=0
               pri-idx=file-4-pri-idx
               data=~
@@ -452,7 +445,6 @@
           ship=~zod
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
-          clustered=%.y
           length=0
           pri-idx=~
           data=~
@@ -463,7 +455,6 @@
           ship=~zod
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.36..7e90
-          clustered=%.y
           length=1
           pri-idx=file-4-pri-idx
           data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
@@ -479,9 +470,8 @@
           tmsp=~2000.1.2
           [[%col1 [%t 0]] ~ ~]
           ~[[%t %.y]]
-          :^  %index
+          :+  %index
               unique=%.y
-              clustered=%.y
               ~[[%ordered-column name=%col1 ascending=%.y]]
           ~[[%column name=%col1 column-type=%t]]
           ~
@@ -493,9 +483,8 @@
           tmsp=~2023.7.9..22.35.35..7e90
           [[%col1 [%t 0]] ~ ~]
           ~[[%t %.y]]
-          :^  %index
+          :+  %index
               unique=%.y
-              clustered=%.y
               ~[[%ordered-column name=%col1 ascending=%.y]]
           ~[[%column name=%col1 column-type=%t]]
           ~
@@ -507,11 +496,9 @@
           tmsp=~2000.1.3
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
           ~[[%t %.y] [%p %.y]]
-          :*  %index
+          :+  %index
               %.y
-              %.n
               ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-          ==
           ~[[%column %col1 %t] [%column %col2 %p]]
           ~
       ==
@@ -522,26 +509,9 @@
           tmsp=~2000.1.2
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
           ~[[%t %.y] [%p %.y]]
-          :*  %index
-              %.y
-              %.n
-              ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-          ==
-          ~[[%column %col1 %t] [%column %col2 %p]]
-          ~
-      ==
-++  time-2-tbl
-  :-  [%dbo %my-table-2]
-      :*  %table
-          provenance=`path`/test-agent
-          tmsp=~2000.1.2
-          [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          ~[[%t %.y] [%p %.y]]
-          :*  %index
-              %.y
+          :+  %index
               %.y
               ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-          ==
           ~[[%column %col1 %t] [%column %col2 %p]]
           ~
       ==
@@ -552,11 +522,9 @@
           tmsp=~2023.7.9..22.35.36..7e90
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
           ~[[%t %.y] [%p %.y]]
-          :*  %index
-              %.y
+          :+  %index
               %.y
               ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
-          ==
           ~[[%column %col1 %t] [%column %col2 %p]]
           ~
       ==
@@ -566,7 +534,6 @@
   :*  %create-table
       [%qualified-object ~ 'db1' 'dbo' 'my-table-2']
       ~[[%column 'col1' %t] [%column 'col2' %p]]
-      %.n
       ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
       ~
       ~
@@ -575,47 +542,10 @@
   :*  %create-table
       [%qualified-object ~ 'db1' 'dbo' 'my-table']
       ~[[%column 'col1' %t]]
-      %.y
       ~[[%ordered-column 'col1' %.y]]
       ~
       ~
   ==
-::
-::  Create database
-++  test-tape-create-db
-  =|  run=@ud
-  =^  move  agent
-    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
-        %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
-    ==
-  =+  !<(=state on-save:agent)
-  ;:  weld
-  %+  expect-eq
-    !>  [%results ~[[%server-time ~2000.1.1] [%schema-time ~2000.1.1]]]
-    !>  ->+>+>.move
-  %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(sys1 ~2000.1.1)] ~[content-1] ~ ~[~2000.1.1])
-    !>  databases.state
-  ==
-::
-++  test-cmd-create-db
-  =|  run=@ud
-  =^  move  agent
-    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
-        %obelisk-action
-        !>([%cmd-create-db [%create-database 'db1' ~]])
-    ==
-  =+  !<(=state on-save:agent)
-  ;:  weld
-  %+  expect-eq
-    !>  [%results ~[[%server-time ~2000.1.1] [%schema-time ~2000.1.1]]]
-    !>  ->+>+>.move
-  %+  expect-eq
-    !>  (mk-db %db1 ~2000.1.1 ~[(sys1 ~2000.1.1)] ~[content-1] ~ ~[~2000.1.1])
-    !>  databases.state
-  ==
-
 ::
 ::  Create namespace
 ++  test-tape-create-ns
@@ -634,11 +564,13 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.2]
-    !>  ->+>+>->+<.mov2
+    !>  :-  %results
+            :~  [%message 'CREATE NAMESPACE %ns1']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+    ::!>  ->+>+>-.mov2
+    !>  ;;(cmd-result ->+>+>-.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -666,11 +598,13 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.2]
-    !>  ->+>+>->+<.mov2
+    !>  :-  %results
+            :~  [%message 'CREATE NAMESPACE %ns1']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+    ::!>  ->+>+>-.mov2
+    !>  ;;(cmd-result ->+>+>-.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -681,7 +615,6 @@
                    ==
     !>  databases.state
   ==
-::
 ::
 ::  CREATE TABLE
 ++  test-cmd-create-1-col-tbl
@@ -700,11 +633,13 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.2]
-    !>  ->+>+>->+<.mov2
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+    ::!>  ->+>+>-.mov2
+    !>  ;;(cmd-result ->+>+>-.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -738,11 +673,13 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.2]
-    !>  ->+>+>->+<.mov2
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+    ::!>  ->+>+>-.mov2
+    !>  ;;(cmd-result ->+>+>-.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -779,11 +716,13 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov3
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.3]
-    !>  ->+>+>->+<.mov3
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.3]
+                [%schema-time ~2000.1.3]
+                ==
+    ::!>  ->+>+>-.mov3
+    !>  ;;(cmd-result ->+>+>-.mov3)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -817,7 +756,7 @@
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.3]))
@@ -825,16 +764,18 @@
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
-                "PRIMARY KEY LOOK-UP (col1, col2)"
+                "PRIMARY KEY (col1, col2)"
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov3
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.3]
-    !>  ->+>+>->+<.mov3
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.3]
+                [%schema-time ~2000.1.3]
+                ==
+    ::!>  ->+>+>-.mov3
+    !>  ;;(cmd-result ->+>+>-.mov3)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -870,11 +811,20 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.2]
-    !>  ->+>+>->+<.mov2
+  !>  :~    
+        :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+        :-  %results
+            :~  [%message 'CREATE TABLE %my-table']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+        ==
+    ::!>  ->+>+>.mov2
+    !>  ;;((list cmd-result) ->+>+>.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -905,16 +855,25 @@
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
-                "PRIMARY KEY LOOK-UP (col1, col2)"
+                "PRIMARY KEY (col1, col2)"
     ==
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.2]
-    !>  ->+>+>->+<.mov2
+    !>  :~    
+        :-  %results
+            :~  [%message 'CREATE TABLE %my-table']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+        :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2000.1.2]
+                ==
+        ==
+    ::!>  ->+>+>.mov2
+    !>  ;;((list cmd-result) ->+>+>.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -974,11 +933,13 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov3
-  %+  expect-eq
-    !>  [%schema-time ~2000.1.3]
-    !>  ->+>+>->+<.mov3
+    !>  :-  %results
+            :~  [%message 'DROP TABLE %my-table']
+                [%server-time ~2000.1.3]
+                [%schema-time ~2000.1.3]
+                ==
+    ::!>  ->+>+>-.mov3
+    !>  ;;(cmd-result ->+>+>-.mov3)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -1039,15 +1000,15 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov4
-  %+  expect-eq
-    !>  :~  [%server-time ~2000.1.4]
-            [%schema-time ~2000.1.4]
-            [%data-time ~2000.1.4]
-            [%vector-count 1]
-            ==
-    !>  ->+>+>->.mov4
+    !>  :-  %results
+            :~  [%message 'DROP TABLE %my-table']
+                [%server-time ~2000.1.4]
+                [%schema-time ~2000.1.4]
+                [%data-time ~2000.1.4]
+                [%vector-count 1]
+                ==
+    ::!>  ->+>+>-.mov4
+    !>  ;;(cmd-result ->+>+>-.mov4)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -1076,13 +1037,14 @@
 ++  test-truncate-tbl-no-data
   =|  run=@ud
   =/  cmd
-    :-  %truncate-table
+    :+  %truncate-table
         :*  %qualified-object
             ship=~
             database='db1'
             namespace='dbo'
             name='my-table'
         ==
+        ~
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1105,11 +1067,12 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov3
-  %+  expect-eq
-    !>  [%message 'no data in table to truncate']
-    !>  ->+>+>->-.mov3
+    !>  :-  %results
+            :~  [%message 'TRUNCATE TABLE %my-table']
+                [%message 'no data in table to truncate']
+                ==
+    !>  ->+>+>-.mov3
+    ::!>  ;;(cmd-result ->+>+>-.mov3)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
@@ -1129,13 +1092,14 @@
 ++  test-truncate-tbl
   =|  run=@ud
   =/  cmd
-    :-  %truncate-table
+    :+  %truncate-table
         :*  %qualified-object
             ship=~
             database='db1'
             namespace='dbo'
             name='my-table'
         ==
+        ~
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1164,14 +1128,14 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov4
-  %+  expect-eq
-    !>  :~  [%server-time ~2000.1.4]
-            [%data-time ~2000.1.4]
-            [%vector-count 1]
-            ==
-    !>  ->+>+>->.mov4
+    !>  :-  %results
+            :~  [%message 'TRUNCATE TABLE %my-table']
+                [%server-time ~2000.1.4]
+                [%data-time ~2000.1.4]
+                [%vector-count 1]
+                ==
+    ::!>  ->+>+>-.mov4
+    !>  ;;(cmd-result ->+>+>-.mov4)
   %+  expect-eq
     !>  %:  mk-db  %db1
                   ~2000.1.1
@@ -1243,15 +1207,20 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov3
-  %+  expect-eq
-    !>  [%schema-time ~2023.7.9..22.35.36..7e90]
-    !>  ->+>+>->+<.mov3
+    !>  :-  %results
+            :~  [%message 'CREATE NAMESPACE %ns2']
+                [%server-time ~2000.1.3]
+                [%schema-time ~2023.7.9..22.35.36..7e90]
+                ==
+    ::!>  ->+>+>-.mov3
+    !>  ;;(cmd-result ->+>+>-.mov3)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(sys-ns1-ns2 ~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)]
+                   :~  (sys-ns1-ns2 ~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90)
+                       (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-1]
                    :~  [%sys %namespaces ~2023.7.9..22.35.35..7e90]
                        [%sys %namespaces ~2023.7.9..22.35.36..7e90]
@@ -1283,15 +1252,19 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov2
-  %+  expect-eq
-    !>  [%schema-time ~2023.7.9..22.35.36..7e90]
-    !>  ->+>+>->+<.mov2
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2023.7.9..22.35.36..7e90]
+                ==
+    ::!>  ->+>+>-.mov2
+    !>  ;;(cmd-result ->+>+>-.mov2)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2023.7.9..22.35.35..7e90
-                   ~[(time-3-sys ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90) (sys1 ~2023.7.9..22.35.35..7e90)]
+                   :~  (time-3-sys ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90)
+                       (sys1 ~2023.7.9..22.35.35..7e90)
+                       ==
                    ~[content-time-3 content-time-1]
                    :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
                        [%sys %columns ~2023.7.9..22.35.36..7e90]
@@ -1340,15 +1313,21 @@
   =+  !<(=state on-save:agent)
   ;:  weld
   %+  expect-eq
-    !>  %results
-    !>  ->+>+>-<.mov3
-  %+  expect-eq
-    !>  [%schema-time ~2023.7.9..22.35.38..7e90]
-    !>  ->+>+>->+<.mov3
+    !>  :-  %results
+            :~  [%message 'DROP TABLE %my-table-2']
+                [%server-time ~2000.1.2]
+                [%schema-time ~2023.7.9..22.35.38..7e90]
+                ==
+    ::!>  ->+>+>-.mov3
+    !>  ;;(cmd-result ->+>+>-.mov3)
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90) (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90) (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90) (sys1 ~2000.1.1)]
+                   :~  (time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90)
+                       (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90)
+                       (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-time-5 content-time-3 content-1]
                    :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
                        [%sys %columns ~2023.7.9..22.35.36..7e90]
@@ -1396,7 +1375,8 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-          :~  [%server-time ~2023.7.9..22.35.35..7e90]
+          :~  [%message 'INSERT INTO %my-table']
+              [%server-time ~2023.7.9..22.35.35..7e90]
               [%schema-time ~2023.7.9..22.35.35..7e90]
               [%data-time ~2023.7.9..22.35.36..7e90]
               [%message 'inserted:']
@@ -1409,7 +1389,9 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90) (sys1 ~2000.1.1)]
+                   :~  (time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-insert content-my-table content-1]
                    :~  [%sys %sys-log ~2023.7.9..22.35.35..7e90]
                        [%sys %columns ~2023.7.9..22.35.35..7e90]

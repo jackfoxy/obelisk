@@ -29,15 +29,16 @@
   =|  run=@ud
   =/  my-insert  "INSERT INTO db1..my-table (col1, col2, col3)  ".
                  "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  =/  expected-1  :~  %results
-                      [%server-time ~2012.5.3]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.3]
-                      [%message 'inserted:']
-                      [%vector-count 2]
-                      [%message 'table data:']
-                      [%vector-count 2]
-                ==
+  =/  expected-1  :-  %results
+                      :~  [%message 'INSERT INTO %my-table']
+                          [%server-time ~2012.5.3]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%message 'inserted:']
+                          [%vector-count 2]
+                          [%message 'table data:']
+                          [%vector-count 2]
+                      ==
   =/  expected-rows  :: to do: make "real" alpha ordering
         :~
           :-  %vector
@@ -51,13 +52,14 @@
                   [%col3 [~.ud 20]]
                   ==
             ==
-  =/  expected-2  :~  %results
-                      [%result-set expected-rows]
-                      [%server-time ~2012.5.4]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.3]
-                      [%vector-count 2]
-                  ==
+  =/  expected-2  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2012.5.4]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%vector-count 2]
+                      ==
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -72,7 +74,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -104,15 +106,16 @@
   =|  run=@ud
   =/  my-insert  "INSERT INTO db1..my-table (col1, col3, col2)  ".
                  "VALUES ('cord',20,~nomryg-nilref) ('Default', 0,Default)"
-  =/  expected-1  :~  %results
-                      [%server-time ~2012.5.3]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.3]
-                      [%message 'inserted:']
-                      [%vector-count 2]
-                      [%message 'table data:']
-                      [%vector-count 2]
-                  ==
+  =/  expected-1  :-  %results
+                      :~  [%message 'INSERT INTO %my-table']
+                          [%server-time ~2012.5.3]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%message 'inserted:']
+                          [%vector-count 2]
+                          [%message 'table data:']
+                          [%vector-count 2]
+                      ==
   =/  expected-rows  :: to do: make "real" alpha ordering
         :~
           :-  %vector
@@ -126,13 +129,14 @@
                   [%col3 [~.ud 20]]
                   ==
             ==
-  =/  expected-2  :~  %results
-                      :-  %result-set  expected-rows
-                      :-  %server-time  ~2012.5.4
-                      :-  %schema-time  ~2012.5.1
-                      :-  %data-time  ~2012.5.3
-                      :-  %vector-count  2
-                  ==
+  =/  expected-2  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2012.5.4]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%vector-count 2]
+                      ==
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -147,7 +151,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -179,15 +183,16 @@
   =|  run=@ud
   =/  my-insert  "INSERT INTO db1..my-table (col3, col2, col1)  ".
                  "VALUES (20,~nomryg-nilref,'cord') (0,Default,'Default')"
-  =/  expected-1  :~  %results
-                      [%server-time ~2012.5.3]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.3]
-                      [%message 'inserted:']
-                      [%vector-count 2]
-                      [%message 'table data:']
-                      [%vector-count 2]
-                  ==
+  =/  expected-1  :-  %results
+                      :~  [%message 'INSERT INTO %my-table']
+                          [%server-time ~2012.5.3]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%message 'inserted:']
+                          [%vector-count 2]
+                          [%message 'table data:']
+                          [%vector-count 2]
+                      ==
   =/  expected-rows  :: to do: make "real" alpha ordering
         :~
           :-  %vector
@@ -201,13 +206,14 @@
                   [%col3 [~.ud 20]]
                   ==
             ==
-  =/  expected-2  :~  %results
-                      :-  %result-set  expected-rows
-                      :-  %server-time  ~2012.5.4
-                      :-  %schema-time  ~2012.5.1
-                      :-  %data-time  ~2012.5.3
-                      :-  %vector-count  2
-                  ==
+  =/  expected-2  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2012.5.4]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%vector-count 2]
+                      ==
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -222,7 +228,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -254,15 +260,16 @@
   =|  run=@ud
   =/  my-insert  "INSERT INTO db1..my-table ".
                  "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
-  =/  expected-1  :~  %results
-                      [%server-time ~2012.5.3]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.3]
-                      [%message 'inserted:']
-                      [%vector-count 2]
-                      [%message 'table data:']
-                      [%vector-count 2]
-                ==
+  =/  expected-1  :-  %results
+                      :~  [%message 'INSERT INTO %my-table']
+                          [%server-time ~2012.5.3]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%message 'inserted:']
+                          [%vector-count 2]
+                          [%message 'table data:']
+                          [%vector-count 2]
+                    ==
   =/  expected-rows  :: to do: make "real" alpha ordering
         :~
           :-  %vector
@@ -276,13 +283,14 @@
                   [%col3 [~.ud 20]]
                   ==
             ==
-  =/  expected-2  :~  %results
-                      [%result-set expected-rows]
-                      [%server-time ~2012.5.4]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.3]
-                      [%vector-count 2]
-                  ==
+  =/  expected-2  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2012.5.4]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%vector-count 2]
+                      ==
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -297,7 +305,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -331,15 +339,16 @@
                  "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
   =/  my-insert-2  "INSERT INTO db1..my-table ".
                  "VALUES ('cord-2',~sampel-palnet,40) ('Default-2',Default, 0)"
-  =/  expected-1  :~  %results
-                      [%server-time ~2012.5.4]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.4]
-                      [%message 'inserted:']
-                      [%vector-count 2]
-                      [%message 'table data:']
-                      [%vector-count 4]
-                ==
+  =/  expected-1  :-  %results
+                      :~  [%message 'INSERT INTO %my-table']
+                          [%server-time ~2012.5.4]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.4]
+                          [%message 'inserted:']
+                          [%vector-count 2]
+                          [%message 'table data:']
+                          [%vector-count 4]
+                    ==
   =/  expected-rows  :: to do: make "real" alpha ordering
         :~
           :-  %vector
@@ -363,13 +372,14 @@
                   [%col3 [~.ud 40]]
                   ==
             ==
-  =/  expected-2  :~  %results
-                      [%result-set expected-rows]
-                      [%server-time ~2012.5.5]
-                      [%schema-time ~2012.5.1]
-                      [%data-time ~2012.5.4]
-                      [%vector-count 4]
-                  ==
+  =/  expected-2  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2012.5.5]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.4]
+                          [%vector-count 4]
+                      ==
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -384,7 +394,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -403,6 +413,90 @@
     %:  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT *"])
+    ==
+  ::
+  %+  weld
+      %+  expect-eq
+        !>  expected-1
+        ::!>  ;;(* expected-1)
+        ::!>  ->+>+>-.mov4
+        !>  ;;(cmd-result ->+>+>-.mov4)
+      %+  expect-eq
+        !>  expected-2
+        ::!>  ;;(* expected-2)
+        ::!>  ->+>+>-.mov5
+        !>  ;;(cmd-result ->+>+>-.mov5)
+::
+::  insert rows to table, not default DB
+++  test-insert-06
+  =|  run=@ud
+  =/  expected-1  :-  %results
+                      :~  [%message 'INSERT INTO %my-table']
+                          [%server-time ~2012.5.3]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%message 'inserted:']
+                          [%vector-count 2]
+                          [%message 'table data:']
+                          [%vector-count 2]
+                      ==
+  =/  expected-rows  :: to do: make "real" alpha ordering
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Default']]
+                  [%col2 [~.p ~zod]]
+                  [%col3 [~.ud 0]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'cord']]
+                  [%col2 [~.p ~nomryg-nilref]]
+                  [%col3 [~.ud 20]]
+                  ==
+            ==
+  =/  expected-2  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2012.5.4]
+                          [%schema-time ~2012.5.1]
+                          [%data-time ~2012.5.3]
+                          [%vector-count 2]
+                      ==
+  ::
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.29]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db2"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db2
+                "CREATE TABLE db2..my-table ".
+                "(col1 @t, col2 @p, col3 @ud) ".
+                "PRIMARY KEY (col1)"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO db2..my-table (col1, col2, col3)  ".
+                "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
+    ==
+  =.  run  +(run)
+  =^  mov5  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>([%tape %db2 "FROM my-table SELECT *"])
     ==
   ::
   %+  weld
@@ -438,12 +532,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'type of column %column name=%col2 does not match input value type ~.ud'
+        'INSERT: type of column %column name=%col2 does not match input value type ~.ud'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -468,7 +562,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -479,7 +573,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'cannot add duplicate key: ~[1.685.221.219]'
+        'INSERT: cannot add duplicate key: ~[1.685.221.219]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -504,12 +598,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @ud, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'incorrect columns specified: [~ u=<|col1 col2 col2|>]'
+        'INSERT: incorrect columns specified: [~ u=<|col1 col2 col2|>]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -534,12 +628,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'incorrect columns specified: [~ u=<|col1 col2|>]'
+        'INSERT: incorrect columns specified: [~ u=<|col1 col2|>]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -564,12 +658,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'incorrect columns specified: [~ u=<|col1 col2 col3 col4|>]'
+        'INSERT: incorrect columns specified: [~ u=<|col1 col2 col3 col4|>]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -594,12 +688,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'type of column %column name=%col2 does not match input value type ~.ud'
+        'INSERT: type of column %column name=%col2 does not match input value type ~.ud'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -624,12 +718,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert invalid column: \'col1a\''
+        'INSERT: invalid column: \'col1a\''
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -654,12 +748,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'table [%dbo %my-table-2] does not exist'
+        'INSERT: table [%dbo %my-table-2] does not exist'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -684,18 +778,18 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'table [%ns1 %my-table] does not exist'
+        'INSERT: table [%ns1 %my-table] does not exist'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
       ==
 ::
-:: fail on bad AS OF data time
+:: fail on bad AS OF time
 ++  test-fail-insert-10
   =|  run=@ud
   =/  my-insert-1  "INSERT INTO db1..my-table (col1, col2, col3) ".
@@ -717,7 +811,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -728,7 +822,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of schema time out of order'
+        'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert-2])
@@ -754,12 +848,12 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of schema time out of order'
+        'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert])
@@ -787,7 +881,7 @@
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @p, col3 @ud) ".
-                "PRIMARY KEY CLUSTERED (col1)"
+                "PRIMARY KEY (col1)"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -798,7 +892,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of data time out of order'
+        'INSERT: table %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%tape %db1 my-insert-2])
@@ -830,7 +924,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of schema time out of order'
+        'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
       !>  :+  %tape
@@ -865,7 +959,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of schema time out of order'
+        'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
       !>  :+  %tape
@@ -903,7 +997,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of data time out of order'
+        'INSERT: table %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
       !>  :+  %tape
@@ -941,7 +1035,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert into table %my-table as-of data time out of order'
+        'INSERT: table %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
       !>  :+  %tape
@@ -961,7 +1055,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'insert state change after query in script'
+        'INSERT: state change after query in script'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
       !>  :+  %tape
@@ -970,5 +1064,24 @@
               "SELECT 0;".
               "INSERT INTO db1..my-table (col1) VALUES ('cord') "
     ==
-
+::
+::  fail on database does not exist
+++  test-fail-insert-18
+  =|  run=@ud
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'INSERT: database %db does not exist'
+  |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+      %obelisk-action
+      !>  :+  %tape
+              %db1
+              "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+              "INSERT INTO db..my-table (col1) VALUES ('cord') "
+    ==
 --

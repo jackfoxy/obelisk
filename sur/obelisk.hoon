@@ -43,7 +43,6 @@
       ship=@p
       provenance=path
       tmsp=@da
-      clustered=?
       rowcount=@
       pri-idx=(tree [(list @) (map @tas @)])
       rows=(list (map @tas @))
@@ -91,7 +90,6 @@
 +$  index
   $:  %index
       unique=?
-      clustered=?
       columns=(list ordered-column)
   ==
 +$  vector-cell  [p=@tas q=dime]

@@ -6,6 +6,7 @@
 ++  new-database
   |=  [state=databases =bowl:gall c=command:ast]
   ^-  [cmd-result databases]
+  ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
   ?:  =(+<.c %sys)  ~|("database name cannot be 'sys'" !!)
   ?>  ?=(create-database:ast c)
   ?:  (~(has by state) +<.c)  ~|("database {<name.c>} already exists" !!)
@@ -104,65 +105,110 @@
                 state
   ?-  -<.cmds
     %alter-index
-      ?:  query-has-run  ~|("alter index state change after query in script" !!)
-      !!
-    %alter-namespace
+      ?.  =(our.bowl src.bowl)
+            ~|("ALTER INDEX: schema changes must be by local agent" !!)
       ?:  query-has-run
-        ~|("alter namespace state change after query in script" !!)
-      !!
+            ~|("ALTER INDEX: state change after query in script" !!)
+      ~|("%alter-index not implemented" !!)
+    %alter-namespace
+      ?.  =(our.bowl src.bowl)
+            ~|("CREATE NAMESPACE: schema changes must be by local agent" !!)
+      ?:  query-has-run
+        ~|("ALTER NAMESPACE: state change after query in script" !!)
+      ~|("%alter-namespace not implemented" !!)
     %alter-table
-      ?:  query-has-run  ~|("alter table state change after query in script" !!)
-      !!
+      ?.  =(our.bowl src.bowl)
+            ~|("ALTER TABLE: schema changes must be by local agent" !!)
+      ?:  query-has-run
+            ~|("ALTER TABLE: state change after query in script" !!)
+      ~|("%alter-table not implemented" !!)
     %create-database  ~|("create database must be only command in script" !!)
     %create-index
+      ?.  =(our.bowl src.bowl)
+            ~|("CREATE-INDEX: schema changes must be by local agent" !!)
       ?:  query-has-run
-        ~|("create-index state change after query in script" !!)
-      !!
+        ~|("CREATE-INDEX: state change after query in script" !!)
+      ~|("%create-index not implemented" !!)
     %create-namespace
+      ?.  =(our.bowl src.bowl)
+            ~|("CREATE NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
-        ~|("create namespace state change after query in script" !!)
+        ~|("CREATE NAMESPACE: state change after query in script" !!)
+      =/  cmd=create-namespace:ast  -.cmds
       =/  r=[@da (map @tas @da) databases]
-            (create-ns state bowl -.cmds next-schemas next-data)
+            (create-ns state bowl cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         state         +>.r
         cmds          +.cmds
-        results       :-
-                          :-  %results
-                            (limo ~[[%server-time now.bowl] [%schema-time -.r]])
-                          results
+        results     :-
+                      :-  %results
+                          :~  [%message (crip "CREATE NAMESPACE {<name.cmd>}")]
+                              [%server-time now.bowl]
+                              [%schema-time -.r]
+                              ==
+                      results
       ==
     %create-table
+      ?.  =(our.bowl src.bowl)
+            ~|("CREATE TABLE: table must be created by local agent" !!)
       ?:  query-has-run
-        ~|("create table state change after query in script" !!)
-      =/  r=table-return
-            (create-tbl state bowl -.cmds next-schemas next-data)
+        ~|("CREATE TABLE: state change after query in script" !!)
+      =/  cmd=create-table:ast  -.cmds
+      =/  r=table-return  (create-tbl state bowl cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
         cmds          +.cmds
-        results     :-
-                      :-  %results
-                          (limo ~[[%server-time now.bowl] [%schema-time -<.r]])
-                        results
+        results   :-
+                    :-  %results
+                        :~  [%message (crip "CREATE TABLE {<name.table.cmd>}")]
+                            [%server-time now.bowl]
+                            [%schema-time -<.r]
+                            ==
+                    results
       ==
     %create-view
-      ?:  query-has-run  ~|("create view state change after query in script" !!)
-      !!
-    %drop-database
-      !!
-    %drop-index
-      ?:  query-has-run  ~|("drop index state change after query in script" !!)
-      !!
-    %drop-namespace
+      ?.  =(our.bowl src.bowl)
+            ~|("CREATE VIEW: schema changes must be by local agent" !!)
       ?:  query-has-run
-        ~|("drop namespace state change after query in script" !!)
-      !!
+            ~|("CREATE VIEW: state change after query in script" !!)
+      ~|("%create-view not implemented" !!)
+    %drop-database
+      ?.  =(our.bowl src.bowl)
+            ~|("DROP DATABASE: database must be dropped by local agent" !!)
+      ?:  query-has-run
+            ~|("DROP DATABASE: state change after query in script" !!)
+      =/  cmd=drop-database:ast  -.cmds
+      %=  $
+        state         (drop-db state bowl cmd)
+        cmds          +.cmds
+        results  :-
+                   :-  %results
+                       :~  [%message (crip "DROP DATABASE {<name.cmd>}")]
+                           [%server-time now.bowl]
+                           [%message (crip "database {<name.cmd>} dropped")]
+                        ==
+                   results
+      ==
+    %drop-index
+      ?.  =(our.bowl src.bowl)
+            ~|("DROP INDEX: schema changes must be by local agent" !!)
+      ?:  query-has-run  ~|("DROP INDEX: state change after query in script" !!)
+      ~|("%drop-index not implemented" !!)
+    %drop-namespace
+      ?.  =(our.bowl src.bowl)
+            ~|("DROP NAMESPACE: schema changes must be by local agent" !!)
+      ?:  query-has-run
+        ~|("DROP NAMESPACE: state change after query in script" !!)
+      ~|("%drop-namespace not implemented" !!)
     %drop-table
-      ?:  query-has-run  ~|("drop table state change after query in script" !!)
-      =/  r=table-return
-            (drop-tbl state bowl -.cmds next-schemas next-data)
+      ?.  =(our.bowl src.bowl)
+            ~|("DROP TABLE: table must be dropped by local agent" !!)
+      ?:  query-has-run  ~|("DROP TABLE: state change after query in script" !!)
+      =/  cmd=drop-table:ast  -.cmds
+      =/  r=table-return      (drop-tbl state bowl cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
@@ -171,24 +217,34 @@
         results
           ?:  ->-.r
             :-  :-  %results
-                    %-  limo  :~  [%server-time now.bowl]
-                                  [%schema-time -<.r]
-                                  [%data-time -<.r]
-                                  [%vector-count ->+.r]
-                                  ==
+                    :~  [%message (crip "DROP TABLE {<name.table.cmd>}")]
+                        [%server-time now.bowl]
+                        [%schema-time -<.r]
+                        [%data-time -<.r]
+                        [%vector-count ->+.r]
+                        ==
                 results
           :-
             :-  %results
-                (limo ~[[%server-time now.bowl] [%schema-time -<.r]])
+                :~  [%message (crip "DROP TABLE {<name.table.cmd>}")]
+                    [%server-time now.bowl]
+                    [%schema-time -<.r]
+                    ==
             results
       ==
     %drop-view
-      ?:  query-has-run  ~|("drop view state change after query in script" !!)
-      !!
+      ?.  =(our.bowl src.bowl)
+            ~|("DROP VIEW: schema changes must be by local agent" !!)
+      ?:  query-has-run  ~|("DROP VIEW: state change after query in script" !!)
+      ~|("%drop-view not implemented" !!)
     %grant
-      !!
+      ?.  =(our.bowl src.bowl)
+            ~|("GRANT: grant permissions must be by local agent" !!)
+      ~|("%grant not implemented" !!)
     %revoke
-      !!
+      ?.  =(our.bowl src.bowl)
+            ~|("REVOKE: revoke permissions must be by local agent" !!)
+      ~|("%revoke not implemented" !!)
     %transform
       =/  r=[? [(map @tas @da) databases (list result)]]
             %:  do-transform  state
@@ -199,7 +255,7 @@
                               next-schemas
                               ==
       %=  $
-        query-has-run   -.r
+        query-has-run   ?:  query-has-run  %.y  -.r
         next-data       +<.r
         state           +>-.r
         cmds            +.cmds
@@ -207,9 +263,9 @@
       ==
     %truncate-table
       ?:  query-has-run
-        ~|("truncate table state change after query in script" !!)
-      =/  r=table-return
-            (truncate-tbl state bowl -.cmds next-schemas next-data)
+        ~|("TRUNCATE TABLE: state change after query in script" !!)
+      =/  cmd=truncate-table:ast  -.cmds
+      =/  r=table-return  (truncate-tbl state bowl cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
@@ -217,17 +273,31 @@
         cmds          +.cmds
         results
           ?.  ->-.r
-            :-  [%results (limo ~[[%message 'no data in table to truncate']])]
+            :-  :-  %results
+                    :~  [%message (crip "TRUNCATE TABLE {<name.table.cmd>}")]
+                        [%message 'no data in table to truncate']
+                        ==
                 results
           :-  :-  %results
-                  %-  limo  :~  [%server-time now.bowl]
-                                [%data-time -<.r]
-                                [%vector-count ->+.r]
-                                ==
+                  :~  [%message (crip "TRUNCATE TABLE {<name.table.cmd>}")]
+                      [%server-time now.bowl]
+                      [%data-time -<.r]
+                      [%vector-count ->+.r]
+                      ==
               results
 
       ==
   ==
+::
+::  +drop-db:  [databases drop-database:ast] -> databases
+++  drop-db
+  |=  [state=databases =bowl:gall drop=drop-database:ast]
+  ^-  databases
+  =/  db  ~|  "database {<name.drop>} does not exist"
+              (~(got by state) name.drop)
+  ?:  force.drop                          (~(del by state) name.drop)
+  ?.  (is-content-populated db now.bowl)  (~(del by state) name.drop)
+  ~|("{<name.drop>} has populated tables and `FORCE` was not specified" !!)
 ::
 ::  +create-ns:
 ::    [databases bowl:gall create-namespace:ast (map @tas @da) (map @tas @da)]
@@ -240,26 +310,29 @@
           next-data=(map @tas @da)
       ==
   ^-  [@da (map @tas @da) databases]
-  ?.  =(our.bowl src.bowl)  ~|("schema changes must be by local agent" !!)
-  =/  db  ~|  "database {<database-name.create-namespace>} does not exist"
+  =/  db  ~|  "CREATE NAMESPACE: database {<database-name.create-namespace>} ".
+              "does not exist"
                  (~(got by state) database-name.create-namespace)
   =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
   =/  nxt-schema=schema
-        ~|  "namespace {<name.create-namespace>} as-of schema time out of order"
-          %:  get-next-schema  sys.db
-                            next-schemas
-                            sys-time
-                            database-name.create-namespace
-                            ==
+        ~|  "CREATE NAMESPACE: namespace {<name.create-namespace>} as-of ".
+            "schema time out of order"
+            %:  get-next-schema  sys.db
+                                 next-schemas
+                                 sys-time
+                                 database-name.create-namespace
+                                 ==
   =/  dummy
-       ~|  "namespace {<name.create-namespace>} as-of content time out of order"
+        ~|  "CREATE NAMESPACE: namespace {<name.create-namespace>} as-of ".
+            "content time out of order"
           %:  get-next-data  content.db  :: for date checking purposes
                               next-data
                               sys-time
                               database-name.create-namespace
                               ==
   =.  namespaces.nxt-schema
-        ~|  "namespace {<name.create-namespace>} already exists"
+        ~|  "CREATE NAMESPACE: namespace {<name.create-namespace>} ".
+            "already exists"
         %:  map-insert
             namespaces.nxt-schema
             name.create-namespace
@@ -289,19 +362,21 @@
           next-data=(map @tas @da)
           ==
   ^-  table-return
-  ?.  =(our.bowl src.bowl)  ~|("table must be created by local agent" !!)
-  =/  db  ~|  "database {<database.table.create-table>} does not exist"
+  =/  db  ~|  "CREATE TABLE: database {<database.table.create-table>} ".
+              "does not exist"
                  (~(got by state) database.table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
   =/  nxt-schema=schema
-        ~|  "table {<name.table.create-table>} as-of schema time out of order"
+        ~|  "CREATE TABLE: table {<name.table.create-table>} as-of schema ".
+            "time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
                               sys-time
                               database.table.create-table
                               ==
   =/  nxt-data=data
-        ~|  "table {<name.table.create-table>} as-of data time out of order"
+        ~|  "CREATE TABLE: table {<name.table.create-table>} as-of data ".
+            "time out of order"
           %:  get-next-data  content.db
                               next-data
                               sys-time
@@ -309,16 +384,21 @@
                               ==
   ::
   ?.  (~(has by namespaces.nxt-schema) namespace.table.create-table)
-    ~|("namespace {<namespace.table.create-table>} does not exist" !!)
+    ~|  "CREATE TABLE: namespace {<namespace.table.create-table>} ".
+        "does not exist"
+        !!
   =/  col-set  (name-set (silt columns.create-table))
   ?.  =((lent columns.create-table) ~(wyt in col-set))
-    ~|("duplicate column names {<columns.create-table>}" !!)
+    ~|("CREATE TABLE: duplicate column names {<columns.create-table>}" !!)
   =/  key-col-set  (name-set (silt pri-indx.create-table))
   =/  key-count  ~(wyt in key-col-set)
   ?.  =((lent pri-indx.create-table) key-count)
-    ~|("duplicate column names in key {<columns.create-table>}" !!)
+    ~|  "CREATE TABLE: duplicate column names in key {<pri-indx.create-table>}"
+        !!
   ?.  =(key-count ~(wyt in (~(int in col-set) key-col-set)))
-    ~|("key column not in column definitions {<pri-indx.create-table>}" !!)
+    ~|  "CREATE TABLE: key column not in column definitions ".
+        "{<pri-indx.create-table>}"
+        !!
   ::
   =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
   ::
@@ -332,14 +412,14 @@
             %:  index
                 %index
                 %.y
-                clustered.create-table
                 pri-indx.create-table
             ==
             columns.create-table
             ~
         ==
   =/  tables
-    ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
+    ~|  "CREATE TABLE: {<name.table.create-table>} ".
+        "exists in {<namespace.table.create-table>}"
     %:  map-insert
         tables.nxt-schema
         [namespace.table.create-table name.table.create-table]
@@ -354,13 +434,13 @@
                 src.bowl
                 sap.bowl
                 sys-time
-                clustered.create-table
                 0
                 ~
                 ~
             ==
   =/  files
-    ~|  "{<name.table.create-table>} exists in {<namespace.table.create-table>}"
+    ~|  "CREATE TABLE: {<name.table.create-table>} ".
+        "exists in {<namespace.table.create-table>}"
     %:  map-insert
         files.nxt-data
         [namespace.table.create-table name.table.create-table]
@@ -388,8 +468,6 @@
 ::  +truncate-tbl:
 ::    [databases bowl:gall truncate-table:ast (map @tas @da) (map @tas @da)]
 ::    -> table-return
-::
-::  TRUNCATE is one of the few commands where AS OF is of no use.
 ++  truncate-tbl
   |=  $:  state=databases
           =bowl:gall
@@ -398,54 +476,56 @@
           next-data=(map @tas @da)
           ==
   ^-  table-return
-  =/  db  ~|  "database {<database.table.d>} does not exist"
+  =/  db  ~|  "TRUNCATE TABLE: database {<database.table.d>} does not exist"
              (~(got by state) database.table.d)
+  =/  sys-time  (set-tmsp as-of.d now.bowl)
   =/  nxt-schema=schema
-        ~|  "truncate table {<name.table.d>} as-of schema time out of order"
+        ~|  "TRUNCATE TABLE: {<name.table.d>} as-of schema time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
-                              now.bowl
+                              sys-time
                               database.table.d
                               ==
   =/  nxt-data=data
-        ~|  "truncate table {<name.table.d>} as-of data time out of order"
+        ~|  "TRUNCATE TABLE: {<name.table.d>} as-of data time out of order"
           %:  get-next-data  content.db
                               next-data
-                              now.bowl
+                              sys-time
                               database.table.d
                               ==
   ::
   ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
-    ~|("namespace {<namespace.table.d>} does not exist" !!)
+    ~|("TRUNCATE TABLE: namespace {<namespace.table.d>} does not exist" !!)
   ::
   =/  tables
-    ~|  "{<name.table.d>} does not exists in {<namespace.table.d>}"
+    ~|  "TRUNCATE TABLE: {<name.table.d>} ".
+        "does not exists in {<namespace.table.d>}"
     %-  ~(got by tables:nxt-schema)
         [namespace.table.d name.table.d]
   ::
   =/  file
-    ~|  "truncate table {<namespace.table.d>}.{<name.table.d>} does not exist"
+    ~|  "TRUNCATE TABLE: {<namespace.table.d>}.{<name.table.d>} does not exist"
         (~(got by files.nxt-data) [namespace.table.d name.table.d])
   ?.  (gth rowcount.file 0)  :: don't bother if table is empty
-    [[now.bowl %.n 0] next-schemas next-data state]
+    [[sys-time %.n 0] next-schemas next-data state]
   ::
   =/  dropped-rows  rowcount.file
   =.  rows.file     ~
   =.  rowcount.file   0
-  =.  tmsp.file     now.bowl
+  =.  tmsp.file     sys-time
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
-  =.  tmsp.nxt-data        now.bowl
+  =.  tmsp.nxt-data        sys-time
   ::
-  :^  [now.bowl %.y dropped-rows]
+  :^  [sys-time %.y dropped-rows]
       next-schemas
-      (~(put by next-data) database.table.d now.bowl)
+      (~(put by next-data) database.table.d sys-time)
       %:  upd-view-caches
             state
-            db(content (put:data-key content.db now.bowl nxt-data))
-            now.bowl
+            db(content (put:data-key content.db sys-time nxt-data))
+            sys-time
             ~
             %truncate-table
             ==
@@ -461,19 +541,18 @@
           next-data=(map @tas @da)
           ==
   ^-  table-return
-  ?.  =(our.bowl src.bowl)  ~|("table must be dropped by local agent" !!)
-  =/  db  ~|  "database {<database.table.d>} does not exist"
+  =/  db  ~|  "DROP TABLE: database {<database.table.d>} does not exist"
              (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
   =/  nxt-schema=schema
-        ~|  "drop table {<name.table.d>} as-of schema time out of order"
+        ~|  "DROP TABLE: {<name.table.d>} as-of schema time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
                               sys-time
                               database.table.d
                               ==
   =/  nxt-data=data
-        ~|  "drop table {<name.table.d>} as-of data time out of order"
+        ~|  "DROP TABLE: {<name.table.d>} as-of data time out of order"
           %:  get-next-data  content.db
                               next-data
                               sys-time
@@ -481,10 +560,10 @@
                               ==
   ::
   ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
-    ~|("namespace {<namespace.table.d>} does not exist" !!)
+    ~|("DROP TABLE: namespace {<namespace.table.d>} does not exist" !!)
   ::
   =/  tables
-    ~|  "{<name.table.d>} does not exist in {<namespace.table.d>}"
+    ~|  "DROP TABLE: {<name.table.d>} does not exist in {<namespace.table.d>}"
     %+  map-delete
         tables.nxt-schema
         [namespace.table.d name.table.d]
@@ -493,10 +572,10 @@
   =.  provenance.nxt-schema  sap.bowl
   ::
   =/  file
-        ~|  "drop table {<namespace.table.d>}.{<name.table.d>} does not exist"
+        ~|  "DROP TABLE: {<namespace.table.d>}.{<name.table.d>} does not exist"
             (~(got by files.nxt-data) [namespace.table.d name.table.d])
   ?:  ?&((gth rowcount.file 0) =(force.d %.n))
-    ~|("drop table {<name.table.d>} has data, use FORCE to DROP" !!)
+    ~|("DROP TABLE: {<name.table.d>} has data, use FORCE to DROP" !!)
   =/  dropped-data=?  (gth rowcount.file 0)
   =/  files
     %+  map-delete
@@ -563,15 +642,15 @@
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %delete
-      ?:  query-has-run  ~|("delete state change after query in script" !!)
+      ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
       !!
     %insert
-      ?:  query-has-run  ~|("insert state change after query in script" !!)
+      ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
       ::    ~>  %bout.[0 %process-insert]
               (do-insert state bowl -.rtree next-data next-schemas)
     %update
-      ?:  query-has-run  ~|("update state change after query in script" !!)
+      ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
       !!
     %query
       :-  %.y
@@ -584,7 +663,7 @@
 
   ::    !!
     %merge
-      ?:  query-has-run  ~|("merge state change after query in script" !!)
+      ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
     ==
 ::
@@ -599,17 +678,17 @@
       ==
     :: to do: aura validation? (isn't this covered in testing?)
   ^-  [(map @tas @da) databases (list result)]
-  =/  db  ~|  "database {<database.table.ins>} does not exist"
+  =/  db  ~|  "INSERT: database {<database.table.ins>} does not exist"
           (~(got by state) database.table.ins)
   =/  sys-time  (set-tmsp as-of.ins now.bowl)
-  =/  nxt-schema=schema  ~|  "insert into table {<name.table.ins>} ".
+  =/  nxt-schema=schema  ~|  "INSERT: table {<name.table.ins>} ".
                              "as-of schema time out of order"
                          %:  get-next-schema  sys.db
                                               next-schemas
                                               sys-time
                                               database.table.ins
                                               ==
-  =/  nxt-data=data  ~|  "insert into table {<name.table.ins>} ".
+  =/  nxt-data=data  ~|  "INSERT: table {<name.table.ins>} ".
                          "as-of data time out of order"
                      %:  get-next-data  content.db
                                         next-data
@@ -617,7 +696,7 @@
                                         database.table.ins
                                         ==
   =/  tbl-key  [namespace.table.ins name.table.ins]
-  =/  =table  ~|  "table {<tbl-key>} does not exist"
+  =/  =table  ~|  "INSERT: table {<tbl-key>} does not exist"
               %-  ~(got by tables:nxt-schema)
                   tbl-key
   =/  =file  (~(got by files.nxt-data) tbl-key)
@@ -630,12 +709,12 @@
         ?~  columns.ins
           columns.table
         ?.  =(~(wyt by column-lookup.table) ~(wyt in (silt (need columns.ins))))
-          ~|("incorrect columns specified: {<columns.ins>}" !!)
+          ~|("INSERT: incorrect columns specified: {<columns.ins>}" !!)
           %+  turn
               `(list @t)`(need columns.ins)
               |=(a=@t (to-column a column-lookup.table))
   ::
-  ?.  ?=([%data *] values.ins)  ~|("not implemented: {<values.ins>}" !!)
+  ?.  ?=([%data *] values.ins)  ~|("INSERT: not implemented: {<values.ins>}" !!)
   =/  value-table  `(list (list value-or-default:ast))`+.values.ins
   =/  i=@ud  0
   =/  key-pick=(list [@tas @])
@@ -663,7 +742,8 @@
           ~[[table.ins]]
           ~  :: to do: indices to update
           ==
-        :~  [%server-time now.bowl]
+        :~  [%message (crip "INSERT INTO {<name.table.ins>}")]
+            [%server-time now.bowl]
             [%schema-time tmsp.table]
             [%data-time sys-time]
             [%message 'inserted:']
@@ -671,7 +751,7 @@
             [%message 'table data:']
             [%vector-count rowcount.file]
             ==
-  ~|  "insert {<tbl-key>} row {<+(i)>}"
+  ~|  "INSERT: {<tbl-key>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
   =/  file-row=(map @tas @)  (row-cells row cols)
   =/  row-key
@@ -679,7 +759,7 @@
             key-pick
             |=(a=[p=@tas q=@ud] (key-atom [p.a file-row]))
   =.  pri-idx.file  ?:  (has:primary-key pri-idx.file row-key)
-                      ~|("cannot add duplicate key: {<row-key>}" !!)
+                      ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
                     (put:primary-key pri-idx.file row-key file-row)
   ::=.  rows.file             [file-row rows.file]
   =.  rowcount.file           +(rowcount.file)
@@ -698,7 +778,8 @@
   =/  sys-db  (~(got by state) %sys)
   ?~  from.q
        :-  state    :: no from? only literals
-           :~  (result %result-set (select-literals columns.selection.q))
+           :~  [%message 'SELECT']
+               (result %result-set (select-literals columns.selection.q))
                [%server-time now.bowl]
                [%schema-time created-tmsp.sys-db]
                [%data-time created-tmsp:(~(got by state) %sys)]
@@ -706,18 +787,19 @@
                ==
   =/  =from:ast  (need from.q)
   =/  =table-set:ast  object.from
-    :::::
+    ::::::::
   =/  query-obj=qualified-object:ast
         ?:  ?=(qualified-object:ast object.table-set)
           `qualified-object:ast`object.table-set
-        ~|("not supported" !!)   :: %query-row non-sense to support
-                                 :: %transform composition
+        ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
+                                         :: %transform composition
     ::::::::
-  =/  sys-time  now.bowl  :: to do: sys-time  parse updated to object as of time
-  =/  db=database  ~|  "database {<database.query-obj>} does not exist"
+  =/  sys-time  (set-tmsp as-of.from now.bowl)
+  =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
                   (~(got by state) database.query-obj)
   =/  =schema
-        ~|  "database {<database.query-obj>} doesn't exist at time {<sys-time>}"
+        ~|  "SELECT: database {<database.query-obj>} ".
+            "doesn't exist at time {<sys-time>}"
         (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
   =/  r=[databases data-obj]
@@ -725,7 +807,8 @@
       [state (table-data db schema query-obj sys-time columns.selection.q)]
     (view-data state db schema (need vw) query-obj sys-time columns.selection.q)
   :-  -.r
-      :~  [%result-set rows.+.r]
+      :~  [%message 'SELECT']
+          [%result-set rows.+.r]
           [%server-time now.bowl]
           [%schema-time tmsp.schema]
           [%data-time data-time.+.r]
@@ -794,8 +877,8 @@
            ==
   ^-  data-obj
   =/  tbl-key  [namespace.q name.q]
-  =/  tbl  ~|  "table {<namespace.q>}.{<name.q>} does not exist at schema ".
-               "time {<tmsp.schema>}"
+  =/  tbl  ~|  "SELECT: table {<name.db>}.{<namespace.q>}.{<name.q>} does not ".
+               "exist at schema time {<tmsp.schema>}"
            (~(got by tables.schema) tbl-key)
   =/  file  (get-content content.db sys-time tbl-key)
   =/  vectors  (select-columns rows.file (mk-vect-templ columns.tbl selected))

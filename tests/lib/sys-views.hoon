@@ -80,13 +80,14 @@
                   ==
           ==
   ::
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.5
-                    :-  %schema-time  ~2000.1.1
-                    :-  %data-time  ~2000.1.5
-                    :-  %vector-count  6
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.5]
+                          [%schema-time ~2000.1.1]
+                          [%data-time ~2000.1.5]
+                          [%vector-count 6]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -192,13 +193,14 @@
                   ==
           ==
   ::
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.7
-                    :-  %schema-time  ~2000.1.1
-                    :-  %data-time  ~2000.1.6
-                    :-  %vector-count  7
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.7]
+                          [%schema-time ~2000.1.1]
+                          [%data-time ~2000.1.6]
+                          [%vector-count 7]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -310,13 +312,14 @@
                   ==
           ==
   ::
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.7
-                    :-  %schema-time  ~2000.1.1
-                    :-  %data-time  ~2000.1.6
-                    :-  %vector-count  7
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.7]
+                          [%schema-time ~2000.1.1]
+                          [%data-time ~2000.1.6]
+                          [%vector-count 7]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -420,13 +423,14 @@
                   ==
           ==
   ::
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.7
-                    :-  %schema-time  ~2000.1.1
-                    :-  %data-time  ~2000.1.5
-                    :-  %vector-count  6
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.7]
+                          [%schema-time ~2000.1.1]
+                          [%data-time ~2000.1.5]
+                          [%vector-count 6]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -514,13 +518,14 @@
                   ==
           ==
   ::
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.7
-                    :-  %schema-time  ~2000.1.1
-                    :-  %data-time  ~2000.1.3
-                    :-  %vector-count  4
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.7]
+                          [%schema-time ~2000.1.1]
+                          [%data-time ~2000.1.3]
+                          [%vector-count 4]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -554,7 +559,7 @@
 ::
 ::  Test Cases: CREATE or DROP NAMESPACE
 ::
-++  test-sys-ns
+++  test-sys-namspaces-01
   =|  run=@ud
   =/  row1  :-  %vector
                 :~  [%namespace [~.tas %dbo]]
@@ -569,13 +574,14 @@
                     [%tmsp [~.da ~2000.1.2]]
                     ==
   ::
-  =/  expected  :~  %results
-                    :-  %result-set  ~[row1 row2 row3]
-                    :-  %server-time  ~2000.1.2
-                    :-  %schema-time  ~2000.1.2
-                    :-  %data-time  ~2000.1.2
-                    :-  %vector-count  3
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set ~[row1 row2 row3]]
+                          [%server-time ~2000.1.2]
+                          [%schema-time ~2000.1.2]
+                          [%data-time ~2000.1.2]
+                          [%vector-count 3]
+                      ==
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
@@ -599,6 +605,62 @@
   %+  expect-eq
     !>  expected
     !>  ->+>+>-.mov3
+::
+::  sys-namespaces not default DB
+++  test-sys-namspaces-02
+  =|  run=@ud
+  =/  row1  :-  %vector
+                :~  [%namespace [~.tas %dbo]]
+                    [%tmsp [~.da ~2000.1.1]]
+                    ==
+  =/  row2  :-  %vector
+                :~  [%namespace [~.tas %sys]]
+                    [%tmsp [~.da ~2000.1.1]]
+                    ==
+  =/  row3  :-  %vector
+                :~  [%namespace [~.tas %ns1]]
+                    [%tmsp [~.da ~2000.1.2]]
+                    ==
+  ::
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set ~[row1 row2 row3]]
+                          [%server-time ~2000.1.2]
+                          [%schema-time ~2000.1.2]
+                          [%data-time ~2000.1.2]
+                          [%vector-count 3]
+                      ==
+  ::
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~1999.12.31]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape-create-db "CREATE DATABASE db2"])
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db2
+                "CREATE NAMESPACE ns1"
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2000.1.2]))
+        %obelisk-action
+        !>([%tape %db1 "FROM db2.sys.namespaces SELECT *"])
+    ==
+  %+  expect-eq
+    !>  expected
+    ::!>  ;;(* expected)
+    ::!>  ->+>+>-.mov4
+    !>  ;;(cmd-result ->+>+>-.mov4)
 ::
 ::  sys.tables
 ::
@@ -710,13 +772,14 @@
                   [%key-ascending [~.f 0]]
                   ==
           ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.8
-                    :-  %schema-time  ~2000.1.7
-                    :-  %data-time  ~2000.1.7
-                    :-  %vector-count  9
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.8]
+                          [%schema-time ~2000.1.7]
+                          [%data-time ~2000.1.7]
+                          [%vector-count 9]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -867,13 +930,14 @@
                   [%key-ascending [~.f 0]]
                   ==
           ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.9
-                    :-  %schema-time  ~2000.1.8
-                    :-  %data-time  ~2000.1.8
-                    :-  %vector-count  7
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.9]
+                          [%schema-time ~2000.1.8]
+                          [%data-time ~2000.1.8]
+                          [%vector-count 7]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1055,13 +1119,14 @@
                   [%key-ascending [~.f 0]]
                   ==
           ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.9
-                    :-  %schema-time  ~2000.1.7
-                    :-  %data-time  ~2000.1.8
-                    :-  %vector-count  9
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.9]
+                          [%schema-time ~2000.1.7]
+                          [%data-time ~2000.1.8]
+                          [%vector-count 9]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1242,13 +1307,14 @@
                   [%key-ascending [~.f 0]]
                   ==
           ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.9
-                    :-  %schema-time  ~2000.1.7
-                    :-  %data-time  ~2000.1.7
-                    :-  %vector-count  9
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.9]
+                          [%schema-time ~2000.1.7]
+                          [%data-time ~2000.1.7]
+                          [%vector-count 9]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1391,13 +1457,14 @@
                   [%col-type [~.ta ~.t]]
               ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set    expected-rows
-                    :-  %server-time  ~2000.1.6
-                    :-  %schema-time  ~2000.1.5
-                    :-  %data-time  ~2000.1.5
-                    :-  %vector-count  10
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.6]
+                          [%schema-time ~2000.1.5]
+                          [%data-time ~2000.1.5]
+                          [%vector-count 10]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1509,13 +1576,14 @@
                   [%col-type [~.ta ~.ud]]
                 ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set    expected-rows
-                    :-  %server-time  ~2000.1.7
-                    :-  %schema-time  ~2000.1.6
-                    :-  %data-time  ~2000.1.6
-                    :-  %vector-count  8
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.7]
+                          [%schema-time ~2000.1.6]
+                          [%data-time ~2000.1.6]
+                          [%vector-count 8]
+                      ==
   =/  cmd  :^  %drop-table
               :*  %qualified-object
                   ship=~
@@ -1634,13 +1702,14 @@
                   [%name [~.tas %sys]]
                   ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.8
-                    :-  %schema-time  ~2000.1.7
-                    :-  %data-time  ~2000.1.7
-                    :-  %vector-count  8
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.8]
+                          [%schema-time ~2000.1.7]
+                          [%data-time ~2000.1.7]
+                          [%vector-count 8]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1753,13 +1822,14 @@
                   [%name [~.tas %sys]]
                   ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.9
-                    :-  %schema-time  ~2000.1.8
-                    :-  %data-time  ~2000.1.8
-                    :-  %vector-count  8
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.9]
+                          [%schema-time ~2000.1.8]
+                          [%data-time ~2000.1.8]
+                          [%vector-count 8]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1895,13 +1965,14 @@
                   [%table [~.tas %my-table]]
                   ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.11
-                    :-  %schema-time  ~2000.1.9
-                    :-  %data-time  ~2000.1.10
-                    :-  %vector-count  9
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.11]
+                          [%schema-time ~2000.1.9]
+                          [%data-time ~2000.1.10]
+                          [%vector-count 9]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -2058,13 +2129,14 @@
                   [%table [~.tas %my-table]]
                   ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.10
-                    :-  %schema-time  ~2000.1.9
-                    :-  %data-time  ~2000.1.9
-                    :-  %vector-count  8
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.10]
+                          [%schema-time ~2000.1.9]
+                          [%data-time ~2000.1.9]
+                          [%vector-count 8]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -2212,13 +2284,14 @@
                   [%table [~.tas %my-table]]
                   ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.11
-                    :-  %schema-time  ~2000.1.10
-                    :-  %data-time  ~2000.1.10
-                    :-  %vector-count  8
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.11]
+                          [%schema-time ~2000.1.10]
+                          [%data-time ~2000.1.10]
+                          [%vector-count 8]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -2384,13 +2457,14 @@
                   [%table [~.tas %my-table]]
                   ==
         ==
-  =/  expected  :~  %results
-                    :-  %result-set  expected-rows
-                    :-  %server-time  ~2000.1.11
-                    :-  %schema-time  ~2000.1.9
-                    :-  %data-time  ~2000.1.10
-                    :-  %vector-count  9
-                ==
+  =/  expected  :-  %results
+                      :~  [%message 'SELECT']
+                          [%result-set expected-rows]
+                          [%server-time ~2000.1.11]
+                          [%schema-time ~2000.1.9]
+                          [%data-time ~2000.1.10]
+                          [%vector-count 9]
+                      ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
