@@ -1,12 +1,12 @@
 /-  *obelisk, ast
-/+  default-agent, dbug, *obelisk, *parse
+/+  default-agent, dbug, *obelisk, *print
 |%
 +$  versioned-state
   $%  state-0
   ==
 +$  state-0
   $:  %0
-      =databases
+      =server
   ==
 +$  card  card:agent:gall
 --
@@ -34,58 +34,31 @@
   ^-  (quip card _this)
   ?>  ?=(%obelisk-action mark)
   =/  act  !<(action vase)
+  ::
+  =/  state-server  process-cmds(state server, bowl bowl)
+  ::
   ?-    -.act
   ::
   %tape
-    =/  res  %:  process-cmds
-                 databases
-                 bowl
-                 ::~>  %bout.[0 %process-cmds]  (parse(default-database +<.act) +>.act)
-                 (parse(default-database +<.act) +>.act)
+    =/  res  %:  state-server
+                 ::~>  %bout.[0 %parse-cmds]
+                 (parse-urql +<.act +>.act)
                  ==
-    ::
-    ::~&  "%obelisk-result:"
-    :: ~&  "{<-.res>}"
-    :: ~&      "{<-<+<-.res>}"
-    ::=/  x=[%result-set (list vector)]
-    ::  ?:  ?=([%result-set *] -<+<.res)  `[%result-set (list vector)]`-<+<.res
-    ::  [%result-set ~]
-    ::=/  x2  (turn `(list vector)`+.x |=(a=vector ~&("{<a>}" ~)))
-    ::
-    :_  this(databases +.res)
-    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
-        [%give %kick ~[/databases] ~]
+
+
+    ::=/  x  (print -.res)
+
+
+    :_  this(server +.res)
+    :~  [%give %fact ~[/server] %obelisk-result !>(-.res)]
+        [%give %kick ~[/server] ~]
     ==
   ::
   %commands
-    =/  res  (process-cmds databases bowl +.act)
-    :_  this(databases +.res)
-    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
-        [%give %kick ~[/databases] ~]
-    ==
-  ::
-  %tape-create-db
-    ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
-    =/  res  %:  new-database
-                 databases
-                 bowl
-                 -:(parse(default-database 'dummy') +.act)
-             ==
-    ::
-    ::~&  "%obelisk-result:".
-    ::"{<-.res>}"
-    ::
-    :_  this(databases +.res)
-    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
-        [%give %kick ~[/databases] ~]
-    ==
-  ::
-  %cmd-create-db
-    ?.  =(our.bowl src.bowl)  ~|("database must be created by local agent" !!)
-    =/  res  (new-database databases bowl +.act)
-    :_  this(databases +.res)
-    :~  [%give %fact ~[/databases] %obelisk-result !>(-.res)]
-        [%give %kick ~[/databases] ~]
+    =/  res  (state-server +.act)
+    :_  this(server +.res)
+    :~  [%give %fact ~[/server] %obelisk-result !>(-.res)]
+        [%give %kick ~[/server] ~]
     ==
   ==
 ++  on-watch  on-watch:default

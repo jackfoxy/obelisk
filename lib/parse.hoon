@@ -518,42 +518,44 @@
         ==
       !!
     %create-database
-      ~|  'Create database must be only statement in script'
       ~|  "Create database error:  {<(scag 40 q.q.command-nail)>} ..."
-      ?>  =((lent commands) 0)
       =/  nail  (parse-create-database [[1 1] q.q.command-nail])
       =/  parsed  (wonk nail)
-      ?@  parsed
+      ?:  ?=([[@ %as-of %now] %end-command ~] parsed)
         %=  $
-          script  ""
+          script    q.q.u.+3.q:nail
           commands
-            [(create-database:ast %create-database parsed ~) commands]
+            [(create-database:ast %create-database -<.parsed ~) commands]
         ==
-      ?:  =(%now +>.parsed)
+
+      ?:  ?=([@ %end-command ~] parsed)
         %=  $
-          script  ""
-          commands
-            [(create-database:ast %create-database -.parsed ~) commands]
-        ==
-      ?:  ?=([@ @] +>.parsed)
-        %=  $
-          script  ""
+          script    q.q.u.+3.q:nail
           commands  :-  %:  create-database:ast  %create-database
                                                 -.parsed
-                                                [~ +>.parsed]
+                                                ~
                                                 ==
                         commands
         ==
-      ?:  ?=([@ @ @] +>.parsed)
+      ?:  ?=([[@ %as-of [%da @]] %end-command ~] parsed)
         %=  $
-          script  ""
+          script    q.q.u.+3.q:nail
+          commands  :-  %:  create-database:ast  %create-database
+                                                -<.parsed
+                                                [~ ->+.parsed]
+                                                ==
+                        commands
+        ==
+      ?:  ?=([[@ %as-of [@ @ %ago]] %end-command ~] parsed)
+        %=  $
+          script    q.q.u.+3.q:nail
           commands
             :-  %:  create-database:ast  %create-database
-                                        -.parsed
+                                        -<.parsed
                                         :-  ~
                                         %:  as-of-offset:ast  %as-of-offset
-                                                              +>-.parsed
-                                                              +>+<.parsed
+                                                              ->+<.parsed
+                                                              ->+>-.parsed
                                                               ==
                                         ==
                 commands
@@ -668,8 +670,6 @@
       ==
     %create-table
       ~|  "create table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      ::=/  table-nail  ~>
-      ::      %bout.[0 %parse]  (parse-create-table [[1 1] q.q.command-nail])
       =/  table-nail  (parse-create-table [[1 1] q.q.command-nail])
       =/  parsed  (wonk table-nail)
       ?:  ?=([* * [@ *]] parsed)
@@ -1095,16 +1095,17 @@
       !!
     %insert
       ~|  "insert error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      ::=/  insert-nail  ~>
-      ::      %bout.[0 %parse-insert]  (parse-insert [[1 1] q.q.command-nail])
-      =/  insert-nail  (parse-insert [[1 1] q.q.command-nail])
+      =/  insert-nail
+            ::~>  %bout.[0 %parse-insert]  
+            (parse-insert [[1 1] q.q.command-nail])
       =/  parsed  (wonk insert-nail)
-      ::=/  ins  ~>
-      ::      %bout.[0 %parse-produce-insert]  (produce-insert parsed)
+      =/  ins
+            ::~>  %bout.[0 %parse-produce-insert]  
+            (produce-insert parsed)
       %=  $
         script    q.q.u.+3.q:insert-nail
-        ::  commands  :-  (transform:ast %transform ~ [ins ~ ~])
-        commands  :-  (transform:ast %transform ~ [(produce-insert parsed) ~ ~])
+        commands  :-  (transform:ast %transform ~ [ins ~ ~])
+        ::commands  :-  (transform:ast %transform ~ [(produce-insert parsed) ~ ~])
                       commands
       ==
     %merge
@@ -1337,9 +1338,12 @@
     ==
   ==
 ++  parse-create-database  ~+
-  ;~  pose
-    ;~(plug parse-face parse-as-of)
-    parse-face
+  ;~  plug
+    ;~  pose
+      ;~(plug parse-face parse-as-of)
+      parse-face
+    ==
+    end-or-next-command
   ==
 ++  parse-create-namespace  ~+
   ;~  sfix
@@ -3750,7 +3754,7 @@
       [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
     binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
       [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
-    ternary-op:ast   :: %between
+    ternary-op:ast   :: %between, %not-between
       ?:  =(%and +>-.q.r)
         :+  -.q.r
             [%gte (pred-leaf p.r) (pred-leaf (limo ~[+<.q.r]))]

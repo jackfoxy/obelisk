@@ -1,7 +1,7 @@
 /-  *ast
 ^?
 |%
-+$  databases  (map @tas database)
++$  server  (map @tas database)
 +$  database
   $:  %database
       name=@tas
@@ -27,9 +27,9 @@
       tmsp=@da
       =namespaces
       =tables
-  :: indices  ::  indices other than primary key
+  :: indices  ::  indices other than primary key, indexed by? 
       =views
-  :: permissions
+  :: permissions   :: maybe at server or database level?
   ==
 +$  data
   $:  %data
@@ -103,8 +103,6 @@
 +$  action
   $%  [%tape default-database=@tas urql=tape]
       [%commands cmds=(list command)]
-      [%tape-create-db urql=tape]
-      [%cmd-create-db cmd=create-database]
   ==
 +$  cmd-result  [%results (list result)]
 +$  result
@@ -122,7 +120,7 @@
   $:  [@da ? @ud]
       changed-schemas=(map @tas @da)
       changed-data=(map @tas @da)
-      state=databases
+      state=server
   ==
 ::
 ::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?

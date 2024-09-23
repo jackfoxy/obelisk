@@ -673,6 +673,7 @@
                                        [%column %agent ~.tas]
                                        [%column %namespace ~.tas]
                                        [%column %table ~.tas]
+                                       [%column %row-count ~.ud]
                                        ==
     :*  %view
         provenance                     ::provenance=path
@@ -801,44 +802,54 @@
     v(ordering (make-ordering columns.v +>+>+>+.qsf))
 ::
 ::  +populate-system-view:
-::    [state=databases =database =schema =view name=@tas]
+::    [state=server =database =schema =view name=@tas]
 ::    -> (list (list @))
 ::
 ::  Side effect: populate view-cache
 ::               theoretically a state change, but referentially transparent
 ++  populate-system-view
-    |=  [=databases =database =schema =view name=@tas cache-time=@da]
+    |=  [=server =database =schema =view name=@tas cache-time=@da]
     ^-  [@ (list (map @tas @))]
     ?+  name  ~|("unknown system view" !!)
     ::
     %databases
-      =/  dbes  (turn ~(val by databases) sys-view-databases)
+      =/  dbes  %+  skim
+                    ^-  (list (list @))
+                        (zing (turn ~(val by server) sys-view-databases))
+                    |=(a=(list @) (lte +>-.a cache-time))
       %+  atoms-2-mapped-row
-            (sort `(list (list @))`(zing dbes) ~(order order-row ordering.view))
+            (sort dbes ~(order order-row ordering.view))
             columns.view
     ::
     %namespaces
       =/  namespaces  (~(urn by namespaces.schema) |=([k=@tas v=@da] ~[k v]))
+      =/  nses  %+  skim
+                    `(list (list @))`~(val by namespaces)
+                    |=(a=(list @) (lte +<.a cache-time))
       %+  atoms-2-mapped-row
-            %+  sort  `(list (list @))`~(val by namespaces)
-                        ~(order order-row ordering.view)
+            (sort nses ~(order order-row ordering.view))
             columns.view
     ::
     %tables
       =/  udata=data  (get-data content.database cache-time)
-      =/  tbls  %+  turn  ~(tap by files.udata)
-                          ~(foo sys-view-tables tables.schema)
+      =/  tbls  %+  skim
+                    ^-  (list (list @))
+                        %-  zing
+                            %+  turn  ~(tap by files.udata)
+                                      ~(foo sys-view-tables tables.schema)
+                    |=(a=(list @) (lte +>+>-.a cache-time))                  
       %+  atoms-2-mapped-row
-          (sort `(list (list @))`(zing tbls) ~(order order-row ordering.view))
+          (sort tbls ~(order order-row ordering.view))
           columns.view
     ::
     %columns
       =/  udata=data  (get-data content.database cache-time)
-      =/  columns  %+  turn  ~(tap by files.udata)
-                               ~(foo sys-view-columns tables.schema)
+      =/  columns  ^-  (list (list @))
+                       %-  zing
+                             %+  turn  ~(tap by files.udata)
+                                 ~(foo sys-view-columns tables.schema)
       %+  atoms-2-mapped-row
-          %+  sort  `(list (list @))`(zing columns)
-                    ~(order order-row ordering.view)
+          (sort columns ~(order order-row ordering.view))
           columns.view
     ::
     %sys-log
@@ -847,18 +858,23 @@
             (turn (tap:schema-key sys.database) |=(b=[@da ^schema] +.b))
       =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
       =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
-      =/  log         (weld `(list (list @))`namespaces `(list (list @))`tbls)
+      =/  log   %+  skim
+                    (weld `(list (list @))`namespaces `(list (list @))`tbls)
+                    |=(a=(list @) (lte -.a cache-time))
       %+  atoms-2-mapped-row
           (sort `(list (list @))`log ~(order order-row ordering.view))
           columns.view
     ::
     %data-log
-      =/  tbls  %-  zing
-                  %+  turn  %+  turn  (tap:data-key content.database)
-                                      |=(b=[@da data] +.b)
-                            sys-view-data-log
+      =/  tbls  %+  skim
+                    ^-  (list (list @))
+                        %-  zing
+                            %+  turn  %+  turn  (tap:data-key content.database)
+                                                |=(b=[@da data] +.b)
+                                      sys-view-data-log
+                    |=(a=(list @) (lte -.a cache-time))
       %+  atoms-2-mapped-row
-          (sort `(list (list @))`tbls ~(order order-row ordering.view))
+          (sort tbls ~(order order-row ordering.view))
           columns.view
     ==
 ::
@@ -987,7 +1003,7 @@
                     (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
                 |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
   %+  turn  tbls
-   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k])
+   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k rowcount.file])
 ::
 ++  sys-view-sys-log-tbl
   |=  a=schema

@@ -17,10 +17,24 @@
 ::  Build a reference state mold
 +$  state
   $:  %0
-      =databases
+      =server
       ==
 --
 |%
+::
+++  expected-2-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'cord']]
+                  [%col2 [~.p ~nomryg-nilref]]
+                  [%col3 [~.ud 20]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Default']]
+                  [%col2 [~.p ~zod]]
+                  [%col3 [~.ud 0]]
+                  ==
+          ==
 ::
 :: INSERT
 ::
@@ -39,22 +53,9 @@
                           [%message 'table data:']
                           [%vector-count 2]
                       ==
-  =/  expected-rows  :: to do: make "real" alpha ordering
-        :~
-          :-  %vector
-              :~  [%col1 [~.t 'Default']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
-              :~  [%col1 [~.t 'cord']]
-                  [%col2 [~.p ~nomryg-nilref]]
-                  [%col3 [~.ud 20]]
-                  ==
-            ==
   =/  expected-2  :-  %results
                       :~  [%message 'SELECT']
-                          [%result-set expected-rows]
+                          [%result-set expected-2-rows]
                           [%server-time ~2012.5.4]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -64,7 +65,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -116,22 +117,9 @@
                           [%message 'table data:']
                           [%vector-count 2]
                       ==
-  =/  expected-rows  :: to do: make "real" alpha ordering
-        :~
-          :-  %vector
-              :~  [%col1 [~.t 'Default']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
-              :~  [%col1 [~.t 'cord']]
-                  [%col2 [~.p ~nomryg-nilref]]
-                  [%col3 [~.ud 20]]
-                  ==
-            ==
   =/  expected-2  :-  %results
                       :~  [%message 'SELECT']
-                          [%result-set expected-rows]
+                          [%result-set expected-2-rows]
                           [%server-time ~2012.5.4]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -141,7 +129,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -193,22 +181,9 @@
                           [%message 'table data:']
                           [%vector-count 2]
                       ==
-  =/  expected-rows  :: to do: make "real" alpha ordering
-        :~
-          :-  %vector
-              :~  [%col1 [~.t 'Default']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
-              :~  [%col1 [~.t 'cord']]
-                  [%col2 [~.p ~nomryg-nilref]]
-                  [%col3 [~.ud 20]]
-                  ==
-            ==
   =/  expected-2  :-  %results
                       :~  [%message 'SELECT']
-                          [%result-set expected-rows]
+                          [%result-set expected-2-rows]
                           [%server-time ~2012.5.4]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -218,7 +193,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -270,22 +245,9 @@
                           [%message 'table data:']
                           [%vector-count 2]
                     ==
-  =/  expected-rows  :: to do: make "real" alpha ordering
-        :~
-          :-  %vector
-              :~  [%col1 [~.t 'Default']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
-              :~  [%col1 [~.t 'cord']]
-                  [%col2 [~.p ~nomryg-nilref]]
-                  [%col3 [~.ud 20]]
-                  ==
-            ==
   =/  expected-2  :-  %results
                       :~  [%message 'SELECT']
-                          [%result-set expected-rows]
+                          [%result-set expected-2-rows]
                           [%server-time ~2012.5.4]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -295,7 +257,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -352,16 +314,6 @@
   =/  expected-rows  :: to do: make "real" alpha ordering
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Default']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
-              :~  [%col1 [~.t 'Default-2']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'cord']]
                   [%col2 [~.p ~nomryg-nilref]]
                   [%col3 [~.ud 20]]
@@ -370,6 +322,16 @@
               :~  [%col1 [~.t 'cord-2']]
                   [%col2 [~.p ~sampel-palnet]]
                   [%col3 [~.ud 40]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Default']]
+                  [%col2 [~.p ~zod]]
+                  [%col3 [~.ud 0]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Default-2']]
+                  [%col2 [~.p ~zod]]
+                  [%col3 [~.ud 0]]
                   ==
             ==
   =/  expected-2  :-  %results
@@ -384,7 +346,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -440,22 +402,9 @@
                           [%message 'table data:']
                           [%vector-count 2]
                       ==
-  =/  expected-rows  :: to do: make "real" alpha ordering
-        :~
-          :-  %vector
-              :~  [%col1 [~.t 'Default']]
-                  [%col2 [~.p ~zod]]
-                  [%col3 [~.ud 0]]
-                  ==
-          :-  %vector
-              :~  [%col1 [~.t 'cord']]
-                  [%col2 [~.p ~nomryg-nilref]]
-                  [%col3 [~.ud 20]]
-                  ==
-            ==
   =/  expected-2  :-  %results
                       :~  [%message 'SELECT']
-                          [%result-set expected-rows]
+                          [%result-set expected-2-rows]
                           [%server-time ~2012.5.4]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -465,13 +414,13 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.29]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db2"])
+        !>([%tape %sys "CREATE DATABASE db2"])
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -522,7 +471,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -552,7 +501,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -588,7 +537,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -618,7 +567,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -648,7 +597,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -678,7 +627,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -708,7 +657,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -738,7 +687,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -768,7 +717,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -801,7 +750,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -838,7 +787,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -871,7 +820,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -904,7 +853,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -939,7 +888,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -974,7 +923,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -1012,7 +961,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   =^  mov2  agent
@@ -1050,7 +999,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   ::
@@ -1071,7 +1020,7 @@
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
-        !>([%tape-create-db "CREATE DATABASE db1"])
+        !>([%tape %sys "CREATE DATABASE db1"])
     ==
   =.  run  +(run)
   ::

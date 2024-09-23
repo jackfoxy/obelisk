@@ -23,7 +23,7 @@
     =/  k=(list [@tas ascending=?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (aor -.q -.p)
+    ?:  =(-<.k %t)  (alpha -.q -.p)
     ?:  ->.k  (gth -.p -.q)
     (lth -.p -.q)
   --
@@ -96,25 +96,29 @@
 ++  get-view
   |=  [key=data-obj-key =views]
   ^-  (unit view)
-  ~|  "view {<ns.key>}.{<obj.key>} does not exist for time {<time.key>}"
   =/  vw  (tab:view-key views `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
   ?~  vw  ~
-  `->.vw
+  =/  returned-key=data-obj-key  -<.vw
+  ?:  &(=(ns.returned-key ns.key) =(obj.returned-key obj.key))  `->.vw
+  ~
 ::
+::  +get-view-cache:  [data-obj-key ((mop data-obj-key cache) ns-obj-comp)]
+::                    -> (unit cache)
 ++  view-cache-key  ((on data-obj-key cache) ns-obj-comp)
 ++  get-view-cache
   |=  [key=data-obj-key q=((mop data-obj-key cache) ns-obj-comp)]
-  ^-  (unit cache)
-  ~|  "view {<ns.key>}.{<obj.key>} does not exist for time {<time.key>}"
+  ^-  cache
   =/  vw  (tab:view-cache-key q `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
-  ?~  vw  ~
-  `->.vw
+  ?~  vw
+    ~|("view {<ns.key>}.{<obj.key>} does not exist from time {<time.key>}" !!)
+  ->.vw
 ::
 ::  +put-view-cache
 ++  put-view-cache
   |=  [db=database value=cache key=data-obj-key]
   ^-  database
-  db(view-cache (~(put by view-cache.db) key value))
+  ::db(view-cache (~(put by view-cache.db) key value))
+  db(view-cache (put:((on data-obj-key cache) ns-obj-comp) view-cache.db [key value]))
 ::
 ::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file
 ++  content-key  ((on @da data) gth)
@@ -133,37 +137,6 @@
       %^  fold  ~(tap by files.d)
                 `?`%.n
                 |=([[* =file] state=?] ?:(=(0 rowcount.file) state %.y))
-::
-::  +select-columns:  [(list (map @tas @)) (list selected-column:ast)]
-::                    -> (list (map @tas @))
-++  select-columns
-  |=  [rows=(list (map @tas @)) cells=(list foo-cell)]
-  ~+  ^-  (list vector)
-  =/  out-rows=(list vector)  ~
-  |-
-  ?~  rows  out-rows
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list foo-cell)  cells
-  |-
-  ?~  cols
-      ?~  out-rows  %=  ^$
-                      out-rows  [(vector %vector row) out-rows]
-                      rows      t.rows
-                    ==
-      ?:  =(-.out-rows (vector %vector row))  ^$(rows t.rows)
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?.  is-column.i.cols
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=foo-cell  i.cols
-  %=  $
-    cols  t.cols
-    row   [[-.vc.cell [+<.vc.cell (~(got by i.rows) column-name.cell)]] row]
-  ==
 ::
 ::  +heading:  [=selected-column:ast @tas] -> @tas
 ::
@@ -198,9 +171,9 @@
     ?:  =(0 ->+.k)  q                      ::offset of current index
     (oust [0 ->+.k] q)
   ?:  =(-.pp -.qq)  $(k +.k)
-  ?:  =(-<.k %.y)  (aor -.qq -.pp)  ::(aor -.pp -.qq)
-  ?:  ->-.k  (gth -.pp -.qq)        ::(lth -.pp -.qq)
-  (lth -.pp -.qq)                   ::(gth -.pp -.qq)
+  ?:  =(-<.k %.y)  (alpha -.qq -.pp)
+  ?:  ->-.k  (gth -.pp -.qq)
+  (lth -.pp -.qq)
   --
 ::
 ::  +make-ordering:  [(list column:ast) *] -> (list column-order)
@@ -282,31 +255,31 @@
 ::  +mk-vect-templ: (list column:ast) -> (list vector-cell)
 ::
 ::  leave output un-flopped so consuming arm does not flop
-++  foo
+++  mk-templ-cell
   |=  a=column:ast
-  ^-  foo-cell
-  (foo-cell %foo-cell name.a %.y `vector-cell`[name.a [type.a 0]])
+  ^-  templ-cell
+  (templ-cell %templ-cell `name.a `vector-cell`[name.a [type.a 0]])
 ++  mk-vect-templ
   |=  [cols=(list column:ast) selected=(list selected-column:ast)]
-  ^-  (list foo-cell)
+  ^-  (list templ-cell)
   =/  i  0
   =/  col-lookup=(map @tas @ta)
         (~(gas by `(map @tas @ta)`~) (turn cols |=(a=[@tas [@tas @ta]] +.a)))
-  =/  cells=(list foo-cell)  ~
+  =/  cells=(list templ-cell)  ~
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
   ?:  =([%all %all] i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells     (weld (flop (turn cols foo)) cells)
+      cells     (weld (flop (turn cols mk-templ-cell)) cells)
     ==
   ?:  ?=(qualified-column:ast i.selected)
     ?:  =('ALL' column.i.selected)  :: name = table name
       %=  $
         i         +(i)
         selected  t.selected
-        cells     (weld (flop (turn cols foo)) cells)
+        cells     (weld (flop (turn cols mk-templ-cell)) cells)
       ==
     %=  $
       i         +(i)
@@ -314,9 +287,8 @@
       cells
             ~|  "SELECT: column {<column.i.selected>} not found"  
             :-
-              %:  foo-cell  %foo-cell
-                            column.i.selected
-                            %.y
+              %:  templ-cell  %templ-cell
+                            [~ column.i.selected]
                             :-  (heading i.selected column.i.selected)
                                 [(~(got by col-lookup) column.i.selected) 0]
                             ==
@@ -326,9 +298,8 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells   :-  %:  foo-cell  %foo-cell
-                                %foo
-                                %.n
+      cells   :-  %:  templ-cell  %templ-cell
+                                ~
                                 :-  (heading i.selected (crip "literal-{<i>}"))
                                     [p=+<-.i.selected q=+<+.i.selected]
                                 ==
@@ -384,120 +355,93 @@
   ~|  "INSERT: invalid column: {<p>}"
   (column:ast %column p -:(~(got by q) p))
 ::
-::  +upd-indices-views:  [databases qualified-object @da =views] -> databases
+::  +upd-indices-views:  [server qualified-object @da =views] -> server
 ::
 ::  post- insert, update, delete, truncate procedure to create new view
 ::  and index instances for effected tables
 ::  =views passes effected sys views
-++  upd-indices-views
-  |=  $:  state=databases
+++  upd-indices-views    :: to do: revisit when there are views & indices
+  |=  $:  state=server
           sys-time=@da
           objs=(list qualified-object:ast)
           sys-vws=(list [@tas @tas])
           ==
-  ^-  databases
+  ^-  server
   :: to do: iterate through objects
   state
 ::
-::  +upd-view-caches:  [databases database @da (unit (list [@tas @tas])) db-cmd]
-::                     -> databases
+::  +update-sys:  [server @da] -> server
+++  update-sys
+  |=  [state=server sys-time=@da]
+  ^-  server
+  =/  sys-db  (~(got by state) %sys)     
+  =.  view-cache.sys-db
+        (upd-view-caches state sys-db sys-time ~ %create-database)
+  (~(put by state) %sys sys-db)
+::
+::  +upd-view-caches:  [server database @da (unit (list [@tas @tas])) db-cmd]
+::                     -> server
+::
+::  state needed for cross-db view changes
 ++  upd-view-caches
-  |=  $:  state=databases
+  |=  $:  state=server      
           db=database
           sys-time=@da
           sys-vws=(unit (list [@tas @tas]))
           caller=db-cmd
           ==
-  ^-  databases
+  ^-  view-cache
   ?-  caller
     %create-database
-      %:  upd-view-caches-db
-            state
-            db
-            sys-time
-            ~
-            ==
+      (next-view-cache-keys db sys-time ~[[%sys %databases]])
     %drop-database
-      !!
+      ~|("%drop-database should implement %create-database caller" !!)
     %create-namespace
-      %:  upd-view-caches-db
-            state
-            db
-            sys-time
-            ~[[%sys %namespaces]]
-            ==
+      (next-view-cache-keys db sys-time ~[[%sys %namespaces]])
     %alter-namespace
-      !!
+      ~|("%alter-namespace not implemented" !!)
     %drop-namespace
-      !!
+      ~|("%drop-namespace not implemented" !!)
     %create-table
-      =/  sys-db  (~(got by state) %sys)
-      %:  upd-view-caches-db
-            %:  upd-view-caches-db
-                  state
-                  db
-                  sys-time
-                  :~  [%sys %tables]
-                      [%sys %columns]
-                      [%sys %sys-log]
-                      [%sys %data-log]
-                      ==
-                  ==
-            sys-db
-            sys-time
-            ~[[%sys %databases]]
-            ==
+      %^  next-view-cache-keys  db
+                              sys-time
+                              :~  [%sys %tables]
+                                  [%sys %columns]
+                                  [%sys %sys-log]
+                                  [%sys %data-log]
+                                  ==
     %alter-table
-      !!
+      ~|("%alter-table not implemented" !!)
     %drop-table
-      =/  sys-db  (~(got by state) %sys)
-      %:  upd-view-caches-db
-            %:  upd-view-caches-db
-                  state
-                  db
-                  sys-time
-                  :~  [%sys %tables]
-                      [%sys %columns]
-                      [%sys %sys-log]
-                      [%sys %data-log]
-                      ==
-                  ==
-            sys-db
-            sys-time
-            ~[[%sys %databases]]
-            ==
+      %^  next-view-cache-keys  db
+                              sys-time
+                              :~  [%sys %tables]
+                                  [%sys %columns]
+                                  [%sys %sys-log]
+                                  [%sys %data-log]
+                                  ==
     %truncate-table
-      =/  sys-db  (~(got by state) %sys)
-      %:  upd-view-caches-db
-            %:  upd-view-caches-db
-                  state
-                  db
-                  sys-time
-                  ~[[%sys %tables] [%sys %data-log]]
-                  ==
-            sys-db
-            sys-time
-            ~[[%sys %databases]]
-            ==
+      (next-view-cache-keys db sys-time ~[[%sys %tables] [%sys %data-log]])
     %insert
-      =/  sys-db  (~(got by state) %sys)
-      %:  upd-view-caches-db
-            %:  upd-view-caches-db
-                  state
-                  db
-                  sys-time
-                  %+  weld  (limo ~[[%sys %tables] [%sys %data-log]])
-                            (need sys-vws)
-                  ==
-            sys-db
-            sys-time
-            ~[[%sys %databases]]
-            ==
+      %^  next-view-cache-keys
+                            db
+                            sys-time
+                            %+  weld  (limo ~[[%sys %tables] [%sys %data-log]])
+                                      (need sys-vws)
     %update
-      !!
+      ~|("%update not implemented" !!)
     %delete
-      !!
+      ~|("%delete not implemented" !!)
   ==
+::
+::  +next-view-cache-keys:  [database @da (list [@tas @tas])] -> view-cache
+++  next-view-cache-keys
+  |=  [db=database sys-time=@da sys-vws=(list [@tas @tas])]
+  ^-  view-cache
+  %+  gas:view-cache-key
+        view-cache.db
+        %+  turn  sys-vws
+              |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
@@ -516,24 +460,6 @@
   |-  ^-  _b
   ?~  a  b
   $(a t.a, b (c i.a b))
-::
-++  upd-view-caches-db
-  |=  $:  state=databases
-          db=database
-          sys-time=@da
-          sys-vws=(list [@tas @tas])
-          ==
-  ^-  databases
-  %+  ~(put by state)
-    name.db
-    %=  db
-        view-cache
-          %+  gas:view-cache-key
-              view-cache.db
-              %+  turn
-                  sys-vws
-            |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
-          ==
 ::
 ++  key-atom
   |=  a=[p=@tas q=(map @tas @)]
@@ -609,6 +535,70 @@
     ~
   --
 ::
+::  +alpha
+::
+::  alphabetic order cords
+++  alpha 
+  |=  [a=@ b=@]
+  ^-  ?
+  ?:  =(a b)  %.y
+  =/  e=(list ?)  ~
+  |-
+  =+  [c=(end 3 a) d=(end 3 b)]
+  ?:  =(c 0)
+    ?:  &(=(d 0) (gth (lent e) 0))
+      -:(flop e)
+    %.y
+  ?:  =(d 0)
+    %.n
+  ::
+  ?:  &((gte (mix c d) 32) (gte (dis c d) 64))
+    ?:  (lth c d)
+      ?:  (lth c (sub d 32))   %.y
+      ?:  (gth c (sub d 32))   %.n
+      ?:  =(c (sub d 32))      $(a (rsh 3 a), b (rsh 3 b), e [%.y e])
+      $(a (rsh 3 a), b (rsh 3 b), e [%.y e])
+
+    ?:  =((sub c 32) d)
+      ?:  =((rsh 3 a) 0)
+        ?:  =((rsh 3 b) 0)
+          %.n
+        %.y
+      %.n
+
+    ?:  (gth c d)
+      ?:  (lth (sub c 32) d)
+        %.y       
+      ::$(a (rsh 3 a), b (rsh 3 b), e [%.n e])
+      %.n
+    ~|("can't get here" !!)
+  ::
+  ?:  =(c d)
+    $(a (rsh 3 a), b (rsh 3 b))  
+  (lth c d)
+::    +split-all: [(list T) sep:(list t)] -> (list (list T))
+::
+::  Splits a list into multiple lists, delimited by another list.
+::    Examples
+::      > (split-all "abcdefabhijkablmn" "ab")
+::      ~[~ "cdef" "hijk" "lmn"]
+::    Source
+++  split-all
+  |*  [p=(list) sep=(list)]
+  =/  c=(list (list _?>(?=(^ p) i.p)))  ~
+  =/  len  (lent sep)
+  =/  q=(list @)  (flop (fand sep p))
+  |-  ^+  c
+  ?~  p  c
+  ?~  q  $(p ~, c [p c])
+  ?:  =(i.q 0)
+    $(c [~ [(slag (add len i.q) `(list _?>(?=(^ p) i.p))`p) c]], p ~)
+  %=  $
+    c  [(slag (add len i.q) `(list _?>(?=(^ p) i.p))`p) c]
+    p  (scag i.q `(list _?>(?=(^ p) i.p))`p)
+    q  t.q
+  ==
+::
 ++  name-set
   |*  a=(set)
   ^-  (set @tas)
@@ -630,10 +620,9 @@
                 %delete
                 ==
 ::
-+$  foo-cell
-  $:  %foo-cell
-      column-name=@tas
-      is-column=?
++$  templ-cell
+  $:  %templ-cell
+      column-name=(unit @tas)
       vc=vector-cell
   ==
 ::

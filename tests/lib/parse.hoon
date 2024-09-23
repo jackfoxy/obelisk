@@ -417,21 +417,10 @@
     !>  ~[[%create-database name='my-db' as-of=[~ [%as-of-offset 4 %years]]]]
     !>  (parse:parse(default-database 'dummy') "create database my-db as of 4 years ago")
 ::
-:: subsequent commands ignored
-++  test-create-database-10
-  %+  expect-eq
-    !>  ~[[%create-database name='my-database' as-of=~]]
-    !>  (parse:parse(default-database 'dummy') "cReate datAbase \0a  my-database; cReate namesPace my-db.another-namespace")
-::
 :: fail when database name is not a term
-++  test-fail-create-database-11
+++  test-fail-create-database-01
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "cReate datAbase  My-database")
-::
-:: fail when commands are prior to create database
-++  test-fail-create-database-12
-  %-  expect-fail
-  |.  (parse:parse(default-database 'dummy') "create namespace my-namespace ; cReate datAbase my-database")
 ::
 :: create index
 ::

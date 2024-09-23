@@ -46,14 +46,15 @@
     |=  [msg=@t a=(trap)]
     ^-  tang
     =/  b  (mule a)
-
-    ::~&  "{<+.b>}"
-
     ?-  -.b
       %|  |^
           =/  =tang  (flatten +.b)
           ?:  ?=(^ (find (trip msg) tang))
             ~
+          
+            ~&  "expected:  {<(trip msg)>}"
+            ~&  "find in tang:  {<(flatten +.b)>}"
+
           ['expected error message - not found' ~]
           ++  flatten
             |=  tang=(list tank)
