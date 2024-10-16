@@ -1,0 +1,128 @@
+# Database Schema
+
+:obelisk &obelisk-action [%tape %db1 uql]
+
+## CREATE DATABASE
+
+:obelisk &obelisk-action [%tape %sys "CREATE DATABASE db1"]
+
+=uql "FROM sys.sys.databases ".
+"SELECT *"
+
+
+## CREATE TABLE
+
+=uql "CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;".
+"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1)"
+
+
+# Data Manipulation
+## INSERT
+
+=uql "INSERT INTO my-table-1 ".
+"(col1, col2) ".
+"VALUES".
+"  ('today', ~2024.9.26)".
+"  ('tomorrow', ~2024.9.27)".
+"  ('next day', ~2024.9.28); ".
+"INSERT INTO my-table-2 ".
+"VALUES ".
+"  ('today', ~2024.9.26, 1)".
+"  ('tomorrow', ~2024.9.27, 2)".
+"  ('next day', ~2024.9.28, 3);"
+
+
+## TRUNCATE TABLE
+
+=uql "TRUNCATE TABLE my-table-1"
+
+
+# Sample Database
+:obelisk &obelisk-action [%tape %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+
+
+# Query
+
+=uql "SELECT 0"
+
+=uql "SELECT 0 AS My-Alias"
+
+=uql "FROM reference.calendar ".
+"SELECT *"
+
+=uql "FROM reference.calendar ".
+"SELECT day-name AS Day"
+
+
+# The WHERE clause
+
+=uql "FROM reference.calendar ".
+"WHERE day-name = 'Thursday' ".
+"SELECT *"
+
+=uql "FROM reference.calendar ".
+"WHERE day-name = 'nonsense' ".
+"  AND month-name = 'nonsense' ".
+"   OR day = 3 ".
+"SELECT *"
+
+=uql "FROM reference.calendar ".
+"WHERE day-name = 'nonsense' ".
+"  AND (month-name = 'nonsense' ".
+"       OR day = 3) ".
+"SELECT *"
+
+
+# Time Travel
+
+=uql "CREATE DATABASE db2 AS OF ~2030.1.1"
+
+=uql "CREATE NAMESPACE db2.ns1"
+
+=uql "FROM sys.sys.databases AS OF NOW SELECT *"
+
+=uql "FROM sys.sys.databases AS OF ~2030.1.1 SELECT *"
+
+=uql "DROP DATABASE animal-shelter"
+
+=uql "DROP DATABASE db2"
+
+=uql "CREATE DATABASE db2 AS OF ~2000.1.1;".
+"CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) AS OF ~2000.1.1;".
+"INSERT INTO db2..my-table-1 ".
+"  (col1, col2) ".
+"VALUES".
+"  ('today', ~2000.1.1)".
+"  ('tomorrow', ~2000.1.2)".
+"  ('next day', ~2000.1.3) AS OF ~2000.1.1;".
+"INSERT INTO db2..my-table-1 ".
+"  (col1, col2) ".
+"VALUES".
+"  ('next-today', ~2000.1.1)".
+"  ('next-tomorrow', ~2000.1.2)".
+"  ('next-next day', ~2000.1.3);"
+
+=uql "FROM db2..my-table-1 ".
+"SELECT *"
+
+=uql "FROM db2..my-table-1 ".
+"  AS OF ~2016.11.11 ".
+"SELECT *"
+
+
+# Joins
+
+=uql "FROM sys.tables ".
+     "WHERE namespace = 'reference' ".
+     "AND name = 'calendar' ".
+     " OR name = 'calendar-us-fed-holiday' ".    
+     "SELECT name AS table-name, key-ordinal, key"
+
+=uql "FROM reference.calendar T1 ".
+     "JOIN reference.calendar-us-fed-holiday T2 ".
+     "WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31 ".
+     "SELECT T1.date, day-name, us-federal-holiday"
+
+# Parsing
+
+(parse:parse(default-database 'animal-shelter') uql)

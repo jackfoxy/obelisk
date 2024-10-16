@@ -1,0 +1,16 @@
+```
+<table-set> ::=
+...
+  | ( column-1 [,...column-n] )
+...
+```
+
+...
+
+`( column-1 [,...column-n] )` assigns column names to the widest row type of an incoming pass-thru table.
+
+`*` accepts an incoming pass-thru virtual-table assuming column names established by the previous set-command (`DELETE`, `INSERT`, `MERGE`, `QUERY`, or `UPDATE`) that created the pass-thru.
+
+Similarly `*` as the output of `DELETE`, `INSERT`, `MERGE` creates a pass-thru virtual-table for consumption by the next step or ultimate product of a `<selection>`.
+
+
