@@ -80,7 +80,7 @@ Every successful command returns metadata about the state of the server and effe
 
 **%server-time** -- The time, according to the server, the script executed. This corresponds to `now.bowl` in the agent. Unless the command was submitted with an `AS OF` clause (which overrides server time) Obelisk will record this time to any internal timestamps. In this case the time of database creation.
 
-**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and selection commands).<sup>1</sup>
+**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and selection commands).<sup>1</sup>
 
 Let's look at the state of our server by querying a system view on the database schema.
 
@@ -151,7 +151,7 @@ The table's columns are defined by pairs of name/aura separated by comma, and fi
 ```
 Two commands and two %results blocks, all recorded at the same time.
 
-<sup>1</sup> In the current release of Obelisk `%schema-time` is generally the time of the Table of View schema (structure definition), but once *FOREIGN KEY* is introduced it will be the time of the entire Database schema, for reasons having to do with overriding execution time and idempotence.
+<sup>1</sup> In the current release of Obelisk `%schema-time` is generally the time of the Table or View schema (structure definition), but once *FOREIGN KEY* is introduced it will be the time of the entire Database schema, for reasons having to do with overriding execution time and idempotence.
 
 # Data Manipulation
 ## INSERT
@@ -296,7 +296,7 @@ Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` c
 ```
 According to the %vector-count there are nearly 22,000 rows in this table, but the print utility only prints the first 9 and the last one.
 
-`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. In a later Obelisk release ALTER TABLE can add or remove columns, if effect altering saved scripts using `SELECT *`.
+`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. In a later Obelisk release ALTER TABLE can add or remove columns, in effect altering saved scripts using `SELECT *`.
 ```
 SELECT date, year, month, month-name, day, day-name, day-of-year, weekday, year-week
 ```
@@ -410,7 +410,7 @@ CREATE DATABASE db2 AS OF ~2030.1.1
   %results
     [ %message 'created database %db2' ]
     [ %server-time ~2024.9.29..21.14.00..7fc8 ]
-    [ %schema-time ~2025.1.1 ]
+    [ %schema-time ~2030.1.1 ]
 ```
 Results in all operations on the database requiring a time subsequent to this future creation date.
 
