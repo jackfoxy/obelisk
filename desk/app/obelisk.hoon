@@ -61,7 +61,8 @@
         [%give %kick ~[/server] ~]
     ==
   ==
-++  on-watch  on-watch:default
+++  on-watch  ::on-watch:default    
+`this
 ++  on-leave  on-leave:default
 ++  on-peek   on-peek:default
 ++  on-agent  on-agent:default
