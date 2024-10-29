@@ -1,9 +1,5 @@
 # Releases
 
-## v0.2 (unreleased current version)
-
-## v0.3 (not for release)
-
 ## v0.4 (alpha release)
 
 ### DDL
