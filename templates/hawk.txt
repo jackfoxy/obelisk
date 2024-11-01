@@ -1,0 +1,182 @@
+!:
+::
+::  A user interface for Obelisk.
+::
+::  
+::  Requires that the %obelisk agent is running.
+::   https://github.com/jackfoxy/obelisk
+::
+::
+:-  %thread
+|^
+  =/  m  (strand ,vase)
+  ;<  our=@p  bind:m  get-our
+  ;<  now=@da  bind:m  get-time
+  =/  dock  [our %obelisk]
+  ?.  =(p.rain %query)
+    %-  pure:m  !>
+    (render old-query old-results)
+  =/  query
+    (trip (~(gut by q.rain) 'query-text' default-query))
+  =/  obelisk-command=cage  obelisk-action/!>([%tape %sys query])
+  ;<  ~  bind:m  (watch /query dock /server)
+  ;<  ~  bind:m  (poke dock obelisk-command)
+  ;<  [mark =vase]  bind:m  (take-fact /query)
+  =/  res
+    ~|  %malformed-response
+    (poke-result +:vase)
+  ?-  -.res
+    %.n
+      %-  pure:m  !>
+      (render query (print-tang p.res))
+    %.y
+      %-  pure:m  !>
+      (render query (print-results p.res))
+  ==
+++  print-tang
+  |=  =tang
+  ;div#results.grow.basis-half.b1.scroll-y.scroll-x.mono.s0.p4
+    ;*
+    %+  turn  tang
+    |=  =tank
+    ;div
+      ;*
+      %+  turn  (wash [0 80] tank)
+      |=  =tape
+      ;div: {tape}
+    ==
+  ==
+++  render
+  |=  [query=tape results=manx]
+  ;div.fc.hf.mhf
+    ;form.grow.basis-half.fc.mono.s0
+      =method  "post"
+      ;input.hidden(name "p", value "query");
+      ;textarea#query-text.p3.grow
+        =name  "query-text"
+        =spellcheck  "false"
+        =placeholder  "FROM ... SELECT *"
+        ; {query}
+      ==
+      ;button.o7.b-3.fr.p2.tc.jc.ac.bold: submit
+    ==
+    ;+  results
+  ==
+++  old-query
+  ^-  tape
+  %~  all-text-content  mx
+  =<  q
+  %-  fall  :_
+    ^-  (pair path manx)
+    [/ ;div;]
+  (~(gid mx man) "query-text")
+++  old-results
+  ^-  manx
+  =<  q
+  %-  fall  :_
+    ^-  (pair path manx)
+    :-  /
+    ;div.grow.basis-half.fc.jc.ac: no results yet
+  (~(gid mx man) "results")
+++  print-results
+  |=  results=(list cmd-result)
+  ;div#results.grow.basis-half.b1.scroll-y.scroll-x.mono.s0
+    ;*
+    %+  turn  results
+    |=  =cmd-result
+    ;div.p3
+      ;div
+        ;*
+        %+  turn  +.cmd-result
+        |=(=result (print-result-set result))
+      ==
+      ;div.p3
+        ;*
+        %+  turn  +.cmd-result
+        |=(=result (print-result-metadata result))
+      ==
+    ==
+  ==
+++  default-query
+    '''
+    FROM sys.sys.databases
+    SELECT *
+    '''
+++  print-result-metadata
+  |=  =result
+  ?+  -.result  ;div;
+    %message
+      ;div.fr.g1
+        ;div.bold: message:
+        ;div: {(trip msg.result)}
+      ==
+    %vector-count
+      ;div.fr.g1
+        ;div.bold: vector count:
+        ;div: {(scow %ud count.result)}
+      ==
+    %server-time
+      ;div.fr.g1
+        ;div.bold: server-time:
+        ;div: {(scow %da date.result)}
+      ==
+    %schema-time
+      ;div.fr.g1
+        ;div.bold: schema-time:
+        ;div: {(scow %da date.result)}
+      ==
+    %data-time
+      ;div.fr.g1
+        ;div.bold: data-time:
+        ;div: {(scow %da date.result)}
+      ==
+  ==
+++  print-result-set
+  |=  =result
+  ?+  -.result  ;div: 
+    %result-set
+    ;div
+      ;+  (print-list-vector +.result)
+    ==
+  ==
+  ::
+++  print-list-vector
+  |=  vectors=(list vector)
+  ;div
+    ;table.p3
+      =style  "border-collapse: collapse;"
+      ;tr
+        ;*
+        ?~  vectors  ~
+
+        %+  turn  +:i.vectors
+        |=  cell=vector-cell
+        ;th.p1.bd1(style "white-space: nowrap;"): {(trip p.cell)}
+      ==
+      ;*  (turn vectors print-vector)
+    ==
+  ==
+++  print-vector
+  |=  =vector
+  ;tr
+    ;*
+    %+  turn  +.vector
+    |=  cell=vector-cell
+    ;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
+  ==
++$  poke-result  (each (list cmd-result) tang)
++$  cmd-result  [%results (list result)]
++$  result
+  $%  [%message msg=@t]
+      [%vector-count count=@ud]
+      [%server-time date=@da]
+      [%schema-time date=@da]
+      [%data-time date=@da]
+      [%result-set (list vector)]
+      ==
++$  vector-cell  [p=@tas q=dime]
++$  vector
+    $:  %vector
+        (lest vector-cell)
+    ==
+--

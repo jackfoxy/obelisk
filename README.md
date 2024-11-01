@@ -10,8 +10,6 @@
 
 * No NULLS, anywhere, ever.
 
-* Scripts are atomic (pass/fail)
-
 Obelisk employs a dialect of SQL called urQL that provides for these properties.
 
 See References/Preliminaries and the Users Guide in the docs folder for more information.
@@ -26,6 +24,12 @@ Reporting bugs is encouraged and appreciated. Please open an issue with a minima
 
 Reporting documentation bugs is also appreciated.
 
-### Contributions
+### Using the %hawk UI
 
-This projects welcomes contributors.
+To interact with Obelisk from %hawk:
+
+- Ensure you have %hawk installed
+  `|install ~dister-migrev-dolseg %hawk`
+- Create a file in your hawk namespace
+- Paste the contents of templates/hawk.txt (in this repo)
+  into the hawk file
