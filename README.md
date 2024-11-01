@@ -10,6 +10,8 @@
 
 * No NULLS, anywhere, ever.
 
+* Scripts are atomic (pass/fail)
+
 Obelisk employs a dialect of SQL called urQL that provides for these properties.
 
 See References/Preliminaries and the Users Guide in the docs folder for more information.
@@ -23,6 +25,10 @@ This repository includes a sample database, "animal-shelter", derived from https
 Reporting bugs is encouraged and appreciated. Please open an issue with a minimal urQL script reproducing the bug using the sample database, or if it's not possible to reproduce in the sample database provide the full DDL and other commands to reproduce.
 
 Reporting documentation bugs is also appreciated.
+
+### Contributions
+
+This projects welcomes contributors.
 
 ### Using the %hawk UI
 
