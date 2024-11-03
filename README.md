@@ -29,3 +29,13 @@ Reporting documentation bugs is also appreciated.
 ### Contributions
 
 This projects welcomes contributors.
+
+### Using the %hawk UI
+
+To interact with Obelisk from %hawk:
+
+- Ensure you have %hawk installed
+  `|install ~dister-migrev-dolseg %hawk`
+- Create a file in your hawk namespace
+- Paste the contents of templates/hawk.txt (in this repo)
+  into the hawk file

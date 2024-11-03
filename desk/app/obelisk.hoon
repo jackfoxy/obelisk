@@ -1,4 +1,4 @@
-/-  *obelisk, ast
+/-  *obelisk, obelisk, ast
 /+  default-agent, dbug, *obelisk, *print
 |%
 +$  versioned-state
@@ -40,28 +40,37 @@
   ?-    -.act
   ::
   %tape
-    =/  res  %:  state-server
-                 ::~>  %bout.[0 %parse-cmds]
-                 (parse-urql +<.act +>.act)
-                 ==
-
-
-    =/  x  (print -.res)
-
-
-    :_  this(server +.res)
-    :~  [%give %fact ~[/server] %obelisk-result !>(-.res)]
-        [%give %kick ~[/server] ~]
-    ==
+    =/  virtualized
+      ^-  (each (pair (list cmd-result:obelisk) server:obelisk) tang)
+      %-  mule
+      |.
+      %:  state-server
+      ::~>  %bout.[0 %parse-cmds]
+      (parse-urql +<.act +>.act)
+      ==
+    ?-  -.virtualized
+      %.n
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+            [%give %kick ~[/server] ~]
+        ==
+      %.y
+        =/  res  p.virtualized
+        =/  x  (print -.res)
+        :_  this(server +.res)
+        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+            [%give %kick ~[/server] ~]
+        ==
+  ==
   ::
   %commands
     =/  res  (state-server +.act)
     :_  this(server +.res)
-    :~  [%give %fact ~[/server] %obelisk-result !>(-.res)]
+    :~  [%give %fact ~[/server] %noun !>(-.res)]
         [%give %kick ~[/server] ~]
     ==
   ==
-++  on-watch  on-watch:default
+++  on-watch  |=(=path `this)
 ++  on-leave  on-leave:default
 ++  on-peek   on-peek:default
 ++  on-agent  on-agent:default
