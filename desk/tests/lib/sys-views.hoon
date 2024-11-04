@@ -195,10 +195,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov7)
+    !>  ;;(cmd-result ->+>+>+<.mov7)
   ==
 ::
 ++  test-sys-sys-databases-02  ::  DROP TABLE
@@ -319,7 +319,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov7
+    !>  ->+>+>+<.mov7
 ::
 ++  test-sys-sys-databases-03  ::  DROP DATABASE not idempotent
   =|  run=@ud
@@ -478,10 +478,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov8)
+    !>  ;;(cmd-result ->+>+>+<.mov8)
   ==
 
 ::
@@ -603,7 +603,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov7
+    !>  ->+>+>+<.mov7
 ::
 ++  test-sys-sys-databases-05  ::  TRUNCATE TABLE (no data present)
   =|  run=@ud
@@ -715,7 +715,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov7
+    !>  ->+>+>+<.mov7
 ::
 ++  test-sys-sys-databases-06  ::  INSERT
   =|  run=@ud
@@ -791,7 +791,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov4
+    !>  ->+>+>+<.mov4
 ::
 ::  sys.namespaces
 ::
@@ -861,10 +861,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
   ==
 ::
 ::  sys-namespaces not default DB
@@ -920,7 +920,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  sys.tables
 ::
@@ -1141,10 +1141,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov8)
+    !>  ;;(cmd-result ->+>+>+<.mov8)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov9)
+    !>  ;;(cmd-result ->+>+>+<.mov9)
   ==
 ::
 ++  test-sys-tables-02  ::  INSERT and DROP TABLE
@@ -1407,13 +1407,13 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov9)
+    !>  ;;(cmd-result ->+>+>+<.mov9)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov10)
+    !>  ;;(cmd-result ->+>+>+<.mov10)
   %+  expect-eq
     !>  expected-3
-    !>  ;;(cmd-result ->+>+>-.mov11)
+    !>  ;;(cmd-result ->+>+>+<.mov11)
   ==
 ::
 ++  test-sys-tables-03  ::  TRUNCATE TABLE  (data present)
@@ -1603,7 +1603,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov9
+    !>  ->+>+>+<.mov9
 ::
 ++  test-sys-tables-04  ::  TRUNCATE TABLE  (data not present)
   =|  run=@ud
@@ -1783,7 +1783,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ->+>+>-.mov8
+    !>  ->+>+>+<.mov8
 ::
 ++  test-sys-columns-01 ::  CREATE TABLE
   =|  run=@ud
@@ -1950,10 +1950,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov7)
+    !>  ;;(cmd-result ->+>+>+<.mov7)
   ==
 ::
 ++  test-sys-columns-02 ::  DROP TABLE
@@ -2139,10 +2139,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov7)
+    !>  ;;(cmd-result ->+>+>+<.mov7)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov8)
+    !>  ;;(cmd-result ->+>+>+<.mov8)
   ==
 ::
 ++  test-sys-log-01    ::  CREATE TABLE
@@ -2297,10 +2297,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov7)
+    !>  ;;(cmd-result ->+>+>+<.mov7)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov8)
+    !>  ;;(cmd-result ->+>+>+<.mov8)
   ==
 ::
 ++  test-sys-log-02    ::  DROP TABLE, note that DROP does not change results
@@ -2465,10 +2465,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov8)
+    !>  ;;(cmd-result ->+>+>+<.mov8)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov9)
+    !>  ;;(cmd-result ->+>+>+<.mov9)
   ==
 ::
 ++  test-sys-data-log-01   ::  INSERT
@@ -2686,10 +2686,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov11)
+    !>  ;;(cmd-result ->+>+>+<.mov11)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov12)
+    !>  ;;(cmd-result ->+>+>+<.mov12)
   ==
 ::
 ++  test-sys-data-log-02   ::  CREATE TABLE
@@ -2888,10 +2888,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov11)
+    !>  ;;(cmd-result ->+>+>+<.mov11)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov12)
+    !>  ;;(cmd-result ->+>+>+<.mov12)
   ==
 ::
 ++  test-sys-data-log-03   ::  DROP TABLE FORCE
@@ -3086,10 +3086,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov11)
+    !>  ;;(cmd-result ->+>+>+<.mov11)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov12)
+    !>  ;;(cmd-result ->+>+>+<.mov12)
   ==
 ::
 ++  test-sys-data-log-04   ::  TRUNCATE TABLE
@@ -3306,9 +3306,9 @@
   ;:  weld
   %+  expect-eq
     !>  expected-1
-    !>  ;;(cmd-result ->+>+>-.mov11)
+    !>  ;;(cmd-result ->+>+>+<.mov11)
   %+  expect-eq
     !>  expected-2
-    !>  ;;(cmd-result ->+>+>-.mov12)
+    !>  ;;(cmd-result ->+>+>+<.mov12)
   ==
 --

@@ -80,7 +80,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;((list cmd-result) ->+>+>.mov4)
+    !>  ;;((list cmd-result) ->+>+>+.mov4)
 ::
 ::  insert followed by insert in same script, next time
 ++  test-integrate-01
@@ -177,10 +177,10 @@
   %+  weld
     %+  expect-eq
       !>  expected-1
-      !>  ;;((list cmd-result) ->+>+>.mov4)
+      !>  ;;((list cmd-result) ->+>+>+.mov4)
     %+  expect-eq
       !>  expected-2
-      !>  ;;((list cmd-result) ->+>+>.mov5)
+      !>  ;;((list cmd-result) ->+>+>+.mov5)
 ::
 ::  truncate followed by insert in same script, same time
 ++  test-integrate-02
@@ -258,10 +258,10 @@
   %+  weld
     %+  expect-eq
       !>  expected-1
-      !>  ;;((list cmd-result) ->+>+>.mov4)
+      !>  ;;((list cmd-result) ->+>+>+.mov4)
     %+  expect-eq
       !>  expected-2
-      !>  ;;((list cmd-result) ->+>+>.mov5)
+      !>  ;;((list cmd-result) ->+>+>+.mov5)
 ::
 ::  truncate followed by insert in different script
 ++  test-integrate-03
@@ -326,7 +326,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
 ::
 ::  truncate followed by insert in same script, different time
 ++  test-integrate-04
@@ -384,7 +384,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;((list cmd-result) ->+>+>.mov5)
+    !>  ;;((list cmd-result) ->+>+>+.mov5)
 ::
 ::  create db, create tbl, 2X insert with AS OF
 ++  test-integrate-05
@@ -446,7 +446,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;((list cmd-result) ->+>+>.move)
+    !>  ;;((list cmd-result) ->+>+>+.move)
 ::
 ::  create db, create tbl, 2X insert
 ++  test-integrate-06
@@ -508,7 +508,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;((list cmd-result) ->+>+>.move)
+    !>  ;;((list cmd-result) ->+>+>+.move)
 ::
 ::  create db, create tbl, insert with AS OF; DROP Table, select
 ++  test-integrate-07
@@ -565,7 +565,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov2)
+    !>  ;;(cmd-result ->+>+>+<.mov2)
 ::
 ::  create db, create tbl, 2X insert with AS OF, out of order
 ++  test-fail-integrate-00

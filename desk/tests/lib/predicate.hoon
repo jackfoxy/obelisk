@@ -80,7 +80,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> = <column>
 ++  test-eq-01
@@ -138,7 +138,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> = <column>
 ++  test-eq-02
@@ -196,7 +196,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> = <literal>
 ++  test-eq-03
@@ -243,7 +243,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <column> = <literal>
 ++  test-eq-04
@@ -290,7 +290,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <literal> = <literal>
 ++  test-eq-05
@@ -358,7 +358,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> = <literal> types differ
 ++  test-fail-eq-00
@@ -598,7 +598,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> <> <column>
 ++  test-neq-01
@@ -662,7 +662,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> != <column>
 ++  test-neq-02
@@ -726,7 +726,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> <> <literal>
 ++  test-neq-03
@@ -787,7 +787,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <column> <> <literal>
 ++  test-neq-04
@@ -848,7 +848,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <literal> != <literal>
 ++  test-neq-05
@@ -885,7 +885,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> <> <literal> types differ
 ++  test-fail-neq-00
@@ -1125,7 +1125,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> > <literal> (@da)
 ++  test-gt-01
@@ -1189,7 +1189,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> > <column>  (cord)
 ++  test-gt-02
@@ -1247,7 +1247,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 
 ::
 ::  WHERE <column> > <column>  (cord)
@@ -1312,7 +1312,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> > <literal> (cord)
 ++  test-gt-04
@@ -1376,7 +1376,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> > <literal>
 ++  test-gt-05
@@ -1430,7 +1430,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <literal> > <literal>
 ++  test-gt-06
@@ -1498,7 +1498,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> > <literal> types differ
 ++  test-fail-gt-00
@@ -1732,7 +1732,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> < <literal> (@da)
 ++  test-lt-01
@@ -1790,7 +1790,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> < <column>  (cord)
 ++  test-lt-02
@@ -1848,7 +1848,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> < <column>  (cord)
 ++  test-lt-03
@@ -1912,7 +1912,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> < <literal> (cord)
 ++  test-lt-04
@@ -1976,7 +1976,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> < <literal>
 ++  test-lt-05
@@ -2030,7 +2030,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <literal> < <literal>
 ++  test-lt-06
@@ -2067,7 +2067,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> < <literal> types differ
 ++  test-fail-lt-00
@@ -2307,7 +2307,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> >= <literal> (@da)
 ++  test-gte-01
@@ -2377,7 +2377,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> >= <column>  (cord)
 ++  test-gte-02
@@ -2441,7 +2441,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> >= <column>  (cord)
 ++  test-gte-03
@@ -2511,7 +2511,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> >= <literal> (cord)
 ++  test-gte-04
@@ -2575,7 +2575,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> >= <literal>
 ++  test-gte-05
@@ -2636,7 +2636,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <literal> >= <literal>
 ++  test-gte-06
@@ -2704,7 +2704,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> >= <literal> types differ
 ++  test-fail-gte-00
@@ -2938,7 +2938,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> <= <literal> (@da)
 ++  test-lte-01
@@ -3002,7 +3002,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> <= <column>  (cord)
 ++  test-lte-02
@@ -3066,7 +3066,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> <= <column>  (cord)
 ++  test-lte-03
@@ -3136,7 +3136,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> <= <literal> (cord)
 ++  test-lte-04
@@ -3200,7 +3200,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> <= <literal>
 ++  test-lte-05
@@ -3261,7 +3261,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  view WHERE <literal> <= <literal>
 ++  test-lte-06
@@ -3329,7 +3329,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> <= <literal> types differ
 ++  test-fail-lte-00
@@ -3569,7 +3569,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> IN (list @da) (@da)
 ++  test-in-01
@@ -3633,7 +3633,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> IN (list @t)
 ++  test-in-02
@@ -3703,7 +3703,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> IN (list @)  (no matches)
 ++  test-in-03
@@ -3752,7 +3752,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 
 ::
 ::  fail WHERE <column> IN (list @t) types differ
@@ -3929,7 +3929,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> NOT IN (list @da) (@da)
 ++  test-not-in-01
@@ -3987,7 +3987,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> NOT IN (list @t)  (no matches)
 ++  test-not-in-02
@@ -4057,7 +4057,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> NOT IN (list @)
 ++  test-not-in-03
@@ -4106,7 +4106,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 
 ::
 ::  fail WHERE <column> NOT IN (list @t) types differ
@@ -4289,7 +4289,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> BETWEEN <column> AND <literal>
 ++  test-between-01
@@ -4359,7 +4359,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> BETWEEN <column> <column> (no optional AND)
 ++  test-between-02
@@ -4417,7 +4417,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> BETWEEN <literal> AND <literal>
 ++  test-between-03
@@ -4471,7 +4471,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> BETWEEN <literal> AND <literal> types differ
 ++  test-fail-between-00
@@ -4691,7 +4691,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <literal> NOT BETWEEN <column> AND <literal>
 ++  test-not-between-01
@@ -4740,7 +4740,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> NOT BETWEEN <column> <column> (no optional AND)
 ++  test-not-between-02
@@ -4804,7 +4804,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  view WHERE <column> NOT BETWEEN <literal> AND <literal>
 ++  test-not-between-03
@@ -4858,7 +4858,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 ::  fail WHERE <column> NOT BETWEEN <literal> AND <literal> types differ
 ++  test-fail-not-between-00
@@ -5084,7 +5084,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> = <column> OR <column> = <column>
 ++  test-or-01
@@ -5142,7 +5142,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> = ... AND ... OR ... AND ...
 ++  test-or-02
@@ -5206,7 +5206,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  AND
 ::
@@ -5266,7 +5266,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> = <column> AND <column> = <literal>
 ++  test-and-01
@@ -5324,5 +5324,5 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 --

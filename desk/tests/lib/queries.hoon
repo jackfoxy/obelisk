@@ -90,7 +90,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  *, *
 ++  test-simple-query-02
@@ -172,7 +172,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  table-name.*
 ++  test-simple-query-03
@@ -242,7 +242,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  table-alias.*
 ++  test-simple-query-04
@@ -312,7 +312,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  *, *
 ++  test-simple-query-05
@@ -382,7 +382,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column aliases
 ++  test-simple-query-06
@@ -454,7 +454,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all literals
 ++  test-simple-query-07
@@ -514,7 +514,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all literals, aliased
 ++  test-simple-query-08
@@ -577,7 +577,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  interspersed literals, aliased and unaliased
 ++  test-simple-query-09
@@ -669,7 +669,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column names, reversed
 ++  test-simple-query-10
@@ -739,7 +739,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column aliases (mixed case), reversed
 ++  test-simple-query-11
@@ -811,7 +811,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column names, with table prefix
 ++  test-simple-query-12
@@ -884,7 +884,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column names, with table alias
 ++  test-simple-query-13
@@ -956,7 +956,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column names, with table prefix, reversed
 ++  test-simple-query-14
@@ -1029,7 +1029,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column names, with table alias, reversed
 ++  test-simple-query-15
@@ -1101,7 +1101,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  one column name, *
 ++  test-simple-query-16
@@ -1174,7 +1174,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  one column name, table-name.*
 ++  test-simple-query-17
@@ -1247,7 +1247,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  one column name, table-alias.*
 ++  test-simple-query-18
@@ -1320,7 +1320,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  *, two column names, table-name.*, one column alias
 ++  test-simple-query-19
@@ -1422,7 +1422,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  one column alias, table-alias.*, two column names, *
 ++  test-simple-query-20
@@ -1524,7 +1524,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  select all literals mixed with aliases
 ++  test-simple-query-21
@@ -1610,7 +1610,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  select one literal
 ++  test-simple-query-22
@@ -1648,7 +1648,7 @@
   ::
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  * (select all) not default DB
 ++  test-simple-query-23
@@ -1724,7 +1724,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov5)
+    !>  ;;(cmd-result ->+>+>+<.mov5)
 ::
 ::  * (select all) not default DB, one script
 ++  test-simple-query-24
@@ -1778,7 +1778,8 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>+>+>-.mov1)
+  ::  !>  ;;(cmd-result ->+>+>+>+>-.mov1)
+    !>  ;;(cmd-result ->+>+>+>+>+<.mov1)
 ::
 ::  lit-da, one column alias, lit-p aliased, table-alias.*, two column names, *
 ++  test-simple-query-25
@@ -1892,7 +1893,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  time travel
 ::
@@ -2066,10 +2067,10 @@
   ;:  weld
   %+  expect-eq
     !>  time-expected1
-    !>  ;;(cmd-result ->+>+>-.mov5)
+    !>  ;;(cmd-result ->+>+>+<.mov5)
   %+  expect-eq
     !>  time-expected2
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   ==
 ::
 ::  as-of 3 days ago (data-time = days ago)
@@ -2136,10 +2137,10 @@
   ;:  weld
   %+  expect-eq
     !>  time-expected1
-    !>  ;;(cmd-result ->+>+>-.mov5)
+    !>  ;;(cmd-result ->+>+>+<.mov5)
   %+  expect-eq
     !>  time-expected2
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   ==
 ::
 ::  as-of 2 days ago (data-time < days ago)
@@ -2216,10 +2217,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected1
-    !>  ;;(cmd-result ->+>+>-.mov5)
+    !>  ;;(cmd-result ->+>+>+<.mov5)
   %+  expect-eq
     !>  time-expected2
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   ==
 ::
 ::  as-of ~d3 (data-time = ~d3 ago)
@@ -2286,10 +2287,10 @@
   ;:  weld
   %+  expect-eq
     !>  time-expected1
-    !>  ;;(cmd-result ->+>+>-.mov5)
+    !>  ;;(cmd-result ->+>+>+<.mov5)
   %+  expect-eq
     !>  time-expected2
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   ==
 ::
 ::  as-of ~d2 (data-time < ~d2 ago)
@@ -2366,10 +2367,10 @@
   ;:  weld
   %+  expect-eq
     !>  expected1
-    !>  ;;(cmd-result ->+>+>-.mov5)
+    !>  ;;(cmd-result ->+>+>+<.mov5)
   %+  expect-eq
     !>  time-expected2
-    !>  ;;(cmd-result ->+>+>-.mov6)
+    !>  ;;(cmd-result ->+>+>+<.mov6)
   ==
 ::
 ::  shrinking
@@ -2421,7 +2422,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  shrinking one column (out of order) to one vector
 ++  test-shrinking-02
@@ -2475,7 +2476,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  shrinking one column to two vectors
 ++  test-shrinking-03
@@ -2528,7 +2529,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  shrinking two columns to two vectors
 ++  test-shrinking-04
@@ -2581,7 +2582,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  shrinking two columns and literals to two vectors
 ++  test-shrinking-05
@@ -2644,7 +2645,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  shrinking two columns and literals from view
 ++  test-shrinking-06
@@ -2712,7 +2713,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov4)
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  bugs
 ::
@@ -2818,7 +2819,7 @@
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>-.mov3)
+    !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
 :: SELECT error messages
 ::
