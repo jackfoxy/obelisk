@@ -94,10 +94,10 @@
   %+  weld
       %+  expect-eq
         !>  expected-1
-        !>  ;;(cmd-result ->+>+>-.mov3)
+        !>  ;;(cmd-result ->+>+>+<.mov3)
       %+  expect-eq
         !>  expected-2
-        !>  ;;(cmd-result ->+>+>-.mov4)
+        !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  insert rows to table, cols not in cannonical order
 ++  test-insert-02
@@ -155,10 +155,10 @@
   %+  weld
       %+  expect-eq
         !>  expected-1
-        !>  ;;(cmd-result ->+>+>-.mov3)
+        !>  ;;(cmd-result ->+>+>+<.mov3)
       %+  expect-eq
         !>  expected-2
-        !>  ;;(cmd-result ->+>+>-.mov4)
+        !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  insert rows to table, cols in inverse cannonical order
 ++  test-insert-03
@@ -216,10 +216,10 @@
   %+  weld
       %+  expect-eq
         !>  expected-1
-        !>  ;;(cmd-result ->+>+>-.mov3)
+        !>  ;;(cmd-result ->+>+>+<.mov3)
       %+  expect-eq
         !>  expected-2
-        !>  ;;(cmd-result ->+>+>-.mov4)
+        !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  insert rows to table, canonical order, columns not specified
 ++  test-insert-04
@@ -277,10 +277,10 @@
   %+  weld
       %+  expect-eq
         !>  expected-1
-        !>  ;;(cmd-result ->+>+>-.mov3)
+        !>  ;;(cmd-result ->+>+>+<.mov3)
       %+  expect-eq
         !>  expected-2
-        !>  ;;(cmd-result ->+>+>-.mov4)
+        !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  insert rows to table, table already populated
 ++  test-insert-05
@@ -369,10 +369,10 @@
   %+  weld
       %+  expect-eq
         !>  expected-1
-        !>  ;;(cmd-result ->+>+>-.mov4)
+        !>  ;;(cmd-result ->+>+>+<.mov4)
       %+  expect-eq
         !>  expected-2
-        !>  ;;(cmd-result ->+>+>-.mov5)
+        !>  ;;(cmd-result ->+>+>+<.mov5)
 ::
 ::  insert rows to table, not default DB
 ++  test-insert-06
@@ -437,10 +437,10 @@
   %+  weld
       %+  expect-eq
         !>  expected-1
-        !>  ;;(cmd-result ->+>+>-.mov4)
+        !>  ;;(cmd-result ->+>+>+<.mov4)
       %+  expect-eq
         !>  expected-2
-        !>  ;;(cmd-result ->+>+>-.mov5)
+        !>  ;;(cmd-result ->+>+>+<.mov5)
 ::
 :: INSERT error messages
 ::

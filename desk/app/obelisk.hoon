@@ -56,7 +56,7 @@
         ==
       %.y
         =/  res  p.virtualized
-        =/  x  (print -.res)
+    ::    =/  x  (print -.res)
         :_  this(server +.res)
         :~  [%give %fact ~[/server] %noun !>([& -.res])]
             [%give %kick ~[/server] ~]
