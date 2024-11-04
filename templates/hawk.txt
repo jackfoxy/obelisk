@@ -15,9 +15,7 @@
   =/  dock  [our %obelisk]
   ?.  =((rib:c /) tas/%query)
     %-  pure:m  !>
-    ~&  'old'
     (render old-query old-results)
-   ~&  'new'
   =/  query  (pib:c /query-text)
   =/  obelisk-command=cage  obelisk-action/!>([%tape %sys query])
   ;<  ~  bind:m  (watch /query dock /server)
