@@ -7,17 +7,16 @@
 ::   https://github.com/jackfoxy/obelisk
 ::
 ::
-:-  %thread
+:-  %shed
 |^
   =/  m  (strand ,vase)
   ;<  our=@p  bind:m  get-our
   ;<  now=@da  bind:m  get-time
   =/  dock  [our %obelisk]
-  ?.  =(p.rain %query)
+  ?.  =((rib:c /) tas/%query)
     %-  pure:m  !>
     (render old-query old-results)
-  =/  query
-    (trip (~(gut by q.rain) 'query-text' default-query))
+  =/  query  (pib:c /query-text)
   =/  obelisk-command=cage  obelisk-action/!>([%tape %sys query])
   ;<  ~  bind:m  (watch /query dock /server)
   ;<  ~  bind:m  (poke dock obelisk-command)
@@ -48,12 +47,12 @@
   ==
 ++  render
   |=  [query=tape results=manx]
-  ;div.fc.hf.mhf
+  ;div.fc.hf.mhf.scroll-x
     ;form.grow.basis-half.fc.mono.s0
       =method  "post"
-      ;input.hidden(name "p", value "query");
+      ;input.hidden(name "/", value "query");
       ;textarea#query-text.p3.grow
-        =name  "query-text"
+        =name  "tas//query-text"
         =spellcheck  "false"
         =placeholder  "FROM ... SELECT *"
         ; {query}
@@ -69,7 +68,7 @@
   %-  fall  :_
     ^-  (pair path manx)
     [/ ;div;]
-  (~(gid mx man) "query-text")
+  (gid:d "query-text")
 ++  old-results
   ^-  manx
   =<  q
@@ -77,7 +76,7 @@
     ^-  (pair path manx)
     :-  /
     ;div.grow.basis-half.fc.jc.ac: no results yet
-  (~(gid mx man) "results")
+  (gid:d "results")
 ++  print-results
   |=  results=(list cmd-result)
   ;div#results.grow.basis-half.b1.scroll-y.scroll-x.mono.s0
@@ -97,11 +96,6 @@
       ==
     ==
   ==
-++  default-query
-    '''
-    FROM sys.sys.databases
-    SELECT *
-    '''
 ++  print-result-metadata
   |=  =result
   ?+  -.result  ;div;
