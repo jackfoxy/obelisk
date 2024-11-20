@@ -61,12 +61,23 @@
         :~  [%give %fact ~[/server] %noun !>([& -.res])]
             [%give %kick ~[/server] ~]
         ==
-  ==
+    ==
   ::
   %commands
     =/  res  (state-server +.act)
     :_  this(server +.res)
     :~  [%give %fact ~[/server] %noun !>(-.res)]
+        [%give %kick ~[/server] ~]
+    ==
+  ::
+  %test
+    =/  res2  %:  state-server
+                  ::~>  %bout.[0 %parse-cmds]
+                  (parse-urql +<.act +>.act)
+                  ==
+                                                       ::=/  x  (print -.res2)
+    :_  this(server +.res2)
+    :~  [%give %fact ~[/server] %noun !>(-.res2)]
         [%give %kick ~[/server] ~]
     ==
   ==

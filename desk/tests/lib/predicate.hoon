@@ -415,7 +415,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 = ~1999.2.19 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 = ~1999.2.19 SELECT *"])
       ==
 ::
 ::  fail WHERE <literal> = <column> types differ
@@ -473,7 +473,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 = col1 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE ~1999.2.19 = col1 SELECT *"])
       ==
 ::
 ::  fail WHERE <column> = <column> types differ
@@ -531,7 +531,7 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 = col2 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 = col2 SELECT *"])
       ==
 ::
 ::  NEQ
@@ -942,7 +942,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 <> ~1999.2.19 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 <> ~1999.2.19 SELECT *"])
       ==
 ::
 ::  fail WHERE <literal> <><column> types differ
@@ -1000,7 +1000,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 <> col1 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <> col1 SELECT *"])
       ==
 ::
 ::  fail WHERE <column> <> <column> types differ
@@ -1058,7 +1058,7 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
       ==
 ::
 ::  GT
@@ -1555,7 +1555,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 > ~1999.2.19 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 > ~1999.2.19 SELECT *"])
       ==
 ::
 ::  fail WHERE <literal> > <column> types differ
@@ -1613,7 +1613,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 > col1 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE ~1999.2.19 > col1 SELECT *"])
       ==
 ::
 ::  fail WHERE <column> > <column> types differ
@@ -1671,7 +1671,7 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 > col2 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 > col2 SELECT *"])
       ==
 ::
 ::  LT
@@ -2124,7 +2124,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 < ~1999.2.19 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 < ~1999.2.19 SELECT *"])
       ==
 ::
 ::  fail WHERE <literal> < <column> types differ
@@ -2182,7 +2182,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 < col1 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE ~1999.2.19 < col1 SELECT *"])
       ==
 ::
 ::  fail WHERE <column> < <column> types differ
@@ -2240,7 +2240,7 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 < col2 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 < col2 SELECT *"])
       ==
 ::
 ::  GTE
@@ -2761,7 +2761,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 >= ~1999.2.19 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 >= ~1999.2.19 SELECT *"])
       ==
 ::
 ::  fail WHERE <literal> >= <column> types differ
@@ -2819,7 +2819,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 >= col1 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE ~1999.2.19 >= col1 SELECT *"])
       ==
 ::
 ::  fail WHERE <column> >= <column> types differ
@@ -2877,7 +2877,7 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 >= col2 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 >= col2 SELECT *"])
       ==
 ::
 ::  LTE
@@ -3386,7 +3386,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 <= ~1999.2.19 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 <= ~1999.2.19 SELECT *"])
       ==
 ::
 ::  fail WHERE <literal> <= <column> types differ
@@ -3444,7 +3444,7 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 <= col1 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <= col1 SELECT *"])
       ==
 ::
 ::  fail WHERE <column> <= <column> types differ
@@ -3502,7 +3502,7 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])
+          !>([%test %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])
       ==
 ::
 ::  IN
@@ -3565,7 +3565,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 IN ('ticolor', 'tricolor') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col3 IN ('ticolor', 'tricolor') SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -3629,7 +3631,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col2 in(~2001.9.19, ~1999.2.19) SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col2 in(~2001.9.19, ~1999.2.19) SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -3699,7 +3703,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE 'tricolor' IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE 'tricolor' ".
+                "IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -3748,7 +3755,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col1 IN ('widget', 'bam') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col1 IN ('widget', 'bam') SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -3810,7 +3819,10 @@
           "type of IN list incorrect, should be p=~.t"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col3 IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col3 ".
+                  "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ==
 ::
 ::  fail WHERE <literal> IN (list @) types differ
@@ -3868,7 +3880,10 @@
           "type of IN list incorrect, should be p=~.t"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE 'ticolor' IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE 'ticolor' ".
+                  "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ==
 ::
 ::  NOT IN
@@ -3925,7 +3940,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 NOT IN ('ticolor', 'tricolor') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col3 NOT IN ('ticolor', 'tricolor') ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -3983,7 +4001,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col2 NOT IN (~2001.9.19, ~1999.2.19) SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col2 NOT IN (~2001.9.19, ~1999.2.19) ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4053,7 +4074,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE 'boo' NOT IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE 'boo' ".
+                "NOT IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4102,7 +4126,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col1 NOT IN ('Abby', 'Ace', 'Angel') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col1 NOT IN ('Abby', 'Ace', 'Angel') ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4164,7 +4191,10 @@
           "type of IN list incorrect, should be p=~.t"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col3 IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col3 ".
+                  "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ==
 ::
 ::  fail WHERE <literal> NOT IN (list @) types differ
@@ -4222,7 +4252,10 @@
           "type of IN list incorrect, should be p=~.t"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE 'ticolor' IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE 'ticolor' ".
+                  "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ==
 ::
 ::  BETWEEN
@@ -4285,7 +4318,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 BETWEEN 'ticolor' AND 'tummy' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col3 BETWEEN 'ticolor' AND 'tummy' ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4355,7 +4391,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE 'tuxedo' BETWEEN col3 AND 'tuxedos' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE 'tuxedo' BETWEEN col3 AND 'tuxedos' ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4467,7 +4506,10 @@
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM sys.columns WHERE col-name BETWEEN 'col2' AND 'col3' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM sys.columns WHERE col-name BETWEEN 'col2' AND 'col3' ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4510,7 +4552,10 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 BETWEEN ~1999.2.19 AND 'row1' SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col1 BETWEEN ~1999.2.19 AND 'row1' ".
+                  "SELECT *"
       ==
 ::
 ::  fail WHERE <literal> BETWEEN <column> AND <column> types differ
@@ -4550,7 +4595,10 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 BETWEEN col1 AND col2 SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE ~1999.2.19 BETWEEN col1 ".
+                  "AND col2 SELECT *"
       ==
 ::
 ::  fail WHERE <column> BETWEEN <column> AND <column> types differ
@@ -4590,7 +4638,9 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 BETWEEN col2 AND col3 SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col1 BETWEEN col2 AND col3 SELECT *"
       ==
 ::
 ::  fail WHERE <column> BETWEEN <column> AND <column> range not ascending
@@ -4630,7 +4680,10 @@
           "comparing column to literal of different aura: %col1"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 BETWEEN ~2005.12.19 AND ~1999.2.19 SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col1 BETWEEN ~2005.12.19 ".
+                  "AND ~1999.2.19 SELECT *"
       ==
 ::
 ::  NOT BETWEEN
@@ -4687,7 +4740,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 NOT BETWEEN 'ticolor' AND 'tummy' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col3 NOT BETWEEN 'ticolor' ".
+                "AND 'tummy' SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4736,7 +4792,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE 'tuxedo' NOT BETWEEN col3 AND 'tuxedos' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE 'tuxedo' NOT BETWEEN col3 ".
+                "AND 'tuxedos' SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4800,7 +4859,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col1 NOT BETWEEN col3 col4 SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col1 NOT BETWEEN col3 col4 SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4854,7 +4915,10 @@
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM sys.columns WHERE col-name NOT BETWEEN 'col2' AND 'col3' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM sys.columns WHERE col-name NOT BETWEEN 'col2' ".
+                "AND 'col3' SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -4897,7 +4961,10 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 NOT BETWEEN ~1999.2.19 AND 'row1' SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col1 NOT BETWEEN ~1999.2.19 ".
+                  "AND 'row1' SELECT *"
       ==
 ::
 ::  fail WHERE <literal> NOT BETWEEN <column> AND <column> types differ
@@ -4937,7 +5004,10 @@
           "comparing column to literal of different aura: %col1 "
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE ~1999.2.19 NOT BETWEEN col1 AND col2 SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE ~1999.2.19 NOT BETWEEN col1 ".
+                  "AND col2 SELECT *"
       ==
 ::
 ::  fail WHERE <column> NOT BETWEEN <column> AND <column> types differ
@@ -4977,7 +5047,9 @@
           "comparing columns of differing auras: %col1 %col2"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 NOT BETWEEN col2 AND col3 SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col1 NOT BETWEEN col2 AND col3 SELECT *"
       ==
 ::
 ::  fail WHERE <column> NOT BETWEEN <column> AND <column> range not ascending
@@ -5017,7 +5089,10 @@
           "comparing column to literal of different aura: %col1"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 "FROM my-table WHERE col1 NOT BETWEEN ~2005.12.19 AND ~1999.2.19 SELECT *"])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table WHERE col1 NOT BETWEEN ~2005.12.19 ".
+                  "AND ~1999.2.19 SELECT *"
       ==
 ::
 ::  OR
@@ -5080,7 +5155,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 = 'ticolor' OR col3='tricolor' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col3 = 'ticolor' OR col3='tricolor' ".
+                "SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -5202,7 +5280,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE (col3 = 'ticolor' AND col4='row2') OR (col3='tricolor' AND col4='row1') SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE (col3 = 'ticolor' AND col4='row2') ".
+                "OR (col3='tricolor' AND col4='row1') SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -5262,7 +5343,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 = 'ticolor' AND col4='row2' SELECT *"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table WHERE col3 = 'ticolor' AND col4='row2' SELECT *"
     ==
   %+  expect-eq
     !>  expected
@@ -5320,7 +5403,9 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col1 = col3 AND col4='row3' SELECT *"])
+         !>  :+  %tape
+                 %db1
+                 "FROM my-table WHERE col1 = col3 AND col4='row3' SELECT *"
     ==
   %+  expect-eq
     !>  expected

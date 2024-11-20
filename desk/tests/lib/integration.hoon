@@ -575,7 +575,7 @@
         'INSERT: table %my-table-1 as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
           %obelisk-action
-          !>  :+  %tape
+          !>  :+  %test
                   %db1
                   "CREATE DATABASE db2 AS OF ~2000.1.1;".
                   "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) ".
@@ -616,10 +616,12 @@
     ==
 
   %+  expect-fail-message
-    'SELECT: table %db2.%dbo.%my-table-1 does not exist at schema time ~2005.2.2'
+    %-  crip  
+        "SELECT: table %db2.%dbo.%my-table-1 does not exist ".
+        "at schema time ~2005.2.2"
   |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "FROM db2..my-table-1 ".
                 "SELECT *"

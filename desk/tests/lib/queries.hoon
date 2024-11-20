@@ -1889,7 +1889,8 @@
         %obelisk-action
         !>  :+  %tape
               %db1
-              "FROM my-table T1 SELECT ~2024.10.20, col1 as C1, ~sampel-palnet as home, T1.*, col2,col4, *"
+              "FROM my-table T1 SELECT ~2024.10.20, col1 as C1, ".
+              "~sampel-palnet as home, T1.*, col2,col4, *"
     ==
   %+  expect-eq
     !>  expected
@@ -2641,7 +2642,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM my-table SELECT  ~2024.10.20, col2 as c2, ~sampel-palnet as home, col3"])
+        !>  :+  %tape
+                %db1
+                "FROM my-table SELECT  ~2024.10.20, col2 as c2, ".
+                "~sampel-palnet as home, col3"
     ==
   %+  expect-eq
     !>  expected
@@ -2709,7 +2713,10 @@
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>([%tape %db1 "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ~sampel-palnet as home, key"])
+        !>  :+  %tape
+                %db1
+                "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
+                "~sampel-palnet as home, key"
     ==
   %+  expect-eq
     !>  expected
@@ -2864,7 +2871,7 @@
         'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
-          !>([%tape %db1 my-select])
+          !>([%test %db1 my-select])
       ==
 ::
 ::  fail on bad column name
@@ -2908,7 +2915,7 @@
         'SELECT: column %foo not found'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
           %obelisk-action
-          !>([%tape %db1 my-select])
+          !>([%test %db1 my-select])
       ==
 ::
 ::  fail on as-of ~d4 (schema-time < ~d4 ago)
@@ -2955,7 +2962,7 @@
     'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "FROM my-table AS OF ~d4 T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"

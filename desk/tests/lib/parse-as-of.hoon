@@ -440,8 +440,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW join bar AS OF NOW  as  B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo AS OF NOW join bar AS OF NOW  as  B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo %now (aliased) join bar %now (aliased as)
 ++  test-from-as-of-07
@@ -449,8 +449,8 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-aliased [%as-of-offset 0 %seconds]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW F1 join bar AS OF NOW B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo AS OF NOW F1 join bar AS OF NOW B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo %now (un-aliased) join bar %now (un-aliased)
 ::                             left join baz %now (un-aliased)
@@ -458,9 +458,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-baz [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW ".
-            "join bar AS OF NOW on 1 = 1 left ".
-            "join baz AS OF NOW on 1 = 1 SELECT TOP 10 *"
+              "FROM foo AS OF NOW ".
+              "join bar AS OF NOW on 1 = 1 left ".
+              "join baz AS OF NOW on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo %now (aliased) join bar %now (aliased) left join baz %now (aliased)
 ++  test-from-as-of-09
@@ -468,16 +468,16 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-baz [%as-of-offset 0 %seconds]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW F1 ".
-            "join bar AS OF NOW as B1 on 1 = 1 ".
-            "left join baz AS OF NOW b2 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo AS OF NOW F1 ".
+              "join bar AS OF NOW as B1 on 1 = 1 ".
+              "left join baz AS OF NOW b2 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo %now as (aliased) cross join bar %now (aliased)
 ++  test-from-as-of-10
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW as F1 cross join bar AS OF NOW B1 SELECT *"
+              "FROM foo AS OF NOW as F1 cross join bar AS OF NOW B1 SELECT *"
 ::
 ::  from foo %now cross join bar %now
 ++  test-from-as-of-11
@@ -491,7 +491,7 @@
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF NOW F1 cross join bar AS OF NOW as B1 SELECT *"
+              "FROM foo AS OF NOW F1 cross join bar AS OF NOW as B1 SELECT *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased)
 ++  test-from-as-of-13
@@ -520,8 +520,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO ".
-            "join bar AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO ".
+              "join bar AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::  join bar as-of 2 minutes ago (aliased)
@@ -529,8 +529,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO ".
-            "join bar AS OF 2 minutes AGO B1 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO ".
+              "join bar AS OF 2 minutes AGO B1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::  join bar as-of 2 minutes ago (aliased as)
@@ -538,9 +538,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO ".
-            "join bar AS OF 2 minutes AGO  as  B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO ".
+              "join bar AS OF 2 minutes AGO  as  B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo as-of 2 minutes ago (aliased) 
 ::  join bar as-of 2 minutes ago (aliased as)
@@ -549,9 +549,9 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-aliased [%as-of-offset 2 %minutes]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO F1 ".
-            "join bar AS OF 2 minutes AGO B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO F1 ".
+              "join bar AS OF 2 minutes AGO B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo as-of 2 minutes ago (un-aliased) 
 ::                             join bar as-of 2 minutes ago (un-aliased)
@@ -560,9 +560,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-baz [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO ".
-            "join bar AS OF 2 minutes AGO on 1 = 1 left ".
-            "join baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO ".
+              "join bar AS OF 2 minutes AGO on 1 = 1 left ".
+              "join baz AS OF 2 minutes AGO on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of 2 minutes ago (aliased) 
 ::                             join bar as-of 2 minutes ago (aliased) 
@@ -572,9 +572,9 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-baz [%as-of-offset 2 %minutes]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO F1 ".
-            "join bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
-            "left join baz AS OF 2 minutes AGO b2 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo AS OF 2 minutes AGO F1 ".
+              "join bar AS OF 2 minutes AGO as B1 on 1 = 1 ".
+              "left join baz AS OF 2 minutes AGO b2 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of 2 minutes ago as (aliased) 
 ::  cross join bar as-of 2 minutes ago (aliased)
@@ -582,8 +582,8 @@
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO as F1 ".
-            "cross join bar AS OF 2 minutes AGO B1 SELECT *"
+              "FROM foo AS OF 2 minutes AGO as F1 ".
+              "cross join bar AS OF 2 minutes AGO B1 SELECT *"
 ::
 ::  from foo as-of 2 minutes ago cross join bar as-of 2 minutes ago
 ++  test-from-as-of-23
@@ -599,8 +599,8 @@
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%as-of-offset 2 %minutes]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo AS OF 2 minutes AGO F1 ".
-            "cross join bar AS OF 2 minutes AGO as B1 SELECT *"
+              "FROM foo AS OF 2 minutes AGO F1 ".
+              "cross join bar AS OF 2 minutes AGO as B1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased)
 ++  test-from-as-of-25
@@ -629,8 +629,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 ".
-            "join bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 ".
+              "join bar As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::  join bar as-of ~2000.1.1 (aliased)
@@ -638,8 +638,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 ".
-            "join bar As Of ~2000.1.1 B1 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 ".
+              "join bar As Of ~2000.1.1 B1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::  join bar as-of ~2000.1.1 (aliased as)
@@ -647,9 +647,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 ".
-            "join bar As Of ~2000.1.1  as  B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 ".
+              "join bar As Of ~2000.1.1  as  B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 (aliased) 
 ::  join bar as-of ~2000.1.1 (aliased as)
@@ -658,8 +658,8 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-aliased [%da ~2000.1.1]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 F1 join bar As Of ~2000.1.1 B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 F1 join bar As Of ~2000.1.1 B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::                             join bar as-of ~2000.1.1 (un-aliased)
@@ -668,9 +668,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-baz [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 ".
-            "join bar As Of ~2000.1.1 on 1 = 1 left ".
-            "join baz As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 ".
+              "join bar As Of ~2000.1.1 on 1 = 1 left ".
+              "join baz As Of ~2000.1.1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 (aliased) 
 ::                             join bar as-of ~2000.1.1 (aliased) 
@@ -680,9 +680,9 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-baz [%da ~2000.1.1]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 F1 ".
-            "join bar As Of ~2000.1.1 as B1 on 1 = 1 ".
-            "left join baz As Of ~2000.1.1 b2 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~2000.1.1 F1 ".
+              "join bar As Of ~2000.1.1 as B1 on 1 = 1 ".
+              "left join baz As Of ~2000.1.1 b2 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 as (aliased) 
 ::  cross join bar as-of ~2000.1.1 (aliased)
@@ -690,8 +690,8 @@
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 as F1 ".
-            "cross join bar As Of ~2000.1.1 B1 SELECT *"
+              "FROM foo As Of ~2000.1.1 as F1 ".
+              "cross join bar As Of ~2000.1.1 B1 SELECT *"
 ::
 ::  from foo as-of ~2000.1.1 cross join bar as-of ~2000.1.1
 ++  test-from-as-of-35
@@ -706,8 +706,8 @@
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%da ~2000.1.1]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~2000.1.1 F1 ".
-            "cross join bar As Of ~2000.1.1 as B1 SELECT *"
+              "FROM foo As Of ~2000.1.1 F1 ".
+              "cross join bar As Of ~2000.1.1 as B1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased)
 ++  test-from-as-of-37
@@ -736,8 +736,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 ".
-            "join bar As Of ~h5.m30.s12 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 ".
+              "join bar As Of ~h5.m30.s12 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::  join bar as-of ~h5.m30.s12 (aliased)
@@ -745,8 +745,8 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 ".
-            "join bar As Of ~h5.m30.s12 B1 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 ".
+              "join bar As Of ~h5.m30.s12 B1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::  join bar as-of ~h5.m30.s12 (aliased as)
@@ -754,9 +754,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-aliased [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 ".
-            "join bar As Of ~h5.m30.s12  as  B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 ".
+              "join bar As Of ~h5.m30.s12  as  B1 on 1 = 1 ".
+              "SELECT TOP 10 *"
 ::
 ::  from foo as-of ~h5.m30.s12 (aliased) 
 ::  join bar as-of ~h5.m30.s12 (aliased as)
@@ -765,8 +765,8 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-aliased [%dr ~h5.m30.s12]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 F1 join bar As Of ~h5.m30.s12 B1 on 1 = 1 ".
-            "SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 F1 join bar As Of ~h5.m30.s12 B1 ".
+              "on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~h5.m30.s12 (un-aliased) 
 ::                             join bar as-of ~h5.m30.s12 (un-aliased)
@@ -775,9 +775,9 @@
   %+  expect-eq
       !>  (expected [simple-from-join-bar-baz [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 ".
-            "join bar As Of ~h5.m30.s12 on 1 = 1 left ".
-            "join baz As Of ~h5.m30.s12 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 ".
+              "join bar As Of ~h5.m30.s12 on 1 = 1 left ".
+              "join baz As Of ~h5.m30.s12 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~h5.m30.s12 (aliased) 
 ::                             join bar as-of ~h5.m30.s12 (aliased) 
@@ -787,9 +787,9 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-baz [%dr ~h5.m30.s12]]
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 F1 ".
-            "join bar As Of ~h5.m30.s12 as B1 on 1 = 1 ".
-            "left join baz As Of ~h5.m30.s12 b2 on 1 = 1 SELECT TOP 10 *"
+              "FROM foo As Of ~h5.m30.s12 F1 ".
+              "join bar As Of ~h5.m30.s12 as B1 on 1 = 1 ".
+              "left join baz As Of ~h5.m30.s12 b2 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from foo as-of ~h5.m30.s12 as (aliased) 
 ::  cross join bar as-of ~h5.m30.s12 (aliased)
@@ -797,8 +797,8 @@
   %+  expect-eq
       !>  (expected [simple-from-aliased-cross-bar [%dr ~h5.m30.s12]])
       !>  %-  parse:parse(default-database 'db1')
-            "FROM foo As Of ~h5.m30.s12 as F1 ".
-            "cross join bar As Of ~h5.m30.s12 B1 SELECT *"
+              "FROM foo As Of ~h5.m30.s12 as F1 ".
+              "cross join bar As Of ~h5.m30.s12 B1 SELECT *"
 ::
 ::  from foo as-of ~h5.m30.s12 cross join bar as-of ~h5.m30.s12
 ++  test-from-as-of-47

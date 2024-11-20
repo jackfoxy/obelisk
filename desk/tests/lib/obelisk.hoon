@@ -328,7 +328,7 @@
   =^  move  agent
     %:  ~(on-poke agent (bowl [run ~ ~1999.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%test %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
     ==
   =+  !<(=state on-save:agent)
   ::
@@ -336,7 +336,7 @@
   =^  move2  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %db1 "FROM sys.sys.databases SELECT *"])
+        !>([%test %db1 "FROM sys.sys.databases SELECT *"])
     ==
   ::
   ;:  weld
@@ -366,7 +366,7 @@
   =^  move2  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %db1 "FROM sys.sys.databases SELECT *"])
+        !>([%test %db1 "FROM sys.sys.databases SELECT *"])
     ==
   ::
   ;:  weld
@@ -397,7 +397,7 @@
         'database %db1 already exists'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
-          !>([%tape %sys "CREATE DATABASE db1"])
+          !>([%test %sys "CREATE DATABASE db1"])
     ==
 ::
 ::  fail on create %sys database
@@ -408,7 +408,7 @@
         'database name cannot be \'sys\''
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
-          !>([%tape %sys "CREATE DATABASE sys"])
+          !>([%test %sys "CREATE DATABASE sys"])
     ==
 ::  fail on foreign source agent
 
@@ -421,7 +421,7 @@
 ::        'database must be created by local agent'
 ::  |.  %:  ~(on-poke agent (bowl [run `~nec ~2000.1.2]))
 ::          %obelisk-action
-::          !>([%tape %sys "CREATE DATABASE db1"])
+::          !>([%test %sys "CREATE DATABASE db1"])
 ::    ==
 ::
 ::  DROP DATABASE
@@ -460,14 +460,14 @@
   =^  move2  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %db1 "DROP DATABASE db1"])
+        !>([%test %db1 "DROP DATABASE db1"])
     ==
   ::
   =.  run  +(run)
   =^  move3  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %sys "FROM sys.sys.databases SELECT *"])
+        !>([%test %sys "FROM sys.sys.databases SELECT *"])
     ==
   ::
   ;:  weld
@@ -533,14 +533,14 @@
   =^  move3  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "DROP DATABASE db1"])
+        !>([%test %db1 "DROP DATABASE db1"])
     ==
   ::
   =.  run  +(run)
   =^  move4  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %sys "FROM sys.sys.databases SELECT *"])
+        !>([%test %sys "FROM sys.sys.databases SELECT *"])
     ==
   ::
   ;:  weld
@@ -620,14 +620,14 @@
   =^  move6  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.5]))
         %obelisk-action
-        !>([%tape %db2 "DROP DATABASE FORCE db1"])
+        !>([%test %db2 "DROP DATABASE FORCE db1"])
     ==
   ::
   =.  run  +(run)
   =^  move7  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.6]))
         %obelisk-action
-        !>([%tape %db2 "FROM sys.sys.databases SELECT *"])
+        !>([%test %db2 "FROM sys.sys.databases SELECT *"])
     ==
   ::
   ;:  weld
@@ -699,14 +699,14 @@
   =^  move5  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.5]))
         %obelisk-action
-        !>([%tape %db1 "DROP DATABASE db1"])
+        !>([%test %db1 "DROP DATABASE db1"])
     ==
   ::
   =.  run  +(run)
   =^  move6  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.6]))
         %obelisk-action
-        !>([%tape %db2 "FROM sys.sys.databases SELECT *"])
+        !>([%test %db2 "FROM sys.sys.databases SELECT *"])
     ==
   ::
   ;:  weld
@@ -758,7 +758,7 @@
         '%db1 has populated tables and `FORCE` was not specified'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.6]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP DATABASE db1"
     ==
@@ -799,7 +799,7 @@
         'database %db3 does not exist'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.6]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP DATABASE db3"
     ==
@@ -840,7 +840,7 @@
         'DROP DATABASE: state change after query in script'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.3]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "FROM db1..my-table SELECT *; ".
               "DROP DATABASE db2 "
@@ -885,7 +885,7 @@
 ::        'DROP DATABASE: database must be dropped by local agent'
 ::  |.  %:  ~(on-poke agent (bowl [run `~nec ~2012.5.3]))
 ::      %obelisk-action
-::      !>  :+  %tape
+::      !>  :+  %test
 ::              %db1
 ::              "DROP DATABASE db2 "
 ::    ==
@@ -903,7 +903,7 @@
         'database %sys cannot be dropped'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.3]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP DATABASE sys "
     ==
@@ -928,13 +928,13 @@
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "CREATE NAMESPACE db2.ns1"])
+        !>([%test %db1 "CREATE NAMESPACE db2.ns1"])
     ==
   =.  run  +(run)
   =^  mov4  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %test
                 %db1
                 "CREATE TABLE db2.ns1.my-table (col1 @t) PRIMARY KEY (col1)"
     ==
@@ -1011,7 +1011,7 @@
         'CREATE NAMESPACE: namespace %ns1 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
     ==
@@ -1032,7 +1032,7 @@
         'CREATE NAMESPACE: namespace %ns1 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
     ==
@@ -1068,7 +1068,7 @@
         'CREATE NAMESPACE: namespace %ns1 as-of content time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.35..7e90"
     ==
@@ -1104,7 +1104,7 @@
         'CREATE NAMESPACE: namespace %ns1 as-of content time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.34..7e90"
     ==
@@ -1126,7 +1126,7 @@
 ::        'CREATE NAMESPACE: schema changes must be by local agent'
 ::  |.  %:  ~(on-poke agent (bowl [run `~nec ~2000.1.2]))
 ::      %obelisk-action
-::      !>  :+  %tape
+::      !>  :+  %test
 ::              %db1
 ::              "CREATE NAMESPACE ns1"
 ::    ==
@@ -1151,7 +1151,7 @@
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %test
                 %db1
                 "CREATE TABLE db2..my-table (col1 @t) PRIMARY KEY (col1)"
     ==
@@ -1291,7 +1291,9 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: duplicate column names ~[[%column name=%col1 type=~.t] [%column name=%col2 type=~.p] [%column name=%col1 type=~.t]]'
+    %-  crip  
+        "CREATE TABLE: duplicate column names ~[[%column name=%col1 type=~.t] ".
+        "[%column name=%col2 type=~.p] [%column name=%col1 type=~.t]]"
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
       %obelisk-action
       !>([%commands ~[cmd]])
@@ -1328,7 +1330,7 @@
         'CREATE TABLE: table %my-table-2 as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) ".
               "AS OF ~2023.7.9..22.35.35..7e90"
@@ -1365,7 +1367,7 @@
         'CREATE TABLE: table %my-table-2 as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) ".
               "AS OF ~2023.7.9..22.35.35..7e90"
@@ -1387,7 +1389,7 @@
         'CREATE TABLE: table %my-table-2 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
               "PRIMARY KEY (col1, col2) ".
@@ -1410,7 +1412,7 @@
         'CREATE TABLE: table %my-table-2 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
                 "PRIMARY KEY (col1, col2) ".
@@ -1446,7 +1448,10 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: key column not in column definitions ~[[%ordered-column name=%col1 ascending=%.y] [%ordered-column name=%col4 ascending=%.y]]'
+  %-  crip  
+        "CREATE TABLE: key column not in column definitions ".
+        "~[[%ordered-column name=%col1 ascending=%.y] ".
+        "[%ordered-column name=%col4 ascending=%.y]]"
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
           !>([%commands ~[cmd]])
@@ -1467,7 +1472,9 @@
             [%column name='col2' column-type=%p]
             [%column name='col3' column-type=%t]
         ==
-        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y] [%ordered-column column-name='col1' ascending=%.n]]
+        :~  [%ordered-column column-name='col1' ascending=%.y]
+            [%ordered-column column-name='col1' ascending=%.n]
+            ==
         foreign-keys=~
         as-of=~
     ==
@@ -1479,7 +1486,10 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: duplicate column names in key ~[[%ordered-column name=%col1 ascending=%.y] [%ordered-column name=%col1 ascending=%.n]]'
+    %-  crip  
+        "CREATE TABLE: duplicate column names in key ".
+        "~[[%ordered-column name=%col1 ascending=%.y] ".
+        "[%ordered-column name=%col1 ascending=%.n]]"
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
       %obelisk-action
       !>([%commands ~[cmd]])
@@ -1551,7 +1561,7 @@
         'CREATE TABLE: state change after query in script'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "FROM my-table SELECT * ".
               "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) "
@@ -1591,7 +1601,7 @@
   =^  mov5  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.5]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %test
                 %db1
                 "DROP TABLE FORCE db2..my-table"
     ==
@@ -1638,7 +1648,7 @@
         'DROP TABLE: %my-table-2 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP TABLE db1..my-table-2 ".
               "AS OF ~2023.7.9..22.35.37..7e90"
@@ -1676,7 +1686,7 @@
         'DROP TABLE: %my-table-2 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP TABLE db1..my-table-2 ".
               "AS OF ~2023.7.9..22.35.36..7e90"
@@ -1713,7 +1723,7 @@
         'DROP TABLE: %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP TABLE db1..my-table as of ~2023.7.9..22.35.35..7e90"
     ==
@@ -1749,7 +1759,7 @@
         'DROP TABLE: %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "DROP TABLE db1..my-table as of ~2023.7.9..22.35.34..7e90"
     ==
@@ -1904,7 +1914,7 @@
         'DROP TABLE: state change after query in script'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "FROM my-table SELECT * ".
               "DROP TABLE db1..my-table-2 "
@@ -1941,7 +1951,7 @@
 ::        'DROP TABLE: table must be dropped by local agent'
 ::  |.  %:  ~(on-poke agent (bowl [run `~nec ~2000.1.2]))
 ::      %obelisk-action
-::      !>  :+  %tape
+::      !>  :+  %test
 ::              %db1
 ::              "DROP TABLE db1..my-table-2 "
 ::    ==
@@ -1980,7 +1990,7 @@
   =^  mov5  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.5]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %test
                 %db1
                 "TRUNCATE TABLE db2..my-table"
     ==
@@ -2090,7 +2100,7 @@
         'TRUNCATE TABLE: state change after query in script'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "FROM my-table SELECT * ".
               "TRUNCATE TABLE db1..my-table-2 "
@@ -2130,7 +2140,7 @@
         'TRUNCATE TABLE: %my-table-2 as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "TRUNCATE TABLE db1..my-table-2 ".
               "AS OF ~2023.7.9..22.35.36..7e90"
@@ -2167,7 +2177,7 @@
         'TRUNCATE TABLE: %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "TRUNCATE TABLE db1..my-table as of ~2023.7.9..22.35.35..7e90"
     ==
@@ -2202,7 +2212,7 @@
         'TRUNCATE TABLE: %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "TRUNCATE TABLE my-table as of 1 day ago"
     ==

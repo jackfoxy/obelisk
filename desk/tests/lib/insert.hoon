@@ -468,10 +468,12 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'INSERT: type of column %column name=%col2 does not match input value type ~.ud'
+    %-  crip  
+        "INSERT: type of column %column name=%col2 ".
+        "does not match input value type ~.ud"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on dup rows
@@ -507,7 +509,7 @@
         'INSERT: cannot add duplicate key: ~[1.685.221.219]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on dup col names
@@ -537,7 +539,7 @@
         'INSERT: incorrect columns specified: [~ u=<|col1 col2 col2|>]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on too few cols
@@ -567,7 +569,7 @@
         'INSERT: incorrect columns specified: [~ u=<|col1 col2|>]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on too many cols
@@ -597,7 +599,7 @@
         'INSERT: incorrect columns specified: [~ u=<|col1 col2 col3 col4|>]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: insert rows with columns specified, fail on col wrong type
@@ -624,10 +626,12 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'INSERT: type of column %column name=%col2 does not match input value type ~.ud'
+    %-  crip  
+        "INSERT: type of column %column name=%col2 ".
+        "does not match input value type ~.ud"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on bad column name
@@ -657,7 +661,7 @@
         'INSERT: invalid column: \'col1a\''
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on bad table name
@@ -687,7 +691,7 @@
         'INSERT: table [%dbo %my-table-2] does not exist'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on bad namespace name
@@ -717,7 +721,7 @@
         'INSERT: table [%ns1 %my-table] does not exist'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: fail on bad AS OF time
@@ -725,9 +729,10 @@
   =|  run=@ud
   =/  my-insert-1  "INSERT INTO db1..my-table (col1, col2, col3) ".
                    "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) "
-  =/  my-insert-2  "INSERT INTO db1..my-table (col1, col2, col3) ".
-                   "VALUES ('cord2',~nomryg-nilref,20) ('Default2',Default, 0) ".
-                   "AS OF ~2012.5.1"
+  =/  my-insert-2  
+        "INSERT INTO db1..my-table (col1, col2, col3) ".
+        "VALUES ('cord2',~nomryg-nilref,20) ('Default2',Default, 0) ".
+        "AS OF ~2012.5.1"
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -756,7 +761,7 @@
         'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert-2])
+          !>([%test %db1 my-insert-2])
       ==
 ::
 :: fail on bad AS OF schema time
@@ -787,7 +792,7 @@
         'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert])
+          !>([%test %db1 my-insert])
       ==
 ::
 :: successful AS OF insert followed by fail on data time
@@ -826,7 +831,7 @@
         'INSERT: table %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>([%tape %db1 my-insert-2])
+          !>([%test %db1 my-insert-2])
       ==
 ::
 ::  fail on time,  insert = schema
@@ -858,7 +863,7 @@
         'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
               "AS OF ~2023.7.9..22.35.36..7e90"
@@ -893,7 +898,7 @@
         'INSERT: table %my-table as-of schema time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
               "AS OF ~2023.7.9..22.35.35..7e90"
@@ -931,7 +936,7 @@
         'INSERT: table %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "INSERT INTO db1..my-table (col1) VALUES ('foo') ".
               "AS OF ~2023.7.9..22.35.35..7e90"
@@ -969,7 +974,7 @@
         'INSERT: table %my-table as-of data time out of order'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "INSERT INTO db1..my-table (col1) VALUES ('foo') ".
               "AS OF ~2023.7.9..22.35.34..7e90"
@@ -989,7 +994,7 @@
         'INSERT: state change after query in script'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
               "SELECT 0;".
@@ -1010,7 +1015,7 @@
         'INSERT: database %db does not exist'
   |.  %:  ~(on-poke agent (bowl [run ~2000.1.2]))
       %obelisk-action
-      !>  :+  %tape
+      !>  :+  %test
               %db1
               "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
               "INSERT INTO db..my-table (col1) VALUES ('cord') "
@@ -1070,7 +1075,7 @@
         'INSERT: incorrect columns specified: '
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
-          !>  :+  %tape
+          !>  :+  %test
                 %db1
                 "INSERT INTO db1..my-table VALUES ('cord2') ('cord3') "
       ==
