@@ -1099,34 +1099,16 @@
       ~|  "grant error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  grant-nail  (parse-grant [[1 1] q.q.command-nail])
       =/  parsed  (wonk grant-nail)
-      ::"grant adminread to ~sampel-palnet on database db"
-      ?:  ?=([@ [@ [@ %~]] [@ @]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:grant-nail
-          commands  [(grant:ast %grant -.parsed +<+.parsed +>.parsed) commands]
-        ==
-      ::"grant adminread to parent on database db"
-      ?:  ?=([@ @ [@ @]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:grant-nail
-          commands  [(grant:ast %grant -.parsed +<.parsed +>.parsed) commands]
-        ==
-      ::"grant Readwrite to ~zod,~bus,~nec,~sampel-palnet on namespace db.ns"
-      ::"grant adminread to ~zod,~bus,~nec,~sampel-palnet on namespace ns"
-      ::"grant Readwrite to ~zod,~bus,~nec,~sampel-palnet on db.ns.table"
-      ?:  ?=([@ [@ [@ *]] [@ *]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:grant-nail
-          commands  [(grant:ast %grant -.parsed +<+.parsed +>.parsed) commands]
-        ==
-      ::"grant readonly to siblings on namespace db.ns"
-      ::"grant readwrite to moons on namespace ns" (ns previously cooked)
-      ?:  ?=([@ @ [@ [@ *]]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:grant-nail
-          commands  [(grant:ast %grant -.parsed +<.parsed +>.parsed) commands]
-        ==
-      !!
+      %=  $
+        script    q.q.u.+3.q:grant-nail
+        commands  :-  %:  grant:ast  %grant
+                                     -.parsed
+                                     +<.parsed
+                                     +>-.parsed
+                                     +>+.parsed
+                                     ==
+                      commands
+      ==
     %insert
       ~|  "insert error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  insert-nail
@@ -1164,37 +1146,16 @@
       ~|  "revoke error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  revoke-nail  (parse-revoke [[1 1] q.q.command-nail])
       =/  parsed  (wonk revoke-nail)
-      ::"revoke adminread from ~sampel-palnet on database db"
-      ?:  ?=([@ [@ [@ %~]] [@ @]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:revoke-nail
-          commands  :-  (revoke:ast %revoke -.parsed +<+.parsed +>.parsed)
-                        commands
-        ==
-      ::"revoke adminread from parent on database db"
-      ?:  ?=([@ @ [@ @]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:revoke-nail
-          commands  :-  (revoke:ast %revoke -.parsed +<.parsed +>.parsed)
-                        commands
-        ==
-      ::"revoke Readwrite from ~zod,~bus,~nec,~sampel-palnet on namespace db.ns"
-      ::"revoke adminread from ~zod,~bus,~nec,~sampel-palnet on namespace ns"
-      ::"revoke Readwrite from ~zod,~bus,~nec,~sampel-palnet on db.ns.table"
-      ?:  ?=([@ [@ [@ *]] [@ *]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:revoke-nail
-          commands  :-  (revoke:ast %revoke -.parsed +<+.parsed +>.parsed)
-                        commands
-        ==
-      ::"revoke readonly from siblings on namespace db.ns"
-      ::"revoke readwrite from moons on namespace ns"
-      ?:  ?=([@ @ [@ [@ *]]] [parsed])
-        %=  $
-          script    q.q.u.+3.q:revoke-nail
-          commands  [(revoke:ast %revoke -.parsed +<.parsed +>.parsed) commands]
-        ==
-      !!
+      %=  $
+        script    q.q.u.+3.q:revoke-nail
+        commands  :-  %:  revoke:ast  %revoke
+                                      -.parsed
+                                      +<.parsed
+                                      +>-.parsed
+                                      +>+.parsed
+                                      ==
+                      commands
+      ==
     %truncate-table
       ~|  "truncate table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  truncate-table-nail  (parse-truncate-table [[1 1] q.q.command-nail])
@@ -1528,23 +1489,100 @@
       whitespace
       ;~(pose (jester 'adminread') (jester 'readonly') (jester 'readwrite'))
       ==
-    :: grantee
-    ;~  pfix
-      whitespace
-      ;~  pfix
-        (jester 'to')
-        ;~  pfix
-          whitespace
-          ;~  pose  (jester 'parent')
-                    (jester 'siblings')
-                    (jester 'moons')
-                    (stag %ships ship-list)
-                    ==
-          ==
-        ==
-      ==
-    ;~(sfix grant-object end-or-next-command)
+    :: grantees
+    ;~  pfix  whitespace
+              ;~  pfix  (jester 'to')
+                        parse-ship-paths
+                        ==
+              ==
+    :: grant-objects
+    parse-grant-objects
+    ;~(sfix parse-grant-duration end-or-next-command)
   ==
+++  parse-grant-duration
+  ;~  pose  ;~  plug  (easy ~)
+                      ;~  pfix  ;~(plug whitespace (jester 'for') whitespace)
+                                ;~(pfix sig crub-no-text)
+                                ==
+                      ;~  pfix  ;~  plug  whitespace
+                                          (jester 'starting')
+                                          whitespace
+                                          ==
+                                ;~(plug (easy ~) ;~(pfix sig crub-no-text))
+                                ==
+                      ==
+            ;~  plug  (easy ~)
+                      ;~  pfix  ;~(plug whitespace (jester 'for') whitespace)
+                                ;~(pfix sig crub-no-text)
+                                ==
+                      ;~  plug  (easy ~)
+                                ;~(pfix whitespace ;~(pfix sig crub-no-text))
+                                ==
+                      ==
+            ;~  plug  (easy ~)
+                      ;~  pfix  ;~(plug whitespace (jester 'for') whitespace)
+                                ;~(pfix sig crub-no-text)
+                                ==
+                      ;~  pfix  ;~(plug whitespace (jester 'to') whitespace)
+                                ;~(plug (easy ~) ;~(pfix sig crub-no-text))
+                                ==
+                      ==
+            (easy ~)
+            ==
+++  parse-ship-paths
+  %+  more  com
+            ;~  pose  ;~(pfix whitespace ;~(sfix parse-ship-agent whitespace))
+                      ;~(pfix whitespace parse-ship-agent)
+                      ;~(sfix parse-ship-agent whitespace)
+                      parse-ship-agent
+                      ==
+++  parse-ship-agent
+  ;~  pose  ;~  plug   (stag ~.tas (jester 'parent'))
+                       (stag ~ ;~(pfix whitespace stap))
+                       ==
+            ;~(plug (stag ~.tas (jester 'parent')) (easy ~))
+            ::
+            ;~  plug  (stag ~.tas (jester 'siblings'))
+                      (stag ~ ;~(pfix whitespace stap))
+                      ==
+            ;~(plug (stag ~.tas (jester 'siblings')) (easy ~))
+            ::
+            ;~  plug  (stag ~.tas (jester 'moons'))
+                      (stag ~ ;~(pfix whitespace stap))
+                      ==
+            ;~(plug (stag ~.tas (jester 'moons')) (easy ~))
+            ::
+            ;~  plug  (stag ~.tas (jester 'our'))
+                      (stag ~ ;~(pfix whitespace stap))
+                      ==
+            ;~(plug (stag ~.tas (jester 'our')) (easy ~))
+            ::
+            ;~(plug (stag ~.p parse-ship) (stag ~ ;~(pfix whitespace stap)))
+            ;~(plug (stag ~.p parse-ship) (easy ~))
+            ==
+++  parse-ship  ;~(pfix sig fed:ag)
+++  parse-grant-objects
+  ;~  pfix
+    whitespace
+    ;~  pfix
+      (jester 'on')
+      %+  more  com  
+                ;~  pose  ;~  pfix  whitespace
+                                    ;~(sfix parse-grant-object whitespace)
+                                    ==
+                          ;~(pfix whitespace parse-grant-object)
+                          ;~(sfix parse-grant-object whitespace)
+                          parse-grant-object
+                          ==
+    ==
+  ==
+++  parse-grant-object
+  ;~  pose  (stag %server (jester 'server'))
+            on-database
+            on-namespace
+            (stag %table-column stap)
+            (stag %table-set parse-qualified-3object)
+            ==
 ++  parse-insert  ~+
   ;~  plug
     ;~  pose
@@ -1988,24 +2026,48 @@
                 (jester 'all')
                 ==
       ==
-    :: revokee
-    ;~  pfix
-      whitespace
-      ;~  pfix
-        (jester 'from')
-        ;~  pfix
-          whitespace
-          ;~  pose  (jester 'parent')
-                    (jester 'siblings')
-                    (jester 'moons')
-                    (jester 'all')
-                    (stag %ships ship-list)
-                    ==
-          ==
-        ==
-      ==
-    ;~(sfix grant-object end-or-next-command)
+    :: revokees
+    ;~  pfix  whitespace
+              ;~  pfix  (jester 'from')
+                        ;~  pose  ;~  plug
+                                      ;~  plug  ;~  pfix  whitespace
+                                                         (stag ~.tas (jester 'all'))
+                                                         ==
+                                                (easy ~)
+                                                ==
+                                          (easy ~)
+                                          ==
+                                  parse-ship-paths
+                                  ==
+                        ==
+              ==
+    :: revoke-objects
+    parse-revoke-objects
+    ;~(sfix parse-grant-duration end-or-next-command)
   ==
+++  parse-revoke-objects
+  ;~  pfix
+    whitespace
+    ;~  pfix
+      (jester 'on')
+      %+  more  com  
+                ;~  pose  ;~  pfix  whitespace
+                                    ;~(sfix parse-revoke-object whitespace)
+                                    ==
+                          ;~(pfix whitespace parse-revoke-object)
+                          ;~(sfix parse-revoke-object whitespace)
+                          parse-revoke-object
+                          ==
+    ==
+  ==
+++  parse-revoke-object
+  ;~  pose  (jester 'all')
+            (jester 'server')
+            on-database
+            on-namespace
+            (stag %table-column stap)
+            (stag %table-set parse-qualified-3object)
+            ==
 ++  parse-truncate-table  ~+
   ;~  sfix
     ;~  pfix
@@ -3009,7 +3071,7 @@
 ++  parse-qualified-object  ~+
   %:  cook  cook-qualified-object
             ;~  pose  ;~((glue dot) parse-ship sym sym sym)
-                      ;~(plug parse-ship:parse dot sym dot dot sym)
+                      ;~(plug parse-ship dot sym dot dot sym)
                       ;~(plug sym dot dot sym)
                       parse-qualified-3
                       ==
@@ -3187,15 +3249,6 @@
         ==
       ==
     ==
-++  parse-ship  ;~(pfix sig fed:ag)
-++  ship-list
-  %:  more  com
-            ;~  pose  ;~(sfix ;~(pfix whitespace parse-ship) whitespace)
-                      ;~(pfix whitespace parse-ship)
-                      ;~(sfix parse-ship whitespace)
-                      parse-ship
-                      ==
-            ==
 ++  on-database  ;~(plug (jester 'database') parse-face)
 ++  on-namespace
   ;~  plug  (jester 'namespace')
@@ -3203,17 +3256,6 @@
                       parse-qualified-2-name
                       ==
             ==
-++  grant-object
-  ;~  pfix
-    whitespace
-    ;~  pfix
-      (jester 'on')
-      ;~  pfix
-        whitespace
-        ;~(pose on-database on-namespace parse-qualified-3object)
-        ==
-    ==
-  ==
 ++  parse-aura  ~+
   =/  root-aura  ;~  pose
     (jest '@c')              ::  UTF-32

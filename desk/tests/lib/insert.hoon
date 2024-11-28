@@ -536,7 +536,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'INSERT: incorrect columns specified: [~ u=<|col1 col2 col2|>]'
+        'INSERT: incorrect columns specified: [~ u=~[%col1 %col2 %col2]]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%test %db1 my-insert])
@@ -566,7 +566,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'INSERT: incorrect columns specified: [~ u=<|col1 col2|>]'
+        'INSERT: incorrect columns specified: [~ u=~[%col1 %col2]]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%test %db1 my-insert])
@@ -596,7 +596,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'INSERT: incorrect columns specified: [~ u=<|col1 col2 col3 col4|>]'
+        'INSERT: incorrect columns specified: [~ u=~[%col1 %col2 %col3 %col4]]'
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%test %db1 my-insert])

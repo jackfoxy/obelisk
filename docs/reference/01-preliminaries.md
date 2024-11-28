@@ -288,5 +288,3 @@ The `CREATE DATABASE` command sets the first schema and content times to the dat
 The second, and last, rule is once you introduce a query returning results into a script, all subsequent commands must also be queries. No further schema or data changes are allowed.
 
 Among the metadata returned by queries is the schema and content times (labelled `schema time` and `data time`) used by the engine to create the query results. The query has a de facto `<as-of-time>` of the latest of the two. That is what makes it idempotent. You need to specify this `<as-of-time>` to recreate the same query. By specifying `<as-of-time>` in a query the engine uses the schema and content in effect at that time to create the results.
-
-Permission commands `GRANT` and `REVOKE` are outside the scope of time indexing and apply in real time.

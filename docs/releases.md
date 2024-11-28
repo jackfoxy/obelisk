@@ -1,5 +1,9 @@
 # Releases
 
+## v0.4a (alpha release)
+
+* GRANT and REVOKE parsing and AST updated. 
+
 ## v0.4 (alpha release)
 
 ### DDL

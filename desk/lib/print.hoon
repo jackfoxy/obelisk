@@ -29,6 +29,9 @@
       %server-time
         ~&  "    [ {<-.b>} {<date.b>} ]"
         $(results +.results)
+      %security-time
+        ~&  "    [ {<-.b>} {<date.b>} ]"
+        $(results +.results)
       %schema-time
         ~&  "    [ {<-.b>} {<date.b>} ]"
         $(results +.results)

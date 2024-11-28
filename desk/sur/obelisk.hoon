@@ -144,6 +144,7 @@
   $%  [%message msg=@t]
       [%vector-count count=@ud]
       [%server-time date=@da]
+      [%security-time date=@da]
       [%schema-time date=@da]
       [%data-time date=@da]
       [%result-set (list vector)]

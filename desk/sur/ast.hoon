@@ -331,7 +331,7 @@
   $:
     %insert
     table=qualified-object
-    columns=(unit (list @t))
+    columns=(unit (list @tas))
     values=insert-values
     as-of=(unit as-of)
   ==
@@ -342,7 +342,7 @@
   $:
     %update
     table=qualified-object
-    columns=(list @t)
+    columns=(list @tas)
     values=(list value-or-default)
     predicate=(unit predicate)
     as-of=(unit as-of)
@@ -549,40 +549,89 @@
 ::  permissions
 ::
 ::
-::  $grant-permission: ?(%adminread %readonly %readwrite)
+::  $grant-permission:  ?(%adminread %readonly %readwrite)
 +$  grant-permission     ?(%adminread %readonly %readwrite)
 ::
-::  $grantee: ?(%parent %siblings %moons (list @p))
-+$  grantee              ?(%parent %siblings %moons (list @p))
+::  $grantee: ?(%parent %siblings %moons %our @p)
+::            $dime
++$  grantee  
+  $?  [@ta %parent]
+      [@ta %siblings]
+      [@ta %moons]
+      [@ta %our]
+      [@ta @p]
+      ==
 ::
-::  $revoke-permission: ?(%adminread %readonly %readwrite %all)
-+$  revoke-permission    ?(%adminread %readonly %readwrite %all)
+::  $revoke-from: ?(%parent %siblings %moons %all)
++$  revoke-from          ?(%parent %siblings %moons %all)
 ::
-::  $revoke-from: ?(%parent %siblings %moons %all (list @p))
-+$  revoke-from          ?(%parent %siblings %moons %all (list @p))
+::  $grant-object: ?(%server %database %namespace %table-set %table-column)
++$  grant-object  
+  $%  [%server %server]
+      [%database @tas]
+      [%namespace [@tas @tas]]
+      [%table-set qualified-object]
+      [%table-column path]
+      ==
 ::
-::  $grant-object: ?([%database @t] [%namespace [@t @t]] qualified-object)
-+$  grant-object         ?([%database @t] [%namespace [@t @t]] qualified-object)
+::  $sec-time:  pair  ?([%da @da] [%dr @dr])
+::                    (unit ?([%da @da] [%dr @dr]))
 ::
-::  $grant: permission=grant-permission to=grantee grant-target=grant-object
+::  valid states:  [p=[%dr @dr] q=~]
+::                   duration is timespan
+::                 [p=[%dr @dr] q=[~ [%da @da]]]
+::                   duration is timespan beginning at time
+::                 [p=[%da @da] q=[~ [%da @da]]]
+::                   duration begins at time and ends at time
+::
++$  sec-time  (pair ?([%da @da] [%dr @dr]) (unit [%da @da]))
+::
+::  $grant:  permission=grant-permission
+::           grantees=(list [grantee (unit path)])
+::           grant-objects=(list grant-object)
+::           duration=(unit sec-time)
 +$  grant
   $:
     %grant
     permission=grant-permission
-    to=grantee
-    grant-target=grant-object
+    grantees=(list [dime (unit path)])
+    grant-objects=(list grant-object)
+    duration=(unit sec-time)
   ==
+::
+::  $revoke-permission: ?(%adminread %readonly %readwrite %all)
++$  revoke-permission    ?(%adminread %readonly %readwrite %all)
 ::
 ::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-object)
 +$  revoke-object
-  ?([%database @t] [%namespace [@t @t]] %all qualified-object)
+  $%  [%all %all]
+      [%server %server]
+      [%database @tas]
+      [%namespace [@tas @tas]]
+      [%table-set qualified-object]
+      [%table-column path]
+      ==
 ::
-::  $revoke: permission=revoke-permission from=revoke-from revoke-target=revoke-object
+::  $revoke:  permission=revoke-permission from=revoke-from 
+::            revoke-target=revoke-object
 +$  revoke
   $:
-      %revoke
+    %revoke
     permission=revoke-permission
-    from=revoke-from
-    revoke-target=revoke-object
+    from=(list [dime (unit path)])
+    revoke-target=(list revoke-object)
+    duration=(unit sec-time)
   ==
+::
+::  $security-group
++$  security-group 
+  $:  %security-group
+      grantees=(list [dime (unit path)])
+      ==
+::
+::  $security-target
++$  security-target
+  $:  %security-target
+      grant-objects=(list grant-object)
+      ==
 --
