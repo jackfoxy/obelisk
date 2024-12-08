@@ -2722,6 +2722,99 @@
     !>  expected
     !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
+::  joins
+++  create-calendar
+  "CREATE TABLE calendar ".
+  "(date        @da,".
+  " year        @ud,".
+  " month       @ud,".
+  " month-name  @t,".
+  " day         @ud,".
+  " day-name    @t,".
+  " day-of-year @ud,".
+  " weekday     @ud,".
+  " year-week   @ud)".
+  "  PRIMARY KEY (date);"
+++  insert-calendar
+  "INSERT INTO calendar ".
+  "VALUES ".
+  "(~2023.12.21, 2023, 12, 'December', 21, 'Thursday', 355, 5, 51) ".
+  "(~2023.12.22, 2023, 12, 'December', 22, 'Friday', 356, 6, 51) ".
+  "(~2023.12.23, 2023, 12, 'December', 23, 'Saturday', 357, 7, 51) ".
+  "(~2023.12.24, 2023, 12, 'December', 24, 'Sunday', 358, 1, 52) ".
+  "(~2023.12.25, 2023, 12, 'December', 25, 'Monday', 359, 2, 52) ".
+  "(~2023.12.26, 2023, 12, 'December', 26, 'Tuesday', 360, 3, 52) ".
+  "(~2023.12.27, 2023, 12, 'December', 27, 'Wednesday', 361, 4, 52) ".
+  "(~2023.12.28, 2023, 12, 'December', 28, 'Thursday', 362, 5, 52) ".
+  "(~2023.12.29, 2023, 12, 'December', 29, 'Friday', 363, 6, 52) ".
+  "(~2023.12.30, 2023, 12, 'December', 30, 'Saturday', 364, 7, 52) ".
+  "(~2023.12.31, 2023, 12, 'December', 31, 'Sunday', 365, 1, 53) ".
+  "(~2024.1.1, 2024, 1, 'January', 1, 'Monday', 1, 2, 1) ".
+  "(~2024.1.2, 2024, 1, 'January', 2, 'Tuesday', 2, 3, 1);"
+++  create-holiday-calendar
+  "CREATE TABLE holiday-calendar ".
+  "(date @da, us-federal-holiday @t) ".
+  "PRIMARY KEY (date);"
+++  insert-holiday-calendar
+  "INSERT INTO holiday-calendar ".
+  "(date, us-federal-holiday) ".
+  "VALUES ".
+  "(~2023.11.23, 'Thanksgiving Day') ".
+  "(~2023.12.25, 'Christmas Day') ".
+  "(~2024.1.1, 'New Years Day') ".
+  "(~2024.1.15, 'Birthday of Martin Luther King Jr.');"
+::
+::  test T1.* in select
+++  test-joins-00
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "SELECT T1.day-name, t2.*"
+
+    ~&  ->+>+>+.mov2
+
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov2)
+::
 ::  bugs
 ::
 ::  bug selecting calendar because of screw-up in views schema API
