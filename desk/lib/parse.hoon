@@ -2925,10 +2925,10 @@
   ?~  c
     ?:  =("::" (scag 2 `tape`p))  $(p ~)
     ?:  &(=(a 1) =("/*" (scag 2 `tape`p)))  $(p ~)
-    ?:  =(0 (lent (fand "::" p)))  $(p ~, b (weld p b))
+    ?:  =(0 (lent (fand "::" p)))  $(p ~, b (weld (weld p " ") b))
       %=  $
         p  ~
-        b  (weld (line-cmnts `tape`p) b)
+        b  (weld (weld (line-cmnts `tape`p) " ") b)
       ==
   ?:  =("::" (scag 2 (slag i.c `tape`p)))
     %=  $
@@ -2939,7 +2939,8 @@
     %=  $
       p  (scag i.c `tape`p)
       a  (add a 1)
-      b  ?.(=(a 0) b (weld (line-cmnts (slag (add 3 i.c) `tape`p)) b))
+      b  ?.  =(a 0)  b
+             (weld (weld (line-cmnts (slag (add 3 i.c) `tape`p)) " ") b)
       c  t.c
     ==
   ?:  =("/*" (scag 2 (slag (add 1 i.c) `tape`p)))
@@ -2951,7 +2952,8 @@
   ?.  =(a 0)  $(p (scag i.c `tape`p), c t.c)
   %=  $
     p  (scag i.c `tape`p)
-    b  (weld (line-cmnts (slag (add 1 i.c) `tape`p)) b)
+    ::b  (weld (line-cmnts (slag (add 1 i.c) `tape`p)) b)
+    b  (weld (weld (line-cmnts (slag (add 1 i.c) `tape`p)) " ") b)
     c  t.c
   ==
 ::

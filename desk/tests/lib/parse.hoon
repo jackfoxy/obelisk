@@ -2877,7 +2877,7 @@
     !>  ~
     !>  %-  parse:parse(default-database 'other-db')  ~
 ::
-++  m-cmnt-1  "/* line1\0a  line2 \0a line3\0a*/"
+++  m-cmnt-1  "/* line1\0aline2\0aline3\0a*/"
 ++  m-cmnt-2  "\0a/* linea\0a  lineb \0a linec \0a*/"
 ++  m-cmnt-3  "\0a/* linea1 \0a lineb2 \0a linec3 \0a*/"
 ::
@@ -2895,8 +2895,8 @@
                 %-  limo  :~  m-cmnt-1
                               "cReate"
                               m-cmnt-2
-                              "  namespace ns1\0a"
-                              " ; \0a"
+                              "namespace ns1\0a"
+                              "; \0a"
                               "cReate namesPace db1.db1-ns1\0a"
                               m-cmnt-3
                               ==
@@ -2925,10 +2925,10 @@
             %-  zing
                 %-  limo  :~  m-cmnt-1
                               "\0acReate\0a"
-                              "  namespace ns1\0a"
+                              "namespace ns1\0a"
                               m-cmnt-2
                               m-cmnt-3
-                              " ; \0a"
+                              "; \0a"
                               "cReate namesPace db1.db1-ns1\0a"
                               ==
 
@@ -2940,9 +2940,9 @@
     !>  %-  parse:parse(default-database 'other-db')
             %-  zing
                 %-  limo  :~  "cReate\0a"
-                              "  namespace ns1\0a"
+                              "namespace ns1\0a"
                               m-cmnt-1
-                              " ; \0a"
+                              "; \0a"
                               m-cmnt-2
                               "cReate namesPace db1.db1-ns1\0a"
                               m-cmnt-3
@@ -2956,9 +2956,9 @@
     !>  %-  parse:parse(default-database 'other-db')
             %-  zing
                 %-  limo  :~  "cReate\0a"
-                              "  namespace ns1\0a"
+                              "namespace ns1\0a"
                               m-cmnt-1
-                              " ; "
+                              "; "
                               m-cmnt-2
                               "cReate namesPace db1.db1-ns1"
                               m-cmnt-3

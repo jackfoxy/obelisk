@@ -2793,7 +2793,7 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                %-  zing  :~  "CREATE DATABASE db1"
+                %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
                               insert-calendar
                               create-holiday-calendar
@@ -2809,7 +2809,7 @@
                 "JOIN holiday-calendar T2 ".
                 "SELECT T1.day-name, t2.*"
 
-    ~&  ->+>+>+.mov2
+  ::  ~&  ->+>+>+.mov2
 
   %+  expect-eq
     !>  expected
