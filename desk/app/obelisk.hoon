@@ -83,7 +83,12 @@
   ==
 ++  on-watch  |=(=path `this)
 ++  on-leave  on-leave:default
-++  on-peek   on-peek:default
+++  on-peek
+  |=  =path
+  ^-  (unit (unit cage))
+  ?+  path  [~ ~]
+    [%x %server ~]  ``noun+!>(server.state)
+  ==
 ++  on-agent  on-agent:default
 ++  on-arvo   on-arvo:default
 ++  on-fail   on-fail:default
