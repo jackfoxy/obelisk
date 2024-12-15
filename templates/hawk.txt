@@ -239,7 +239,7 @@
     =hx-on-htmx-config-request  "configRequest(event)"
     ;input.hidden(name "/", value "query");
     ;textarea#query-text.p3.grow.b0
-      =name  "tas//query-text"
+      =name  "/query-text"
       =spellcheck  "false"
       =placeholder  "FROM ... SELECT *"
       =autocomplete  "off"
