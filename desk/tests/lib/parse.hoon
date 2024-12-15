@@ -2877,7 +2877,7 @@
     !>  ~
     !>  %-  parse:parse(default-database 'other-db')  ~
 ::
-++  m-cmnt-1  "/* line1\0a  line2 \0a line3\0a*/"
+++  m-cmnt-1  "/* line1\0aline2\0aline3\0a*/"
 ++  m-cmnt-2  "\0a/* linea\0a  lineb \0a linec \0a*/"
 ++  m-cmnt-3  "\0a/* linea1 \0a lineb2 \0a linec3 \0a*/"
 ::
@@ -2895,8 +2895,8 @@
                 %-  limo  :~  m-cmnt-1
                               "cReate"
                               m-cmnt-2
-                              "  namespace ns1\0a"
-                              " ; \0a"
+                              "namespace ns1\0a"
+                              "; \0a"
                               "cReate namesPace db1.db1-ns1\0a"
                               m-cmnt-3
                               ==
@@ -2915,7 +2915,6 @@
                               m-cmnt-3
                               "cReate namesPace db1.db1-ns1\0a"
                               ==
-
 ++  test-block-cmnt-04
   =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
   =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
@@ -2925,13 +2924,12 @@
             %-  zing
                 %-  limo  :~  m-cmnt-1
                               "\0acReate\0a"
-                              "  namespace ns1\0a"
+                              "namespace ns1\0a"
                               m-cmnt-2
                               m-cmnt-3
-                              " ; \0a"
+                              "; \0a"
                               "cReate namesPace db1.db1-ns1\0a"
                               ==
-
 ++  test-block-cmnt-05
   =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
   =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
@@ -2940,14 +2938,13 @@
     !>  %-  parse:parse(default-database 'other-db')
             %-  zing
                 %-  limo  :~  "cReate\0a"
-                              "  namespace ns1\0a"
+                              "namespace ns1\0a"
                               m-cmnt-1
-                              " ; \0a"
+                              "; \0a"
                               m-cmnt-2
                               "cReate namesPace db1.db1-ns1\0a"
                               m-cmnt-3
                               ==
-
 ++  test-block-cmnt-06
   =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
   =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
@@ -2956,13 +2953,29 @@
     !>  %-  parse:parse(default-database 'other-db')
             %-  zing
                 %-  limo  :~  "cReate\0a"
-                              "  namespace ns1\0a"
+                              "namespace ns1\0a"
                               m-cmnt-1
-                              " ; "
+                              "; "
                               m-cmnt-2
                               "cReate namesPace db1.db1-ns1"
                               m-cmnt-3
                               ==
+++  test-block-cmnt-07
+  %+  expect-eq
+    !>  ~[[%create-database database-name='db3' as-of=~]]
+    !>  %-  parse:parse(default-database 'other-db')
+            %-  zing
+                %-  limo  :~  "CREATE DATABASE db3; :: this is a line comment".
+                              ":: they can start anywhere on a line ".
+                              ":: and comment out the remainder of the line".
+                              "/* this is a block comment".
+                              "everyting within /* and */".
+                              "(which must be in columns 1 and 2) is a comment".
+                              "CREATE TABLE db3..my-table-1".
+                              "  (col1 @t, col2 @da) PRIMARY KEY (col1)".
+                              "*/"
+                              ==
+::
 ::
 ++  vfas-tar  [%selected-value value=[p=~.t q=10.799] alias=~]
 ++  vcol-col  [%selected-value value=[p=~.t q=14.906] alias=~]
