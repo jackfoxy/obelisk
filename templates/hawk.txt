@@ -7,61 +7,100 @@
 ::   https://github.com/jackfoxy/obelisk
 ::
 ::
+::  Place this code in a templates file:
+::    /~/config/templates/obelisk-ui
+::
+::
 :-  %shed
 |^
+  ::::::::::::::::::::::::::::::::::::::
+  ::  agent
+  ::
+  ::
+  ::
   =/  m  (strand ,vase)
   ;<  our=@p  bind:m  get-our
   ;<  now=@da  bind:m  get-time
-  =/  dock  [our %obelisk]
-  ?.  =((rib:c /) tas/%query)
-    %-  pure:m  !>
-    (render old-query old-results)
-  =/  query  (pib:c /query-text)
-  =/  obelisk-command=cage  obelisk-action/!>([%tape %sys query])
-  ;<  ~  bind:m  (watch /query dock /server)
-  ;<  ~  bind:m  (poke dock obelisk-command)
-  ;<  [mark =vase]  bind:m  (take-fact /query)
-  =/  res
-    ~|  %malformed-response
-    (poke-result +:vase)
-  ?-  -.res
-    %.n
-      %-  pure:m  !>
-      (render query (print-tang p.res))
-    %.y
-      %-  pure:m  !>
-      (render query (print-results p.res))
-  ==
-++  print-tang
-  |=  =tang
-  ;div#results.grow.basis-half.b1.scroll-y.scroll-x.mono.s0.p4
-    ;*
-    %+  turn  tang
-    |=  =tank
-    ;div
-      ;*
-      %+  turn  (wash [0 80] tank)
-      |=  =tape
-      ;div: {tape}
-    ==
-  ==
-++  render
-  |=  [query=tape results=manx]
-  ;div.fc.hf.mhf.scroll-x
-    ;form.grow.basis-half.fc.mono.s0
-      =method  "post"
-      ;input.hidden(name "/", value "query");
-      ;textarea#query-text.p3.grow
-        =name  "tas//query-text"
-        =spellcheck  "false"
-        =placeholder  "FROM ... SELECT *"
-        ; {query}
+  ;<  has=?    bind:m  (check-for-file [our %obelisk da+now] /sys/kelvin)
+  ?.  has  (pure:m !>(;/("obelisk not installed")))
+  ?+  (rib:c /)
+      ::
+      %:  print
+        parse-query
+        parse-results
+        parse-default-db
       ==
-      ;button.o7.b-3.fr.p2.tc.jc.ac.bold: submit
-    ==
-    ;+  results
+      ::
+    [* %set-default-db]
+      %:  print
+        parse-query
+        parse-results
+        ?~(r=(reb:c /default-db) ~ `q.u.r)
+      ==
+      ::
+    [* %query]
+      =/  query  (pib:c /query-text)
+      ;<  res=poke-result  bind:m  (query-obelisk %$ query)
+      %:  print
+        query
+        (print-poke-result res)
+        parse-default-db
+      ==
+    ::
   ==
-++  old-query
+::
+::
+::
+::::::::::::::::::::::::::::::::::::::
+::  obelisk types & wrapper
+::
+::
++$  server  (map @tas *)
+++  print-vector
+  |=  =vector
+  ;tr
+    ;*
+    %+  turn  +.vector
+    |=  cell=vector-cell
+    ;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
+  ==
++$  poke-result  (each (list cmd-result) tang)
++$  cmd-result  [%results (list result)]
++$  result
+  $%  [%message msg=@t]
+      [%vector-count count=@ud]
+      [%server-time date=@da]
+      [%schema-time date=@da]
+      [%data-time date=@da]
+      [%result-set (list vector)]
+      ==
++$  vector-cell  [p=@tas q=dime]
++$  vector  [%vector (lest vector-cell)]
+++  query-obelisk
+  |=  [id=@ta query=tape]
+  =/  m  (strand ,poke-result)
+  ^-  form:m
+  ;<  our=@p  bind:m  get-our
+  ;<  now=@da  bind:m  get-time
+  =/  dock  [our %obelisk]
+  =/  default  (fall parse-default-db %sys)
+  =/  obelisk-command=cage  obelisk-action/!>([%tape default query])
+  ;<  ~  bind:m  (watch /query/[id] dock /server)
+  ;<  ~  bind:m  (poke dock obelisk-command)
+  ;<  [mark =vase]  bind:m  (take-fact /query/[id])
+  |=  tin=strand-input:strand
+  ?~  res=(mole |.((poke-result +:vase)))
+    `[%fail [%malformed-obelisk-response ~]]
+  `[%done u.res]
+  ::
+::
+::
+::::::::::::::::::::::::::::::::::::::
+::  parse ui
+::
+::
+::
+++  parse-query
   ^-  tape
   %~  all-text-content  mx
   =<  q
@@ -69,27 +108,188 @@
     ^-  (pair path manx)
     [/ ;div;]
   (gid:d "query-text")
-++  old-results
+  ::
+++  parse-results
   ^-  manx
   =<  q
   %-  fall  :_
     ^-  (pair path manx)
     :-  /
-    ;div.grow.basis-half.fc.jc.ac: no results yet
+    ;div.p8.fc.jc.ac.f4: No results yet
   (gid:d "results")
+  ::
+++  parse-default-db
+  ^-  (unit term)
+  ?~  res=(gid:d "default-db")  ~
+  =/  el=manx  +.u.res
+  %+  bind
+    (~(get by (malt a.g.el)) %val)
+  crip
+::
+::
+::
+::::::::::::::::::::::::::::::::::::::
+::  print ui
+::
+::
+::
+++  print
+  |=  [query=tape results=manx default-db=(unit term)]
+  =/  m  (strand ,vase)
+  ^-  form:m
+  ;<  =server  bind:m  (scry server %gx %obelisk /server/noun)
+  %-  pure:m  !>
+  ;div.fc.hf
+    ;+
+    =;  m=manx
+      ?.  =((pib:c /schema-open) "true")  m
+      m(a.g [[%open ""] a.g.m])
+    ;hawk-sidebar#h-schema.hf
+      =side  "left"
+      =size  (pub:c /schema-size ud/200)
+      =label  "Schemas"
+      ;+
+        =/  m=manx  (print-schemas server default-db)
+        m(a.g [[%slot "side"] a.g.m])
+      ;hawk-sidebar#h-output.hf.fc
+        =side  "bottom"
+        =label  "Output"
+        =open  ""
+        =size  (pub:c /output-size ud/200)
+        ;div.fc.hf
+          ;+  (print-header server default-db)
+          ;+  (print-query-form query)
+        ==
+        ;+  results(a.g [[%slot "side"] a.g.results])
+      ==
+    ==
+    ;+  print-script
+  ==
+  ::
+++  print-header
+  |=  [=server default-db=(unit term)]
+  ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3);")
+    ;button#run-btn.p-1.bd1.br1.b2.hover.loader
+      =onclick  "$('#query-form').find('[type=submit]').click()"
+      ;span.loaded: Run
+      ;span.loading: ...
+    ==
+    ;button.p-1.bd1.br1.b2.hover(disabled ""): Parse
+    ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
+    ;div.grow;
+    ;+  (print-form-set-default-db server default-db)
+  ==
+  ::
+++  print-form-set-default-db
+  |=  [=server default-db=(unit term)]
+  ;form.fr.ac.g1(method "post")
+    =hx-trigger  "change from:find select"
+    =hx-on-htmx-config-request  "configRequest(event)"
+    ;input.hidden(name "/", value "set-default-db");
+    ;div.p1.loader.mono.s-2
+      ;span.loaded.f3: Default
+      ;span.loading.f4: saving..
+    ==
+    ;select#default-db.br1.bd1.p-1.wfc(val (trip (fall default-db 'sys')))
+      =name  "default-db"
+      =required  ""
+      ;option(value "sys"): sys
+      ;*
+      %+  turn  (sort ~(tap in ~(key by (~(del by server) %sys))) aor)
+      |=  =term
+      =;  m=manx
+        ?~  default-db  m
+        ?.  =(default-db `term)  m
+        m(a.g [[%selected (trip u.default-db)] a.g.m])
+      ;option(value (trip term)): {(trip term)}
+    ==
+  ==
+  ::
+++  print-schemas
+  |=  [=server default-db=(unit term)]
+  ;div.wf.hf.scroll-y.b2
+    ;div.sticky.b2
+      =style  "top: 0;"
+      ;div.mono.tc.p-1.pre: {(pib:c /sys/our)}
+      ;hr.bc4;
+    ==
+    ;div#schema.p2
+      ;*
+      %+  turn  (sort ~(tap in ~(key by server)) aor)
+      |=  =term
+      ;details
+        ;summary
+          ;span.f4.mono: [db] 
+          ;span: {(trip term)} 
+          ;+  ?.  =(default-db `term)  ;/("")
+          ;span.f3: (default)
+        ==
+        ;div.p3
+          ;div: tables
+        ==
+      ==
+    ==
+  ==
+  ::
+++  print-query-form
+  |=  [query=tape]
+  ;form#query-form.grow.fc.mono.s0.hf
+    =method  "post"
+    =hx-indicator  "#run-btn"
+    =hx-on-htmx-config-request  "configRequest(event)"
+    ;input.hidden(name "/", value "query");
+    ;textarea#query-text.p3.grow.b0
+      =name  "/query-text"
+      =spellcheck  "false"
+      =placeholder  "FROM ... SELECT *"
+      =autocomplete  "off"
+      ;*  ~[;/(query)]
+    ==
+    ;button.hidden(type "submit");
+  ==
+++  print-poke-result
+  |=  res=poke-result
+  ^-  manx
+  ?-  -.res
+    %.n  (print-tang p.res)
+    %.y  (print-results p.res)
+  ==
+  ::
+++  print-tang
+  |=  =tang
+  ;div#results.grow.basis-half.b1.mono.s0
+    ;div.scroll-x.scroll-y.p4(data-tab "error")
+      ;*
+      %+  turn  tang
+      |=  =tank
+      ;div
+        ;*
+        %+  turn  (wash [0 80] tank)
+        |=  =tape
+        ;div: {tape}
+      ==
+    ==
+  ==
 ++  print-results
   |=  results=(list cmd-result)
-  ;div#results.grow.basis-half.b1.scroll-y.scroll-x.mono.s0
+  ;div#results.grow.b1.mono.s0.hf
     ;*
     %+  turn  results
     |=  =cmd-result
-    ;div.p3
-      ;div
-        ;*
-        %+  turn  +.cmd-result
-        |=(=result (print-result-set result))
-      ==
-      ;div.p3
+    =/  num-sets=@ud
+      %-  lent
+      %+  skim  +.cmd-result
+      |=  =result
+      =(-.result %result-set)
+    ;hawk-tabs.grow.hf
+      ;+
+        ?:  =(0 num-sets)  ;/("")
+        ;div.p3(data-tab "Results")
+          ;*
+          %+  turn  +.cmd-result
+          |=(=result (print-result-set result))
+        ==
+      ;div.p3(data-tab "Messages")
         ;*
         %+  turn  +.cmd-result
         |=(=result (print-result-metadata result))
@@ -127,11 +327,9 @@
   ==
 ++  print-result-set
   |=  =result
-  ?+  -.result  ;div: 
+  ?+  -.result  ;/("")
     %result-set
-    ;div
-      ;+  (print-list-vector +.result)
-    ==
+      (print-list-vector +.result)
   ==
   ::
 ++  print-list-vector
@@ -142,7 +340,6 @@
       ;tr
         ;*
         ?~  vectors  ~
-
         %+  turn  +:i.vectors
         |=  cell=vector-cell
         ;th.p1.bd1(style "white-space: nowrap;"): {(trip p.cell)}
@@ -150,27 +347,20 @@
       ;*  (turn vectors print-vector)
     ==
   ==
-++  print-vector
-  |=  =vector
-  ;tr
-    ;*
-    %+  turn  +.vector
-    |=  cell=vector-cell
-    ;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
+++  print-script
+  ;script
+    ::
+    ::  this script adds some of the ui state to the card
+    ::  so that it can be persisted across pokes
+    ::
+    ;+  ;/  %-  trip
+    '''
+    function configRequest(e) {
+      e.detail.parameters['schema-open'] = $('#h-schema').is('[open]')
+      e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '200';
+      e.detail.parameters['output-size'] = $('#h-output').attr('size') || '200';
+    }
+    '''
   ==
-+$  poke-result  (each (list cmd-result) tang)
-+$  cmd-result  [%results (list result)]
-+$  result
-  $%  [%message msg=@t]
-      [%vector-count count=@ud]
-      [%server-time date=@da]
-      [%schema-time date=@da]
-      [%data-time date=@da]
-      [%result-set (list vector)]
-      ==
-+$  vector-cell  [p=@tas q=dime]
-+$  vector
-    $:  %vector
-        (lest vector-cell)
-    ==
+  ::
 --
