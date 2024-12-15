@@ -2915,7 +2915,6 @@
                               m-cmnt-3
                               "cReate namesPace db1.db1-ns1\0a"
                               ==
-
 ++  test-block-cmnt-04
   =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
   =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
@@ -2931,7 +2930,6 @@
                               "; \0a"
                               "cReate namesPace db1.db1-ns1\0a"
                               ==
-
 ++  test-block-cmnt-05
   =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
   =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
@@ -2947,7 +2945,6 @@
                               "cReate namesPace db1.db1-ns1\0a"
                               m-cmnt-3
                               ==
-
 ++  test-block-cmnt-06
   =/  expected1  [%create-namespace database-name='other-db' name='ns1' as-of=~]
   =/  expected2  [%create-namespace database-name='db1' name='db1-ns1' as-of=~]
@@ -2963,6 +2960,22 @@
                               "cReate namesPace db1.db1-ns1"
                               m-cmnt-3
                               ==
+++  test-block-cmnt-07
+  %+  expect-eq
+    !>  ~[[%create-database database-name='db3' as-of=~]]
+    !>  %-  parse:parse(default-database 'other-db')
+            %-  zing
+                %-  limo  :~  "CREATE DATABASE db3; :: this is a line comment".
+                              ":: they can start anywhere on a line ".
+                              ":: and comment out the remainder of the line".
+                              "/* this is a block comment".
+                              "everyting within /* and */".
+                              "(which must be in columns 1 and 2) is a comment".
+                              "CREATE TABLE db3..my-table-1".
+                              "  (col1 @t, col2 @da) PRIMARY KEY (col1)".
+                              "*/"
+                              ==
+::
 ::
 ++  vfas-tar  [%selected-value value=[p=~.t q=10.799] alias=~]
 ++  vcol-col  [%selected-value value=[p=~.t q=14.906] alias=~]

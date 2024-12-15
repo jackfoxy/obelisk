@@ -191,6 +191,29 @@ Column types (auras) not supported for INSERT can only be inserted into tables t
 
  <sup>1</sup> Example of embedding single quote in @t literal.
 
+## Comments
+Comment syntax in urQL differs from SQL comment syntax. urQL supports two types of comments, line comments and block comments. 
+
+### Line Comments
+```
+:: two semicolons comment out the remainder of the line
+```
+
+```
+CREATE DATABASE db1; :: the remainder of this line is a comment
+```
+
+### Block Comments
+```
+/* this is a block comment
+block comments begin with the characters "/*"
+these characters must be in columns one and two
+
+block comments end with the characters "*/"
+likewise these must be in columns one and two
+*/
+```
+
 ## Types
 All data representations (nouns) of the Obelisk system are strongly typed.
 

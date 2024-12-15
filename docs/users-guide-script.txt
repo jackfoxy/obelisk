@@ -123,6 +123,18 @@
      "WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31 ".
      "SELECT T1.date, day-name, us-federal-holiday"
 
+# comments
+
+=uql "CREATE DATABASE db3; :: this is a line comment".
+     ":: they can start anywhere on a line ".
+     ":: and comment out the remainder of the line".
+     "/* this is a block comment".
+     "everyting within /* and */".
+     "(which must be in columns 1 and 2) is a comment".
+     "CREATE TABLE db3..my-table-1".
+     "  (col1 @t, col2 @da) PRIMARY KEY (col1)".
+     "*/"
+
 # Parsing
 
 (parse:parse(default-database 'animal-shelter') uql)

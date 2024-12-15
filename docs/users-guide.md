@@ -630,6 +630,31 @@ In this query we alias the tables so we can distinguish column names shared betw
   ~2025.1.20  Monday  Birthday of Martin Luther King Jr.
 ```
 
+# Commenting urQL
+
+```
+CREATE DATABASE db3; :: this is a line comment
+:: they can start anywhere on a line 
+:: and comment out the remainder of the line
+/* this is a block comment
+
+everyting within /* and */
+(which must be in columns 1 and 2) is a comment
+
+CREATE TABLE db3..my-table-1
+  (col1 @t, col2 @da) PRIMARY KEY (col1)
+
+*/
+```
+
+```
+%obelisk-result:
+  %results
+    [ %message 'created database %db3' ]
+    [ %server-time ~2024.12.10..20.18.34..3c25 ]
+    [ %schema-time ~2024.12.10..20.18.34..3c25 ]
+```
+
 # Parsing urQL
 
 The *urQL* parser in Obelisk is completely separable from the rest of the system.
