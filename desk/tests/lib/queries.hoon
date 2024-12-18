@@ -2807,12 +2807,10 @@
                 %db1
                 "FROM calendar T1 ".
                 "JOIN holiday-calendar T2 ".
-                "SELECT T1.day-name, t2.*"
-
-  ::  ~&  ->+>+>+.mov2
-
+                "SELECT T1.day-name, T2.*"
   %+  expect-eq
     !>  expected
+    ::!>  ->+>+>+<.mov2
     !>  ;;(cmd-result ->+>+>+<.mov2)
 ::
 ::  bugs

@@ -1121,7 +1121,6 @@
       %=  $
         script    q.q.u.+3.q:insert-nail
         commands  :-  (selection:ast %selection ~ [ins ~ ~])
-        ::commands  :-  (selection:ast %selection ~ [(produce-insert parsed) ~ ~])
                       commands
       ==
     %merge
@@ -2027,20 +2026,22 @@
                 ==
       ==
     :: revokees
-    ;~  pfix  whitespace
-              ;~  pfix  (jester 'from')
-                        ;~  pose  ;~  plug
-                                      ;~  plug  ;~  pfix  whitespace
-                                                         (stag ~.tas (jester 'all'))
-                                                         ==
-                                                (easy ~)
-                                                ==
-                                          (easy ~)
-                                          ==
-                                  parse-ship-paths
-                                  ==
-                        ==
-              ==
+    ;~  pfix
+          whitespace
+          ;~  pfix  (jester 'from')
+                    ;~  pose  ;~  plug
+                                  ;~  plug
+                                        ;~  pfix  whitespace
+                                                    (stag ~.tas (jester 'all'))
+                                                    ==
+                                            (easy ~)
+                                            ==
+                                        (easy ~)
+                                        ==
+                              parse-ship-paths
+                              ==
+                    ==
+          ==
     :: revoke-objects
     parse-revoke-objects
     ;~(sfix parse-grant-duration end-or-next-command)
@@ -2562,7 +2563,12 @@
   =/  j=joined-object:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
-             (joined-object:ast %joined-object join.j as-of.j object.j `(fix-predicate (need predicate.j) f))
+             %:  joined-object:ast  %joined-object
+                                    join.j
+                                    as-of.j
+                                    object.j
+                                    `(fix-predicate (need predicate.j) f)
+                                    ==
              js
     jss  +.jss
   ==
@@ -2590,18 +2596,32 @@
   %=  $
     s      +.s
     s-out  :-  ?.  ?=(qualified-column:ast sel-col)
-                 sel-col
-               ?.  ?&  =('UNKNOWN' database.qualifier.sel-col)
+                 sel-col                                          
+               ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
                        =('COLUMN' namespace.qualifier.sel-col)
                        ==
-                 sel-col
-               %:  qualified-column:ast
+                  %:  qualified-column:ast
                       %qualified-column
                       %-  ~(got by `(map @t qualified-object:ast)`alias-map)
                           name.qualifier.sel-col
                       column.sel-col
                       alias.sel-col
                       ==
+               ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
+                       =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
+                       =('ALL' column.sel-col)
+                       ==
+                  %+  selected-all-object:ast
+                      %all-object
+                      %-  ~(got by `(map @t qualified-object:ast)`alias-map)
+                          name.qualifier.sel-col
+               ?.  ?&  =('ALL' column.sel-col)
+                       !=(name.qualifier.sel-col column.sel-col)
+                       ==
+                 sel-col
+               %+  selected-all-object:ast
+                   %all-object
+                   qualifier.sel-col
                ::
                s-out
   ==
@@ -2639,7 +2659,11 @@
    qualified-column:ast
     ?.  &(=('UNKNOWN' database.qualifier.a) =('COLUMN' namespace.qualifier.a))
       a
-    (qualified-column:ast %qualified-column (~(got by alias-map) name.qualifier.a) column.a alias.a)
+    %:  qualified-column:ast  %qualified-column
+                              (~(got by alias-map) name.qualifier.a)
+                              column.a
+                              alias.a
+                              ==
    dime:ast
     a
    value-literals:ast

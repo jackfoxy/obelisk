@@ -395,9 +395,7 @@
   =/  col-lookup=(map qualified-column:ast @ta)
         (~(gas by `(map qualified-column:ast @ta)`~) cols)
   =/  cells=(list templ-cell-2)  ~
-
   =.  selected  (fix-for-infer cols selected)
-
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
@@ -408,12 +406,6 @@
       cells     (weld (flop (turn cols mk-templ-cell-2)) cells)
     ==
   ?:  ?=(qualified-column:ast i.selected)
-    ?:  =('ALL' column.i.selected)  :: name = table name
-      %=  $
-        i         +(i)
-        selected  t.selected   :: to do: filter on table
-        cells     (weld (flop (turn cols mk-templ-cell-2)) cells)
-      ==
     %=  $
       i         +(i)
       selected  t.selected
@@ -426,6 +418,18 @@
                          [(~(got by col-lookup) i.selected) 0]
                      ==
                cells
+    ==
+  ?:  ?=(selected-all-object:ast i.selected)
+    %=  $
+      i         +(i)
+      selected  t.selected   :: to do: filter on table
+      cells     
+        %+  weld
+          %-  flop
+            %+  turn
+              (skim cols |=(a=[qualified-column:ast @ta] =(->-.a +.i.selected)))
+              mk-templ-cell-2
+          cells
     ==
   ?:  ?=(selected-value:ast i.selected)
     %=  $

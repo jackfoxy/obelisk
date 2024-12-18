@@ -237,6 +237,7 @@
     selected-aggregate
     selected-value
     selected-all
+    selected-all-object
   ==
   :: scalar-function or selected-scalar) fish-loop
 +$  selected-all
@@ -244,6 +245,9 @@
     %all
     %all
   ==
+
++$  selected-all-object  [%all-object qualified-object]
+
 +$  selected-aggregate
   $:
     %selected-aggregate

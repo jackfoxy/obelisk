@@ -2312,7 +2312,12 @@
 ++  aliased-columns-1
   ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=[~ 'foo']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=[~ 'foo2']] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=[~ 'bar']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=[~ 'bar2']] [%selected-value value=literal-1 alias=[~ %foobar]] [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']] [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]]
 ++  mixed-all
-  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1'] column='ALL' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo'] column='foo' alias=[~ 'foobar']] column-bar [%all %all] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T2'] column='ALL' alias=~]]
+  :~  [%all-object [%qualified-object ship=~ database=%db namespace=%dbo name=%t1]]
+      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo'] column='foo' alias=[~ 'foobar']]
+      column-bar
+      [%all %all]
+      [%all-object [%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz]]
+      ==
 ++  aggregates
   ~[column-foo [%selected-aggregate [%aggregate function='count' source=column-foo] alias=[~ 'CountFoo']] [%selected-aggregate [%aggregate function='count' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar'] column='foobar' alias=~]] alias=[~ 'foobar']]]
 ::
@@ -2413,16 +2418,16 @@
 ::
 ::  mixed all, object all, object alias all, column, aliased column
 ++  test-select-14
-  =/  select  "select db..t1.* , foo as foobar , bar , * , T2.* "
+  =/  select  "FROM baz as T2 select db..t1.* , foo as foobar , bar , * , T2.* "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz] alias=[~ 'T2']] as-of=~ joins=~]] scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-15
-  =/  select  "select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
+  =/  select  "FROM baz as T2 select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz] alias=[~ 'T2']] as-of=~ joins=~]] scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed aggregates
@@ -2996,7 +3001,7 @@
 ++  t2  [%selection ctes=~ set-functions=[q2 ~ ~]]
 ++  t3  [%selection ctes=~ set-functions=[q3 ~ ~]]
 ::
-++  test-block-cmnt-07
+++  test-block-cmnt-08
   %+  expect-eq
     !>  ~[t1 t2 t3]
     !>  %-  parse:parse(default-database 'other-db')
