@@ -2603,7 +2603,7 @@
                   %:  qualified-column:ast
                       %qualified-column
                       %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                          name.qualifier.sel-col
+                          (crip (cass (trip name.qualifier.sel-col)))
                       column.sel-col
                       alias.sel-col
                       ==
@@ -2614,7 +2614,7 @@
                   %+  selected-all-object:ast
                       %all-object
                       %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                          name.qualifier.sel-col
+                          (crip (cass (trip name.qualifier.sel-col)))
                ?.  ?&  =('ALL' column.sel-col)
                        !=(name.qualifier.sel-col column.sel-col)
                        ==
@@ -2626,6 +2626,12 @@
                s-out
   ==
 ::
+::  +mk-alias-map:  from:ast -> (map @t qualified-object:ast)
+::
+:: map table-set alias to qualified-object
+:: if db of qualified-object is default db
+:: and namespace is 'dbo'
+:: also map from table-set name
 ++  mk-alias-map
   |=  f=from:ast
   ^-  (map @t qualified-object:ast)
@@ -2634,7 +2640,14 @@
     ~|("not implemented {<object.f>}" !!)
   ?~  alias.object.f
     alias-map
-  (~(put by alias-map) (need alias.object.f) object.object.f)
+  ?.  ?&  =(database.object.object.f default-database)
+          =(namespace.object.object.f %dbo)
+          ==
+    %+  ~(put by alias-map)  (crip (cass (trip (need alias.object.f))))
+                             object.object.f
+  =/  am  %+  ~(put by alias-map)  (crip (cass (trip (need alias.object.f))))
+                                   object.object.f
+  (~(put by am) name.object.object.f object.object.f)
 ::
 ++  mk-alias-map-2
   |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
@@ -2646,7 +2659,15 @@
     ~|("not implemented {<object.j>}" !!)
   %=  $
     m   ?~  alias.object.j  m
-        (~(put by m) (need alias.object.j) object.object.j)
+        ?.  ?&  =(database.object.object.j default-database)
+            =(namespace.object.object.j %dbo)
+            ==
+          %+  ~(put by m)  (crip (cass (trip (need alias.object.j))))
+                           object.object.j
+        =/  inner  %+  ~(put by m)  (crip (cass (trip (need alias.object.j))))
+                                    object.object.j
+        %+  ~(put by inner)  name.object.object.j
+                             object.object.j
     js  +.js
   ==
 ::
@@ -2660,7 +2681,8 @@
     ?.  &(=('UNKNOWN' database.qualifier.a) =('COLUMN' namespace.qualifier.a))
       a
     %:  qualified-column:ast  %qualified-column
-                              (~(got by alias-map) name.qualifier.a)
+                              %-  ~(got by alias-map)
+                                  (crip (cass (trip name.qualifier.a)))
                               column.a
                               alias.a
                               ==
@@ -2763,20 +2785,18 @@
     ?:  ?=([@ @] -.a)
       ?:  =(%all-columns -<.a)
         %=  $
-          columns
-            :-
-              %:  qualified-column:ast
-                  %qualified-column
-                  %:  qualified-object:ast  %qualified-object
-                                            ~
-                                            'UNKNOWN'
-                                            'COLUMN-OR-CTE'
-                                            ->.a
-                                            ==
-                  'ALL'
-                  ~
-                ==
-                columns
+          columns  :-  %:  qualified-column:ast
+                                    %qualified-column
+                                    %:  qualified-object:ast  %qualified-object
+                                                              ~
+                                                              'UNKNOWN'
+                                                              'COLUMN-OR-CTE'
+                                                              ->.a
+                                                              ==
+                                    'ALL'
+                                    ~
+                                    ==
+                       columns
           a        +.a
         ==
       ?>  ?=(dime -.a)

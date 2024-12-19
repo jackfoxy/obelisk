@@ -345,12 +345,17 @@
       cells     (weld (flop (turn cols mk-templ-cell)) cells)
     ==
   ?:  ?=(qualified-column:ast i.selected)
-    ?:  =('ALL' column.i.selected)  :: name = table name
+
+    ?:  ?&  =('UNKNOWN' database.qualifier.i.selected)
+            =('COLUMN-OR-CTE' namespace.qualifier.i.selected)
+            !(~(has by col-lookup) name.qualifier.i.selected)
+            ==
       %=  $
         i         +(i)
         selected  t.selected
         cells     (weld (flop (turn cols mk-templ-cell)) cells)
       ==
+
     %=  $
       i         +(i)
       selected  t.selected
@@ -364,16 +369,23 @@
                             ==
                 cells
     ==
+  ?:  ?=(selected-all-object:ast i.selected)
+    %=  $
+      i         +(i)
+      selected  t.selected
+      cells     (weld (flop (turn cols mk-templ-cell)) cells)
+    ==
   ?:  ?=(selected-value:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells   :-  %:  templ-cell  %templ-cell
-                                ~
-                                :-  (heading i.selected (crip "literal-{<i>}"))
-                                    [p=+<-.i.selected q=+<+.i.selected]
-                                ==
-                  cells
+      cells     
+        :-  %:  templ-cell  %templ-cell
+                            ~
+                            :-  (heading i.selected (crip "literal-{<i>}"))
+                                [p=+<-.i.selected q=+<+.i.selected]
+                            ==
+            cells
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
@@ -435,12 +447,13 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells   :-  %:  templ-cell-2  %templ-cell-2
-                                ~
-                                :-  (heading i.selected (crip "literal-{<i>}"))
-                                    [p=+<-.i.selected q=+<+.i.selected]
-                                ==
-                  cells
+      cells
+        :-  %:  templ-cell-2  %templ-cell-2
+                              ~
+                              :-  (heading i.selected (crip "literal-{<i>}"))
+                                  [p=+<-.i.selected q=+<+.i.selected]
+                              ==
+            cells
     ==
   ~|("{<i.selected>} not supported" !!)
 ::

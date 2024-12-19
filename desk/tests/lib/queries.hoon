@@ -2783,7 +2783,10 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.my-table']
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 2]
@@ -2810,7 +2813,6 @@
                 "SELECT T1.day-name, T2.*"
   %+  expect-eq
     !>  expected
-    ::!>  ->+>+>+<.mov2
     !>  ;;(cmd-result ->+>+>+<.mov2)
 ::
 ::  bugs

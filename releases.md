@@ -1,10 +1,14 @@
 # Releases
 
-## v0.4a (alpha release)
+## v0.5 alpha
+
+* SELECT all from table in JOIN
+
+## v0.4a alpha
 
 * GRANT and REVOKE parsing and AST updated. 
 
-## v0.4 (alpha release)
+## v0.4 alpha
 
 ### DDL
 

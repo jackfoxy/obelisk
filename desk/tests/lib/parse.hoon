@@ -2425,9 +2425,9 @@
 ::
 ::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-15
-  =/  select  "FROM baz as T2 select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
+  =/  select  "FROM t1 JOIN baz as T2 select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz] alias=[~ 'T2']] as-of=~ joins=~]] scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%t1] alias=~] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz] alias=[~ 'T2']] predicate=~]]]] scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed aggregates
