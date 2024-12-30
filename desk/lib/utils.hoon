@@ -320,74 +320,74 @@
     |=  [=column:ast a=@]
     ^-  [[@tas [@tas @ud]] @ud]
     [[name.column [type.column a]] +(a)]
+::::
+::::  +mk-vect-templ: [(list column:ast) (list selected-column:ast)]
+::::                  -> (list templ-cell)
+::::
+::::  leave output un-flopped so consuming arm does not flop
+::++  mk-templ-cell
+::  |=  a=column:ast
+::  ^-  templ-cell
+::  (templ-cell %templ-cell `name.a `vector-cell`[name.a [type.a 0]])
+::++  mk-vect-templ
+::  |=  [cols=(list column:ast) selected=(list selected-column:ast)]
+::  ^-  (list templ-cell)
+::  =/  i  0
+::  =/  col-lookup=(map @tas @ta)
+::        (~(gas by `(map @tas @ta)`~) (turn cols |=(a=[@tas [@tas @ta]] +.a)))
+::  =/  cells=(list templ-cell)  ~
+::  |-
+::  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
+::  ?:  =([%all %all] i.selected)
+::    %=  $
+::      i         +(i)
+::      selected  t.selected
+::      cells     (weld (flop (turn cols mk-templ-cell)) cells)
+::    ==
+::  ?:  ?=(qualified-column:ast i.selected)
 ::
-::  +mk-vect-templ: [(list column:ast) (list selected-column:ast)]
-::                  -> (list templ-cell)
+::    ?:  ?&  =('UNKNOWN' database.qualifier.i.selected)
+::            =('COLUMN-OR-CTE' namespace.qualifier.i.selected)
+::            !(~(has by col-lookup) name.qualifier.i.selected)
+::            ==
+::      %=  $
+::        i         +(i)
+::        selected  t.selected
+::        cells     (weld (flop (turn cols mk-templ-cell)) cells)
+::      ==
 ::
-::  leave output un-flopped so consuming arm does not flop
-++  mk-templ-cell
-  |=  a=column:ast
-  ^-  templ-cell
-  (templ-cell %templ-cell `name.a `vector-cell`[name.a [type.a 0]])
-++  mk-vect-templ
-  |=  [cols=(list column:ast) selected=(list selected-column:ast)]
-  ^-  (list templ-cell)
-  =/  i  0
-  =/  col-lookup=(map @tas @ta)
-        (~(gas by `(map @tas @ta)`~) (turn cols |=(a=[@tas [@tas @ta]] +.a)))
-  =/  cells=(list templ-cell)  ~
-  |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
-  ?:  =([%all %all] i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     (weld (flop (turn cols mk-templ-cell)) cells)
-    ==
-  ?:  ?=(qualified-column:ast i.selected)
-
-    ?:  ?&  =('UNKNOWN' database.qualifier.i.selected)
-            =('COLUMN-OR-CTE' namespace.qualifier.i.selected)
-            !(~(has by col-lookup) name.qualifier.i.selected)
-            ==
-      %=  $
-        i         +(i)
-        selected  t.selected
-        cells     (weld (flop (turn cols mk-templ-cell)) cells)
-      ==
-
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells
-            ~|  "SELECT: column {<column.i.selected>} not found"  
-            :-
-              %:  templ-cell  %templ-cell
-                            [~ column.i.selected]
-                            :-  (heading i.selected column.i.selected)
-                                [(~(got by col-lookup) column.i.selected) 0]
-                            ==
-                cells
-    ==
-  ?:  ?=(selected-all-object:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     (weld (flop (turn cols mk-templ-cell)) cells)
-    ==
-  ?:  ?=(selected-value:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     
-        :-  %:  templ-cell  %templ-cell
-                            ~
-                            :-  (heading i.selected (crip "literal-{<i>}"))
-                                [p=+<-.i.selected q=+<+.i.selected]
-                            ==
-            cells
-    ==
-  ~|("{<i.selected>} not supported" !!)
+::    %=  $
+::      i         +(i)
+::      selected  t.selected
+::      cells
+::            ~|  "SELECT: column {<column.i.selected>} not found"  
+::            :-
+::              %:  templ-cell  %templ-cell
+::                            [~ column.i.selected]
+::                            :-  (heading i.selected column.i.selected)
+::                                [(~(got by col-lookup) column.i.selected) 0]
+::                            ==
+::                cells
+::    ==
+::  ?:  ?=(selected-all-object:ast i.selected)
+::    %=  $
+::      i         +(i)
+::      selected  t.selected
+::      cells     (weld (flop (turn cols mk-templ-cell)) cells)
+::    ==
+::  ?:  ?=(selected-value:ast i.selected)
+::    %=  $
+::      i         +(i)
+::      selected  t.selected
+::      cells     
+::        :-  %:  templ-cell  %templ-cell
+::                            ~
+::                            :-  (heading i.selected (crip "literal-{<i>}"))
+::                                [p=+<-.i.selected q=+<+.i.selected]
+::                            ==
+::            cells
+::    ==
+::  ~|("{<i.selected>} not supported" !!)
 ::
 ::  +mk-vect-templ-2:
 ::    [(list [qualified-object:ast @ta]) (list selected-column:ast)]
@@ -475,14 +475,28 @@
   ?:  ?&  =('UNKNOWN' database.qualifier.col)
             =('COLUMN-OR-CTE' namespace.qualifier.col)
             ==
-          ?~  object-lookup  $(object-lookup (mk-object-lookup cols))
+          ?~  object-lookup  $(object-lookup (mk-object-lookup cols))  ~&  " "  ~&  "object-lookup:  {<object-lookup>}"  ~&  " "  ~&  "name.qualifier.col:  {<name.qualifier.col>}"
+          
+          ?:  (~(has by col-lookup) name.qualifier.i.selected)
+          
+              %=  $
+                selected      +.selected
+                selected-out  :-  ^-  selected-column:ast
+                                  %+  from-infer-objects  object-lookup
+                                                          name.qualifier.col
+                                  selected-out
+              ==
+
           %=  $
-            selected      +.selected
-            selected-out  :-  ^-  selected-column:ast
-                              %+  from-infer-objects  object-lookup
-                                                      name.qualifier.col
-                              selected-out
-          ==
+              selected      +.selected
+          ::    selected-out  :-  ^-  selected-column:ast
+                                %+  from-infer-objects  object-lookup
+                                                        name.qualifier.col
+                                selected-out
+
+                      to do check for 'all'          
+            ==
+
   %=  $
     selected      +.selected
     selected-out  [`selected-column:ast`col selected-out]

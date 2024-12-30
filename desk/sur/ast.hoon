@@ -194,16 +194,14 @@
 +$  from
   $:
     %from
-    object=table-set
-    as-of=(unit as-of)
-    joins=(list joined-object)
+    relations=(list relation)
   ==
-+$  joined-object
++$  relation
   $:
-    %joined-object
-    join=join-type
+    %relation
+    =table-set
     as-of=(unit as-of)
-    object=table-set
+    join=(unit join-type)
     predicate=(unit predicate)
   ==
 ::

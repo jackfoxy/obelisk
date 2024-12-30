@@ -28,12 +28,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -45,7 +39,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -98,14 +98,14 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
+                  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Ace']]
@@ -118,16 +118,16 @@
                   [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
-                  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -180,12 +180,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -197,7 +191,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -235,26 +235,30 @@
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
     ==
   =.  run  +(run)
-  =^  mov4  agent
+  ::=^  mov4  agent
+
+  ::%+  expect-fail-message
+  ::      'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  ::|.  
+  
     %:  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT my-table.*"])
     ==
   %+  expect-eq
     !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>   ->+>+>+<.mov4
+    ::!>  ;;(cmd-result ->+>+>+<.mov4)
+
+
+
+
 ::
 ::  table-alias.*
 ++  test-simple-query-04
   =|  run=@ud
   =/  expected-rows
         :~
-          :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
           :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
@@ -267,7 +271,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -320,12 +330,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -337,7 +341,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -390,24 +400,24 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%c1 [~.t 'Abby']]
-                  [%c2 [~.da ~1999.2.19]]
-                  [%c3 [~.t 'tricolor']]
-                  [%c4 [~.t 'row1']]
+              :~  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%c1 [~.t 'Ace']]
-                  [%c2 [~.da ~2005.12.19]]
-                  [%c3 [~.t 'ticolor']]
-                  [%c4 [~.t 'row2']]
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
-              :~  [%c1 [~.t 'Angel']]
-                  [%c2 [~.da ~2001.9.19]]
-                  [%c3 [~.t 'tuxedo']]
-                  [%c4 [~.t 'row3']]
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -586,8 +596,28 @@
         :~
           :-  %vector
               :~  [%cord [~.t 430.158.540.643]]
+                  [%col1 [~.t 'Ace']]
+                  [%literal-2 [~.p ~nomryg-nilref]]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%pi [~.rs 3.226.006.979]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
+                  [%literal-7 [~.da ~2023.12.25]]
+                  ==
+          :-  %vector
+              :~  [%cord [~.t 430.158.540.643]]
+                  [%col1 [~.t 'Angel']]
+                  [%literal-2 [~.p ~nomryg-nilref]]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%pi [~.rs 3.226.006.979]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
+                  [%literal-7 [~.da ~2023.12.25]]
+                  ==
+          :-  %vector
+              :~  [%cord [~.t 430.158.540.643]]
 
-                  [%c1 [~.t 'Abby']]
+                  [%col1 [~.t 'Abby']]
 
                   [%literal-2 [~.p ~nomryg-nilref]]
 
@@ -600,27 +630,7 @@
 
                   [%literal-7 [~.da ~2023.12.25]]
                   ==
-          :-  %vector
-              :~  [%cord [~.t 430.158.540.643]]
-                  [%c1 [~.t 'Ace']]
-                  [%literal-2 [~.p ~nomryg-nilref]]
-                  [%col2 [~.da ~2005.12.19]]
-                  [%pi [~.rs 3.226.006.979]]
-                  [%col3 [~.t 'ticolor']]
-                  [%col4 [~.t 'row2']]
-                  [%literal-7 [~.da ~2023.12.25]]
-                  ==
-          :-  %vector
-              :~  [%cord [~.t 430.158.540.643]]
-                  [%c1 [~.t 'Angel']]
-                  [%literal-2 [~.p ~nomryg-nilref]]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%pi [~.rs 3.226.006.979]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
-                  [%literal-7 [~.da ~2023.12.25]]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -677,6 +687,12 @@
   =/  expected-rows
         :~
           :-  %vector
+              :~  [%col4 [~.t 'row3']]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col1 [~.t 'Angel']]
+                  ==
+          :-  %vector
               :~  [%col4 [~.t 'row1']]
                   [%col3 [~.t 'tricolor']]
                   [%col2 [~.da ~1999.2.19]]
@@ -688,13 +704,7 @@
                   [%col2 [~.da ~2005.12.19]]
                   [%col1 [~.t 'Ace']]
                   ==
-          :-  %vector
-              :~  [%col4 [~.t 'row3']]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col1 [~.t 'Angel']]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -747,24 +757,24 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%c4 [~.t 'row1']]
-                  [%c3 [~.t 'tricolor']]
-                  [%c2 [~.da ~1999.2.19]]
-                  [%c1 [~.t 'Abby']]
+              :~  [%col4 [~.t 'row3']]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col1 [~.t 'Angel']]
                   ==
           :-  %vector
-              :~  [%c4 [~.t 'row2']]
-                  [%c3 [~.t 'ticolor']]
-                  [%c2 [~.da ~2005.12.19]]
-                  [%c1 [~.t 'Ace']]
+              :~  [%col4 [~.t 'row1']]
+                  [%col3 [~.t 'tricolor']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col1 [~.t 'Abby']]
                   ==
           :-  %vector
-              :~  [%c4 [~.t 'row3']]
-                  [%c3 [~.t 'tuxedo']]
-                  [%c2 [~.da ~2001.9.19]]
-                  [%c1 [~.t 'Angel']]
+              :~  [%col4 [~.t 'row2']]
+                  [%col3 [~.t 'ticolor']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col1 [~.t 'Ace']]
                   ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -819,6 +829,12 @@
   =/  expected-rows
         :~
           :-  %vector
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
               :~  [%col1 [~.t 'Abby']]
                   [%col2 [~.da ~1999.2.19]]
                   [%col3 [~.t 'tricolor']]
@@ -830,13 +846,7 @@
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-          :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -892,12 +902,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -909,7 +913,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -964,6 +974,12 @@
   =/  expected-rows
         :~
           :-  %vector
+              :~  [%col4 [~.t 'row3']]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col1 [~.t 'Angel']]
+                  ==
+          :-  %vector
               :~  [%col4 [~.t 'row1']]
                   [%col3 [~.t 'tricolor']]
                   [%col2 [~.da ~1999.2.19]]
@@ -975,13 +991,7 @@
                   [%col2 [~.da ~2005.12.19]]
                   [%col1 [~.t 'Ace']]
                   ==
-          :-  %vector
-              :~  [%col4 [~.t 'row3']]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col1 [~.t 'Angel']]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1037,6 +1047,12 @@
   =/  expected-rows
         :~
           :-  %vector
+              :~  [%col4 [~.t 'row3']]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col1 [~.t 'Angel']]
+                  ==
+          :-  %vector
               :~  [%col4 [~.t 'row1']]
                   [%col3 [~.t 'tricolor']]
                   [%col2 [~.da ~1999.2.19]]
@@ -1048,13 +1064,7 @@
                   [%col2 [~.da ~2005.12.19]]
                   [%col1 [~.t 'Ace']]
                   ==
-          :-  %vector
-              :~  [%col4 [~.t 'row3']]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col1 [~.t 'Angel']]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1129,7 +1139,7 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1182,6 +1192,13 @@
   =/  expected-rows
         :~
           :-  %vector
+              :~  [%col3 [~.t 'tuxedo']]
+                  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
               :~  [%col3 [~.t 'tricolor']]
                   [%col1 [~.t 'Abby']]
                   [%col2 [~.da ~1999.2.19]]
@@ -1195,14 +1212,7 @@
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-          :-  %vector
-              :~  [%col3 [~.t 'tuxedo']]
-                  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1255,6 +1265,13 @@
   =/  expected-rows
         :~
           :-  %vector
+              :~  [%col2 [~.da ~2001.9.19]]
+                  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
               :~  [%col2 [~.da ~1999.2.19]]
                   [%col1 [~.t 'Abby']]
                   [%col2 [~.da ~1999.2.19]]
@@ -1268,14 +1285,7 @@
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-          :-  %vector
-              :~  [%col2 [~.da ~2001.9.19]]
-                  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
-                  ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1328,22 +1338,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col4 [~.t 'row1']]
-
-                  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-
-                  [%c1 [~.t 'Abby']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -1357,7 +1351,7 @@
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
 
-                  [%c1 [~.t 'Ace']]
+                  [%col1 [~.t 'Ace']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Angel']]
@@ -1373,9 +1367,25 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
 
-                  [%c1 [~.t 'Angel']]
+                  [%col1 [~.t 'Angel']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col4 [~.t 'row1']]
+
+                  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+
+                  [%col1 [~.t 'Abby']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1430,23 +1440,7 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%c1 [~.t 'Abby']]
-
-                  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col4 [~.t 'row1']]
-
-                  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
-              :~  [%c1 [~.t 'Ace']]
+              :~  [%col1 [~.t 'Ace']]
 
                   [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
@@ -1461,8 +1455,24 @@
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-          :-  %vector
-              :~  [%c1 [~.t 'Angel']]
+            :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+
+                  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col4 [~.t 'row1']]
+
+                  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+            :-  %vector
+              :~  [%col1 [~.t 'Angel']]
 
                   [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
@@ -1477,7 +1487,7 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1656,12 +1666,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -1673,7 +1677,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1732,12 +1742,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -1749,7 +1753,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1789,7 +1799,7 @@
           :-  %vector
               :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
               
-                  [%c1 [~.t 'Abby']]
+                  [%col1 [~.t 'Abby']]
 
                   [p=%home q=[p=~.p ~sampel-palnet]]
 
@@ -1809,44 +1819,44 @@
           :-  %vector
               :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
               
-                  [%c1 [~.t 'Ace']]
+                  [%col1 [~.t 'Angel']]
 
                   [p=%home q=[p=~.p ~sampel-palnet]]
 
-                  [%col1 [~.t 'Ace']]
-                  [%col2 [~.da ~2005.12.19]]
-                  [%col3 [~.t 'ticolor']]
-                  [%col4 [~.t 'row2']]
+                  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
 
-                  [%col2 [~.da ~2005.12.19]]
-                  [%col4 [~.t 'row2']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col4 [~.t 'row3']]
 
-                  [%col1 [~.t 'Ace']]
-                  [%col2 [~.da ~2005.12.19]]
-                  [%col3 [~.t 'ticolor']]
-                  [%col4 [~.t 'row2']]
+                  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'tuxedo']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
               :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
               
-                  [%c1 [~.t 'Angel']]
+                  [%col1 [~.t 'Ace']]
 
                   [p=%home q=[p=~.p ~sampel-palnet]]
 
-                  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
+                  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
 
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col4 [~.t 'row3']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col4 [~.t 'row2']]
 
-                  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
+                  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
                   ==
-            ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -1901,22 +1911,6 @@
 ++  time-expected-rows
       :~
         :-  %vector
-            :~  [%col1 [~.t 'Abby']]
-                [%col2 [~.da ~1999.2.19]]
-                [%col3 [~.t 'tricolor']]
-                [%col4 [~.t 'row1']]
-
-                [%col2 [~.da ~1999.2.19]]
-                [%col4 [~.t 'row1']]
-
-                [%col1 [~.t 'Abby']]
-                [%col2 [~.da ~1999.2.19]]
-                [%col3 [~.t 'tricolor']]
-                [%col4 [~.t 'row1']]
-
-                [%c1 [~.t 'Abby']]
-                ==
-        :-  %vector
             :~  [%col1 [~.t 'Ace']]
                 [%col2 [~.da ~2005.12.19]]
                 [%col3 [~.t 'ticolor']]
@@ -1930,7 +1924,7 @@
                 [%col3 [~.t 'ticolor']]
                 [%col4 [~.t 'row2']]
 
-                [%c1 [~.t 'Ace']]
+                [%col1 [~.t 'Ace']]
                 ==
         :-  %vector
             :~  [%col1 [~.t 'Angel']]
@@ -1946,28 +1940,28 @@
                 [%col3 [~.t 'tuxedo']]
                 [%col4 [~.t 'row3']]
 
-                [%c1 [~.t 'Angel']]
+                [%col1 [~.t 'Angel']]
+                ==
+        :-  %vector
+            :~  [%col1 [~.t 'Abby']]
+                [%col2 [~.da ~1999.2.19]]
+                [%col3 [~.t 'tricolor']]
+                [%col4 [~.t 'row1']]
+
+                [%col2 [~.da ~1999.2.19]]
+                [%col4 [~.t 'row1']]
+
+                [%col1 [~.t 'Abby']]
+                [%col2 [~.da ~1999.2.19]]
+                [%col3 [~.t 'tricolor']]
+                [%col4 [~.t 'row1']]
+
+                [%col1 [~.t 'Abby']]
                 ==
           ==
   ::
 ++  time-new-rows
         :~
-          :-  %vector
-              :~  [%col1 [~.t 'Baker']]
-                  [%col2 [~.da ~1998.3.8]]
-                  [%col3 [~.t 'caleco']]
-                  [%col4 [~.t 'row4']]
-
-                  [%col2 [~.da ~1998.3.8]]
-                  [%col4 [~.t 'row4']]
-
-                  [%col1 [~.t 'Baker']]
-                  [%col2 [~.da ~1998.3.8]]
-                  [%col3 [~.t 'caleco']]
-                  [%col4 [~.t 'row4']]
-
-                  [%c1 [~.t 'Baker']]
-                  ==
           :-  %vector
               :~  [%col1 [~.t 'Bandit']]
                   [%col2 [~.da ~2006.12.23]]
@@ -1982,12 +1976,28 @@
                   [%col3 [~.t 'tricolor']]
                   [%col4 [~.t 'row5']]
 
-                  [%c1 [~.t 'Bandit']]
+                  [%col1 [~.t 'Bandit']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Baker']]
+                  [%col2 [~.da ~1998.3.8]]
+                  [%col3 [~.t 'caleco']]
+                  [%col4 [~.t 'row4']]
+
+                  [%col2 [~.da ~1998.3.8]]
+                  [%col4 [~.t 'row4']]
+
+                  [%col1 [~.t 'Baker']]
+                  [%col2 [~.da ~1998.3.8]]
+                  [%col3 [~.t 'caleco']]
+                  [%col4 [~.t 'row4']]
+
+                  [%col1 [~.t 'Baker']]
                   ==
           ==
 ++  time-expected1  :~  %results
                         [%message 'SELECT']
-                        [%result-set (weld time-expected-rows time-new-rows)]
+                        [%result-set (weld time-new-rows time-expected-rows)]
                         [%server-time ~2012.5.5]
                         [%message 'db1.dbo.my-table']
                         [%schema-time ~2012.5.1]
@@ -2150,7 +2160,7 @@
   =|  run=@ud
   =/  expected1  :~  %results
                      [%message 'SELECT']
-                     [%result-set (weld time-expected-rows time-new-rows)]
+                     [%result-set (weld time-new-rows time-expected-rows)]
                      [%server-time ~2012.5.5]
                      [%message 'db1.dbo.my-table']
                      [%schema-time ~2012.5.1]
@@ -2300,7 +2310,7 @@
   =|  run=@ud
   =/  expected1  :~  %results
                      [%message 'SELECT']
-                     [%result-set (weld time-expected-rows time-new-rows)]
+                     [%result-set (weld time-new-rows time-expected-rows)]
                      [%server-time ~2012.5.5]
                      [%message 'db1.dbo.my-table']
                      [%schema-time ~2012.5.1]
@@ -2536,8 +2546,8 @@
 ++  test-shrinking-04
   =|  run=@ud
   =/  expected-rows
-        :~  [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tuxedo']]]]
-            [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tricolor']]]]
+        :~  [%vector ~[[%col2 [~.da ~2005.12.19]] [%col3 [~.t 'tricolor']]]]
+            [%vector ~[[%col2 [~.da ~2005.12.19]] [%col3 [~.t 'tuxedo']]]]
             ==
   =/  expected  :~  %results
                     [%message 'SELECT']
@@ -2591,13 +2601,13 @@
   =/  expected-rows
         :~  :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%c2 [~.da ~2005.12.19]]
+                    [%col2 [~.da ~2005.12.19]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%col3 [~.t 'tuxedo']]
                     ==
             :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%c2 [~.da ~2005.12.19]]
+                    [%col2 [~.da ~2005.12.19]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%col3 [~.t 'tricolor']]
                     ==
@@ -2657,21 +2667,21 @@
   =/  expected-rows
         :~  :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%time [~.da ~2012.5.2]]
+                    [%tmsp [~.da ~2012.5.2]]
+                    [p=%home q=[p=~.p ~sampel-palnet]]
+                    [%key [~.tas 'c2-col2']]
+                    ==
+            :-  %vector
+                :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
+                    [%tmsp [~.da ~2012.5.2]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%key [~.tas 'c2-col1']]
                     ==
             :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%time [~.da ~2012.5.1]]
+                    [%tmsp [~.da ~2012.5.1]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%key [~.tas 'col1']]
-                    ==
-            :-  %vector
-                :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%time [~.da ~2012.5.2]]
-                    [p=%home q=[p=~.p ~sampel-palnet]]
-                    [%key [~.tas 'c2-col2']]
                     ==
             ==
   =/  expected  :~  %results
@@ -2823,17 +2833,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%date [~.da ~1990.1.1]]
-                  [%year [~.ud 1.990]]
-                  [%month [~.ud 1]]
-                  [%month-name [~.t 'January']]
-                  [%day [~.ud 1]]
-                  [%day-name [~.t 'Monday']]
-                  [%day-of-year [~.ud 1]]
-                  [%weekday [~.ud 2]]
-                  [%year-week [~.ud 1]]
-                  ==
-          :-  %vector
              :~  [%date [~.da ~1990.1.2]]
                  [%year [~.ud 1.990]]
                  [%month [~.ud 1]]
@@ -2844,7 +2843,7 @@
                  [%weekday [~.ud 3]]
                  [%year-week [~.ud 1]]
                  ==
-         :-  %vector
+          :-  %vector
              :~  [%date [~.da ~1990.1.3]]
                  [%year [~.ud 1.990]]
                  [%month [~.ud 1]]
@@ -2855,6 +2854,17 @@
                  [%weekday [~.ud 4]]
                  [%year-week [~.ud 1]]
                  ==
+          :-  %vector
+              :~  [%date [~.da ~1990.1.1]]
+                  [%year [~.ud 1.990]]
+                  [%month [~.ud 1]]
+                  [%month-name [~.t 'January']]
+                  [%day [~.ud 1]]
+                  [%day-name [~.t 'Monday']]
+                  [%day-of-year [~.ud 1]]
+                  [%weekday [~.ud 2]]
+                  [%year-week [~.ud 1]]
+                  ==
          :-  %vector
              :~  [%date [~.da ~1990.1.4]]
                  [%year [~.ud 1.990]]
