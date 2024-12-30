@@ -407,7 +407,7 @@
   =/  col-lookup=(map qualified-column:ast @ta)
         (~(gas by `(map qualified-column:ast @ta)`~) cols)
   =/  cells=(list templ-cell-2)  ~
-  =.  selected  (fix-for-infer cols selected)
+  ::=.  selected  (fix-for-infer cols selected)
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
@@ -457,58 +457,58 @@
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
-++  fix-for-infer
-  |=  $:  cols=(list [qualified-column:ast @ta])
-          selected=(list selected-column:ast)
-          ==
-  ^-  (list selected-column:ast)
-  =/  object-lookup=(map @tas (list qualified-object:ast))  ~
-  =/  selected-out=(list selected-column:ast)  ~
-  |-
-  ?~  selected  (flop selected-out)
-  ?.  ?=(qualified-column:ast -.selected)
-    %=  $
-      selected      +.selected
-      selected-out  [-.selected selected-out]
-    ==
-  =/  col=qualified-column:ast  `qualified-column:ast`-.selected
-  ?:  ?&  =('UNKNOWN' database.qualifier.col)
-            =('COLUMN-OR-CTE' namespace.qualifier.col)
-            ==
-          ?~  object-lookup  $(object-lookup (mk-object-lookup cols))  ~&  " "  ~&  "object-lookup:  {<object-lookup>}"  ~&  " "  ~&  "name.qualifier.col:  {<name.qualifier.col>}"
-          
-          ?:  (~(has by col-lookup) name.qualifier.i.selected)
-          
-              %=  $
-                selected      +.selected
-                selected-out  :-  ^-  selected-column:ast
-                                  %+  from-infer-objects  object-lookup
-                                                          name.qualifier.col
-                                  selected-out
-              ==
+::::++  fix-for-infer
+  ::|=  $:  cols=(list [qualified-column:ast @ta])
+  ::        selected=(list selected-column:ast)
+  ::        ==
+  ::^-  (list selected-column:ast)
+  ::=/  object-lookup=(map @tas (list qualified-object:ast))  ~
+  ::=/  selected-out=(list selected-column:ast)  ~
+  ::|-
+  ::?~  selected  (flop selected-out)
+  ::?.  ?=(qualified-column:ast -.selected)
+  ::  %=  $
+  ::    selected      +.selected
+  ::    selected-out  [-.selected selected-out]
+  ::  ==
+  ::=/  col=qualified-column:ast  `qualified-column:ast`-.selected
+  ::?:  ?&  =('UNKNOWN' database.qualifier.col)
+  ::          =('COLUMN-OR-CTE' namespace.qualifier.col)
+  ::          ==
+  ::        ?~  object-lookup  $(object-lookup (mk-object-lookup cols))  ~&  " "  ~&  "object-lookup:  {<object-lookup>}"  ~&  " "  ~&  "name.qualifier.col:  {<name.qualifier.col>}"
+  ::        
+  ::        ?:  (~(has by col-lookup) name.qualifier.i.selected)
+  ::        
+  ::            %=  $
+  ::              selected      +.selected
+  ::              selected-out  :-  ^-  selected-column:ast
+  ::                                %+  from-infer-objects  object-lookup
+  ::                                                        name.qualifier.col
+  ::                                selected-out
+  ::            ==
 
-          %=  $
-              selected      +.selected
-          ::    selected-out  :-  ^-  selected-column:ast
-                                %+  from-infer-objects  object-lookup
-                                                        name.qualifier.col
-                                selected-out
+  ::        %=  $
+  ::            selected      +.selected
+  ::            selected-out  :-  ^-  selected-column:ast
+  ::                              %+  from-infer-objects  object-lookup
+  ::                                                      name.qualifier.col
+  ::                              selected-out
 
-                      to do check for 'all'          
-            ==
+  ::                  ::  to do check for 'all'          
+  ::          ==
 
-  %=  $
-    selected      +.selected
-    selected-out  [`selected-column:ast`col selected-out]
-  ==
+  ::%=  $
+  ::  selected      +.selected
+  ::  selected-out  [`selected-column:ast`col selected-out]
+  ::==
 ::
-++  from-infer-objects
-  |=  [object-lookup=(map @tas (list qualified-object:ast)) name=@tas]
-  ^-  qualified-column:ast
-  ?.  (~(has by object-lookup) name)  ~|("SELECT: column {<name>} not found" !!)
-  =/  objects=(list qualified-object:ast)  (~(got by object-lookup) name)
-  ?:  (gth (lent objects) 1)  ~|("SELECT: column {<name>} must be qualified" !!)
-  (qualified-column:ast %qualified-column -.objects name ~)
+::++  from-infer-objects
+  ::|=  [object-lookup=(map @tas (list qualified-object:ast)) name=@tas]
+  ::^-  qualified-column:ast
+  ::?.  (~(has by object-lookup) name)  ~|("SELECT: column {<name>} not found" !!)
+  ::=/  objects=(list qualified-object:ast)  (~(got by object-lookup) name)
+  ::?:  (gth (lent objects) 1)  ~|("SELECT: column {<name>} must be qualified" !!)
+  ::(qualified-column:ast %qualified-column -.objects name ~)
 ::
 ++  mk-object-lookup
   |=  cols=(list [qualified-column:ast @ta])

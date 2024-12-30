@@ -569,19 +569,26 @@
 ++  sys-sys-log-query
     |=  database=@tas
     ^-  (tree set-function:ast)
-    :+  :*  %query
+
+    ;;  (tree set-function:ast)
+    ::;;  set-cmd:ast
+    ::;;  query:ast
+    :+  
+        :*  %query
             :-  ~            ::from=(unit from)
+                ;;  from:ast
                 :^  %from
-                    :+  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %sys-log
-                            ==
-                        ~  ::alias=(unit @t)
-                    ~  ::(unit as-of)
-                    ~  ::joins=(list joined-object)
+                    :~
+                      :*  %relation
+                          :+  %table-set  ::object=table-set
+                              [%qualified-object ~ database %sys %sys-log]
+                              ~  :: alias=(unit @t)
+                          ~  :: `as-of
+                          ~  :: `join-type
+                          ~  :: `predicate
+                          ==
+                      ==
+    
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
