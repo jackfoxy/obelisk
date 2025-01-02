@@ -259,6 +259,7 @@
             (cold '%col2' (jest '845.967.203'))
             (cold '\'row1\'' (jest '829.910.898'))
             (cold '%col1' (jest '829.189.987'))
+            (cold '%baz' (jest '8.020.322'))
             (cold '%any' (jest '7.958.113'))
             (cold '%key' (jest '7.955.819'))
             (cold '%day' (jest '7.954.788'))

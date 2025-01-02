@@ -736,9 +736,9 @@
 ++  cte-t1
   [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
 ++  cte-foobar
-  [%cte name='foobar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foobar'] alias=~] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [[value-type=%ud value=2] ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col3 col4]] ~]]
+  [%cte name='foobar' [%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'foobar'] ~] ~ ~ ~]]]] scalars=~ `[%eq [col1 ~ ~] [[value-type=%ud value=2] ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col3 col4]] ~]]
 ++  cte-bar
-  [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
+  [%cte name='bar' [%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'bar'] ~] ~ ~ ~]]]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
 ++  foo-table
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo']
 ::
@@ -1668,78 +1668,34 @@
 ::
 ++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
 ++  from-foo
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
+  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~]]]]
 ++  from-foo-aliased
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'F1']] as-of=~ joins=~]]
+  [~ [%from ~[[%relation [%table-set foo-table [~ 'F1']] ~ ~ ~]]]]
 ++  simple-from-foo
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1]]
 ++  from-foo-join-bar
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar]]
+  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] ~] ~ ~ `one-eq-1]]]]
 ++  simple-from-foo-join-bar
   [%query from-foo-join-bar scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar-aliased
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'b1']] predicate=`one-eq-1]]
 ++  from-foo-join-bar-aliased
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar-aliased]]
+  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] [~ 'b1']] ~ ~ `one-eq-1]]]]
 ++  simple-from-foo-join-bar-aliased
   [%query from-foo-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  from-foo-aliased-join-bar-aliased
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=joins-bar-aliased]]
+  [~ [%from ~[[%relation [%table-set foo-table [~ 'f1']] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] [~ 'b1']] ~ ~ `one-eq-1]]]]
 ++  aliased-from-foo-join-bar-aliased
   [%query from-foo-aliased-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar-baz
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=~] predicate=`one-eq-1]]
 ++  from-foo-join-bar-baz
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar-baz]]
+  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] ~] ~ ~ `one-eq-1]]]]
 ++  simple-from-foo-join-bar-baz
   [%query from-foo-join-bar-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-joins-bar-baz
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'B1']] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=[~ 'b2']] predicate=`one-eq-1]]
 ++  aliased-foo-join-bar-baz
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=aliased-joins-bar-baz]]
+  [~ [%from ~[[%relation [%table-set foo-table [~ 'f1']] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] [~ 'B1']] ~ ~ `one-eq-1]]]]
 ++  aliased-from-foo-join-bar-baz
   [%query aliased-foo-join-bar-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
-++  from-foo-row
-  [~ [%from object=[%table-set object=foo-table-row alias=~] as-of=~ joins=~]]
-++  from-foo-row-aliased
-  [~ [%from object=[%table-set object=foo-table-row alias=[~ 'F1']] as-of=~ joins=~]]
-++  simple-from-foo-row
-  [%query from-foo-row scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-from-foo-row
-  [%query from-foo-row-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-col
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~] predicate=`one-eq-1]]
-++  from-foo-join-bar-row
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-col]]
-++  simple-from-foo-join-bar-row
-  [%query from-foo-join-bar-row scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-col-aliased
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'b1']] predicate=`one-eq-1]]
-++  from-foo-join-bar-row-aliased
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-col-aliased]]
-++  simple-from-foo-join-bar-row-aliased
-  [%query from-foo-join-bar-row-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  from-foo-row-aliased-join-bar-aliased
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=joins-col-aliased]]
-++  aliased-from-foo-join-bar-row-aliased
-  [%query from-foo-row-aliased-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar-col
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~] predicate=`one-eq-1]]
-++  from-foo-join-bar-row-baz
-  [~ [%from object=[%table-set object=foo-table-row alias=~] as-of=~ joins=joins-bar-col]]
-++  simple-from-foo-join-bar-row-baz
-  [%query from-foo-join-bar-row-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-joins-bar-col
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'B1']] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'b2']] predicate=`one-eq-1]]
-++  aliased-foo-join-bar-col
-  [~ [%from object=[%table-set object=[%query-row ~['col1']] alias=[~ 'f1']] as-of=~ joins=aliased-joins-bar-col]]
-++  aliased-from-foo-join-bar-row-baz
-  [%query aliased-foo-join-bar-col scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-alias-y
   [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'y']]
 ++  bar-alias-x
@@ -1760,7 +1716,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1768,7 +1724,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo<>bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1776,7 +1732,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1784,7 +1740,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo >bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gt foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1792,7 +1748,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lt foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1800,7 +1756,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo>= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1808,7 +1764,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!< bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1816,7 +1772,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1824,7 +1780,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo !> bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1849,7 +1805,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1860,7 +1816,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1871,7 +1827,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1882,7 +1838,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1893,7 +1849,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%gte t1-foo [%all bar ~]]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1904,7 +1860,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1915,7 +1871,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo value-literals]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1926,7 +1882,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1937,7 +1893,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literals]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1948,7 +1904,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists t1-foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1959,7 +1915,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1970,7 +1926,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists t1-foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1981,7 +1937,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1994,7 +1950,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-fb-gte-f--fb-lte-b
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2015,7 +1971,7 @@
                 t1-foo2
                 [[%p 0] ~ ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2030,7 +1986,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2047,7 +2003,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2067,7 +2023,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2096,7 +2052,7 @@
                     t1-foo2-eq-zod
                     foo-eq-1
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2115,7 +2071,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      a-a-l-a-o-l-a-a-r-o-r-a-l-o-r-a
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2131,7 +2087,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      king-and
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]    
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2177,7 +2133,7 @@
   =/  pred=(tree predicate-component:ast)
     [%and [%and [%and [%eq a1-adoption-email a2-adoption-email] [%eq a1-adoption-date a2-adoption-date]] [%eq foo bar]] [%or [%or [%and [%eq a1-name a2-name] [%gt a1-species a2-species]] [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]] [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]]]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'A1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'A2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'A1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'A2']] ~ [~ %join] `joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2187,7 +2143,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON (T1.foo = T2.bar) SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T1']] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'adoptions'] [~ 'T2']] ~ [~ %join] `pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2307,8 +2263,6 @@
 ::
 ::  NOTE: SELECT all literal types is in test/lib/queries/hoon
 ::
-::++  simple-columns
-::  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] [%ud 1] [%p 0] [%t 'cord']]
 ++  aliased-columns-1
   ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=[~ 'foo']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=[~ 'foo2']] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=[~ 'bar']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=[~ 'bar2']] [%selected-value value=literal-1 alias=[~ %foobar]] [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']] [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]]
 ++  mixed-all
@@ -2396,7 +2350,8 @@
 ::  from foo select top, bottom, simple columns, trailing space, no internal space
 ++  test-select-11
   =/  select  "from foo select top 10  bottom 10  x1,db.ns.table.col1,table-alias.name,db..table.col2,T1.foo,1,~zod,'cord' "
-  =/  from  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
+  ::=/  from  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
+  =/  from  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~]]]]
   =/  my-columns  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] [%selected-value literal-1 ~] [%selected-value [value-type=%p value=0] ~] [%selected-value [value-type=%t value='cord'] ~]]
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query from scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=my-columns] ~] ~ ~]]]
@@ -2420,14 +2375,14 @@
 ++  test-select-14
   =/  select  "FROM baz as T2 select db..t1.* , foo as foobar , bar , * , T2.* "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz] alias=[~ 'T2']] as-of=~ joins=~]] scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'baz'] [~ 'T2']] ~ ~ ~]]]] scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-15
   =/  select  "FROM t1 JOIN baz as T2 select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%t1] alias=~] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database=%db1 namespace=%dbo name=%baz] alias=[~ 'T2']] predicate=~]]]] scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query [~ [%from ~[[%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 't1'] ~] ~ ~ ~] [%relation [%table-set [%qualified-object ~ 'db1' 'dbo' 'baz'] [~ 'T2']] ~ [~ %join] ~]]]] scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed aggregates

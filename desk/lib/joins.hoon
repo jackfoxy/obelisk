@@ -39,58 +39,61 @@
 ++  join-all
   |=  =from:ast
   ^-  [server (list from-obj)]
-  =/  =table-set:ast  object.from
-  =/  query-obj=qualified-object:ast
-      ?:  ?=(qualified-object:ast object.table-set)  object.table-set
-      ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
-                                         :: %selection composition
-  =/  sys-time  (set-tmsp as-of.from now.bowl)
-  =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
-                  (~(got by state) database.query-obj)
-  =/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
-                    "doesn't exist at time {<sys-time>}"
-               (get-schema [sys.db sys-time])
-  =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
-  ::
-  =/  from-objects=(list from-obj)
-      %-  limo  :~  ?~  vw  %:  from-table  query-obj
-                                            db
-                                            schema
-                                            ~
-                                            [~ ~]
-                                            sys-time
-                                            ~
-                                            ~
-                                            ==
-                        %:  from-view  query-obj
-                                       db
-                                       schema
-                                       (need vw)
-                                       ~
-                                       sys-time
-                                       ~
-                                       ~
-                                       ==
-                    ==
-  ::
+  ::=/  =table-set:ast  object.from
+  ::=/  query-obj=qualified-object:ast
+  ::    ?:  ?=(qualified-object:ast object.table-set)  object.table-set
+  ::    ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
+  ::                                       :: %selection composition
+  ::=/  sys-time  (set-tmsp as-of.from now.bowl)
+  ::=/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
+  ::                (~(got by state) database.query-obj)
+  ::=/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
+  ::                  "doesn't exist at time {<sys-time>}"
+  ::             (get-schema [sys.db sys-time])
+  ::=/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
+  ::::
+  =/  from-objects=(list from-obj)  ~
+  ::    %-  limo  :~  ?~  vw  %:  from-table  query-obj
+  ::                                          db
+  ::                                          schema
+  ::                                          ~
+  ::                                          [~ ~]
+  ::                                          sys-time
+  ::                                          ~
+  ::                                          ~
+  ::                                          ==
+  ::                      %:  from-view  query-obj
+  ::                                     db
+  ::                                     schema
+  ::                                     (need vw)
+  ::                                     ~
+  ::                                     sys-time
+  ::                                     ~
+  ::                                     ~
+  ::                                     ==
+  ::                  ==
+  ::::
   |-
-  ?~  joins.from  [state (flop from-objects)]
-  =/  jo=joined-object:ast  -.joins.from
-  =.  query-obj  ;;(qualified-object:ast object.object.jo)
-  =.  sys-time   (set-tmsp as-of.jo now.bowl)
-  =.  db         ~|  "SELECT: database {<database.query-obj>} does not exist"
-                 (~(got by state) database.query-obj)
-  =.  schema     ~|  "SELECT: database {<database.query-obj>} ".
-                      "doesn't exist at time {<sys-time>}"
-                 (get-schema [sys.db sys-time])
+  ?~  relations.from  [state (flop from-objects)]
+  =/  relat=relation:ast  -.relations.from
+  =/  query-obj=qualified-object:ast
+        ?:  ?=(qualified-object:ast object.table-set.relat)
+          object.table-set.relat
+        ~|("query-source {<object.table-set.relat>} not supported" !!)
+  =/  sys-time   (set-tmsp as-of.relat now.bowl)
+  =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
+                   (~(got by state) database.query-obj)
+  =/  =schema      ~|  "SELECT: database {<database.query-obj>} ".
+                       "doesn't exist at time {<sys-time>}"
+                   (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
   ::
   =/  prior=from-obj  -.from-objects
   =/  joined-obj  ?~  vw  %:  from-table  query-obj
                                               db
                                               schema
-                                              [~ join.jo]
-                                              predicate.jo
+                                              join.relat
+                                              predicate.relat
                                               sys-time
                                               type-lookup.prior
                                               qualified-columns.prior
@@ -99,7 +102,7 @@
                                       db
                                       schema
                                       (need vw)
-                                      [~ jo]
+                                      relat
                                       sys-time
                                       type-lookup.prior
                                       qualified-columns.prior
@@ -108,7 +111,7 @@
   =.  joined-rows.joined-obj  (join-up prior joined-obj)
   ::
   %=  $
-    joins.from  +.joins.from
+    relations.from  +.relations.from
     from-objects  [joined-obj from-objects]
   ==
 ::
@@ -170,7 +173,7 @@
           db=database
           =schema
           =view
-          jo=(unit joined-object:ast)
+          relat=relation:ast
           sys-time=@da
           type-lookup=(map qualified-object:ast (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
@@ -197,8 +200,8 @@
                 (mk-qualified-columns query-obj qualified-columns columns.view)
                 ~
                 ~
-                ?~  jo  ~  [~ join:(need jo)]
-                ?~  jo  ~  [~ predicate:(need jo)]
+                join.relat
+                predicate.relat
                 %+  ~(put by type-lookup)  
                     query-obj
                     (malt (turn columns.view |=(a=column:ast [name.a type.a])))

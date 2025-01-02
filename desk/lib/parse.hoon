@@ -2149,126 +2149,130 @@
 ++  produce-from
   |=  a=*
   ^-  from:ast
-  =/  from-object=table-set:ast
-        ?:  |(=(%table-set -<.a) =(%query-row -<.a))
-              `table-set:ast`(make-query-object ->.a)
-            `table-set:ast`(make-query-object -<+.a)
   =/  from-as-of=(unit as-of:ast)
         ?:  =(%as-of-offset ->-.a)  [~ ;;(as-of-offset:ast ->.a)]
         ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
         ?:  =(~.dr ->-.a)           [~ ;;(as-of:ast [%dr ->+.a])]
         ~
-  =/  raw-joined-objects  +.a
-  =/  joined-objects=(list joined-object:ast)  ~
+  =/  =table-set:ast
+        ?:  |(=(%table-set -<.a) =(%query-row -<.a))
+              `table-set:ast`(make-query-object ->.a)
+            `table-set:ast`(make-query-object -<+.a)
+  =/  relations=(list relation:ast)  ~[[%relation table-set from-as-of ~ ~]]
+  =/  raw-relations  +.a
   =/  is-cross-join=?  %.n
   |-
-  ?:  =(raw-joined-objects ~)
+  ?:  =(raw-relations ~)
     ?:  is-cross-join
-      ?:  =((lent joined-objects) 1)
-        (from:ast %from from-object from-as-of (flop joined-objects))
+      ?:  =((lent relations) 1)
+        ::(from:ast %from from-object from-as-of (flop relations))
+        (from:ast %from (flop relations))
       ~|("cross join must be only join in query" !!)
-    (from:ast %from from-object from-as-of (flop joined-objects))
-  ?:  ?=(%cross-join -.raw-joined-objects)
+    ::(from:ast %from from-object from-as-of (flop relations))
+    (from:ast %from (flop relations))
+  ?:  ?=(%cross-join -.raw-relations)
     %=  $
-      joined-objects
+      relations
         :-
-          %:  joined-object:ast
-            %joined-object
-            %cross-join
+          %:  relation:ast
+            %relation
+            ::  table-set
+            ?:  ?|  ?=([[%table-set * *] %as-of-offset *] +.raw-relations)
+                    ?=([[%table-set * *] %da @] +.raw-relations)
+                    ?=([[%table-set * *] %dr @] +.raw-relations)
+                    ==
+              (make-query-object +<+.raw-relations)
+            (make-query-object +>.raw-relations)
             :: as-of
-            ?:  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
-              [~ ;;(as-of-offset:ast +>.raw-joined-objects)]
-            ?:  ?|  ?=([[%table-set * *] %da @] +.raw-joined-objects)
-                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
+            ?:  ?=([[%table-set * *] %as-of-offset *] +.raw-relations)
+              [~ ;;(as-of-offset:ast +>.raw-relations)]
+            ?:  ?|  ?=([[%table-set * *] %da @] +.raw-relations)
+                    ?=([[%table-set * *] %dr @] +.raw-relations)
                     ==
-              [~ ;;(as-of:ast +>.raw-joined-objects)]
+              [~ ;;(as-of:ast +>.raw-relations)]
             ~
-            ::  object
-            ?:  ?|  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
-                    ?=([[%table-set * *] %da @] +.raw-joined-objects)
-                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
-                    ==
-              (make-query-object +<+.raw-joined-objects)
-            (make-query-object +>.raw-joined-objects)
+            [~ %cross-join]
             ~
           ==
-          joined-objects
+          relations
       is-cross-join       %.y
-      raw-joined-objects  ~
+      raw-relations  ~
     ==
   ::natural join
   ?:  ?|  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
-              -.raw-joined-objects
+              -.raw-relations
         ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]]
-              -.raw-joined-objects
+              -.raw-relations
           ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] [%da @]]]
-              -.raw-joined-objects
+              -.raw-relations
           ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] [%dr @]]]
-              -.raw-joined-objects
+              -.raw-relations
           ==
     %=  $
-      joined-objects
+      relations
         :-
-          %:  joined-object:ast
-            %joined-object
-            %join
-            :: as-of
-            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
-                    ->.raw-joined-objects
-                [~ ;;(as-of-offset:ast ->+.raw-joined-objects)]
-            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] [@ @]]
-                    ->.raw-joined-objects
-                [~ ;;(as-of:ast ->+.raw-joined-objects)]
-            ~
+          %:  relation:ast
+            %relation
             ::  object
             ?:  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
-                -.raw-joined-objects
-                (make-query-object ->+.raw-joined-objects)
-            (make-query-object ->->.raw-joined-objects)
+                -.raw-relations
+                (make-query-object ->+.raw-relations)
+            (make-query-object ->->.raw-relations)
+            :: as-of
+            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
+                    ->.raw-relations
+                [~ ;;(as-of-offset:ast ->+.raw-relations)]
+            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] [@ @]]
+                    ->.raw-relations
+                [~ ;;(as-of:ast ->+.raw-relations)]
+            ~
+            [~ %join]
             ~  :: predicate
           ==
-          joined-objects
-      raw-joined-objects    +.raw-joined-objects
+          relations
+      raw-relations    +.raw-relations
     ==
   :: all other joins
-  ?>  ?=(join-type:ast -<.raw-joined-objects)
-  =/  joined=joined-object:ast
-    %:  joined-object:ast
-      %joined-object
-      -<.raw-joined-objects                              :: join-type
-      ::  as-of
-      ?:  ?=(%as-of-offset ->->-.raw-joined-objects)        
-        [~ ;;(as-of-offset:ast ->->.raw-joined-objects)]
-      ?:  ?|  ?=(%da ->->-.raw-joined-objects)
-              ?=(%dr ->->-.raw-joined-objects)
-              ==
-        [~ ;;(as-of:ast ->->.raw-joined-objects)]
-      ~
+  ?>  ?=(join-type:ast -<.raw-relations)
+  =/  joined=relation:ast
+    %:  relation:ast
+      %relation
       ::  object
-      ?:  ?=(%query-row ->-<.raw-joined-objects)
-            (make-query-object ->-.raw-joined-objects)
-      ?:  ?=([%table-set [%qualified-object @ @ @ @] *] ->-<.raw-joined-objects)
-            (make-query-object ->-<+.raw-joined-objects)
-      ?:  ?=([[%qualified-object @ @ @ @] ~] ->->.raw-joined-objects)
-            (make-query-object ->->-.raw-joined-objects)
-      ?:  ?|  ?=([[%qualified-object @ @ @ @] [~ @]] ->->.raw-joined-objects)
-              ?=(%qualified-object ->->-.raw-joined-objects)
+      ?:  ?=(%query-row ->-<.raw-relations)
+            (make-query-object ->-.raw-relations)
+      ?:  ?=([%table-set [%qualified-object @ @ @ @] *] ->-<.raw-relations)
+            (make-query-object ->-<+.raw-relations)
+      ?:  ?=([[%qualified-object @ @ @ @] ~] ->->.raw-relations)
+            (make-query-object ->->-.raw-relations)
+      ?:  ?|  ?=([[%qualified-object @ @ @ @] [~ @]] ->->.raw-relations)
+              ?=(%qualified-object ->->-.raw-relations)
               ==
-            (make-query-object ->->.raw-joined-objects)
-      ?:  ?=([%table-set [%qualified-object @ @ @ @] ~] ->+<.raw-joined-objects)
-            (make-query-object ->.raw-joined-objects)
-      ?:  ?=(%query-row ->->-<.raw-joined-objects)
-            (make-query-object ->->-.raw-joined-objects)
-      ?:  ?=(%table-set ->-<-.raw-joined-objects)
-            (make-query-object ->-<+.raw-joined-objects)
-          (make-query-object ->-<+.raw-joined-objects)
+            (make-query-object ->->.raw-relations)
+      ?:  ?=([%table-set [%qualified-object @ @ @ @] ~] ->+<.raw-relations)
+            (make-query-object ->.raw-relations)
+      ?:  ?=(%query-row ->->-<.raw-relations)
+            (make-query-object ->->-.raw-relations)
+      ?:  ?=(%table-set ->-<-.raw-relations)
+            (make-query-object ->-<+.raw-relations)
+          (make-query-object ->-<+.raw-relations)
+      ::  as-of
+      ?:  ?=(%as-of-offset ->->-.raw-relations)        
+        [~ ;;(as-of-offset:ast ->->.raw-relations)]
+      ?:  ?|  ?=(%da ->->-.raw-relations)
+              ?=(%dr ->->-.raw-relations)
+              ==
+        [~ ;;(as-of:ast ->->.raw-relations)]
+      ~
+      :: join-type
+      [~ -<.raw-relations]
       ::  predicate
-      `(produce-predicate (predicate-list ->+.raw-joined-objects))
+      `(produce-predicate (predicate-list ->+.raw-relations))
     ==
   %=  $
-  joined-objects  [joined joined-objects]
-  raw-joined-objects  +.raw-joined-objects
+  relations  [joined relations]
+  raw-relations  +.raw-relations
   ==
+::
 ++  produce-insert
   |=  a=*
   ~+
@@ -2528,22 +2532,25 @@
   |-
   ?~  a  ~|("cannot parse query  {<a>}" !!)
   ?:  =(-.a %query)           $(a +.a)
-  ?:  =(-.a %end-command)
-    %:  query:ast
-      %query
-      ?~  from  ~
-          `(fix-from-predicates (need from))
-      scalars
-      ?~  predicate  ~
-          `(fix-predicate (need predicate) (need from))
-      group-by
-      having
-      (need select)
-      order-by
-    ==
+  ?:  =(-.a %end-command)    %:  query:ast
+                                %query
+                                ?~  from  ~
+                                  `(fix-from-predicates (need from))
+                                scalars
+                                ?~  predicate  ~
+                                  `(fix-predicate (need predicate) (need from))
+                                group-by
+                                having
+                                (need select)
+                                order-by
+                                ==
   ?:  =(-<.a %scalars)        $(a +.a, scalars ~)
-  ?:  =(-<.a %where)
-    $(a +.a, predicate `(produce-predicate (predicate-list ->.a)))
+  ?:  =(-<.a %where)          %=  $
+                                a          +.a
+                                predicate  :-  ~
+                                               %-  produce-predicate
+                                                   (predicate-list ->.a)
+                              ==
   ?:  =(-<.a %select)         $(a +.a, select `(produce-select ->.a from))
   ?:  =(-<.a %group-by)       $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)       $(a +.a, order-by (order-by-list ->.a))
@@ -2555,20 +2562,19 @@
 ++  fix-from-predicates
   |=  f=from:ast
   ^-  from:ast
-  =/  jss  joins.f
-  =/  js=(list joined-object:ast)  ~
+  =/  jss  relations.f
+  =/  js=(list relation:ast)  ~
   |-
-  ?~  jss
-    (from:ast %from object.f as-of.f (flop js))
-  =/  j=joined-object:ast  -.jss
+  ?~  jss  [%from (flop js)]
+  =/  j=relation:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
-             %:  joined-object:ast  %joined-object
-                                    join.j
-                                    as-of.j
-                                    object.j
-                                    `(fix-predicate (need predicate.j) f)
-                                    ==
+             %:  relation:ast  %relation
+                               table-set.j
+                               as-of.j
+                               join.j
+                               `(fix-predicate (need predicate.j) f)
+                               ==
              js
     jss  +.jss
   ==
@@ -2631,43 +2637,29 @@
 :: map table-set alias to qualified-object
 :: if db of qualified-object is default db
 :: and namespace is 'dbo'
-:: also map from table-set name
-++  mk-alias-map
-  |=  f=from:ast
-  ^-  (map @t qualified-object:ast)
-  =/  alias-map  (mk-alias-map-2 ~ joins.f)
-  ?.  ?=(qualified-object:ast object.object.f)
-    ~|("not implemented {<object.f>}" !!)
-  ?~  alias.object.f
-    alias-map
-  ?.  ?&  =(database.object.object.f default-database)
-          =(namespace.object.object.f %dbo)
-          ==
-    %+  ~(put by alias-map)  (crip (cass (trip (need alias.object.f))))
-                             object.object.f
-  =/  am  %+  ~(put by alias-map)  (crip (cass (trip (need alias.object.f))))
-                                   object.object.f
-  (~(put by am) name.object.object.f object.object.f)
 ::
-++  mk-alias-map-2
-  |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
+++  mk-alias-map
+  |=  =from:ast
   ^-  (map @t qualified-object:ast)
+  =/  m=(map @t qualified-object:ast)  ~
+  =/  js=(list relation:ast)  relations.from
   |-
   ?~  js  m
-  =/  j=joined-object:ast  -.js
-  ?.  ?=(qualified-object:ast object.object.j)
-    ~|("not implemented {<object.j>}" !!)
+  =/  j=relation:ast  -.js
+  ?.  ?=(qualified-object:ast object.table-set.j)
+    ~|("not implemented {<object.table-set.j>}" !!)
   %=  $
-    m   ?~  alias.object.j  m
-        ?.  ?&  =(database.object.object.j default-database)
-            =(namespace.object.object.j %dbo)
+    m   ?~  alias.table-set.j  m
+        ?.  ?&  =(database.object.table-set.j default-database)
+            =(namespace.object.table-set.j %dbo)
             ==
-          %+  ~(put by m)  (crip (cass (trip (need alias.object.j))))
-                           object.object.j
-        =/  inner  %+  ~(put by m)  (crip (cass (trip (need alias.object.j))))
-                                    object.object.j
-        %+  ~(put by inner)  name.object.object.j
-                             object.object.j
+          %+  ~(put by m)  (crip (cass (trip (need alias.table-set.j))))
+                           object.table-set.j
+        =/  inner
+              %+  ~(put by m)  (crip (cass (trip (need alias.table-set.j))))
+                               object.table-set.j
+        %+  ~(put by inner)  name.object.table-set.j
+                             object.table-set.j
     js  +.js
   ==
 ::
@@ -3693,7 +3685,7 @@
   ::
   ?:  =(%query-row -.parsed)  parsed
   ~|("cannot parse query-object  {<parsed>}" !!)
-++  parse-cross-joined-object  ~+
+++  parse-cross-join-obj  ~+
   ;~(plug parse-cross-join-type parse-query-object)
 ++  parse-natural-join
   ;~  plug
@@ -3702,7 +3694,7 @@
     ==
     parse-query-object
   ==
-++  parse-joined-object  ~+
+++  parse-join-obj  ~+
   ;~  plug
     parse-join-type
     parse-query-object
@@ -3712,8 +3704,8 @@
   ;~  plug
     parse-query-object
     ;~  pose
-      parse-cross-joined-object
-      (star ;~(pose parse-joined-object parse-natural-join))
+      parse-cross-join-obj
+      (star ;~(pose parse-join-obj parse-natural-join))
     ==
   ==
 ++  make-query-object

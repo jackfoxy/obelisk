@@ -678,18 +678,17 @@ For instance the joined query we last ran produces the following pretty-printed 
         from
       [ ~
         [ %from
-            object
-          [ %table-set
-            object=[%qualified-object ship=~ database=%animal-shelter namespace=%reference name=%calendar]
-            alias=[~ 'T1']
-          ]
-          as-of=~
-            joins
           ~[
-            [ %joined-object
-              join=%join
+            [ %relation
+              [ %table-set
+                object=[%qualified-object ship=~ database=%animal-shelter namespace=%reference name=%calendar]
+                alias=[~ 'T1']
+              ]
               as-of=~
-                object
+              join=~%join~
+              predicate=~
+            ]
+            [ %relation
               [ %table-set
                   object
                 [ %qualified-object
@@ -700,6 +699,8 @@ For instance the joined query we last ran produces the following pretty-printed 
                 ]
                 alias=[~ 'T2']
               ]
+              as-of=~
+              join=[~ %join]
               predicate=~
             ]
           ]
