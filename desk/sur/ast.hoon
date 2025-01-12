@@ -213,7 +213,7 @@
     alias=(unit @t)
   ==
 ::
-+$  query-source  $%(query-row qualified-object)
++$  query-source  $%(qualified-object query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row

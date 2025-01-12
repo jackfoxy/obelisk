@@ -40,39 +40,39 @@
   |=  =from:ast
   ^-  [server (list from-obj)]
   ::=/  =table-set:ast  object.from
-  ::=/  query-obj=qualified-object:ast
-  ::    ?:  ?=(qualified-object:ast object.table-set)  object.table-set
-  ::    ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
-  ::                                       :: %selection composition
-  ::=/  sys-time  (set-tmsp as-of.from now.bowl)
-  ::=/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
-  ::                (~(got by state) database.query-obj)
-  ::=/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
-  ::                  "doesn't exist at time {<sys-time>}"
-  ::             (get-schema [sys.db sys-time])
-  ::=/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
-  ::::
-  =/  from-objects=(list from-obj)  ~
-  ::    %-  limo  :~  ?~  vw  %:  from-table  query-obj
-  ::                                          db
-  ::                                          schema
-  ::                                          ~
-  ::                                          [~ ~]
-  ::                                          sys-time
-  ::                                          ~
-  ::                                          ~
-  ::                                          ==
-  ::                      %:  from-view  query-obj
-  ::                                     db
-  ::                                     schema
-  ::                                     (need vw)
-  ::                                     ~
-  ::                                     sys-time
-  ::                                     ~
-  ::                                     ~
-  ::                                     ==
-  ::                  ==
-  ::::
+  =/  query-obj=qualified-object:ast
+      ?:  ?=(qualified-object:ast object.table-set)  object.table-set
+      ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
+                                         :: %selection composition
+  =/  sys-time  (set-tmsp as-of.from now.bowl)
+  =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
+                  (~(got by state) database.query-obj)
+  =/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
+                    "doesn't exist at time {<sys-time>}"
+               (get-schema [sys.db sys-time])
+  =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
+  ::
+  =/  from-objects=(list from-obj)
+      %-  limo  :~  ?~  vw  %:  from-table  query-obj
+                                            db
+                                            schema
+                                            ~
+                                            [~ ~]
+                                            sys-time
+                                            ~
+                                            ~
+                                            ==
+                        %:  from-view  query-obj
+                                       db
+                                       schema
+                                       (need vw)
+                                       ~
+                                       sys-time
+                                       ~
+                                       ~
+                                       ==
+                    ==
+  ::
   |-
   ?~  relations.from  [state (flop from-objects)]
   =/  relat=relation:ast  -.relations.from

@@ -2160,44 +2160,50 @@
             `table-set:ast`(make-query-object -<+.a)
   =/  relations=(list relation:ast)  ~[[%relation table-set from-as-of ~ ~]]
   =/  raw-relations  +.a
-  =/  is-cross-join=?  %.n
+  ::=/  is-cross-join=?  %.n
   |-
   ?:  =(raw-relations ~)
-    ?:  is-cross-join
-      ?:  =((lent relations) 1)
-        ::(from:ast %from from-object from-as-of (flop relations))
-        (from:ast %from (flop relations))
-      ~|("cross join must be only join in query" !!)
-    ::(from:ast %from from-object from-as-of (flop relations))
     (from:ast %from (flop relations))
-  ?:  ?=(%cross-join -.raw-relations)
-    %=  $
-      relations
-        :-
-          %:  relation:ast
-            %relation
-            ::  table-set
-            ?:  ?|  ?=([[%table-set * *] %as-of-offset *] +.raw-relations)
-                    ?=([[%table-set * *] %da @] +.raw-relations)
-                    ?=([[%table-set * *] %dr @] +.raw-relations)
-                    ==
-              (make-query-object +<+.raw-relations)
-            (make-query-object +>.raw-relations)
-            :: as-of
-            ?:  ?=([[%table-set * *] %as-of-offset *] +.raw-relations)
-              [~ ;;(as-of-offset:ast +>.raw-relations)]
-            ?:  ?|  ?=([[%table-set * *] %da @] +.raw-relations)
-                    ?=([[%table-set * *] %dr @] +.raw-relations)
-                    ==
-              [~ ;;(as-of:ast +>.raw-relations)]
-            ~
-            [~ %cross-join]
-            ~
+  ::cross join
+  ?:  ?=  [%cross-join [%table-set [%qualified-object @ @ @ @] *]]
+          -.raw-relations
+      %=  $
+        relations
+          :-  (relation:ast %relation ->.raw-relations ~ [~ %cross-join] ~)
+              relations
+        raw-relations  +.raw-relations
+      ==
+  ?:  ?=
+        [%cross-join [%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
+        -.raw-relations
+      %=  $
+        relations
+          :-  %:  relation:ast  %relation
+                                ->-.raw-relations
+                                `->+.raw-relations
+                                [~ %cross-join]
+                                ~
+                                ==
+              relations
+        raw-relations  +.raw-relations
+      ==
+  ?:  ?|  ?=  [%cross-join [%table-set [%qualified-object @ @ @ @] *] [%da @]]
+              -.raw-relations
+          ?=  [%cross-join [%table-set [%qualified-object @ @ @ @] *] [%dr @]]
+              -.raw-relations
           ==
-          relations
-      is-cross-join       %.y
-      raw-relations  ~
-    ==
+      %=  $
+        relations
+          :-  %:  relation:ast  %relation
+                                ->-.raw-relations
+                       [~ ;;(as-of:ast [->+<.raw-relations ->+>.raw-relations])]
+                                [~ %cross-join]
+                                ~
+                                ==
+              relations
+        raw-relations  +.raw-relations
+      ==
+
   ::natural join
   ?:  ?|  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
               -.raw-relations
@@ -3627,11 +3633,6 @@
     ==
     (stag %query-row face-list)
   ==
-++  parse-query-object  ~+
-  ;~  pfix
-    whitespace
-    (cook build-query-object query-object)
-  ==
 ++  parse-join-type  ~+
   ;~  pfix  whitespace
     ;~  pose
@@ -3657,6 +3658,7 @@
   ==
 ++  build-query-object  ~+
   |=  parsed=*
+  ::^-  table-set:ast :: to do: cannot currently cast, fix w/ %query-row
   ?:  ?=([@ @ @ @ @] parsed)
     (table-set:ast %table-set parsed ~)
   ?:  ?=([[@ @ @ @ @] @] parsed)
@@ -3685,6 +3687,12 @@
   ::
   ?:  =(%query-row -.parsed)  parsed
   ~|("cannot parse query-object  {<parsed>}" !!)
+::
+++  parse-query-object  ~+
+  ;~  pfix
+    whitespace
+    (cook build-query-object query-object)
+  ==
 ++  parse-cross-join-obj  ~+
   ;~(plug parse-cross-join-type parse-query-object)
 ++  parse-natural-join
@@ -3703,10 +3711,7 @@
 ++  parse-object-and-joins  ~+
   ;~  plug
     parse-query-object
-    ;~  pose
-      parse-cross-join-obj
-      (star ;~(pose parse-join-obj parse-natural-join))
-    ==
+    (star ;~(pose parse-join-obj parse-natural-join parse-cross-join-obj))
   ==
 ++  make-query-object
   |=  a=*

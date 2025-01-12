@@ -1118,14 +1118,26 @@
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
     ==
   =.  run  +(run)
-  =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-        %obelisk-action
-        !>([%tape %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
-    ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::=^  mov4  agent
+  ::  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+  ::      %obelisk-action
+  ::      !>([%tape %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
+  ::  ==
+  ::%+  expect-eq
+  ::  !>  expected
+  ::  !>  ->+>+>+<.mov4
+  ::  ::!>  ;;(cmd-result ->+>+>+<.mov4)
+
+  ::
+  %+  expect-fail-message
+      %-  crip
+          "comparing column to literal of different aura: %col1 "
+  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+          %obelisk-action
+          !>([%test %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
+      ==
+
+
 ::
 ::  WHERE <column> > <literal> (@da)
 ++  test-gt-01
