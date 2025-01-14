@@ -39,12 +39,17 @@
 ++  join-all
   |=  =from:ast
   ^-  [server (list from-obj)]
-  ::=/  =table-set:ast  object.from
+
+  ?~  relations.from  ~|("no query objects" !!)
+
+  =/  relat=relation:ast  -.relations.from
+  =/  =table-set:ast      table-set.relat
+  =/  relations           +.relations.from
   =/  query-obj=qualified-object:ast
       ?:  ?=(qualified-object:ast object.table-set)  object.table-set
-      ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
+      ~|("SELECT: not supported on %query-row" !!)   :: %query-row non-sense to support
                                          :: %selection composition
-  =/  sys-time  (set-tmsp as-of.from now.bowl)
+  =/  sys-time  (set-tmsp as-of.relat now.bowl)
   =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
                   (~(got by state) database.query-obj)
   =/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
@@ -66,7 +71,7 @@
                                        db
                                        schema
                                        (need vw)
-                                       ~
+                                       relat
                                        sys-time
                                        ~
                                        ~
@@ -74,18 +79,19 @@
                     ==
   ::
   |-
-  ?~  relations.from  [state (flop from-objects)]
-  =/  relat=relation:ast  -.relations.from
+  ?~  relations  [state (flop from-objects)]
+  =.  relat      -.relations
   =/  query-obj=qualified-object:ast
         ?:  ?=(qualified-object:ast object.table-set.relat)
           object.table-set.relat
         ~|("query-source {<object.table-set.relat>} not supported" !!)
   =/  sys-time   (set-tmsp as-of.relat now.bowl)
-  =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
-                   (~(got by state) database.query-obj)
-  =/  =schema      ~|  "SELECT: database {<database.query-obj>} ".
-                       "doesn't exist at time {<sys-time>}"
-                   (get-schema [sys.db sys-time])
+  =/  db=database    ~|  "SELECT: database {<database.query-obj>} ".
+                         "does not exist"
+                         (~(got by state) database.query-obj)
+  =/  schema         ~|  "SELECT: database {<database.query-obj>} ".
+                         "doesn't exist at time {<sys-time>}"
+                         (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
   ::
   =/  prior=from-obj  -.from-objects
@@ -111,7 +117,7 @@
   =.  joined-rows.joined-obj  (join-up prior joined-obj)
   ::
   %=  $
-    relations.from  +.relations.from
+    relations     +.relations
     from-objects  [joined-obj from-objects]
   ==
 ::

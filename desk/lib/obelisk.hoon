@@ -830,12 +830,6 @@
                ==
   =/  all-join=[server (list from-obj)]
         (join-all(state state, bowl bowl) (need from.q))
-
-    ~&  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-    ~&  "all-join:  {<all-join>}"
-    ~&  "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-    ~&  " "
-
   =/  =data-obj  (vector-data +.all-join q)
   ::
   :-  -.all-join  :: state
@@ -860,36 +854,15 @@
                                     -:(flop sources)
   =/  selected  columns.selection.q
 
+  =/  qualifier-lookup  (mk-qualifier-lookup sources)
 
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj
           %+  turn  rows.from-obj
                     |=(a=(map @tas @) (~(put by init-map) object.from-obj a))
-
   ::
   =/  vectors
-      ::?:  single-source
-      ::  ?~  predicate.q
-      ::      %^  select-columns  rows.from-obj
-      ::                          (mk-vect-templ columns.from-obj selected)
-      ::                          (turn columns.from-obj |=(a=column:ast name.a))
-      ::  %:  select-columns-filtered  rows.from-obj
-      ::                               (mk-vect-templ columns.from-obj selected)
-      ::                               %+  turn  columns.from-obj
-      ::                                         |=(a=column:ast name.a)
-      ::                               %+  pred-ops-and-conjs
-      ::                                   (need predicate.q)
-      ::                                   %-  ~(got by type-lookup.from-obj)
-      ::                                       object.from-obj
-      ::                              ==
-      
-      
-        ~&  "columns.from-obj:  {<columns.from-obj>}"
-        ~&  "qualified-columns.from-obj:  {<qualified-columns.from-obj>}"
-        ~&  " "
-        ~&  "query:  {<q>}"
-      
       ?~  predicate.q
           %+  select-columns-2  joined-rows.from-obj
                                 %+  mk-vect-templ-2  qualified-columns.from-obj
@@ -898,15 +871,11 @@
                                      %+  mk-vect-templ-2
                                           qualified-columns.from-obj
                                           selected
-                                     %+  pred-ops-and-conjs-2
+                                     %^  pred-ops-and-conjs-2
                                          (need predicate.q)
                                          type-lookup.from-obj
+                                         qualifier-lookup
   ::
-
-      ~&  " "
-      ~&  "vectors:  {<vectors>}"
-      ~&  " "
-
   %:  data-obj  %data-obj
                 schema-tmsp.from-obj
                 data-tmsp.from-obj

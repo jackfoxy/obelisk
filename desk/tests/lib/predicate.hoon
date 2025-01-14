@@ -300,13 +300,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -314,8 +307,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -323,6 +316,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -412,7 +412,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = ~1999.2.19 SELECT *"])
@@ -470,7 +473,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 = col1 SELECT *"])
@@ -528,7 +534,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = col2 SELECT *"])
@@ -542,16 +551,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -606,16 +615,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -670,16 +679,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -736,16 +745,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -797,16 +806,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -939,7 +948,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> ~1999.2.19 SELECT *"])
@@ -997,7 +1009,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <> col1 SELECT *"])
@@ -1055,7 +1070,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
@@ -1069,16 +1087,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -1118,26 +1136,14 @@
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
     ==
   =.  run  +(run)
-  ::=^  mov4  agent
-  ::  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::      %obelisk-action
-  ::      !>([%tape %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
-  ::  ==
-  ::%+  expect-eq
-  ::  !>  expected
-  ::  !>  ->+>+>+<.mov4
-  ::  ::!>  ;;(cmd-result ->+>+>+<.mov4)
-
-  ::
-  %+  expect-fail-message
-      %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-          %obelisk-action
-          !>([%test %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
-      ==
-
-
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
+    ==
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  WHERE <column> > <literal> (@da)
 ++  test-gt-01
@@ -1268,16 +1274,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -1398,16 +1404,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
   =/  expected  :~  %results
@@ -1452,13 +1458,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -1466,8 +1465,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -1475,6 +1474,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -1564,7 +1570,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > ~1999.2.19 SELECT *"])
@@ -1622,7 +1631,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 > col1 SELECT *"])
@@ -1680,7 +1692,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > col2 SELECT *"])
@@ -1868,16 +1883,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -1998,15 +2013,15 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=4]]
+                  [p=%col-name q=[p=~.tas q=%col4]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=4]]
-                  [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -2133,7 +2148,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < ~1999.2.19 SELECT *"])
@@ -2191,7 +2209,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 < col1 SELECT *"])
@@ -2249,7 +2270,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < col2 SELECT *"])
@@ -2263,16 +2287,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -2327,12 +2351,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -2343,6 +2361,12 @@
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -2397,18 +2421,18 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+          ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -2461,10 +2485,10 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'Angel']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Ace']]
@@ -2473,10 +2497,10 @@
                   [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'Angel']]
-                  [%col4 [~.t 'row3']]
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -2597,16 +2621,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -2658,13 +2682,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -2672,8 +2689,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -2681,6 +2698,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -2770,7 +2794,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= ~1999.2.19 SELECT *"])
@@ -2828,7 +2855,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 >= col1 SELECT *"])
@@ -2886,7 +2916,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= col2 SELECT *"])
@@ -2958,16 +2991,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -3022,16 +3055,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -3086,10 +3119,10 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'Angel']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Ace']]
@@ -3098,10 +3131,10 @@
                   [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'Angel']]
-                  [%col4 [~.t 'row3']]
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -3229,15 +3262,15 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=4]]
+                  [p=%col-name q=[p=~.tas q=%col4]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=4]]
-                  [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -3283,13 +3316,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -3297,8 +3323,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -3306,6 +3332,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -3395,7 +3428,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= ~1999.2.19 SELECT *"])
@@ -3453,7 +3489,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <= col1 SELECT *"])
@@ -3511,7 +3550,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])
@@ -3525,16 +3567,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -3591,16 +3633,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -3657,12 +3699,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -3673,6 +3709,12 @@
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -4028,12 +4070,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -4044,6 +4080,12 @@
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -4278,16 +4320,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -4345,12 +4387,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -4362,7 +4398,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -4561,7 +4603,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4604,7 +4649,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4647,7 +4695,11 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4689,7 +4741,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1"
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4819,16 +4874,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -4970,7 +5025,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -5013,7 +5071,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -5056,7 +5117,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table] %col2]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -5098,7 +5162,10 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1"
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table] %col1] ".
+          "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
   |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -5115,16 +5182,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -5240,18 +5307,18 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+          ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]

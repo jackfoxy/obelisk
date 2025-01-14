@@ -663,6 +663,28 @@
         %+  turn  sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
+::  +mk-qualifier-lookup
+::
+::  Make lookup qualifier by column name for predicate processing when a column
+::  is unqualified.
+++  mk-qualifier-lookup
+    |=  sources=(list from-obj)
+    ^-  (map @tas (list qualified-object:ast))
+    =/  lookup=(map @tas (list qualified-object:ast))  ~
+    |-
+    ?~  sources  lookup
+    =/  source=from-obj  -.sources
+    =/  columns=(list column:ast)  columns.source
+    |-
+    ?~  columns  ^$(sources +.sources)
+    =/  col=column:ast  -.columns
+    %=  $
+      columns  +.columns
+      lookup   ?:  (~(has by lookup) name.col)
+                 (~(put by lookup) name.col [object.source (~(got by lookup) name.col)])
+               (~(put by lookup) name.col (limo ~[object.source]))
+    ==
+::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
 ::  Applies a function to each element of the list, threading an
