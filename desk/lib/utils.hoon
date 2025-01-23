@@ -404,8 +404,9 @@
           ==
   ^-  (list templ-cell-2)
   =/  i  0
-  =/  col-lookup=(map qualified-column:ast @ta)
-        (~(gas by `(map qualified-column:ast @ta)`~) cols)
+  =/  col-lookup     ::=(map qualified-column:ast @ta)
+        ::(~(gas by `(map qualified-column:ast @ta)`~) cols)
+        (~(gas by `(map [qualified-object:ast @tas] @ta)`~) (turn cols |=(a=[qualified-column:ast @ta] [[qualifier:-.a column:-.a] +.a])))
   =/  cells=(list templ-cell-2)  ~
   ::=.  selected  (fix-for-infer cols selected)
   ::
@@ -427,7 +428,7 @@
                      %templ-cell-2
                      [~ i.selected]
                      :-  (heading i.selected column.i.selected)
-                         [(~(got by col-lookup) i.selected) 0]
+                         [(~(got by col-lookup) [qualifier.i.selected column.i.selected]) 0]
                      ==
                cells
     ==

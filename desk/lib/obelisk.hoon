@@ -829,7 +829,7 @@
                (result %vector-count 1)
                ==
   =/  all-join=[server (list from-obj)]
-        (join-all(state state, bowl bowl) (need from.q))
+        (join-all(state state, bowl bowl) q)
   =/  =data-obj  (vector-data +.all-join q)
   ::
   :-  -.all-join  :: state
@@ -853,9 +853,7 @@
   =/  =from-obj  ?:  single-source  -.sources
                                     -:(flop sources)
   =/  selected  columns.selection.q
-
   =/  qualifier-lookup  (mk-qualifier-lookup sources)
-
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj

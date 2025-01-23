@@ -37,10 +37,12 @@
 
 ::
 ++  join-all
-  |=  =from:ast
+  |=  q=query:ast
   ^-  [server (list from-obj)]
-
+  =/  from  (need from.q)
   ?~  relations.from  ~|("no query objects" !!)
+
+  =/  selected-columns  (skim columns.selection.q |=(a=selected-column:ast ?=(qualified-column:ast a)))
 
   =/  relat=relation:ast  -.relations.from
   =/  =table-set:ast      table-set.relat

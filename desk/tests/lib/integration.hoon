@@ -114,10 +114,10 @@
                           ==
   =/  expected-2b-rows  :~
                           :-  %vector
-                              :~  [%col1 [~.t 'cord']]
+                              :~  [%col1 [~.t 'cord2']]
                                   ==
                           :-  %vector
-                              :~  [%col1 [~.t 'cord2']]
+                              :~  [%col1 [~.t 'cord']]
                                   ==
                           ==
   =/  expected-2  :~
@@ -518,16 +518,16 @@
                         :-  %result-set
                             :~
                               :-  %vector
-                                  :~  [%col1 [~.t 'next day']]
-                                      [%col2 [~.da ~2000.1.3]]
-                                      ==
-                              :-  %vector
                                   :~  [%col1 [~.t 'today']]
                                       [%col2 [~.da ~2000.1.1]]
                                       ==
                               :-  %vector
                                   :~  [%col1 [~.t 'tomorrow']]
                                       [%col2 [~.da ~2000.1.2]]
+                                      ==
+                              :-  %vector
+                                  :~  [%col1 [~.t 'next day']]
+                                      [%col2 [~.da ~2000.1.3]]
                                       ==
                             ==
                         [%server-time ~2012.5.1]
