@@ -784,7 +784,6 @@
                                                             %insert
                                                             ==
                             ==
-          ::  ~&  "%vector-count: {<rowcount.file>}"
       :~  [%message (crip "INSERT INTO {<name.table.ins>}")]
           [%server-time now.bowl]
           [%schema-time tmsp.table]
@@ -853,7 +852,17 @@
   =/  =from-obj  ?:  single-source  -.sources
                                     -:(flop sources)
   =/  selected  columns.selection.q
-  =/  qualifier-lookup  (mk-qualifier-lookup sources)
+  =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
+
+
+    ~&  "qualifier-lookup:  {<qualifier-lookup>}"
+    ~&  " "
+    ~&  "selected:  {<selected>}"
+    ~&  " "
+
+
+
+
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj

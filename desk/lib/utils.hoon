@@ -669,7 +669,7 @@
 ::  Make lookup qualifier by column name for predicate processing when a column
 ::  is unqualified.
 ++  mk-qualifier-lookup
-    |=  sources=(list from-obj)
+    |=  [sources=(list from-obj) selected-columns=(list selected-column:ast)]
     ^-  (map @tas (list qualified-object:ast))
     =/  lookup=(map @tas (list qualified-object:ast))  ~
     |-

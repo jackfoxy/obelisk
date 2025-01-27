@@ -2595,11 +2595,28 @@
   ?~  p  ~
   p(n (fix-leaf n.p alias-map), l $(p l.p), r $(p r.p))
 ::
+++  mk-all-object
+  |=  [=qualified-column:ast alias-map=(map @t qualified-object:ast)]
+  ^-  selected-all-object:ast
+  =/  object  %-  ~(get by alias-map)
+                  (crip (cass (trip name.qualifier.qualified-column)))
+  ?~  object
+    %+  selected-all-object:ast  %all-object
+                                 %:  qualified-object:ast
+                                      %qualified-object
+                                      ~ 
+                                      default-database
+                                      %dbo
+                                      name.qualifier.qualified-column
+                                      ==
+  (selected-all-object:ast %all-object (need object))
+                      
+::
 ++  fix-select
   |=  [s=(list selected-column:ast) f=from:ast]
   ^-  (list selected-column:ast)
   =/  alias-map=(map @t qualified-object:ast)  (mk-alias-map f)
-  ?~  alias-map  s
+  ::?~  alias-map  s
   =/  s-out=(list selected-column:ast)  ~
   ::
   |-
@@ -2623,10 +2640,11 @@
                        =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
                        =('ALL' column.sel-col)
                        ==
-                  %+  selected-all-object:ast
-                      %all-object
-                      %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                          (crip (cass (trip name.qualifier.sel-col)))
+                  (mk-all-object sel-col alias-map)
+                  ::%+  selected-all-object:ast
+                  ::    %all-object
+                  ::    %-  ~(got by `(map @t qualified-object:ast)`alias-map)
+                  ::        (crip (cass (trip name.qualifier.sel-col)))
                ?.  ?&  =('ALL' column.sel-col)
                        !=(name.qualifier.sel-col column.sel-col)
                        ==
@@ -2707,11 +2725,11 @@
   ^-  select:ast
   =/  top=(unit @ud)  ~
   =/  bottom=(unit @ud)  ~
-  =/  columns=(list selected-column:ast)  ~
+  =/  columns=(list selected-column:ast)  ~      
   |-
     ~|  "cannot parse select -.a:  {<-.a>}"
     ?~  a
-      ?~  columns  ~|('no columns selected' !!)
+      ?~  columns  ~|('no columns selected' !!)    
       ?~  f
         (select:ast %select top bottom (flop columns))
       (select:ast %select top bottom (fix-select (flop columns) (need f)))

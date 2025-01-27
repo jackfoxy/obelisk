@@ -375,14 +375,25 @@
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
     ==
   =.  run  +(run)
-  =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-        %obelisk-action
-        !>([%tape %db1 "FROM my-table SELECT col1,col2,col3,col4"])
-    ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::=^  mov4  agent
+  ::  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+  ::      %obelisk-action
+  ::      !>([%tape %db1 "FROM my-table SELECT col1,col2,col3,col4"])
+  ::  ==
+  ::%+  expect-eq
+  ::  !>  expected
+  ::  !>  ;;(cmd-result ->+>+>+<.mov4)
+
+
+  ::
+  %+  expect-fail-message
+        'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+          %obelisk-action
+          !>([%test %db1 "FROM my-table SELECT col1,col2,col3,col4"])
+      ==
+
+
 ::
 ::  all column aliases
 ++  test-simple-query-06
@@ -2922,7 +2933,7 @@
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
-                :~  [%day-name [~.t 'Monday']]
+                :~  [%day [~.t 'Monday']]
                     [%us-federal-holiday [~.t 'Christmas Day']]
                     ==
             ==
@@ -2950,34 +2961,19 @@
                               insert-holiday-calendar
                               ==
   =.  run  +(run)
-  ::=^  mov2  agent
-  ::  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::      %obelisk-action
-  ::      !>  :+  %tape
-  ::              %db1
-  ::              "FROM calendar t1 ".
-  ::              "JOIN holiday-calendar T2 ".
-  ::              "WHERE day = 'Monday' ".
-  ::              "  AND t2.us-federal-holiday = 'Christmas Day' ".
-  ::              "SELECT T1.day-name AS Day, t2.us-federal-holiday"
-  ::%+  expect-eq
-  ::  !>  expected
-  ::  !>  ;;(cmd-result ->+>+>+<.mov2)
-
-  %+  expect-fail-message
-    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.5]))
-      %obelisk-action
-      !>  :+  %test
-              %db1
-              "FROM calendar t1 ".
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar t1 ".
                 "JOIN holiday-calendar T2 ".
-                "WHERE hoodoo = 'Monday' ".
+                "WHERE T1.day-name = 'Monday' ".
                 "  AND t2.us-federal-holiday = 'Christmas Day' ".
-                "SELECT T1.day-name AS hoodoo, t2.us-federal-holiday"
-    ==
-
-
+                "SELECT T1.day-name AS Day, t2.us-federal-holiday"
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov2)
 ::
 ::  bugs
 ::

@@ -53,7 +53,7 @@ The scripting language, _urQL_, is derived from SQL with a few significant varia
 * Whitespace is required on the outside of parentheses and optional on the inside.
 * Multiple commands must be delimited by `;`.
 * All object names follow the hoon rules for terms, i.e. character set restricted to lower-case alpha-numeric and hyphen characters and first character must be alphabetic.
-* Column, table, and other aliases offer an alternative to referencing the qualified object name. They follow the hoon term naming standard, except that upper-case alphabetic characters are allowed. Alias evaluation is case agnostic, e.g. `t1` and `T1` represent the same alias.
+* Column, table, and other aliases offer an alternative to referencing the qualified object name. They follow the hoon term naming standard, except that upper-case alphabetic characters are allowed. Alias evaluation is case agnostic, e.g. `t1` and `T1` represent the same alias. Aliases can be referenced in clauses subsequent to the defining clause.
 * Qualified object names without the database specified assume the default database.
 * All Views in the database *sys* and namespace *sys* are system-owned and read-only for all user commands. 
 *  User-defined databases may not specify the namespace *sys*.
