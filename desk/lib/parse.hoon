@@ -2610,7 +2610,30 @@
                                       name.qualifier.qualified-column
                                       ==
   (selected-all-object:ast %all-object (need object))
-                      
+::
+++  mk-qualified-object
+  |=  [sel-col=qualified-column:ast alias-map=(map @t qualified-object:ast)]
+  ^-  qualified-column:ast
+  =/  object  %-  ~(get by alias-map)
+                  (crip (cass (trip name.qualifier.sel-col)))
+  ?~  object
+    %:  qualified-column:ast  %qualified-column
+                              %:  qualified-object:ast
+                                  %qualified-object
+                                  ~ 
+                                  default-database
+                                  %dbo
+                                  name.qualifier.sel-col
+                                  ==
+                              column.sel-col
+                              alias.sel-col
+                              ==
+  %:  qualified-column:ast
+      %qualified-column
+      (need object)
+      column.sel-col
+      alias.sel-col
+      ==
 ::
 ++  fix-select
   |=  [s=(list selected-column:ast) f=from:ast]
@@ -2629,13 +2652,14 @@
                ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
                        =('COLUMN' namespace.qualifier.sel-col)
                        ==
-                  %:  qualified-column:ast
-                      %qualified-column
-                      %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                          (crip (cass (trip name.qualifier.sel-col)))
-                      column.sel-col
-                      alias.sel-col
-                      ==
+                  (mk-qualified-object sel-col alias-map)
+                  ::%:  qualified-column:ast
+                  ::    %qualified-column
+                  ::    %-  ~(got by `(map @t qualified-object:ast)`alias-map)
+                  ::        (crip (cass (trip name.qualifier.sel-col)))
+                  ::    column.sel-col
+                  ::    alias.sel-col
+                  ::    ==
                ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
                        =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
                        =('ALL' column.sel-col)

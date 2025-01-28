@@ -19,6 +19,34 @@
   $:  %0
       =server
       ==
+::
+++  parse-results
+  |=  [expected=cmd-result actual=cmd-result]
+  ^-  [[cmd-result (set vector)] [cmd-result (set vector)]]
+  [(parse-results-2 +.expected) (parse-results-2 +.actual)]
+++  parse-results-2
+  |=  results=(list result)
+  ^-  [cmd-result (set vector)]
+  =/  out-results=(list result)  ~
+  =/  out-vectors=(list vector)  ~
+  |-
+  ?~  results
+    [[%results (flop out-results)] (silt out-vectors)]
+  =/  res  i.results
+  ?:  =(%result-set -.res)
+    $(results t.results, out-vectors ;;((list vector) +.res))
+  $(results t.results, out-results [res out-results])
+++  eval-results
+  |=  [expected=cmd-result actual=cmd-result]
+  =/  expct-actual  (parse-results expected actual)
+  ;:  weld
+  %+  expect-eq
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 --
 |%
 ::
@@ -375,25 +403,14 @@
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
     ==
   =.  run  +(run)
-  ::=^  mov4  agent
-  ::  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::      %obelisk-action
-  ::      !>([%tape %db1 "FROM my-table SELECT col1,col2,col3,col4"])
-  ::  ==
-  ::%+  expect-eq
-  ::  !>  expected
-  ::  !>  ;;(cmd-result ->+>+>+<.mov4)
-
-
-  ::
-  %+  expect-fail-message
-        'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-          %obelisk-action
-          !>([%test %db1 "FROM my-table SELECT col1,col2,col3,col4"])
-      ==
-
-
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape %db1 "FROM my-table SELECT col1,col2,col3,col4"])
+    ==
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov4)
 ::
 ::  all column aliases
 ++  test-simple-query-06
@@ -401,22 +418,22 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Ace']]
-                  [%col2 [~.da ~2005.12.19]]
-                  [%col3 [~.t 'ticolor']]
-                  [%col4 [~.t 'row2']]
+              :~  [%c1 [~.t 'Ace']]
+                  [%c2 [~.da ~2005.12.19]]
+                  [%c3 [~.t 'ticolor']]
+                  [%c4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col4 [~.t 'row3']]
+              :~  [%c1 [~.t 'Angel']]
+                  [%c2 [~.da ~2001.9.19]]
+                  [%c3 [~.t 'tuxedo']]
+                  [%c4 [~.t 'row3']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
+              :~  [%c1 [~.t 'Abby']]
+                  [%c2 [~.da ~1999.2.19]]
+                  [%c3 [~.t 'tricolor']]
+                  [%c4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -463,9 +480,16 @@
               %db1
               "FROM my-table SELECT col1 as c1,col2 as c2,col3 as c3,col4 as c4"
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ::=/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ::;:  weld
+  ::%+  expect-eq
+  ::  !>  -<.expct-actual
+  ::  !>  +<.expct-actual
+  ::%+  expect-eq
+  ::  !>  ->.expct-actual
+  ::  !>  +>.expct-actual
+  ::==
 ::
 ::  all literals
 ++  test-simple-query-07
@@ -597,7 +621,7 @@
         :~
           :-  %vector
               :~  [%cord [~.t 430.158.540.643]]
-                  [%col1 [~.t 'Ace']]
+                  [%c1 [~.t 'Ace']]
                   [%literal-2 [~.p ~nomryg-nilref]]
                   [%col2 [~.da ~2005.12.19]]
                   [%pi [~.rs 3.226.006.979]]
@@ -607,7 +631,7 @@
                   ==
           :-  %vector
               :~  [%cord [~.t 430.158.540.643]]
-                  [%col1 [~.t 'Angel']]
+                  [%c1 [~.t 'Angel']]
                   [%literal-2 [~.p ~nomryg-nilref]]
                   [%col2 [~.da ~2001.9.19]]
                   [%pi [~.rs 3.226.006.979]]
@@ -617,18 +641,12 @@
                   ==
           :-  %vector
               :~  [%cord [~.t 430.158.540.643]]
-
-                  [%col1 [~.t 'Abby']]
-
+                  [%c1 [~.t 'Abby']]
                   [%literal-2 [~.p ~nomryg-nilref]]
-
                   [%col2 [~.da ~1999.2.19]]
-
                   [%pi [~.rs 3.226.006.979]]
-
                   [%col3 [~.t 'tricolor']]
                   [%col4 [~.t 'row1']]
-
                   [%literal-7 [~.da ~2023.12.25]]
                   ==
               ==
@@ -678,9 +696,15 @@
               "SELECT 'cor\\'d' AS cord, col1 as C1, ~nomryg-nilref, col2, ".
                      ".-3.14 as pi, col3, col4, ~2023.12.25"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  all column names, reversed
 ++  test-simple-query-10
@@ -758,22 +782,22 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col4 [~.t 'row3']]
-                  [%col3 [~.t 'tuxedo']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col1 [~.t 'Angel']]
+              :~  [%c4 [~.t 'row3']]
+                  [%c3 [~.t 'tuxedo']]
+                  [%c2 [~.da ~2001.9.19]]
+                  [%c1 [~.t 'Angel']]
                   ==
           :-  %vector
-              :~  [%col4 [~.t 'row1']]
-                  [%col3 [~.t 'tricolor']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col1 [~.t 'Abby']]
+              :~  [%c4 [~.t 'row1']]
+                  [%c3 [~.t 'tricolor']]
+                  [%c2 [~.da ~1999.2.19]]
+                  [%c1 [~.t 'Abby']]
                   ==
           :-  %vector
-              :~  [%col4 [~.t 'row2']]
-                  [%col3 [~.t 'ticolor']]
-                  [%col2 [~.da ~2005.12.19]]
-                  [%col1 [~.t 'Ace']]
+              :~  [%c4 [~.t 'row2']]
+                  [%c3 [~.t 'ticolor']]
+                  [%c2 [~.da ~2005.12.19]]
+                  [%c1 [~.t 'Ace']]
                   ==
               ==
   =/  expected  :~  %results
@@ -820,9 +844,15 @@
               %db1
               "FROM my-table SELECT col4 as c4,col3 as C3,col2 as c2,col1 as c1"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  all column names, with table prefix
 ++  test-simple-query-12
@@ -893,9 +923,19 @@
               "FROM my-table ".
               "SELECT my-table.col1,my-table.col2,my-table.col3,my-table.col4"
     ==
+  ::%+  expect-eq
+  ::  !>  expected
+  ::  !>  ;;(cmd-result ->+>+>+<.mov4)
+  
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  all column names, with table alias
 ++  test-simple-query-13
@@ -1256,9 +1296,15 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3,my-table.*"])
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  one column name, table-alias.*
 ++  test-simple-query-18
@@ -1352,7 +1398,7 @@
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
 
-                  [%col1 [~.t 'Ace']]
+                  [%c1 [~.t 'Ace']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Angel']]
@@ -1368,7 +1414,7 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
 
-                  [%col1 [~.t 'Angel']]
+                  [%c1 [~.t 'Angel']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Abby']]
@@ -1384,7 +1430,7 @@
                   [%col3 [~.t 'tricolor']]
                   [%col4 [~.t 'row1']]
 
-                  [%col1 [~.t 'Abby']]
+                  [%c1 [~.t 'Abby']]
                   ==
               ==
   =/  expected  :~  %results
@@ -1431,9 +1477,15 @@
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  one column alias, table-alias.*, two column names, *
 ++  test-simple-query-20
@@ -1441,7 +1493,7 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Ace']]
+              :~  [%c1 [~.t 'Ace']]
 
                   [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
@@ -1457,7 +1509,7 @@
                   [%col4 [~.t 'row2']]
                   ==
             :-  %vector
-              :~  [%col1 [~.t 'Abby']]
+              :~  [%c1 [~.t 'Abby']]
 
                   [%col1 [~.t 'Abby']]
                   [%col2 [~.da ~1999.2.19]]
@@ -1473,7 +1525,7 @@
                   [%col4 [~.t 'row1']]
                   ==
             :-  %vector
-              :~  [%col1 [~.t 'Angel']]
+              :~  [%c1 [~.t 'Angel']]
 
                   [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
@@ -1533,9 +1585,15 @@
               %db1
               "FROM my-table T1 SELECT col1 as C1, T1.*, col2,col4, *"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  select all literals mixed with aliases
 ++  test-simple-query-21
@@ -1800,7 +1858,7 @@
           :-  %vector
               :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
               
-                  [%col1 [~.t 'Abby']]
+                  [%c1 [~.t 'Abby']]
 
                   [p=%home q=[p=~.p ~sampel-palnet]]
 
@@ -1820,7 +1878,7 @@
           :-  %vector
               :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
               
-                  [%col1 [~.t 'Angel']]
+                  [%c1 [~.t 'Angel']]
 
                   [p=%home q=[p=~.p ~sampel-palnet]]
 
@@ -1840,7 +1898,7 @@
           :-  %vector
               :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
               
-                  [%col1 [~.t 'Ace']]
+                  [%c1 [~.t 'Ace']]
 
                   [p=%home q=[p=~.p ~sampel-palnet]]
 
@@ -1903,9 +1961,15 @@
               "FROM my-table T1 SELECT ~2024.10.20, col1 as C1, ".
               "~sampel-palnet as home, T1.*, col2,col4, *"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  time travel
 ::
@@ -1925,7 +1989,7 @@
                 [%col3 [~.t 'ticolor']]
                 [%col4 [~.t 'row2']]
 
-                [%col1 [~.t 'Ace']]
+                [%c1 [~.t 'Ace']]
                 ==
         :-  %vector
             :~  [%col1 [~.t 'Angel']]
@@ -1941,7 +2005,7 @@
                 [%col3 [~.t 'tuxedo']]
                 [%col4 [~.t 'row3']]
 
-                [%col1 [~.t 'Angel']]
+                [%c1 [~.t 'Angel']]
                 ==
         :-  %vector
             :~  [%col1 [~.t 'Abby']]
@@ -1957,7 +2021,7 @@
                 [%col3 [~.t 'tricolor']]
                 [%col4 [~.t 'row1']]
 
-                [%col1 [~.t 'Abby']]
+                [%c1 [~.t 'Abby']]
                 ==
           ==
   ::
@@ -1977,7 +2041,7 @@
                   [%col3 [~.t 'tricolor']]
                   [%col4 [~.t 'row5']]
 
-                  [%col1 [~.t 'Bandit']]
+                  [%c1 [~.t 'Bandit']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Baker']]
@@ -1993,7 +2057,7 @@
                   [%col3 [~.t 'caleco']]
                   [%col4 [~.t 'row4']]
 
-                  [%col1 [~.t 'Baker']]
+                  [%c1 [~.t 'Baker']]
                   ==
           ==
 ++  time-expected1  :~  %results
@@ -2077,12 +2141,15 @@
     ==
   ::
   ;:  weld
-  %+  expect-eq
-    !>  time-expected1
-    !>  ;;(cmd-result ->+>+>+<.mov5)
-  %+  expect-eq
-    !>  time-expected2
-    !>  ;;(cmd-result ->+>+>+<.mov6)
+  ::%+  expect-eq
+  ::  !>  time-expected1
+  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
+  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+  
+  ::%+  expect-eq
+  ::  !>  time-expected2
+  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
+  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
 ::  as-of 3 days ago (data-time = days ago)
@@ -2147,12 +2214,15 @@
     ==
   ::
   ;:  weld
-  %+  expect-eq
-    !>  time-expected1
-    !>  ;;(cmd-result ->+>+>+<.mov5)
-  %+  expect-eq
-    !>  time-expected2
-    !>  ;;(cmd-result ->+>+>+<.mov6)
+  ::%+  expect-eq
+  ::  !>  time-expected1
+  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
+  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+  
+  ::%+  expect-eq
+  ::  !>  time-expected2
+  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
+  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
 ::  as-of 2 days ago (data-time < days ago)
@@ -2227,12 +2297,15 @@
     ==
   ::
   ;:  weld
-  %+  expect-eq
-    !>  expected1
-    !>  ;;(cmd-result ->+>+>+<.mov5)
-  %+  expect-eq
-    !>  time-expected2
-    !>  ;;(cmd-result ->+>+>+<.mov6)
+  ::%+  expect-eq
+  ::  !>  expected1
+  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
+  (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
+  
+  ::%+  expect-eq
+  ::  !>  time-expected2
+  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
+  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
 ::  as-of ~d3 (data-time = ~d3 ago)
@@ -2297,12 +2370,15 @@
     ==
   ::
   ;:  weld
-  %+  expect-eq
-    !>  time-expected1
-    !>  ;;(cmd-result ->+>+>+<.mov5)
-  %+  expect-eq
-    !>  time-expected2
-    !>  ;;(cmd-result ->+>+>+<.mov6)
+  ::%+  expect-eq
+  ::  !>  time-expected1
+  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
+  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+
+  ::%+  expect-eq
+  ::  !>  time-expected2
+  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
+  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
 ::  as-of ~d2 (data-time < ~d2 ago)
@@ -2377,12 +2453,15 @@
     ==
   ::
   ;:  weld
-  %+  expect-eq
-    !>  expected1
-    !>  ;;(cmd-result ->+>+>+<.mov5)
-  %+  expect-eq
-    !>  time-expected2
-    !>  ;;(cmd-result ->+>+>+<.mov6)
+  ::%+  expect-eq
+  ::  !>  expected1
+  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
+  (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
+
+  ::%+  expect-eq
+  ::  !>  time-expected2
+  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
+  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
 ::  shrinking
@@ -2547,8 +2626,8 @@
 ++  test-shrinking-04
   =|  run=@ud
   =/  expected-rows
-        :~  [%vector ~[[%col2 [~.da ~2005.12.19]] [%col3 [~.t 'tricolor']]]]
-            [%vector ~[[%col2 [~.da ~2005.12.19]] [%col3 [~.t 'tuxedo']]]]
+        :~  [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tricolor']]]]
+            [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tuxedo']]]]
             ==
   =/  expected  :~  %results
                     [%message 'SELECT']
@@ -2592,9 +2671,15 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col2 as c2, col3"])
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  shrinking two columns and literals to two vectors
 ++  test-shrinking-05
@@ -2602,13 +2687,13 @@
   =/  expected-rows
         :~  :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%col2 [~.da ~2005.12.19]]
+                    [%c2 [~.da ~2005.12.19]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%col3 [~.t 'tuxedo']]
                     ==
             :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%col2 [~.da ~2005.12.19]]
+                    [%c2 [~.da ~2005.12.19]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%col3 [~.t 'tricolor']]
                     ==
@@ -2658,9 +2743,15 @@
                 "FROM my-table SELECT  ~2024.10.20, col2 as c2, ".
                 "~sampel-palnet as home, col3"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  shrinking two columns and literals from view
 ++  test-shrinking-06
@@ -2668,19 +2759,19 @@
   =/  expected-rows
         :~  :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%tmsp [~.da ~2012.5.2]]
+                    [%time [~.da ~2012.5.2]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%key [~.tas 'c2-col2']]
                     ==
             :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%tmsp [~.da ~2012.5.2]]
+                    [%time [~.da ~2012.5.2]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%key [~.tas 'c2-col1']]
                     ==
             :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%tmsp [~.da ~2012.5.1]]
+                    [%time [~.da ~2012.5.1]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
                     [%key [~.tas 'col1']]
                     ==
@@ -2729,9 +2820,15 @@
                 "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
                 "~sampel-palnet as home, key"
     ==
+  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
+  ;:  weld
   %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
 ::
 ::  joins
 ++  create-calendar

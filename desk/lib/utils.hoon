@@ -458,11 +458,48 @@
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
-::::++  fix-for-infer
-  ::|=  $:  cols=(list [qualified-column:ast @ta])
+++  fix-selected
+  |=  $:  selected=(list selected-column:ast)
+          qualifier-lookup=(map @tas (list qualified-object:ast))
+          ==
+  =/  selected-out=(list selected-column:ast)  ~
+  |-
+  ?~  selected  (flop selected-out)
+  ?.  ?=(qualified-column:ast -.selected)
+    %=  $
+      selected      +.selected
+      selected-out  [-.selected selected-out]
+    ==
+  =/  sel=qualified-column:ast  -.selected
+  ?.  =('UNKNOWN' database.qualifier.sel)
+    %=  $
+      selected      +.selected
+      selected-out  [-.selected selected-out]
+    ==
+  =/  qualifiers  (~(got by qualifier-lookup) column.sel)
+  ?~  qualifiers  ~|("SELECT: column {<column.sel>} not found" !!)
+  ?:  (gth (lent qualifiers) 1)
+    ~|("SELECT: column {<column.sel>} must be qualified" !!)
+  %=  $
+    selected      +.selected
+    selected-out  :-  ^-  selected-column:ast
+                      %:  qualified-column:ast  %qualified-column
+                                                -.qualifiers
+                                                column.sel
+                                                alias.sel
+                                                ==
+                      selected-out
+  ==
+::
+::::++  fix-selected
+  ::|=  $:  
   ::        selected=(list selected-column:ast)
+      ::      qualifier-lookup=(map @tas (list qualified-object:ast))
   ::        ==
   ::^-  (list selected-column:ast)
+
+
+                      
   ::=/  object-lookup=(map @tas (list qualified-object:ast))  ~
   ::=/  selected-out=(list selected-column:ast)  ~
   ::|-

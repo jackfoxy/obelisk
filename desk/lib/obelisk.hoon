@@ -853,16 +853,7 @@
                                     -:(flop sources)
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
-
-
-    ~&  "qualifier-lookup:  {<qualifier-lookup>}"
-    ~&  " "
-    ~&  "selected:  {<selected>}"
-    ~&  " "
-
-
-
-
+  =.  selected  (fix-selected selected qualifier-lookup)
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj
