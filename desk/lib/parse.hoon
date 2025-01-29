@@ -2653,22 +2653,11 @@
                        =('COLUMN' namespace.qualifier.sel-col)
                        ==
                   (mk-qualified-object sel-col alias-map)
-                  ::%:  qualified-column:ast
-                  ::    %qualified-column
-                  ::    %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                  ::        (crip (cass (trip name.qualifier.sel-col)))
-                  ::    column.sel-col
-                  ::    alias.sel-col
-                  ::    ==
                ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
                        =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
                        =('ALL' column.sel-col)
                        ==
                   (mk-all-object sel-col alias-map)
-                  ::%+  selected-all-object:ast
-                  ::    %all-object
-                  ::    %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                  ::        (crip (cass (trip name.qualifier.sel-col)))
                ?.  ?&  =('ALL' column.sel-col)
                        !=(name.qualifier.sel-col column.sel-col)
                        ==

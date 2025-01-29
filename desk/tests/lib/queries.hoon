@@ -116,9 +116,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT *"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  *, *
 ++  test-simple-query-02
@@ -198,9 +197,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT *, *"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  table-name.*
 ++  test-simple-query-03
@@ -268,9 +266,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT my-table.*"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  table-alias.*
 ++  test-simple-query-04
@@ -338,9 +335,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table T1 SELECT T1.*"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  *, *
 ++  test-simple-query-05
@@ -408,9 +404,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col1,col2,col3,col4"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column aliases
 ++  test-simple-query-06
@@ -480,16 +475,8 @@
               %db1
               "FROM my-table SELECT col1 as c1,col2 as c2,col3 as c3,col4 as c4"
     ==
+  ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ::=/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ::;:  weld
-  ::%+  expect-eq
-  ::  !>  -<.expct-actual
-  ::  !>  +<.expct-actual
-  ::%+  expect-eq
-  ::  !>  ->.expct-actual
-  ::  !>  +>.expct-actual
-  ::==
 ::
 ::  all literals
 ++  test-simple-query-07
@@ -547,9 +534,8 @@
         %obelisk-action
         !>([%tape %sys select])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all literals, aliased
 ++  test-simple-query-08
@@ -610,9 +596,8 @@
         %obelisk-action
         !>([%tape %sys select])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  interspersed literals, aliased and unaliased
 ++  test-simple-query-09
@@ -674,7 +659,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -696,15 +681,8 @@
               "SELECT 'cor\\'d' AS cord, col1 as C1, ~nomryg-nilref, col2, ".
                      ".-3.14 as pi, col3, col4, ~2023.12.25"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column names, reversed
 ++  test-simple-query-10
@@ -772,9 +750,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col4,col3,col2,col1"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column aliases (mixed case), reversed
 ++  test-simple-query-11
@@ -844,15 +821,8 @@
               %db1
               "FROM my-table SELECT col4 as c4,col3 as C3,col2 as c2,col1 as c1"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column names, with table prefix
 ++  test-simple-query-12
@@ -923,19 +893,8 @@
               "FROM my-table ".
               "SELECT my-table.col1,my-table.col2,my-table.col3,my-table.col4"
     ==
-  ::%+  expect-eq
-  ::  !>  expected
-  ::  !>  ;;(cmd-result ->+>+>+<.mov4)
-  
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column names, with table alias
 ++  test-simple-query-13
@@ -1005,9 +964,8 @@
               %db1
               "FROM my-table T1 SELECT T1.col1,T1.col2,T1.col3,T1.col4"
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column names, with table prefix, reversed
 ++  test-simple-query-14
@@ -1078,9 +1036,8 @@
               "FROM my-table ".
               "SELECT my-table.col4,my-table.col3,my-table.col2,my-table.col1"
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  all column names, with table alias, reversed
 ++  test-simple-query-15
@@ -1150,9 +1107,8 @@
               %db1
               "FROM my-table T1 SELECT T1.col4,T1.col3,T1.col2,T1.col1"
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  one column name, *
 ++  test-simple-query-16
@@ -1223,9 +1179,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3,*"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  one column name, table-name.*
 ++  test-simple-query-17
@@ -1296,15 +1251,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3,my-table.*"])
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  one column name, table-alias.*
 ++  test-simple-query-18
@@ -1375,9 +1323,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table T1 SELECT col2, T1.*"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  *, two column names, table-name.*, one column alias
 ++  test-simple-query-19
@@ -1477,15 +1424,8 @@
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  one column alias, table-alias.*, two column names, *
 ++  test-simple-query-20
@@ -1585,15 +1525,8 @@
               %db1
               "FROM my-table T1 SELECT col1 as C1, T1.*, col2,col4, *"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  select all literals mixed with aliases
 ++  test-simple-query-21
@@ -1677,9 +1610,8 @@
         %obelisk-action
         !>([%tape %db1 my-select])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  select one literal
 ++  test-simple-query-22
@@ -1715,9 +1647,7 @@
         !>([%tape %db1 "SELECT 0"])
     ==
   ::
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  * (select all) not default DB
 ++  test-simple-query-23
@@ -1791,9 +1721,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM db2..my-table SELECT *"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov5)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov5))
 ::
 ::  * (select all) not default DB, one script
 ++  test-simple-query-24
@@ -1845,10 +1774,8 @@
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3'); ".
                 "FROM db2..my-table SELECT *"
     ==
-  %+  expect-eq
-    !>  expected
-  ::  !>  ;;(cmd-result ->+>+>+>+>-.mov1)
-    !>  ;;(cmd-result ->+>+>+>+>+<.mov1)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+>+>+<.mov1))
 ::
 ::  lit-da, one column alias, lit-p aliased, table-alias.*, two column names, *
 ++  test-simple-query-25
@@ -1961,15 +1888,8 @@
               "FROM my-table T1 SELECT ~2024.10.20, col1 as C1, ".
               "~sampel-palnet as home, T1.*, col2,col4, *"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  time travel
 ::
@@ -2141,14 +2061,7 @@
     ==
   ::
   ;:  weld
-  ::%+  expect-eq
-  ::  !>  time-expected1
-  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
   (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
-  
-  ::%+  expect-eq
-  ::  !>  time-expected2
-  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
   (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
@@ -2214,14 +2127,7 @@
     ==
   ::
   ;:  weld
-  ::%+  expect-eq
-  ::  !>  time-expected1
-  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
   (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
-  
-  ::%+  expect-eq
-  ::  !>  time-expected2
-  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
   (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
@@ -2297,14 +2203,7 @@
     ==
   ::
   ;:  weld
-  ::%+  expect-eq
-  ::  !>  expected1
-  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
   (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
-  
-  ::%+  expect-eq
-  ::  !>  time-expected2
-  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
   (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
@@ -2370,14 +2269,7 @@
     ==
   ::
   ;:  weld
-  ::%+  expect-eq
-  ::  !>  time-expected1
-  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
   (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
-
-  ::%+  expect-eq
-  ::  !>  time-expected2
-  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
   (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
@@ -2453,14 +2345,7 @@
     ==
   ::
   ;:  weld
-  ::%+  expect-eq
-  ::  !>  expected1
-  ::  !>  ;;(cmd-result ->+>+>+<.mov5)
   (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
-
-  ::%+  expect-eq
-  ::  !>  time-expected2
-  ::  !>  ;;(cmd-result ->+>+>+<.mov6)
   (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
   ==
 ::
@@ -2511,9 +2396,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col2"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  shrinking one column (out of order) to one vector
 ++  test-shrinking-02
@@ -2565,9 +2449,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  shrinking one column to two vectors
 ++  test-shrinking-03
@@ -2618,9 +2501,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3"])
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  shrinking two columns to two vectors
 ++  test-shrinking-04
@@ -2671,15 +2553,8 @@
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col2 as c2, col3"])
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  shrinking two columns and literals to two vectors
 ++  test-shrinking-05
@@ -2743,15 +2618,8 @@
                 "FROM my-table SELECT  ~2024.10.20, col2 as c2, ".
                 "~sampel-palnet as home, col3"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  shrinking two columns and literals from view
 ++  test-shrinking-06
@@ -2820,15 +2688,8 @@
                 "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
                 "~sampel-palnet as home, key"
     ==
-  =/  expct-actual  (parse-results expected ;;(cmd-result ->+>+>+<.mov4))
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  joins
 ++  create-calendar
@@ -2919,9 +2780,8 @@
                 "FROM calendar T1 ".
                 "JOIN holiday-calendar T2 ".
                 "SELECT T1.day-name, T2.*"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov2)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test alternating file alias case
 ++  test-joins-01
@@ -2972,9 +2832,8 @@
                 "FROM calendar t1 ".
                 "JOIN holiday-calendar T2 ".
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov2)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test alternating file alias case in predicate
 ++  test-joins-02
@@ -3021,9 +2880,8 @@
                 "WHERE T1.day-name = 'Monday' ".
                 "  AND t2.us-federal-holiday = 'Christmas Day' ".
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov2)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test mixed column alias case in predicate
 ++  test-joins-03
@@ -3068,9 +2926,8 @@
                 "WHERE T1.day-name = 'Monday' ".
                 "  AND t2.us-federal-holiday = 'Christmas Day' ".
                 "SELECT T1.day-name AS Day, t2.us-federal-holiday"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov2)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  bugs
 ::
@@ -3174,9 +3031,8 @@
               %animal-shelter
               "FROM reference.calendar SELECT *"
     ==
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 :: SELECT error messages
 ::

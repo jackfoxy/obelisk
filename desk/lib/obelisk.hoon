@@ -862,14 +862,13 @@
   ::
   =/  vectors
       ?~  predicate.q
-          %+  select-columns-2  joined-rows.from-obj
-                                %+  mk-vect-templ-2  qualified-columns.from-obj
-                                                     selected
-      %^  select-columns-filtered-2  joined-rows.from-obj
-                                     %+  mk-vect-templ-2
+          %+  select-columns  joined-rows.from-obj
+                             (mk-vect-templ qualified-columns.from-obj selected)
+      %^  select-columns-filtered  joined-rows.from-obj
+                                     %+  mk-vect-templ
                                           qualified-columns.from-obj
                                           selected
-                                     %^  pred-ops-and-conjs-2
+                                     %^  pred-ops-and-conjs
                                          (need predicate.q)
                                          type-lookup.from-obj
                                          qualifier-lookup
@@ -883,97 +882,11 @@
                 ==
 ::
 ::  +select-columns:
-::    [(list (map @tas @)) (list templ-cell) (list @tas)]
-::    -> (list (map @tas @))
-::
-::  if the full primary key is in the selection, no need to shrink results
-::  in the case of views, if all view columns are present
-++   select-columns
-  |=  $:  rows=(list (map @tas @))
-          cells=(list templ-cell)
-          key=(list @tas)
-          ==
-  ~+  ^-  (list vector)
-  =/  out-rows=(list vector)  ~
-  =/  pk=(set @tas)      (silt key)
-  =/  pk-sel=(set @tas)  (silt (murn cells |=(a=templ-cell column-name.a)))
-  =/  key-length         ~(wyt in pk)
-  |-
-  ?~  rows  
-      ?:  &((gth key-length 0) =(key-length ~(wyt in (~(int in pk) pk-sel))))
-        out-rows
-      ~(tap in (silt out-rows))
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell)  cells
-  |-
-  ?~  cols
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?~  column-name.i.cols                   :: case: is literal
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols              :: case: is table column
-  %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.cell
-                  [p.q.vc.cell (~(got by i.rows) (need column-name.cell))]
-              row
-  ==
-::
-::  +select-columns-filtered:
-::    [(list (map @tas @)) (list templ-cell) (list @tas) $-((map @tas @) ?)]
-::    -> (list (map @tas @))
-::
-::  rejects rows that do not pass filter
-::  if the full primary key is in the selection, no need to shrink results
-::  in the case of views, if all view columns are present
-++   select-columns-filtered
-  |=  $:  rows=(list (map @tas @))
-          cells=(list templ-cell)
-          key=(list @tas)
-          filter=$-((map @tas @) ?)
-          ==
-  ~+  ^-  (list vector)  
-  =/  out-rows=(list vector)  ~
-  =/  pk=(set @tas)      (silt key)
-  =/  pk-sel=(set @tas)  (silt (murn cells |=(a=templ-cell column-name.a)))
-  =/  key-length         ~(wyt in pk)
-  |-
-  ?~  rows  
-      ?:  &((gth key-length 0) =(key-length ~(wyt in (~(int in pk) pk-sel))))
-        out-rows
-      ~(tap in (silt out-rows))
-  ::
-  ?.  (filter i.rows)  $(rows t.rows)
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell)  cells
-  |-
-  ?~  cols
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?~  column-name.i.cols                   :: case: is literal
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols              :: case: is table column
-  %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.cell 
-                  [p.q.vc.cell (~(got by i.rows) (need column-name.cell))]
-              row
-  ==
-::
-::  +select-columns-2:
 ::    [(list (map qualified-object:ast (map @tas @))) (list templ-cell-2)]
 ::    -> (list (map @tas @))
 ::
 ::  select columns from join
-++   select-columns-2
+++   select-columns
   |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
           cells=(list templ-cell-2)
           ==
@@ -1004,7 +917,7 @@
             row
   ==
 ::
-::  +select-columns-filtered-2:
+::  +select-columns-filtered:
 ::    $:  (list (map qualified-object:ast (map @tas @)))
 ::        (list templ-cell-2)
 ::        $-((map @tas @) ?)
@@ -1012,7 +925,7 @@
 ::
 ::  select columns from join
 ::  rejects rows that do not pass filter
-++   select-columns-filtered-2
+++   select-columns-filtered
   |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
           cells=(list templ-cell-2)
           filter=$-((map qualified-object:ast (map @tas @)) ?)

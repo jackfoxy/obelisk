@@ -42,14 +42,16 @@
   =/  from  (need from.q)
   ?~  relations.from  ~|("no query objects" !!)
 
-  =/  selected-columns  (skim columns.selection.q |=(a=selected-column:ast ?=(qualified-column:ast a)))
+  =/  selected-columns
+        %+  skim  columns.selection.q
+                  |=(a=selected-column:ast ?=(qualified-column:ast a))
 
   =/  relat=relation:ast  -.relations.from
   =/  =table-set:ast      table-set.relat
   =/  relations           +.relations.from
   =/  query-obj=qualified-object:ast
       ?:  ?=(qualified-object:ast object.table-set)  object.table-set
-      ~|("SELECT: not supported on %query-row" !!)   :: %query-row non-sense to support
+      ~|("SELECT: not supported on %query-row" !!)   :: %query-row support
                                          :: %selection composition
   =/  sys-time  (set-tmsp as-of.relat now.bowl)
   =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
