@@ -37,18 +37,18 @@
 ++  sys-sys-dbs-query
     ^-  (tree set-function:ast)
     :+  :*  %query
-            :-  ~   ::from=(unit from)
-                :-  %from
-                    :~
-                      :*  %relation
-                          :+  %table-set  ::object=table-set
-                              [%qualified-object ~ %sys %sys %databases]
-                              ~  :: alias=(unit @t)
-                          ~  :: `as-of
-                          ~  :: `join-type
-                          ~  :: `predicate
-                          ==
-                      ==
+            :-  ~           ::from=(unit from)
+                :^  %from
+                    :+  %table-set  ::object=table-set
+                        :*  %qualified-object  ::object=query-source
+                            ~
+                            %sys
+                            %sys
+                            %databases
+                            ==
+                        ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
+                    ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
@@ -180,18 +180,18 @@
     |=  database=@tas
     ^-  (tree set-function:ast)
     :+  :*  %query
-            :-  ~   ::from=(unit from)
-                :-  %from
-                    :~
-                      :*  %relation
-                          :+  %table-set  ::object=table-set
-                              [%qualified-object ~ database %sys %namespaces]
-                              ~  :: alias=(unit @t)
-                          ~  :: `as-of
-                          ~  :: `join-type
-                          ~  :: `predicate
-                          ==
-                      ==
+            :-  ~           ::from=(unit from)
+                :^  %from
+                    :+  %table-set  ::object=table-set
+                        :*  %qualified-object  ::object=query-source
+                            ~
+                            database
+                            %sys
+                            %namespaces
+                            ==
+                        ~                      ::alias=(unit @t)
+                    ~  ::(unit as-of)
+                    ~               ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
@@ -281,18 +281,18 @@
     |=  database=@tas
     ^-  (tree set-function:ast)
     :+  :*  %query
-            :-  ~   ::from=(unit from)
-                :-  %from
-                    :~
-                      :*  %relation
-                          :+  %table-set  ::object=table-set
-                              [%qualified-object ~ database %sys %tables]
-                              ~  :: alias=(unit @t)
-                          ~  :: `as-of
-                          ~  :: `join-type
-                          ~  :: `predicate
-                          ==
-                      ==
+            :-  ~            ::from=(unit from)
+                :^  %from
+                    :+  %table-set  ::object=table-set
+                        :*  %qualified-object  ::object=query-source
+                            ~
+                            database
+                            %sys
+                            %tables
+                            ==
+                        ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
+                    ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
@@ -444,18 +444,18 @@
     |=  database=@tas
     ^-  (tree set-function:ast)
     :+  :*  %query
-            :-  ~   ::from=(unit from)
-                :-  %from
-                    :~
-                      :*  %relation
-                          :+  %table-set  ::object=table-set
-                              [%qualified-object ~ database %sys %columns]
-                              ~  :: alias=(unit @t)
-                          ~  :: `as-of
-                          ~  :: `join-type
-                          ~  :: `predicate
-                          ==
-                      ==
+            :-  ~          ::from=(unit from)
+                :^  %from
+                    :+  %table-set  ::object=table-set
+                        :*  %qualified-object  ::object=query-source
+                            ~
+                            database
+                            %sys
+                            %columns
+                            ==
+                        ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
+                    ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
@@ -570,18 +570,18 @@
     |=  database=@tas
     ^-  (tree set-function:ast)
     :+  :*  %query
-            :-  ~   ::from=(unit from)
-                :-  %from
-                    :~
-                      :*  %relation
-                          :+  %table-set  ::object=table-set
-                              [%qualified-object ~ database %sys %sys-log]
-                              ~  :: alias=(unit @t)
-                          ~  :: `as-of
-                          ~  :: `join-type
-                          ~  :: `predicate
-                          ==
-                      ==
+            :-  ~            ::from=(unit from)
+                :^  %from
+                    :+  %table-set  ::object=table-set
+                        :*  %qualified-object  ::object=query-source
+                            ~
+                            database
+                            %sys
+                            %sys-log
+                            ==
+                        ~  ::alias=(unit @t)
+                    ~  ::(unit as-of)
+                    ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
@@ -689,22 +689,22 @@
     |=  database=@tas
     ^-  (tree set-function:ast)
     :+  :*  %query
-            :-  ~   ::from=(unit from)
-                :-  %from
-                    :~
-                      :*  %relation
-                          :+  %table-set  ::object=table-set
-                              [%qualified-object ~ database %sys %data-log]
-                              ~  :: alias=(unit @t)
-                          ~  :: `as-of
-                          ~  :: `join-type
-                          ~  :: `predicate
-                          ==
-                      ==
-            ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
-            ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
+            :-  ~           ::from=(unit from)
+                :^  %from
+                    :+  %table-set  ::object=table-set
+                        :*  %qualified-object  ::object=query-source
+                            ~
+                            database
+                            %sys
+                            %data-log
+                            ==
+                        ~                      ::alias=(unit @t)
+                    ~       ::(unit as-of)
+                    ~       ::joins=(list joined-object)
+            ~            ::scalars=(list scalar-function)
+            ~            ::predicate=(unit predicate)
+            ~            ::group-by=(list grouping-column)
+            ~            ::having=(unit predicate)
             :^  %select  ::selection=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)

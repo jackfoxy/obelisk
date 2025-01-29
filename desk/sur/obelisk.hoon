@@ -168,6 +168,15 @@
       joined-rows=(list (map qualified-object (map @tas @)))
   ==
 ::
++$  relation
+  $:
+    %relation
+    =table-set
+    as-of=(unit as-of)
+    join=(unit join-type)
+    predicate=(unit predicate)
+  ==
+::
 ::  helper types
 ::
 +$  table-return

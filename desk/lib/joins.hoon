@@ -36,21 +36,40 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 
 ::
+++  mk-relastions
+  |=  [relat=relation joins=(list joined-object:ast)]
+  ^-  (list relation)
+  =/  relations=(list relation)  ~[relat]
+  |-
+  ?~  joins  (flop relations)
+  %=  $
+    joins  t.joins
+    relations  :-  %:  relation  %relation
+                                 object.i.joins
+                                 as-of.i.joins
+                                 `join.i.joins
+                                 predicate.i.joins
+                                 ==
+                   relations
+  ==
+::
 ++  join-all
   |=  q=query:ast
   ^-  [server (list from-obj)]
   =/  from  (need from.q)
-  ?~  relations.from  ~|("no query objects" !!)
-
+  =/  relations=(list relation)
+        %+  mk-relastions  (relation %relation object.from as-of.from ~ ~)
+                           joins.from
   =/  selected-columns
         %+  skim  columns.selection.q
                   |=(a=selected-column:ast ?=(qualified-column:ast a))
 
-  =/  relat=relation:ast  -.relations.from
-  =/  =table-set:ast      table-set.relat
-  =/  relations           +.relations.from
+  =/  relat=relation  -.relations
+  ::=/  =table-set:ast  table-set.relat
+  =.  relations       +.relations
   =/  query-obj=qualified-object:ast
-      ?:  ?=(qualified-object:ast object.table-set)  object.table-set
+      ?:  ?=(qualified-object:ast object.table-set.relat)
+        object.table-set.relat
       ~|("SELECT: not supported on %query-row" !!)   :: %query-row support
                                          :: %selection composition
   =/  sys-time  (set-tmsp as-of.relat now.bowl)
@@ -183,7 +202,7 @@
           db=database
           =schema
           =view
-          relat=relation:ast
+          relat=relation
           sys-time=@da
           type-lookup=(map qualified-object:ast (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
