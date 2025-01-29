@@ -2635,7 +2635,7 @@
   %=  $
     s      +.s
     s-out  :-  ?.  ?=(qualified-column:ast sel-col)
-                 sel-col                                          
+                 sel-col
                ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
                        =('COLUMN' namespace.qualifier.sel-col)
                        ==
@@ -2724,11 +2724,11 @@
   ^-  select:ast
   =/  top=(unit @ud)  ~
   =/  bottom=(unit @ud)  ~
-  =/  columns=(list selected-column:ast)  ~      
+  =/  columns=(list selected-column:ast)  ~
   |-
     ~|  "cannot parse select -.a:  {<-.a>}"
     ?~  a
-      ?~  columns  ~|('no columns selected' !!)    
+      ?~  columns  ~|('no columns selected' !!)
       ?~  f
         (select:ast %select top bottom (flop columns))
       (select:ast %select top bottom (fix-select (flop columns) (need f)))

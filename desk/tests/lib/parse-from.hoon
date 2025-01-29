@@ -14,34 +14,78 @@
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo']
 ++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
 ++  from-foo
-  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~]]]]
+  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
 ++  from-foo-aliased
-  [~ [%from ~[[%relation [%table-set foo-table [~ 'F1']] ~ ~ ~]]]]
+  [~ [%from object=[%table-set object=foo-table alias=[~ 'F1']] as-of=~ joins=~]]
 ++  simple-from-foo
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+++  joins-bar
+  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1]]
 ++  from-foo-join-bar
-  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] ~] ~ [~ %join] `one-eq-1]]]]
+  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar]]
 ++  simple-from-foo-join-bar
   [%query from-foo-join-bar scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+++  joins-bar-aliased
+  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'b1']] predicate=`one-eq-1]]
 ++  from-foo-join-bar-aliased
-  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] [~ 'b1']] ~ [~ %join] `one-eq-1]]]]
+  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar-aliased]]
 ++  simple-from-foo-join-bar-aliased
   [%query from-foo-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  from-foo-aliased-join-bar-aliased
-  [~ [%from ~[[%relation [%table-set foo-table [~ 'f1']] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] [~ 'b1']] ~ [~ %join] `one-eq-1]]]]
+  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=joins-bar-aliased]]
 ++  aliased-from-foo-join-bar-aliased
   [%query from-foo-aliased-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+++  joins-bar-baz
+  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=~] predicate=`one-eq-1]]
 ++  from-foo-join-bar-baz
-  [~ [%from ~[[%relation [%table-set foo-table ~] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] ~] ~ [~ %join] `one-eq-1] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] ~] ~ [~ %left-join] `one-eq-1]]]]
+  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar-baz]]
 ++  simple-from-foo-join-bar-baz
   [%query from-foo-join-bar-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+++  aliased-joins-bar-baz
+  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'B1']] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=[~ 'b2']] predicate=`one-eq-1]]
 ++  aliased-foo-join-bar-baz
-  [~ [%from ~[[%relation [%table-set foo-table [~ 'f1']] ~ ~ ~] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] [~ 'B1']] ~ [~ %join] `one-eq-1] [%relation [%table-set [%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] [~ 'b2']] ~ [~ %left-join] `one-eq-1]]]]
+  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=aliased-joins-bar-baz]]
 ++  aliased-from-foo-join-bar-baz
   [%query aliased-foo-join-bar-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
+::++  from-foo-row
+::  [~ [%from object=[%table-set object=foo-table-row alias=~] as-of=~ joins=~]]
+::++  from-foo-row-aliased
+::  [~ [%from object=[%table-set object=foo-table-row alias=[~ 'F1']] as-of=~ joins=~]]
+::++  simple-from-foo-row
+::  [%query from-foo-row scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+::++  aliased-from-foo-row
+::  [%query from-foo-row-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+::++  joins-col
+::  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~] predicate=`one-eq-1]]
+::++  from-foo-join-bar-row
+::  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-col]]
+::++  simple-from-foo-join-bar-row
+::  [%query from-foo-join-bar-row scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+::++  joins-col-aliased
+::  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'b1']] predicate=`one-eq-1]]
+::++  from-foo-join-bar-row-aliased
+::  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-col-aliased]]
+::++  simple-from-foo-join-bar-row-aliased
+::  [%query from-foo-join-bar-row-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+::++  from-foo-row-aliased-join-bar-aliased
+::  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=joins-col-aliased]]
+::++  aliased-from-foo-join-bar-row-aliased
+::  [%query from-foo-row-aliased-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+::++  joins-bar-col
+::  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~] predicate=`one-eq-1]]
+::++  from-foo-join-bar-row-baz
+::  [~ [%from object=[%table-set object=foo-table-row alias=~] as-of=~ joins=joins-bar-col]]
+::++  simple-from-foo-join-bar-row-baz
+::  [%query from-foo-join-bar-row-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
+::++  aliased-joins-bar-col
+::  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'B1']] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'b2']] predicate=`one-eq-1]]
+::++  aliased-foo-join-bar-col
+::  [~ [%from object=[%table-set object=[%query-row ~['col1']] alias=[~ 'f1']] as-of=~ joins=aliased-joins-bar-col]]
+::++  aliased-from-foo-join-bar-row-baz
+::  [%query aliased-foo-join-bar-col scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-alias-y
   [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'y']]
 ++  bar-alias-x
@@ -50,8 +94,6 @@
   [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~]
 ++  bar-unaliased
   [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~]
-++  baz-unaliased
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=~]
 ++  passthru-row-y
   [%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'y']]
 ++  passthru-row-x
@@ -167,18 +209,13 @@
 ::    !>  ~[[%selection ctes=~ [[aliased-from-foo-join-bar-row-baz] ~ ~]]]
 ::    !>  (parse:parse(default-database 'db1') "FROM (col1) f1 join bar as B1 on 1 = 1 left join ( col1,col2,col3 ) b2 on 1 = 1 SELECT TOP 10 *")
 
-::
-::  CROSS JOIN
-::
-++  from-foo-y-cross-join-bar-x  [%from ~[[%relation foo-alias-y ~ ~ ~] [%relation bar-alias-x ~ [~ %cross-join] ~]]]
-++  from-foo---cross-join-bar--  [%from ~[[%relation foo-unaliased ~ ~ ~] [%relation bar-unaliased ~ [~ %cross-join] ~]]]
 
 ::
 ::  from foo as (aliased) cross join bar (aliased)
 ++  test-from-join-19
   %+  expect-eq
   =/  expected
-    [%selection ctes=~ [[%query from=[~ from-foo-y-cross-join-bar-x] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query from=[~ [%from object=foo-alias-y as-of=~ joins=~[[%joined-object join=%cross-join as-of=~ object=bar-alias-x predicate=~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
       !>  ~[expected]
       !>  (parse:parse(default-database 'db1') "FROM foo as y cross join bar x SELECT *")
 ::
@@ -186,7 +223,7 @@
 ++  test-from-join-20
   %+  expect-eq
   =/  expected
-    [%selection ctes=~ [[%query from=[~ from-foo-y-cross-join-bar-x] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query from=[~ [%from object=foo-alias-y as-of=~ joins=~[[%joined-object join=%cross-join as-of=~ object=bar-alias-x predicate=~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
       !>  ~[expected]
       !>  (parse:parse(default-database 'db1') "FROM foo y cross join bar as x SELECT *")
 ::
@@ -194,7 +231,7 @@
 ++  test-from-join-21
   %+  expect-eq
   =/  expected
-    [%selection ctes=~ [[%query from=[~ from-foo---cross-join-bar--] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query from=[~ [%from object=foo-unaliased as-of=~ joins=~[[%joined-object join=%cross-join as-of=~ object=bar-unaliased predicate=~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
       !>  ~[expected]
       !>  (parse:parse(default-database 'db1') "FROM foo cross join bar SELECT *")
 ::
@@ -252,7 +289,7 @@
 ++  test-from-join-28
   %+  expect-eq
   =/  expected
-    [%selection ctes=~ [[%query from=[~ [%from ~[[%relation foo-unaliased ~ ~ ~] [%relation bar-unaliased ~ [~ %join] ~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query from=[~ [%from object=foo-unaliased as-of=~ joins=~[[%joined-object join=%join as-of=~ object=bar-unaliased predicate=~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
       !>  ~[expected]
       !>  (parse:parse(default-database 'db1') "FROM foo join bar SELECT *")
 ::
@@ -260,17 +297,7 @@
 ++  test-from-join-29
   %+  expect-eq
   =/  expected
-    [%selection ctes=~ [[%query from=[~ [%from ~[[%relation foo-alias-y ~ ~ ~] [%relation bar-alias-x ~ [~ %join] ~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query from=[~ [%from object=foo-alias-y as-of=~ joins=~[[%joined-object join=%join as-of=~ object=bar-alias-x predicate=~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
       !>  ~[expected]
       !>  (parse:parse(default-database 'db1') "FROM foo as y join bar x SELECT *")
-
-:: to do: vary all join types 
-::
-++  test-from-join-30
-  %+  expect-eq
-  =/  expected
-    [%selection ctes=~ [[%query from=[~ [%from ~[[%relation foo-alias-y ~ ~ ~] [%relation bar-unaliased ~ [~ %cross-join] ~] [%relation baz-unaliased ~ [~ %join] ~]]]] scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by=~] ~ ~]]
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "FROM foo y cross join bar join baz  SELECT *")
-
 --

@@ -32,49 +32,51 @@
 ::
 ++  join-bar
   |=  time=as-of
-  :~  :*  %relation
-          bar-unaliased
+  :~  :*  %joined-object
+          %join
           [~ time]  ::as-of
-          [~ %join]
+          bar-unaliased
           `one-eq-1
           ==
       ==
 ++  natural-join-bar
   |=  time=as-of
-  :~  :*  %relation
-          bar-unaliased
+  :~  :*  %joined-object
+          %join
           [~ time]  ::as-of
-          [~ %join]
+          bar-unaliased
           ~
           ==
       ==
 ++  join-bar-aliased
   |=  time=as-of
-  :~  :*  %relation
-          bar-aliased
+  :~  :*  %joined-object
+          %join
           [~ time]  ::as-of
-          [~ %join]
+          bar-aliased 
           `one-eq-1
           ==
       ==
 ++  natural-join-bar-aliased
   |=  time=as-of
-  :~  :*  %relation
-          bar-aliased
+  :~  :*  %joined-object
+          %join
           [~ time]  ::as-of
-          [~ %join]
+          bar-aliased 
           ~
           ==
       ==
 ++  join-bar-baz
   |=  time=as-of
-  :~  :*  %relation
-          bar-unaliased
+  :~  :*  %joined-object
+          %join
           [~ time]  ::as-of
-          [~ %join]
+          bar-unaliased
           `one-eq-1
           ==
-      :*  %relation
+      :*  %joined-object
+          %left-join
+          [~ time]  ::as-of
           :+  %table-set
               :*  %qualified-object
                   ~      ::ship
@@ -83,20 +85,20 @@
                   'baz'  ::name
                   ==
               ~  ::alias
-          [~ time]  ::as-of
-          [~ %left-join]
           `one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz
   |=  time=as-of
-  :~  :*  %relation
-          bar-aliased
+  :~  :*  %joined-object
+          %join
           [~ time]         ::as-of
-          [~ %join]
+          bar-aliased
           `one-eq-1
           ==
-      :*  %relation
+      :*  %joined-object
+          %left-join
+          [~ time]         ::as-of
           :+  %table-set
               :*  %qualified-object
                   ~      ::ship
@@ -104,28 +106,26 @@
                   'dbo'  ::namespace
                   'baz'  ::name
                   ==
-              [~ 'b2']
-          [~ time]         ::as-of
-          [~ %left-join]
+          [~ 'b2']  ::as-of
           `one-eq-1
           ==
       ==
 ++  cross-join-bar
   |=  time=as-of
-  :~  :*  %relation
+  :~  :*  %joined-object
+          %cross-join
+          [~ time]  ::as-of
           bar-unaliased
-          [~ time]         ::as-of
-          [~ %cross-join]
-          ~
+          ~  ::predicate
           ==
       ==
 ++  cross-join-bar-aliased
   |=  time=as-of
-  :~  :*  %relation
+  :~  :*  %joined-object
+          %cross-join
+          [~ time]  ::as-of
           bar-aliased
-          [~ time]         ::as-of
-          [~ %cross-join]
-          ~
+          ~  ::predicate
           ==
       ==
 ::
@@ -133,56 +133,53 @@
 ::
 ++  from-foo
   |=  time=as-of
-  [~ [%from ~[[%relation foo-unaliased [~ time] ~ ~]]]]
+  [~ [%from object=foo-unaliased as-of=[~ time] joins=~]]
 ++  from-foo-aliased
   |=  time=as-of
-  ::[~ [%from object=foo-aliased as-of=[~ time] joins=~]]
-  [~ [%from ~[[%relation foo-aliased [~ time] ~ ~]]]]
+  [~ [%from object=foo-aliased as-of=[~ time] joins=~]]
 ++  from-foo-join-bar
   |=  time=as-of
-  :-  ~
-     [%from (weld ~[[%relation foo-unaliased [~ time] ~ ~]] `(list relation)`(join-bar time))]
+  [~ [%from object=foo-unaliased as-of=[~ time] joins=(join-bar time)]]
 ++  from-foo-natural-join-bar
   |=  time=as-of
-  ^-  (unit from)
-  [~ %from (weld ~[[%relation foo-unaliased [~ time] ~ ~]] `(list relation)`(natural-join-bar time))]
+  [~ [%from object=foo-unaliased as-of=[~ time] joins=(natural-join-bar time)]]
 ++  from-foo-join-bar-aliased
   |=  time=as-of
-  :-  ~
-     [%from (weld ~[[%relation foo-unaliased [~ time] ~ ~]] `(list relation)`(join-bar-aliased time))]
+  [~ [%from object=foo-unaliased as-of=[~ time] joins=(join-bar-aliased time)]]
 ++  from-foo-natural-join-bar-aliased
   |=  time=as-of
   :-  ~
-      :-  %from
-          %+  weld  ~[[%relation foo-unaliased [~ time] ~ ~]]
-                    `(list relation)`(natural-join-bar-aliased time)
+      :^  %from
+          object=foo-unaliased
+          as-of=[~ time]
+          joins=(natural-join-bar-aliased time)
 ++  from-foo-aliased-join-bar-aliased
   |=  time=as-of
-  :-  ~
-     [%from (weld ~[[%relation foo-aliased [~ time] ~ ~]] `(list relation)`(join-bar-aliased time))]
+  [~ [%from object=foo-aliased as-of=[~ time] joins=(join-bar-aliased time)]]
 ++  from-foo-aliased-natural-join-bar-aliased
   |=  time=as-of
   :-  ~
-      :-  %from
-          %+  weld  ~[[%relation foo-aliased [~ time] ~ ~]]
-                    `(list relation)`(natural-join-bar-aliased time)
+        :^  %from
+            object=foo-aliased
+            as-of=[~ time]
+            joins=(natural-join-bar-aliased time)
 ++  from-foo-join-bar-baz
   |=  time=as-of
-  :-  ~
-      [%from (weld ~[[%relation foo-unaliased [~ time] ~ ~]] `(list relation)`(join-bar-baz time))]
+  [~ [%from object=foo-unaliased as-of=[~ time] joins=(join-bar-baz time)]]
 ++  from-foo-aliased-join-bar-baz
   |=  time=as-of
   :-  ~
-     [%from (weld ~[[%relation foo-aliased [~ time] ~ ~]] `(list relation)`(aliased-join-bar-baz time))]
+     [%from object=foo-aliased as-of=[~ time] joins=(aliased-join-bar-baz time)]
 ++  from-foo-aliased-cross-join-bar
   |=  time=as-of
-  [~ [%from (weld ~[[%relation foo-unaliased [~ time] ~ ~]] `(list relation)`(cross-join-bar time))]]
+  [~ [%from object=foo-unaliased as-of=[~ time] joins=(cross-join-bar time)]]
 ++  from-foo-aliased-cross-join-bar-aliased
   |=  time=as-of
   :-  ~
-      :-  %from
-          %+  weld  ~[[%relation foo-aliased [~ time] ~ ~]]
-                    `(list relation)`(cross-join-bar-aliased time)
+      :^  %from
+          foo-aliased
+          [~ time]    ::as-of
+          (cross-join-bar-aliased time)
 ::
 ::  SELECT
 ::
@@ -332,66 +329,60 @@
           :*  %query
               :-
                 ~
-              :-  %from
-                  :~  :*  %relation
-                          :+  %table-set
-                              [%qualified-object ~ %db1 %dbo %foo]
-                              [~ 'F1']
-                          [~ [%dr ~h5.m30.s12]]
-                          ~
-                          ~
-                          ==
-                      :*  %relation
+                :^  %from
+                    [%table-set [%qualified-object ~ %db1 %dbo %foo] [~ 'F1']]
+                    [~ [%dr ~h5.m30.s12]]
+                    :~
+                      :*  %joined-object
+                          %join
+                          as-of=[~ [%da ~2000.1.1]]
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %bar]
                               [~ 'B2']
-                          [~ [%da ~2000.1.1]]
-                          [~ %join]
-                          ~
+                          predicate=~
                           ==
-                      :*  %relation
+                      :*  %joined-object
+                          %left-join
+                          as-of=[~ [%da ~2000.1.1]]
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %baz]
                               [~ 'B3']
-                          [~ [%da ~2000.1.1]]
-                          [~ %left-join]
                           :-  ~
                               :+  %eq
                                   [[value-type=%ud value=1] ~ ~]
                                   [[value-type=%ud value=1] ~ ~]
                           ==
-                      :*  %relation
+                      :*  %joined-object
+                          %join
+                          as-of=~
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %bar]
                               [~ 'B4']
-                          ~
-                          [~ %join]
-                          ~
+                          predicate=~
                           ==
-                      :*  %relation
+                      :*  %joined-object
+                          %left-join
+                          as-of=~
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %bar]
                               alias=~
-                          ~
-                          [~ %left-join]
                           :-  ~
                               :+  %eq
                                   [[value-type=%ud value=1] ~ ~]
                                   [[value-type=%ud value=1] ~ ~]
                           ==
-                      :*  %relation
+                      :*  %joined-object
+                          %join
+                          [~ [%as-of-offset offset=2 units=%minutes]]
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %foo]
                               alias=~
-                          [~ [%as-of-offset offset=2 units=%minutes]]
-                          [~ %join]
                           :-  ~
                               :+  %eq
                                   [[value-type=%ud value=1] ~ ~]
                                   [[value-type=%ud value=1] ~ ~]
                           ==
                       ==
-
               scalars=~
               predicate=~
               group-by=~
@@ -667,8 +658,8 @@
       !>  %-  expected
               [simple-from-aliased-join-bar-aliased [%da ~2000.1.1]]
       !>  %-  parse:parse(default-database 'db1')
-              "FROM foo As Of ~2000.1.1 F1 join bar As Of ~2000.1.1 B1 on 1 = 1 ".
-              "SELECT TOP 10 *"
+            "FROM foo As Of ~2000.1.1 F1 join bar As Of ~2000.1.1 B1 on 1 = 1 ".
+            "SELECT TOP 10 *"
 ::
 ::  from foo as-of ~2000.1.1 (un-aliased) 
 ::                             join bar as-of ~2000.1.1 (un-aliased)

@@ -36,7 +36,7 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 
 ::
-++  mk-relastions
+++  mk-relations
   |=  [relat=relation joins=(list joined-object:ast)]
   ^-  (list relation)
   =/  relations=(list relation)  ~[relat]
@@ -58,8 +58,8 @@
   ^-  [server (list from-obj)]
   =/  from  (need from.q)
   =/  relations=(list relation)
-        %+  mk-relastions  (relation %relation object.from as-of.from ~ ~)
-                           joins.from
+        %+  mk-relations  (relation %relation object.from as-of.from ~ ~)
+                          joins.from
   =/  selected-columns
         %+  skim  columns.selection.q
                   |=(a=selected-column:ast ?=(qualified-column:ast a))
