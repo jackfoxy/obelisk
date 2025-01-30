@@ -202,8 +202,8 @@
   $:
     %joined-object
     join=join-type
-    as-of=(unit as-of)
     object=table-set
+    as-of=(unit as-of)
     predicate=(unit predicate)
   ==
 ::

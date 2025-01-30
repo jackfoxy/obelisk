@@ -2170,8 +2170,8 @@
         joined-objects
           :-  %:  joined-object:ast  %joined-object
                                      %cross-join
-                                     ~
                                      +.raw-join
+                                     ~
                                      ~
                                      ==
               joined-objects
@@ -2184,8 +2184,8 @@
         joined-objects
           :-  %:  joined-object:ast  %joined-object
                                      %cross-join
-                                     `+>.raw-join
                                      +<.raw-join
+                                     `+>.raw-join
                                      ~
                                      ==
               joined-objects
@@ -2200,8 +2200,8 @@
         joined-objects
           :-  %:  joined-object:ast  %joined-object
                                      %cross-join
-                                   [~ ;;(as-of:ast [+>-.raw-join +>+.raw-join])]
                                      +<.raw-join
+                                     `;;(as-of:ast [+>-.raw-join +>+.raw-join])
                                      ~
                                      ==
               joined-objects
@@ -2223,6 +2223,10 @@
           %:  joined-object:ast
             %joined-object
             %join
+            ::  object
+            ?:  ?=([%join [%table-set [%qualified-object @ @ @ @] *]] raw-join)
+              (make-query-object +>.raw-join)
+            (make-query-object +<+.raw-join)
             :: as-of
             ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
                     +.raw-join
@@ -2231,10 +2235,6 @@
                     +.raw-join
               [~ ;;(as-of:ast +>.raw-join)]
             ~
-            ::  object
-            ?:  ?=([%join [%table-set [%qualified-object @ @ @ @] *]] raw-join)
-              (make-query-object +>.raw-join)
-            (make-query-object +<+.raw-join)
             ~  :: predicate
           ==
           joined-objects
@@ -2246,13 +2246,6 @@
     %:  joined-object:ast
       %joined-object
       -.raw-join                              :: join-type
-      ::  as-of
-      ?:  ?=(%as-of-offset +<+<.raw-join)  [~ ;;(as-of-offset:ast +<+.raw-join)]
-      ?:  ?|  ?=(%da +<+<.raw-join)
-              ?=(%dr +<+<.raw-join)
-              ==
-        [~ ;;(as-of:ast +<+.raw-join)]
-      ~
       ::  object
       ?:  ?=(%query-row +<+.raw-join)
         (make-query-object +<.raw-join)
@@ -2271,6 +2264,13 @@
       ?:  ?=(%table-set +<-<.raw-join)
         (make-query-object +<->.raw-join)
       (make-query-object +<->.raw-join)
+      ::  as-of
+      ?:  ?=(%as-of-offset +<+<.raw-join)  [~ ;;(as-of-offset:ast +<+.raw-join)]
+      ?:  ?|  ?=(%da +<+<.raw-join)
+              ?=(%dr +<+<.raw-join)
+              ==
+        [~ ;;(as-of:ast +<+.raw-join)]
+      ~
       ::  predicate
       `(produce-predicate (predicate-list +>.raw-join))
     ==
@@ -2578,8 +2578,8 @@
     js   :-  ?~  predicate.j  j
              %:  joined-object:ast  %joined-object
                                     join.j
-                                    as-of.j
                                     object.j
+                                    as-of.j
                                     `(fix-predicate (need predicate.j) f)
                                     ==
              js

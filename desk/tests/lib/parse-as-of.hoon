@@ -34,8 +34,8 @@
   |=  time=as-of
   :~  :*  %joined-object
           %join
-          [~ time]  ::as-of
           bar-unaliased
+          [~ time]  ::as-of
           `one-eq-1
           ==
       ==
@@ -43,8 +43,8 @@
   |=  time=as-of
   :~  :*  %joined-object
           %join
-          [~ time]  ::as-of
           bar-unaliased
+          [~ time]  ::as-of
           ~
           ==
       ==
@@ -52,8 +52,8 @@
   |=  time=as-of
   :~  :*  %joined-object
           %join
-          [~ time]  ::as-of
           bar-aliased 
+          [~ time]  ::as-of
           `one-eq-1
           ==
       ==
@@ -61,8 +61,8 @@
   |=  time=as-of
   :~  :*  %joined-object
           %join
+          bar-aliased
           [~ time]  ::as-of
-          bar-aliased 
           ~
           ==
       ==
@@ -70,13 +70,12 @@
   |=  time=as-of
   :~  :*  %joined-object
           %join
-          [~ time]  ::as-of
           bar-unaliased
+          [~ time]  ::as-of
           `one-eq-1
           ==
       :*  %joined-object
           %left-join
-          [~ time]  ::as-of
           :+  %table-set
               :*  %qualified-object
                   ~      ::ship
@@ -85,6 +84,7 @@
                   'baz'  ::name
                   ==
               ~  ::alias
+          [~ time]  ::as-of
           `one-eq-1
           ==
       ==
@@ -92,13 +92,12 @@
   |=  time=as-of
   :~  :*  %joined-object
           %join
-          [~ time]         ::as-of
           bar-aliased
+          [~ time]         ::as-of
           `one-eq-1
           ==
       :*  %joined-object
           %left-join
-          [~ time]         ::as-of
           :+  %table-set
               :*  %qualified-object
                   ~      ::ship
@@ -106,7 +105,8 @@
                   'dbo'  ::namespace
                   'baz'  ::name
                   ==
-          [~ 'b2']  ::as-of
+              [~ 'b2']
+          [~ time]         ::as-of
           `one-eq-1
           ==
       ==
@@ -114,8 +114,8 @@
   |=  time=as-of
   :~  :*  %joined-object
           %cross-join
-          [~ time]  ::as-of
           bar-unaliased
+          [~ time]  ::as-of
           ~  ::predicate
           ==
       ==
@@ -123,8 +123,8 @@
   |=  time=as-of
   :~  :*  %joined-object
           %cross-join
-          [~ time]  ::as-of
           bar-aliased
+          [~ time]  ::as-of
           ~  ::predicate
           ==
       ==
@@ -335,18 +335,18 @@
                     :~
                       :*  %joined-object
                           %join
-                          as-of=[~ [%da ~2000.1.1]]
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %bar]
                               [~ 'B2']
+                          as-of=[~ [%da ~2000.1.1]]
                           predicate=~
                           ==
                       :*  %joined-object
                           %left-join
-                          as-of=[~ [%da ~2000.1.1]]
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %baz]
                               [~ 'B3']
+                          as-of=[~ [%da ~2000.1.1]]
                           :-  ~
                               :+  %eq
                                   [[value-type=%ud value=1] ~ ~]
@@ -354,18 +354,18 @@
                           ==
                       :*  %joined-object
                           %join
-                          as-of=~
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %bar]
                               [~ 'B4']
+                          as-of=~
                           predicate=~
                           ==
                       :*  %joined-object
                           %left-join
-                          as-of=~
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %bar]
                               alias=~
+                          as-of=~
                           :-  ~
                               :+  %eq
                                   [[value-type=%ud value=1] ~ ~]
@@ -373,10 +373,10 @@
                           ==
                       :*  %joined-object
                           %join
-                          [~ [%as-of-offset offset=2 units=%minutes]]
                           :+  %table-set
                               [%qualified-object ~ %db1 %dbo %foo]
                               alias=~
+                          [~ [%as-of-offset offset=2 units=%minutes]]
                           :-  ~
                               :+  %eq
                                   [[value-type=%ud value=1] ~ ~]
