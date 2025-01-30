@@ -412,8 +412,8 @@
       selected      +.selected
       selected-out  [-.selected selected-out]
     ==
-  =/  qualifiers  (~(got by qualifier-lookup) column.sel)
-  ?~  qualifiers  ~|("SELECT: column {<column.sel>} not found" !!)
+  =/  qualifiers   ~|  "SELECT: column {<column.sel>} not found"
+                       (~(got by qualifier-lookup) column.sel)
   ?:  (gth (lent qualifiers) 1)
     ~|("SELECT: column {<column.sel>} must be qualified" !!)
   %=  $

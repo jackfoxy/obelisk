@@ -3081,48 +3081,48 @@
       ==
 ::
 ::  fail on bad column name   to do: fix and uncomment
-::++  test-fail-select-02
-::  =|  run=@ud
-::  =/  my-select  "FROM my-table SELECT ".
-::                 "col4, foo"
+++  test-fail-select-02
+  =|  run=@ud
+  =/  my-select  "FROM my-table SELECT ".
+                 "col4, foo"
   ::
-::  =^  mov1  agent
-::    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
-::        %obelisk-action
-::        !>([%tape %sys "CREATE DATABASE db1"])
-::    ==
-::  =.  run  +(run)
-::  =^  mov2  agent
-::    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
-::        %obelisk-action
-::        !>  :+  %tape
-::                %db1
-::                "CREATE TABLE db1..my-table ".
-::                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-::                "PRIMARY KEY (col1) ".
-::                "AS OF ~2012.5.3"
-::    ==
-::  =.  run  +(run)
-::  =^  mov3  agent
-::    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
-::        %obelisk-action
-::        !>  :+  %tape
-::                %db1
-::                "INSERT INTO my-table".
-::                " VALUES".
-::                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
-::                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-::                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
-::                "AS OF ~2012.5.4"
-::    ==
-::  =.  run  +(run)
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape %sys "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1) ".
+                "AS OF ~2012.5.3"
+    ==
+  =.  run  +(run)
+  =^  mov3  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
+                "AS OF ~2012.5.4"
+    ==
+  =.  run  +(run)
   ::
-::  %+  expect-fail-message
-::        'SELECT: column %foo not found'
-::  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
-::          %obelisk-action
-::          !>([%test %db1 my-select])
-::      ==
+  %+  expect-fail-message
+        'SELECT: column %foo not found'
+  |.  %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+          %obelisk-action
+          !>([%test %db1 my-select])
+      ==
 ::
 ::  fail on as-of ~d4 (schema-time < ~d4 ago)
 ++  test-fail-time-query-01
