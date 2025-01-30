@@ -2163,34 +2163,50 @@
   |-
   ?:  =(raw-joined-objects ~)
     (from:ast %from from-object from-as-of (flop joined-objects))
-  ::cross join
-  ?:  ?=(%cross-join -.raw-joined-objects)
-    %=  $
-      joined-objects
-        :-
-          %:  joined-object:ast
-            %joined-object
-            %cross-join
-            :: as-of
-            ?:  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
-              [~ ;;(as-of-offset:ast +>.raw-joined-objects)]
-            ?:  ?|  ?=([[%table-set * *] %da @] +.raw-joined-objects)
-                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
-                    ==
-              [~ ;;(as-of:ast +>.raw-joined-objects)]
-            ~
-            ::  object
-            ?:  ?|  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
-                    ?=([[%table-set * *] %da @] +.raw-joined-objects)
-                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
-                    ==
-              (make-query-object +<+.raw-joined-objects)
-            (make-query-object +>.raw-joined-objects)
-            ~
+  ?:  ?=  [%cross-join [%table-set [%qualified-object @ @ @ @] *]]
+          -.raw-joined-objects
+      %=  $
+        joined-objects
+          :-  %:  joined-object:ast  %joined-object
+                                     %cross-join
+                                     ~
+                                     ->.raw-joined-objects
+                                     ~
+                                     ==
+              joined-objects
+        raw-joined-objects  +.raw-joined-objects
+      ==
+  ?:  ?=
+        [%cross-join [%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
+        -.raw-joined-objects
+      %=  $
+        joined-objects
+          :-  %:  joined-object:ast  %joined-object
+                                     %cross-join
+                                     `->+.raw-joined-objects
+                                     ->-.raw-joined-objects
+                                     ~
+                                     ==
+              joined-objects
+        raw-joined-objects  +.raw-joined-objects
+      ==
+  ?:  ?|  ?=  [%cross-join [%table-set [%qualified-object @ @ @ @] *] [%da @]]
+              -.raw-joined-objects
+          ?=  [%cross-join [%table-set [%qualified-object @ @ @ @] *] [%dr @]]
+              -.raw-joined-objects
           ==
-          joined-objects
-      raw-joined-objects  +.raw-joined-objects
-    ==
+      %=  $
+        joined-objects
+          :-  %:  joined-object:ast  %joined-object
+                                     %cross-join
+                                     [~ ;;(as-of:ast [->+<.raw-joined-objects ->+>.raw-joined-objects])]
+                                     ->-.raw-joined-objects
+                                     ~
+                                     ==
+              joined-objects
+        raw-joined-objects  +.raw-joined-objects
+      ==
+
   ::natural join
   ?:  ?|  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
               -.raw-joined-objects
@@ -2665,12 +2681,12 @@
 ++  mk-alias-map
   |=  f=from:ast
   ^-  (map @t qualified-object:ast)
-  =/  alias-map  (mk-alias-map-joins ~ joins.f)
+  =/  n  (mk-alias-map-joins ~ joins.f)
   ?.  ?=(qualified-object:ast object.object.f)
     ~|("not implemented {<object.f>}" !!)
   ?~  alias.object.f
-    alias-map
-  (~(put by alias-map) (need alias.object.f) object.object.f)
+    n
+  (~(put by n) (crip (cass (trip (need alias.object.f)))) object.object.f)
 ::
 ++  mk-alias-map-joins
   |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
@@ -2682,7 +2698,7 @@
     ~|("not implemented {<object.j>}" !!)
   %=  $
     m   ?~  alias.object.j  m
-        (~(put by m) (need alias.object.j) object.object.j)
+        (~(put by m) (crip (cass (trip (need alias.object.j)))) object.object.j)
     js  +.js
   ==
 ::
