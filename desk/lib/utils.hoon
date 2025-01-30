@@ -342,7 +342,6 @@
               cols
               |=(a=[qualified-column:ast @ta] [[qualifier:-.a column:-.a] +.a])
   =/  cells=(list templ-cell-2)  ~
-  ::=.  selected  (fix-for-infer cols selected)
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
@@ -371,7 +370,7 @@
   ?:  ?=(selected-all-object:ast i.selected)
     %=  $
       i         +(i)
-      selected  t.selected   :: to do: filter on table
+      selected  t.selected
       cells     
         %+  weld
           %-  flop

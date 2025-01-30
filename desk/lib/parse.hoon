@@ -3689,7 +3689,10 @@
   ==
 ++  build-query-object  ~+
   |=  parsed=*
-  ::^-  table-set:ast :: to do: cannot currently cast, fix w/ %query-row
+  ^-  $?  table-set:ast
+          [table-set:ast as-of-offset:ast]
+          [table-set:ast as-of:ast]
+          ==
   ?:  ?=([@ @ @ @ @] parsed)
     (table-set:ast %table-set parsed ~)
   ?:  ?=([[@ @ @ @ @] @] parsed)
@@ -3711,12 +3714,12 @@
   ::
   ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @]] parsed)
     :-  (table-set:ast %table-set -.parsed ~)
-        [+>-.parsed +>+.parsed]
+        ;;(as-of:ast [+>-.parsed +>+.parsed])
   ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @] @] parsed)
     :-  (table-set:ast %table-set -.parsed `+>.parsed)
-        [+<+<.parsed +<+>.parsed]
+        ;;(as-of:ast [+<+<.parsed +<+>.parsed])
   ::
-  ?:  =(%query-row -.parsed)  parsed
+  ?:  =(%query-row -.parsed)  ;;(table-set:ast parsed)
   ~|("cannot parse query-object  {<parsed>}" !!)
 ::
 ++  parse-query-object  ~+
