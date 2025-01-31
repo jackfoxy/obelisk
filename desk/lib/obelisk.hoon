@@ -882,13 +882,13 @@
                 ==
 ::
 ::  +select-columns:
-::    [(list (map qualified-object:ast (map @tas @))) (list templ-cell-2)]
+::    [(list (map qualified-object:ast (map @tas @))) (list templ-cell)]
 ::    -> (list (map @tas @))
 ::
 ::  select columns from join
 ++   select-columns
   |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
-          cells=(list templ-cell-2)
+          cells=(list templ-cell)
           ==
   ~+  ^-  (list vector)
   =/  out-rows=(list vector)  ~
@@ -896,7 +896,7 @@
   ?~  rows  ~(tap in (silt out-rows))
   ::
   =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell-2)  cells
+  =/  cols=(list templ-cell)  cells
   |-
   ?~  cols
       %=  ^$
@@ -906,7 +906,7 @@
   ::
   ?~  object.i.cols                         :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell-2  i.cols            :: case: is table column
+  =/  cell=templ-cell  i.cols            :: case: is table column
   %=  $
     cols  t.cols
     row   :-
@@ -919,7 +919,7 @@
 ::
 ::  +select-columns-filtered:
 ::    $:  (list (map qualified-object:ast (map @tas @)))
-::        (list templ-cell-2)
+::        (list templ-cell)
 ::        $-((map @tas @) ?)
 ::        -> (list (map @tas @))
 ::
@@ -927,7 +927,7 @@
 ::  rejects rows that do not pass filter
 ++   select-columns-filtered
   |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
-          cells=(list templ-cell-2)
+          cells=(list templ-cell)
           filter=$-((map qualified-object:ast (map @tas @)) ?)
           ==
   ~+  ^-  (list vector)  
@@ -938,7 +938,7 @@
   ?.  (filter i.rows)  $(rows t.rows)
   ::
   =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell-2)  cells
+  =/  cols=(list templ-cell)  cells
   |-
   ?~  cols
       %=  ^$
@@ -948,7 +948,7 @@
   ::
   ?~  object.i.cols                   :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell-2  i.cols              :: case: is table column
+  =/  cell=templ-cell  i.cols              :: case: is table column
   %=  $
     cols  t.cols
     row   :-

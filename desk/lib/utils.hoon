@@ -323,25 +323,25 @@
 ::
 ::  +mk-vect-templ:
 ::    [(list [qualified-object:ast @ta]) (list selected-column:ast)]
-::    -> (list templ-cell-2)
+::    -> (list templ-cell)
 ::
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-templ-cell
   |=  a=[qualified-column:ast @ta]
-  ^-  templ-cell-2
-  (templ-cell-2 %templ-cell-2 `-.a `vector-cell`[column.-.a [+.a 0]])
+  ^-  templ-cell
+  (templ-cell %templ-cell `-.a `vector-cell`[column.-.a [+.a 0]])
 ++  mk-vect-templ
   |=  $:  cols=(list [qualified-column:ast @ta])
           selected=(list selected-column:ast)
           ==
-  ^-  (list templ-cell-2)
+  ^-  (list templ-cell)
   =/  i  0
   =/  col-lookup
     %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
         %+  turn
               cols
               |=(a=[qualified-column:ast @ta] [[qualifier:-.a column:-.a] +.a])
-  =/  cells=(list templ-cell-2)  ~
+  =/  cells=(list templ-cell)  ~
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
@@ -357,8 +357,8 @@
       selected  t.selected
       cells  ~|  "SELECT: column {<column.i.selected>} not found"  
              :-
-               %:  templ-cell-2
-                     %templ-cell-2
+               %:  templ-cell
+                     %templ-cell
                      [~ i.selected]
                      :-  (heading i.selected column.i.selected)
                          :-  %-  ~(got by col-lookup)
@@ -384,11 +384,11 @@
       i         +(i)
       selected  t.selected
       cells
-        :-  %:  templ-cell-2  %templ-cell-2
-                              ~
-                              :-  (heading i.selected (crip "literal-{<i>}"))
-                                  [p=+<-.i.selected q=+<+.i.selected]
-                              ==
+        :-  %:  templ-cell  %templ-cell
+                            ~
+                            :-  (heading i.selected (crip "literal-{<i>}"))
+                                [p=+<-.i.selected q=+<+.i.selected]
+                            ==
             cells
     ==
   ~|("{<i.selected>} not supported" !!)
@@ -779,16 +779,9 @@
                 %delete
                 ==
 ::
-::  template for selected column from single data object
-+$  templ-cell   :: to do: investigate, questionable
+::  template for selected column from qualified objects
++$  templ-cell
   $:  %templ-cell
-      column-name=(unit @tas)
-      vc=vector-cell
-  ==
-::
-::  template for selected column from joined data objects
-+$  templ-cell-2
-  $:  %templ-cell-2
       object=(unit qualified-column:ast)
       vc=vector-cell
   ==

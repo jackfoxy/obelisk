@@ -688,7 +688,6 @@ For instance the joined query we last ran produces the following pretty-printed 
           ~[
             [ %joined-object
               join=%join
-              as-of=~
                 object
               [ %table-set
                   object
@@ -700,6 +699,7 @@ For instance the joined query we last ran produces the following pretty-printed 
                 ]
                 alias=[~ 'T2']
               ]
+              as-of=~
               predicate=~
             ]
           ]
