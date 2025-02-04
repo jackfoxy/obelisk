@@ -20,33 +20,6 @@
       =server
       ==
 ::
-++  parse-results
-  |=  [expected=cmd-result actual=cmd-result]
-  ^-  [[cmd-result (set vector)] [cmd-result (set vector)]]
-  [(parse-results-2 +.expected) (parse-results-2 +.actual)]
-++  parse-results-2
-  |=  results=(list result)
-  ^-  [cmd-result (set vector)]
-  =/  out-results=(list result)  ~
-  =/  out-vectors=(list vector)  ~
-  |-
-  ?~  results
-    [[%results (flop out-results)] (silt out-vectors)]
-  =/  res  i.results
-  ?:  =(%result-set -.res)
-    $(results t.results, out-vectors ;;((list vector) +.res))
-  $(results t.results, out-results [res out-results])
-++  eval-results
-  |=  [expected=cmd-result actual=cmd-result]
-  =/  expct-actual  (parse-results expected actual)
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
 --
 |%
 ::
@@ -1887,6 +1860,53 @@
               %db1
               "FROM my-table T1 SELECT ~2024.10.20, col1 as C1, ".
               "~sampel-palnet as home, T1.*, col2,col4, *"
+    ==
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+
+
+::
+::  view-alias.*
+++  test-simple-query-26
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%database [~.tas %db1]]
+                  [%sys-agent [~.ta '/test-agent']]
+                  [%sys-tmsp [~.da ~2012.4.30]]
+                  [%data-ship [~.p ~zod]]
+                  [%data-agent [~.ta '/test-agent']]
+                  [%data-tmsp [~.da ~2012.4.30]]
+                  ==
+          :-  %vector
+              :~  [%database [~.tas %sys]]
+                  [%sys-agent [~.ta '/test-agent']]
+                  [%sys-tmsp [~.da ~2012.4.30]]
+                  [%data-ship [~.p ~zod]]
+                  [%data-agent [~.ta '/test-agent']]
+                  [%data-tmsp [~.da ~2012.4.30]]
+                  ==
+              ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'sys.sys.databases']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape %sys "CREATE DATABASE db1"])
+    ==
+  =.  run  +(run)
+  =^  mov4  agent
+    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape %db1 "FROM sys.sys.databases V1 select v1.*"])
     ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))

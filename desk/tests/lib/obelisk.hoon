@@ -294,19 +294,19 @@
 ++  expected-db-rows
     :~
       :-  %vector
-          :~  [%database [~.tas %sys]]
-              [%sys-agent [~.tas '/test-agent']]
+          :~  [%database [~.tas %db1]]
+              [%sys-agent [~.ta '/test-agent']]
               [%sys-tmsp [~.da ~2000.1.1]]
               [%data-ship [~.p 0]]
-              [%data-agent [~.tas '/test-agent']]
+              [%data-agent [~.ta '/test-agent']]
               [%data-tmsp [~.da ~2000.1.1]]
               ==
       :-  %vector
-          :~  [%database [~.tas %db1]]
-              [%sys-agent [~.tas '/test-agent']]
+          :~  [%database [~.tas %sys]]
+              [%sys-agent [~.ta '/test-agent']]
               [%sys-tmsp [~.da ~2000.1.1]]
               [%data-ship [~.p 0]]
-              [%data-agent [~.tas '/test-agent']]
+              [%data-agent [~.ta '/test-agent']]
               [%data-tmsp [~.da ~2000.1.1]]
               ==
       ==
@@ -432,10 +432,10 @@
   =/  expected-rows  :~
                       :-  %vector
                           :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
@@ -489,18 +489,18 @@
   =/  expected-rows  :~
                       :-  %vector
                           :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db2]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.2]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.2]]
                               ==
                       ==
@@ -561,18 +561,18 @@
   =/  expected-rows  :~
                       :-  %vector
                           :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db2]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
                               ==
                       ==
@@ -648,18 +648,18 @@
   =/  expected-rows  :~
                       :-  %vector
                           :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db2]]
-                              [%sys-agent [~.tas '/test-agent']]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
                               [%data-ship [~.p 0]]
-                              [%data-agent [~.tas '/test-agent']]
+                              [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
                               ==
                       ==

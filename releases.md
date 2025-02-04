@@ -3,6 +3,7 @@
 ## v0.5 alpha
 
 * SELECT all from table in JOIN
+* joined-object AST refactored
 
 ## v0.4a alpha
 

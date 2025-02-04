@@ -18,10 +18,10 @@
     |=  [provenance=path tmsp=@da]
     ^-  view
     =/  columns=(list column:ast)  :~  [%column %database ~.tas]
-                                       [%column %sys-agent ~.tas]
+                                       [%column %sys-agent ~.ta]
                                        [%column %sys-tmsp ~.da]
                                        [%column %data-ship ~.p]
-                                       [%column %data-agent ~.tas]
+                                       [%column %data-agent ~.ta]
                                        [%column %data-tmsp ~.da]
                                        ==
     :*  %view
@@ -260,7 +260,7 @@
     =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
                                        [%column %name ~.tas]
                                        [%column %ship ~.p]
-                                       [%column %agent ~.tas]
+                                       [%column %agent ~.ta]
                                        [%column %tmsp ~.da]
                                        [%column %row-count ~.ud]
                                        [%column %key-ordinal ~.ud]
@@ -552,7 +552,7 @@
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
     =/  columns=(list column:ast)  :~  [%column %tmsp ~.da]
-                                       [%column %agent ~.tas]
+                                       [%column %agent ~.ta]
                                        [%column %component ~.tas]
                                        [%column %name ~.tas]
                                        ==
@@ -670,7 +670,7 @@
     ^-  view
     =/  columns=(list column:ast)  :~  [%column %tmsp ~.da]
                                        [%column %ship ~.p]
-                                       [%column %agent ~.tas]
+                                       [%column %agent ~.ta]
                                        [%column %namespace ~.tas]
                                        [%column %table ~.tas]
                                        [%column %row-count ~.ud]

@@ -100,10 +100,10 @@
 ++  sys-sys-databases-view
   |=  sys-time=@da
   =/  columns=(list column:ast)    :~  [%column %database ~.tas]
-                                       [%column name=%sys-agent type=~.tas]
+                                       [%column name=%sys-agent type=~.ta]
                                        [%column name=%sys-tmsp type=~.da]
                                        [%column name=%data-ship type=~.p]
-                                       [%column name=%data-agent type=~.tas]
+                                       [%column name=%data-agent type=~.ta]
                                        [%column name=%data-tmsp type=~.da]
                                        ==
   :-  [%sys %databases sys-time]
