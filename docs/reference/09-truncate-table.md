@@ -34,8 +34,10 @@ Tables in the *sys* namespace cannot be truncated.
 
 ### Produced Metadata
 
-Row count (when table was populated)
-Content timestamp
+message: TRUNCATE TABLE <namespace name>.<table name>
+server-time: <timestamp>
+data-time: <timestamp>
+vector count: <count>
 
 ### Exceptions
 

@@ -4,6 +4,8 @@
 
 * SELECT all from table in JOIN
 * joined-object AST refactored
+* natural join on primary keys when key column ordering differs
+* updated docs
 
 ## v0.4a alpha
 

@@ -66,8 +66,14 @@ Note that multiple parentheses enclosed rows of column values are NOT comma sepa
 
 ### Produced Metadata
 
-Row count
-Content timestamp (labelled 'data time')
+message: INSERT INTO <namespace name>.<table name>
+server-time: <timestamp>
+schema-time: <timestamp>
+data-time: <timestamp>
+message: inserted:
+vector count: <count>
+message: table data:
+vector count: <count>
 
 ### Exceptions
 
@@ -86,7 +92,7 @@ cannot add duplicate key: `<row-key>`
 
 ```
 INSERT INTO reference.species-vital-signs-ranges
-  (species, temp-low, temp-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high)
+  (species, temperature-low, temperature-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high)
 VALUES
   ('Dog', .99.5, .102.5, 60, 140, 10, 35)
   ('Cat', .99.5, .102.5, 140, 220, 20, 30)
