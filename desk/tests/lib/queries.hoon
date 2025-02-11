@@ -2830,7 +2830,36 @@
   "(2024, 4, 6, 'Saturday') ".
   "(2024, 4, 7, 'Sunday') ".
   "(2024, 4, 8, 'Monday');"
-++  expect-1
+++  insert-tbl2-a
+  "INSERT INTO tbl2 ".
+  "VALUES ".
+  "(2023, 12, 23, 'Saturday') ".
+  "(2023, 12, 24, 'Sunday') ".
+  "(2023, 12, 25, 'Monday') ".
+  "(2023, 12, 26, 'Tuesday') ".
+  "(2023, 12, 27, 'Wednesday') ".
+  "(2023, 12, 29, 'Friday') ".
+  "(2023, 12, 30, 'Saturday') ".
+  "(2023, 12, 31, 'Sunday') ".
+  "(2024, 1, 1, 'Monday') ".
+  "(2024, 1, 2, 'Tuesday') ".
+  "(2024, 2, 3, 'Saturday') ".
+  "(2024, 2, 5, 'Monday') ".
+  "(2024, 2, 6, 'Tuesday') ".
+  "(2024, 2, 7, 'Wednesday') ".
+  "(2024, 3, 3, 'Sunday') ".
+  "(2024, 3, 4, 'Monday') ".
+  "(2024, 3, 6, 'Wednesday') ".
+  "(2024, 3, 7, 'Thursday') ".
+  "(2024, 3, 8, 'Friday') ".
+  "(2024, 4, 1, 'Monday') ".
+  "(2024, 4, 3, 'Wednesday') ".
+  "(2024, 4, 4, 'Thursday') ".
+  "(2024, 4, 5, 'Friday') ".
+  "(2024, 4, 7, 'Sunday') ".
+  "(2024, 4, 8, 'Monday') ".
+  "(2024, 4, 9, 'Tuesday');"
+++  expect-rows-1
       :~
         :-  %vector
             :~  [%year [~.ud 2.023]]
@@ -3057,7 +3086,185 @@
                 [%day-name [~.t 'Monday']]
                 ==
         ==
-++  expect-2
+++  expect-rows-1-a
+      :~
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 23]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Saturday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 24]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Sunday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 25]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Monday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 26]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Tuesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 27]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Wednesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 29]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Friday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 30]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Saturday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.023]]
+                [%month [~.ud 12]]
+                [%day [~.ud 31]]
+                [%month-name [~.t 'December']]
+                [%day-name [~.t 'Sunday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 1]]
+                [%day [~.ud 1]]
+                [%month-name [~.t 'January']]
+                [%day-name [~.t 'Monday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 1]]
+                [%day [~.ud 2]]
+                [%month-name [~.t 'January']]
+                [%day-name [~.t 'Tuesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 2]]
+                [%day [~.ud 3]]
+                [%month-name [~.t 'February']]
+                [%day-name [~.t 'Saturday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 2]]
+                [%day [~.ud 5]]
+                [%month-name [~.t 'February']]
+                [%day-name [~.t 'Monday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 2]]
+                [%day [~.ud 6]]
+                [%month-name [~.t 'February']]
+                [%day-name [~.t 'Tuesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 2]]
+                [%day [~.ud 7]]
+                [%month-name [~.t 'February']]
+                [%day-name [~.t 'Wednesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 3]]
+                [%day [~.ud 3]]
+                [%month-name [~.t 'March']]
+                [%day-name [~.t 'Sunday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 3]]
+                [%day [~.ud 4]]
+                [%month-name [~.t 'March']]
+                [%day-name [~.t 'Monday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 3]]
+                [%day [~.ud 6]]
+                [%month-name [~.t 'March']]
+                [%day-name [~.t 'Wednesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 3]]
+                [%day [~.ud 7]]
+                [%month-name [~.t 'March']]
+                [%day-name [~.t 'Thursday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 3]]
+                [%day [~.ud 8]]
+                [%month-name [~.t 'March']]
+                [%day-name [~.t 'Friday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 4]]
+                [%day [~.ud 1]]
+                [%month-name [~.t 'April']]
+                [%day-name [~.t 'Monday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 4]]
+                [%day [~.ud 3]]
+                [%month-name [~.t 'April']]
+                [%day-name [~.t 'Wednesday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 4]]
+                [%day [~.ud 4]]
+                [%month-name [~.t 'April']]
+                [%day-name [~.t 'Thursday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 4]]
+                [%day [~.ud 5]]
+                [%month-name [~.t 'April']]
+                [%day-name [~.t 'Friday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 4]]
+                [%day [~.ud 7]]
+                [%month-name [~.t 'April']]
+                [%day-name [~.t 'Sunday']]
+                ==
+        :-  %vector
+            :~  [%year [~.ud 2.024]]
+                [%month [~.ud 4]]
+                [%day [~.ud 8]]
+                [%month-name [~.t 'April']]
+                [%day-name [~.t 'Monday']]
+                ==
+        ==
+++  expect-rows-2
       :~
         :-  %vector
             :~  [%year [~.ud 2.023]]
@@ -3103,7 +3310,7 @@
                 ==
         ==
 ::
-::  test T1.* in select
+::  test T1.* in select, all rows join
 ++  test-joins-00
   =|  run=@ud
   =/  expected-rows
@@ -3153,8 +3360,58 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
-::  test T1.* in select, tables inverted
+::  test T1.* in select
 ++  test-joins-00-a
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "SELECT T1.day-name, T2.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test T1.* in select, tables inverted
+++  test-joins-00-b
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3254,7 +3511,7 @@
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-::
+
 ::  test alternating file alias case, tables inverted
 ++  test-joins-01-a
   =|  run=@ud
@@ -3354,7 +3611,7 @@
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-::
+
 ::  test alternating file alias case in predicate, tables inverted
 ++  test-joins-02-a
   =|  run=@ud
@@ -3449,7 +3706,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 
-::
+
 ::  test mixed column alias case in predicate, tables inverted
 ++  test-joins-03-a
   =|  run=@ud
@@ -3497,12 +3754,12 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 
 ::
-::  join multi-column keys
+::  join multi-column keys, all rows join
 ++  test-joins-04
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-1]
+                      [%result-set expect-rows-1]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3514,7 +3771,7 @@
                       ==
   =/  expected-2  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-2]
+                      [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3539,6 +3796,74 @@
                               " day-name  @t)".
                               "  PRIMARY KEY (year, month, day);"
                               insert-tbl2
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 t1 ".
+                "JOIN tbl2 T2 ".
+                "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 t1 ".
+                "JOIN tbl2 T2 ".
+                "WHERE day-name = 'Monday' ".
+                "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+  ::
+  ;:  weld
+  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
+  ==
+::
+::  join multi-column keys
+++  test-joins-04-a
+  =|  run=@ud
+  =/  expected-1  :~  %results
+                      [%message 'SELECT']
+                      [%result-set expect-rows-1-a]
+                      [%server-time ~2012.5.3]
+                      [%message 'db1.dbo.tbl1']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%message 'db1.dbo.tbl2']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%vector-count 25]
+                      ==
+  =/  expected-2  :~  %results
+                      [%message 'SELECT']
+                      [%result-set expect-rows-2]
+                      [%server-time ~2012.5.3]
+                      [%message 'db1.dbo.tbl1']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%message 'db1.dbo.tbl2']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%vector-count 6]
+                      ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              insert-tbl1
+                              "CREATE TABLE tbl2 ".
+                              "(year        @ud,".
+                              " month       @ud,".
+                              " day         @ud,".
+                              " day-name  @t)".
+                              "  PRIMARY KEY (year, month, day);"
+                              insert-tbl2-a
                               ==
   =.  run  +(run)
   =^  mov2  agent
@@ -3566,11 +3891,11 @@
   ==
 ::
 ::  join multi-column keys, tables inverted
-++  test-joins-04a
+++  test-joins-04-b
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-1]
+                      [%result-set expect-rows-1-a]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
@@ -3578,11 +3903,11 @@
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%vector-count 32]
+                      [%vector-count 25]
                       ==
   =/  expected-2  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-2]
+                      [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
@@ -3606,7 +3931,7 @@
                               " day         @ud,".
                               " day-name  @t)".
                               "  PRIMARY KEY (year, month, day);"
-                              insert-tbl2
+                              insert-tbl2-a
                               ==
   =.  run  +(run)
   =^  mov2  agent
@@ -3633,12 +3958,12 @@
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
 ::
-::  join ascending and descending multi-column keys
+::  join ascending and descending multi-column keys, all rows join
 ++  test-joins-05
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-1]
+                      [%result-set expect-rows-1]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3650,7 +3975,7 @@
                       ==
   =/  expected-2  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-2]
+                      [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3701,12 +4026,12 @@
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
 ::
-::  join ascending and descending multi-column keys, tables inverted 
+::  join ascending and descending multi-column keys
 ++  test-joins-05-a
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-1]
+                      [%result-set expect-rows-1-a]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3714,11 +4039,11 @@
                       [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%vector-count 32]
+                      [%vector-count 25]
                       ==
   =/  expected-2  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-2]
+                      [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3742,7 +4067,75 @@
                               " day         @ud,".
                               " day-name  @t)".
                               "  PRIMARY KEY (year DESC, month DESC, day DESC);"
-                              insert-tbl2
+                              insert-tbl2-a
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 t1 ".
+                "JOIN tbl2 T2 ".
+                "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 t1 ".
+                "JOIN tbl2 T2 ".
+                "WHERE T2.day-name = 'Monday' ".
+                "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+  ::
+  ;:  weld
+  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
+  ==
+::
+::  join ascending and descending multi-column keys, tables inverted 
+++  test-joins-05-b
+  =|  run=@ud
+  =/  expected-1  :~  %results
+                      [%message 'SELECT']
+                      [%result-set expect-rows-1-a]
+                      [%server-time ~2012.5.3]
+                      [%message 'db1.dbo.tbl1']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%message 'db1.dbo.tbl2']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%vector-count 25]
+                      ==
+  =/  expected-2  :~  %results
+                      [%message 'SELECT']
+                      [%result-set expect-rows-2]
+                      [%server-time ~2012.5.3]
+                      [%message 'db1.dbo.tbl1']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%message 'db1.dbo.tbl2']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%vector-count 6]
+                      ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              insert-tbl1
+                              "CREATE TABLE tbl2 ".
+                              "(year        @ud,".
+                              " month       @ud,".
+                              " day         @ud,".
+                              " day-name  @t)".
+                              "  PRIMARY KEY (year DESC, month DESC, day DESC);"
+                              insert-tbl2-a
                               ==
   =.  run  +(run)
   =^  mov2  agent
@@ -3769,12 +4162,12 @@
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
 ::
-::  join ascending and partial descending multi-column keys
+::  join ascending and partial descending multi-column keys, all rows join
 ++  test-joins-06
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-1]
+                      [%result-set expect-rows-1]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3786,7 +4179,7 @@
                       ==
   =/  expected-2  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-2]
+                      [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
@@ -3837,12 +4230,80 @@
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
 ::
-::  join ascending and partial descending multi-column keys, tables inverted 
+::  join ascending and partial descending multi-column keys
 ++  test-joins-06-a
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-1]
+                      [%result-set expect-rows-1-a]
+                      [%server-time ~2012.5.3]
+                      [%message 'db1.dbo.tbl1']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%message 'db1.dbo.tbl2']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%vector-count 25]
+                      ==
+  =/  expected-2  :~  %results
+                      [%message 'SELECT']
+                      [%result-set expect-rows-2]
+                      [%server-time ~2012.5.3]
+                      [%message 'db1.dbo.tbl1']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%message 'db1.dbo.tbl2']
+                      [%schema-time ~2012.4.30]
+                      [%data-time ~2012.4.30]
+                      [%vector-count 6]
+                      ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              insert-tbl1
+                              "CREATE TABLE tbl2 ".
+                              "(year        @ud,".
+                              " month       @ud,".
+                              " day         @ud,".
+                              " day-name  @t)".
+                              "  PRIMARY KEY (year, month DESC, day DESC);"
+                              insert-tbl2-a
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 t1 ".
+                "JOIN tbl2 T2 ".
+                "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 t1 ".
+                "JOIN tbl2 T2 ".
+                "WHERE day-name = 'Monday' ".
+                "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+  ::
+  ;:  weld
+  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
+  ==
+::
+::  join ascending and partial descending multi-column keys, tables inverted 
+++  test-joins-06-b
+  =|  run=@ud
+  =/  expected-1  :~  %results
+                      [%message 'SELECT']
+                      [%result-set expect-rows-1-a]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
@@ -3850,11 +4311,11 @@
                       [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%vector-count 32]
+                      [%vector-count 25]
                       ==
   =/  expected-2  :~  %results
                       [%message 'SELECT']
-                      [%result-set expect-2]
+                      [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
                       [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
@@ -3878,7 +4339,7 @@
                               " day         @ud,".
                               " day-name  @t)".
                               "  PRIMARY KEY (year, month DESC, day DESC);"
-                              insert-tbl2
+                              insert-tbl2-a
                               ==
   =.  run  +(run)
   =^  mov2  agent
