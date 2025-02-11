@@ -416,10 +416,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> = <column> types differ
 ++  test-fail-eq-01
@@ -477,10 +476,9 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 = col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> = <column> types differ
 ++  test-fail-eq-02
@@ -538,10 +536,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = col2 SELECT *"])
-      ==
 ::
 ::  NEQ
 ::
@@ -952,10 +949,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> <><column> types differ
 ++  test-fail-neq-01
@@ -1013,10 +1009,9 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <> col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> <> <column> types differ
 ++  test-fail-neq-02
@@ -1074,10 +1069,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
-      ==
 ::
 ::  GT
 ::
@@ -1574,10 +1568,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> > <column> types differ
 ++  test-fail-gt-01
@@ -1635,10 +1628,9 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 > col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> > <column> types differ
 ++  test-fail-gt-02
@@ -1696,10 +1688,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > col2 SELECT *"])
-      ==
 ::
 ::  LT
 ::
@@ -2152,10 +2143,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> < <column> types differ
 ++  test-fail-lt-01
@@ -2213,10 +2203,9 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 < col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> < <column> types differ
 ++  test-fail-lt-02
@@ -2274,10 +2263,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < col2 SELECT *"])
-      ==
 ::
 ::  GTE
 ::
@@ -2798,10 +2786,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> >= <column> types differ
 ++  test-fail-gte-01
@@ -2859,10 +2846,9 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 >= col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> >= <column> types differ
 ++  test-fail-gte-02
@@ -2920,10 +2906,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= col2 SELECT *"])
-      ==
 ::
 ::  LTE
 ::
@@ -3432,10 +3417,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> <= <column> types differ
 ++  test-fail-lte-01
@@ -3493,10 +3477,9 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <= col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> <= <column> types differ
 ++  test-fail-lte-02
@@ -3554,10 +3537,9 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])
-      ==
 ::
 ::  IN
 ::
@@ -3871,13 +3853,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col3 ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> IN (list @) types differ
 ++  test-fail-in-01
@@ -3932,13 +3913,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE 'ticolor' ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  NOT IN
 ::
@@ -4243,13 +4223,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col3 ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> NOT IN (list @) types differ
 ++  test-fail-not-in-01
@@ -4304,13 +4283,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE 'ticolor' ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  BETWEEN
 ::
@@ -4607,13 +4585,12 @@
           "[[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 BETWEEN ~1999.2.19 AND 'row1' ".
                   "SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> BETWEEN <column> AND <column> types differ
 ++  test-fail-between-01
@@ -4653,13 +4630,12 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE ~1999.2.19 BETWEEN col1 ".
                   "AND col2 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> BETWEEN <column> AND <column> types differ
 ++  test-fail-between-02
@@ -4700,12 +4676,11 @@
           "name=%my-table] %col1] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 BETWEEN col2 AND col3 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> BETWEEN <column> AND <column> range not ascending
 ++  test-fail-between-03
@@ -4745,13 +4720,12 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 BETWEEN ~2005.12.19 ".
                   "AND ~1999.2.19 SELECT *"
-      ==
 ::
 ::  NOT BETWEEN
 ::
@@ -5029,13 +5003,12 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 NOT BETWEEN ~1999.2.19 ".
                   "AND 'row1' SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> NOT BETWEEN <column> AND <column> types differ
 ++  test-fail-not-between-01
@@ -5075,13 +5048,12 @@
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE ~1999.2.19 NOT BETWEEN col1 ".
                   "AND col2 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> NOT BETWEEN <column> AND <column> types differ
 ++  test-fail-not-between-02
@@ -5121,12 +5093,11 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] [[%qualified-object ship=~ database=%db1 ".
           "namespace=%dbo name=%my-table] %col2]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 NOT BETWEEN col2 AND col3 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> NOT BETWEEN <column> AND <column> range not ascending
 ++  test-fail-not-between-03
@@ -5166,13 +5137,12 @@
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table] %col1] ".
           "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 NOT BETWEEN ~2005.12.19 ".
                   "AND ~1999.2.19 SELECT *"
-      ==
 ::
 ::  OR
 ::

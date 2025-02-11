@@ -62,6 +62,24 @@
     (lth -.p -.q)
   --
 ::
+::  +idx-comp-2
+::
+::  comparator for index mops
+++  idx-comp-2
+  |_  index=(list [@tas ?])
+  ++  order
+    ::|=  [p=(list @) q=(list @)]
+    |=  [a=[(list @) *] b=[(list @) *]]
+    =/  p  -.a
+    =/  q  -.b
+    =/  k=(list [@tas ?])  index
+    |-  ^-  ?
+    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
+    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  ->.k  (gth -.p -.q)
+    (lth -.p -.q)
+  --
+::
 ++  pri-key
   |=  key=(list [@tas ?])
         ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))

@@ -573,7 +573,7 @@
   ::
   %+  expect-fail-message
         'INSERT: table %my-table-1 as-of data time out of order'
-  |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
           %obelisk-action
           !>  :+  %test
                   %db1
@@ -592,7 +592,6 @@
                   "  ('next-today', ~2000.1.1)".
                   "  ('next-tomorrow', ~2000.1.2)".
                   "  ('next-next day', ~2000.1.3) AS OF ~2000.1.1;"
-      ==
 ::
 ::  create db, create tbl, insert with AS OF; DROP Table, fail select
 ++  test-fail-integrate-01
@@ -619,11 +618,10 @@
     %-  crip  
         "SELECT: table %db2.%dbo.%my-table-1 does not exist ".
         "at schema time ~2005.2.2"
-  |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
-      %obelisk-action
-      !>  :+  %test
-              %db1
-              "FROM db2..my-table-1 ".
-                "SELECT *"
-    ==
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db2..my-table-1 ".
+                    "SELECT *"
 --

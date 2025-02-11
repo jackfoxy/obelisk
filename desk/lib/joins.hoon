@@ -281,7 +281,7 @@
   ^-  (list (map qualified-object:ast (map @tas @)))
   ::join on foreign keys (to do)
   ::
-  ::join on pri-key
+  ::join on primary key
   =/  column-set-1  (silt columns:(need pri-indx.prior))
   =/  column-set-2  (silt columns:(need pri-indx.this))
   =/  join-columns
@@ -294,13 +294,34 @@
   ?~  join-columns  ~|  "no natural or foreign key join ".
                         "{<object.prior>} {<object.this>}"
                         !!
+  ?:  =(key.prior key.this)
+    %:  join-pri-key  (tap:(pri-key key.prior) pri-indexed.prior)
+                      (tap:(pri-key key.this) pri-indexed.this)
+                      object.prior
+                      object.this
+                      key.this
+                      ==
+  ::  key is same column order, but different order
+  ::  sort the little one
+  ?:  (gth rowcount.this rowcount.prior)
+    %:  join-pri-key  %+  sort  (tap:(pri-key key.prior) pri-indexed.prior)
+                                ~(order idx-comp-2 key.this)
+                      (tap:(pri-key key.this) pri-indexed.this)
+                      object.prior
+                      object.this
+                      key.this
+                      ==
   %:  join-pri-key  (tap:(pri-key key.prior) pri-indexed.prior)
-                    (tap:(pri-key key.this) pri-indexed.this)
+                    %+  sort  (tap:(pri-key key.this) pri-indexed.this)
+                              ~(order idx-comp-2 key.prior)
                     object.prior
                     object.this
-                    key.this
+                    key.prior
                     ==
 ::
+::  +join-pri-key
+::
+::  joins the data of two tables having the same key
 ++  join-pri-key
   |=  $:  a=(list [(list @) (map @tas @)])
           b=(list [(list @) (map @tas @)])
