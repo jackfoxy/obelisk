@@ -296,25 +296,23 @@
                         "{<object.prior>} {<object.this>}"
                         !!
   ?:  =(key.prior key.this)
-    %:  join-pri-key  (tap:(pri-key key.prior) pri-indexed.prior)
-                      (tap:(pri-key key.this) pri-indexed.this)
+    %:  join-pri-key  indexed-rows.prior
+                      indexed-rows.this
                       object.prior
                       object.this
                       key.this
                       ==
-  ::  key is same column order, but different order
+  ::  key is same column sequence, but different ordering
   ::  sort the little one
   ?:  (gth rowcount.this rowcount.prior)
-    %:  join-pri-key  %+  sort  (tap:(pri-key key.prior) pri-indexed.prior)
-                                ~(order idx-comp-2 key.this)
-                      (tap:(pri-key key.this) pri-indexed.this)
+    %:  join-pri-key  (sort indexed-rows.prior ~(order idx-comp-2 key.this))
+                      indexed-rows.this
                       object.prior
                       object.this
                       key.this
                       ==
-  %:  join-pri-key  (tap:(pri-key key.prior) pri-indexed.prior)
-                    %+  sort  (tap:(pri-key key.this) pri-indexed.this)
-                              ~(order idx-comp-2 key.prior)
+  %:  join-pri-key  indexed-rows.prior
+                    (sort indexed-rows.this ~(order idx-comp-2 key.prior))
                     object.prior
                     object.this
                     key.prior
