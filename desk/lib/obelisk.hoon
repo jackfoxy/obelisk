@@ -241,12 +241,18 @@
         results
           ?.  ->-.r
             :-  :-  %results
-                    :~  [%message (crip "TRUNCATE TABLE {<name.table.cmd>}")]
+                    :~  :-  %message
+                            %-  crip
+                                "TRUNCATE TABLE ".
+                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
                         [%message 'no data in table to truncate']
                         ==
                 results
           :-  :-  %results
-                  :~  [%message (crip "TRUNCATE TABLE {<name.table.cmd>}")]
+                  :~  :-  %message
+                            %-  crip
+                                "TRUNCATE TABLE ".
+                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
                       [%server-time now.bowl]
                       [%data-time -<.r]
                       [%vector-count ->+.r]
@@ -784,7 +790,8 @@
                                                             %insert
                                                             ==
                             ==
-      :~  [%message (crip "INSERT INTO {<name.table.ins>}")]
+      :~  :-  %message
+              (crip "INSERT INTO {<namespace.table.ins>}.{<name.table.ins>}")
           [%server-time now.bowl]
           [%schema-time tmsp.table]
           [%data-time sys-time]

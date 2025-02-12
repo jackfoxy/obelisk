@@ -1960,7 +1960,7 @@
   ::
   %+  expect-eq
     !>  :-  %results
-            :~  [%message 'TRUNCATE TABLE %my-table']
+            :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                 [%server-time ~2000.1.5]
                 [%data-time ~2000.1.5]
                 [%vector-count 1]

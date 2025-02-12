@@ -1063,7 +1063,7 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-            :~  [%message 'TRUNCATE TABLE %my-table']
+            :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                 [%message 'no data in table to truncate']
                 ==
     !>  ;;(cmd-result ->+>+>-.mov3)
@@ -1123,7 +1123,7 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-            :~  [%message 'TRUNCATE TABLE %my-table']
+            :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                 [%server-time ~2000.1.4]
                 [%data-time ~2000.1.4]
                 [%vector-count 1]
@@ -1364,7 +1364,7 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-          :~  [%message 'INSERT INTO %my-table']
+          :~  [%message 'INSERT INTO %dbo.%my-table']
               [%server-time ~2023.7.9..22.35.35..7e90]
               [%schema-time ~2023.7.9..22.35.35..7e90]
               [%data-time ~2023.7.9..22.35.36..7e90]

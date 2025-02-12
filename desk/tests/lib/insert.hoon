@@ -44,7 +44,7 @@
   =/  my-insert  "INSERT INTO db1..my-table (col1, col2, col3)  ".
                  "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
   =/  expected-1  :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2012.5.3]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -105,7 +105,7 @@
   =/  my-insert  "INSERT INTO db1..my-table (col1, col3, col2)  ".
                  "VALUES ('cord',20,~nomryg-nilref) ('Default', 0,Default)"
   =/  expected-1  :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2012.5.3]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -166,7 +166,7 @@
   =/  my-insert  "INSERT INTO db1..my-table (col3, col2, col1)  ".
                  "VALUES (20,~nomryg-nilref,'cord') (0,Default,'Default')"
   =/  expected-1  :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2012.5.3]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -227,7 +227,7 @@
   =/  my-insert  "INSERT INTO db1..my-table ".
                  "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0)"
   =/  expected-1  :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2012.5.3]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -290,7 +290,7 @@
   =/  my-insert-2  "INSERT INTO db1..my-table ".
                  "VALUES ('cord-2',~sampel-palnet,40) ('Default-2',Default, 0)"
   =/  expected-1  :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2012.5.4]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.4]
@@ -378,7 +378,7 @@
 ++  test-insert-06
   =|  run=@ud
   =/  expected-1  :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2012.5.3]
                           [%schema-time ~2012.5.1]
                           [%data-time ~2012.5.3]
@@ -1007,7 +1007,7 @@
 ++  test-fail-insert-19
   =|  run=@ud
   =/  expected  :-  %results
-                    :~  [%message 'INSERT INTO %my-table']
+                    :~  [%message 'INSERT INTO %dbo.%my-table']
                         [%server-time ~2000.1.4..15.01.02]
                         [%schema-time ~2000.1.2]
                         [%data-time ~2000.1.4..15.01.02]
