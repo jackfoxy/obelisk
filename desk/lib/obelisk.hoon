@@ -566,7 +566,7 @@
   ::
   =/  dropped-rows  rowcount.file
   =.  pri-idx.file    ~
-  =.  rows.file       ~
+  =.  indexed-rows.file       ~
   =.  rowcount.file   0
   =.  tmsp.file       sys-time
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
@@ -857,8 +857,8 @@
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj
-          %+  turn  rows.from-obj
-                    |=(a=(map @tas @) (~(put by init-map) object.from-obj a))
+          %+  turn  indexed-rows.from-obj
+                    |=(a=[(list @) (map @tas @)] (~(put by init-map) object.from-obj +.a))
   ::
   =/  vectors
       ?~  predicate.q

@@ -647,8 +647,7 @@
 ::
 ++  update-file
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list [@tas ?])]
-  =.  rows.file  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
-                            |=(a=[* (map @tas @)] +.a)
+  =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::

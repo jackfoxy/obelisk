@@ -79,7 +79,7 @@
       tmsp=@da
       rowcount=@
       pri-idx=(tree [(list @) (map @tas @)])
-      rows=(list (map @tas @))
+      indexed-rows=(list [(list @) (map @tas @)])
       ::    =indices
   ==
 +$  data-obj-key
@@ -164,7 +164,7 @@
       type-lookup=(map qualified-object (map @tas @ta))
       rowcount=@
       pri-indexed=(tree [(list @) (map @tas @)])
-      rows=(list (map @tas @))
+      indexed-rows=(list [(list @) (map @tas @)])
       joined-rows=(list (map qualified-object (map @tas @)))
   ==
 ::

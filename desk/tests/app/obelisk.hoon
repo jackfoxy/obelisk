@@ -340,19 +340,18 @@
             ~
     ==
 ++  content-insert
+  ^-  [@da =data]
   :-  ~2023.7.9..22.35.36..7e90
     :*  %data
         ~zod
         `path`/test-agent
         ~2023.7.9..22.35.36..7e90
-        :+  file-insert
-            ~
-            ~
+        file-insert
     ==
 ++  content-4
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
 ++  content-1b
-  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 file-4]]
+  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 ;;((map [@tas @tas] file) file-4)]]
 ++  content-1c
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 file-5]]
 ++  content-time-5
@@ -416,15 +415,17 @@
           ~
       ==
 ++  file-4
-  :+  :-  p=[%dbo %my-table]
+  ^-  (map [@tas @tas] file)
+  :+  :-  [%dbo %my-table]
           :*  %file
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.3
-              length=1
+              rowcount=1
               pri-idx=file-4-pri-idx
-              data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
-          ==
+              ^-  (list [(list @) (map @tas @)])
+                  ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
+              ==
       l=~
       r=~
 ++  file-5
@@ -433,9 +434,9 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.4
-              length=0
+              rowcount=0
               pri-idx=~
-              data=~
+              indexed-rows=~
           ==
       l=~
       r=~
@@ -445,20 +446,24 @@
           ship=~zod
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
-          length=0
+          rowcount=0
           pri-idx=~
-          data=~
+          indexed-rows=~
       ==
 ++  file-insert
-  :-  p=[%dbo %my-table]
-      :*  %file
-          ship=~zod
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.35.36..7e90
-          length=1
-          pri-idx=file-4-pri-idx
-          data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
-      ==
+  ^-  (map [@tas @tas] file)
+  :+  :-  p=[%dbo %my-table]
+          :*  %file
+              ship=~zod
+              provenance=`path`/test-agent
+              tmsp=~2023.7.9..22.35.36..7e90
+              rowcount=1
+              pri-idx=file-4-pri-idx
+              ^-  (list [(list @) (map @tas @)])
+                  ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
+              ==
+      l=~
+      r=~
 ++  file-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::
@@ -1003,7 +1008,7 @@
     !>  %:  mk-db  %db1
                    ~2000.1.1
                    ~[(sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
-                   ~[content-4 content-1b content-2 content-1]
+                   ~[;;([@da =data] content-4) ;;([@da =data] content-1b) ;;([@da =data] content-2) ;;([@da =data] content-1)]
                    :~  [%sys %tables ~2000.1.2]
                        [%sys %columns ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
@@ -1128,7 +1133,7 @@
     !>  %:  mk-db  %db1
                   ~2000.1.1
                   ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
-                  ~[content-1c content-1b content-2 content-1]
+                  ~[;;([@da =data] content-1c) ;;([@da =data] content-1b) ;;([@da =data] content-2) ;;([@da =data] content-1)]
                   :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
                        [%sys %tables ~2000.1.3]
@@ -1329,7 +1334,7 @@
   ==
 ::
 ::
-::  time, insert as of 1 second > schema
+::::  time, insert as of 1 second > schema
 ++  test-time-insert-gt-schema
   =|  run=@ud
   =^  mov1  agent
@@ -1375,7 +1380,7 @@
                    :~  (time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
                        (sys1 ~2000.1.1)
                        ==
-                   ~[content-insert content-my-table content-1]
+                   ~[;;([@da =data] content-insert) ;;([@da =data] content-my-table) ;;([@da =data] content-1)]
                    :~  [%sys %sys-log ~2023.7.9..22.35.35..7e90]
                        [%sys %columns ~2023.7.9..22.35.35..7e90]
                        [%sys %tables ~2023.7.9..22.35.35..7e90]

@@ -176,7 +176,7 @@
                     (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
                 rowcount.file
                 pri-idx.file
-                rows.file
+                indexed-rows.file
                 ~
                 ==
 ::
@@ -236,7 +236,8 @@
                     (malt (turn columns.view |=(a=column:ast [name.a type.a])))
                 rowcount.view-content
                 ~
-                rows.view-content
+                %+  turn  rows.view-content
+                          |=(a=(map @tas @) [~ a])
                 ~
                 ==
 ::
