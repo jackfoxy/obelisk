@@ -560,6 +560,7 @@
       %^  next-view-cache-keys  db
                               sys-time
                               :~  [%sys %tables]
+                                  [%sys %table-keys]
                                   [%sys %columns]
                                   [%sys %sys-log]
                                   [%sys %data-log]
@@ -570,6 +571,7 @@
       %^  next-view-cache-keys  db
                               sys-time
                               :~  [%sys %tables]
+                                  [%sys %table-keys]
                                   [%sys %columns]
                                   [%sys %sys-log]
                                   [%sys %data-log]

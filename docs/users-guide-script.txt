@@ -112,7 +112,7 @@
 
 # Joins
 
-=uql "FROM sys.tables ".
+=uql "FROM sys.table-keys ".
      "WHERE namespace = 'reference' ".
      "AND name = 'calendar' ".
      " OR name = 'calendar-us-fed-holiday' ".    

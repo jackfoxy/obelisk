@@ -5,15 +5,15 @@ The `<query>` command provides a means to create `<table-set>`s derived from per
 
 ```
 <query> ::=
-  [ FROM <table-set> [ [AS] <alias> ] [ <as-of-time> ]
-    { JOIN <table-set> [ [AS] <alias> ] [ <as-of-time> ] }
+  [ FROM <table-set> [ <as-of-time> ] [ [AS] <alias> ]
+    { JOIN <table-set> [ <as-of-time> ] [ [AS] <alias> ] }
     | {
         { JOIN | LEFT JOIN | RIGHT JOIN | OUTER JOIN }
-          <table-set> [ [AS] <alias> ] [ <as-of-time> ]
+          <table-set> [ <as-of-time> ] [ [AS] <alias> ]
           ON <predicate>
       } 
     [ ...n ]
-    | CROSS JOIN <table-set> [ [AS] <alias> ] [ <as-of-time> ]
+    | CROSS JOIN <table-set> [ <as-of-time> ] [ [AS] <alias> ]
   ]
   [ WHERE <predicate> ]
   [ GROUP BY { <qualified-column> 
