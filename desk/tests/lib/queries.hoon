@@ -4792,7 +4792,7 @@
        !>  :+  %tape
                %db1
                "FROM calendar T1 ".
-               "JOIN calendar AS OF ~2012.6.1 T2 ".
+               "JOIN calendar AS OF ~2012.5.29 T2 ".
                "SELECT T1.day-name, T2.*"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov3))

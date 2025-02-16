@@ -864,24 +864,28 @@
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
   =.  selected  (fix-selected selected qualifier-lookup)
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+  =/  init-map=joined-row  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj
           %+  turn  indexed-rows.from-obj
-                    |=(a=[(list @) (map @tas @)] (~(put by init-map) object.from-obj +.a))
+                    |=(a=[(list @) (map @tas @)] (~(put by init-map) [object.from-obj alias.from-obj] +.a))
   ::
   =/  vectors
       ?~  predicate.q
-          %+  select-columns  joined-rows.from-obj
-                             (mk-vect-templ qualified-columns.from-obj selected)
-      %^  select-columns-filtered  joined-rows.from-obj
-                                     %+  mk-vect-templ
-                                          qualified-columns.from-obj
-                                          selected
-                                     %^  pred-ops-and-conjs
-                                         (need predicate.q)
-                                         type-lookup.from-obj
-                                         qualifier-lookup
+          %^  select-columns  joined-rows.from-obj
+                              alias.from-obj
+                              %+  mk-vect-templ  qualified-columns.from-obj
+                                                 selected
+      %:  select-columns-filtered  joined-rows.from-obj
+                                   alias.from-obj
+                                   %+  mk-vect-templ
+                                       qualified-columns.from-obj
+                                       selected
+                                   %^  pred-ops-and-conjs
+                                       (need predicate.q)
+                                       type-lookup.from-obj
+                                       qualifier-lookup
+                                   ==
   ::
   %:  data-obj  %data-obj
                 schema-tmsp.from-obj
@@ -892,12 +896,13 @@
                 ==
 ::
 ::  +select-columns:
-::    [(list (map qualified-object:ast (map @tas @))) (list templ-cell)]
+::    [(list joined-row) (unit @t) (list templ-cell)]
 ::    -> (list (map @tas @))
 ::
 ::  select columns from join
 ++   select-columns
-  |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
+  |=  $:  rows=(list joined-row)
+          alias=(unit @t)
           cells=(list templ-cell)
           ==
   ~+  ^-  (list vector)
@@ -917,18 +922,20 @@
   ?~  object.i.cols                         :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols            :: case: is table column
+  =/  key  [qualifier:(need object.cell) alias]
   %=  $
     cols  t.cols
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier:(need object.cell)))
+                  %-  ~(got by (~(got by i.rows) key))
                       column:(need object.cell)
             row
   ==
 ::
 ::  +select-columns-filtered:
-::    $:  (list (map qualified-object:ast (map @tas @)))
+::    $:  (list joined-row)
+::        (unit @t)
 ::        (list templ-cell)
 ::        $-((map @tas @) ?)
 ::        -> (list (map @tas @))
@@ -936,9 +943,10 @@
 ::  select columns from join
 ::  rejects rows that do not pass filter
 ++   select-columns-filtered
-  |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
+  |=  $:  rows=(list joined-row)
+          alias=(unit @t)
           cells=(list templ-cell)
-          filter=$-((map qualified-object:ast (map @tas @)) ?)
+          filter=$-(joined-row ?)
           ==
   ~+  ^-  (list vector)  
   =/  out-rows=(list vector)  ~
@@ -959,12 +967,13 @@
   ?~  object.i.cols                   :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols              :: case: is table column
+  =/  key  [qualifier:(need object.cell) alias]
   %=  $
     cols  t.cols
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier:(need object.cell)))
+                  %-  ~(got by (~(got by i.rows) key))
                       column:(need object.cell)
             row
   ==

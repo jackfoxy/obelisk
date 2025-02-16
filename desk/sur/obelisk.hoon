@@ -153,6 +153,7 @@
 +$  from-obj
   $:  %from-obj
       object=qualified-object
+      alias=(unit @t)
       schema-tmsp=@da
       data-tmsp=@da
       columns=(list column)
@@ -161,12 +162,14 @@
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
-      type-lookup=(map qualified-object (map @tas @ta))
+      type-lookup=(map [qualified-object (unit @t)] (map @tas @ta))
       rowcount=@
       pri-indexed=(tree [(list @) (map @tas @)])
       indexed-rows=(list [(list @) (map @tas @)])
-      joined-rows=(list (map qualified-object (map @tas @)))
+      joined-rows=(list joined-row)
   ==
+::
++$  joined-row  (map [qualified-object (unit @t)] (map @tas @))
 ::
 +$  relation
   $:

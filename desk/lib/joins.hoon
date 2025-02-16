@@ -65,7 +65,6 @@
                   |=(a=selected-column:ast ?=(qualified-column:ast a))
 
   =/  relat=relation  -.relations
-  ::=/  =table-set:ast  table-set.relat
   =.  relations       +.relations
   =/  query-obj=qualified-object:ast
       ?:  ?=(qualified-object:ast object.table-set.relat)
@@ -79,9 +78,13 @@
                     "doesn't exist at time {<sys-time>}"
                (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
+  =/  alias  ?~  alias.table-set.relat
+               ~
+             `(crip (cass (trip (need alias.table-set.relat))))
   ::
   =/  from-objects=(list from-obj)
       %-  limo  :~  ?~  vw  %:  from-table  query-obj
+                                            alias
                                             db
                                             schema
                                             ~
@@ -91,6 +94,7 @@
                                             ~
                                             ==
                         %:  from-view  query-obj
+                                       alias
                                        db
                                        schema
                                        (need vw)
@@ -116,26 +120,31 @@
                          "doesn't exist at time {<sys-time>}"
                          (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
+  =.  alias  ?~  alias.table-set.relat
+               ~
+             `(crip (cass (trip (need alias.table-set.relat))))
   ::
   =/  prior=from-obj  -.from-objects
   =/  joined-obj  ?~  vw  %:  from-table  query-obj
-                                              db
-                                              schema
-                                              join.relat
-                                              predicate.relat
-                                              sys-time
-                                              type-lookup.prior
-                                              qualified-columns.prior
-                                              ==
+                                          alias
+                                          db
+                                          schema
+                                          join.relat
+                                          predicate.relat
+                                          sys-time
+                                          type-lookup.prior
+                                          qualified-columns.prior
+                                          ==
                       %:  from-view  query-obj
-                                      db
-                                      schema
-                                      (need vw)
-                                      relat
-                                      sys-time
-                                      type-lookup.prior
-                                      qualified-columns.prior
-                                      ==
+                                     alias
+                                     db
+                                     schema
+                                     (need vw)
+                                     relat
+                                     sys-time
+                                     type-lookup.prior
+                                     qualified-columns.prior
+                                     ==
   ::
   =.  joined-rows.joined-obj  (join-up prior joined-obj)
   ::
@@ -146,12 +155,13 @@
 ::
 ++  from-table
   |=  $:  query-obj=qualified-object:ast
+          alias=(unit @t)
           db=database
           =schema
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
           sys-time=@da
-          type-lookup=(map qualified-object:ast (map @tas @ta))
+          type-lookup=(map [qualified-object:ast (unit @t)] (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
           ==
   ^-  from-obj
@@ -163,6 +173,7 @@
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   %:  from-obj  %from-obj
                 query-obj
+                alias
                 tmsp.tbl
                 tmsp.file
                 columns.tbl
@@ -172,7 +183,7 @@
                 join
                 predicate
                 %+  ~(put by type-lookup)  
-                    query-obj
+                    [query-obj alias]
                     (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
                 rowcount.file
                 pri-idx.file
@@ -199,12 +210,13 @@
 ::
 ++  from-view
   |=  $:  query-obj=qualified-object:ast
+          alias=(unit @t)
           db=database
           =schema
           =view
           relat=relation
           sys-time=@da
-          type-lookup=(map qualified-object:ast (map @tas @ta))
+          type-lookup=(map [qualified-object:ast (unit @t)] (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
           ==
   ^-  from-obj
@@ -223,6 +235,7 @@
              state
   %:  from-obj  %from-obj
                 query-obj
+                alias
                 tmsp.schema
                 tmsp.+.r
                 columns.view
@@ -232,7 +245,7 @@
                 join.relat
                 predicate.relat
                 %+  ~(put by type-lookup)  
-                    query-obj
+                    [query-obj alias]
                     (malt (turn columns.view |=(a=column:ast [name.a type.a])))
                 rowcount.view-content
                 ~
@@ -263,7 +276,7 @@
 ::
 ++  join-up
   |=  [prior=from-obj this=from-obj]
-  ^-  (list (map qualified-object:ast (map @tas @)))
+  ^-  (list joined-row)
   ?-  (need join.this)
     %join
       ?:  =(~ predicate.this)  (join-natural prior this)
@@ -279,7 +292,7 @@
   ==
 ++  join-natural
   |=  [prior=from-obj this=from-obj]
-  ^-  (list (map qualified-object:ast (map @tas @)))
+  ^-  (list joined-row)
   ::join on foreign keys (to do)
   ::
   ::join on primary key
@@ -298,8 +311,8 @@
   ?:  =(key.prior key.this)
     %:  join-pri-key  indexed-rows.prior
                       indexed-rows.this
-                      object.prior
-                      object.this
+                      [object.prior alias.prior]
+                      [object.this alias.this]
                       key.this
                       ==
   ::  key is same column sequence, but different ordering
@@ -307,14 +320,14 @@
   ?:  (gth rowcount.this rowcount.prior)
     %:  join-pri-key  (sort indexed-rows.prior ~(order idx-comp-2 key.this))
                       indexed-rows.this
-                      object.prior
-                      object.this
+                      [object.prior alias.prior]
+                      [object.this alias.this]
                       key.this
                       ==
   %:  join-pri-key  indexed-rows.prior
                     (sort indexed-rows.this ~(order idx-comp-2 key.prior))
-                    object.prior
-                    object.this
+                    [object.prior alias.prior]
+                    [object.this alias.this]
                     key.prior
                     ==
 ::
@@ -324,13 +337,13 @@
 ++  join-pri-key
   |=  $:  a=(list [(list @) (map @tas @)])
           b=(list [(list @) (map @tas @)])
-          a-qual=qualified-object:ast
-          b-qual=qualified-object:ast
+          a-qual=[qualified-object:ast (unit @t)]
+          b-qual=[qualified-object:ast (unit @t)]
           key=(list [@tas ?])
           ==
-  ^-  (list (map qualified-object:ast (map @tas @)))
-  =/  c=(list (map qualified-object:ast (map @tas @)))  ~
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+  ^-  (list joined-row)
+  =/  c=(list joined-row)  ~
+  =/  init-map=joined-row  ~
   ::
   |-
   ?~  a  c

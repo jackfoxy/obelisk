@@ -413,7 +413,7 @@
 ::
 ++  fix-selected
   |=  $:  selected=(list selected-column:ast)
-          qualifier-lookup=(map @tas (list qualified-object:ast))
+          qualifier-lookup=(map @tas (list [qualified-object:ast (unit @t)]))
           ==
   =/  selected-out=(list selected-column:ast)  ~
   |-
@@ -437,7 +437,7 @@
     selected      +.selected
     selected-out  :-  ^-  selected-column:ast
                       %:  qualified-column:ast  %qualified-column
-                                                -.qualifiers
+                                                -<.qualifiers
                                                 column.sel
                                                 alias.sel
                                                 ==
@@ -605,8 +605,8 @@
 ::  is unqualified.
 ++  mk-qualifier-lookup
     |=  [sources=(list from-obj) selected-columns=(list selected-column:ast)]
-    ^-  (map @tas (list qualified-object:ast))
-    =/  lookup=(map @tas (list qualified-object:ast))  ~
+    ^-  (map @tas (list [qualified-object:ast (unit @t)]))
+    =/  lookup=(map @tas (list [qualified-object:ast (unit @t)]))  ~
     |-
     ?~  sources  lookup
     =/  source=from-obj  -.sources
@@ -619,8 +619,10 @@
       lookup   ?:  (~(has by lookup) name.col)
                  %+  ~(put by lookup)
                         name.col
-                        [object.source (~(got by lookup) name.col)]
-               (~(put by lookup) name.col (limo ~[object.source]))
+                        :-  [object.source alias.source]
+                            (~(got by lookup) name.col)
+               %+  ~(put by lookup)  name.col
+                                     (limo ~[[object.source alias.source]])
     ==
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
