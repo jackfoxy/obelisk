@@ -97,6 +97,7 @@
     database=@tas
     namespace=@tas
     name=@tas
+    alias=(unit @t)
   ==
 +$  qualified-column
   $+  qualified-column
@@ -212,13 +213,13 @@
   $:
     %table-set
     object=query-source
-    alias=(unit @t)
   ==
 ::
 +$  query-source  $%(qualified-object query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row
+    alias=(unit @t)
     (list @t)
   ==
 ::

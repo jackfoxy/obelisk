@@ -1154,7 +1154,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~]
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
             [%column name='col3' column-type=%ud]
@@ -1186,6 +1186,7 @@
             database='db1'
             namespace='ns1'
             name='my-table'
+            alias=~
         ==
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
@@ -1218,6 +1219,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
@@ -1256,6 +1258,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
@@ -1406,6 +1409,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
@@ -1443,6 +1447,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
@@ -1483,6 +1488,7 @@
 ::            database='db1'
 ::            namespace='dbo'
 ::            name='my-table'
+::            alias=~
 ::        ==
 ::        :~  [%column name='col1' column-type=%t]
 ::            [%column name='col2' column-type=%p]
@@ -1743,6 +1749,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.n
         ~
@@ -1783,6 +1790,7 @@
             database='db'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.n
         ~
@@ -1809,6 +1817,7 @@
             database='db1'
             namespace='ns1'
             name='my-table'
+            alias=~
         ==
         %.n
         ~
@@ -1835,6 +1844,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.n
         ~
@@ -1972,7 +1982,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~]
         ~
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
@@ -1992,7 +2002,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-       [%qualified-object ship=~ database='db1' namespace='ns1' name='my-table']
+       [%qualified-object ship=~ database='db1' namespace='ns1' name='my-table' alias=~]
         ~
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
@@ -2017,6 +2027,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         ~
   =^  mov1  agent

@@ -860,7 +860,7 @@
   ?~  sources  ~|("can't get here" !!)
   =/  single-source  =(1 (lent sources)) 
   =/  =from-obj  ?:  single-source  -.sources
-                                    -:(flop sources)
+                 -:(flop sources)
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
   =.  selected  (fix-selected selected qualifier-lookup)
@@ -869,23 +869,26 @@
         ?.  single-source  joined-rows.from-obj
           %+  turn  indexed-rows.from-obj
                     |=(a=[(list @) (map @tas @)] (~(put by init-map) [object.from-obj alias.from-obj] +.a))
+
+    ~&  "joined-rows.from-obj:  {<joined-rows.from-obj>}"
+    ~&  " "
+    ~&  "selected:  {<selected>}"
+    ~&  " "
+
   ::
   =/  vectors
       ?~  predicate.q
-          %^  select-columns  joined-rows.from-obj
-                              alias.from-obj
+          %+  select-columns  joined-rows.from-obj
                               %+  mk-vect-templ  qualified-columns.from-obj
                                                  selected
-      %:  select-columns-filtered  joined-rows.from-obj
-                                   alias.from-obj
+      %^  select-columns-filtered  joined-rows.from-obj
                                    %+  mk-vect-templ
-                                       qualified-columns.from-obj
-                                       selected
+                                         qualified-columns.from-obj
+                                         selected
                                    %^  pred-ops-and-conjs
-                                       (need predicate.q)
-                                       type-lookup.from-obj
-                                       qualifier-lookup
-                                   ==
+                                         (need predicate.q)
+                                         type-lookup.from-obj
+                                         qualifier-lookup
   ::
   %:  data-obj  %data-obj
                 schema-tmsp.from-obj
@@ -902,7 +905,6 @@
 ::  select columns from join
 ++   select-columns
   |=  $:  rows=(list joined-row)
-          alias=(unit @t)
           cells=(list templ-cell)
           ==
   ~+  ^-  (list vector)
@@ -922,7 +924,12 @@
   ?~  object.i.cols                         :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols            :: case: is table column
-  =/  key  [qualifier:(need object.cell) alias]
+  =/  key  [qualifier:(need object.cell) ~]
+
+    ~&  "key:  {<key>}"
+    ~&  "rows:  {<rows>}"
+    ~&  " "
+
   %=  $
     cols  t.cols
     row   :-
@@ -935,7 +942,6 @@
 ::
 ::  +select-columns-filtered:
 ::    $:  (list joined-row)
-::        (unit @t)
 ::        (list templ-cell)
 ::        $-((map @tas @) ?)
 ::        -> (list (map @tas @))
@@ -944,7 +950,6 @@
 ::  rejects rows that do not pass filter
 ++   select-columns-filtered
   |=  $:  rows=(list joined-row)
-          alias=(unit @t)
           cells=(list templ-cell)
           filter=$-(joined-row ?)
           ==
@@ -967,7 +972,7 @@
   ?~  object.i.cols                   :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols              :: case: is table column
-  =/  key  [qualifier:(need object.cell) alias]
+  =/  key  [qualifier:(need object.cell) ~]
   %=  $
     cols  t.cols
     row   :-

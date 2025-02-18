@@ -39,14 +39,14 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             %sys
                             %sys
                             %databases
+                            ~
                             ==
-                        ~  ::alias=(unit @t)
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
@@ -62,6 +62,7 @@
                             %sys                 ::database=@tas
                             %sys                 ::namespace=@tas
                             %databases           ::name=@tas
+                            ~
                             ==
                         %database              ::column=@tas
                         `%database             ::alias=(unit @t)
@@ -71,6 +72,7 @@
                             %sys                 ::database=@tas
                             %sys                 ::namespace=@tas
                             %databases           ::name=@tas
+                            ~
                             ==
                         %sys-agent             ::column=@tas
                         `%sys-agent            ::alias=(unit @t)
@@ -80,6 +82,7 @@
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
                             %databases         ::name=@tas
+                            ~
                             ==
                         %sys-tmsp            ::column=@tas
                         `%sys-tmsp           ::alias=(unit @t)
@@ -89,6 +92,7 @@
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
                             %databases         ::name=@tas
+                            ~
                             ==
                         %data-ship           ::column=@tas
                         `%data-ship          ::alias=(unit @t)
@@ -98,6 +102,7 @@
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
                             %databases         ::name=@tas
+                            ~
                             ==
                         %data-agent          ::column=@tas
                         `%data-agent         ::alias=(unit @t)
@@ -107,6 +112,7 @@
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
                             %databases         ::name=@tas
+                            ~
                             ==
                         %data-tmsp          ::column=@tas
                         `%data-tmsp         ::alias=(unit @t)
@@ -119,6 +125,7 @@
                         %sys        ::database=@tas
                         %sys        ::namespace=@tas
                         %databases  ::name=@tas
+                        ~
                         ==
                     %database  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -130,6 +137,7 @@
                         %sys        ::database=@tas
                         %sys        ::namespace=@tas
                         %databases  ::name=@tas
+                        ~
                         ==
                     %sys-tmsp  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -141,6 +149,7 @@
                         %sys        ::database=@tas
                         %sys        ::namespace=@tas
                         %databases  ::name=@tas
+                        ~
                         ==
                     %data-tmsp  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -182,14 +191,14 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             database
                             %sys
                             %namespaces
+                            ~
                             ==
-                        ~                      ::alias=(unit @t)
                     ~  ::(unit as-of)
                     ~               ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
@@ -205,6 +214,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %namespaces          ::name=@tas
+                            ~
                             ==
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
@@ -214,6 +224,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %namespaces          ::name=@tas
+                            ~
                             ==
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
@@ -226,6 +237,7 @@
                         database     ::database=@tas
                         %sys         ::namespace=@tas
                         %namespaces  ::name=@tas
+                        ~
                         ==
                     %tmsp  ::column=@tas
                     ~    ::alias=(unit @t)
@@ -237,6 +249,7 @@
                         database     ::database=@tas
                         %sys         ::namespace=@tas
                         %namespaces  ::name=@tas
+                        ~
                         ==
                     %namespace  ::column=@tas
                     ~    ::alias=(unit @t)
@@ -279,14 +292,14 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             database
                             %sys
                             %tables
+                            ~
                             ==
-                        ~  ::alias=(unit @t)
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
@@ -302,6 +315,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
@@ -311,6 +325,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
@@ -320,6 +335,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %agent                 ::column=@tas
                         `%agent                ::alias=(unit @t)
@@ -329,6 +345,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
@@ -338,6 +355,7 @@
                             database           ::database=@tas
                             %sys               ::namespace=@tas
                             %tables            ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %row-count           ::column=@tas
                         ~                    ::alias=(unit @t)
@@ -350,6 +368,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %tables  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %namespace  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -361,6 +380,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %tables  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %name      ::column=@tas
                     ~  ::alias=(unit @t)
@@ -397,14 +417,14 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             database
                             %sys
                             %table-keys
+                            ~                    ::alias=(unit @t)
                             ==
-                        ~  ::alias=(unit @t)
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
@@ -420,6 +440,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
@@ -429,6 +450,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
@@ -438,6 +460,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %key-ordinal           ::column=@tas
                         `%key-ordinal          ::alias=(unit @t)
@@ -447,6 +470,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %key                   ::column=@tas
                         `%key                  ::alias=(unit @t)
@@ -456,6 +480,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %tables              ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %key-ascending         ::column=@tas
                         `%key-ascending        ::alias=(unit @t)
@@ -468,6 +493,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %tables  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %namespace  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -479,6 +505,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %tables  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %name      ::column=@tas
                     ~  ::alias=(unit @t)
@@ -490,6 +517,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %tables  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %key-ordinal  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -524,14 +552,14 @@
     :+  :*  %query
             :-  ~          ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             database
                             %sys
                             %columns
+                            ~                    ::alias=(unit @t)
                             ==
-                        ~  ::alias=(unit @t)
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
@@ -547,6 +575,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %columns             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
@@ -556,6 +585,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %columns             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
@@ -565,6 +595,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %columns             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %col-ordinal           ::column=@tas
                         `%col-ordinal          ::alias=(unit @t)
@@ -574,6 +605,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %columns             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %col-name              ::column=@tas
                         `%col-name             ::alias=(unit @t)
@@ -583,6 +615,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %columns             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %col-type              ::column=@tas
                         `%col-type             ::alias=(unit @t)
@@ -595,6 +628,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %columns    ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %namespace  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -606,6 +640,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %columns    ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %name      ::column=@tas
                     ~  ::alias=(unit @t)
@@ -617,6 +652,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %columns  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %col-ordinal  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -650,14 +686,14 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             database
                             %sys
                             %sys-log
+                            ~                    ::alias=(unit @t)
                             ==
-                        ~  ::alias=(unit @t)
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
@@ -673,6 +709,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %sys-log             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
@@ -682,6 +719,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %sys-log             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %agent                 ::column=@tas
                         `%agent                ::alias=(unit @t)
@@ -691,6 +729,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %sys-log             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %component             ::column=@tas
                         `%component            ::alias=(unit @t)
@@ -700,6 +739,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %sys-log             ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
@@ -712,6 +752,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %sys-log    ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %tmsp  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -723,6 +764,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %sys-log    ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %component      ::column=@tas
                     ~  ::alias=(unit @t)
@@ -734,6 +776,7 @@
                         database    ::database=@tas
                         %sys        ::namespace=@tas
                         %sys-log  ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %name  ::column=@tas
                     ~  ::alias=(unit @t)
@@ -769,14 +812,14 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :+  %table-set  ::object=table-set
+                    :-  %table-set  ::object=table-set
                         :*  %qualified-object  ::object=query-source
                             ~
                             database
                             %sys
                             %data-log
+                            ~                    ::alias=(unit @t)
                             ==
-                        ~                      ::alias=(unit @t)
                     ~       ::(unit as-of)
                     ~       ::joins=(list joined-object)
             ~            ::scalars=(list scalar-function)
@@ -792,6 +835,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %data-log            ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
@@ -801,6 +845,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %data-log            ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %ship                ::column=@tas
                         `%ship               ::alias=(unit @t)
@@ -810,6 +855,7 @@
                             database           ::database=@tas
                             %sys               ::namespace=@tas
                             %data-log           ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %agent               ::column=@tas
                         `%agent              ::alias=(unit @t)
@@ -819,6 +865,7 @@
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
                             %data-log            ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
@@ -827,7 +874,8 @@
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
-                            %data-log             ::name=@tas
+                            %data-log            ::name=@tas
+                            ~                    ::alias=(unit @t)
                             ==
                         %table                 ::column=@tas
                         `%table                ::alias=(unit @t)
@@ -836,10 +884,11 @@
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
                     :*  %qualified-object  ::qualifier
-                        ~                      ::ship=(unit @p)
-                        database               ::database=@tas
-                        %sys                   ::namespace=@tas
-                        %data-log              ::name=@tas
+                        ~                    ::ship=(unit @p)
+                        database             ::database=@tas
+                        %sys                 ::namespace=@tas
+                        %data-log            ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %tmsp                  ::column=@tas
                     ~                      ::alias=(unit @t)
@@ -847,10 +896,11 @@
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
                     :*  %qualified-object  ::qualifier
-                        ~                      ::ship=(unit @p)
-                        database               ::database=@tas
-                        %sys                   ::namespace=@tas
-                        %data-log              ::name=@tas
+                        ~                    ::ship=(unit @p)
+                        database             ::database=@tas
+                        %sys                 ::namespace=@tas
+                        %data-log            ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %namespace             ::column=@tas
                     ~                      ::alias=(unit @t)
@@ -858,10 +908,11 @@
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
                     :*  %qualified-object  ::qualifier
-                        ~           ::ship=(unit @p)
-                        database    ::database=@tas
-                        %sys        ::namespace=@tas
-                        %data-log   ::name=@tas
+                        ~                    ::ship=(unit @p)
+                        database             ::database=@tas
+                        %sys                 ::namespace=@tas
+                        %data-log            ::name=@tas
+                        ~                    ::alias=(unit @t)
                         ==
                     %table  ::column=@tas
                     ~       ::alias=(unit @t)

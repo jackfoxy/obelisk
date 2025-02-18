@@ -2212,6 +2212,7 @@
                   database='db1'
                   namespace='ref'
                   name='my-table'
+                  alias=~
               ==
               %.y
               ~

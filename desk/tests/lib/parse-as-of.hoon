@@ -12,21 +12,17 @@
 ::  TABLE SET
 ::
 ++  foo-unaliased
-  :+  %table-set 
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='foo']
-      ~         ::alias
+  :-  %table-set 
+      [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
 ++  foo-aliased
-  :+  %table-set
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='foo']
-      [~ 'F1']  ::alias
+  :-  %table-set
+      [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'F1']]
 ++  bar-unaliased
-  :+  %table-set
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='bar']
-      ~         ::alias
+  :-  %table-set
+      [%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]
 ++  bar-aliased
-  :+  %table-set
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='bar']
-      [~ 'B1']  ::alias
+  :-  %table-set
+      [%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=[~ 'B1']]
 ::
 ::  JOIN
 ::
@@ -76,14 +72,14 @@
           ==
       :*  %joined-object
           %left-join
-          :+  %table-set
+          :-  %table-set
               :*  %qualified-object
                   ~      ::ship
                   'db1'  ::database
                   'dbo'  ::namespace
                   'baz'  ::name
+                  ~      ::alias
                   ==
-              ~  ::alias
           [~ time]  ::as-of
           `one-eq-1
           ==
@@ -98,14 +94,14 @@
           ==
       :*  %joined-object
           %left-join
-          :+  %table-set
+          :-  %table-set
               :*  %qualified-object
                   ~      ::ship
                   'db1'  ::database
                   'dbo'  ::namespace
                   'baz'  ::name
+                  [~ 'b2']      ::alias
                   ==
-              [~ 'b2']
           [~ time]         ::as-of
           `one-eq-1
           ==
@@ -330,22 +326,21 @@
               :-
                 ~
                 :^  %from
-                    [%table-set [%qualified-object ~ %db1 %dbo %foo] [~ 'F1']]
+                    [%table-set [%qualified-object ~ %db1 %dbo %foo [~ 'F1']]]
                     [~ [%dr ~h5.m30.s12]]
                     :~
                       :*  %joined-object
                           %join
-                          :+  %table-set
-                              [%qualified-object ~ %db1 %dbo %bar]
-                              [~ 'B2']
+                          :-  %table-set
+                              [%qualified-object ~ %db1 %dbo %bar [~ 'B2']]
+                              
                           as-of=[~ [%da ~2000.1.1]]
                           predicate=~
                           ==
                       :*  %joined-object
                           %left-join
-                          :+  %table-set
-                              [%qualified-object ~ %db1 %dbo %baz]
-                              [~ 'B3']
+                          :-  %table-set
+                              [%qualified-object ~ %db1 %dbo %baz [~ 'B3']]
                           as-of=[~ [%da ~2000.1.1]]
                           :-  ~
                               :+  %eq
@@ -354,17 +349,15 @@
                           ==
                       :*  %joined-object
                           %join
-                          :+  %table-set
-                              [%qualified-object ~ %db1 %dbo %bar]
-                              [~ 'B4']
+                          :-  %table-set
+                              [%qualified-object ~ %db1 %dbo %bar [~ 'B4']]
                           as-of=~
                           predicate=~
                           ==
                       :*  %joined-object
                           %left-join
-                          :+  %table-set
-                              [%qualified-object ~ %db1 %dbo %bar]
-                              alias=~
+                          :-  %table-set
+                              [%qualified-object ~ %db1 %dbo %bar ~]
                           as-of=~
                           :-  ~
                               :+  %eq
@@ -373,9 +366,8 @@
                           ==
                       :*  %joined-object
                           %join
-                          :+  %table-set
-                              [%qualified-object ~ %db1 %dbo %foo]
-                              alias=~
+                          :-  %table-set
+                              [%qualified-object ~ %db1 %dbo %foo ~]
                           [~ [%as-of-offset offset=2 units=%minutes]]
                           :-  ~
                               :+  %eq

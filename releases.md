@@ -3,8 +3,9 @@
 ## v0.5 alpha
 
 * SELECT all from table in JOIN
-* joined-object AST refactored
-* natural join on primary keys when key column ordering differs
+* refactored multiple AST components
+* natural JOIN on primary keys when key column ordering differs
+* fixed several JOIN bugs
 * updated docs
 
 ## v0.4a alpha

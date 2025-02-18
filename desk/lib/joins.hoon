@@ -78,9 +78,10 @@
                     "doesn't exist at time {<sys-time>}"
                (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
-  =/  alias  ?~  alias.table-set.relat
-               ~
-             `(crip (cass (trip (need alias.table-set.relat))))
+  =/  alias  ?:  ?=(qualified-object:ast object.table-set.relat)
+               ?~  alias.object.table-set.relat  ~
+               `(crip (cass (trip (need alias.object.table-set.relat))))
+             ~|("not supported" !!)
   ::
   =/  from-objects=(list from-obj)
       %-  limo  :~  ?~  vw  %:  from-table  query-obj
@@ -120,9 +121,10 @@
                          "doesn't exist at time {<sys-time>}"
                          (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
-  =.  alias  ?~  alias.table-set.relat
-               ~
-             `(crip (cass (trip (need alias.table-set.relat))))
+  =.  alias  ?:  ?=(qualified-object:ast object.table-set.relat)
+               ?~  alias.object.table-set.relat  ~
+               `(crip (cass (trip (need alias.object.table-set.relat))))
+             ~|("not supported" !!)
   ::
   =/  prior=from-obj  -.from-objects
   =/  joined-obj  ?~  vw  %:  from-table  query-obj
@@ -173,7 +175,9 @@
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   %:  from-obj  %from-obj
                 query-obj
-                alias
+                 ?~  alias
+                    ~
+                `(crip (cass (trip (need alias))))
                 tmsp.tbl
                 tmsp.file
                 columns.tbl
@@ -235,7 +239,9 @@
              state
   %:  from-obj  %from-obj
                 query-obj
-                alias
+                ?~  alias
+                    ~
+                `(crip (cass (trip (need alias))))
                 tmsp.schema
                 tmsp.+.r
                 columns.view

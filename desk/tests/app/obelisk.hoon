@@ -537,7 +537,7 @@
 ::  commands
 ++  cmd-two-col
   :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table-2']
+      [%qualified-object ~ 'db1' 'dbo' 'my-table-2' ~]
       ~[[%column 'col1' %t] [%column 'col2' %p]]
       ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
       ~
@@ -545,7 +545,7 @@
   ==
 ++  cmd-one-col
   :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table']
+      [%qualified-object ~ 'db1' 'dbo' 'my-table' ~]
       ~[[%column 'col1' %t]]
       ~[[%ordered-column 'col1' %.y]]
       ~
@@ -905,6 +905,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.n
         ~
@@ -965,6 +966,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.y
         ~
@@ -1038,6 +1040,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         ~
   =^  mov1  agent
@@ -1092,6 +1095,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         ~
   =^  mov1  agent

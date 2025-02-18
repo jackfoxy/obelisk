@@ -3398,17 +3398,28 @@
                               create-holiday-calendar
                               insert-holiday-calendar
                               ==
-  =.  run  +(run)
-   =^  mov2  agent
-    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-        %obelisk-action
-        !>  :+  %tape
-                %db1
-                "FROM calendar T1 ".
-                "JOIN holiday-calendar T2 ".
-                "SELECT T1.day-name, T2.*"
-  ::
-  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+  ::=.  run  +(run)
+  :: =^  mov2  agent
+  ::  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+  ::      %obelisk-action
+  ::      !>  :+  %tape
+  ::              %db1
+  ::              "FROM calendar T1 ".
+  ::              "JOIN holiday-calendar T2 ".
+  ::              "SELECT T1.day-name, T2.*"
+  ::::
+  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+
+  %+  expect-fail-message
+    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM calendar T1 ".
+                  "JOIN holiday-calendar T2 ".
+                  "SELECT T1.day-name, T2.*"
+
 ::
 ::  test T1.* in select, tables inverted
 ++  test-joins-00-b
@@ -4785,27 +4796,27 @@
                "VALUES ".
                "(~2024.1.3, 2024, 1, 'January', 3, 'Wednesday', 3, 4, 1) ".
                "(~2024.1.4, 2024, 1, 'January', 4, 'Thursday', 4, 5, 1);"
-  =.  run  +(run)
-  =^  mov3  agent
-   %+  ~(on-poke agent (bowl [run ~2012.6.3]))
-       %obelisk-action
-       !>  :+  %tape
-               %db1
-               "FROM calendar T1 ".
-               "JOIN calendar AS OF ~2012.5.29 T2 ".
-               "SELECT T1.day-name, T2.*"
-  ::
-  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
+  ::=.  run  +(run)
+  ::=^  mov3  agent
+  :: %+  ~(on-poke agent (bowl [run ~2012.6.3]))
+  ::     %obelisk-action
+  ::     !>  :+  %tape
+  ::             %db1
+  ::             "FROM calendar T1 ".
+  ::             "JOIN calendar AS OF ~2012.5.29 T2 ".
+  ::             "SELECT T1.day-name, T2.*"
+  ::::
+  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 
-  ::%+  expect-fail-message
-  ::  'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  ::|.  %+  ~(on-poke agent (bowl [run ~2012.6.3]))
-  ::        %obelisk-action
-  ::        !>  :+  %test
-  ::                %db1
-  ::                "FROM calendar T1 ".
-  ::                "JOIN calendar AS OF ~2012.6.1 T2 ".
-  ::                "SELECT T1.day-name, T2.*"
+  %+  expect-fail-message
+    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.6.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM calendar T1 ".
+                  "JOIN calendar AS OF ~2012.6.1 T2 ".
+                  "SELECT T1.day-name, T2.*"
 
 
 ::
