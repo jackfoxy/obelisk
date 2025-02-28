@@ -868,13 +868,7 @@
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj
           %+  turn  indexed-rows.from-obj
-                    |=(a=[(list @) (map @tas @)] (~(put by init-map) [object.from-obj alias.from-obj] +.a))
-
-    ~&  "joined-rows.from-obj:  {<joined-rows.from-obj>}"
-    ~&  " "
-    ~&  "selected:  {<selected>}"
-    ~&  " "
-
+                    |=(a=[(list @) (map @tas @)] (~(put by init-map) object.from-obj +.a))
   ::
   =/  vectors
       ?~  predicate.q
@@ -924,18 +918,13 @@
   ?~  object.i.cols                         :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols            :: case: is table column
-  =/  key  [qualifier:(need object.cell) ~]
-
-    ~&  "key:  {<key>}"
-    ~&  "rows:  {<rows>}"
-    ~&  " "
-
+  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
   %=  $
     cols  t.cols
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) key))
+                  %-  ~(got by (~(got by i.rows) qualifier))
                       column:(need object.cell)
             row
   ==
@@ -972,13 +961,13 @@
   ?~  object.i.cols                   :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols              :: case: is table column
-  =/  key  [qualifier:(need object.cell) ~]
+  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
   %=  $
     cols  t.cols
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) key))
+                  %-  ~(got by (~(got by i.rows) qualifier))
                       column:(need object.cell)
             row
   ==

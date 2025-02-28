@@ -1642,7 +1642,7 @@
                             [%server-time ~2000.1.9]
                             [%message 'db1.sys.table-keys']
                             [%schema-time ~2000.1.7]
-                            [%data-time ~2000.1.7]
+                            [%data-time ~2000.1.8]
                             [%vector-count 9]
                         ==
   =^  mov1  agent

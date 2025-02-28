@@ -163,7 +163,7 @@
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
           sys-time=@da
-          type-lookup=(map [qualified-object:ast (unit @t)] (map @tas @ta))
+          type-lookup=(map qualified-object:ast (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
           ==
   ^-  from-obj
@@ -187,7 +187,7 @@
                 join
                 predicate
                 %+  ~(put by type-lookup)  
-                    [query-obj alias]
+                    query-obj
                     (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
                 rowcount.file
                 pri-idx.file
@@ -220,7 +220,7 @@
           =view
           relat=relation
           sys-time=@da
-          type-lookup=(map [qualified-object:ast (unit @t)] (map @tas @ta))
+          type-lookup=(map qualified-object:ast (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
           ==
   ^-  from-obj
@@ -251,7 +251,7 @@
                 join.relat
                 predicate.relat
                 %+  ~(put by type-lookup)  
-                    [query-obj alias]
+                    query-obj
                     (malt (turn columns.view |=(a=column:ast [name.a type.a])))
                 rowcount.view-content
                 ~
@@ -317,8 +317,8 @@
   ?:  =(key.prior key.this)
     %:  join-pri-key  indexed-rows.prior
                       indexed-rows.this
-                      [object.prior alias.prior]
-                      [object.this alias.this]
+                      object.prior
+                      object.this
                       key.this
                       ==
   ::  key is same column sequence, but different ordering
@@ -326,14 +326,14 @@
   ?:  (gth rowcount.this rowcount.prior)
     %:  join-pri-key  (sort indexed-rows.prior ~(order idx-comp-2 key.this))
                       indexed-rows.this
-                      [object.prior alias.prior]
-                      [object.this alias.this]
+                      object.prior
+                      object.this
                       key.this
                       ==
   %:  join-pri-key  indexed-rows.prior
                     (sort indexed-rows.this ~(order idx-comp-2 key.prior))
-                    [object.prior alias.prior]
-                    [object.this alias.this]
+                    object.prior
+                    object.this
                     key.prior
                     ==
 ::
@@ -343,8 +343,8 @@
 ++  join-pri-key
   |=  $:  a=(list [(list @) (map @tas @)])
           b=(list [(list @) (map @tas @)])
-          a-qual=[qualified-object:ast (unit @t)]
-          b-qual=[qualified-object:ast (unit @t)]
+          a-qual=qualified-object:ast
+          b-qual=qualified-object:ast
           key=(list [@tas ?])
           ==
   ^-  (list joined-row)

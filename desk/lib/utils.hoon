@@ -393,7 +393,7 @@
         %+  weld
           %-  flop
             %+  turn
-              (skim cols |=(a=[qualified-column:ast @ta] =(->-.a +.i.selected)))
+              (skim cols |=(a=[qualified-column:ast @ta] =(qualifier.a +.i.selected)))  ::(skim cols |=(a=[qualified-column:ast @ta] =(->-.a +.i.selected)))
               mk-templ-cell
           cells
     ==
@@ -413,7 +413,7 @@
 ::
 ++  fix-selected
   |=  $:  selected=(list selected-column:ast)
-          qualifier-lookup=(map @tas (list [qualified-object:ast (unit @t)]))
+          qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
   =/  selected-out=(list selected-column:ast)  ~
   |-
@@ -437,7 +437,7 @@
     selected      +.selected
     selected-out  :-  ^-  selected-column:ast
                       %:  qualified-column:ast  %qualified-column
-                                                -<.qualifiers
+                                                -.qualifiers
                                                 column.sel
                                                 alias.sel
                                                 ==
@@ -558,31 +558,39 @@
       ~|("%drop-namespace not implemented" !!)
     %create-table
       %^  next-view-cache-keys  db
-                              sys-time
-                              :~  [%sys %tables]
-                                  [%sys %table-keys]
-                                  [%sys %columns]
-                                  [%sys %sys-log]
-                                  [%sys %data-log]
-                                  ==
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %alter-table
       ~|("%alter-table not implemented" !!)
     %drop-table
       %^  next-view-cache-keys  db
-                              sys-time
-                              :~  [%sys %tables]
-                                  [%sys %table-keys]
-                                  [%sys %columns]
-                                  [%sys %sys-log]
-                                  [%sys %data-log]
-                                  ==
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %truncate-table
-      (next-view-cache-keys db sys-time ~[[%sys %tables] [%sys %data-log]])
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %data-log]
+                                    ==
     %insert
       %^  next-view-cache-keys
                             db
                             sys-time
-                            %+  weld  (limo ~[[%sys %tables] [%sys %data-log]])
+                            %+  weld  %-  limo  :~  [%sys %tables]
+                                                    [%sys %table-keys]
+                                                    [%sys %data-log]
+                                                    ==
                                       (need sys-vws)
     %update
       ~|("%update not implemented" !!)
@@ -599,14 +607,15 @@
         %+  turn  sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
-::  +mk-qualifier-lookup
+::  +mk-qualifier-lookup:  [(list from-obj) (list selected-column:ast)]
+::                         -> (map @tas (list qualified-object:ast))
 ::
 ::  Make lookup qualifier by column name for predicate processing when a column
 ::  is unqualified.
 ++  mk-qualifier-lookup
     |=  [sources=(list from-obj) selected-columns=(list selected-column:ast)]
-    ^-  (map @tas (list [qualified-object:ast (unit @t)]))
-    =/  lookup=(map @tas (list [qualified-object:ast (unit @t)]))  ~
+    ^-  (map @tas (list qualified-object:ast))
+    =/  lookup=(map @tas (list qualified-object:ast))  ~
     |-
     ?~  sources  lookup
     =/  source=from-obj  -.sources
@@ -619,10 +628,10 @@
       lookup   ?:  (~(has by lookup) name.col)
                  %+  ~(put by lookup)
                         name.col
-                        :-  [object.source alias.source]
+                        :-  object.source
                             (~(got by lookup) name.col)
                %+  ~(put by lookup)  name.col
-                                     (limo ~[[object.source alias.source]])
+                                     (limo ~[object.source])
     ==
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2

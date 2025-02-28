@@ -162,14 +162,14 @@
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
-      type-lookup=(map [qualified-object (unit @t)] (map @tas @ta))
+      type-lookup=(map qualified-object (map @tas @ta))
       rowcount=@
       pri-indexed=(tree [(list @) (map @tas @)])
       indexed-rows=(list [(list @) (map @tas @)])
       joined-rows=(list joined-row)
   ==
 ::
-+$  joined-row  (map [qualified-object (unit @t)] (map @tas @))
++$  joined-row  (map qualified-object (map @tas @))
 ::
 +$  relation
   $:

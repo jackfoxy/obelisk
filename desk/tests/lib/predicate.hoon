@@ -1067,8 +1067,9 @@
       %-  crip
           "comparing columns of different aura: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ".
-          "ship=~ database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "name=%my-table alias=~] %col1] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col2]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
@@ -3536,7 +3537,7 @@
           "comparing columns of different aura: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table] %col2]"
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])

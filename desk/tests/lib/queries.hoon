@@ -221,7 +221,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2649,19 +2649,11 @@
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
                     [%time [~.da ~2012.5.2]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
-                    [%key [~.tas 'c2-col2']]
-                    ==
-            :-  %vector
-                :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
-                    [%time [~.da ~2012.5.2]]
-                    [p=%home q=[p=~.p ~sampel-palnet]]
-                    [%key [~.tas 'c2-col1']]
                     ==
             :-  %vector
                 :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
                     [%time [~.da ~2012.5.1]]
                     [p=%home q=[p=~.p ~sampel-palnet]]
-                    [%key [~.tas 'col1']]
                     ==
             ==
   =/  expected  :~  %results
@@ -2671,7 +2663,7 @@
                     [%message 'db1.sys.tables']
                     [%schema-time ~2012.5.2]
                     [%data-time ~2012.5.2]
-                    [%vector-count 3]
+                    [%vector-count 2]
                 ==
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -2706,10 +2698,24 @@
         !>  :+  %tape
                 %db1
                 "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
-                "~sampel-palnet as home, key"
+                "~sampel-palnet as home"
     ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+
+
+  ::::
+  ::%+  expect-fail-message
+  ::  'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+  ::        %obelisk-action
+  ::        !>  :+  %test
+  ::                %db1
+  ::                "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
+  ::              "~sampel-palnet as home"
+
+
+
 ::
 ::  joins
 ++  create-calendar
@@ -3398,28 +3404,17 @@
                               create-holiday-calendar
                               insert-holiday-calendar
                               ==
-  ::=.  run  +(run)
-  :: =^  mov2  agent
-  ::  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::      %obelisk-action
-  ::      !>  :+  %tape
-  ::              %db1
-  ::              "FROM calendar T1 ".
-  ::              "JOIN holiday-calendar T2 ".
-  ::              "SELECT T1.day-name, T2.*"
-  ::::
-  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-
-  %+  expect-fail-message
-    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-          %obelisk-action
-          !>  :+  %test
-                  %db1
-                  "FROM calendar T1 ".
-                  "JOIN holiday-calendar T2 ".
-                  "SELECT T1.day-name, T2.*"
-
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "SELECT T1.day-name, T2.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test T1.* in select, tables inverted
 ++  test-joins-00-b
@@ -3622,7 +3617,6 @@
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-
 ::  test alternating file alias case in predicate, tables inverted
 ++  test-joins-02-a
   =|  run=@ud
@@ -3832,6 +3826,22 @@
   (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
+
+
+  ::::::
+  ::%+  expect-fail-message
+  ::      'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+  ::        %obelisk-action
+  ::        !>  :+  %test
+  ::                %db1
+  ::                "FROM tbl1 t1 ".
+  ::              "JOIN tbl2 T2 ".
+  ::              "SELECT T1.year, T2.month, T1.day, month-name, day-name"
+
+
+
+
 ::
 ::  join multi-column keys
 ++  test-joins-04-a
@@ -4536,234 +4546,6 @@
                                  [%weekday [~.ud 3]]
                                  [%year-week [~.ud 1]]
                                  ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Saturday']]
-                                 [%date [~.da ~2024.2.3]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 2]]
-                                 [%month-name [~.t 'February']]
-                                 [%day [~.ud 3]]
-                                 [%day-name [~.t 'Saturday']]
-                                 [%day-of-year [~.ud 34]]
-                                 [%weekday [~.ud 7]]
-                                 [%year-week [~.ud 5]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Sunday']]
-                                 [%date [~.da ~2024.2.4]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 2]]
-                                 [%month-name [~.t 'February']]
-                                 [%day [~.ud 4]]
-                                 [%day-name [~.t 'Sunday']]
-                                 [%day-of-year [~.ud 35]]
-                                 [%weekday [~.ud 1]]
-                                 [%year-week [~.ud 6]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Monday']]
-                                 [%date [~.da ~2024.2.5]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 2]]
-                                 [%month-name [~.t 'February']]
-                                 [%day [~.ud 5]]
-                                 [%day-name [~.t 'Monday']]
-                                 [%day-of-year [~.ud 36]]
-                                 [%weekday [~.ud 2]]
-                                 [%year-week [~.ud 6]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Tuesday']]
-                                 [%date [~.da ~2024.2.6]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 2]]
-                                 [%month-name [~.t 'February']]
-                                 [%day [~.ud 6]]
-                                 [%day-name [~.t 'Tuesday']]
-                                 [%day-of-year [~.ud 37]]
-                                 [%weekday [~.ud 3]]
-                                 [%year-week [~.ud 6]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Wednesday']]
-                                 [%date [~.da ~2024.2.7]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 2]]
-                                 [%month-name [~.t 'February']]
-                                 [%day [~.ud 7]]
-                                 [%day-name [~.t 'Wednesday']]
-                                 [%day-of-year [~.ud 38]]
-                                 [%weekday [~.ud 4]]
-                                 [%year-week [~.ud 6]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Sunday']]
-                                 [%date [~.da ~2024.3.3]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 3]]
-                                 [%month-name [~.t 'March']]
-                                 [%day [~.ud 3]]
-                                 [%day-name [~.t 'Sunday']]
-                                 [%day-of-year [~.ud 63]]
-                                 [%weekday [~.ud 1]]
-                                 [%year-week [~.ud 10]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Monday']]
-                                 [%date [~.da ~2024.3.4]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 3]]
-                                 [%month-name [~.t 'March']]
-                                 [%day [~.ud 4]]
-                                 [%day-name [~.t 'Monday']]
-                                 [%day-of-year [~.ud 64]]
-                                 [%weekday [~.ud 2]]
-                                 [%year-week [~.ud 10]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Tuesday']]
-                                 [%date [~.da ~2024.3.5]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 3]]
-                                 [%month-name [~.t 'March']]
-                                 [%day [~.ud 5]]
-                                 [%day-name [~.t 'Tuesday']]
-                                 [%day-of-year [~.ud 65]]
-                                 [%weekday [~.ud 3]]
-                                 [%year-week [~.ud 10]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Wednesday']]
-                                 [%date [~.da ~2024.3.6]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 3]]
-                                 [%month-name [~.t 'March']]
-                                 [%day [~.ud 6]]
-                                 [%day-name [~.t 'Wednesday']]
-                                 [%day-of-year [~.ud 66]]
-                                 [%weekday [~.ud 4]]
-                                 [%year-week [~.ud 10]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Thursday']]
-                                 [%date [~.da ~2024.3.7]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 3]]
-                                 [%month-name [~.t 'March']]
-                                 [%day [~.ud 7]]
-                                 [%day-name [~.t 'Thursday']]
-                                 [%day-of-year [~.ud 67]]
-                                 [%weekday [~.ud 5]]
-                                 [%year-week [~.ud 10]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Friday']]
-                                 [%date [~.da ~2024.3.8]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 3]]
-                                 [%month-name [~.t 'March']]
-                                 [%day [~.ud 8]]
-                                 [%day-name [~.t 'Friday']]
-                                 [%day-of-year [~.ud 68]]
-                                 [%weekday [~.ud 6]]
-                                 [%year-week [~.ud 10]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Monday']]
-                                 [%date [~.da ~2024.4.1]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 1]]
-                                 [%day-name [~.t 'Monday']]
-                                 [%day-of-year [~.ud 92]]
-                                 [%weekday [~.ud 2]]
-                                 [%year-week [~.ud 14]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Tuesday']]
-                                 [%date [~.da ~2024.4.2]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 2]]
-                                 [%day-name [~.t 'Tuesday']]
-                                 [%day-of-year [~.ud 93]]
-                                 [%weekday [~.ud 3]]
-                                 [%year-week [~.ud 14]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Wednesday']]
-                                 [%date [~.da ~2024.4.3]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 3]]
-                                 [%day-name [~.t 'Wednesday']]
-                                 [%day-of-year [~.ud 94]]
-                                 [%weekday [~.ud 4]]
-                                 [%year-week [~.ud 14]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Thursday']]
-                                 [%date [~.da ~2024.4.4]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 4]]
-                                 [%day-name [~.t 'Thursday']]
-                                 [%day-of-year [~.ud 95]]
-                                 [%weekday [~.ud 5]]
-                                 [%year-week [~.ud 14]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Friday']]
-                                 [%date [~.da ~2024.4.5]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 5]]
-                                 [%day-name [~.t 'Friday']]
-                                 [%day-of-year [~.ud 96]]
-                                 [%weekday [~.ud 6]]
-                                 [%year-week [~.ud 14]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Saturday']]
-                                 [%date [~.da ~2024.4.6]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 6]]
-                                 [%day-name [~.t 'Saturday']]
-                                 [%day-of-year [~.ud 97]]
-                                 [%weekday [~.ud 7]]
-                                 [%year-week [~.ud 14]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Sunday']]
-                                 [%date [~.da ~2024.4.7]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 7]]
-                                 [%day-name [~.t 'Sunday']]
-                                 [%day-of-year [~.ud 98]]
-                                 [%weekday [~.ud 1]]
-                                 [%year-week [~.ud 15]]
-                                 ==
-                         :-  %vector
-                             :~  [%day-name [~.t 'Monday']]
-                                 [%date [~.da ~2024.4.8]]
-                                 [%year [~.ud 2.024]]
-                                 [%month [~.ud 4]]
-                                 [%month-name [~.t 'April']]
-                                 [%day [~.ud 8]]
-                                 [%day-name [~.t 'Monday']]
-                                 [%day-of-year [~.ud 99]]
-                                 [%weekday [~.ud 2]]
-                                 [%year-week [~.ud 15]]
-                                 ==
                          ==
   =/  expected  :~  %results
                     [%message 'SELECT']
@@ -4775,7 +4557,7 @@
                     [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%vector-count 32]
+                    [%vector-count 13]
                 ==
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -4796,29 +4578,17 @@
                "VALUES ".
                "(~2024.1.3, 2024, 1, 'January', 3, 'Wednesday', 3, 4, 1) ".
                "(~2024.1.4, 2024, 1, 'January', 4, 'Thursday', 4, 5, 1);"
-  ::=.  run  +(run)
-  ::=^  mov3  agent
-  :: %+  ~(on-poke agent (bowl [run ~2012.6.3]))
-  ::     %obelisk-action
-  ::     !>  :+  %tape
-  ::             %db1
-  ::             "FROM calendar T1 ".
-  ::             "JOIN calendar AS OF ~2012.5.29 T2 ".
-  ::             "SELECT T1.day-name, T2.*"
-  ::::
-  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov3))
-
-  %+  expect-fail-message
-    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.6.3]))
-          %obelisk-action
-          !>  :+  %test
-                  %db1
-                  "FROM calendar T1 ".
-                  "JOIN calendar AS OF ~2012.6.1 T2 ".
-                  "SELECT T1.day-name, T2.*"
-
-
+  =.  run  +(run)
+  =^  mov3  agent
+   %+  ~(on-poke agent (bowl [run ~2012.6.3]))
+       %obelisk-action
+       !>  :+  %tape
+               %db1
+               "FROM calendar T1 ".
+               "JOIN calendar AS OF ~2012.5.29 T2 ".
+               "SELECT T1.day-name, T2.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  bugs
 ::

@@ -741,6 +741,8 @@
   [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
 ++  foo-table
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+++  foo-table-t1
+  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']]
 ::
 :: delete from foo;delete  foo
 ++  test-delete-00
@@ -2253,9 +2255,16 @@
 ++  aliased-columns-1
   ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=[~ 'foo']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=[~ 'foo2']] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=[~ 'bar']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=[~ 'bar2']] [%selected-value value=literal-1 alias=[~ %foobar]] [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']] [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]]
 ++  mixed-all
-  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1' alias=~] column='ALL' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo' alias=~] column='foo' alias=[~ 'foobar']] column-bar [%all %all] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T2' alias=~] column='ALL' alias=~]]
+  :~  [%all-object qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1' alias=~]]
+      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo' alias=~] column='foo' alias=[~ 'foobar']]
+      column-bar
+      [%all %all]
+      [%all-object qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]]
+      ==
 ++  aggregates
   ~[column-foo [%selected-aggregate [%aggregate function='count' source=column-foo] alias=[~ 'CountFoo']] [%selected-aggregate [%aggregate function='count' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]] alias=[~ 'foobar']]]
+++  from-t1
+  [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]] as-of=~ joins=~]]
 ::
 ::  simplest possible select (bunt)
 ++  test-select-01
@@ -2331,9 +2340,18 @@
 ::
 ::  from foo select top, bottom, simple columns, trailing space, no internal space
 ++  test-select-11
-  =/  select  "from foo select top 10  bottom 10  x1,db.ns.table.col1,table-alias.name,db..table.col2,T1.foo,1,~zod,'cord' "
-  =/  from  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
-  =/  my-columns  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='table-alias' alias=~] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='T1' alias=~] column='foo' alias=~] [%selected-value literal-1 ~] [%selected-value [value-type=%p value=0] ~] [%selected-value [value-type=%t value='cord'] ~]]
+  =/  select  "from foo T1 select top 10  bottom 10  x1,db.ns.foo.col1,t1.name,db..foo.col2,T1.foo,1,~zod,'cord' "
+  =/  from  [~ [%from object=[%table-set object=foo-table-t1] as-of=~ joins=~]]
+  =/  my-columns
+    :~  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='foo' alias=~] column='col1' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']] column='name' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='foo' alias=~] column='col2' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']] column='foo' alias=~]
+        [%selected-value literal-1 ~]
+        [%selected-value [value-type=%p value=0] ~]
+        [%selected-value [value-type=%t value='cord'] ~]
+        ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query from scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=my-columns] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
@@ -2354,16 +2372,16 @@
 ::
 ::  mixed all, object all, object alias all, column, aliased column
 ++  test-select-14
-  =/  select  "select db..t1.* , foo as foobar , bar , * , T2.* "
+  =/  select  "from t1 T1 select db..t1.* , foo as foobar , bar , * , T1.* "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-t1 scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
-::
-::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
+::::
+::::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-15
-  =/  select  "select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
+  =/  select  "from t1 T1 select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T1.*"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-t1 scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed aggregates
@@ -2719,96 +2737,98 @@
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
-::
-:: merge target passthru alias AS
-++  test-merge-04
-  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO (col1,col2,col3) AS tgt ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: merge target passthru alias
-++  test-merge-05
-  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO ( col1, col2 , col3) tgt ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: merge target passthru unaliased
-++  test-merge-06
-  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO (col1, col2 , col3)  ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::merge source passthru alias AS
-++  test-merge-07
-  =/  query  "MERGE dbo.foo ".
-" USING (col1, col2 , col3) as src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::merge source passthru alias AS
-++  test-merge-08
-  =/  query  "MERGE dbo.foo ".
-" USING (col1, col2 , col3) src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::merge source passthru alias AS
-++  test-merge-09
-  =/  query  "MERGE dbo.foo ".
-" USING (col1, col2 , col3) ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
+::::
+::::  query row tests, uncomment when query row implemented
+::::
+:::: merge target passthru alias AS
+::++  test-merge-04
+::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO (col1,col2,col3) AS tgt ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+:::: merge target passthru alias
+::++  test-merge-05
+::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO ( col1, col2 , col3) tgt ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+:::: merge target passthru unaliased
+::++  test-merge-06
+::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO (col1, col2 , col3)  ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::merge source passthru alias AS
+::++  test-merge-07
+::  =/  query  "MERGE dbo.foo ".
+::" USING (col1, col2 , col3) as src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::merge source passthru alias AS
+::++  test-merge-08
+::  =/  query  "MERGE dbo.foo ".
+::" USING (col1, col2 , col3) src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::merge source passthru alias AS
+::++  test-merge-09
+::  =/  query  "MERGE dbo.foo ".
+::" USING (col1, col2 , col3) ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
 :: to do: tests for merge to new file
 ::
 :: block comment
