@@ -1863,8 +1863,6 @@
     ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
-
-
 ::
 ::  view-alias.*
 ++  test-simple-query-26
@@ -2702,20 +2700,6 @@
     ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
-
-
-  ::::
-  ::%+  expect-fail-message
-  ::  'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::        %obelisk-action
-  ::        !>  :+  %test
-  ::                %db1
-  ::                "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
-  ::              "~sampel-palnet as home"
-
-
-
 ::
 ::  joins
 ++  create-calendar
@@ -3517,7 +3501,6 @@
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-
 ::  test alternating file alias case, tables inverted
 ++  test-joins-01-a
   =|  run=@ud
@@ -3710,8 +3693,6 @@
                 "SELECT T1.day-name AS Day, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-
-
 ::  test mixed column alias case in predicate, tables inverted
 ++  test-joins-03-a
   =|  run=@ud
@@ -3757,7 +3738,6 @@
                 "SELECT T2.day-name AS Day, t1.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
-
 ::
 ::  join multi-column keys, all rows join
 ++  test-joins-04
@@ -3826,22 +3806,6 @@
   (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
-
-
-  ::::::
-  ::%+  expect-fail-message
-  ::      'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::        %obelisk-action
-  ::        !>  :+  %test
-  ::                %db1
-  ::                "FROM tbl1 t1 ".
-  ::              "JOIN tbl2 T2 ".
-  ::              "SELECT T1.year, T2.month, T1.day, month-name, day-name"
-
-
-
-
 ::
 ::  join multi-column keys
 ++  test-joins-04-a

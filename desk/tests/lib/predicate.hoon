@@ -60,7 +60,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -118,7 +118,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -176,7 +176,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -396,7 +396,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -456,7 +456,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -516,7 +516,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -584,7 +584,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -648,7 +648,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -712,7 +712,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -929,7 +929,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -989,7 +989,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1049,7 +1049,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1118,7 +1118,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1182,7 +1182,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1240,7 +1240,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1549,7 +1549,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1609,7 +1609,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1669,7 +1669,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1731,7 +1731,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1789,7 +1789,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1847,7 +1847,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2124,7 +2124,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2184,7 +2184,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2244,7 +2244,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2312,7 +2312,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2382,7 +2382,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2446,7 +2446,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2767,7 +2767,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2827,7 +2827,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2887,7 +2887,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2949,7 +2949,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3013,7 +3013,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3077,7 +3077,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3398,7 +3398,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3458,7 +3458,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3518,7 +3518,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3586,7 +3586,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3652,7 +3652,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3724,7 +3724,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3837,7 +3837,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3897,7 +3897,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3959,7 +3959,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4020,7 +4020,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4093,7 +4093,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4169,7 +4169,6 @@
   %+  expect-eq
     !>  expected
     !>  ;;(cmd-result ->+>+>+<.mov4)
-
 ::
 ::  fail WHERE <column> NOT IN (list @t) types differ
 ++  test-fail-not-in-00
@@ -4207,7 +4206,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4267,7 +4266,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4335,7 +4334,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4408,7 +4407,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4469,7 +4468,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4566,7 +4565,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4611,7 +4610,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4656,7 +4655,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4701,7 +4700,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4766,7 +4765,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4818,7 +4817,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4885,7 +4884,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4984,7 +4983,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5029,7 +5028,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5074,7 +5073,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5118,7 +5117,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5189,7 +5188,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5250,7 +5249,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5314,7 +5313,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5377,7 +5376,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5437,7 +5436,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action

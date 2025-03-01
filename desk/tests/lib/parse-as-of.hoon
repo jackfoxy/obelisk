@@ -13,16 +13,40 @@
 ::
 ++  foo-unaliased
   :-  %table-set 
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='foo'
+          alias=~
+          ==
 ++  foo-aliased
   :-  %table-set
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'F1']]
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='foo'
+          alias=[~ 'F1']
+          ==
 ++  bar-unaliased
   :-  %table-set
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='bar'
+          alias=~
+          ==
 ++  bar-aliased
   :-  %table-set
-      [%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=[~ 'B1']]
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='bar'
+          alias=[~ 'B1']
+          ==
 ::
 ::  JOIN
 ::

@@ -799,7 +799,6 @@
                 :~  [%namespace [~.tas %sys]]
                     [%tmsp [~.da ~2000.1.1]]
                     ==
-  
   ::
   =/  expected-1  :-  %results
                       :~  [%message 'SELECT']
@@ -1141,8 +1140,6 @@
                 "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
                 "PRIMARY KEY (col1, col3)"
     ==
-
-
   =.  run  +(run)
   =^  mov8  agent
     %:  ~(on-poke agent (bowl [run ~2000.1.8]))
@@ -1178,15 +1175,6 @@
     ==
     (eval-results expected-key-2 ;;(cmd-result ->+>+>+<.mov11))
     ==
-
-  ::%+  expect-fail-message
-  ::  'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  ::|.  %+  ~(on-poke agent (bowl [run ~2012.6.3]))
-  ::        %obelisk-action
-  ::        !>  :+  %test
-  ::                %db1
-  ::                "FROM sys.tables SELECT *"
-
 ::
 ++  test-sys-tables-and-keys-02  ::  INSERT and DROP TABLE
   =|  run=@ud
