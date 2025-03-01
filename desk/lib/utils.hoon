@@ -393,7 +393,9 @@
         %+  weld
           %-  flop
             %+  turn
-              (skim cols |=(a=[qualified-column:ast @ta] =(qualifier.a +.i.selected)))  ::(skim cols |=(a=[qualified-column:ast @ta] =(->-.a +.i.selected)))
+              %+  skim
+                    cols
+                    |=(a=[qualified-column:ast @ta] =(qualifier.a +.i.selected))
               mk-templ-cell
           cells
     ==
@@ -604,7 +606,8 @@
   ^-  view-cache
   %+  gas:view-cache-key
         view-cache.db
-        %+  turn  sys-vws
+        %+  turn
+              sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
 ::  +mk-qualifier-lookup:  [(list from-obj) (list selected-column:ast)]
