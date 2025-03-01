@@ -180,9 +180,10 @@
       =/  parsed  (wonk index-nail)
       %=  $
         script    q.q.u.+3.q:index-nail
-        commands  
-          :-  ?:  ?=  $:  [%qualified-object @ @ @ @ ~]
-                          [%qualified-object @ @ @ @ ~]
+        commands 
+                          :: qualifier w/o ship or alias
+          :-  ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
                           @
                           ==
                       parsed
@@ -194,8 +195,8 @@
                                       ~
                                       ==
               :: alter index single column
-              ?:  ?=  $:  [%qualified-object @ @ @ @ ~]
-                          [%qualified-object @ @ @ @ ~]
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
                           [[@ @ @] %~]
                           ==
                       parsed
@@ -207,8 +208,8 @@
                                       ~
                                       ==
               :: alter index columns action
-              ?:  ?=  $:  [%qualified-object @ @ @ @ ~]
-                          [%qualified-object @ @ @ @ ~]
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
                           *
                           @
                           ==
@@ -221,8 +222,8 @@
                                      ~
                                      ==
               :: alter index multiple columns
-              ?:  ?=  $:  [%qualified-object @ @ @ @ ~]
-                          [%qualified-object @ @ @ @ ~]
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
                           *
                           ==
                       parsed
@@ -1084,7 +1085,7 @@
                                     ==
                 commands
         ==
-      ?:  ?=([@ @ @ @ @ @ @] parsed)                 :: force qualified table name
+      ?:  ?=([@ @ @ @ @ @ @] parsed)               :: force qualified table name
         %=  $
           script    q.q.u.+3.q:drop-table-nail
           commands  [(drop-table:ast %drop-table +.parsed %.y ~) commands]
@@ -2165,7 +2166,7 @@
   |=  a=*
   ^-  from:ast
   =/  from-object=table-set:ast
-        ?:  ?=([%table-set %qualified-object * @ @ @ *] -<.a)
+        ?:  ?=([%table-set %qualified-object (unit @p) @ @ @ (unit @t)] -<.a)
           :-  %table-set
               %:  qualified-object:ast  %qualified-object
                                         -<+>-.a
@@ -2187,7 +2188,10 @@
     (from:ast %from from-object from-as-of (flop joined-objects))
   =/  raw-join  -.raw-joined-objects
   ::cross join
-  ?:  ?=([%cross-join [%table-set [%qualified-object @ @ @ @ *]]] raw-join)
+  ?:  ?=  $:  %cross-join
+              [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+              ==
+          raw-join
       %=  $
         joined-objects
           :-  %:  joined-object:ast  %joined-object
@@ -2199,9 +2203,12 @@
               joined-objects
         raw-joined-objects  +.raw-joined-objects
       ==
-  ?:  ?=
-        [%cross-join [%table-set [%qualified-object @ @ @ @ *]] %as-of-offset *]
-        raw-join
+  ?:  ?=  $:  %cross-join
+              [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+              %as-of-offset
+              *
+              ==
+          raw-join
       %=  $
         joined-objects
           :-  %:  joined-object:ast  %joined-object
@@ -2213,9 +2220,15 @@
               joined-objects
         raw-joined-objects  +.raw-joined-objects
       ==
-  ?:  ?|  ?=  [%cross-join [%table-set [%qualified-object @ @ @ @ *]] [%da @]]
+  ?:  ?|  ?=  $:  %cross-join
+                  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                  [%da @]
+                  ==
               raw-join
-          ?=  [%cross-join [%table-set [%qualified-object @ @ @ @ *]] [%dr @]]
+          ?=  $:  %cross-join
+                  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                  [%dr @]
+                  ==
               raw-join
           ==
       %=  $
@@ -2229,18 +2242,27 @@
               joined-objects
         raw-joined-objects  +.raw-joined-objects
       ==
-
   ::natural join
-  ?:  ?|  ?=([%join [%table-set [%qualified-object @ @ @ @ *]]] raw-join)
+  ?:  ?|  ?=  [%join [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]]
+              raw-join
           ?=  $:  %join
-                  [[%table-set [%qualified-object @ @ @ @ *]] %as-of-offset *]
+                  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                      %as-of-offset
+                      *
+                      ==
                   ==
               raw-join
-          ?=  [%join [[%table-set [%qualified-object @ @ @ @ *]] [%da @]]]
+          ?=  $:  %join
+                  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                      [%da @]
+                      ==
+                  ==
               raw-join
-          ?=  [%join [[%table-set [%qualified-object @ @ @ @ *]] [%dr @]]]
-              raw-join
-          ?=  [%join [%table-set [%qualified-object @ @ @ @ ~ @]]]
+          ?=  $:  %join
+                  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                      [%dr @]
+                      ==
+                  ==
               raw-join
           ==
     %=  $
@@ -2250,14 +2272,28 @@
             %joined-object
             %join
             ::  object
-            ?:  ?=([%join [%table-set [%qualified-object @ @ @ @ *]]] raw-join)
+            ?:  ?=  $:  %join
+                        $:  %table-set
+                            [%qualified-object (unit @p) @ @ @ (unit @t)]
+                            ==
+                        ==
+                    raw-join
               (make-query-object +>.raw-join)
             (make-query-object +<+.raw-join)
             :: as-of
-            ?:  ?=  [[%table-set [%qualified-object @ @ @ @ *]] %as-of-offset *]
+            ?:  ?=  $:  $:  %table-set
+                            [%qualified-object (unit @p) @ @ @ (unit @t)]
+                            ==
+                        %as-of-offset
+                        *
+                        ==
                     +.raw-join
               [~ ;;(as-of-offset:ast +>.raw-join)]
-            ?:  ?=  [[%table-set [%qualified-object @ @ @ @ *]] [@ @]]
+            ?:  ?=  $:  $:  %table-set
+                            [%qualified-object (unit @p) @ @ @ (unit @t)]
+                            ==
+                        [@ @]
+                        ==
                     +.raw-join
               [~ ;;(as-of:ast +>.raw-join)]
             ~
@@ -2269,11 +2305,19 @@
 
   :: join on predicate (no alias)
   ?:  ?=(join-type:ast -.raw-join)
-    ?:  ?|  ?=  [[%table-set [%qualified-object @ @ @ @ *]] %as-of-offset @ @]
+    ?:  ?|  ?=  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                    %as-of-offset
+                    @
+                    @
+                    ==
                 +<.raw-join
-            ?=  [[%table-set [%qualified-object @ @ @ @ *]] [%da @]]
+            ?=  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                    [%da @]
+                    ==
                 +<.raw-join
-            ?=  [[%table-set [%qualified-object @ @ @ @ *]] [%dr @]]
+            ?=  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                    [%dr @]
+                    ==
                 +<.raw-join
             ==
       %=  $
@@ -2299,7 +2343,8 @@
             joined-objects
         raw-joined-objects    +.raw-joined-objects
       ==
-    ?:  ?=([[%table-set [%qualified-object @ @ @ @ *]] *] +.raw-join)
+    ?:  ?=  [[%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]] *]
+            +.raw-join
       %=  $
         joined-objects
           :-
@@ -2803,13 +2848,25 @@
 ::
 +$  select-mold-1
   $:
-    [%selected-aggregate @ %qualified-column [%qualified-object @ @ @ @ ~] @ @]
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
     %as
     @
   ==
 +$  select-mold-2
   $:
-    [%selected-aggregate @ %qualified-column [%qualified-object @ @ @ @ ~] @ @]
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
   ==
 ++  produce-select
   |=  [a=* f=(unit from:ast)]
@@ -2872,7 +2929,7 @@
           columns
         a        +.a
       ==
-    ?:  ?=([%all-columns %qualified-object @ @ @ @ ~] -.a)
+    ?:  ?=([%all-columns %qualified-object (unit @p) @ @ @ (unit @t)] -.a)
       %=  $
         columns
           :-  %+  selected-all-object:ast
@@ -3767,12 +3824,7 @@
           [table-set:ast as-of-offset:ast]
           [table-set:ast as-of:ast]
           ==
-  ::?:  ?=([@ @ @ @ @] parsed)
-  ::  (table-set:ast %table-set parsed)
-  ::?:  ?=([[@ @ @ @ @] @] parsed)
-  ::  (table-set:ast %table-set -.parsed)
-
-  ?:  ?=([[%qualified-object @ @ @ @ ~] @] parsed)
+   ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] @] parsed)
     %+  table-set:ast  %table-set
                        :*  %qualified-object
                            ->-.parsed
@@ -3781,13 +3833,13 @@
                            ->+>+<.parsed
                            `+.parsed
                            ==
-  ?:  ?=([[%qualified-object @ @ @ @ *]] parsed)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)]] parsed)
     (table-set:ast %table-set parsed)
   ::
-  ?:  ?=([[%qualified-object @ @ @ @ *] %as-of %now] parsed)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] %as-of %now] parsed)
     :-  (table-set:ast %table-set -.parsed)
         (as-of-offset:ast %as-of-offset 0 %seconds)
-  ?:  ?=([[%qualified-object @ @ @ @ *] [%as-of %now] @] parsed)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of %now] @] parsed)
     :-  %+  table-set:ast  %table-set
                            :*  %qualified-object
                                ->-.parsed
@@ -3798,10 +3850,12 @@
                                ==
         (as-of-offset:ast %as-of-offset 0 %seconds)
   ::
-  ?:  ?=([[%qualified-object @ @ @ @ *] [%as-of @ @ %ago]] parsed)
+  ?:  ?=  [[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago]]
+          parsed
     :-  (table-set:ast %table-set -.parsed)
         (as-of-offset:ast %as-of-offset +>-.parsed +>+<.parsed)
-  ?:  ?=([[%qualified-object @ @ @ @ *] [%as-of @ @ %ago] @] parsed)
+  ?:  ?=  [[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago] @]
+          parsed
     :-  %+  table-set:ast  %table-set
                            :*  %qualified-object
                                ->-.parsed
@@ -3812,10 +3866,10 @@
                                ==
         (as-of-offset:ast %as-of-offset +<+<.parsed +<+>-.parsed)
   ::
-  ?:  ?=([[%qualified-object @ @ @ @ *] [%as-of @ @]] parsed)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @]] parsed)
     :-  (table-set:ast %table-set -.parsed)
         ;;(as-of:ast [+>-.parsed +>+.parsed])
-  ?:  ?=([[%qualified-object @ @ @ @ *] [%as-of @ @] @] parsed)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @] @] parsed)
     :-  %+  table-set:ast  %table-set
                            :*  %qualified-object
                                ->-.parsed
