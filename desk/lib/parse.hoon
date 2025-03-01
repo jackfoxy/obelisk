@@ -2621,16 +2621,23 @@
   =/  having=(unit predicate:ast)  ~
   =/  select=(unit select:ast)  ~
   =/  order-by=(list ordering-column:ast)  ~
+  =/  alias-map=(map @t qualified-object:ast)  ~
   |-
   ?~  a  ~|("cannot parse query  {<a>}" !!)
+
+  =.  alias-map  ?~   alias-map
+                   ?~   from  ~
+                   (mk-alias-map (need from))
+                 alias-map 
+
   ?:  =(-.a %query)           $(a +.a)
   ?:  =(-.a %end-command)    %:  query:ast
                                 %query
                                 ?~  from  ~
-                                  `(fix-from-predicates (need from))
+                                  `(fix-from-predicates (need from) alias-map)
                                 scalars
                                 ?~  predicate  ~
-                                  `(fix-predicate (need predicate) (need from))
+                                  `(fix-predicate (need predicate) alias-map)
                                 group-by
                                 having
                                 (need select)
@@ -2643,16 +2650,16 @@
                                                %-  produce-predicate
                                                    (predicate-list ->.a)
                               ==
-  ?:  =(-<.a %select)         $(a +.a, select `(produce-select ->.a from))
-  ?:  =(-<.a %group-by)       $(a +.a, group-by (group-by-list ->.a))
-  ?:  =(-<.a %order-by)       $(a +.a, order-by (order-by-list ->.a))
-  ?:  =(-<-.a %table-set)     $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-.a %query-row)     $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %table-set)    $(a +.a, from `(produce-from -.a))
+  ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
+  ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
+  ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
+  ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
   ~|("cannot parse query  {<a>}" !!)
 ::
 ++  fix-from-predicates
-  |=  f=from:ast
+  |=  [f=from:ast alias-map=(map @t qualified-object:ast)]
   ^-  from:ast
   =/  jss  joins.f
   =/  js=(list joined-object:ast)  ~
@@ -2662,20 +2669,20 @@
   =/  j=joined-object:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
-             %:  joined-object:ast  %joined-object
-                                    join.j
-                                    object.j
-                                    as-of.j
-                                    `(fix-predicate (need predicate.j) f)
-                                    ==
+             %:  joined-object:ast
+                   %joined-object
+                   join.j
+                   object.j
+                   as-of.j
+                   `(fix-predicate (need predicate.j) alias-map)
+                   ==
              js
     jss  +.jss
   ==
 ::
 ++  fix-predicate
-  |=  [p=predicate:ast f=from:ast]
+  |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
   ^-  predicate:ast
-  =/  alias-map  (mk-alias-map f)
   ?~  alias-map  p
   ::
   |-
@@ -2723,16 +2730,9 @@
       alias.sel-col
       ==
 ::
-++  mk-all-obj-qualifier  ~+
-  |=  [a=@t f=from:ast]
-  ^-  (unit qualified-object:ast)
-  =/  alias-map=(map @t qualified-object:ast)  (mk-alias-map f)
-  (~(get by alias-map) (crip (cass (trip a))))
-::
 ++  fix-select
-  |=  [s=(list selected-column:ast) f=from:ast]
+  |=  [s=(list selected-column:ast) alias-map=(map @t qualified-object:ast)]
   ^-  (list selected-column:ast)
-  =/  alias-map=(map @t qualified-object:ast)  (mk-alias-map f)
   =/  s-out=(list selected-column:ast)  ~
   ::
   |-
@@ -2869,7 +2869,7 @@
         ==
   ==
 ++  produce-select
-  |=  [a=* f=(unit from:ast)]
+  |=  [a=* f=(unit from:ast) alias-map=(map @t qualified-object:ast)]
   ^-  select:ast
   =/  top=(unit @ud)  ~
   =/  bottom=(unit @ud)  ~
@@ -2880,7 +2880,7 @@
       ?~  columns  ~|('no columns selected' !!)
       ?~  f
         (select:ast %select top bottom (flop columns))
-      (select:ast %select top bottom (fix-select (flop columns) (need f)))
+      (select:ast %select top bottom (fix-select (flop columns) alias-map))
     ?@  -.a
       ?+  -.a  ~|('some other select atom' !!)
       %top       ?>  ?=(@ud +<.a)  $(top `+<.a, a +>.a)
@@ -2949,13 +2949,13 @@
       ?:  ?=([%all-columns @] -.a)
         %=  $
           columns  :-  %+  selected-all-object:ast
-                              %all-object
-                              ?~  (mk-all-obj-qualifier ->.a (need f))
-                                :: to do: if does not resolve try CTEs next
-                                ~|  "cannot resolve {<->.a>}"
-                                    %-  ~(got by (mk-obj-name-map (need f)))
-                                        ->.a
-                              (need (mk-all-obj-qualifier ->.a (need f)))
+                             %all-object
+                             ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
+                               (~(got by alias-map) (crip (cass (trip ->.a))))
+                             :: to do: if does not resolve try CTEs next
+                             ~|  "cannot resolve {<->.a>}"
+                                 %-  ~(got by (mk-obj-name-map (need f)))
+                                     ->.a
                        columns
           a        +.a
         ==
