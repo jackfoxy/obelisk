@@ -3351,7 +3351,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test T1.* in select
-++  test-joins-00-a
+++  test-joins-01
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3401,7 +3401,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test T1.* in select, tables inverted
-++  test-joins-00-b
+++  test-joins-02
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3451,7 +3451,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test alternating file alias case
-++  test-joins-01
+++  test-joins-03
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3502,7 +3502,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::  test alternating file alias case, tables inverted
-++  test-joins-01-a
+++  test-joins-04
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3554,7 +3554,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test alternating file alias case in predicate
-++  test-joins-02
+++  test-joins-05
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3601,7 +3601,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::  test alternating file alias case in predicate, tables inverted
-++  test-joins-02-a
+++  test-joins-06
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3649,7 +3649,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test mixed column alias case in predicate
-++  test-joins-03
+++  test-joins-07
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3694,7 +3694,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::  test mixed column alias case in predicate, tables inverted
-++  test-joins-03-a
+++  test-joins-08
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3740,7 +3740,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  join multi-column keys, all rows join
-++  test-joins-04
+++  test-joins-09
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3808,7 +3808,7 @@
   ==
 ::
 ::  join multi-column keys
-++  test-joins-04-a
+++  test-joins-010
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3876,7 +3876,7 @@
   ==
 ::
 ::  join multi-column keys, tables inverted
-++  test-joins-04-b
+++  test-joins-011
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3944,7 +3944,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys, all rows join
-++  test-joins-05
+++  test-joins-012
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4012,7 +4012,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys
-++  test-joins-05-a
+++  test-joins-013
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4080,7 +4080,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys, tables inverted 
-++  test-joins-05-b
+++  test-joins-014
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4148,7 +4148,7 @@
   ==
 ::
 ::  join ascending and partial descending multi-column keys, all rows join
-++  test-joins-06
+++  test-joins-15
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4216,7 +4216,7 @@
   ==
 ::
 ::  join ascending and partial descending multi-column keys
-++  test-joins-06-a
+++  test-joins-016
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4284,7 +4284,7 @@
   ==
 ::
 ::  join ascending and partial descending multi-column keys, tables inverted 
-++  test-joins-06-b
+++  test-joins-017
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4352,7 +4352,7 @@
   ==
 ::
 ::  join same table prior date
-++  test-joins-07
+++  test-joins-018
   =|  run=@ud
   =/  expected-rows  :~  :-  %vector
                              :~  [%day-name [~.t 'Thursday']]
