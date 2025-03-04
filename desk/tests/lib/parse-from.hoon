@@ -6,7 +6,7 @@
 ::  re-used components
 
 ::
-::  Predicate
+::  PREDICATE
 ::
 ++  one-eq-1
   [%eq [[value-type=%ud value=1] ~ ~] [[value-type=%ud value=1] ~ ~]]
@@ -16,103 +16,179 @@
 ++  select-top-10-all   [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
 ++  select-all-columns  [%select top=~ bottom=~ columns=~[[%all %all]]]
 ::
-::  FROM
+::  TABLE SET
 ::
 ++  foo-table
-  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='foo'
+          alias=~
+          ==
+++  foo-table-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='ns1'
+          name='foo'
+          alias=~
+          ==
+++  foo-table-db2
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db2'
+          namespace='dbo'
+          name='foo'
+          alias=~
+          ==
+++  foo-table-db2-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db2'
+          namespace='ns1'
+          name='foo'
+          alias=~
+          ==
+++  foo-table-nec-db2
+  :-  %table-set
+      :*  %qualified-object
+          ship=[~ ~nec]
+          database='db2'
+          namespace='dbo'
+          name='foo'
+          alias=~
+          ==
+++  foo-table-nec-db2-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=[~ ~nec]
+          database='db2'
+          namespace='ns1'
+          name='foo'
+          alias=~
+          ==
 ++  foo-table-f1
-  :*  %qualified-object
-      ship=~
-      database='db1'
-      namespace='dbo'
-      name='foo'
-      alias=[~ 'F1']
-      ==
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='foo'
+          alias=[~ 'F1']
+          ==
+++  foo-table-f1-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='ns1'
+          name='foo'
+          alias=[~ 'F1']
+          ==
+++  foo-table-f1-db2
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db2'
+          namespace='dbo'
+          name='foo'
+          alias=[~ 'F1']
+          ==
+++  foo-table-f1-db2-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db2'
+          namespace='ns1'
+          name='foo'
+          alias=[~ 'F1']
+          ==
+++  foo-table-f1-nec-db2
+  :-  %table-set
+      :*  %qualified-object
+          ship=[~ ~nec]
+          database='db2'
+          namespace='dbo'
+          name='foo'
+          alias=[~ 'F1']
+          ==
+++  foo-table-f1-nec-db2-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=[~ ~nec]
+          database='db2'
+          namespace='ns1'
+          name='foo'
+          alias=[~ 'F1']
+          ==
 ++  foo-table-f1-low
-  :*  %qualified-object
-      ship=~
-      database='db1'
-      namespace='dbo'
-      name='foo'
-      alias=[~ 'f1']
-      ==
-++  from-foo
-  [~ [%from object=[%table-set object=foo-table] as-of=~ joins=~]]
-++  from-foo-aliased
-  [~ [%from object=[%table-set object=foo-table-f1] as-of=~ joins=~]]
-++  simple-from-foo
-  :*  %query
-      from-foo
-      scalars=~
-      ~
-      group-by=~
-      having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
-      order-by=~
-      ==
-++  aliased-from-foo
-  :*  %query
-      from-foo-aliased
-      scalars=~
-      ~
-      group-by=~
-      having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
-      order-by=~
-      ==
-++  join-bar
-  :~  :*  %joined-object
-          join=%join
-          object=bar-unaliased
-          as-of=~
-          predicate=`one-eq-1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='foo'
+          alias=[~ 'f1']
           ==
-      ==
-++  from-foo-join-bar
-  :-  ~
-      [%from object=[%table-set object=foo-table] as-of=~ joins=join-bar]
-++  simple-from-foo-join-bar
-  :*  %query
-      from-foo-join-bar
-      scalars=~
-      ~
-      group-by=~
-      having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
-      order-by=~
-      ==
-++  join-bar-aliased
-  :~  :*  %joined-object
-          join=%join
-          :-  %table-set
-              :*  %qualified-object
-                  ship=~
-                  database='db1'
-                  namespace='dbo'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
-          as-of=~
-          predicate=`one-eq-1
+++  bar-unaliased
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='dbo'
+          name='bar'
+          alias=~
           ==
-      ==
-++  from-foo-join-bar-aliased
-  :-  ~
-      :^  %from
-          object=[%table-set object=foo-table]
-          as-of=~
-          joins=join-bar-aliased
-++  simple-from-foo-join-bar-aliased
-  :*  %query
-      from-foo-join-bar-aliased
-      scalars=~
-      ~
-      group-by=~
-      having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
-      order-by=~
-      ==
-++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
+++  bar-unaliased-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db1'
+          namespace='ns1'
+          name='bar'
+          alias=~
+          ==
+++  bar-unaliased-db2
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db2'
+          namespace='dbo'
+          name='bar'
+          alias=~
+          ==
+++  bar-unaliased-db2-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=~
+          database='db2'
+          namespace='ns1'
+          name='bar'
+          alias=~
+          ==
+++  unaliased-bar-db2-nec
+  :-  %table-set
+      :*  %qualified-object
+          ship=[~ ~nec]
+          database='db2'
+          namespace='dbo'
+          name='bar'
+          alias=~
+          ==
+++  unaliased-bar-db2-nec-ns1
+  :-  %table-set
+      :*  %qualified-object
+          ship=[~ ~nec]
+          database='db2'
+          namespace='ns1'
+          name='bar'
+          alias=~
+          ==
 ++  foo-alias-y
   :-  %table-set
       :*  %qualified-object
@@ -131,33 +207,6 @@
           name='bar'
           alias=[~ 'x']
           ==
-++  foo-unaliased
-  :-  %table-set
-      :*  %qualified-object
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='foo'
-          alias=~
-          ==
-++  bar-unaliased
-  :-  %table-set
-      :*  %qualified-object
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='bar'
-          alias=~
-          ==
-++  passthru-row-y
-  [%table-set object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
-++  passthru-row-x
-  [%table-set object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
-++  passthru-unaliased
-  [%table-set object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
-::
-::  TABLE SET
-::
 ++  foo-aliased
   :-  %table-set
       :*  %qualified-object
@@ -176,8 +225,413 @@
           name='bar'
           alias=[~ 'B1']
           ==
+++  passthru-row-y
+  [%table-set object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
+++  passthru-row-x
+  [%table-set object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
+++  passthru-unaliased
+  [%table-set object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
 ::
-::  JOIN
+::  QUERY
+::
+++  simple-from-foo
+  :*  %query
+      [~ [%from object=foo-table as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-ns1
+  :*  %query
+      [~ [%from object=foo-table-ns1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-db2
+  :*  %query
+      [~ [%from object=foo-table-db2 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-db2-ns1
+  :*  %query
+      [~ [%from object=foo-table-db2-ns1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-nec-db2
+  :*  %query
+      [~ [%from object=foo-table-nec-db2 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-nec-db2-ns1
+  :*  %query
+      [~ [%from object=foo-table-nec-db2-ns1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  aliased-from-foo
+  :*  %query
+      [~ [%from object=foo-table-f1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  aliased-from-foo-ns1
+  :*  %query
+      [~ [%from object=foo-table-f1-ns1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=[~ 9] columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  aliased-from-foo-db2
+  :*  %query
+      [~ [%from object=foo-table-f1-db2 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  aliased-from-foo-db2-ns1
+  :*  %query
+      [~ [%from object=foo-table-f1-db2-ns1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  aliased-from-foo-nec-db2
+  :*  %query
+      [~ [%from object=foo-table-f1-nec-db2 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  aliased-from-foo-nec-db2-ns1
+  :*  %query
+      [~ [%from object=foo-table-f1-nec-db2-ns1 as-of=~ joins=~]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar
+  :*  %query
+      [~ [%from object=foo-table as-of=~ joins=join-bar]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-ns1
+  :*  %query
+      [~ [%from foo-table-ns1 as-of=~ joins=join-bar-ns1]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-db2
+  :*  %query
+      [~ [%from object=foo-table-db2 as-of=~ joins=join-bar-db2]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-db2-ns1
+  :*  %query
+      [~ [%from object=foo-table-db2-ns1 as-of=~ joins=join-bar-db2-ns1]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-nec-db2
+  :*  %query
+      [~ [%from object=foo-table-nec-db2 as-of=~ joins=join-bar-db2-nec]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-nec-db2-ns1
+  :*  %query
+      :-  ~
+      [%from object=foo-table-nec-db2-ns1 as-of=~ joins=join-bar-db2-nec-ns1]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-aliased
+  :*  %query
+      [~ [%from object=foo-table as-of=~ joins=join-bar-aliased]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-aliased-ns1
+  :*  %query
+      [~ [%from object=foo-table-ns1 as-of=~ joins=join-bar-aliased-ns1]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-aliased-db2
+  :*  %query
+      [~ [%from object=foo-table-db2 as-of=~ joins=join-bar-aliased-db2]]
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-aliased-db2-ns1
+  :*  %query
+      :-  ~
+          :^  %from
+              object=foo-table-db2-ns1
+              as-of=~
+              joins=join-bar-aliased-db2-ns1
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-aliased-nec-db2
+  :*  %query
+      :-  ~
+          :^  %from
+              object=foo-table-nec-db2
+              as-of=~
+              joins=join-bar-aliased-nec-db2
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+++  simple-from-foo-join-bar-aliased-nec-db2-ns1
+  :*  %query
+      :-  ~
+          :^  %from
+              object=foo-table-nec-db2-ns1
+              as-of=~
+              joins=join-bar-aliased-nec-db2-ns1
+      scalars=~
+      ~
+      group-by=~
+      having=~
+      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      order-by=~
+      ==
+
+::
+::  JOINED OBJECT
+::
+++  join-bar
+  :~  :*  %joined-object
+          join=%join
+          object=bar-unaliased
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-ns1
+  :~  :*  %joined-object
+          join=%join
+          object=bar-unaliased-ns1
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-db2
+  :~  :*  %joined-object
+          join=%join
+          object=bar-unaliased-db2
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-db2-ns1
+  :~  :*  %joined-object
+          join=%join
+          object=bar-unaliased-db2-ns1
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-db2-nec
+  :~  :*  %joined-object
+          join=%join
+          object=unaliased-bar-db2-nec
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-db2-nec-ns1
+  :~  :*  %joined-object
+          join=%join
+          object=unaliased-bar-db2-nec-ns1
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-aliased
+  :~  :*  %joined-object
+          join=%join
+          :-  %table-set
+              :*  %qualified-object
+                  ship=~
+                  database='db1'
+                  namespace='dbo'
+                  name='bar'
+                  alias=[~ 'b1']
+                  ==
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-aliased-ns1
+  :~  :*  %joined-object
+          join=%join
+          :-  %table-set
+              :*  %qualified-object
+                  ship=~
+                  database='db1'
+                  namespace='ns1'
+                  name='bar'
+                  alias=[~ 'b1']
+                  ==
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-aliased-db2
+  :~  :*  %joined-object
+          join=%join
+          :-  %table-set
+              :*  %qualified-object
+                  ship=~
+                  database='db2'
+                  namespace='dbo'
+                  name='bar'
+                  alias=[~ 'b1']
+                  ==
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-aliased-db2-ns1
+  :~  :*  %joined-object
+          join=%join
+          :-  %table-set
+              :*  %qualified-object
+                  ship=~
+                  database='db2'
+                  namespace='ns1'
+                  name='bar'
+                  alias=[~ 'b1']
+                  ==
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-aliased-nec-db2
+  :~  :*  %joined-object
+          join=%join
+          :-  %table-set
+              :*  %qualified-object
+                  ship=[~ ~nec]
+                  database='db2'
+                  namespace='dbo'
+                  name='bar'
+                  alias=[~ 'b1']
+                  ==
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+++  join-bar-aliased-nec-db2-ns1
+  :~  :*  %joined-object
+          join=%join
+          :-  %table-set
+              :*  %qualified-object
+                  ship=[~ ~nec]
+                  database='db2'
+                  namespace='ns1'
+                  name='bar'
+                  alias=[~ 'b1']
+                  ==
+          as-of=~
+          predicate=`one-eq-1
+          ==
+      ==
+
+::
+::  JOIN with time
 ::
 ++  join-bar-as-of
   |=  time=as-of
@@ -278,12 +732,12 @@
           ==
       ==
 ::
-::  QUERY
+::  QUERY with time
 ::
 ++  simple-from
   |=  time=as-of
   :*  %query 
-      (as-of-foo time)
+      [~ [%from object=foo-table as-of=[~ time] joins=~]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -294,7 +748,7 @@
 ++  simple-from-aliased
   |=  time=as-of
   :*  %query
-      (as-of-foo-aliased time)
+      [~ [%from object=foo-aliased as-of=[~ time] joins=~]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -305,7 +759,7 @@
 ++  simple-from-join-bar
   |=  time=as-of
   :*  %query
-      (as-of-foo-join-bar time)
+      [~ [%from object=foo-table as-of=[~ time] joins=(join-bar-as-of time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -316,7 +770,7 @@
 ++  simple-from-join-bar-aliased
   |=  time=as-of
   :*  %query
-      (as-of-foo-join-bar-aliased time)
+      [~ [%from object=foo-table as-of=[~ time] joins=(join-bar-aliased-as-of time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -328,7 +782,7 @@
 ++  simple-from-aliased-join-bar-aliased
   |=  time=as-of
   :*  %query
-      (as-of-foo-aliased-join-bar-aliased time)
+      [~ [%from object=foo-aliased as-of=[~ time] joins=(join-bar-aliased-as-of time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -339,7 +793,7 @@
 ++  simple-from-join-bar-baz
   |=  time=as-of
   :*  %query
-      (as-of-foo-join-bar-baz time)
+      [~ [%from object=foo-table as-of=[~ time] joins=(join-bar-baz time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -350,7 +804,8 @@
 ++  simple-from-aliased-join-bar-baz
   |=  time=as-of
   :*  %query
-      (as-of-foo-aliased-join-bar-baz time)
+      :-  ~
+     [%from object=foo-aliased as-of=[~ time] joins=(aliased-join-bar-baz time)]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -361,7 +816,7 @@
 ++  simple-from-cross-join-bar
   |=  time=as-of
   :*  %query
-      (as-of-foo-aliased-cross-join-bar time)
+      [~ [%from object=foo-table as-of=[~ time] joins=(cross-join-bar time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -372,7 +827,11 @@
 ++  simple-from-aliased-cross-bar
   |=  time=as-of
   :*  %query 
-      (as-of-foo-aliased-cross-join-bar-aliased time)
+      :-  ~
+          :^  %from
+              foo-aliased
+              [~ time]    ::as-of
+              (cross-join-bar-aliased time)
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -383,7 +842,7 @@
 ++  natural-from-join-bar
   |=  time=as-of
   :*  %query
-      (as-of-foo-natural-join-bar time)
+      [~ [%from object=foo-table as-of=[~ time] joins=(natural-join-bar time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -394,7 +853,11 @@
 ++  natural-from-join-bar-aliased
   |=  time=as-of
   :*  %query
-      (as-of-foo-natural-join-bar-aliased time)
+      :-  ~
+          :^  %from
+              object=foo-table
+              as-of=[~ time]
+              joins=(natural-join-bar-aliased time)
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -405,7 +868,11 @@
 ++  natural-from-aliased-join-bar-aliased
   |=  time=as-of
   :*  %query
-      (as-of-foo-aliased-natural-join-bar-aliased time)
+      :-  ~
+          :^  %from
+              object=foo-aliased
+              as-of=[~ time]
+              joins=(natural-join-bar-aliased time)
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -482,57 +949,7 @@
           ~
     ==
 ::
-::  FROM  AS OF
-::
-++  as-of-foo
-  |=  time=as-of
-  [~ [%from object=foo-unaliased as-of=[~ time] joins=~]]
-++  as-of-foo-aliased
-  |=  time=as-of
-  [~ [%from object=foo-aliased as-of=[~ time] joins=~]]
-++  as-of-foo-join-bar
-  |=  time=as-of
-  [~ [%from object=foo-unaliased as-of=[~ time] joins=(join-bar-as-of time)]]
-++  as-of-foo-natural-join-bar
-  |=  time=as-of
-  [~ [%from object=foo-unaliased as-of=[~ time] joins=(natural-join-bar time)]]
-++  as-of-foo-join-bar-aliased
-  |=  time=as-of
-  [~ [%from object=foo-unaliased as-of=[~ time] joins=(join-bar-aliased-as-of time)]]
-++  as-of-foo-natural-join-bar-aliased
-  |=  time=as-of
-  :-  ~
-      :^  %from
-          object=foo-unaliased
-          as-of=[~ time]
-          joins=(natural-join-bar-aliased time)
-++  as-of-foo-aliased-join-bar-aliased
-  |=  time=as-of
-  [~ [%from object=foo-aliased as-of=[~ time] joins=(join-bar-aliased-as-of time)]]
-++  as-of-foo-aliased-natural-join-bar-aliased
-  |=  time=as-of
-  :-  ~
-        :^  %from
-            object=foo-aliased
-            as-of=[~ time]
-            joins=(natural-join-bar-aliased time)
-++  as-of-foo-join-bar-baz
-  |=  time=as-of
-  [~ [%from object=foo-unaliased as-of=[~ time] joins=(join-bar-baz time)]]
-++  as-of-foo-aliased-join-bar-baz
-  |=  time=as-of
-  :-  ~
-     [%from object=foo-aliased as-of=[~ time] joins=(aliased-join-bar-baz time)]
-++  as-of-foo-aliased-cross-join-bar
-  |=  time=as-of
-  [~ [%from object=foo-unaliased as-of=[~ time] joins=(cross-join-bar time)]]
-++  as-of-foo-aliased-cross-join-bar-aliased
-  |=  time=as-of
-  :-  ~
-      :^  %from
-          foo-aliased
-          [~ time]    ::as-of
-          (cross-join-bar-aliased time)
+::  EXPECTED with time
 ::
 ++  expected
   |=  [b=$-(as-of query) time=as-of]
@@ -547,11 +964,38 @@
     !>  ~[[%selection ctes=~ [[simple-from-foo] ~ ~]]]
     !>  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 10 *")
 ::
-::  from foo (un-aliased)
-::++  test-join-01-a
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[simple-from-foo] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT TOP 10 *")
+::  from ns1.foo (un-aliased)
+++  test-join-01-a
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-ns1] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT TOP 10 *")
+::
+::  from db2..foo (un-aliased)
+++  test-join-01-b
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-db2] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM db2..foo SELECT TOP 10 *")
+::
+::  from db2.ns1.foo (un-aliased)
+++  test-join-01-c
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-db2-ns1] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo SELECT TOP 10 *")
+::
+::  from ~nec.db2..foo (un-aliased)
+++  test-join-01-d
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-nec-db2] ~ ~]]]
+    !>    %-  parse:parse(default-database 'db1')
+              "FROM ~nec.db2..foo SELECT TOP 10 *"
+
+::
+::  from ~nec.db2.ns1.foo (un-aliased)
+++  test-join-01-e
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-nec-db2-ns1] ~ ~]]]
+    !>    %-  parse:parse(default-database 'db1')
+              "FROM ~nec.db2.ns1.foo SELECT TOP 10 *"
 ::
 ::  from foo (aliased)
 ++  test-join-02
@@ -559,11 +1003,77 @@
     !>  ~[[%selection ctes=~ [[aliased-from-foo] ~ ~]]]
     !>  (parse:parse(default-database 'db1') "FROM foo F1 SELECT TOP 10 *")
 ::
+::  from ns1.foo (aliased)
+++  test-join-02-a
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-ns1] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM ns1.foo F1 SELECT TOP 10 bottom 9 *")
+::
+::  from db2..foo (aliased)
+++  test-join-02-b
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM db2..foo F1 SELECT TOP 10 *")
+::
+::  from db2.ns1.foo (aliased)
+++  test-join-02-c
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2-ns1] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo F1 SELECT TOP 10 *")
+::
+::  from ~nec.db2..foo (aliased)
+++  test-join-02-d
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2] ~ ~]]]
+    !>    %-  parse:parse(default-database 'db1')
+              "FROM ~nec.db2..foo F1 SELECT TOP 10 *"
+
+::
+::  from ~nec.db2.ns1.foo (aliased)
+++  test-join-02-e
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2-ns1] ~ ~]]]
+    !>    %-  parse:parse(default-database 'db1')
+              "FROM ~nec.db2.ns1.foo F1 SELECT TOP 10 *"
+::
 ::  from foo (aliased as)
 ++  test-join-03
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[aliased-from-foo] ~ ~]]]
     !>  (parse:parse(default-database 'db1') "FROM foo as F1 SELECT TOP 10 *")
+::
+::  from ns1.foo (aliased as)
+++  test-join-03-a
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-ns1] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM ns1.foo as F1 SELECT TOP 10 bottom 9 *")
+::
+::  from db2..foo (aliased as)
+++  test-join-03-b
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM db2..foo As F1 SELECT TOP 10 *")
+::
+::  from db2.ns1.foo (aliased as)
+++  test-join-03-c
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2-ns1] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo aS F1 SELECT TOP 10 *")
+::
+::  from ~nec.db2..foo (aliased as)
+++  test-join-03-d
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2] ~ ~]]]
+    !>    %-  parse:parse(default-database 'db1')
+              "FROM ~nec.db2..foo AS F1 SELECT TOP 10 *"
+
+::
+::  from ~nec.db2.ns1.foo (aliased as)
+++  test-join-03-e
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2-ns1] ~ ~]]]
+    !>    %-  parse:parse(default-database 'db1')
+              "FROM ~nec.db2.ns1.foo AS F1 SELECT TOP 10 *"
 ::
 ::  from foo (un-aliased) join bar (un-aliased)
 ++  test-join-04
@@ -572,12 +1082,84 @@
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo join bar on 1 = 1 SELECT TOP 10 *"
 ::
+::  from ns1.foo (un-aliased) join ns1.bar (un-aliased)
+++  test-join-04-a
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ns1.foo join ns1.bar on 1 = 1 SELECT TOP 10 *"
+::
+::  from db2..foo (un-aliased) db2..join bar (un-aliased)
+++  test-join-04-b
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-db2] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM db2..foo join db2..bar on 1 = 1 SELECT TOP 10 *"
+::
+::  from db2.ns1.foo (un-aliased) join db2.ns1.bar (un-aliased)
+++  test-join-04-c
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-db2-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM db2.ns1.foo join db2.ns1.bar on 1 = 1 SELECT TOP 10 *"
+::
+::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (un-aliased)
+++  test-join-04-d
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-nec-db2] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ~nec.db2..foo join ~nec.db2..bar on 1 = 1 SELECT TOP 10 *"
+::
+::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (un-aliased)
+++  test-join-04-e
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-nec-db2-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar on 1 = 1 SELECT TOP 10 *"
+
+::
 ::  from foo (un-aliased) join bar (aliased)
 ++  test-join-05
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased] ~ ~]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo join bar b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from ns1.foo (un-aliased) join ns1.bar (aliased)
+++  test-join-05-a
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ns1.foo join ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from db2..foo (un-aliased) join db2..bar (aliased)
+++  test-join-05-b
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM db2..foo join db2..bar b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from db2.ns1.foo (un-aliased) db2.ns1.join bar (aliased)
+++  test-join-05-c
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM db2.ns1.foo join db2.ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (aliased)
+++  test-join-05-d
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-nec-db2] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ~nec.db2..foo join ~nec.db2..bar b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (aliased)
+++  test-join-05-e
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-nec-db2-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
+
 ::
 ::  from foo (un-aliased) join bar (aliased as)
 ++  test-join-06
@@ -586,6 +1168,41 @@
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo join bar  as  b1 on 1 = 1 SELECT TOP 10 *"
 ::
+::  from ns1.foo (un-aliased) join ns1.bar (aliased as)
+++  test-join-06-a
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ns1.foo join ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from db2..foo (un-aliased) join db2..bar (aliased as)
+++  test-join-06-b
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM db2..foo join db2..bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from db2.ns1.foo (un-aliased) join db2.ns1.bar (aliased as)
+++  test-join-06-c
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM db2.ns1.foo join db2.ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (aliased as)
+++  test-join-06-d
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-nec-db2] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ~nec.db2..foo join ~nec.db2..bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+::
+::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (aliased as)
+++  test-join-06-e
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-nec-db2-ns1] ~ ~]]]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
+::
 ::  from foo (aliased lower case) join bar (aliased as)
 ++  test-join-07
   =/  expected  :+  %selection
@@ -593,7 +1210,7 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=[%table-set object=foo-table-f1-low]
+                                    object=foo-table-f1-low
                                     as-of=~
                                     joins=join-bar-aliased
                             scalars=~
@@ -617,7 +1234,7 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=[%table-set object=foo-table]
+                                    object=object=foo-table
                                     as-of=~
                                     :~  :*  %joined-object
                                             join=%join
@@ -660,7 +1277,7 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=[%table-set object=foo-table-f1-low]
+                                    object=foo-table-f1-low
                                     as-of=~
                                     :~  :*  %joined-object
                                             join=%join
@@ -840,7 +1457,7 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-unaliased
+                                    object=foo-table
                                     as-of=~
                                     :~  :*  %joined-object
                                             join=%cross-join
@@ -1051,7 +1668,7 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-unaliased
+                                    object=foo-table
                                     as-of=~
                                     :~  :*  %joined-object
                                             join=%join
@@ -1105,14 +1722,14 @@
 ::  AS OF queries
 ::
 ::  from foo %now (un-aliased)
-++  test-as-of-as-of-01
+++  test-as-of-01
   %+  expect-eq
       !>  (expected [simple-from [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo aS Of Now SELECT TOP 10 *"
 ::
 ::  from foo %now (aliased)
-++  test-as-of-as-of-02
+++  test-as-of-02
   %+  expect-eq
       !>  (expected [simple-from-aliased [%as-of-offset 0 %seconds]])
       !>  %-  parse:parse(default-database 'db1')
