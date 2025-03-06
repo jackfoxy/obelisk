@@ -23,7 +23,7 @@ The `<query>` command provides a means to create `<table-set>`s derived from per
   ]
   SELECT [ TOP <n> ] [ BOTTOM <n> ]
     { * | { [<ship-qualifier>]<table-view> | <alias> }.*
-        | <expression> [ [ AS ] <column-alias> ]
+        | <expression> [ AS <column-alias> ]
     } [ ,...n ]
   [ ORDER BY 
     {

@@ -3301,7 +3301,7 @@
         ==
 ::
 ::  test T1.* in select, all rows join
-++  test-joins-00
+++  test-join-00
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3351,7 +3351,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test T1.* in select
-++  test-joins-01
+++  test-join-01
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3401,7 +3401,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test T1.* in select, tables inverted
-++  test-joins-02
+++  test-join-02
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3451,7 +3451,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test alternating file alias case
-++  test-joins-03
+++  test-join-03
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3502,7 +3502,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::  test alternating file alias case, tables inverted
-++  test-joins-04
+++  test-join-04
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3554,7 +3554,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test alternating file alias case in predicate
-++  test-joins-05
+++  test-join-05
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3601,7 +3601,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::  test alternating file alias case in predicate, tables inverted
-++  test-joins-06
+++  test-join-06
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3649,7 +3649,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  test mixed column alias case in predicate
-++  test-joins-07
+++  test-join-07
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3694,7 +3694,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::  test mixed column alias case in predicate, tables inverted
-++  test-joins-08
+++  test-join-08
   =|  run=@ud
   =/  expected-rows
         :~  :-  %vector
@@ -3740,7 +3740,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  join multi-column keys, all rows join
-++  test-joins-09
+++  test-join-09
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3808,7 +3808,7 @@
   ==
 ::
 ::  join multi-column keys
-++  test-joins-010
+++  test-join-010
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3876,7 +3876,7 @@
   ==
 ::
 ::  join multi-column keys, tables inverted
-++  test-joins-011
+++  test-join-011
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3944,7 +3944,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys, all rows join
-++  test-joins-012
+++  test-join-012
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4012,7 +4012,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys
-++  test-joins-013
+++  test-join-013
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4080,7 +4080,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys, tables inverted 
-++  test-joins-014
+++  test-join-014
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4148,7 +4148,7 @@
   ==
 ::
 ::  join ascending and partial descending multi-column keys, all rows join
-++  test-joins-15
+++  test-join-15
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4216,7 +4216,7 @@
   ==
 ::
 ::  join ascending and partial descending multi-column keys
-++  test-joins-016
+++  test-join-16
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4284,7 +4284,7 @@
   ==
 ::
 ::  join ascending and partial descending multi-column keys, tables inverted 
-++  test-joins-017
+++  test-join-17
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4351,8 +4351,109 @@
   (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
   ==
 ::
+::  join ascending and partial descending multi-column keys
+::  with column aliases and literals
+++  test-join-18
+  =|  run=@ud
+  =/  expected-rows  :~  :-  %vector
+                             :~  [%literal-0 [~.ud 1]]
+                                 [%my-year [~.ud 2.023]]
+                                 [%the-month [~.ud 12]]
+                                 [%the-day [~.ud 25]]
+                                 [%literal-4 [~.p 0]]
+                                 [%month-name [~.t 'December']]
+                                 [%day-name [~.t 'Monday']]
+                                 ==
+                         :-  %vector
+                             :~  [%literal-0 [~.ud 1]]
+                                 [%my-year [~.ud 2.024]]
+                                 [%the-month [~.ud 1]]
+                                 [%the-day [~.ud 1]]
+                                 [%literal-4 [~.p 0]]
+                                 [%month-name [~.t 'January']]
+                                 [%day-name [~.t 'Monday']]
+                                 ==
+                         :-  %vector
+                             :~  [%literal-0 [~.ud 1]]
+                                 [%my-year [~.ud 2.024]]
+                                 [%the-month [~.ud 2]]
+                                 [%the-day [~.ud 5]]
+                                 [%literal-4 [~.p 0]]
+                                 [%month-name [~.t 'February']]
+                                 [%day-name [~.t 'Monday']]
+                                 ==
+                         :-  %vector
+                             :~  [%literal-0 [~.ud 1]]
+                                 [%my-year [~.ud 2.024]]
+                                 [%the-month [~.ud 3]]
+                                 [%the-day [~.ud 4]]
+                                 [%literal-4 [~.p 0]]
+                                 [%month-name [~.t 'March']]
+                                 [%day-name [~.t 'Monday']]
+                                 ==
+                         :-  %vector
+                             :~  [%literal-0 [~.ud 1]]
+                                 [%my-year [~.ud 2.024]]
+                                 [%the-month [~.ud 4]]
+                                 [%the-day [~.ud 1]]
+                                 [%literal-4 [~.p 0]]
+                                 [%month-name [~.t 'April']]
+                                 [%day-name [~.t 'Monday']]
+                                 ==
+                         :-  %vector
+                             :~  [%literal-0 [~.ud 1]]
+                                 [%my-year [~.ud 2.024]]
+                                 [%the-month [~.ud 4]]
+                                 [%the-day [~.ud 8]]
+                                 [%literal-4 [~.p 0]]
+                                 [%month-name [~.t 'April']]
+                                 [%day-name [~.t 'Monday']]
+                                 ==
+                         ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.tbl2']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl1']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                    ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              insert-tbl1
+                              "CREATE TABLE tbl2 ".
+                              "(year        @ud,".
+                              " month       @ud,".
+                              " day         @ud,".
+                              " day-name  @t)".
+                              "  PRIMARY KEY (year, month DESC, day DESC);"
+                              insert-tbl2-a
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl2 t2 ".
+                "JOIN tbl1 T1 ".
+                "WHERE day-name = 'Monday' ".
+                "SELECT 1, T2.year as my-year, T1.month AS the-month, ".
+                "T2.day As the-day, ~zod, month-name, day-name"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  join same table prior date
-++  test-joins-018
+++  test-join-19
   =|  run=@ud
   =/  expected-rows  :~  :-  %vector
                              :~  [%day-name [~.t 'Thursday']]
@@ -4554,6 +4655,27 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
+::
+::  same object 2X with unqualified column
+++  test-fail-join-00
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              ==
+  %+  expect-fail-message
+        'SELECT: column %year must be qualified'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db1..tbl1 ".
+                  "JOIN db1..tbl1 ".
+                  "SELECT year"
 ::  bugs
 ::
 ::  bug selecting calendar because of screw-up in views schema API
@@ -4746,6 +4868,21 @@
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
           %obelisk-action
           !>([%test %db1 my-select])
+::
+:: unresolved alias select all object
+++  test-fail-select-03
+  =|  run=@ud
+  %+  expect-fail-message
+        'cannot resolve 13.140'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM animal-shelter.reference.calendar T1 ".
+                  "JOIN reference.calendar-us-fed-holiday calendar ".
+                  "WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31 ".
+                  "SELECT T1.date, day-name, us-federal-holiday, T3.*;"
+
 ::
 ::  fail on as-of ~d4 (schema-time < ~d4 ago)
 ++  test-fail-time-query-01
