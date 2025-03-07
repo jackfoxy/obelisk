@@ -294,7 +294,27 @@
     %outer-join
       ~|("%outer-join not implemented" !!)
     %cross-join
-      ~|("%cross-join not implemented" !!)
+      (cross-join prior this)
+  ==
+++  cross-join
+  |=  [prior=from-obj this=from-obj]
+  ^-  (list joined-row)
+  =/  a  indexed-rows.prior
+  =/  out-rows=(list joined-row)  ~
+  =/  init-map=joined-row  ~
+  ::
+  |-
+  ?~  a  out-rows
+  =/  b  indexed-rows.this 
+  |-
+  ?~  b  ^$(a +.a)
+  %=  $ 
+                              :: produce joined vectors
+    out-rows  :-  %+  ~(put by (~(put by init-map) object.prior ->.a)) 
+                      object.this
+                      ->.b
+                  out-rows
+    b  +.b
   ==
 ++  join-natural
   |=  [prior=from-obj this=from-obj]

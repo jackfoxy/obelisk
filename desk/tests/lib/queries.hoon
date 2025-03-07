@@ -2749,6 +2749,18 @@
   " day         @ud,".
   " month-name  @t)".
   "  PRIMARY KEY (year, month, day);"
+++  create-cross-tbl
+  "CREATE TABLE cross ".
+  "(cross-key  @ud,".
+  " cross-2    @p,".
+  " cross-3    @t)".
+  "  PRIMARY KEY (cross-key);"
+++  insert-cross
+  "INSERT INTO cross ".
+  "VALUES ".
+  "(1, ~sampel-palnet, 'cross-a') ".
+  "(2, ~nec, 'cross-b') ".
+  "(3, ~bus, 'cross-c');"
 ++  insert-tbl1
   "INSERT INTO tbl1 ".
   "VALUES ".
@@ -2784,7 +2796,20 @@
   "(2024, 4, 6, 'April') ".
   "(2024, 4, 7, 'April') ".
   "(2024, 4, 8, 'April');"
-
+++  insert-tbl1-a
+  "INSERT INTO tbl1 ".
+  "VALUES ".
+  "(2023, 12, 21, 'December') ".
+  "(2023, 12, 22, 'December') ".
+  "(2023, 12, 23, 'December') ".
+  "(2023, 12, 24, 'December') ".
+  "(2023, 12, 25, 'December') ".
+  "(2023, 12, 26, 'December') ".
+  "(2023, 12, 27, 'December') ".
+  "(2023, 12, 28, 'December') ".
+  "(2023, 12, 29, 'December') ".
+  "(2023, 12, 30, 'December') ".
+  "(2023, 12, 31, 'December');"
 ++  insert-tbl2
   "INSERT INTO tbl2 ".
   "VALUES ".
@@ -3299,6 +3324,331 @@
                 [%day-name [~.t 'Monday']]
                 ==
         ==
+++  expected-cross-rows
+      :~  :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=31]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=23]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=29]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=31]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=25]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=23]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=30]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=31]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=27]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=26]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=21]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=22]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=28]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=30]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=26]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=29]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=28]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=24]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=24]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=22]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=29]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=23]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=21]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=21]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=27]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=26]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=22]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=1]]
+                  [%cross-3 [~.t q=27.634.521.598.816.867]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=27]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=25]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=24]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=30]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+      ==
+          :-  %vector
+             :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=25]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=182]]
+                  [%cross-3 [~.t q=27.915.996.575.527.523]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month [~.ud q=12]]
+                  [%day [~.ud q=28]]
+                  [%month-name [~.t q=8.243.102.914.963.531.076]]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=1.624.961.343]]
+                  [%cross-3 [~.t q=27.353.046.622.106.211]]
+                  ==
+          ==
+++  expected-cross
+      :~  %results
+          [%message 'SELECT']
+          [%result-set expected-cross-rows]
+          [%server-time ~2012.5.3]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'db1.dbo.cross']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%vector-count 33]
+          ==
+++  expected-cross-inverted
+      :~  %results
+          [%message 'SELECT']
+          [%result-set expected-cross-rows]
+          [%server-time ~2012.5.3]
+          [%message 'db1.dbo.cross']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%vector-count 33]
+          ==
 ::
 ::  test T1.* in select, all rows join
 ++  test-join-00
@@ -3808,7 +4158,7 @@
   ==
 ::
 ::  join multi-column keys
-++  test-join-010
+++  test-join-10
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3876,7 +4226,7 @@
   ==
 ::
 ::  join multi-column keys, tables inverted
-++  test-join-011
+++  test-join-11
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -3944,7 +4294,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys, all rows join
-++  test-join-012
+++  test-join-12
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4012,7 +4362,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys
-++  test-join-013
+++  test-join-13
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4080,7 +4430,7 @@
   ==
 ::
 ::  join ascending and descending multi-column keys, tables inverted 
-++  test-join-014
+++  test-join-14
   =|  run=@ud
   =/  expected-1  :~  %results
                       [%message 'SELECT']
@@ -4655,6 +5005,59 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
+::  cross join
+++  test-join-20
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              create-cross-tbl
+                              insert-tbl1-a
+                              insert-cross
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 ".
+                "CROSS JOIN cross ".
+                "SELECT year, month, day, month-name, cross-key, cross-2, ".
+                "cross-3"
+  ::
+  (eval-results expected-cross ;;(cmd-result ->+>+>+<.mov2))
+::
+::  cross join (inverted)
+++  test-join-21
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              create-cross-tbl
+                              insert-tbl1-a
+                              insert-cross
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM cross ".
+                "CROSS JOIN tbl1 ".
+                "SELECT year, month, day, month-name, cross-key, cross-2, ".
+                "cross-3"
+  ::
+  (eval-results expected-cross-inverted ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
