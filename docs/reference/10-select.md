@@ -1,19 +1,19 @@
-# QUERY
+# SELECT
 *supported in urQL parser, partially supported and under development in Obelisk*
 
 The `<query>` command provides a means to create `<table-set>`s derived from persisted and/or cached `<table-set>`s and/or constants. Data rows can be joined based on predicates, specific columns can be selected, and the resulting rows can be filtered by predicate.
 
 ```
 <query> ::=
-  [ FROM <table-set> [ [AS] <alias> ] [ <as-of-time> ]
-    { JOIN <table-set> [ [AS] <alias> ] [ <as-of-time> ] }
+  [ FROM <table-set> [ <as-of-time> ] [ [AS] <alias> ]
+    { JOIN <table-set> [ <as-of-time> ] [ [AS] <alias> ] }
     | {
         { JOIN | LEFT JOIN | RIGHT JOIN | OUTER JOIN }
-          <table-set> [ [AS] <alias> ] [ <as-of-time> ]
+          <table-set> [ <as-of-time> ] [ [AS] <alias> ]
           ON <predicate>
       } 
     [ ...n ]
-    | CROSS JOIN <table-set> [ [AS] <alias> ] [ <as-of-time> ]
+    | CROSS JOIN <table-set> [ <as-of-time> ] [ [AS] <alias> ]
   ]
   [ WHERE <predicate> ]
   [ GROUP BY { <qualified-column> 
@@ -23,7 +23,7 @@ The `<query>` command provides a means to create `<table-set>`s derived from per
   ]
   SELECT [ TOP <n> ] [ BOTTOM <n> ]
     { * | { [<ship-qualifier>]<table-view> | <alias> }.*
-        | <expression> [ [ AS ] <column-alias> ]
+        | <expression> [ AS <column-alias> ]
     } [ ,...n ]
   [ ORDER BY 
     {
@@ -31,15 +31,21 @@ The `<query>` command provides a means to create `<table-set>`s derived from per
     }  [ ,...n ]
   ]
 ```
-`JOIN` is an inner join returning all matching pairs of rows. When specified without `ON <predicate>` it specifies a natural join, indicating the join is performed on all columns that match both the column name and the aura type.
+`JOIN` is an inner join returning all matching pairs of rows. When specified without `ON <predicate>` it specifies a natural join, indicating the join is performed on matching primary keys. All columns in the keys must match on column name, aura type, and sequence. `ASC | DESC` for the key columns does not have to match
 
-*natural join is the only join currently supported in Obelisk*
+*natural join is the only inner join currently supported in Obelisk*
 
 `LEFT JOIN` is a left outer join returning all rows from the left table not meeting the join condition, along with all matching pairs of rows.
 
+*not currently supported in Obelisk*
+
 `RIGHT JOIN` is a right outer join returning all rows from the right table not meeting the join condition, along with all matching pairs of rows.
 
+*not currently supported in Obelisk*
+
 `OUTER JOIN` is a full outer join returning matching pairs of rows, as well as all rows from both tables not meeting the join condition.
+
+*not currently supported in Obelisk*
 
 `CROSS JOIN` is a cartesian join of two tables.
 
@@ -163,14 +169,40 @@ The simplest possible query is `SELECT 0`.
 
 ### Produced Metadata
 
-Row count
+message: SELECT
+server-time: <timestamp>
+schema-time: <timestamp>
+data-time: <timestamp>
+vector count: 1
+
+...
+
+message: SELECT
+server-time: <timestamp>
+message: <database name>.<namespace name>.<table or view name>
+schema-time: <timestamp>
+data-time: <timestamp>
+message: <database name>.<namespace name>.<table or view name> (1st joined object, etc.)
+schema-time: <timestamp>
+data-time: <timestamp>
+vector count: <count>
 
 ### Exceptions
 
-`TOP` or `BOTTOM` specified without `ORDER BY` clause.
-table `<database>`.`<namespace>`.`<table>` does not exist at schema time `<time>`
-column `<column>` not found
+(literal only selection) no literal values
+selected value <value> not a literal
+SELECT: database {<database.query-obj>} does not exist
+SELECT:  `<database>`.`<namespace>`.`<table>` does not exist at schema time `<time>`
+no natural or foreign key join <object> <object>
+SELECT: column {<column.sel>} must be qualified
+SELECT: column `<column>` not found
 
-### Example
 
-*missing*
+### Examples
+
+SELECT 0;
+
+FROM reference.calendar T1
+JOIN reference.calendar-us-fed-holiday T2
+WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
+SELECT T1.date, day-name, us-federal-holiday

@@ -241,12 +241,18 @@
         results
           ?.  ->-.r
             :-  :-  %results
-                    :~  [%message (crip "TRUNCATE TABLE {<name.table.cmd>}")]
+                    :~  :-  %message
+                            %-  crip
+                                "TRUNCATE TABLE ".
+                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
                         [%message 'no data in table to truncate']
                         ==
                 results
           :-  :-  %results
-                  :~  [%message (crip "TRUNCATE TABLE {<name.table.cmd>}")]
+                  :~  :-  %message
+                            %-  crip
+                                "TRUNCATE TABLE ".
+                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
                       [%server-time now.bowl]
                       [%data-time -<.r]
                       [%vector-count ->+.r]
@@ -274,6 +280,9 @@
                       :-  [%sys %tables sys-time]
                           %-  apply-ordering
                               (sys-tables-view +<.c sap.bowl sys-time)
+                      :-  [%sys %table-keys sys-time]
+                          %-  apply-ordering
+                              (sys-table-keys-view +<.c sap.bowl sys-time)
                       :-  [%sys %columns sys-time]
                           %-  apply-ordering
                               (sys-columns-view +<.c sap.bowl sys-time)
@@ -566,7 +575,7 @@
   ::
   =/  dropped-rows  rowcount.file
   =.  pri-idx.file    ~
-  =.  rows.file       ~
+  =.  indexed-rows.file       ~
   =.  rowcount.file   0
   =.  tmsp.file       sys-time
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
@@ -784,8 +793,8 @@
                                                             %insert
                                                             ==
                             ==
-          ::  ~&  "%vector-count: {<rowcount.file>}"
-      :~  [%message (crip "INSERT INTO {<name.table.ins>}")]
+      :~  :-  %message
+              (crip "INSERT INTO {<namespace.table.ins>}.{<name.table.ins>}")
           [%server-time now.bowl]
           [%schema-time tmsp.table]
           [%data-time sys-time]
@@ -829,7 +838,7 @@
                (result %vector-count 1)
                ==
   =/  all-join=[server (list from-obj)]
-        (join-all(state state, bowl bowl) (need from.q))
+        (join-all(state state, bowl bowl) q)
   =/  =data-obj  (vector-data +.all-join q)
   ::
   :-  -.all-join  :: state
@@ -851,35 +860,29 @@
   ?~  sources  ~|("can't get here" !!)
   =/  single-source  =(1 (lent sources)) 
   =/  =from-obj  ?:  single-source  -.sources
-                                    -:(flop sources)
+                 -:(flop sources)
   =/  selected  columns.selection.q
+  =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
+  =.  selected  (fix-selected selected qualifier-lookup)
+  =/  init-map=joined-row  ~
+  =.  joined-rows.from-obj
+        ?.  single-source  joined-rows.from-obj
+          %+  turn  indexed-rows.from-obj
+                    |=(a=[(list @) (map @tas @)] (~(put by init-map) object.from-obj +.a))
   ::
   =/  vectors
-      ?:  single-source
-        ?~  predicate.q
-            %^  select-columns  rows.from-obj
-                                (mk-vect-templ columns.from-obj selected)
-                                (turn columns.from-obj |=(a=column:ast name.a))
-        %:  select-columns-filtered  rows.from-obj
-                                     (mk-vect-templ columns.from-obj selected)
-                                     %+  turn  columns.from-obj
-                                               |=(a=column:ast name.a)
-                                     %+  pred-ops-and-conjs
-                                         (need predicate.q)
-                                         %-  ~(got by type-lookup.from-obj)
-                                             object.from-obj
-                                     ==
       ?~  predicate.q
-          %+  select-columns-2  joined-rows.from-obj
-                                %+  mk-vect-templ-2  qualified-columns.from-obj
-                                                     selected
-      %^  select-columns-filtered-2  joined-rows.from-obj
-                                     %+  mk-vect-templ-2
-                                          qualified-columns.from-obj
-                                          selected
-                                     %+  pred-ops-and-conjs-2
+          %+  select-columns  joined-rows.from-obj
+                              %+  mk-vect-templ  qualified-columns.from-obj
+                                                 selected
+      %^  select-columns-filtered  joined-rows.from-obj
+                                   %+  mk-vect-templ
+                                         qualified-columns.from-obj
+                                         selected
+                                   %^  pred-ops-and-conjs
                                          (need predicate.q)
                                          type-lookup.from-obj
+                                         qualifier-lookup
   ::
   %:  data-obj  %data-obj
                 schema-tmsp.from-obj
@@ -890,99 +893,13 @@
                 ==
 ::
 ::  +select-columns:
-::    [(list (map @tas @)) (list templ-cell) (list @tas)]
-::    -> (list (map @tas @))
-::
-::  if the full primary key is in the selection, no need to shrink results
-::  in the case of views, if all view columns are present
-++   select-columns
-  |=  $:  rows=(list (map @tas @))
-          cells=(list templ-cell)
-          key=(list @tas)
-          ==
-  ~+  ^-  (list vector)
-  =/  out-rows=(list vector)  ~
-  =/  pk=(set @tas)      (silt key)
-  =/  pk-sel=(set @tas)  (silt (murn cells |=(a=templ-cell column-name.a)))
-  =/  key-length         ~(wyt in pk)
-  |-
-  ?~  rows  
-      ?:  &((gth key-length 0) =(key-length ~(wyt in (~(int in pk) pk-sel))))
-        out-rows
-      ~(tap in (silt out-rows))
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell)  cells
-  |-
-  ?~  cols
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?~  column-name.i.cols                   :: case: is literal
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols              :: case: is table column
-  %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.cell
-                  [p.q.vc.cell (~(got by i.rows) (need column-name.cell))]
-              row
-  ==
-::
-::  +select-columns-filtered:
-::    [(list (map @tas @)) (list templ-cell) (list @tas) $-((map @tas @) ?)]
-::    -> (list (map @tas @))
-::
-::  rejects rows that do not pass filter
-::  if the full primary key is in the selection, no need to shrink results
-::  in the case of views, if all view columns are present
-++   select-columns-filtered
-  |=  $:  rows=(list (map @tas @))
-          cells=(list templ-cell)
-          key=(list @tas)
-          filter=$-((map @tas @) ?)
-          ==
-  ~+  ^-  (list vector)  
-  =/  out-rows=(list vector)  ~
-  =/  pk=(set @tas)      (silt key)
-  =/  pk-sel=(set @tas)  (silt (murn cells |=(a=templ-cell column-name.a)))
-  =/  key-length         ~(wyt in pk)
-  |-
-  ?~  rows  
-      ?:  &((gth key-length 0) =(key-length ~(wyt in (~(int in pk) pk-sel))))
-        out-rows
-      ~(tap in (silt out-rows))
-  ::
-  ?.  (filter i.rows)  $(rows t.rows)
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell)  cells
-  |-
-  ?~  cols
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?~  column-name.i.cols                   :: case: is literal
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols              :: case: is table column
-  %=  $
-    cols  t.cols
-    row   :-  :-  p.vc.cell 
-                  [p.q.vc.cell (~(got by i.rows) (need column-name.cell))]
-              row
-  ==
-::
-::  +select-columns-2:
-::    [(list (map qualified-object:ast (map @tas @))) (list templ-cell-2)]
+::    [(list joined-row) (unit @t) (list templ-cell)]
 ::    -> (list (map @tas @))
 ::
 ::  select columns from join
-++   select-columns-2
-  |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
-          cells=(list templ-cell-2)
+++   select-columns
+  |=  $:  rows=(list joined-row)
+          cells=(list templ-cell)
           ==
   ~+  ^-  (list vector)
   =/  out-rows=(list vector)  ~
@@ -990,7 +907,7 @@
   ?~  rows  ~(tap in (silt out-rows))
   ::
   =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell-2)  cells
+  =/  cols=(list templ-cell)  cells
   |-
   ?~  cols
       %=  ^$
@@ -1000,29 +917,30 @@
   ::
   ?~  object.i.cols                         :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell-2  i.cols            :: case: is table column
+  =/  cell=templ-cell  i.cols            :: case: is table column
+  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
   %=  $
     cols  t.cols
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier:(need object.cell)))
+                  %-  ~(got by (~(got by i.rows) qualifier))
                       column:(need object.cell)
             row
   ==
 ::
-::  +select-columns-filtered-2:
-::    $:  (list (map qualified-object:ast (map @tas @)))
-::        (list templ-cell-2)
+::  +select-columns-filtered:
+::    $:  (list joined-row)
+::        (list templ-cell)
 ::        $-((map @tas @) ?)
 ::        -> (list (map @tas @))
 ::
 ::  select columns from join
 ::  rejects rows that do not pass filter
-++   select-columns-filtered-2
-  |=  $:  rows=(list (map qualified-object:ast (map @tas @)))
-          cells=(list templ-cell-2)
-          filter=$-((map qualified-object:ast (map @tas @)) ?)
+++   select-columns-filtered
+  |=  $:  rows=(list joined-row)
+          cells=(list templ-cell)
+          filter=$-(joined-row ?)
           ==
   ~+  ^-  (list vector)  
   =/  out-rows=(list vector)  ~
@@ -1032,7 +950,7 @@
   ?.  (filter i.rows)  $(rows t.rows)
   ::
   =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell-2)  cells
+  =/  cols=(list templ-cell)  cells
   |-
   ?~  cols
       %=  ^$
@@ -1042,13 +960,14 @@
   ::
   ?~  object.i.cols                   :: case: is literal
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell-2  i.cols              :: case: is table column
+  =/  cell=templ-cell  i.cols              :: case: is table column
+  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
   %=  $
     cols  t.cols
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier:(need object.cell)))
+                  %-  ~(got by (~(got by i.rows) qualifier))
                       column:(need object.cell)
             row
   ==

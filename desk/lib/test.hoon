@@ -1,6 +1,35 @@
 ::  testing utilities meant to be directly used from files in %/tests
 ::
+/-  *obelisk
 |%
+++  parse-results
+  |=  [expected=cmd-result actual=cmd-result]
+  ^-  [[cmd-result (set vector)] [cmd-result (set vector)]]
+  [(parse-results-2 +.expected) (parse-results-2 +.actual)]
+++  parse-results-2
+  |=  results=(list result)
+  ^-  [cmd-result (set vector)]
+  =/  out-results=(list result)  ~
+  =/  out-vectors=(list vector)  ~
+  |-
+  ?~  results
+    [[%results (flop out-results)] (silt out-vectors)]
+  =/  res  i.results
+  ?:  =(%result-set -.res)
+    $(results t.results, out-vectors ;;((list vector) +.res))
+  $(results t.results, out-results [res out-results])
+++  eval-results
+  |=  [expected=cmd-result actual=cmd-result]
+  =/  expct-actual  (parse-results expected actual)
+  ;:  weld
+  %+  expect-eq
+    !>  -<.expct-actual
+    !>  +<.expct-actual
+  %+  expect-eq
+    !>  ->.expct-actual
+    !>  +>.expct-actual
+  ==
+::
 ::  +expect-eq: compares :expected and :actual and pretty-prints the result
 ::
 ++  expect-eq

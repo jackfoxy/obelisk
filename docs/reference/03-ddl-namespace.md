@@ -41,7 +41,9 @@ This command mutates the state of the Obelisk agent. However, it does not genera
 
 ### Produced Metadata
 
-Schema timestamp
+message: CREATE NAMESPACE <name>
+server-time: <timestamp>
+schema-time: <timestamp>
 
 ### Exceptions
 

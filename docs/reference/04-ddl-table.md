@@ -101,9 +101,9 @@ This command mutates the state of the Obelisk agent.
 
 ### Produced Metadata
 
-Schema timestamp
-
-Content timestamp
+message: CREATE TABLE <name>
+server-time: <timestamp>
+schema-time: <timestamp>
 
 ### Exceptions
 

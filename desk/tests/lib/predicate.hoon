@@ -60,7 +60,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -118,7 +118,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -176,7 +176,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -300,13 +300,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -314,8 +307,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -323,6 +316,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -396,7 +396,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -412,11 +412,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> = <column> types differ
 ++  test-fail-eq-01
@@ -454,7 +456,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -470,11 +472,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 = col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> = <column> types differ
 ++  test-fail-eq-02
@@ -512,7 +516,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -528,11 +532,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = col2 SELECT *"])
-      ==
 ::
 ::  NEQ
 ::
@@ -542,16 +548,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -578,7 +584,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -606,16 +612,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -642,7 +648,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -670,16 +676,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -706,7 +712,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -736,16 +742,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -797,16 +803,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -923,7 +929,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -939,11 +945,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> <><column> types differ
 ++  test-fail-neq-01
@@ -981,7 +989,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -997,11 +1005,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <> col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> <> <column> types differ
 ++  test-fail-neq-02
@@ -1039,7 +1049,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1055,11 +1065,14 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
-      ==
 ::
 ::  GT
 ::
@@ -1069,16 +1082,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -1105,7 +1118,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1169,7 +1182,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1227,7 +1240,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1256,16 +1269,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -1386,16 +1399,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
   =/  expected  :~  %results
@@ -1440,13 +1453,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -1454,8 +1460,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -1463,6 +1469,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -1536,7 +1549,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1552,11 +1565,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> > <column> types differ
 ++  test-fail-gt-01
@@ -1594,7 +1609,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1610,11 +1625,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 > col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> > <column> types differ
 ++  test-fail-gt-02
@@ -1652,7 +1669,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1668,11 +1685,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > col2 SELECT *"])
-      ==
 ::
 ::  LT
 ::
@@ -1712,7 +1731,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1770,7 +1789,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1828,7 +1847,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -1856,16 +1875,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -1986,15 +2005,15 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=4]]
+                  [p=%col-name q=[p=~.tas q=%col4]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=4]]
-                  [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -2105,7 +2124,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2121,11 +2140,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> < <column> types differ
 ++  test-fail-lt-01
@@ -2163,7 +2184,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2179,11 +2200,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 < col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> < <column> types differ
 ++  test-fail-lt-02
@@ -2221,7 +2244,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2237,11 +2260,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < col2 SELECT *"])
-      ==
 ::
 ::  GTE
 ::
@@ -2251,16 +2276,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -2287,7 +2312,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2315,12 +2340,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -2331,6 +2350,12 @@
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -2357,7 +2382,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2385,18 +2410,18 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+          ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -2421,7 +2446,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2449,10 +2474,10 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'Angel']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Ace']]
@@ -2461,10 +2486,10 @@
                   [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'Angel']]
-                  [%col4 [~.t 'row3']]
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -2585,16 +2610,16 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
+                  [p=%col-ordinal q=[p=~.ud q=2]]
+                  [p=%col-name q=[p=~.tas q=%col2]]
+                  [p=%col-type q=[p=~.ta q=~.da]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=2]]
-                  [p=%col-name q=[p=~.tas q=%col2]]
-                  [p=%col-type q=[p=~.ta q=~.da]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -2646,13 +2671,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -2660,8 +2678,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -2669,6 +2687,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -2742,7 +2767,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2758,11 +2783,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> >= <column> types differ
 ++  test-fail-gte-01
@@ -2800,7 +2827,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2816,11 +2843,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 >= col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> >= <column> types differ
 ++  test-fail-gte-02
@@ -2858,7 +2887,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2874,11 +2903,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= col2 SELECT *"])
-      ==
 ::
 ::  LTE
 ::
@@ -2918,7 +2949,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -2946,16 +2977,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -2982,7 +3013,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3010,16 +3041,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -3046,7 +3077,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3074,10 +3105,10 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'Angel']]
+                  [%col4 [~.t 'row3']]
                   ==
           :-  %vector
               :~  [%col1 [~.t 'Ace']]
@@ -3086,10 +3117,10 @@
                   [%col4 [~.t 'row2']]
                   ==
           :-  %vector
-              :~  [%col1 [~.t 'Angel']]
-                  [%col2 [~.da ~2001.9.19]]
-                  [%col3 [~.t 'Angel']]
-                  [%col4 [~.t 'row3']]
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -3217,15 +3248,15 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=4]]
+                  [p=%col-name q=[p=~.tas q=%col4]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=4]]
-                  [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -3271,13 +3302,6 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=1]]
-                  [p=%col-name q=[p=~.tas q=%col1]]
-                  [p=%col-type q=[p=~.ta q=~.t]]
-                  ==
-          :-  %vector
-              :~  [p=%namespace q=[p=~.tas q=%dbo]]
-                  [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=2]]
                   [p=%col-name q=[p=~.tas q=%col2]]
                   [p=%col-type q=[p=~.ta q=~.da]]
@@ -3285,8 +3309,8 @@
           :-  %vector
               :~  [p=%namespace q=[p=~.tas q=%dbo]]
                   [p=%name q=[p=~.tas q=%my-table]]
-                  [p=%col-ordinal q=[p=~.ud q=3]]
-                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-ordinal q=[p=~.ud q=1]]
+                  [p=%col-name q=[p=~.tas q=%col1]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
           :-  %vector
@@ -3294,6 +3318,13 @@
                   [p=%name q=[p=~.tas q=%my-table]]
                   [p=%col-ordinal q=[p=~.ud q=4]]
                   [p=%col-name q=[p=~.tas q=%col4]]
+                  [p=%col-type q=[p=~.ta q=~.t]]
+                  ==
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
                   [p=%col-type q=[p=~.ta q=~.t]]
                   ==
             ==
@@ -3367,7 +3398,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3383,11 +3414,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= ~1999.2.19 SELECT *"])
-      ==
 ::
 ::  fail WHERE <literal> <= <column> types differ
 ++  test-fail-lte-01
@@ -3425,7 +3458,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3441,11 +3474,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <= col1 SELECT *"])
-      ==
 ::
 ::  fail WHERE <column> <= <column> types differ
 ++  test-fail-lte-02
@@ -3483,7 +3518,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3499,11 +3534,13 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])
-      ==
 ::
 ::  IN
 ::
@@ -3513,16 +3550,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -3549,7 +3586,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3579,16 +3616,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Angel']]
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -3615,7 +3652,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3645,12 +3682,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -3661,6 +3692,12 @@
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -3687,7 +3724,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3800,7 +3837,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3817,13 +3854,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col3 ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> IN (list @) types differ
 ++  test-fail-in-01
@@ -3861,7 +3897,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3878,13 +3914,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE 'ticolor' ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  NOT IN
 ::
@@ -3924,7 +3959,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -3985,7 +4020,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4016,12 +4051,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -4032,6 +4061,12 @@
                   [%col2 [~.da ~2001.9.19]]
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
               ==
   =/  expected  :~  %results
@@ -4058,7 +4093,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4134,7 +4169,6 @@
   %+  expect-eq
     !>  expected
     !>  ;;(cmd-result ->+>+>+<.mov4)
-
 ::
 ::  fail WHERE <column> NOT IN (list @t) types differ
 ++  test-fail-not-in-00
@@ -4172,7 +4206,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4189,13 +4223,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col3 ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> NOT IN (list @) types differ
 ++  test-fail-not-in-01
@@ -4233,7 +4266,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4250,13 +4283,12 @@
   %+  expect-fail-message
       %-  crip
           "type of IN list incorrect, should be p=~.t"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE 'ticolor' ".
                   "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
-      ==
 ::
 ::  BETWEEN
 ::
@@ -4266,16 +4298,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -4302,7 +4334,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4333,12 +4365,6 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
@@ -4350,7 +4376,13 @@
                   [%col3 [~.t 'tuxedo']]
                   [%col4 [~.t 'row3']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+              ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -4375,7 +4407,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4436,7 +4468,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4533,7 +4565,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4549,14 +4581,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 ".
+          "namespace=%dbo name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 BETWEEN ~1999.2.19 AND 'row1' ".
                   "SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> BETWEEN <column> AND <column> types differ
 ++  test-fail-between-01
@@ -4576,7 +4610,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4592,14 +4626,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE ~1999.2.19 BETWEEN col1 ".
                   "AND col2 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> BETWEEN <column> AND <column> types differ
 ++  test-fail-between-02
@@ -4619,7 +4655,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4635,13 +4671,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 BETWEEN col2 AND col3 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> BETWEEN <column> AND <column> range not ascending
 ++  test-fail-between-03
@@ -4661,7 +4700,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4677,14 +4716,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 BETWEEN ~2005.12.19 ".
                   "AND ~1999.2.19 SELECT *"
-      ==
 ::
 ::  NOT BETWEEN
 ::
@@ -4724,7 +4765,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4776,7 +4817,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4807,16 +4848,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -4843,7 +4884,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4942,7 +4983,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -4958,14 +4999,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 NOT BETWEEN ~1999.2.19 ".
                   "AND 'row1' SELECT *"
-      ==
 ::
 ::  fail WHERE <literal> NOT BETWEEN <column> AND <column> types differ
 ++  test-fail-not-between-01
@@ -4985,7 +5028,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5001,14 +5044,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1 "
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE ~1999.2.19 NOT BETWEEN col1 ".
                   "AND col2 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> NOT BETWEEN <column> AND <column> types differ
 ++  test-fail-not-between-02
@@ -5028,7 +5073,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5044,13 +5089,15 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of differing auras: %col1 %col2"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing columns of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
+          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 NOT BETWEEN col2 AND col3 SELECT *"
-      ==
 ::
 ::  fail WHERE <column> NOT BETWEEN <column> AND <column> range not ascending
 ++  test-fail-not-between-03
@@ -5070,7 +5117,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5086,14 +5133,16 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: %col1"
-  |.  %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+          "comparing column to literal of different aura: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
                   %db1
                   "FROM my-table WHERE col1 NOT BETWEEN ~2005.12.19 ".
                   "AND ~1999.2.19 SELECT *"
-      ==
 ::
 ::  OR
 ::
@@ -5103,16 +5152,16 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
                   ==
             ==
   =/  expected  :~  %results
@@ -5139,7 +5188,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5200,7 +5249,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5228,18 +5277,18 @@
   =/  expected-rows
         :~
           :-  %vector
-              :~  [%col1 [~.t 'Abby']]
-                  [%col2 [~.da ~1999.2.19]]
-                  [%col3 [~.t 'tricolor']]
-                  [%col4 [~.t 'row1']]
-                  ==
-          :-  %vector
               :~  [%col1 [~.t 'Ace']]
                   [%col2 [~.da ~2005.12.19]]
                   [%col3 [~.t 'ticolor']]
                   [%col4 [~.t 'row2']]
                   ==
-            ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+          ==
   =/  expected  :~  %results
                     [%message 'SELECT']
                     [%result-set expected-rows]
@@ -5264,7 +5313,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5327,7 +5376,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
@@ -5387,7 +5436,7 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
     ==
-    =.  run  +(run)
+  =.  run  +(run)
   =^  mov3  agent
     %:  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action

@@ -97,6 +97,7 @@
     database=@tas
     namespace=@tas
     name=@tas
+    alias=(unit @t)
   ==
 +$  qualified-column
   $+  qualified-column
@@ -202,8 +203,8 @@
   $:
     %joined-object
     join=join-type
-    as-of=(unit as-of)
     object=table-set
+    as-of=(unit as-of)
     predicate=(unit predicate)
   ==
 ::
@@ -212,13 +213,13 @@
   $:
     %table-set
     object=query-source
-    alias=(unit @t)
   ==
 ::
-+$  query-source  $%(query-row qualified-object)
++$  query-source  $%(qualified-object query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row
+    alias=(unit @t)
     (list @t)
   ==
 ::
@@ -237,6 +238,7 @@
     selected-aggregate
     selected-value
     selected-all
+    selected-all-object
   ==
   :: scalar-function or selected-scalar) fish-loop
 +$  selected-all
@@ -244,6 +246,9 @@
     %all
     %all
   ==
+
++$  selected-all-object  [%all-object qualified-object]
+
 +$  selected-aggregate
   $:
     %selected-aggregate

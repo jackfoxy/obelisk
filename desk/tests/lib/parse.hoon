@@ -31,8 +31,8 @@
 ++  test-alter-index-1
   =/  expected1
     :*  %alter-index
-        [%qualified-object ship=~ database='db' namespace='ns' name='my-index']
-        [%qualified-object ship=~ database='db' namespace='ns' name='table']
+        [%qualified-object ship=~ database='db' namespace='ns' name='my-index' ~]
+        [%qualified-object ship=~ database='db' namespace='ns' name='table' ~]
         :~  [%ordered-column name='col1' is-ascending=%.y]
             [%ordered-column name='col2' is-ascending=%.n]
             [%ordered-column name='col3' is-ascending=%.y]
@@ -42,8 +42,8 @@
         ==
   =/  expected2
     :*  %alter-index
-        [%qualified-object ship=~ database='db' namespace='dbo' name='my-index']
-        [%qualified-object ship=~ database='db' namespace='dbo' name='table']
+        [%qualified-object ship=~ database='db' namespace='dbo' name='my-index' ~]
+        [%qualified-object ship=~ database='db' namespace='dbo' name='table' ~]
         ~[[%ordered-column name='col1' is-ascending=%.y]]
         %rebuild
         ~
@@ -57,21 +57,21 @@
 ::
 :: alter index 1 column without action
 ++  test-alter-index-2
-  =/  expected  [%alter-index name=[%qualified-object ship=~ database='db' namespace='ns' name='my-index'] object=[%qualified-object ship=~ database='db' namespace='ns' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y]] action=%rebuild as-of=~]
+  =/  expected  [%alter-index name=[%qualified-object ship=~ database='db' namespace='ns' name='my-index' alias=~] object=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y]] action=%rebuild as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER INDEX db.ns.my-index ON db.ns.table (col1)")
 ::
 :: leading whitespace characters, end delimiter, alter ns.index ns.table columns no action
 ++  test-alter-index-3
-  =/  expected  [%alter-index name=[%qualified-object ship=~ database='db1' namespace='ns' name='my-index'] object=[%qualified-object ship=~ database='db1' namespace='ns' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] action=%rebuild as-of=~]
+  =/  expected  [%alter-index name=[%qualified-object ship=~ database='db1' namespace='ns' name='my-index' alias=~] object=[%qualified-object ship=~ database='db1' namespace='ns' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] action=%rebuild as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "  \0d alter INDEX ns.my-index ON ns.table (col1, col2 desc, col3 asc);")
 ::
 :: alter index table no columns, action only
 ++  test-alter-index-4
-  =/  expected  [%alter-index name=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-index'] object=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~ action=%resume as-of=~]
+  =/  expected  [%alter-index name=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-index' alias=~] object=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~ action=%resume as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER INDEX my-index ON table RESUME")
@@ -179,43 +179,43 @@
 :: tests 1, 2, 3, 5, and extra whitespace characters
 :: alter column db.ns.table 3 columns ; alter column db..table 1 column
 ++  test-alter-table-00
-  =/  expected1  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
-  =/  expected2  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected1  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected2  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'db1') " ALtER  TaBLE  db.ns.table  AdD  COlUMN  ( col1  @t ,  col2  @p ,  col3  @ud ) \0a;\0a ALTER TABLE db..table ADD COLUMN (col1 @t) ")
 ::
 :: alter column table 3 columns
 ++  test-alter-table-01
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 @t, col2 @p, col3 @ud)")
 ::
 :: alter column table 1 column
 ++  test-alter-table-02
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table ALTER COLUMN (col1 @t)")
 ::
 :: drop column table 3 columns
 ++  test-alter-table-03
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table DROP COLUMN (col1, col2, col3)")
 ::
 :: drop column table 1 column
 ++  test-alter-table-04
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE table DROP COLUMN (col1)")
 ::
 :: add 2 foreign keys, extra spaces and mixed case key words
 ++  test-alter-table-05
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=~]
   =/  urql  "ALTER TABLE table ADD FOREIGN KEY fk  ( col1 , col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE, fk2  ( col1 ,  col2  desc )  reFerences  fk-table2  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
   %+  expect-eq
     !>  ~[expected]
@@ -223,91 +223,91 @@
 ::
 :: drop 2 foreign keys, extra spaces
 ++  test-alter-table-06
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') " ALTER  TABLE  mytable  DROP  FOREIGN  KEY  ( fk1,  fk2 )")
 ::
 :: drop 2 foreign keys, no extra spaces
 ++  test-alter-table-07
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='mytable' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE db..mytable DROP FOREIGN KEY (fk1,fk2)")
 ::
 :: drop 1 foreign key
 ++  test-alter-table-08
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='ns' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' ~] as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='ns' name='mytable' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "ALTER TABLE ns.mytable DROP FOREIGN KEY (fk1)")
 ::
 ::  add column as of now
 ++  test-alter-table-09
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
     %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table  db.ns.table  add  column  ( col1  @t ,  col2  @p ,  col3  @ud ) as of now")
 ::
 ::  add column as of now
 ++  test-alter-table-10
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
     %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table  db.ns.table  add  column  ( col1  @t ,  col2  @p ,  col3  @ud ) as of ~2023.12.25..7.15.0..1ef5")
 ::
 ::  add column as of 1 weeks ago
 ++  test-alter-table-11
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table'] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%as-of-offset 1 %weeks]]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] alter-columns=~ add-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%as-of-offset 1 %weeks]]]
     %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table  db.ns.table  add  column  ( col1  @t ,  col2  @p ,  col3  @ud ) as of 1 weeks ago")
 ::
 :: alter column as of now
 ++  test-alter-table-12
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table table alter column (col1 @t, col2 @p) as of now")
 ::
 :: alter column as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-13
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table table alter column (col1 @t, col2 @p, col3 @ud) as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: alter column as of 5 days ago
 ++  test-alter-table-14
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~[[%column name='col1' column-type=%t]] add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table table alter column (col1 @t) as of 5 days ago")
 ::
 :: drop column as of now
 ++  test-alter-table-15
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table table drop column (col1, col2) as of now")
 ::
 :: drop column as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-16
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=['col1' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table table drop column (col1) as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: drop column as of 5 days ago
 ++  test-alter-table-17
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=['col1' 'col2' 'col3' ~] add-foreign-keys=~ drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter table table drop column (col1, col2, col3) as of 5 days ago")
 ::
 :: add 2 foreign keys as of now
 ++  test-alter-table-18
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=~]
   =/  urql  "alter table table add foreign key fk  ( col1 , col2  desc )  references  fk-table  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade, fk2  ( col1 ,  col2  desc )  references  fk-table2  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade as of now"
   %+  expect-eq
     !>  ~[expected]
@@ -315,7 +315,7 @@
 ::
 :: add 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-19
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
   =/  urql  "alter table table add foreign key fk  ( col1 , col2  desc )  references  fk-table  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade, fk2  ( col1 ,  col2  desc )  references  fk-table2  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade as of ~2023.12.25..7.15.0..1ef5"
   %+  expect-eq
     !>  ~[expected]
@@ -323,7 +323,7 @@
 ::
 :: add 2 foreign keys as of 5 days ago
 ++  test-alter-table-20
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~[%delete-cascade %update-cascade]]] drop-foreign-keys=~ as-of=[~ %as-of-offset 5 %days]]
   =/  urql  "alter table table add foreign key fk  ( col1 , col2  desc )  references  fk-table  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade, fk2  ( col1 ,  col2  desc )  references  fk-table2  ( col19 ,  col20 )  on  delete  cascade  on  update  cascade as of 5 days ago"
   %+  expect-eq
     !>  ~[expected]
@@ -331,21 +331,21 @@
 ::
 :: drop 2 foreign keys as of now
 ++  test-alter-table-21
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of now")
 ::
 :: drop 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-22
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: drop 2 foreign keys as of 5 days ago
 ++  test-alter-table-23
-  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable'] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=[~ %as-of-offset 5 %days]]
+  =/  expected  [%alter-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='mytable' alias=~] alter-columns=~ add-columns=~ drop-columns=~ add-foreign-keys=~ drop-foreign-keys=['fk1' 'fk2' ~] as-of=[~ %as-of-offset 5 %days]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of 5 days ago")
@@ -426,36 +426,36 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, create index... db.ns.table, create unique index... db..table
 ++  test-create-index-1
-  =/  expected1  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db' namespace='ns' name='table'] is-unique=%.n columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
-  =/  expected2  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] is-unique=%.y columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
+  =/  expected1  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] is-unique=%.n columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
+  =/  expected2  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] is-unique=%.y columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'db1') "CREATe \0d INdEX\09my-index On db.ns.table  ( col1 , col2\0a desc  , col3) \0a;\0a CREATE unIque INDEX my-index ON db..table (col1 , col2 desc, col3 )  ")
 ::
 :: leading whitespace characters, end delimiter, create index... ns.table
 ++  test-create-index-2
-  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='ns' name='table'] is-unique=%.n columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
+  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='ns' name='table' alias=~] is-unique=%.n columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "  \0d CREATE INDEX my-index ON ns.table (col1, col2 desc, col3);")
 ::
 :: create index... table (col1 desc, col2 asc, col3)
 ++  test-create-index-3
-  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] is-unique=%.n columns=~[[%ordered-column name='col1' is-ascending=%.n] [%ordered-column name='col2' is-ascending=%.y] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
+  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] is-unique=%.n columns=~[[%ordered-column name='col1' is-ascending=%.n] [%ordered-column name='col2' is-ascending=%.y] [%ordered-column name='col3' is-ascending=%.y]] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "CREATE INDEX my-index ON table (col1 desc, col2 asc, col3)")
 ::
 :: create unique index... table (col1 desc)
 ++  test-create-index-4
-  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] is-unique=%.y columns=~[[%ordered-column name='col1' is-ascending=%.n]] as-of=~]
+  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] is-unique=%.y columns=~[[%ordered-column name='col1' is-ascending=%.n]] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "CREATE uniQue INDEX my-index ON table (col1 desc)")
 ::
 :: create unique index... table (col1)
 ++  test-create-index-5
-  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table'] is-unique=%.y columns=~[[%ordered-column name='col1' is-ascending=%.y]] as-of=~]
+  =/  expected  [%create-index name='my-index' object-name=[%qualified-object ship=~ database='db1' namespace='dbo' name='table' alias=~] is-unique=%.y columns=~[[%ordered-column name='col1' is-ascending=%.y]] as-of=~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "CREATE uniQue INDEX my-index ON table (col1)")
@@ -613,8 +613,8 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, db.ns.table on delete cascade on update cascade; db..table on update cascade on delete cascade
 ++  test-create-table-00
-  =/  expected1  [%create-table table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]] as-of=~]
-  =/  expected2  [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]] as-of=~]
+  =/  expected1  [%create-table table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table' alias=~] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]] as-of=~]
+  =/  expected2  [%create-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db' namespace='dbo' name='fk-table' alias=~] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade %update-cascade]]] as-of=~]
   =/  urql1  "crEate  taBle  db.ns.my-table  ( col1  @t ,  col2  @p ,  col3  @ud )  pRimary  kEy  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
   =/  urql2  "crEate  taBle  db..my-table  ( col1  @t ,  col2  @p ,  col3  @ud )  pRimary  kEy  ( col1 ,  col2 )  foReign  KeY  fk  ( col1 ,  col2  desc )  reFerences  fk-table  ( col19 ,  col20 )  On  UPdATE  CAsCADE  oN  dELETE  CAScADE "
   %+  expect-eq
@@ -623,7 +623,7 @@
 ::
 :: leading whitespace characters, whitespace after end delimiter, create table... table ... references  ns.fk-table  on update no action on delete no action
 ++  test-create-table-01
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~]] as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table' alias=~] reference-columns=~['col19' 'col20'] referential-integrity=~]] as-of=~]
   =/  urql  "  \0acreate table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete no action; "
   %+  expect-eq
     !>  ~[expected]
@@ -631,7 +631,7 @@
 ::
 :: create table... table ... references  ns.fk-table  on update no action on delete cascade
 ++  test-create-table-02
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade]]] as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='ns' name='fk-table' alias=~] reference-columns=~['col19' 'col20'] referential-integrity=~[%delete-cascade]]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences ns.fk-table (col19, col20) on update no action on delete cascade"
   %+  expect-eq
     !>  ~[expected]
@@ -639,7 +639,7 @@
 ::
 :: create table... table ... references fk-table on update cascade on delete no action
 ++  test-create-table-03
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col19' 'col20'] referential-integrity=~[%update-cascade]]] as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=~['col19' 'col20'] referential-integrity=~[%update-cascade]]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1, col2) foreign key fk (col1,col2 desc) reFerences fk-table (col19, col20) on update cascade on delete no action"
   %+  expect-eq
     !>  ~[expected]
@@ -647,7 +647,7 @@
 ::
 :: create table... table ... single column indices... references fk-table on update cascade
 ++  test-create-table-04
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~[%update-cascade]]] as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=~['col20'] referential-integrity=~[%update-cascade]]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) on update cascade"
   %+  expect-eq
     !>  ~[expected]
@@ -655,7 +655,7 @@
 ::
 :: create table... table ... single column indices... references fk-table
 ++  test-create-table-05
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=~['col20'] referential-integrity=~]] as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=~['col20'] referential-integrity=~]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20) "
   %+  expect-eq
     !>  ~[expected]
@@ -663,7 +663,7 @@
 ::
 :: create table...  no foreign key
 ++  test-create-table-06
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2)"
   %+  expect-eq
     !>  ~[expected]
@@ -671,7 +671,7 @@
 ::
 :: create table...  2 foreign keys
 ++  test-create-table-07
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table'] reference-columns=['col20' ~] referential-integrity=~] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2'] reference-columns=['col19' 'col20' ~] referential-integrity=~]] as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y]] foreign-keys=~[[%foreign-key name='fk' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table' alias=~] reference-columns=['col20' ~] referential-integrity=~] [%foreign-key name='fk2' table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.n]] reference-table=[%qualified-object ship=~ database='db1' namespace='dbo' name='fk-table2' alias=~] reference-columns=['col19' 'col20' ~] referential-integrity=~]] as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1) foreign key fk (col2 desc) reFerences fk-table (col20), fk2 (col1, col2 desc) reFerences fk-table2 (col19, col20)"
   %+  expect-eq
     !>  ~[expected]
@@ -681,7 +681,7 @@
 ::
 :: create table as of simple name as of now
 ++  test-create-table-08
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=~]
   =/  urql  "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) AS of now"
   %+  expect-eq
     !>  ~[expected]
@@ -689,7 +689,7 @@
 ::
 :: create table as of ns-qualified name as of datetime
 ++  test-create-table-09
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db1' namespace='ns1' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]
   =/  urql  "create table ns1.my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as     OF ~2023.12.25..7.15.0..1ef5"
   %+  expect-eq
     !>  ~[expected]
@@ -697,7 +697,7 @@
 ::
 :: create table as of db-qualified name
 ++  test-create-table-10
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='dbo' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 5 %seconds]]]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='dbo' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 5 %seconds]]]
   =/  urql  "create table db2..my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) aS Of 5 seconds ago"
   %+  expect-eq
     !>  ~[expected]
@@ -705,7 +705,7 @@
 ::
 :: create table as of db-ns-qualified name
 ++  test-create-table-11
-  =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='ns1' name='my-table'] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 15 %minutes]]]
+  =/  expected  [%create-table table=[%qualified-object ship=~ database='db2' namespace='ns1' name='my-table' alias=~] columns=~[[%column name='col1' column-type=%t] [%column name='col2' column-type=%p] [%column name='col3' column-type=%ud]] pri-indx=~[[%ordered-column name='col1' is-ascending=%.y] [%ordered-column name='col2' is-ascending=%.y]] foreign-keys=~ as-of=[~ [%as-of-offset 15 %minutes]]]
   =/  urql  "create table db2.ns1.my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2) as of 15 minutes ago"
   %+  expect-eq
     !>  ~[expected]
@@ -724,23 +724,25 @@
 :: delete
 ::
 ++  col1
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col1'] column='col1' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col1' alias=~] column='col1' alias=~]
 ++  col2
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col2'] column='col2' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col2' alias=~] column='col2' alias=~]
 ++  col3
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col3'] column='col3' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col3' alias=~] column='col3' alias=~]
 ++  col4
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col4'] column='col4' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col4' alias=~] column='col4' alias=~]
 ++  delete-pred
   `[%eq [column-foo ~ ~] [column-bar ~ ~]]
 ++  cte-t1
   [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
 ++  cte-foobar
-  [%cte name='foobar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foobar'] alias=~] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [[value-type=%ud value=2] ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col3 col4]] ~]]
+  [%cte name='foobar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foobar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [[value-type=%ud value=2] ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col3 col4]] ~]]
 ++  cte-bar
-  [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
+  [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
 ++  foo-table
-  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo']
+  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+++  foo-table-t1
+  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']]
 ::
 :: delete from foo;delete  foo
 ++  test-delete-00
@@ -939,8 +941,8 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters, db.ns.name, db..name
 ++  test-drop-index-1
-  =/  expected1  [%drop-index name='my-index' object=[%qualified-object ship=~ database='db' namespace='ns' name='name'] as-of=~]
-  =/  expected2  [%drop-index name='my-index' object=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] as-of=~]
+  =/  expected1  [%drop-index name='my-index' object=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] as-of=~]
+  =/  expected2  [%drop-index name='my-index' object=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') "droP  inDex my-index On db.ns.name;droP  index my-index oN \0a db..name")
@@ -948,7 +950,7 @@
 :: leading and trailing whitespace characters, end delimiter not required on single, ns.name
 ++  test-drop-index-2
   %+  expect-eq
-    !>  ~[[%drop-index name='my-index' object=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] as-of=~]]
+    !>  ~[[%drop-index name='my-index' object=[%qualified-object ship=~ database='other-db' namespace='ns' name='name' alias=~] as-of=~]]
     !>  (parse:parse(default-database 'other-db') "   \09drop\0d\09  index\0d my-index \0a On ns.name   ")
 ::
 :: :: fail when database qualifier is not a term
@@ -1084,8 +1086,8 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
 ++  test-drop-table-00
-  =/  expected1  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.y as-of=~]
-  =/  expected2  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.n as-of=~]
+  =/  expected1  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] force=%.y as-of=~]
+  =/  expected2  [%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] force=%.n as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') "droP  table FORce db.ns.name;droP  table  \0a db.ns.name")
@@ -1093,73 +1095,73 @@
 :: leading and trailing whitespace characters, end delimiter not required on single, force db..name
 ++  test-drop-table-01
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.y as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "   \09drop\0d\09  table\0aforce db..name ")
 ::
 :: db..name
 ++  test-drop-table-02
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.n as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table db..name")
 ::
 :: force ns.name
 ++  test-drop-table-03
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.y as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name' alias=~] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table force ns.name")
 ::
 :: ns.name
 ++  test-drop-table-04
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.n as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name' alias=~] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table ns.name")
 ::
 :: force name
 ++  test-drop-table-05
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.y as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name' alias=~] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "DROP table FORCE name")
 ::
 :: name
 ++  test-drop-table-06
   %+  expect-eq
-   !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.n as-of=~]]
+   !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name' alias=~] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "DROP table name")
 ::
 :: force db.ns.name as of now
 ++  test-drop-table-07
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.y as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] force=%.y as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table force db.ns.name as of now")
 ::
 :: force db..name as of date
 ++  test-drop-table-08
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.y as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] force=%.y as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
     !>  (parse:parse(default-database 'other-db') "drop table force db..name as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: force ns.name as of weeks ago
 ++  test-drop-table-09
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.y as-of=[~ [%as-of-offset 10 %weeks]]]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='ns' name='name' alias=~] force=%.y as-of=[~ [%as-of-offset 10 %weeks]]]]
     !>  (parse:parse(default-database 'other-db') "drop table force ns.name as of 10 weeks ago")
 ::
 :: name as of now
 ++  test-drop-table-10
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.n as-of=~]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] force=%.n as-of=~]]
     !>  (parse:parse(default-database 'other-db') "drop table db.ns.name as of now")
 ::
 :: db..name as of date
 ++  test-drop-table-11
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.n as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] force=%.n as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
     !>  (parse:parse(default-database 'other-db') "drop table db..name as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: name as of weeks ago
 ++  test-drop-table-12
   %+  expect-eq
-    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.n as-of=[~ [%as-of-offset 10 %weeks]]]]
+    !>  ~[[%drop-table table=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name' alias=~] force=%.n as-of=[~ [%as-of-offset 10 %weeks]]]]
     !>  (parse:parse(default-database 'other-db') "drop table name as of 10 weeks ago")
 ::
 :: fail when database qualifier is not a term
@@ -1186,8 +1188,8 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
 ++  test-drop-view-1
-  =/  expected1  [%drop-view view=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.y]
-  =/  expected2  [%drop-view view=[%qualified-object ship=~ database='db' namespace='ns' name='name'] force=%.n]
+  =/  expected1  [%drop-view view=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] force=%.y]
+  =/  expected2  [%drop-view view=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] force=%.n]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') "droP  View FORce db.ns.name;droP  View  \0a db.ns.name")
@@ -1195,37 +1197,37 @@
 :: leading and trailing whitespace characters, end delimiter not required on single, force db..name
 ++  test-drop-view-2
   %+  expect-eq
-    !>  ~[[%drop-view view=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.y]]
+    !>  ~[[%drop-view view=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] force=%.y]]
     !>  (parse:parse(default-database 'other-db') "   \09drop\0d\09  vIew\0aforce db..name ")
 ::
 :: db..name
 ++  test-drop-view-3
   %+  expect-eq
-    !>  ~[[%drop-view view=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] force=%.n]]
+    !>  ~[[%drop-view view=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] force=%.n]]
     !>  (parse:parse(default-database 'other-db') "drop view db..name")
 ::
 :: force ns.name
 ++  test-drop-view-4
   %+  expect-eq
-    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.y]]
+    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='ns' name='name' alias=~] force=%.y]]
     !>  (parse:parse(default-database 'other-db') "drop view force ns.name")
 ::
 :: ns.name
 ++  test-drop-view-5
   %+  expect-eq
-    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='ns' name='name'] force=%.n]]
+    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='ns' name='name' alias=~] force=%.n]]
     !>  (parse:parse(default-database 'other-db') "drop view ns.name")
 ::
 :: force name
 ++  test-drop-view-6
   %+  expect-eq
-    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.y]]
+    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name' alias=~] force=%.y]]
     !>  (parse:parse(default-database 'other-db') "DROP VIEW FORCE name")
 ::
 :: name
 ++  test-drop-view-7
   %+  expect-eq
-    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name'] force=%.n]]
+    !>  ~[[%drop-view view=[%qualified-object ship=~ database='other-db' namespace='dbo' name='name' alias=~] force=%.n]]
     !>  (parse:parse(default-database 'other-db') "DROP VIEW name")
 ::
 :: fail when database qualifier is not a term
@@ -1260,7 +1262,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                 columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
                 as-of=~
@@ -1271,7 +1273,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~]
                 columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]]]]
                 as-of=~
@@ -1295,7 +1297,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
                 columns=~
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                 as-of=~
@@ -1316,7 +1318,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
                 columns=~
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                 as-of=~
@@ -1338,7 +1340,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
                 columns=~
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                 as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
@@ -1360,7 +1362,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table']
+                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
                 columns=~
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                 as-of=[~ %as-of-offset 5 %days]
@@ -1382,7 +1384,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                 columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
                 as-of=~
@@ -1403,7 +1405,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                 columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
                 as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
@@ -1424,7 +1426,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                 columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
                 values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
                 as-of=[~ %as-of-offset 5 %days]
@@ -1445,7 +1447,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                 columns=~
                 values=[%data ~[~[[~.t 1.685.221.219] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                 as-of=~
@@ -1466,7 +1468,7 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                 columns=~
                 values=[%data ~[~[[~.t 430.242.426.723] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                 as-of=~
@@ -1488,7 +1490,7 @@
       :+  %selection
           ctes=~
           :+  :*  %insert
-                  table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table']
+                  table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
                   columns=~
                   values=[%data ~[~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
                   as-of=~
@@ -1507,8 +1509,8 @@
 ::
 :: tests 1, 2, 3, 5, and extra whitespace characters
 ++  test-truncate-table-01
-  =/  expected1  [%truncate-table table=[%qualified-object ship=[~ ~zod] database='db' namespace='ns' name='name'] as-of=~]
-  =/  expected2  [%truncate-table table=[%qualified-object ship=[~ ~sampel-palnet] database='db' namespace='dbo' name='name'] as-of=~]
+  =/  expected1  [%truncate-table table=[%qualified-object ship=[~ ~zod] database='db' namespace='ns' name='name' alias=~] as-of=~]
+  =/  expected2  [%truncate-table table=[%qualified-object ship=[~ ~sampel-palnet] database='db' namespace='dbo' name='name' alias=~] as-of=~]
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'dummy') " \0atrUncate TAble\0d ~zod.db.ns.name\0a; truncate table ~sampel-palnet.db..name")
@@ -1516,43 +1518,43 @@
 :: leading and trailing whitespace characters, end delimiter not required on single, db.ns.name
 ++  test-truncate-table-02
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name'] as-of=~]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='ns' name='name' alias=~] as-of=~]]
     !>  (parse:parse(default-database 'dummy') "   \09truncate\0d\09  TaBle\0a db.ns.name ")
 ::
 :: db..name
 ++  test-truncate-table-03
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name'] as-of=~]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='db' namespace='dbo' name='name' alias=~] as-of=~]]
     !>  (parse:parse(default-database 'dummy') "truncate table db..name")
 ::
 :: ns.name
 ++  test-truncate-table-04
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='ns' name='name'] as-of=~]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='ns' name='name' alias=~] as-of=~]]
     !>  (parse:parse(default-database 'dummy') "truncate table ns.name")
 ::
 :: name
 ++  test-truncate-table-05
   %+  expect-eq
-   !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='dbo' name='name'] as-of=~]]
+   !>  ~[[%truncate-table table=[%qualified-object ship=~ database='dummy' namespace='dbo' name='name' alias=~] as-of=~]]
    !>  (parse:parse(default-database 'dummy') "truncate table name")
 ::
 :: truncate as of now
 ++  test-truncate-table-06
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database=%db1 namespace='dbo' name='tbl1'] as-of=~]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database=%db1 namespace='dbo' name='tbl1' alias=~] as-of=~]]
     !>  (parse:parse(default-database 'db1') "truncate table tbl1 as of now")
 ::
 :: utruncate as of ~2023.12.25..7.15.0..1ef5
 ++  test-truncate-table-07
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database=%db1 namespace='dbo' name='tbl1'] as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database=%db1 namespace='dbo' name='tbl1' alias=~] as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]]]
     !>  (parse:parse(default-database 'db1') "truncate table tbl1 as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: truncate as of 4 seconds ago
 ++  test-truncate-table-08
   %+  expect-eq
-    !>  ~[[%truncate-table table=[%qualified-object ship=~ database=%db1 namespace='dbo' name='tbl1'] as-of=[~ [%as-of-offset 4 %seconds]]]]
+    !>  ~[[%truncate-table table=[%qualified-object ship=~ database=%db1 namespace='dbo' name='tbl1' alias=~] as-of=[~ [%as-of-offset 4 %seconds]]]]
     !>  (parse:parse(default-database 'db1') "truncate table tbl1 as of 4 seconds ago")
 ::
 :: fail when database qualifier is not a term
@@ -1586,51 +1588,54 @@
 ++  all-columns  [%all %all]
 ++  select-all-columns  [%select top=~ bottom=~ columns=~[all-columns]]
 ++  foo
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo'] 'foo' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo' alias=~] 'foo' ~] ~ ~]
 ++  t1-foo
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'foo' ~] ~ ~]
-
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo' ~] ~ ~]
+++  a1-foo
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'foo' ~] ~ ~]
 ++  foo2
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo2'] 'foo2' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo2' alias=~] 'foo2' ~] ~ ~]
 ++  t1-foo2
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'foo2' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo2' ~] ~ ~]
 ++  foo3
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo3'] 'foo3' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo3' alias=~] 'foo3' ~] ~ ~]
 ++  t1-foo3
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'foo3' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo3' ~] ~ ~]
 ++  foo4
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo4'] 'foo4' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo4' alias=~] 'foo4' ~] ~ ~]
 ++  foo5
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo5'] 'foo5' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo5' alias=~] 'foo5' ~] ~ ~]
 ++  foo6
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo6'] 'foo6' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo6' alias=~] 'foo6' ~] ~ ~]
 ++  foo7
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo7'] 'foo7' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo7' alias=~] 'foo7' ~] ~ ~]
 ++  bar
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'bar'] 'bar' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'bar' alias=~] 'bar' ~] ~ ~]
 ++  t2-bar
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'bar' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T2']] 'bar' ~] ~ ~]
+++  a2-bar
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'bar' ~] ~ ~]
 ++  foobar
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foobar'] 'foobar' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foobar' alias=~] 'foobar' ~] ~ ~]
 ++  a1-adoption-email
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'adoption-email' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'adoption-email' alias=~] ~ ~]
 ++  a2-adoption-email
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'adoption-email' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'adoption-email' alias=~] ~ ~]
 ++  a1-adoption-date
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'adoption-date' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'adoption-date' alias=~] ~ ~]
 ++  a2-adoption-date
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'adoption-date' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'adoption-date' alias=~] ~ ~]
 ++  a1-name
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'name' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'name' alias=~] ~ ~]
 ++  a2-name
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'name' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'name' alias=~] ~ ~]
 ++  a1-species
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'species' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'species' alias=~] ~ ~]
 ++  a2-species
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions] 'species' ~] ~ ~]
+  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'species' alias=~] ~ ~]
 ++  value-literals   [[%value-literals %ud '3;2;1'] ~ ~]
 ++  aggregate-count-foobar
-  [%aggregate function='count' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar'] column='foobar' alias=~]]
+  [%aggregate function='count' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]
 ++  literal-10           [[%ud 10] ~ ~]
 ::
 ::  re-used simple predicates
@@ -1668,99 +1673,37 @@
 ::
 ++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
 ++  from-foo
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
+  [~ [%from object=[%table-set object=foo-table] as-of=~ joins=~]]
+++  foo-table-f1
+  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'F1']]
 ++  from-foo-aliased
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'F1']] as-of=~ joins=~]]
+  [~ [%from object=[%table-set object=foo-table-f1] as-of=~ joins=~]]
 ++  simple-from-foo
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1]]
-++  from-foo-join-bar
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar]]
-++  simple-from-foo-join-bar
-  [%query from-foo-join-bar scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar-aliased
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'b1']] predicate=`one-eq-1]]
-++  from-foo-join-bar-aliased
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar-aliased]]
-++  simple-from-foo-join-bar-aliased
-  [%query from-foo-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  from-foo-aliased-join-bar-aliased
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=joins-bar-aliased]]
-++  aliased-from-foo-join-bar-aliased
-  [%query from-foo-aliased-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar-baz
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=~] predicate=`one-eq-1]]
-++  from-foo-join-bar-baz
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-bar-baz]]
-++  simple-from-foo-join-bar-baz
-  [%query from-foo-join-bar-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-joins-bar-baz
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'B1']] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='baz'] alias=[~ 'b2']] predicate=`one-eq-1]]
-++  aliased-foo-join-bar-baz
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=aliased-joins-bar-baz]]
-++  aliased-from-foo-join-bar-baz
-  [%query aliased-foo-join-bar-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
-++  from-foo-row
-  [~ [%from object=[%table-set object=foo-table-row alias=~] as-of=~ joins=~]]
-++  from-foo-row-aliased
-  [~ [%from object=[%table-set object=foo-table-row alias=[~ 'F1']] as-of=~ joins=~]]
-++  simple-from-foo-row
-  [%query from-foo-row scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-from-foo-row
-  [%query from-foo-row-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-col
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~] predicate=`one-eq-1]]
-++  from-foo-join-bar-row
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-col]]
-++  simple-from-foo-join-bar-row
-  [%query from-foo-join-bar-row scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-col-aliased
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'b1']] predicate=`one-eq-1]]
-++  from-foo-join-bar-row-aliased
-  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=joins-col-aliased]]
-++  simple-from-foo-join-bar-row-aliased
-  [%query from-foo-join-bar-row-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  from-foo-row-aliased-join-bar-aliased
-  [~ [%from object=[%table-set object=foo-table alias=[~ 'f1']] as-of=~ joins=joins-col-aliased]]
-++  aliased-from-foo-join-bar-row-aliased
-  [%query from-foo-row-aliased-join-bar-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  joins-bar-col
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~] predicate=`one-eq-1]]
-++  from-foo-join-bar-row-baz
-  [~ [%from object=[%table-set object=foo-table-row alias=~] as-of=~ joins=joins-bar-col]]
-++  simple-from-foo-join-bar-row-baz
-  [%query from-foo-join-bar-row-baz scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-joins-bar-col
-  ~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'B1']] predicate=`one-eq-1] [%joined-object join=%left-join as-of=~ object=[%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'b2']] predicate=`one-eq-1]]
-++  aliased-foo-join-bar-col
-  [~ [%from object=[%table-set object=[%query-row ~['col1']] alias=[~ 'f1']] as-of=~ joins=aliased-joins-bar-col]]
-++  aliased-from-foo-join-bar-row-baz
-  [%query aliased-foo-join-bar-col scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-alias-y
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'y']]
+  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'y']]]
 ++  bar-alias-x
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=[~ 'x']]
+  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=[~ 'x']]]
 ++  foo-unaliased
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~]
+  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]]
 ++  bar-unaliased
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar'] alias=~]
+  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]]
 ++  passthru-row-y
-  [%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'y']]
+  [%table-set object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
 ++  passthru-row-x
-  [%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'x']]
+  [%table-set object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
 ++  passthru-unaliased
-  [%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=~]
+  [%table-set object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
 ::
 ::  test binary operators, varying spacing
 ++  test-predicate-01
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1768,7 +1711,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo<>bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1776,7 +1719,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1784,7 +1727,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo >bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gt foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1792,7 +1735,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lt foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1800,7 +1743,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo>= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1808,7 +1751,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!< bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1816,7 +1759,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1824,7 +1767,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo !> bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1849,7 +1792,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1860,7 +1803,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1871,7 +1814,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1882,7 +1825,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1893,7 +1836,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%gte t1-foo [%all bar ~]]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1904,7 +1847,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1915,7 +1858,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo value-literals]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1926,7 +1869,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1937,7 +1880,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literals]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1948,7 +1891,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists t1-foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1959,7 +1902,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1970,7 +1913,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists t1-foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1981,7 +1924,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists foo ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1994,7 +1937,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-fb-gte-f--fb-lte-b
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2015,7 +1958,7 @@
                 t1-foo2
                 [[%p 0] ~ ~]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2030,7 +1973,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2047,7 +1990,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2067,7 +2010,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2096,7 +2039,7 @@
                     t1-foo2-eq-zod
                     foo-eq-1
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2115,7 +2058,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      a-a-l-a-o-l-a-a-r-o-r-a-l-o-r-a
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2131,7 +2074,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      king-and
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2173,11 +2116,11 @@
     "      (A1.name > A2.name AND A1.species > A2.species) ".
     "     ) ".
     " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
+  =/  joinpred=(tree predicate-component:ast)  [%eq a1-foo a2-bar]
   =/  pred=(tree predicate-component:ast)
     [%and [%and [%and [%eq a1-adoption-email a2-adoption-email] [%eq a1-adoption-date a2-adoption-date]] [%eq foo bar]] [%or [%or [%and [%eq a1-name a2-name] [%gt a1-species a2-species]] [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]] [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]]]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'A1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'A2']] predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'A1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'A2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2187,17 +2130,17 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON (T1.foo = T2.bar) SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T1']] as-of=~ joins=~[[%joined-object join=%join as-of=~ object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions'] alias=[~ 'T2']] predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
+    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
 ::
 ::  scalar
 ::
-++  column-foo       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo'] column='foo' alias=~]
-++  column-foo2      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo2'] column='foo2' alias=~]
-++  column-foo3      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo3'] column='foo3' alias=~]
-++  column-bar       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar'] column='bar' alias=~]
+++  column-foo       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo' alias=~] column='foo' alias=~]
+++  column-foo2      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo2' alias=~] column='foo2' alias=~]
+++  column-foo3      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo3' alias=~] column='foo3' alias=~]
+++  column-bar       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~]
 ++  literal-zod      [value-type=%p value=0]
 ++  literal-1        [value-type=%ud value=1]
 ++  naked-coalesce   ~[%coalesce column-bar literal-zod literal-1 column-foo]
@@ -2212,7 +2155,7 @@
 ++  case-3           [[%scalar %foobar] [%case column-foo3 ~[case-datum case-predicate] %else column-bar %end]]
 ++  case-4           [[%scalar %foobar] [%case column-foo3 ~[case-datum case-predicate] %else simple-if-naked %end]]
 ++  case-5           [[%scalar %foobar] [%case column-foo3 ~[case-datum case-predicate case-coalesce] %else simple-if-naked %end]]
-++  case-aggregate   [[%scalar %foobar] [%case [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3] %foo3 0] [[%when [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2] %foo2 0] %then %aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo] %foo 0] %end]]
+++  case-aggregate   [[%scalar %foobar] [%case [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3 alias=~] %foo3 0] [[%when [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2 alias=~] %foo2 0] %then %aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] %end]]
 ::  coalesce
 ::++  test-scalar-01
 ::  =/  scalar  "SCALAR foobar COALESCE bar,~zod,1,foo"
@@ -2308,13 +2251,20 @@
 ::  NOTE: SELECT all literal types is in test/lib/queries/hoon
 ::
 ::++  simple-columns
-::  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] [%ud 1] [%p 0] [%t 'cord']]
+::  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] [%ud 1] [%p 0] [%t 'cord']]
 ++  aliased-columns-1
-  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=[~ 'foo']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=[~ 'foo2']] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=[~ 'bar']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=[~ 'bar2']] [%selected-value value=literal-1 alias=[~ %foobar]] [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']] [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]]
+  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=[~ 'foo']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=[~ 'foo2']] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=[~ 'bar']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=[~ 'bar2']] [%selected-value value=literal-1 alias=[~ %foobar]] [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']] [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]]
 ++  mixed-all
-  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1'] column='ALL' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo'] column='foo' alias=[~ 'foobar']] column-bar [%all %all] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T2'] column='ALL' alias=~]]
+  :~  [%all-object qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1' alias=~]]
+      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo' alias=~] column='foo' alias=[~ 'foobar']]
+      column-bar
+      [%all %all]
+      [%all-object qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]]
+      ==
 ++  aggregates
-  ~[column-foo [%selected-aggregate [%aggregate function='count' source=column-foo] alias=[~ 'CountFoo']] [%selected-aggregate [%aggregate function='count' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar'] column='foobar' alias=~]] alias=[~ 'foobar']]]
+  ~[column-foo [%selected-aggregate [%aggregate function='count' source=column-foo] alias=[~ 'CountFoo']] [%selected-aggregate [%aggregate function='count' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]] alias=[~ 'foobar']]]
+++  from-t1
+  [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]] as-of=~ joins=~]]
 ::
 ::  simplest possible select (bunt)
 ++  test-select-01
@@ -2383,16 +2333,25 @@
 ++  test-select-10
   =/  select  "select top 10  bottom 10 ".
 " x1, db.ns.table.col1, table-alias.name, db..table.col2, T1.foo, 1, ~zod, 'cord'"
-  =/  my-columns  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] [%selected-value literal-1 ~] [%selected-value [value-type=%p value=0] ~] [%selected-value [value-type=%t value='cord'] ~]]
+  =/  my-columns  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] [%selected-value literal-1 ~] [%selected-value [value-type=%p value=0] ~] [%selected-value [value-type=%t value='cord'] ~]]
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=my-columns] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  from foo select top, bottom, simple columns, trailing space, no internal space
 ++  test-select-11
-  =/  select  "from foo select top 10  bottom 10  x1,db.ns.table.col1,table-alias.name,db..table.col2,T1.foo,1,~zod,'cord' "
-  =/  from  [~ [%from object=[%table-set object=foo-table alias=~] as-of=~ joins=~]]
-  =/  my-columns  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1'] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias'] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table'] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] [%selected-value literal-1 ~] [%selected-value [value-type=%p value=0] ~] [%selected-value [value-type=%t value='cord'] ~]]
+  =/  select  "from foo T1 select top 10  bottom 10  x1,db.ns.foo.col1,t1.name,db..foo.col2,T1.foo,1,~zod,'cord' "
+  =/  from  [~ [%from object=[%table-set object=foo-table-t1] as-of=~ joins=~]]
+  =/  my-columns
+    :~  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='foo' alias=~] column='col1' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']] column='name' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='foo' alias=~] column='col2' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']] column='foo' alias=~]
+        [%selected-value literal-1 ~]
+        [%selected-value [value-type=%p value=0] ~]
+        [%selected-value [value-type=%t value='cord'] ~]
+        ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query from scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=my-columns] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
@@ -2413,16 +2372,16 @@
 ::
 ::  mixed all, object all, object alias all, column, aliased column
 ++  test-select-14
-  =/  select  "select db..t1.* , foo as foobar , bar , * , T2.* "
+  =/  select  "from t1 T1 select db..t1.* , foo as foobar , bar , * , T1.* "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-t1 scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
-::
-::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
+::::
+::::  , top, bottom, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-15
-  =/  select  "select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T2.*"
+  =/  select  "from t1 T1 select top 10  bottom 10  db..t1.*,foo as foobar,bar,*,T1.*"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-t1 scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed aggregates
@@ -2549,8 +2508,8 @@
 ::
 ::  group and order by
 ::
-++  group-by  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] 3 4]
-++  order-by  ~[[%ordering-column [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table'] column='col' alias=~] is-ascending=%.y] [%ordering-column [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1'] column='foo' alias=~] is-ascending=%.n] [%ordering-column 3 is-ascending=%.y] [%ordering-column 4 is-ascending=%.n]]
+++  group-by  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] 3 4]
+++  order-by  ~[[%ordering-column [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col' alias=~] is-ascending=%.y] [%ordering-column [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] is-ascending=%.n] [%ordering-column 3 is-ascending=%.y] [%ordering-column 4 is-ascending=%.n]]
 ::
 ::  group by
 ++  test-group-by-01
@@ -2717,21 +2676,21 @@
 :: merge
 ::
 ++  predicate-bar-eq-bar
-  [%eq [[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='tgt'] column='bar' alias=~] ~ ~] [[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src'] column='bar' alias=~] ~ ~]]
+  [%eq [[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='tgt' alias=~] column='bar' alias=~] ~ ~] [[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src' alias=~] column='bar' alias=~] ~ ~]]
 ++  cte-bar-foobar
-  [%cte name='T1' %query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar'] column='bar' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar'] column='foobar' alias=~]]] order-by=~]
+  [%cte name='T1' %query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]] order-by=~]
 ++  cte-bar-foobar-src
-  [%cte name='src' %query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar'] column='bar' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar'] column='foobar' alias=~]]] order-by=~]
+  [%cte name='src' %query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]] order-by=~]
 ++  column-src-foo
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src'] column='foo' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src' alias=~] column='foo' alias=~]
 ++  column-src-bar
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src'] column='bar' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src' alias=~] column='bar' alias=~]
 ++  column-src-foobar
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src'] column='foobar' alias=~]
+  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='src' alias=~] column='foobar' alias=~]
 ++  passthru-tgt
-  [%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'tgt']]
+  [%table-set object=[%query-row alias=[~ 'tgt'] ~['col1' 'col2' 'col3']]]
 ++  passthru-src
-  [%table-set object=[%query-row ~['col1' 'col2' 'col3']] alias=[~ 'src']]
+  [%table-set object=[%query-row alias=[~ 'src'] ~['col1' 'col2' 'col3']]]
 ::
 ::
 ++  test-merge-01
@@ -2742,7 +2701,7 @@
 " WHEN MATCHED THEN ".
 "    UPDATE SET foobar = src.foo "
   =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'tgt']] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2757,7 +2716,7 @@
 "    UPDATE SET foobar = src.foo, ".
 "    bar = bar "
   =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=[~ 'tgt']] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2774,100 +2733,102 @@
 "    INSERT (bar, foobar) ".
 "    VALUES (src.bar, 99)"
   =/  expected
-    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='src'] alias=~] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='src' alias=~]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
-::
-:: merge target passthru alias AS
-++  test-merge-04
-  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO (col1,col2,col3) AS tgt ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: merge target passthru alias
-++  test-merge-05
-  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO ( col1, col2 , col3) tgt ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: merge target passthru unaliased
-++  test-merge-06
-  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO (col1, col2 , col3)  ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1'] alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::merge source passthru alias AS
-++  test-merge-07
-  =/  query  "MERGE dbo.foo ".
-" USING (col1, col2 , col3) as src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::merge source passthru alias AS
-++  test-merge-08
-  =/  query  "MERGE dbo.foo ".
-" USING (col1, col2 , col3) src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::merge source passthru alias AS
-++  test-merge-09
-  =/  query  "MERGE dbo.foo ".
-" USING (col1, col2 , col3) ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo'] alias=~] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
+::::
+::::  query row tests, uncomment when query row implemented
+::::
+:::: merge target passthru alias AS
+::++  test-merge-04
+::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO (col1,col2,col3) AS tgt ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+:::: merge target passthru alias
+::++  test-merge-05
+::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO ( col1, col2 , col3) tgt ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+:::: merge target passthru unaliased
+::++  test-merge-06
+::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO (col1, col2 , col3)  ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::merge source passthru alias AS
+::++  test-merge-07
+::  =/  query  "MERGE dbo.foo ".
+::" USING (col1, col2 , col3) as src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::merge source passthru alias AS
+::++  test-merge-08
+::  =/  query  "MERGE dbo.foo ".
+::" USING (col1, col2 , col3) src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::merge source passthru alias AS
+::++  test-merge-09
+::  =/  query  "MERGE dbo.foo ".
+::" USING (col1, col2 , col3) ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
 :: to do: tests for merge to new file
 ::
 :: block comment
@@ -2996,7 +2957,7 @@
 ++  t2  [%selection ctes=~ set-functions=[q2 ~ ~]]
 ++  t3  [%selection ctes=~ set-functions=[q3 ~ ~]]
 ::
-++  test-block-cmnt-07
+++  test-block-cmnt-08
   %+  expect-eq
     !>  ~[t1 t2 t3]
     !>  %-  parse:parse(default-database 'other-db')

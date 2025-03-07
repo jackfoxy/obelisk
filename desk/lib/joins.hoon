@@ -36,24 +36,56 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 
 ::
+++  mk-relations
+  |=  [relat=relation joins=(list joined-object:ast)]
+  ^-  (list relation)
+  =/  relations=(list relation)  ~[relat]
+  |-
+  ?~  joins  (flop relations)
+  %=  $
+    joins  t.joins
+    relations  :-  %:  relation  %relation
+                                 object.i.joins
+                                 as-of.i.joins
+                                 `join.i.joins
+                                 predicate.i.joins
+                                 ==
+                   relations
+  ==
+::
 ++  join-all
-  |=  =from:ast
+  |=  q=query:ast
   ^-  [server (list from-obj)]
-  =/  =table-set:ast  object.from
+  =/  from  (need from.q)
+  =/  relations=(list relation)
+        %+  mk-relations  (relation %relation object.from as-of.from ~ ~)
+                          joins.from
+  =/  selected-columns
+        %+  skim  columns.selection.q
+                  |=(a=selected-column:ast ?=(qualified-column:ast a))
+
+  =/  relat=relation  -.relations
+  =.  relations       +.relations
   =/  query-obj=qualified-object:ast
-      ?:  ?=(qualified-object:ast object.table-set)  object.table-set
-      ~|("SELECT: not supported" !!)   :: %query-row non-sense to support
+      ?:  ?=(qualified-object:ast object.table-set.relat)
+        object.table-set.relat
+      ~|("SELECT: not supported on %query-row" !!)   :: %query-row support
                                          :: %selection composition
-  =/  sys-time  (set-tmsp as-of.from now.bowl)
+  =/  sys-time  (set-tmsp as-of.relat now.bowl)
   =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
                   (~(got by state) database.query-obj)
   =/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
                     "doesn't exist at time {<sys-time>}"
                (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
+  =/  alias  ?:  ?=(qualified-object:ast object.table-set.relat)
+               ?~  alias.object.table-set.relat  ~
+               `(crip (cass (trip (need alias.object.table-set.relat))))
+             ~|("not supported" !!)
   ::
   =/  from-objects=(list from-obj)
       %-  limo  :~  ?~  vw  %:  from-table  query-obj
+                                            alias
                                             db
                                             schema
                                             ~
@@ -63,10 +95,11 @@
                                             ~
                                             ==
                         %:  from-view  query-obj
+                                       alias
                                        db
                                        schema
                                        (need vw)
-                                       ~
+                                       relat
                                        sys-time
                                        ~
                                        ~
@@ -74,46 +107,57 @@
                     ==
   ::
   |-
-  ?~  joins.from  [state (flop from-objects)]
-  =/  jo=joined-object:ast  -.joins.from
-  =.  query-obj  ;;(qualified-object:ast object.object.jo)
-  =.  sys-time   (set-tmsp as-of.jo now.bowl)
-  =.  db         ~|  "SELECT: database {<database.query-obj>} does not exist"
-                 (~(got by state) database.query-obj)
-  =.  schema     ~|  "SELECT: database {<database.query-obj>} ".
-                      "doesn't exist at time {<sys-time>}"
-                 (get-schema [sys.db sys-time])
+  ?~  relations  [state (flop from-objects)]
+  =.  relat      -.relations
+  =/  query-obj=qualified-object:ast
+        ?:  ?=(qualified-object:ast object.table-set.relat)
+          object.table-set.relat
+        ~|("query-source {<object.table-set.relat>} not supported" !!)
+  =/  sys-time   (set-tmsp as-of.relat now.bowl)
+  =/  db=database    ~|  "SELECT: database {<database.query-obj>} ".
+                         "does not exist"
+                         (~(got by state) database.query-obj)
+  =/  schema         ~|  "SELECT: database {<database.query-obj>} ".
+                         "doesn't exist at time {<sys-time>}"
+                         (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
+  =.  alias  ?:  ?=(qualified-object:ast object.table-set.relat)
+               ?~  alias.object.table-set.relat  ~
+               `(crip (cass (trip (need alias.object.table-set.relat))))
+             ~|("not supported" !!)
   ::
   =/  prior=from-obj  -.from-objects
   =/  joined-obj  ?~  vw  %:  from-table  query-obj
-                                              db
-                                              schema
-                                              [~ join.jo]
-                                              predicate.jo
-                                              sys-time
-                                              type-lookup.prior
-                                              qualified-columns.prior
-                                              ==
+                                          alias
+                                          db
+                                          schema
+                                          join.relat
+                                          predicate.relat
+                                          sys-time
+                                          type-lookup.prior
+                                          qualified-columns.prior
+                                          ==
                       %:  from-view  query-obj
-                                      db
-                                      schema
-                                      (need vw)
-                                      [~ jo]
-                                      sys-time
-                                      type-lookup.prior
-                                      qualified-columns.prior
-                                      ==
+                                     alias
+                                     db
+                                     schema
+                                     (need vw)
+                                     relat
+                                     sys-time
+                                     type-lookup.prior
+                                     qualified-columns.prior
+                                     ==
   ::
   =.  joined-rows.joined-obj  (join-up prior joined-obj)
   ::
   %=  $
-    joins.from  +.joins.from
+    relations     +.relations
     from-objects  [joined-obj from-objects]
   ==
 ::
 ++  from-table
   |=  $:  query-obj=qualified-object:ast
+          alias=(unit @t)
           db=database
           =schema
           join=(unit join-type:ast)
@@ -131,6 +175,9 @@
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   %:  from-obj  %from-obj
                 query-obj
+                 ?~  alias
+                    ~
+                `(crip (cass (trip (need alias))))
                 tmsp.tbl
                 tmsp.file
                 columns.tbl
@@ -144,7 +191,7 @@
                     (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
                 rowcount.file
                 pri-idx.file
-                rows.file
+                indexed-rows.file
                 ~
                 ==
 ::
@@ -167,10 +214,11 @@
 ::
 ++  from-view
   |=  $:  query-obj=qualified-object:ast
+          alias=(unit @t)
           db=database
           =schema
           =view
-          jo=(unit joined-object:ast)
+          relat=relation
           sys-time=@da
           type-lookup=(map qualified-object:ast (map @tas @ta))
           qualified-columns=(list [qualified-column:ast @ta])
@@ -191,20 +239,24 @@
              state
   %:  from-obj  %from-obj
                 query-obj
+                ?~  alias
+                    ~
+                `(crip (cass (trip (need alias))))
                 tmsp.schema
                 tmsp.+.r
                 columns.view
                 (mk-qualified-columns query-obj qualified-columns columns.view)
                 ~
                 ~
-                ?~  jo  ~  [~ join:(need jo)]
-                ?~  jo  ~  [~ predicate:(need jo)]
+                join.relat
+                predicate.relat
                 %+  ~(put by type-lookup)  
                     query-obj
                     (malt (turn columns.view |=(a=column:ast [name.a type.a])))
                 rowcount.view-content
                 ~
-                rows.view-content
+                %+  turn  rows.view-content
+                          |=(a=(map @tas @) [~ a])
                 ~
                 ==
 ::
@@ -230,7 +282,7 @@
 ::
 ++  join-up
   |=  [prior=from-obj this=from-obj]
-  ^-  (list (map qualified-object:ast (map @tas @)))
+  ^-  (list joined-row)
   ?-  (need join.this)
     %join
       ?:  =(~ predicate.this)  (join-natural prior this)
@@ -242,14 +294,34 @@
     %outer-join
       ~|("%outer-join not implemented" !!)
     %cross-join
-      ~|("%cross-join not implemented" !!)
+      (cross-join prior this)
+  ==
+++  cross-join
+  |=  [prior=from-obj this=from-obj]
+  ^-  (list joined-row)
+  =/  a  indexed-rows.prior
+  =/  out-rows=(list joined-row)  ~
+  =/  init-map=joined-row  ~
+  ::
+  |-
+  ?~  a  out-rows
+  =/  b  indexed-rows.this 
+  |-
+  ?~  b  ^$(a +.a)
+  %=  $ 
+                              :: produce joined vectors
+    out-rows  :-  %+  ~(put by (~(put by init-map) object.prior ->.a)) 
+                      object.this
+                      ->.b
+                  out-rows
+    b  +.b
   ==
 ++  join-natural
   |=  [prior=from-obj this=from-obj]
-  ^-  (list (map qualified-object:ast (map @tas @)))
+  ^-  (list joined-row)
   ::join on foreign keys (to do)
   ::
-  ::join on pri-key
+  ::join on primary key
   =/  column-set-1  (silt columns:(need pri-indx.prior))
   =/  column-set-2  (silt columns:(need pri-indx.this))
   =/  join-columns
@@ -262,13 +334,32 @@
   ?~  join-columns  ~|  "no natural or foreign key join ".
                         "{<object.prior>} {<object.this>}"
                         !!
-  %:  join-pri-key  (tap:(pri-key key.prior) pri-indexed.prior)
-                    (tap:(pri-key key.this) pri-indexed.this)
+  ?:  =(key.prior key.this)
+    %:  join-pri-key  indexed-rows.prior
+                      indexed-rows.this
+                      object.prior
+                      object.this
+                      key.this
+                      ==
+  ::  key is same column sequence, but different ordering
+  ::  sort the little one
+  ?:  (gth rowcount.this rowcount.prior)
+    %:  join-pri-key  (sort indexed-rows.prior ~(order idx-comp-2 key.this))
+                      indexed-rows.this
+                      object.prior
+                      object.this
+                      key.this
+                      ==
+  %:  join-pri-key  indexed-rows.prior
+                    (sort indexed-rows.this ~(order idx-comp-2 key.prior))
                     object.prior
                     object.this
-                    key.this
+                    key.prior
                     ==
 ::
+::  +join-pri-key
+::
+::  joins the data of two tables having the same key
 ++  join-pri-key
   |=  $:  a=(list [(list @) (map @tas @)])
           b=(list [(list @) (map @tas @)])
@@ -276,9 +367,9 @@
           b-qual=qualified-object:ast
           key=(list [@tas ?])
           ==
-  ^-  (list (map qualified-object:ast (map @tas @)))
-  =/  c=(list (map qualified-object:ast (map @tas @)))  ~
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+  ^-  (list joined-row)
+  =/  c=(list joined-row)  ~
+  =/  init-map=joined-row  ~
   ::
   |-
   ?~  a  c

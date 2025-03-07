@@ -585,10 +585,10 @@ A `JOIN` is a query clause that combines rows from two or more tables and/or vie
 
 *Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk first determines if there is a `FOREIGN KEY` (*not yet implemented*) relating the objects. If no `FOREIGN KEY` exists, but the tables share the same primary key (columns having the same name and aura type) it will join on primary keys. It does not matter if the keys' columns ordered ascending/descending differently between the two.
 
-Let's use the system view *sys.tables* to find like primary keys.
+Let's use the system view *sys.table-keys* to find like primary keys.
 
 ```
-FROM sys.tables
+FROM sys.table-keys
 WHERE namespace = 'reference'
   AND name = 'calendar'
    OR name = 'calendar-us-fed-holiday' 
@@ -688,7 +688,6 @@ For instance the joined query we last ran produces the following pretty-printed 
           ~[
             [ %joined-object
               join=%join
-              as-of=~
                 object
               [ %table-set
                   object
@@ -700,6 +699,7 @@ For instance the joined query we last ran produces the following pretty-printed 
                 ]
                 alias=[~ 'T2']
               ]
+              as-of=~
               predicate=~
             ]
           ]
@@ -798,9 +798,29 @@ Lists the namespaces in a database. Available in every database except "sys".
 
 ### Default Ordering
 
-tmsp, namespace
+tmsp, namespace 
 
 ## sys.tables
+
+Lists tables and administrative information.
+
+### Columns
+
+**namespace @tas** Namespace of table.
+
+**name @tas** Table name.
+
+**agent @tas** Agent responsible for the latest table schema change.
+
+**tmsp @da** Timestamp of latest table schema change.
+
+**row-count @ud** Count of rows in table. Use *sys.data-log* system view to get data provenance.
+
+### Default Ordering
+
+namespace, name
+
+## sys.table-keys
 
 Lists tables and their primary keys.
 
@@ -809,14 +829,6 @@ Lists tables and their primary keys.
 **namespace @tas** Namespace of table.
 
 **name @tas** Table name.
-
-**ship @p** Ship making the latest table state change.
-
-**agent @tas** Agent responsible for the latest table state change.
-
-**tmsp @da** Timestamp of latest table state change.
-
-**row-count @ud** Count of rows in table.
 
 **key-ordinal @ud** Ordinal of column in primary key.
 

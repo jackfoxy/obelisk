@@ -79,7 +79,7 @@
       tmsp=@da
       rowcount=@
       pri-idx=(tree [(list @) (map @tas @)])
-      rows=(list (map @tas @))
+      indexed-rows=(list [(list @) (map @tas @)])
       ::    =indices
   ==
 +$  data-obj-key
@@ -153,6 +153,7 @@
 +$  from-obj
   $:  %from-obj
       object=qualified-object
+      alias=(unit @t)
       schema-tmsp=@da
       data-tmsp=@da
       columns=(list column)
@@ -164,8 +165,19 @@
       type-lookup=(map qualified-object (map @tas @ta))
       rowcount=@
       pri-indexed=(tree [(list @) (map @tas @)])
-      rows=(list (map @tas @))
-      joined-rows=(list (map qualified-object (map @tas @)))
+      indexed-rows=(list [(list @) (map @tas @)])
+      joined-rows=(list joined-row)
+  ==
+::
++$  joined-row  (map qualified-object (map @tas @))
+::
++$  relation
+  $:
+    %relation
+    =table-set
+    as-of=(unit as-of)
+    join=(unit join-type)
+    predicate=(unit predicate)
   ==
 ::
 ::  helper types

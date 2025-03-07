@@ -62,6 +62,24 @@
     (lth -.p -.q)
   --
 ::
+::  +idx-comp-2
+::
+::  comparator for index mops
+++  idx-comp-2
+  |_  index=(list [@tas ?])
+  ++  order
+    ::|=  [p=(list @) q=(list @)]
+    |=  [a=[(list @) *] b=[(list @) *]]
+    =/  p  -.a
+    =/  q  -.b
+    =/  k=(list [@tas ?])  index
+    |-  ^-  ?
+    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
+    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  ->.k  (gth -.p -.q)
+    (lth -.p -.q)
+  --
+::
 ++  pri-key
   |=  key=(list [@tas ?])
         ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
@@ -321,21 +339,28 @@
     ^-  [[@tas [@tas @ud]] @ud]
     [[name.column [type.column a]] +(a)]
 ::
-::  +mk-vect-templ: [(list column:ast) (list selected-column:ast)]
-::                  -> (list templ-cell)
+::  +mk-vect-templ:
+::    [(list [qualified-object:ast @ta]) (list selected-column:ast)]
+::    -> (list templ-cell)
 ::
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-templ-cell
-  |=  a=column:ast
+  |=  a=[qualified-column:ast @ta]
   ^-  templ-cell
-  (templ-cell %templ-cell `name.a `vector-cell`[name.a [type.a 0]])
+  (templ-cell %templ-cell `-.a `vector-cell`[column.-.a [+.a 0]])
 ++  mk-vect-templ
-  |=  [cols=(list column:ast) selected=(list selected-column:ast)]
+  |=  $:  cols=(list [qualified-column:ast @ta])
+          selected=(list selected-column:ast)
+          ==
   ^-  (list templ-cell)
   =/  i  0
-  =/  col-lookup=(map @tas @ta)
-        (~(gas by `(map @tas @ta)`~) (turn cols |=(a=[@tas [@tas @ta]] +.a)))
+  =/  col-lookup
+    %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
+        %+  turn
+              cols
+              |=(a=[qualified-column:ast @ta] [[qualifier:-.a column:-.a] +.a])
   =/  cells=(list templ-cell)  ~
+  ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
   ?:  =([%all %all] i.selected)
@@ -345,107 +370,53 @@
       cells     (weld (flop (turn cols mk-templ-cell)) cells)
     ==
   ?:  ?=(qualified-column:ast i.selected)
-    ?:  =('ALL' column.i.selected)  :: name = table name
-      %=  $
-        i         +(i)
-        selected  t.selected
-        cells     (weld (flop (turn cols mk-templ-cell)) cells)
-      ==
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells
-            ~|  "SELECT: column {<column.i.selected>} not found"  
-            :-
-              %:  templ-cell  %templ-cell
-                            [~ column.i.selected]
-                            :-  (heading i.selected column.i.selected)
-                                [(~(got by col-lookup) column.i.selected) 0]
-                            ==
-                cells
-    ==
-  ?:  ?=(selected-value:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells   :-  %:  templ-cell  %templ-cell
-                                ~
-                                :-  (heading i.selected (crip "literal-{<i>}"))
-                                    [p=+<-.i.selected q=+<+.i.selected]
-                                ==
-                  cells
-    ==
-  ~|("{<i.selected>} not supported" !!)
-::
-::  +mk-vect-templ-2:
-::    [(list [qualified-object:ast @ta]) (list selected-column:ast)]
-::    -> (list templ-cell-2)
-::
-::  leave output un-flopped so consuming arm does not flop
-++  mk-templ-cell-2
-  |=  a=[qualified-column:ast @ta]
-  ^-  templ-cell-2
-  (templ-cell-2 %templ-cell-2 `-.a `vector-cell`[column.-.a [+.a 0]])
-++  mk-vect-templ-2
-  |=  $:  cols=(list [qualified-column:ast @ta])
-          selected=(list selected-column:ast)
-          ==
-  ^-  (list templ-cell-2)
-  =/  i  0
-  =/  col-lookup=(map qualified-column:ast @ta)
-        (~(gas by `(map qualified-column:ast @ta)`~) cols)
-  =/  cells=(list templ-cell-2)  ~
-
-  =.  selected  (fix-for-infer cols selected)
-
-  ::
-  |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
-  ?:  =([%all %all] i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     (weld (flop (turn cols mk-templ-cell-2)) cells)
-    ==
-  ?:  ?=(qualified-column:ast i.selected)
-    ?:  =('ALL' column.i.selected)  :: name = table name
-      %=  $
-        i         +(i)
-        selected  t.selected   :: to do: filter on table
-        cells     (weld (flop (turn cols mk-templ-cell-2)) cells)
-      ==
     %=  $
       i         +(i)
       selected  t.selected
       cells  ~|  "SELECT: column {<column.i.selected>} not found"  
              :-
-               %:  templ-cell-2
-                     %templ-cell-2
+               %:  templ-cell
+                     %templ-cell
                      [~ i.selected]
                      :-  (heading i.selected column.i.selected)
-                         [(~(got by col-lookup) i.selected) 0]
+                         :-  %-  ~(got by col-lookup)
+                                 [qualifier.i.selected column.i.selected]
+                              0
                      ==
                cells
+    ==
+  ?:  ?=(selected-all-object:ast i.selected)
+    %=  $
+      i         +(i)
+      selected  t.selected
+      cells     
+        %+  weld
+          %-  flop
+            %+  turn
+              %+  skim
+                    cols
+                    |=(a=[qualified-column:ast @ta] =(qualifier.a +.i.selected))
+              mk-templ-cell
+          cells
     ==
   ?:  ?=(selected-value:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells   :-  %:  templ-cell-2  %templ-cell-2
-                                ~
-                                :-  (heading i.selected (crip "literal-{<i>}"))
-                                    [p=+<-.i.selected q=+<+.i.selected]
-                                ==
-                  cells
+      cells
+        :-  %:  templ-cell  %templ-cell
+                            ~
+                            :-  (heading i.selected (crip "literal-{<i>}"))
+                                [p=+<-.i.selected q=+<+.i.selected]
+                            ==
+            cells
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
-++  fix-for-infer
-  |=  $:  cols=(list [qualified-column:ast @ta])
-          selected=(list selected-column:ast)
+++  fix-selected
+  |=  $:  selected=(list selected-column:ast)
+          qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
-  ^-  (list selected-column:ast)
-  =/  object-lookup=(map @tas (list qualified-object:ast))  ~
   =/  selected-out=(list selected-column:ast)  ~
   |-
   ?~  selected  (flop selected-out)
@@ -454,30 +425,26 @@
       selected      +.selected
       selected-out  [-.selected selected-out]
     ==
-  =/  col=qualified-column:ast  `qualified-column:ast`-.selected
-  ?:  ?&  =('UNKNOWN' database.qualifier.col)
-            =('COLUMN-OR-CTE' namespace.qualifier.col)
-            ==
-          ?~  object-lookup  $(object-lookup (mk-object-lookup cols))
-          %=  $
-            selected      +.selected
-            selected-out  :-  ^-  selected-column:ast
-                              %+  from-infer-objects  object-lookup
-                                                      name.qualifier.col
-                              selected-out
-          ==
+  =/  sel=qualified-column:ast  -.selected
+  ?.  =('UNKNOWN' database.qualifier.sel)
+    %=  $
+      selected      +.selected
+      selected-out  [-.selected selected-out]
+    ==
+  =/  qualifiers   ~|  "SELECT: column {<column.sel>} not found"
+                       (~(got by qualifier-lookup) column.sel)
+  ?:  (gth (lent qualifiers) 1)
+    ~|("SELECT: column {<column.sel>} must be qualified" !!)
   %=  $
     selected      +.selected
-    selected-out  [`selected-column:ast`col selected-out]
+    selected-out  :-  ^-  selected-column:ast
+                      %:  qualified-column:ast  %qualified-column
+                                                -.qualifiers
+                                                column.sel
+                                                alias.sel
+                                                ==
+                      selected-out
   ==
-::
-++  from-infer-objects
-  |=  [object-lookup=(map @tas (list qualified-object:ast)) name=@tas]
-  ^-  qualified-column:ast
-  ?.  (~(has by object-lookup) name)  ~|("SELECT: column {<name>} not found" !!)
-  =/  objects=(list qualified-object:ast)  (~(got by object-lookup) name)
-  ?:  (gth (lent objects) 1)  ~|("SELECT: column {<name>} must be qualified" !!)
-  (qualified-column:ast %qualified-column -.objects name ~)
 ::
 ++  mk-object-lookup
   |=  cols=(list [qualified-column:ast @ta])
@@ -593,29 +560,39 @@
       ~|("%drop-namespace not implemented" !!)
     %create-table
       %^  next-view-cache-keys  db
-                              sys-time
-                              :~  [%sys %tables]
-                                  [%sys %columns]
-                                  [%sys %sys-log]
-                                  [%sys %data-log]
-                                  ==
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %alter-table
       ~|("%alter-table not implemented" !!)
     %drop-table
       %^  next-view-cache-keys  db
-                              sys-time
-                              :~  [%sys %tables]
-                                  [%sys %columns]
-                                  [%sys %sys-log]
-                                  [%sys %data-log]
-                                  ==
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %truncate-table
-      (next-view-cache-keys db sys-time ~[[%sys %tables] [%sys %data-log]])
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %data-log]
+                                    ==
     %insert
       %^  next-view-cache-keys
                             db
                             sys-time
-                            %+  weld  (limo ~[[%sys %tables] [%sys %data-log]])
+                            %+  weld  %-  limo  :~  [%sys %tables]
+                                                    [%sys %table-keys]
+                                                    [%sys %data-log]
+                                                    ==
                                       (need sys-vws)
     %update
       ~|("%update not implemented" !!)
@@ -629,8 +606,36 @@
   ^-  view-cache
   %+  gas:view-cache-key
         view-cache.db
-        %+  turn  sys-vws
+        %+  turn
+              sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
+::
+::  +mk-qualifier-lookup:  [(list from-obj) (list selected-column:ast)]
+::                         -> (map @tas (list qualified-object:ast))
+::
+::  Make lookup qualifier by column name for predicate processing when a column
+::  is unqualified.
+++  mk-qualifier-lookup
+    |=  [sources=(list from-obj) selected-columns=(list selected-column:ast)]
+    ^-  (map @tas (list qualified-object:ast))
+    =/  lookup=(map @tas (list qualified-object:ast))  ~
+    |-
+    ?~  sources  lookup
+    =/  source=from-obj  -.sources
+    =/  columns=(list column:ast)  columns.source
+    |-
+    ?~  columns  ^$(sources +.sources)
+    =/  col=column:ast  -.columns
+    %=  $
+      columns  +.columns
+      lookup   ?:  (~(has by lookup) name.col)
+                 %+  ~(put by lookup)
+                        name.col
+                        :-  object.source
+                            (~(got by lookup) name.col)
+               %+  ~(put by lookup)  name.col
+                                     (limo ~[object.source])
+    ==
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
@@ -658,8 +663,7 @@
 ::
 ++  update-file
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list [@tas ?])]
-  =.  rows.file  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
-                            |=(a=[* (map @tas @)] +.a)
+  =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
@@ -808,16 +812,9 @@
                 %delete
                 ==
 ::
-::  template for selected column from single data object
+::  template for selected column from qualified objects
 +$  templ-cell
   $:  %templ-cell
-      column-name=(unit @tas)
-      vc=vector-cell
-  ==
-::
-::  template for selected column from joined data objects
-+$  templ-cell-2
-  $:  %templ-cell-2
       object=(unit qualified-column:ast)
       vc=vector-cell
   ==

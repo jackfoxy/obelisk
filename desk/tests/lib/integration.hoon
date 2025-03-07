@@ -34,7 +34,7 @@
   =|  run=@ud
   =/  expected  :~
                   :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2000.1.3]
                           [%schema-time ~2000.1.2]
                           [%data-time ~2000.1.3]
@@ -44,7 +44,7 @@
                           [%vector-count 1]
                       ==
                   :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2000.1.3]
                           [%schema-time ~2000.1.2]
                           [%data-time ~2000.1.3]
@@ -87,7 +87,7 @@
   =|  run=@ud
   =/  expected-1  :~
                     :-  %results
-                        :~  [%message 'INSERT INTO %my-table']
+                        :~  [%message 'INSERT INTO %dbo.%my-table']
                             [%server-time ~2000.1.3]
                             [%schema-time ~2000.1.2]
                             [%data-time ~2000.1.3]
@@ -97,7 +97,7 @@
                             [%vector-count 1]
                         ==
                     :-  %results
-                        :~  [%message 'INSERT INTO %my-table']
+                        :~  [%message 'INSERT INTO %dbo.%my-table']
                             [%server-time ~2000.1.3]
                             [%schema-time ~2000.1.2]
                             [%data-time ~2000.1.4]
@@ -114,10 +114,10 @@
                           ==
   =/  expected-2b-rows  :~
                           :-  %vector
-                              :~  [%col1 [~.t 'cord']]
+                              :~  [%col1 [~.t 'cord2']]
                                   ==
                           :-  %vector
-                              :~  [%col1 [~.t 'cord2']]
+                              :~  [%col1 [~.t 'cord']]
                                   ==
                           ==
   =/  expected-2  :~
@@ -187,7 +187,7 @@
   =|  run=@ud
   =/  expected-1  :~
                     :-  %results
-                        :~  [%message 'INSERT INTO %my-table']
+                        :~  [%message 'INSERT INTO %dbo.%my-table']
                             [%server-time ~2000.1.3]
                             [%schema-time ~2000.1.2]
                             [%data-time ~2000.1.3]
@@ -207,13 +207,13 @@
                           ==
   =/  expected-2  :~
                     :-  %results
-                      :~  [%message msg='TRUNCATE TABLE %my-table']
+                      :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                           [%server-time date=~2000.1.4]
                           [%data-time date=~2000.1.4]
                           [%vector-count count=1]
                       ==
                     :-  %results
-                        :~  [%message 'INSERT INTO %my-table']
+                        :~  [%message 'INSERT INTO %dbo.%my-table']
                             [%server-time ~2000.1.4]
                             [%schema-time ~2000.1.2]
                             [%data-time ~2000.1.4]
@@ -267,7 +267,7 @@
 ++  test-integrate-03
   =|  run=@ud
   =/  expected  :-  %results
-                    :~  [%message 'INSERT INTO %my-table']
+                    :~  [%message 'INSERT INTO %dbo.%my-table']
                         [%server-time ~2000.1.4..15.01.02]
                         [%schema-time ~2000.1.2]
                         [%data-time ~2000.1.4..15.01.02]
@@ -333,13 +333,13 @@
   =|  run=@ud
   =/  expected  :~
                     :-  %results
-                      :~  [%message msg='TRUNCATE TABLE %my-table']
+                      :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                           [%server-time date=~2000.1.4]
                           [%data-time date=~2000.1.4]
                           [%vector-count count=1]
                       ==
                     :-  %results
-                      :~  [%message 'INSERT INTO %my-table']
+                      :~  [%message 'INSERT INTO %dbo.%my-table']
                           [%server-time ~2000.1.4]
                           [%schema-time ~2000.1.2]
                           [%data-time ~2000.1.5]
@@ -401,7 +401,7 @@
                         [%schema-time ~2000.1.1]
                     ==
                   :-  %results
-                    :~  [%message 'INSERT INTO %my-table-1']
+                    :~  [%message 'INSERT INTO %dbo.%my-table-1']
                         [%server-time ~2005.2.2]
                         [%schema-time ~2000.1.1]
                         [%data-time ~2000.1.1]
@@ -411,7 +411,7 @@
                         [%vector-count 3]
                     ==
                   :-  %results
-                    :~  [%message 'INSERT INTO %my-table-1']
+                    :~  [%message 'INSERT INTO %dbo.%my-table-1']
                         [%server-time ~2005.2.2]
                         [%schema-time ~2000.1.1]
                         [%data-time ~2005.2.2]
@@ -463,7 +463,7 @@
                         [%schema-time ~2000.1.1]
                     ==
                   :-  %results
-                    :~  [%message 'INSERT INTO %my-table-1']
+                    :~  [%message 'INSERT INTO %dbo.%my-table-1']
                         [%server-time ~2000.1.1]
                         [%schema-time ~2000.1.1]
                         [%data-time ~2000.1.1]
@@ -473,7 +473,7 @@
                         [%vector-count 3]
                     ==
                   :-  %results
-                    :~  [%message 'INSERT INTO %my-table-1']
+                    :~  [%message 'INSERT INTO %dbo.%my-table-1']
                         [%server-time ~2000.1.1]
                         [%schema-time ~2000.1.1]
                         [%data-time ~2000.1.1]
@@ -518,16 +518,16 @@
                         :-  %result-set
                             :~
                               :-  %vector
-                                  :~  [%col1 [~.t 'next day']]
-                                      [%col2 [~.da ~2000.1.3]]
-                                      ==
-                              :-  %vector
                                   :~  [%col1 [~.t 'today']]
                                       [%col2 [~.da ~2000.1.1]]
                                       ==
                               :-  %vector
                                   :~  [%col1 [~.t 'tomorrow']]
                                       [%col2 [~.da ~2000.1.2]]
+                                      ==
+                              :-  %vector
+                                  :~  [%col1 [~.t 'next day']]
+                                      [%col2 [~.da ~2000.1.3]]
                                       ==
                             ==
                         [%server-time ~2012.5.1]
@@ -573,7 +573,7 @@
   ::
   %+  expect-fail-message
         'INSERT: table %my-table-1 as-of data time out of order'
-  |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
           %obelisk-action
           !>  :+  %test
                   %db1
@@ -592,7 +592,6 @@
                   "  ('next-today', ~2000.1.1)".
                   "  ('next-tomorrow', ~2000.1.2)".
                   "  ('next-next day', ~2000.1.3) AS OF ~2000.1.1;"
-      ==
 ::
 ::  create db, create tbl, insert with AS OF; DROP Table, fail select
 ++  test-fail-integrate-01
@@ -619,11 +618,10 @@
     %-  crip  
         "SELECT: table %db2.%dbo.%my-table-1 does not exist ".
         "at schema time ~2005.2.2"
-  |.  %:  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
-      %obelisk-action
-      !>  :+  %test
-              %db1
-              "FROM db2..my-table-1 ".
-                "SELECT *"
-    ==
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db2..my-table-1 ".
+                    "SELECT *"
 --

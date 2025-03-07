@@ -33,8 +33,9 @@ This command mutates the state of the Obelisk agent. It inserts a row into the v
 
 ### Produced Metadata
 
-Schema timestamp
-Content timestamp
+message:created database <name>
+server-time: <timestamp>
+schema-time: <timestamp>
 
 ### Exceptions
 

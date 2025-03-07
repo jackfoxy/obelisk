@@ -1,10 +1,18 @@
 # Releases
 
-## v0.4a (alpha release)
+## v0.5 alpha
+
+* SELECT all from table in JOIN
+* refactored multiple AST components
+* natural JOIN on primary keys when key column ordering differs
+* fixed several JOIN bugs
+* updated docs
+
+## v0.4a alpha
 
 * GRANT and REVOKE parsing and AST updated. 
 
-## v0.4 (alpha release)
+## v0.4 alpha
 
 ### DDL
 

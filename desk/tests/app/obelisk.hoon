@@ -66,8 +66,9 @@
                             sys-time
                             [[%sys sys-time] ~ ~]
                             ~
-                            %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
-                                              (limo ~[(sys-sys-databases-view sys-time)])
+                            %+  gas:view-key
+                                  *((mop data-obj-key view) ns-obj-comp)
+                                  (limo ~[(sys-sys-databases-view sys-time)])
                             ==
                       ==
             %+  gas:data-key  *((mop @da data) gth)
@@ -87,6 +88,9 @@
         :-  [%sys %tables sys-time]
             %-  apply-ordering
                 (sys-tables-view db `path`(limo `path`/test-agent) sys-time)
+        :-  [%sys %table-keys sys-time]
+            %-  apply-ordering
+                (sys-table-keys-view db `path`(limo `path`/test-agent) sys-time)
         :-  [%sys %columns sys-time]
             %-  apply-ordering
                 (sys-columns-view db `path`(limo `path`/test-agent) sys-time)
@@ -100,10 +104,10 @@
 ++  sys-sys-databases-view
   |=  sys-time=@da
   =/  columns=(list column:ast)    :~  [%column %database ~.tas]
-                                       [%column name=%sys-agent type=~.tas]
+                                       [%column name=%sys-agent type=~.ta]
                                        [%column name=%sys-tmsp type=~.da]
                                        [%column name=%data-ship type=~.p]
-                                       [%column name=%data-agent type=~.tas]
+                                       [%column name=%data-agent type=~.ta]
                                        [%column name=%data-tmsp type=~.da]
                                        ==
   :-  [%sys %databases sys-time]
@@ -155,57 +159,66 @@
     ==
 :: ~> tbl
 ++  one-col-tbl-sys
-  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time2
-        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
-        tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time2
+          namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+          tables=`(map [@tas @tas] table)`[one-col-tbl ~ ~]
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 :: ~> tbl ~> drop
 ++  one-col-tbl-drop-sys
-  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]  ^-  [@da schema]  :-  sys-time3
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time3
-        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
-        tables=~
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
+  ^-  [@da schema]
+  :-  sys-time3
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time3
+          namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+          tables=~
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 :: ~> tbl ~> insert ~> drop
 ++  sys4
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
-  ^-  [@da schema]  :-  sys-time3
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time3
-        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
-        tables=~
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  ^-  [@da schema]
+  :-  sys-time3
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time3
+          namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+          tables=~
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ::  ~> %ns1
 ++  sys-ns1-time2
-  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time2
-        :+  [%ns1 sys-time2]
-            ~
-            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
-        tables=~
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time2
+          :+  [%ns1 sys-time2]
+              ~
+              [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+          tables=~
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ::  ~> tbl
 ++  time-3-sys
-  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time2
-        namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
-        tables=[time-3-tbl ~ ~]
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time2
+          namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
+          tables=[time-3-tbl ~ ~]
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ::  ~> tbl ~> tbl
 ++  two-col-tbl-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
@@ -219,49 +232,57 @@
     ==
 ::  ~> tbl ~> tbl
 ++  two-comb-col-tbl-sys
-  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time2
-        namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
-        tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time2
+          namespaces=[[%dbo sys-time1] ~ [[%sys sys-time1] ~ ~]]
+          tables=[[two-comb-col-tbl] ~ [one-col-tbl ~ ~]]
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ++  time-3a-sys
-  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time2
-        namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
-        tables=[time-3-tbl ~ ~]
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time2
+          namespaces=[[p=%dbo q=sys-time1] ~ [[p=%sys q=sys-time1] ~ ~]]
+          tables=[time-3-tbl ~ ~]
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ++  time-4-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da]
-  ^-  [@da schema]  :-  sys-time3
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time3
-        :+  [%ns1 sys-time3]
-            ~
-            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
-        tables=[time-3-tbl ~ ~]
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  ^-  [@da schema]
+  :-  sys-time3
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time3
+          :+  [%ns1 sys-time3]
+              ~
+              [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+          tables=[time-3-tbl ~ ~]
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ++  time-5-sys
   |=  [sys-time1=@da sys-time2=@da sys-time3=@da sys-time4=@da]
-  ^-  [@da schema]  :-  sys-time4
-    :*  %schema
-        provenance=`path`/test-agent
-        tmsp=sys-time4
-        :+  [%ns1 sys-time3]
-            ~
-            [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
-        tables=~
-        views=(ns-sys-views %db1 sys-time1)
-    ==
+  ^-  [@da schema]
+  :-  sys-time4
+      :*  %schema
+          provenance=`path`/test-agent
+          tmsp=sys-time4
+          :+  [%ns1 sys-time3]
+              ~
+              [[%dbo sys-time1] l=~ r=[[%sys sys-time1] ~ ~]]
+          tables=~
+          views=(ns-sys-views %db1 sys-time1)
+      ==
 ++  time-2-sys1
-  |=  [sys-time1=@da sys-time2=@da]  ^-  [@da schema]  :-  sys-time2
+  |=  [sys-time1=@da sys-time2=@da]
+  ^-  [@da schema]
+  :-  sys-time2
       :*  %schema
           provenance=`path`/test-agent
           tmsp=sys-time2
@@ -340,19 +361,24 @@
             ~
     ==
 ++  content-insert
+  ^-  [@da =data]
   :-  ~2023.7.9..22.35.36..7e90
     :*  %data
         ~zod
         `path`/test-agent
         ~2023.7.9..22.35.36..7e90
-        :+  file-insert
-            ~
-            ~
+        file-insert
     ==
 ++  content-4
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 ~]]
 ++  content-1b
-  [~2000.1.3 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.3 file-4]]
+  :-  ~2000.1.3
+      :*  %data
+          ~zod
+          provenance=`path`/test-agent
+          tmsp=~2000.1.3
+          ;;((map [@tas @tas] file) file-4)
+          ==
 ++  content-1c
   [~2000.1.4 [%data ~zod provenance=`path`/test-agent tmsp=~2000.1.4 file-5]]
 ++  content-time-5
@@ -416,15 +442,17 @@
           ~
       ==
 ++  file-4
-  :+  :-  p=[%dbo %my-table]
+  ^-  (map [@tas @tas] file)
+  :+  :-  [%dbo %my-table]
           :*  %file
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.3
-              length=1
+              rowcount=1
               pri-idx=file-4-pri-idx
-              data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
-          ==
+              ^-  (list [(list @) (map @tas @)])
+                  ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
+              ==
       l=~
       r=~
 ++  file-5
@@ -433,9 +461,9 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.4
-              length=0
+              rowcount=0
               pri-idx=~
-              data=~
+              indexed-rows=~
           ==
       l=~
       r=~
@@ -445,20 +473,24 @@
           ship=~zod
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
-          length=0
+          rowcount=0
           pri-idx=~
-          data=~
+          indexed-rows=~
       ==
 ++  file-insert
-  :-  p=[%dbo %my-table]
-      :*  %file
-          ship=~zod
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.35.36..7e90
-          length=1
-          pri-idx=file-4-pri-idx
-          data=~[[n=[p=%col1 q=1.685.221.219] l=~ r=~]]
-      ==
+  ^-  (map [@tas @tas] file)
+  :+  :-  p=[%dbo %my-table]
+          :*  %file
+              ship=~zod
+              provenance=`path`/test-agent
+              tmsp=~2023.7.9..22.35.36..7e90
+              rowcount=1
+              pri-idx=file-4-pri-idx
+              ^-  (list [(list @) (map @tas @)])
+                  ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
+              ==
+      l=~
+      r=~
 ++  file-4-pri-idx
   [n=[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]] l=~ r=~]
 ::
@@ -532,7 +564,7 @@
 ::  commands
 ++  cmd-two-col
   :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table-2']
+      [%qualified-object ~ 'db1' 'dbo' 'my-table-2' ~]
       ~[[%column 'col1' %t] [%column 'col2' %p]]
       ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
       ~
@@ -540,7 +572,7 @@
   ==
 ++  cmd-one-col
   :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table']
+      [%qualified-object ~ 'db1' 'dbo' 'my-table' ~]
       ~[[%column 'col1' %t]]
       ~[[%ordered-column 'col1' %.y]]
       ~
@@ -644,6 +676,7 @@
                    ~[content-2 content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        ==
@@ -683,6 +716,7 @@
                    ~[content-2 content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        ==
@@ -721,13 +755,18 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   :~  (two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
+                       (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-3 content-2 content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %columns ~2000.1.3]
                        [%sys %tables ~2000.1.3]
+                       [%sys %table-keys ~2000.1.3]
                        [%sys %sys-log ~2000.1.3]
                        [%sys %data-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
@@ -773,13 +812,18 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   :~  (two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
+                       (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-3 content-2 content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %columns ~2000.1.3]
                        [%sys %tables ~2000.1.3]
+                       [%sys %table-keys ~2000.1.3]
                        [%sys %sys-log ~2000.1.3]
                        [%sys %data-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
@@ -821,10 +865,13 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   :~  (two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-3-a content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        ==
@@ -869,10 +916,13 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   :~  (two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-3-a content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        ==
@@ -900,6 +950,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.n
         ~
@@ -934,13 +985,18 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                   :~  (one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
+                       (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                       (sys1 ~2000.1.1)
+                       ==
                    ~[content-1-a content-2 content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %columns ~2000.1.3]
                        [%sys %tables ~2000.1.3]
+                       [%sys %table-keys ~2000.1.3]
                        [%sys %sys-log ~2000.1.3]
                        [%sys %data-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
@@ -960,6 +1016,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         %.y
         ~
@@ -1002,15 +1059,25 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   ~[(sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4) (one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
-                   ~[content-4 content-1b content-2 content-1]
+                   :~  (sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4)
+                       (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                       (sys1 ~2000.1.1)
+                       ==
+                   :~  ;;([@da =data] content-4)
+                       ;;([@da =data] content-1b)
+                       ;;([@da =data] content-2)
+                       ;;([@da =data] content-1)
+                       ==
                    :~  [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %columns ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
                        [%sys %tables ~2000.1.3]
+                       [%sys %table-keys ~2000.1.3]
                        [%sys %tables ~2000.1.4]
+                       [%sys %table-keys ~2000.1.4]
                        [%sys %columns ~2000.1.4]
                        [%sys %sys-log ~2000.1.4]
                        [%sys %data-log ~2000.1.4]
@@ -1033,6 +1100,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         ~
   =^  mov1  agent
@@ -1058,7 +1126,7 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-            :~  [%message 'TRUNCATE TABLE %my-table']
+            :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                 [%message 'no data in table to truncate']
                 ==
     !>  ;;(cmd-result ->+>+>-.mov3)
@@ -1069,6 +1137,7 @@
                    ~[content-2 content-1]
                    :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        ==
@@ -1087,6 +1156,7 @@
             database='db1'
             namespace='dbo'
             name='my-table'
+            alias=~
         ==
         ~
   =^  mov1  agent
@@ -1118,7 +1188,7 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-            :~  [%message 'TRUNCATE TABLE %my-table']
+            :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
                 [%server-time ~2000.1.4]
                 [%data-time ~2000.1.4]
                 [%vector-count 1]
@@ -1128,14 +1198,21 @@
     !>  %:  mk-db  %db1
                   ~2000.1.1
                   ~[(one-col-tbl-sys ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
-                  ~[content-1c content-1b content-2 content-1]
+                  :~  ;;([@da =data] content-1c)
+                      ;;([@da =data] content-1b)
+                      ;;([@da =data] content-2)
+                      ;;([@da =data] content-1)
+                      ==
                   :~  [%sys %columns ~2000.1.2]
                        [%sys %tables ~2000.1.2]
+                       [%sys %table-keys ~2000.1.2]
                        [%sys %tables ~2000.1.3]
+                       [%sys %table-keys ~2000.1.3]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
                        [%sys %tables ~2000.1.4]
+                       [%sys %table-keys ~2000.1.4]
                        [%sys %data-log ~2000.1.4]
                        ==
                   ~[~2000.1.1 ~2000.1.2 ~2000.1.3 ~2000.1.4]
@@ -1205,7 +1282,9 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   :~  (sys-ns1-ns2 ~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90)
+                   :~  %^  sys-ns1-ns2  ~2000.1.1
+                                        ~2023.7.9..22.35.35..7e90
+                                        ~2023.7.9..22.35.36..7e90
                        (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
                        (sys1 ~2000.1.1)
                        ==
@@ -1248,13 +1327,15 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2023.7.9..22.35.35..7e90
-                   :~  (time-3-sys ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90)
+                   :~  %+  time-3-sys  ~2023.7.9..22.35.35..7e90
+                                       ~2023.7.9..22.35.36..7e90
                        (sys1 ~2023.7.9..22.35.35..7e90)
                        ==
                    ~[content-time-3 content-time-1]
                    :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
                        [%sys %columns ~2023.7.9..22.35.36..7e90]
                        [%sys %tables ~2023.7.9..22.35.36..7e90]
+                       [%sys %table-keys ~2023.7.9..22.35.36..7e90]
                        [%sys %data-log ~2023.7.9..22.35.36..7e90]
                        ==
                    ~[~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90]
@@ -1307,8 +1388,14 @@
   %+  expect-eq
     !>  %:  mk-db  %db1
                    ~2000.1.1
-                   :~  (time-5-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90 ~2023.7.9..22.35.38..7e90)
-                       (time-4-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.37..7e90)
+                   :~  %:  time-5-sys  ~2000.1.1
+                                       ~2023.7.9..22.35.36..7e90
+                                       ~2023.7.9..22.35.37..7e90
+                                       ~2023.7.9..22.35.38..7e90
+                                       ==
+                       %^  time-4-sys  ~2000.1.1
+                                       ~2023.7.9..22.35.36..7e90
+                                       ~2023.7.9..22.35.37..7e90
                        (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90)
                        (sys1 ~2000.1.1)
                        ==
@@ -1316,20 +1403,25 @@
                    :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
                        [%sys %columns ~2023.7.9..22.35.36..7e90]
                        [%sys %tables ~2023.7.9..22.35.36..7e90]
+                       [%sys %table-keys ~2023.7.9..22.35.36..7e90]
                        [%sys %data-log ~2023.7.9..22.35.36..7e90]
                        [%sys %data-log ~2023.7.9..22.35.38..7e90]
                        [%sys %namespaces ~2023.7.9..22.35.37..7e90]
                        [%sys %sys-log ~2023.7.9..22.35.38..7e90]
                        [%sys %columns ~2023.7.9..22.35.38..7e90]
                        [%sys %tables ~2023.7.9..22.35.38..7e90]
+                       [%sys %table-keys ~2023.7.9..22.35.38..7e90]
                        ==
-                   ~[~2000.1.1 ~2023.7.9..22.35.36..7e90 ~2023.7.9..22.35.38..7e90]
+                   :~  ~2000.1.1
+                       ~2023.7.9..22.35.36..7e90
+                       ~2023.7.9..22.35.38..7e90
+                       ==
                    ==
     !>  server.state
   ==
 ::
 ::
-::  time, insert as of 1 second > schema
+::::  time, insert as of 1 second > schema
 ++  test-time-insert-gt-schema
   =|  run=@ud
   =^  mov1  agent
@@ -1359,7 +1451,7 @@
   ;:  weld
   %+  expect-eq
     !>  :-  %results
-          :~  [%message 'INSERT INTO %my-table']
+          :~  [%message 'INSERT INTO %dbo.%my-table']
               [%server-time ~2023.7.9..22.35.35..7e90]
               [%schema-time ~2023.7.9..22.35.35..7e90]
               [%data-time ~2023.7.9..22.35.36..7e90]
@@ -1375,17 +1467,24 @@
                    :~  (time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
                        (sys1 ~2000.1.1)
                        ==
-                   ~[content-insert content-my-table content-1]
+                   :~  ;;([@da =data] content-insert)
+                       ;;([@da =data] content-my-table)
+                       ;;([@da =data] content-1)
+                       ==
                    :~  [%sys %sys-log ~2023.7.9..22.35.35..7e90]
                        [%sys %columns ~2023.7.9..22.35.35..7e90]
                        [%sys %tables ~2023.7.9..22.35.35..7e90]
+                       [%sys %table-keys ~2023.7.9..22.35.35..7e90]
                        [%sys %tables ~2023.7.9..22.35.36..7e90]
+                       [%sys %table-keys ~2023.7.9..22.35.36..7e90]
                        [%sys %data-log ~2023.7.9..22.35.35..7e90]
                        [%sys %data-log ~2023.7.9..22.35.36..7e90]
                        ==
-                   ~[~2000.1.1 ~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90]
+                   :~  ~2000.1.1
+                       ~2023.7.9..22.35.35..7e90
+                       ~2023.7.9..22.35.36..7e90
+                       ==
                    ==
     !>  server.state
   ==
-
 --

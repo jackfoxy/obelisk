@@ -1,7 +1,7 @@
 /-  ast
 !:
 :: a library for parsing urQL tapes
-:: (parse:parse(default-database '<db>') "<script>")
+:: use (parse:parse(default-database '<db>') "<script>")
 |_  default-database=@tas
 ::
 ::  +license:  MIT+n license
@@ -54,7 +54,6 @@
     value-literals:ast
       [-.parsed ~ ~]
   ==
-
 ::
 ::  +parse: parse urQL script, emitting list of high level AST structures
 ++  parse
@@ -179,11 +178,15 @@
       ~|  "alter index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  index-nail  (parse-alter-index [[1 1] q.q.command-nail])
       =/  parsed  (wonk index-nail)
-      
       %=  $
         script    q.q.u.+3.q:index-nail
-        commands  
-          :-  ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] @] [parsed])
+        commands 
+                          :: qualifier w/o ship or alias
+          :-  ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
+                          @
+                          ==
+                      parsed
                 %:  alter-index:ast  %alter-index
                                       -.parsed
                                       +<.parsed
@@ -192,7 +195,11 @@
                                       ~
                                       ==
               :: alter index single column
-              ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] [[@ @ @] %~]] [parsed])
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
+                          [[@ @ @] %~]
+                          ==
+                      parsed
                 %:  alter-index:ast  %alter-index
                                       -.parsed
                                       +<.parsed
@@ -201,7 +208,12 @@
                                       ~
                                       ==
               :: alter index columns action
-              ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] * @] [parsed])
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
+                          *
+                          @
+                          ==
+                      parsed
                 %:  alter-index:ast  %alter-index
                                      -.parsed
                                      +<.parsed
@@ -210,7 +222,11 @@
                                      ~
                                      ==
               :: alter index multiple columns
-              ?:  ?=([[@ @ @ @ @] [@ @ @ @ @] *] [parsed])
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+                          [%qualified-object ~ @ @ @ ~]
+                          *
+                          ==
+                      parsed
                 %:  alter-index:ast  %alter-index
                                      -.parsed
                                      +<.parsed
@@ -235,7 +251,7 @@
                                           ->.parsed
                                           +<.parsed
                                           +>->+>-.parsed
-                                          +>->+>+.parsed
+                                          +>->+>+<.parsed
                                           ~
                                           ==
                 ?:  ?=([@ @] +>+>.parsed)
@@ -244,7 +260,7 @@
                                           ->.parsed
                                           +<.parsed
                                           +>->+>-.parsed
-                                          +>->+>+.parsed
+                                          +>->+>+<.parsed
                                           [~ +>+>.parsed]
                                           ==
                 %:  alter-namespace:ast  %alter-namespace
@@ -252,7 +268,7 @@
                                         ->.parsed
                                         +<.parsed
                                         +>->+>-.parsed
-                                        +>->+>+.parsed
+                                        +>->+>+<.parsed
                                         :-  ~
                                             %:  as-of-offset:ast  %as-of-offset
                                                                   +>+>-.parsed
@@ -265,7 +281,7 @@
                                       ->.parsed
                                       +<.parsed
                                       +>+>+<.parsed
-                                      +>+>+>.parsed
+                                      +>+>+>-.parsed
                                       ~
                                       ==
         commands
@@ -1069,12 +1085,12 @@
                                     ==
                 commands
         ==
-      ?:  ?=([@ @ @ @ @ @] parsed)                 :: force qualified table name
+      ?:  ?=([@ @ @ @ @ @ @] parsed)               :: force qualified table name
         %=  $
           script    q.q.u.+3.q:drop-table-nail
           commands  [(drop-table:ast %drop-table +.parsed %.y ~) commands]
         ==
-      ?:  ?=([@ @ @ @ @] parsed)                    :: qualified table name
+      ?:  ?=([@ @ @ @ @ @] parsed)                    :: qualified table name
         %=  $
           script    q.q.u.+3.q:drop-table-nail
           commands  [(drop-table:ast %drop-table parsed %.n ~) commands]
@@ -1084,12 +1100,12 @@
       ~|  "drop view error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  drop-view-nail  (parse-drop-table-view [[1 1] q.q.command-nail])
       =/  parsed  (wonk drop-view-nail)
-      ?:  ?=([@ @ @ @ @ @] parsed)                  :: force qualified view
+      ?:  ?=([@ @ @ @ @ @ @] parsed)                  :: force qualified view
         %=  $
           script    q.q.u.+3.q:drop-view-nail
           commands  [(drop-view:ast %drop-view +.parsed %.y) commands]
         ==
-      ?:  ?=([@ @ @ @ @] parsed)                    :: qualified view
+      ?:  ?=([@ @ @ @ @ @] parsed)                    :: qualified view
         %=  $
           script    q.q.u.+3.q:drop-view-nail
           commands  [(drop-view:ast %drop-view parsed %.n) commands]
@@ -1121,7 +1137,6 @@
       %=  $
         script    q.q.u.+3.q:insert-nail
         commands  :-  (selection:ast %selection ~ [ins ~ ~])
-        ::commands  :-  (selection:ast %selection ~ [(produce-insert parsed) ~ ~])
                       commands
       ==
     %merge
@@ -2027,20 +2042,22 @@
                 ==
       ==
     :: revokees
-    ;~  pfix  whitespace
-              ;~  pfix  (jester 'from')
-                        ;~  pose  ;~  plug
-                                      ;~  plug  ;~  pfix  whitespace
-                                                         (stag ~.tas (jester 'all'))
-                                                         ==
-                                                (easy ~)
-                                                ==
-                                          (easy ~)
-                                          ==
-                                  parse-ship-paths
-                                  ==
-                        ==
-              ==
+    ;~  pfix
+          whitespace
+          ;~  pfix  (jester 'from')
+                    ;~  pose  ;~  plug
+                                  ;~  plug
+                                        ;~  pfix  whitespace
+                                                    (stag ~.tas (jester 'all'))
+                                                    ==
+                                            (easy ~)
+                                            ==
+                                        (easy ~)
+                                        ==
+                              parse-ship-paths
+                              ==
+                    ==
+          ==
     :: revoke-objects
     parse-revoke-objects
     ;~(sfix parse-grant-duration end-or-next-command)
@@ -2149,9 +2166,16 @@
   |=  a=*
   ^-  from:ast
   =/  from-object=table-set:ast
-        ?:  |(=(%table-set -<.a) =(%query-row -<.a))
-              `table-set:ast`(make-query-object ->.a)
-            `table-set:ast`(make-query-object -<+.a)
+        ?:  ?=([%table-set %qualified-object (unit @p) @ @ @ (unit @t)] -<.a)
+          :-  %table-set
+              %:  qualified-object:ast  %qualified-object
+                                        -<+>-.a
+                                        -<+>+<.a
+                                        -<+>+>-.a
+                                        -<+>+>+<.a
+                                        -<+>+>+>.a
+                                        ==
+        `table-set:ast`(make-query-object ->.a)
   =/  from-as-of=(unit as-of:ast)
         ?:  =(%as-of-offset ->-.a)  [~ ;;(as-of-offset:ast ->.a)]
         ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
@@ -2159,51 +2183,87 @@
         ~
   =/  raw-joined-objects  +.a
   =/  joined-objects=(list joined-object:ast)  ~
-  =/  is-cross-join=?  %.n
   |-
   ?:  =(raw-joined-objects ~)
-    ?:  is-cross-join
-      ?:  =((lent joined-objects) 1)
-        (from:ast %from from-object from-as-of (flop joined-objects))
-      ~|("cross join must be only join in query" !!)
     (from:ast %from from-object from-as-of (flop joined-objects))
-  ?:  ?=(%cross-join -.raw-joined-objects)
-    %=  $
-      joined-objects
-        :-
-          %:  joined-object:ast
-            %joined-object
-            %cross-join
-            :: as-of
-            ?:  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
-              [~ ;;(as-of-offset:ast +>.raw-joined-objects)]
-            ?:  ?|  ?=([[%table-set * *] %da @] +.raw-joined-objects)
-                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
-                    ==
-              [~ ;;(as-of:ast +>.raw-joined-objects)]
-            ~
-            ::  object
-            ?:  ?|  ?=([[%table-set * *] %as-of-offset *] +.raw-joined-objects)
-                    ?=([[%table-set * *] %da @] +.raw-joined-objects)
-                    ?=([[%table-set * *] %dr @] +.raw-joined-objects)
-                    ==
-              (make-query-object +<+.raw-joined-objects)
-            (make-query-object +>.raw-joined-objects)
-            ~
+  =/  raw-join  -.raw-joined-objects
+  ::cross join
+  ?:  ?=  $:  %cross-join
+              [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+              ==
+          raw-join
+      %=  $
+        joined-objects
+          :-  %:  joined-object:ast  %joined-object
+                                     %cross-join
+                                     +.raw-join
+                                     ~
+                                     ~
+                                     ==
+              joined-objects
+        raw-joined-objects  +.raw-joined-objects
+      ==
+  ?:  ?=  $:  %cross-join
+              [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+              %as-of-offset
+              *
+              ==
+          raw-join
+      %=  $
+        joined-objects
+          :-  %:  joined-object:ast  %joined-object
+                                     %cross-join
+                                     +<.raw-join
+                                     `+>.raw-join
+                                     ~
+                                     ==
+              joined-objects
+        raw-joined-objects  +.raw-joined-objects
+      ==
+  ?:  ?|  ?=  $:  %cross-join
+                  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                  [%da @]
+                  ==
+              raw-join
+          ?=  $:  %cross-join
+                  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                  [%dr @]
+                  ==
+              raw-join
           ==
-          joined-objects
-      is-cross-join       %.y
-      raw-joined-objects  ~
-    ==
+      %=  $
+        joined-objects
+          :-  %:  joined-object:ast  %joined-object
+                                     %cross-join
+                                     +<.raw-join
+                                     `;;(as-of:ast [+>-.raw-join +>+.raw-join])
+                                     ~
+                                     ==
+              joined-objects
+        raw-joined-objects  +.raw-joined-objects
+      ==
   ::natural join
-  ?:  ?|  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
-              -.raw-joined-objects
-        ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]]
-              -.raw-joined-objects
-          ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] [%da @]]]
-              -.raw-joined-objects
-          ?=  [%join [[%table-set [%qualified-object @ @ @ @] *] [%dr @]]]
-              -.raw-joined-objects
+  ?:  ?|  ?=  [%join [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]]
+              raw-join
+          ?=  $:  %join
+                  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                      %as-of-offset
+                      *
+                      ==
+                  ==
+              raw-join
+          ?=  $:  %join
+                  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                      [%da @]
+                      ==
+                  ==
+              raw-join
+          ?=  $:  %join
+                  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                      [%dr @]
+                      ==
+                  ==
+              raw-join
           ==
     %=  $
       joined-objects
@@ -2211,63 +2271,100 @@
           %:  joined-object:ast
             %joined-object
             %join
-            :: as-of
-            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] %as-of-offset *]
-                    ->.raw-joined-objects
-                [~ ;;(as-of-offset:ast ->+.raw-joined-objects)]
-            ?:  ?=  [[%table-set [%qualified-object @ @ @ @] *] [@ @]]
-                    ->.raw-joined-objects
-                [~ ;;(as-of:ast ->+.raw-joined-objects)]
-            ~
             ::  object
-            ?:  ?=  [%join [%table-set [%qualified-object @ @ @ @] *]]
-                -.raw-joined-objects
-                (make-query-object ->+.raw-joined-objects)
-            (make-query-object ->->.raw-joined-objects)
+            ?:  ?=  $:  %join
+                        $:  %table-set
+                            [%qualified-object (unit @p) @ @ @ (unit @t)]
+                            ==
+                        ==
+                    raw-join
+              (make-query-object +>.raw-join)
+            (make-query-object +<+.raw-join)
+            :: as-of
+            ?:  ?=  $:  $:  %table-set
+                            [%qualified-object (unit @p) @ @ @ (unit @t)]
+                            ==
+                        %as-of-offset
+                        *
+                        ==
+                    +.raw-join
+              [~ ;;(as-of-offset:ast +>.raw-join)]
+            ?:  ?=  $:  $:  %table-set
+                            [%qualified-object (unit @p) @ @ @ (unit @t)]
+                            ==
+                        [@ @]
+                        ==
+                    +.raw-join
+              [~ ;;(as-of:ast +>.raw-join)]
+            ~
             ~  :: predicate
           ==
           joined-objects
       raw-joined-objects    +.raw-joined-objects
     ==
-  :: all other joins
-  ?>  ?=(join-type:ast -<.raw-joined-objects)
-  =/  joined=joined-object:ast
-    %:  joined-object:ast
-      %joined-object
-      -<.raw-joined-objects                              :: join-type
-      ::  as-of
-      ?:  ?=(%as-of-offset ->->-.raw-joined-objects)        
-        [~ ;;(as-of-offset:ast ->->.raw-joined-objects)]
-      ?:  ?|  ?=(%da ->->-.raw-joined-objects)
-              ?=(%dr ->->-.raw-joined-objects)
-              ==
-        [~ ;;(as-of:ast ->->.raw-joined-objects)]
-      ~
-      ::  object
-      ?:  ?=(%query-row ->-<.raw-joined-objects)
-            (make-query-object ->-.raw-joined-objects)
-      ?:  ?=([%table-set [%qualified-object @ @ @ @] *] ->-<.raw-joined-objects)
-            (make-query-object ->-<+.raw-joined-objects)
-      ?:  ?=([[%qualified-object @ @ @ @] ~] ->->.raw-joined-objects)
-            (make-query-object ->->-.raw-joined-objects)
-      ?:  ?|  ?=([[%qualified-object @ @ @ @] [~ @]] ->->.raw-joined-objects)
-              ?=(%qualified-object ->->-.raw-joined-objects)
-              ==
-            (make-query-object ->->.raw-joined-objects)
-      ?:  ?=([%table-set [%qualified-object @ @ @ @] ~] ->+<.raw-joined-objects)
-            (make-query-object ->.raw-joined-objects)
-      ?:  ?=(%query-row ->->-<.raw-joined-objects)
-            (make-query-object ->->-.raw-joined-objects)
-      ?:  ?=(%table-set ->-<-.raw-joined-objects)
-            (make-query-object ->-<+.raw-joined-objects)
-          (make-query-object ->-<+.raw-joined-objects)
-      ::  predicate
-      `(produce-predicate (predicate-list ->+.raw-joined-objects))
-    ==
-  %=  $
-  joined-objects  [joined joined-objects]
-  raw-joined-objects  +.raw-joined-objects
-  ==
+
+  :: join on predicate (no alias)
+  ?:  ?=(join-type:ast -.raw-join)
+    ?:  ?|  ?=  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                    %as-of-offset
+                    @
+                    @
+                    ==
+                +<.raw-join
+            ?=  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                    [%da @]
+                    ==
+                +<.raw-join
+            ?=  $:  [%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]]
+                    [%dr @]
+                    ==
+                +<.raw-join
+            ==
+      %=  $
+        joined-objects
+          :-
+            %:  joined-object:ast
+              %joined-object
+              :: join-type
+              -.raw-join
+              ::  object
+              +<-.raw-join
+              :: as-of
+              ?:  ?=  [%as-of-offset *]
+                      +<+.raw-join
+                [~ +<+.raw-join]
+              ?:  ?=  [@ @]
+                      +<+.raw-join
+                [~ ;;(as-of:ast +<+.raw-join)]
+              ~
+              :: predicate
+              `(produce-predicate (predicate-list +>.raw-join))
+            ==
+            joined-objects
+        raw-joined-objects    +.raw-joined-objects
+      ==
+    ?:  ?=  [[%table-set [%qualified-object (unit @p) @ @ @ (unit @t)]] *]
+            +.raw-join
+      %=  $
+        joined-objects
+          :-
+            %:  joined-object:ast
+              %joined-object
+              :: join-type
+              -.raw-join
+              ::  object
+              +<.raw-join
+              :: as-of
+              ~
+              :: predicate
+              `(produce-predicate (predicate-list +>.raw-join))
+            ==
+            joined-objects
+        raw-joined-objects    +.raw-joined-objects
+      ==
+    ~|("join not supported: {<raw-join>}" !!)
+  ~|("join type not supported: {<-.raw-join>}" !!)
+::
 ++  produce-insert
   |=  a=*
   ~+
@@ -2462,7 +2559,7 @@
   ?:  ?=(qualified-object:ast -.a)
     %=  $
       a  +.a
-      target-table  `(table-set:ast %table-set -.a ~)
+      target-table  `(table-set:ast %table-set -.a)
     ==
   ?:  ?=([%using @ %as @] -.a)
     %=  $
@@ -2524,35 +2621,45 @@
   =/  having=(unit predicate:ast)  ~
   =/  select=(unit select:ast)  ~
   =/  order-by=(list ordering-column:ast)  ~
+  =/  alias-map=(map @t qualified-object:ast)  ~
   |-
   ?~  a  ~|("cannot parse query  {<a>}" !!)
+
+  =.  alias-map  ?~   alias-map
+                   ?~   from  ~
+                   (mk-alias-map (need from))
+                 alias-map 
+
   ?:  =(-.a %query)           $(a +.a)
-  ?:  =(-.a %end-command)
-    %:  query:ast
-      %query
-      ?~  from  ~
-          `(fix-from-predicates (need from))
-      scalars
-      ?~  predicate  ~
-          `(fix-predicate (need predicate) (need from))
-      group-by
-      having
-      (need select)
-      order-by
-    ==
+  ?:  =(-.a %end-command)    %:  query:ast
+                                %query
+                                ?~  from  ~
+                                  `(fix-from-predicates (need from) alias-map)
+                                scalars
+                                ?~  predicate  ~
+                                  `(fix-predicate (need predicate) alias-map)
+                                group-by
+                                having
+                                (need select)
+                                order-by
+                                ==
   ?:  =(-<.a %scalars)        $(a +.a, scalars ~)
-  ?:  =(-<.a %where)
-    $(a +.a, predicate `(produce-predicate (predicate-list ->.a)))
-  ?:  =(-<.a %select)         $(a +.a, select `(produce-select ->.a from))
-  ?:  =(-<.a %group-by)       $(a +.a, group-by (group-by-list ->.a))
-  ?:  =(-<.a %order-by)       $(a +.a, order-by (order-by-list ->.a))
-  ?:  =(-<-.a %table-set)     $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-.a %query-row)     $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %table-set)    $(a +.a, from `(produce-from -.a))
+  ?:  =(-<.a %where)          %=  $
+                                a          +.a
+                                predicate  :-  ~
+                                               %-  produce-predicate
+                                                   (predicate-list ->.a)
+                              ==
+  ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
+  ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
+  ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
+  ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
   ~|("cannot parse query  {<a>}" !!)
 ::
 ++  fix-from-predicates
-  |=  f=from:ast
+  |=  [f=from:ast alias-map=(map @t qualified-object:ast)]
   ^-  from:ast
   =/  jss  joins.f
   =/  js=(list joined-object:ast)  ~
@@ -2562,26 +2669,70 @@
   =/  j=joined-object:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
-             (joined-object:ast %joined-object join.j as-of.j object.j `(fix-predicate (need predicate.j) f))
+             %:  joined-object:ast
+                   %joined-object
+                   join.j
+                   object.j
+                   as-of.j
+                   `(fix-predicate (need predicate.j) alias-map)
+                   ==
              js
     jss  +.jss
   ==
 ::
 ++  fix-predicate
-  |=  [p=predicate:ast f=from:ast]
+  |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
   ^-  predicate:ast
-  =/  alias-map  (mk-alias-map f)
   ?~  alias-map  p
   ::
   |-
   ?~  p  ~
   p(n (fix-leaf n.p alias-map), l $(p l.p), r $(p r.p))
 ::
+++  mk-all-object
+  |=  [=qualified-column:ast alias-map=(map @t qualified-object:ast)]
+  ^-  selected-all-object:ast
+  =/  object  %-  ~(get by alias-map)
+                  (crip (cass (trip name.qualifier.qualified-column)))
+  ?~  object
+    %+  selected-all-object:ast  %all-object
+                                 %:  qualified-object:ast
+                                      %qualified-object
+                                      ~ 
+                                      default-database
+                                      %dbo
+                                      name.qualifier.qualified-column
+                                      ==
+  (selected-all-object:ast %all-object (need object))
+::
+++  mk-qualified-object
+  |=  [sel-col=qualified-column:ast alias-map=(map @t qualified-object:ast)]
+  ^-  qualified-column:ast
+  =/  object  %-  ~(get by alias-map)
+                  (crip (cass (trip name.qualifier.sel-col)))
+  ?~  object
+    %:  qualified-column:ast  %qualified-column
+                              %:  qualified-object:ast
+                                  %qualified-object
+                                  ship.qualifier.sel-col
+                                  default-database
+                                  %dbo
+                                  name.qualifier.sel-col
+                                  alias.qualifier.sel-col
+                                  ==
+                              column.sel-col
+                              alias.sel-col
+                              ==
+  %:  qualified-column:ast
+      %qualified-column
+      (need object)
+      column.sel-col
+      alias.sel-col
+      ==
+::
 ++  fix-select
-  |=  [s=(list selected-column:ast) f=from:ast]
+  |=  [s=(list selected-column:ast) alias-map=(map @t qualified-object:ast)]
   ^-  (list selected-column:ast)
-  =/  alias-map=(map @t qualified-object:ast)  (mk-alias-map f)
-  ?~  alias-map  s
   =/  s-out=(list selected-column:ast)  ~
   ::
   |-
@@ -2591,32 +2742,44 @@
     s      +.s
     s-out  :-  ?.  ?=(qualified-column:ast sel-col)
                  sel-col
-               ?.  ?&  =('UNKNOWN' database.qualifier.sel-col)
+               ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
                        =('COLUMN' namespace.qualifier.sel-col)
                        ==
+                  (mk-qualified-object sel-col alias-map)
+               ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
+                       =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
+                       =('ALL' column.sel-col)
+                       ==
+                  (mk-all-object sel-col alias-map)
+               ?.  ?&  =('ALL' column.sel-col)
+                       !=(name.qualifier.sel-col column.sel-col)
+                       ==
                  sel-col
-               %:  qualified-column:ast
-                      %qualified-column
-                      %-  ~(got by `(map @t qualified-object:ast)`alias-map)
-                          name.qualifier.sel-col
-                      column.sel-col
-                      alias.sel-col
-                      ==
+               %+  selected-all-object:ast
+                   %all-object
+                   qualifier.sel-col
                ::
                s-out
   ==
 ::
+::  +mk-alias-map:  from:ast -> (map @t qualified-object:ast)
+::
+:: map table-set alias to qualified-object
+:: if db of qualified-object is default db
+:: and namespace is 'dbo'
+::
 ++  mk-alias-map
   |=  f=from:ast
   ^-  (map @t qualified-object:ast)
-  =/  alias-map  (mk-alias-map-2 ~ joins.f)
+  =/  n  (mk-alias-map-joins ~ joins.f)
   ?.  ?=(qualified-object:ast object.object.f)
     ~|("not implemented {<object.f>}" !!)
-  ?~  alias.object.f
-    alias-map
-  (~(put by alias-map) (need alias.object.f) object.object.f)
+  ?~  alias.object.object.f
+    n
+  %+  ~(put by n)  (crip (cass (trip (need alias.object.object.f))))
+                   object.object.f
 ::
-++  mk-alias-map-2
+++  mk-alias-map-joins
   |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
   ^-  (map @t qualified-object:ast)
   |-
@@ -2625,8 +2788,38 @@
   ?.  ?=(qualified-object:ast object.object.j)
     ~|("not implemented {<object.j>}" !!)
   %=  $
-    m   ?~  alias.object.j  m
-        (~(put by m) (need alias.object.j) object.object.j)
+    m   ?~  alias.object.object.j  m
+        %+  ~(put by m)  (crip (cass (trip (need alias.object.object.j))))
+                         object.object.j
+    js  +.js
+  ==
+::
+::  +mk-obj-name-map:  from:ast -> (map @t qualified-object:ast)
+::
+:: map table-set object name to qualified-object
+:: if db of qualified-object is default db
+:: and namespace is 'dbo'
+::
+++  mk-obj-name-map
+  |=  f=from:ast
+  ^-  (map @t qualified-object:ast)
+  =/  n  (mk-obj-name-map-joins ~ joins.f)
+  ?.  ?=(qualified-object:ast object.object.f)
+    ~|("not implemented {<object.f>}" !!)
+  %+  ~(put by n)  (crip (cass (trip name.object.object.f)))
+                   object.object.f
+::
+++  mk-obj-name-map-joins
+  |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
+  ^-  (map @t qualified-object:ast)
+  |-
+  ?~  js  m
+  =/  j=joined-object:ast  -.js
+  ?.  ?=(qualified-object:ast object.object.j)
+    ~|("not implemented {<object.j>}" !!)
+  %=  $
+    m   %+  ~(put by m)  (crip (cass (trip name.object.object.j)))
+                         object.object.j
     js  +.js
   ==
 ::
@@ -2639,7 +2832,12 @@
    qualified-column:ast
     ?.  &(=('UNKNOWN' database.qualifier.a) =('COLUMN' namespace.qualifier.a))
       a
-    (qualified-column:ast %qualified-column (~(got by alias-map) name.qualifier.a) column.a alias.a)
+    %:  qualified-column:ast  %qualified-column
+                              %-  ~(got by alias-map)
+                                  (crip (cass (trip name.qualifier.a)))
+                              column.a
+                              alias.a
+                              ==
    dime:ast
     a
    value-literals:ast
@@ -2650,16 +2848,28 @@
 ::
 +$  select-mold-1
   $:
-    [%selected-aggregate @ %qualified-column [%qualified-object @ @ @ @] @ @]
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
     %as
     @
   ==
 +$  select-mold-2
   $:
-    [%selected-aggregate @ %qualified-column [%qualified-object @ @ @ @] @ @]
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
   ==
 ++  produce-select
-  |=  [a=* f=(unit from:ast)]
+  |=  [a=* f=(unit from:ast) alias-map=(map @t qualified-object:ast)]
   ^-  select:ast
   =/  top=(unit @ud)  ~
   =/  bottom=(unit @ud)  ~
@@ -2670,7 +2880,7 @@
       ?~  columns  ~|('no columns selected' !!)
       ?~  f
         (select:ast %select top bottom (flop columns))
-      (select:ast %select top bottom (fix-select (flop columns) (need f)))
+      (select:ast %select top bottom (fix-select (flop columns) alias-map))
     ?@  -.a
       ?+  -.a  ~|('some other select atom' !!)
       %top       ?>  ?=(@ud +<.a)  $(top `+<.a, a +>.a)
@@ -2719,40 +2929,34 @@
           columns
         a        +.a
       ==
-    ?:  ?=([%all-columns %qualified-object @ @ @ @] -.a)
+    ?:  ?=([%all-columns %qualified-object (unit @p) @ @ @ (unit @t)] -.a)
       %=  $
         columns
-          :-  %:  qualified-column:ast
-                %qualified-column
-                %:  qualified-object:ast  %qualified-object
-                                          ->+<.a
-                                          ->+>-.a
-                                          ->+>+<.a
-                                          ->+>+>.a
-                                          ==
-                'ALL'
-                ~
-              ==
+          :-  %+  selected-all-object:ast
+                    %all-object
+                    %:  qualified-object:ast  %qualified-object
+                                              ?~  ->+<.a  ~
+                                              [~ ->+<.a]
+                                              ->+>-.a
+                                              ->+>+<.a
+                                              ->+>+>-.a
+                                              ~
+                                              ==
               columns
         a        +.a
       ==
     ?:  ?=([@ @] -.a)
-      ?:  =(%all-columns -<.a)
+      ?:  ?=([%all-columns @] -.a)
         %=  $
-          columns
-            :-
-              %:  qualified-column:ast
-                  %qualified-column
-                  %:  qualified-object:ast  %qualified-object
-                                            ~
-                                            'UNKNOWN'
-                                            'COLUMN-OR-CTE'
-                                            ->.a
-                                            ==
-                  'ALL'
-                  ~
-                ==
-                columns
+          columns  :-  %+  selected-all-object:ast
+                             %all-object
+                             ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
+                               (~(got by alias-map) (crip (cass (trip ->.a))))
+                             :: to do: if does not resolve try CTEs next
+                             ~|  "cannot resolve {<->.a>}"
+                                 %-  ~(got by (mk-obj-name-map (need f)))
+                                     ->.a
+                       columns
           a        +.a
         ==
       ?>  ?=(dime -.a)
@@ -3015,21 +3219,21 @@
   |=  a=*
   ~+
   ?@  a
-    (qualified-object:ast %qualified-object ~ default-database 'dbo' a)
-  (qualified-object:ast %qualified-object ~ default-database -.a +.a)
+    (qualified-object:ast %qualified-object ~ default-database 'dbo' a ~)
+  (qualified-object:ast %qualified-object ~ default-database -.a +.a ~)
 ::
 ::  +cook-qualified-3object: database.namespace.object-name
 ++  cook-qualified-3object
   |=  a=*
   ~+
   ?:  ?=([@ @ @] a)                                 :: db.ns.name
-    (qualified-object:ast %qualified-object ~ -.a +<.a +>.a)
+    (qualified-object:ast %qualified-object ~ -.a +<.a +>.a ~)
   ?:  ?=([@ @ @ @] a)                               :: db..name
-    (qualified-object:ast %qualified-object ~ -.a 'dbo' +>+.a)
+    (qualified-object:ast %qualified-object ~ -.a 'dbo' +>+.a ~)
   ?:  ?=([@ @] a)                                   :: ns.name
-    (qualified-object:ast %qualified-object ~ default-database -.a +.a)
+    (qualified-object:ast %qualified-object ~ default-database -.a +.a ~)
   ?@  a                                             :: name
-    (qualified-object:ast %qualified-object ~ default-database 'dbo' a)
+    (qualified-object:ast %qualified-object ~ default-database 'dbo' a ~)
   ~|("cannot parse qualified-object  {<a>}" !!)
 ::
 ::  +cook-qualified-object: @p.database.namespace.object-name
@@ -3038,17 +3242,17 @@
   ~+
   ?:  ?=([@ @ @ @] a)
     ?:  =(+<.a '.')
-      (qualified-object:ast %qualified-object ~ -.a 'dbo' +>+.a)  :: db..name
+      (qualified-object:ast %qualified-object ~ -.a 'dbo' +>+.a ~)  :: db..name
     :: ~firsub.db.ns.name
-    (qualified-object:ast %qualified-object `-.a +<.a +>-.a +>+.a)
+    (qualified-object:ast %qualified-object `-.a +<.a +>-.a +>+.a ~)
   ?:  ?=([@ @ @ @ @ @] a)                           :: ~firsub.db..name
-    (qualified-object:ast %qualified-object `-.a +>-.a 'dbo' +>+>+.a)
+    (qualified-object:ast %qualified-object `-.a +>-.a 'dbo' +>+>+.a ~)
   ?:  ?=([@ @ @] a)
-    (qualified-object:ast %qualified-object ~ -.a +<.a +>.a)  :: db.ns.name
+    (qualified-object:ast %qualified-object ~ -.a +<.a +>.a ~)  :: db.ns.name
   ?:  ?=([@ @] a)                                   :: ns.name
-    (qualified-object:ast %qualified-object ~ default-database -.a +.a)
+    (qualified-object:ast %qualified-object ~ default-database -.a +.a ~)
   ?@  a                                             :: name
-    (qualified-object:ast %qualified-object ~ default-database 'dbo' a)
+    (qualified-object:ast %qualified-object ~ default-database 'dbo' a ~)
   ~|("cannot parse qualified-object  {<a>}" !!)
 ::  +qualified-namespace: database.namespace
 ++  qualified-namespace
@@ -3591,11 +3795,6 @@
     ==
     (stag %query-row face-list)
   ==
-++  parse-query-object  ~+
-  ;~  pfix
-    whitespace
-    (cook build-query-object query-object)
-  ==
 ++  parse-join-type  ~+
   ;~  pfix  whitespace
     ;~  pose
@@ -3621,35 +3820,75 @@
   ==
 ++  build-query-object  ~+
   |=  parsed=*
-  ?:  ?=([@ @ @ @ @] parsed)
-    (table-set:ast %table-set parsed ~)
-  ?:  ?=([[@ @ @ @ @] @] parsed)
-    (table-set:ast %table-set -.parsed `+.parsed)
+  ^-  $?  table-set:ast
+          [table-set:ast as-of-offset:ast]
+          [table-set:ast as-of:ast]
+          ==
+   ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] @] parsed)
+    %+  table-set:ast  %table-set
+                       :*  %qualified-object
+                           ->-.parsed
+                           ->+<.parsed
+                           ->+>-.parsed
+                           ->+>+<.parsed
+                           `+.parsed
+                           ==
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)]] parsed)
+    (table-set:ast %table-set parsed)
   ::
-  ?:  ?=([[%qualified-object @ @ @ @] %as-of %now] parsed)
-    :-  (table-set:ast %table-set -.parsed ~)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] %as-of %now] parsed)
+    :-  (table-set:ast %table-set -.parsed)
         (as-of-offset:ast %as-of-offset 0 %seconds)
-    ?:  ?=([[%qualified-object @ @ @ @] [%as-of %now] @] parsed)
-    :-  (table-set:ast %table-set -.parsed `+>.parsed)
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of %now] @] parsed)
+    :-  %+  table-set:ast  %table-set
+                           :*  %qualified-object
+                               ->-.parsed
+                               ->+<.parsed
+                               ->+>-.parsed
+                               ->+>+<.parsed
+                               `+>.parsed
+                               ==
         (as-of-offset:ast %as-of-offset 0 %seconds)
   ::
-  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @ %ago]] parsed)
-    :-  (table-set:ast %table-set -.parsed ~)
+  ?:  ?=  [[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago]]
+          parsed
+    :-  (table-set:ast %table-set -.parsed)
         (as-of-offset:ast %as-of-offset +>-.parsed +>+<.parsed)
-  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @ %ago] @] parsed)
-    :-  (table-set:ast %table-set -.parsed `+>.parsed)
+  ?:  ?=  [[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago] @]
+          parsed
+    :-  %+  table-set:ast  %table-set
+                           :*  %qualified-object
+                               ->-.parsed
+                               ->+<.parsed
+                               ->+>-.parsed
+                               ->+>+<.parsed
+                               `+>.parsed
+                               ==
         (as-of-offset:ast %as-of-offset +<+<.parsed +<+>-.parsed)
   ::
-  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @]] parsed)
-    :-  (table-set:ast %table-set -.parsed ~)
-        [+>-.parsed +>+.parsed]
-  ?:  ?=([[%qualified-object @ @ @ @] [%as-of @ @] @] parsed)
-    :-  (table-set:ast %table-set -.parsed `+>.parsed)
-        [+<+<.parsed +<+>.parsed]
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @]] parsed)
+    :-  (table-set:ast %table-set -.parsed)
+        ;;(as-of:ast [+>-.parsed +>+.parsed])
+  ?:  ?=([[%qualified-object (unit @p) @ @ @ (unit @t)] [%as-of @ @] @] parsed)
+    :-  %+  table-set:ast  %table-set
+                           :*  %qualified-object
+                               ->-.parsed
+                               ->+<.parsed
+                               ->+>-.parsed
+                               ->+>+<.parsed
+                               `+>.parsed
+                               ==
+        ;;(as-of:ast [+<+<.parsed +<+>.parsed])
   ::
-  ?:  =(%query-row -.parsed)  parsed
+  ?:  =(%query-row -.parsed)  ;;(table-set:ast parsed)
   ~|("cannot parse query-object  {<parsed>}" !!)
-++  parse-cross-joined-object  ~+
+::
+++  parse-query-object  ~+
+  ;~  pfix
+    whitespace
+    (cook build-query-object query-object)
+  ==
+++  parse-cross-join-obj  ~+
   ;~(plug parse-cross-join-type parse-query-object)
 ++  parse-natural-join
   ;~  plug
@@ -3658,7 +3897,7 @@
     ==
     parse-query-object
   ==
-++  parse-joined-object  ~+
+++  parse-join-obj  ~+
   ;~  plug
     parse-join-type
     parse-query-object
@@ -3667,27 +3906,29 @@
 ++  parse-object-and-joins  ~+
   ;~  plug
     parse-query-object
-    ;~  pose
-      parse-cross-joined-object
-      (star ;~(pose parse-joined-object parse-natural-join))
-    ==
+    (star ;~(pose parse-join-obj parse-natural-join parse-cross-join-obj))
   ==
 ++  make-query-object
   |=  a=*
   ^-  table-set:ast
   ?:  ?=(qualified-object:ast a)
-    (table-set:ast %table-set a ~)
+    (table-set:ast %table-set a)
   ?:  ?=(qualified-object:ast -.a)
-    ?~  +.a  (table-set:ast %table-set -.a ~)
+    ?~  +.a  (table-set:ast %table-set -.a)
     ?:  ?=((unit @t) +.a)
       (table-set:ast %table-set -.a +.a)
-    (table-set:ast %table-set -.a `+.a)
+    %+  table-set:ast  %table-set
+                       [%qualified-object ->-.a ->+<.a ->+>-.a ->+>+<.a `+.a]
   ?:  ?=([@ @] a)
-    %:  table-set:ast
+    %+  table-set:ast
       %table-set
-      (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' -.a)
-      `+.a
-    ==
+      %:  qualified-object:ast  %qualified-object
+                                ~
+                                'UNKNOWN'
+                                'COLUMN-OR-CTE'
+                                -.a
+                                `+.a
+                                ==
   ::  %query-row not implemented
   =/  columns=(list @t)  ~
   =/  b  ?:  ?=([%query-row * @] a)  +<.a
@@ -3720,14 +3961,14 @@
   ?:  ?=([@ @ @ @ @] a) :: @p.db.ns.object.column
     %:  qualified-column:ast
       %qualified-column
-      (qualified-object:ast %qualified-object `-.a +<.a +>-.a +>+<.a)
+      (qualified-object:ast %qualified-object `-.a +<.a +>-.a +>+<.a ~)
       +>+>.a
       ~
     ==
   ?:  ?=([@ @ @ @ @ @] a) :: @p.db..object.column
     %:  qualified-column:ast
       %qualified-column
-      (qualified-object:ast %qualified-object `-.a +<.a 'dbo' +>+>-.a)
+      (qualified-object:ast %qualified-object `-.a +<.a 'dbo' +>+>-.a ~)
       +>+>+.a
       ~
     ==
@@ -3735,34 +3976,34 @@
     ?:  =(+<.a '.')
       %:  qualified-column:ast
         %qualified-column
-        (qualified-object:ast %qualified-object ~ -.a 'dbo' +>-.a)
+        (qualified-object:ast %qualified-object ~ -.a 'dbo' +>-.a ~)
         +>+.a
         ~
       ==
     %:  qualified-column:ast
       %qualified-column
-      (qualified-object:ast %qualified-object ~ -.a +<.a +>-.a)
+      (qualified-object:ast %qualified-object ~ -.a +<.a +>-.a ~)
       +>+.a
       ~
     ==
   ?:  ?=([@ @ @] a)     :: ns.object.column
     %:  qualified-column:ast
       %qualified-column
-      (qualified-object:ast %qualified-object ~ default-database -.a +<.a)
+      (qualified-object:ast %qualified-object ~ default-database -.a +<.a ~)
       +>.a
       ~
     ==
   ?:  ?=([@ @] a)       :: something.column (could be table, table alias or cte)
     %:  qualified-column:ast
       %qualified-column
-      (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN' -.a)
+      (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN' -.a ~)
       +.a
       ~
     ==
   ?@  a                 :: column, column alias, or cte
     %:  qualified-column:ast
       %qualified-column
-      (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' a)
+      (qualified-object:ast %qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' a ~)
       a
       ~
     ==
@@ -4123,10 +4364,7 @@
     (star parse-when-then)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
-::++  cook-coalesce
-::  |=  parsed=(list datum:ast)
-::  ^-  coalesce:ast
-::  (coalesce:ast %coalesce parsed)
+::
 ++  scalar-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))

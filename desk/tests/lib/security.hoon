@@ -92,6 +92,7 @@
                                                                'db'
                                                                'ns'
                                                                'table'
+                                                               ~
                                                                ==
                                  ==
                              duration=~
@@ -112,6 +113,7 @@
                                                                database='db'
                                                                namespace='ns'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -132,6 +134,7 @@
                                                                database='db'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -152,6 +155,7 @@
                                                                database='db'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -172,6 +176,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -196,6 +201,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -220,6 +226,7 @@
                                                                database='db'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -244,6 +251,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -268,6 +276,7 @@
                                                                database='db'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -288,6 +297,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -308,6 +318,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -333,6 +344,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  [%database 'db1']
                                  [%namespace 'db2' 'ns']
@@ -362,6 +374,7 @@
                                                          database='db2'
                                                          namespace='dbo'
                                                          name='table'
+                                                         alias=~
                                                          ==
                            [%database 'db1']
                            [%namespace 'db2' 'ns']
@@ -545,6 +558,7 @@
                                           database='db'
                                           namespace='ns'
                                           name='table'
+                                          alias=~
                                           ==
                                 ==
                             ~
@@ -565,6 +579,7 @@
                                         database='db'
                                         namespace='ns'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -585,6 +600,7 @@
                                         database='db'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -605,6 +621,7 @@
                                         database='db'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -625,6 +642,7 @@
                                         database='db2'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -649,6 +667,7 @@
                                         database='db2'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -675,6 +694,7 @@
                                         database='db'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -699,6 +719,7 @@
                                         database='db2'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -724,6 +745,7 @@
                                         database='db'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -745,6 +767,7 @@
                                         database='db2'
                                         namespace='dbo'
                                         name='table'
+                                        alias=~
                                         ==
                                 ==
                             ~
@@ -765,6 +788,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  ==
                              duration=~
@@ -790,6 +814,7 @@
                                                                database='db2'
                                                                namespace='dbo'
                                                                name='table'
+                                                               alias=~
                                                                ==
                                  [%database 'db1']
                                  [%namespace 'db2' 'ns']
@@ -819,6 +844,7 @@
                                                          database='db2'
                                                          namespace='dbo'
                                                          name='table'
+                                                         alias=~
                                                          ==
                            [%database 'db1']
                            [%namespace 'db2' 'ns']
