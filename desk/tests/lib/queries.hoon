@@ -2810,6 +2810,14 @@
   "(2023, 12, 29, 'December') ".
   "(2023, 12, 30, 'December') ".
   "(2023, 12, 31, 'December');"
+++  insert-tbl1-b
+  "INSERT INTO tbl1 ".
+  "VALUES ".
+  "(2023, 8, 21, 'August') ".
+  "(2023, 9, 22, 'September') ".
+  "(2023, 10, 23, 'October') ".
+  "(2023, 11, 24, 'November') ".
+  "(2023, 12, 25, 'December');"
 ++  insert-tbl2
   "INSERT INTO tbl2 ".
   "VALUES ".
@@ -3623,6 +3631,255 @@
                   [%cross-3 [~.t q=27.353.046.622.106.211]]
                   ==
           ==
+++  expected-cross-aliased-rows
+      :~  :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          ==
+++  expected-cross-as-of-rows
+      :~  :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          ==
 ++  expected-cross
       :~  %results
           [%message 'SELECT']
@@ -3635,6 +3892,32 @@
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 33]
+          ==
+++  expected-cross-aliased
+      :~  %results
+          [%message 'SELECT']
+          [%result-set expected-cross-aliased-rows]
+          [%server-time ~2012.5.3]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'db1.dbo.cross']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.5.2]
+          [%vector-count 20]
+          ==
+++  expected-cross-as-of
+      :~  %results
+          [%message 'SELECT']
+          [%result-set expected-cross-as-of-rows]
+          [%server-time ~2012.5.4]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'db1.dbo.cross']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%vector-count 15]
           ==
 ++  expected-cross-inverted
       :~  %results
@@ -5059,6 +5342,54 @@
   ::
   (eval-results expected-cross-inverted ;;(cmd-result ->+>+>+<.mov2))
 ::
+::  cross join, as of, aliased, literals
+++  test-join-22
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              create-cross-tbl
+                              insert-tbl1-b
+                              insert-cross
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO cross ".
+                "VALUES ".
+                "(4, ~sev, 'cross-d');"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 T1 ".
+                "CROSS JOIN cross T2 ".
+                "SELECT T1.year, T1.month-name, 'cross joining', ".
+                "T2.cross-key, T2.cross-2"
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 T1 ".
+                "CROSS JOIN cross as of ~2012.5.1 T2 ".
+                "SELECT T1.year, T1.month-name, 'cross joining', ".
+                "T2.cross-key, T2.cross-2"
+  ::
+  ;:  weld
+  (eval-results expected-cross-aliased ;;(cmd-result ->+>+>+<.mov3))
+  (eval-results expected-cross-as-of ;;(cmd-result ->+>+>+<.mov4))
+  ==
+::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud
@@ -5079,6 +5410,7 @@
                   "FROM db1..tbl1 ".
                   "JOIN db1..tbl1 ".
                   "SELECT year"
+::
 ::  bugs
 ::
 ::  bug selecting calendar because of screw-up in views schema API
