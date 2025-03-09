@@ -311,6 +311,8 @@
     %cross-join
       (cross-join prior this)
   ==
+::
+::  +cross-join:  [from-obj from-obj] -> (list joined-row)
 ++  cross-join
   |=  [prior=from-obj this=from-obj]
   ^-  (list joined-row)
@@ -331,25 +333,23 @@
                   out-rows
     b  +.b
   ==
+::
+++  reduce-ord-col
+  |=  a=ordered-column:ast
+  name.a
+::
+::  +join-natural:  [from-obj from-obj] -> (list joined-row)
 ++  join-natural
   |=  [prior=from-obj this=from-obj]
   ^-  (list joined-row)
   ::join on foreign keys (to do)
   ::
   ::join on primary key
-  =/  column-set-1  (silt columns:(need pri-indx.prior))
-  =/  column-set-2  (silt columns:(need pri-indx.this))
-  =/  join-columns
-    ?:  ?&  ?!(?|(=(~ pri-indx.prior) =(~ pri-indx.this)))
-            .=  (lent columns:(need pri-indx.this))
-                ~(wyt in (~(int in column-set-1) column-set-2))
-            ==
-      columns:(need pri-indx.this)
-    (~(int in (silt columns.prior)) (silt columns.this))  ::join on like columns
-  ?~  join-columns  ~|  "no natural or foreign key join ".
-                        "{<object.prior>} {<object.this>}"
-                        !!
-  ?:  =(key.prior key.this)
+  ?:  ?|(=(~ pri-indx.prior) =(~ pri-indx.this))  ::view may not have index
+    ~|("no natural join, missing index: {<object.prior>} {<object.this>}" !!)
+  ?:  ?&  =(key.prior key.this)  :: perfect natural join
+          =(columns:(need pri-indx.prior) columns:(need pri-indx.this))
+          ==
     %:  join-pri-key  indexed-rows.prior
                       indexed-rows.this
                       object.prior
@@ -357,6 +357,14 @@
                       key.this
                       ==
   ::  key is same column sequence, but different ordering
+  ?:  ?!  ?&  .=  (turn key.prior |=(a=[@ta ?] -.a))
+                  (turn key.this |=(a=[@ta ?] -.a))
+              .=  (turn columns:(need pri-indx.prior) reduce-ord-col)
+                  (turn columns:(need pri-indx.this) reduce-ord-col)
+              ==
+    ~|  "no natural join or foreign key join , columns do not match: ".
+        "{<object.prior>} {<object.this>}"
+        !!
   ::  sort the little one
   ?:  (gth rowcount.this rowcount.prior)
     %:  join-pri-key  (sort indexed-rows.prior ~(order idx-comp-2 key.this))
