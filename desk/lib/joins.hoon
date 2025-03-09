@@ -36,12 +36,27 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 
 ::
+::  +mk-relations:  [relation (list joined-object:ast)] ->  (list relation)
+::
+::  put all cross joins at the end of the list
 ++  mk-relations
   |=  [relat=relation joins=(list joined-object:ast)]
   ^-  (list relation)
-  =/  relations=(list relation)  ~[relat]
+  =/  relations=(list relation)    ~[relat]
+  =/  cross-joins=(list relation)  ~
   |-
-  ?~  joins  (flop relations)
+  ?~  joins  (flop (weld cross-joins relations))
+  ?:  ?=(%cross-join join.i.joins)
+    %=  $
+      joins  t.joins
+      cross-joins  :-  %:  relation  %relation
+                                  object.i.joins
+                                  as-of.i.joins
+                                  `join.i.joins
+                                  predicate.i.joins
+                                  ==
+                       cross-joins
+    ==
   %=  $
     joins  t.joins
     relations  :-  %:  relation  %relation
