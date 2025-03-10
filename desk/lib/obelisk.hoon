@@ -479,11 +479,10 @@
             sap.bowl
             sys-time
             column-look-up
-            (make-index-key column-look-up pri-indx.create-table)
             %:  index
                 %index
                 %.y
-                pri-indx.create-table
+                (mk-key-column column-look-up pri-indx.create-table)
             ==
             columns.create-table
             ~
@@ -765,9 +764,9 @@
   =/  i=@ud  0
   =/  key-pick=(list [@tas @])
         %+  turn
-            columns.pri-indx.table
-            |=(a=ordered-column:ast (make-key-pick name.a column-lookup.table))
-  =/  primary-key  (pri-key key.table)
+            key.pri-indx.table
+            |=(a=key-column (make-key-pick name.a column-lookup.table))
+  =/  primary-key  (pri-key key.pri-indx.table)
   ::
   =.  state          (update-sys state sys-time)
   ::
@@ -783,7 +782,7 @@
                                         %:  update-file  file
                                                          nxt-data
                                                          tbl-key
-                                                         key.table
+                                                         key.pri-indx.table
                                                          ==
                            view-cache  %:  upd-view-caches  state
                                                             db

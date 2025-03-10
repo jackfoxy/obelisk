@@ -2,7 +2,7 @@
 /+  *utils
 |%
 ::
-::  +sys-sys-dbs-view
+::  +sys-sys-dbs-view:  [path @da] -> view
 ::
 ::  view name: sys-databases
 ::
@@ -159,7 +159,7 @@
         ~
         ~
 ::
-::  +sys-namespaces-view
+::  +sys-namespaces-view:  [@tas path @da] -> view
 ::
 ::  view name: sys-namespaces
 ::
@@ -259,7 +259,7 @@
         ~
         ~
 ::
-::  + sys-tables-view
+::  + sys-tables-view:  [@tas path @da] -> view
 ::
 ::    tables  files
 ::
@@ -389,6 +389,8 @@
             ==
         ~
         ~
+::
+::  +sys-table-keys-view:  [@tas path @da] -> view
 ::
 ::  *  initial cache key created upon table creation
 ::  *  subsequent cache keys created upon...drop table
@@ -527,6 +529,7 @@
         ~
         ~
 ::
+::  +sys-columns-view:  [@tas path @da] -> view
 ++  sys-columns-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
@@ -662,6 +665,7 @@
         ~
         ~
 ::
+::  +sys-sys-log-view:  [@tas path @da] -> view
 ++  sys-sys-log-view
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
@@ -786,6 +790,7 @@
         ~
         ~
 ::
+::  +sys-data-log-view:  [@tas path @da] -> view
 ++  sys-data-log-view
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
@@ -1110,9 +1115,9 @@
                       ==
     =/  tbl  (~(got by tables) [-.k +.k])
     =/  keys
-      %^  spin  columns.pri-indx.tbl
+      %^  spin  key.pri-indx.tbl
           1
-          |=([n=ordered-column:ast a=@] [~[a name.n ascending.n] +(a)])
+          |=([n=key-column a=@] [~[a name.n ascending.n] +(a)])
     (turn p.keys |=(a=(list @) (weld aa a)))
   --
 ::

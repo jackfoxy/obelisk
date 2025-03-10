@@ -103,7 +103,6 @@
       provenance=path
       tmsp=@da
       =column-lookup
-      key=(list [@ta ?])
       pri-indx=index
       columns=(list column)      ::  canonical column list
       indices=(list index)      :: to do: indices indexed by (list column)
@@ -124,7 +123,14 @@
 +$  index
   $:  %index
       unique=?
-      columns=(list ordered-column)
+      key=(list key-column)
+  ==
++$  key-column
+  $:
+    %key-column
+    name=@tas
+    =aura
+    ascending=?
   ==
 +$  vector-cell  [p=@tas q=dime]
 +$  vector
@@ -158,7 +164,6 @@
       data-tmsp=@da
       columns=(list column)
       qualified-columns=(list [qualified-column @ta])
-      key=(list [@ta ?])
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)

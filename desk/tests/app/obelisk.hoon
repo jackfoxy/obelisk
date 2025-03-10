@@ -501,10 +501,9 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.2
           [[%col1 [%t 0]] ~ ~]
-          ~[[%t %.y]]
           :+  %index
               unique=%.y
-              ~[[%ordered-column name=%col1 ascending=%.y]]
+              ~[[%key-column name=%col1 ~.t ascending=%.y]]
           ~[[%column name=%col1 column-type=%t]]
           ~
       ==
@@ -514,10 +513,9 @@
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
           [[%col1 [%t 0]] ~ ~]
-          ~[[%t %.y]]
           :+  %index
               unique=%.y
-              ~[[%ordered-column name=%col1 ascending=%.y]]
+              ~[[%key-column name=%col1 ~.t ascending=%.y]]
           ~[[%column name=%col1 column-type=%t]]
           ~
       ==
@@ -527,10 +525,9 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.3
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          ~[[%t %.y] [%p %.y]]
           :+  %index
               %.y
-              ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+              ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
           ~[[%column %col1 %t] [%column %col2 %p]]
           ~
       ==
@@ -540,10 +537,9 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.2
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          ~[[%t %.y] [%p %.y]]
           :+  %index
               %.y
-              ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+              ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
           ~[[%column %col1 %t] [%column %col2 %p]]
           ~
       ==
@@ -553,10 +549,9 @@
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.36..7e90
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          ~[[%t %.y] [%p %.y]]
           :+  %index
               %.y
-              ~[[%ordered-column %col1 %.y] [%ordered-column %col2 %.y]]
+              ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
           ~[[%column %col1 %t] [%column %col2 %p]]
           ~
       ==

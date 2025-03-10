@@ -197,7 +197,6 @@
                 tmsp.file
                 columns.tbl
                 (mk-qualified-columns query-obj qualified-columns columns.tbl)
-                key.tbl
                 [~ pri-indx.tbl]
                 join
                 predicate
@@ -261,7 +260,6 @@
                 tmsp.+.r
                 columns.view
                 (mk-qualified-columns query-obj qualified-columns columns.view)
-                ~
                 ~
                 join.relat
                 predicate.relat
@@ -347,37 +345,37 @@
   ::join on primary key
   ?:  ?|(=(~ pri-indx.prior) =(~ pri-indx.this))  ::view may not have index
     ~|("no natural join, missing index: {<object.prior>} {<object.this>}" !!)
-  ?:  ?&  =(key.prior key.this)  :: perfect natural join
-          =(columns:(need pri-indx.prior) columns:(need pri-indx.this))
-          ==
+  =/  prior-key  key:(need pri-indx.prior)
+  =/  this-key  key:(need pri-indx.this)
+  :: perfect natural join
+  ?:  =(prior-key this-key)
     %:  join-pri-key  indexed-rows.prior
                       indexed-rows.this
                       object.prior
                       object.this
-                      key.this
+                      this-key
                       ==
   ::  key is same column sequence, but different ordering
-  ?:  ?!  ?&  .=  (turn key.prior |=(a=[@ta ?] -.a))
-                  (turn key.this |=(a=[@ta ?] -.a))
-              .=  (turn columns:(need pri-indx.prior) reduce-ord-col)
-                  (turn columns:(need pri-indx.this) reduce-ord-col)
-              ==
+  ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
+              (turn this-key |=(a=key-column [name.a aura.a]))
     ~|  "no natural join or foreign key join , columns do not match: ".
         "{<object.prior>} {<object.this>}"
         !!
   ::  sort the little one
   ?:  (gth rowcount.this rowcount.prior)
-    %:  join-pri-key  (sort indexed-rows.prior ~(order idx-comp-2 key.this))
+    %:  join-pri-key  %+  sort  indexed-rows.prior
+                                ~(order idx-comp-2 (reduce-key this-key))
                       indexed-rows.this
                       object.prior
                       object.this
-                      key.this
+                      this-key
                       ==
   %:  join-pri-key  indexed-rows.prior
-                    (sort indexed-rows.this ~(order idx-comp-2 key.prior))
+                    %+  sort  indexed-rows.this
+                              ~(order idx-comp-2 (reduce-key prior-key))
                     object.prior
                     object.this
-                    key.prior
+                    prior-key
                     ==
 ::
 ::  +join-pri-key
@@ -388,7 +386,7 @@
           b=(list [(list @) (map @tas @)])
           a-qual=qualified-object:ast
           b-qual=qualified-object:ast
-          key=(list [@tas ?])
+          key=(list key-column)
           ==
   ^-  (list joined-row)
   =/  c=(list joined-row)  ~
@@ -408,7 +406,7 @@
       a  +.a
       b  +.b
     ==
-  ?:  (~(order idx-comp key) -<.a -<.b)
+  ?:  (~(order idx-comp (reduce-key key)) -<.a -<.b)
     $(a +.a)
   $(b +.b)
 --

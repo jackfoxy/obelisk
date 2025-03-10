@@ -47,17 +47,22 @@
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
 ::
+::  +reduce-key:  (list key-column) -> (list [@ta ?])
+++  reduce-key
+  |=  key=(list key-column)
+  (turn key |=(a=key-column [aura.a ascending.a]))
+::
 ::  +idx-comp
 ::
 ::  comparator for index mops
 ++  idx-comp
-  |_  index=(list [@tas ?])
+  |_  index=(list [@ta ?])
   ++  order
     |=  [p=(list @) q=(list @)]
-    =/  k=(list [@tas ?])  index
+    =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  =(-<.k ~.t)  (alpha -.q -.p)
     ?:  ->.k  (gth -.p -.q)
     (lth -.p -.q)
   --
@@ -81,8 +86,8 @@
   --
 ::
 ++  pri-key
-  |=  key=(list [@tas ?])
-        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
+  |=  key=(list key-column)
+        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
@@ -254,21 +259,7 @@
         [[%.y ascending.ordering -.offset-type] out]
       [[%.n ascending.ordering -.offset-type] out]
   ==
-::
-::    +make-index-key:  [(map @tas [@tas @ud]) (list ordered-column:ast)]
-::                      -> (list [@tas ?])
-++  make-index-key
-  |=  [column-lookup=(map @tas [@tas @ud]) pri-indx=(list ordered-column:ast)]
-  ^-  (list [@tas ?])
-  =/  a=(list [@tas ?])  ~
-  |-
-  ?~  pri-indx  (flop a)
-  =/  b=ordered-column:ast  -.pri-indx
-  =/  col  (~(got by column-lookup) name.b)
-  %=  $
-    pri-indx  +.pri-indx
-    a  [[-.col ascending.b] a]
-  ==
+
 ::
 ++  try-find-col-index
   |=  [a=(list column:ast) name=@tas]
@@ -461,6 +452,24 @@
                         (~(got by object-lookup) column.column)
                    %+  ~(put by object-lookup)  column.column
                                                 [qualifier.column objects]
+  ==
+::
+::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
+::                   -> (list key-column)
+++  mk-key-column
+  |=  [=column-lookup pri-indx=(list ordered-column:ast)]
+  ^-  (list key-column)
+  =/  key=(list key-column)  ~
+  |-
+  ?~  pri-indx  (flop key)
+  %=  $
+    pri-indx  t.pri-indx
+    key       :-  %:  key-column  %key-column
+                                  name.i.pri-indx
+                                  -:(~(got by column-lookup) name.i.pri-indx)
+                                  ascending.i.pri-indx
+                                  ==
+                  key
   ==
 ::
 ::    +set-tmsp: [(unit as-of:ast) @da] -> @da
@@ -662,7 +671,7 @@
   (~(got by q.a) p.a)
 ::
 ++  update-file
-  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list [@tas ?])]
+  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
   =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
   =.  files.data  (~(put by files.data) tbl-key file)
   data
