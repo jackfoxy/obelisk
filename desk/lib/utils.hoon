@@ -404,24 +404,19 @@
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
-++  fix-selected
+++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
   =/  selected-out=(list selected-column:ast)  ~
   |-
   ?~  selected  (flop selected-out)
-  ?.  ?=(qualified-column:ast -.selected)
+  ?.  ?=(unqualified-column:ast -.selected)
     %=  $
       selected      +.selected
       selected-out  [-.selected selected-out]
     ==
-  =/  sel=qualified-column:ast  -.selected
-  ?.  =('UNKNOWN' database.qualifier.sel)
-    %=  $
-      selected      +.selected
-      selected-out  [-.selected selected-out]
-    ==
+  =/  sel=unqualified-column:ast  -.selected
   =/  qualifiers   ~|  "SELECT: column {<column.sel>} not found"
                        (~(got by qualifier-lookup) column.sel)
   ?:  (gth (lent qualifiers) 1)

@@ -532,7 +532,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
           "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
@@ -1065,7 +1065,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
@@ -1685,7 +1685,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
           "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
@@ -2260,7 +2260,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
           "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
@@ -2903,7 +2903,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
           "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
@@ -3534,7 +3534,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
           "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
@@ -4671,7 +4671,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
@@ -5089,7 +5089,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different aura: ".
+          "comparing columns of different auras: ".
           "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
           "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
           "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"

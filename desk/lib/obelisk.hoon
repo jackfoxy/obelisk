@@ -862,7 +862,7 @@
                  -:(flop sources)
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
-  =.  selected  (fix-selected selected qualifier-lookup)
+  =.  selected  (qualify-unqualified selected qualifier-lookup)
   =/  init-map=joined-row  ~
   =.  joined-rows.from-obj
         ?.  single-source  joined-rows.from-obj
@@ -879,7 +879,9 @@
                                          qualified-columns.from-obj
                                          selected
                                    %^  pred-ops-and-conjs
-                                         (need predicate.q)
+                                         %+  pred-qualify-unqualified
+                                              (need predicate.q)
+                                              qualifier-lookup
                                          type-lookup.from-obj
                                          qualifier-lookup
   ::

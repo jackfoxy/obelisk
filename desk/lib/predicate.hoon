@@ -389,7 +389,40 @@
           ==
   ^-  ?
   |((l c) (r c))
-::  
+::
+::  +pred-qualify-unqualified:
+::    [predicate:ast (map @tas (list qualified-object:ast))] -> predicate:ast
+++  pred-qualify-unqualified
+  |=  $:  p=predicate:ast
+          qualifier-lookup=(map @tas (list qualified-object:ast))
+          ==
+  ^-  predicate:ast
+  |-
+  ?~  p  ~
+  p(n (qualify-leaf n.p qualifier-lookup), l $(p l.p), r $(p r.p))
+::
+::  +qualify-leaf:
+::    [predicate-component:ast (map @tas (list qualified-object:ast))]
+::    -> predicate-component:ast
+++  qualify-leaf
+  |=  $:  a=predicate-component:ast
+          qualifier-lookup=(map @tas (list qualified-object:ast))
+          ==
+  ^-  predicate-component:ast
+  ?.  ?=(unqualified-column:ast a)
+    a
+  ::
+  =/  qualifiers   ~|  "undetermined qualifier for {<column.a>} in predicate"
+                       (~(got by qualifier-lookup) column.a)
+  ?:  (gth (lent qualifiers) 1)
+    ~|("qualifier for {<column.a>} in predicate must be specified" !!)
+  %:  qualified-column:ast  %qualified-column
+                            -.qualifiers
+                            column.a
+                            alias.a
+                            ==
+::
+::  +pred-ops-and-conjs
 ++  pred-ops-and-conjs
   |=  $:  p=predicate:ast
           column-types=(map qualified-object:ast (map @tas @ta))
@@ -488,7 +521,7 @@
       ::                            [qualifier.r column.r]
       ::                  (~(got by column-types) [qualifier.l column.l])
       ::              joined-row
-      ::  ~|  "comparing columns of differing auras: ".
+      ::  ~|  "comparing columns of different auras: ".
       ::      "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
       ::      !!
       ::::
@@ -637,7 +670,7 @@
                               [qualifier.r column.r]
                     (~(got by (~(got by column-types) qualifier.l)) column.l)
                 joined-row
-    ~|  "comparing columns of differing auras: ".
+    ~|  "comparing columns of different auras: ".
         "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
         !!
                                                       ::  literal = column
@@ -650,8 +683,8 @@
               (~(got by (~(got by column-types) qualifier.r)) column.r)
       %+  bake  (cury (cury (cury lit-col +.l) [qualifier.r column.r]) -.l)
                 joined-row
-    ~|  "comparing column to literal of different aura: ".
-        "{<[qualifier.r column.r]>} {<l>}"
+    ~|  "comparing literal to column of different aura: ".
+        "{<l>} {<[qualifier.r column.r]>}"
         !!
                                                       ::  column = literal
   ?:  ?&  ?=(qualified-column:ast l)

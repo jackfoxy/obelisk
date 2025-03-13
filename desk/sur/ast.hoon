@@ -132,7 +132,13 @@
 +$  ops-and-conjs
       ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component
-      ?(ops-and-conjs qualified-column dime value-literals aggregate)
+      $?  ops-and-conjs
+          qualified-column
+          unqualified-column
+          dime
+          value-literals
+          aggregate
+          ==
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column dime)
 +$  datum-or-scalar      $@(datum scalar-function)
@@ -234,6 +240,7 @@
 +$  selected-column
   $%
     qualified-column
+    unqualified-column
     qualified-object
     selected-aggregate
     selected-value
@@ -241,6 +248,12 @@
     selected-all-object
   ==
   :: scalar-function or selected-scalar) fish-loop
++$  unqualified-column
+  $:
+    %unqualified-column
+    column=@tas
+    alias=(unit @t)
+    ==
 +$  selected-all
   $:
     %all

@@ -4326,6 +4326,7 @@
                 "SELECT T1.day-name AS Day, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  test mixed column alias case in predicate, tables inverted
 ++  test-join-08
   =|  run=@ud

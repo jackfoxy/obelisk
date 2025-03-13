@@ -4,6 +4,7 @@
 
 * SELECT all from table in JOIN
 * refactored multiple AST components
+* add unqualified-column to AST/API
 * natural JOIN on primary keys when key column ordering differs
 * fixed several JOIN bugs
 * updated docs
