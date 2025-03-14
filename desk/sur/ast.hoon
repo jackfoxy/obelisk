@@ -339,7 +339,7 @@
   $:
     %delete
     table=qualified-object
-    predicate=(unit predicate)
+    predicate=predicate
     as-of=(unit as-of)
   ==
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])

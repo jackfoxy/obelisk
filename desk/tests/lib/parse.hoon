@@ -732,7 +732,7 @@
 ++  col4
   [%unqualified-column column='col4' alias=~]
 ++  delete-pred
-  `[%eq [column-foo ~ ~] [column-bar ~ ~]]
+  [%eq [column-foo ~ ~] [column-bar ~ ~]]
 ++  cte-t1
   [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
 ++  cte-foobar
@@ -744,177 +744,117 @@
 ++  foo-table-t1
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']]
 ::
-:: delete from foo;delete  foo
+:: delete with predicate
 ++  test-delete-00
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo;delete  foo")
-::
-:: delete from foo as of now;delete foo as of now
-++  test-delete-01
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of now;delete  foo AS OF now")
-::
-:: delete from foo as of ~2023.12.25..7.15.0..1ef5;delete foo as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-02
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of 2023.12.25..7.15.0..1ef5;delete  foo as of ~2023.12.25..7.15.0..1ef5")
-::
-:: delete from foo as of 5 seconds ago;delete foo as of 5 seconds ago
-++  test-delete-03
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%as-of-offset 5 %seconds]]] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%as-of-offset 4 %seconds]]] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of 5 seconds ago;delete  foo as of 4 seconds ago")
-::
-:: delete with predicate as
-++  test-delete-04
   =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "delete from foo  where foo=bar")
 ::
-:: delete with predicate of now
-++  test-delete-05
+:: delete with predicate as of now
+++  test-delete-01
   =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of now")
 ::
-:: delete with predicate of ~2023.12.25..7.15.0..1ef5
-++  test-delete-06
+:: delete with predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-delete-02
   =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
 ::
-:: delete with predicate of 5 seconds ago
-++  test-delete-07
+:: delete with predicate as of 5 seconds ago
+++  test-delete-03
   =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of 5 seconds ago")
 ::
 :: delete with one cte and predicate
-++  test-delete-08
+++  test-delete-04
   =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar")
 ::
 :: delete with one cte and predicate as of now
-++  test-delete-09
+++  test-delete-05
   =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of now")
 ::
 :: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-10
+++  test-delete-06
   =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: delete with one cte and predicate as of 5 seconds ago
-++  test-delete-11
+++  test-delete-07
   =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of 5 seconds ago")
 ::
 :: delete with two ctes and predicate
-++  test-delete-12
+++  test-delete-08
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar")
 ::
 :: delete with two ctes and predicate as of now
-++  test-delete-13
+++  test-delete-09
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred ~] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of now")
 ::
 :: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-14
+++  test-delete-10
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: delete with two ctes and predicate as of 5 seconds ago
-++  test-delete-15
+++  test-delete-11
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of 5 seconds ago")
 ::
 :: delete with three ctes and predicate
-++  test-delete-16
+++  test-delete-12
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar")
 ::
 :: delete with three ctes and predicate as of now
-++  test-delete-17
+++  test-delete-13
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar aS  Of    NOw")
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-18
+++  test-delete-14
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
 ::
 :: delete with three ctes and predicate as of 5 seconds ago
-++  test-delete-19
+++  test-delete-15
   =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of 5 seconds ago")
-::
-:: delete cte with no predicate
-++  test-delete-20
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo")
-::
-:: delete cte with no predicate as of now
-++  test-delete-21
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of now")
-::
-:: delete cte with no predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-22
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of ~2023.12.25..7.15.0..1ef5")
-::
-:: delete cte with no predicate as of 5 seconds ago
-++  test-delete-23
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ [~ [%as-of-offset 5 %seconds]]] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of 5 seconds ago")
 ::
 :: drop database
 ::
@@ -2137,10 +2077,28 @@
 ::
 ::  scalar
 ::
-++  column-foo       [%unqualified-column column='foo' alias=~]
+++  column-foo       :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foo
+                             alias=~
+                             ==
+                         column=%foo
+                         alias=~
 ++  column-foo2      [%unqualified-column column='foo2' alias=~]
 ++  column-foo3      [%unqualified-column column='foo3' alias=~]
-++  column-bar       [%unqualified-column column='bar' alias=~]
+++  column-bar       :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foo
+                             alias=~
+                             ==
+                         column=%bar
+                         alias=~
 ++  literal-zod      [value-type=%p value=0]
 ++  literal-1        [value-type=%ud value=1]
 ++  naked-coalesce   ~[%coalesce column-bar literal-zod literal-1 column-foo]
@@ -2262,7 +2220,7 @@
 ++  mixed-all
   :~  [%all-object qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1' alias=~]]
       [%unqualified-column column='foo' alias=[~ 'foobar']]
-      column-bar
+      [%unqualified-column column='bar' alias=~]
       [%all %all]
       [%all-object qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]]
       ==
@@ -2704,134 +2662,136 @@
     !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
-::::  to do: fix when update implemented
-::::
-:::: update
-::::
-::++  one-eq-1
-::  [%eq [literal-1 ~ ~] [literal-1 ~ ~]]
-::++  update-pred
-::  [%and one-eq-1 [%eq [col2 ~ ~] [[value-type=%ud value=4] ~ ~]]]
-::::
-:::: update one column, no predicate
-::++  test-update-00
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1='hello'")
-::::
-:::: update one column, no predicate as of now
-::++  test-update-01
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of now")
-::::
-:::: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
-::++  test-update-02
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of ~2023.12.25..7.15.0..1ef5")
-::::
-:::: update one column, no predicate as of 4 seconds ago
-::++  test-update-03
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of 4 seconds ago")
-::::
-:::: update two columns, no predicate
-::++  test-update-04
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello'")
-::::
-:::: update two columns, no predicate as of now
-::++  test-update-05
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of now")
-::::
-:::: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
-::++  test-update-06
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of ~2023.12.25..7.15.0..1ef5")
-::::
-:::: update two columns, no predicate as of 4 seconds ago
-::++  test-update-07
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of 4 seconds ago")
-::::
-:::: update two columns, with predicate
-::++  test-update-08
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
-::::
-:::: update two columns, with predicate as of now
-::++  test-update-09
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
-::::
-:::: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
-::++  test-update-10
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
-::::
-:::: update two columns, with predicate as of 4 seconds ago
-::++  test-update-11
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
-::::
-:::: update with one cte and predicate
-::++  test-update-12
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
-::::
-:::: update with one cte and predicate as of now
-::++  test-update-13
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
-::::
-:::: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
-::++  test-update-14
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
-::::
-:::: update with one cte and predicate as of 4 seconds ago
-::++  test-update-15
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
-::::
-:::: update with three ctes and predicate
-::++  test-update-16
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
-::::
-:::: update with three ctes and predicate as of now
-::++  test-update-17
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
-::::
-:::: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
-::++  test-update-18
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
-::::
-:::: update with three ctes and predicate as of 4 seconds ago
-::++  test-update-19
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+::  to do: fix when update implemented
+::
+:: update
+::
+++  one-eq-1
+      [%eq [literal-1 ~ ~] [literal-1 ~ ~]]
+++  update-pred
+      [%and one-eq-1 [%eq [upd-col2 ~ ~] [[value-type=%ud value=4] ~ ~]]]
+++  upd-col2
+      [%qualified-column foo-table column='col2' alias=~]
+::
+:: update one column, no predicate
+++  test-update-00
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello'")
+::
+:: update one column, no predicate as of now
+++  test-update-01
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of now")
+::
+:: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-02
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update one column, no predicate as of 4 seconds ago
+++  test-update-03
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of 4 seconds ago")
+::
+:: update two columns, no predicate
+++  test-update-04
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello'")
+::
+:: update two columns, no predicate as of now
+++  test-update-05
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=~ as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of now")
+::
+:: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-06
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update two columns, no predicate as of 4 seconds ago
+++  test-update-07
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of 4 seconds ago")
+::
+:: update two columns, with predicate
+++  test-update-08
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+::
+:: update two columns, with predicate as of now
+++  test-update-09
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+::
+:: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-10
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update two columns, with predicate as of 4 seconds ago
+++  test-update-11
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+::
+:: update with one cte and predicate
+++  test-update-12
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+::
+:: update with one cte and predicate as of now
+++  test-update-13
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+::
+:: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-14
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update with one cte and predicate as of 4 seconds ago
+++  test-update-15
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+::
+:: update with three ctes and predicate
+++  test-update-16
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+::
+:: update with three ctes and predicate as of now
+++  test-update-17
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+::
+:: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-update-18
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+::
+:: update with three ctes and predicate as of 4 seconds ago
+++  test-update-19
+  %+  expect-eq
+    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] upd-col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
 
 
 ::

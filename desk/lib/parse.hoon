@@ -1408,33 +1408,24 @@
   ;~  pose
     ;~  plug
       ;~(pfix whitespace parse-qualified-3object)
-      ;~  pose
-        ;~  pfix  whitespace
-                  ;~  plug  (cold %where (jester 'where'))
-                            parse-predicate
-                            parse-as-of
-                            end-or-next-command
-                            ==
-                  ==
-        ;~  plug
-          parse-as-of
-          end-or-next-command
-        ==
+      ;~  pfix  whitespace
+                ;~  plug  (cold %where (jester 'where'))
+                          parse-predicate
+                          parse-as-of
+                          end-or-next-command
+                          ==
+                ==
       ==
-    ==
     ;~  plug
       ;~(pfix whitespace parse-qualified-3object)
-      ;~  pose
-        ;~  pfix  whitespace
-                  ;~  plug  (cold %where (jester 'where'))
-                            parse-predicate
-                            end-or-next-command
-                            ==
-                  ==
-        end-or-next-command
+      ;~  pfix  whitespace
+                ;~  plug  (cold %where (jester 'where'))
+                          parse-predicate
+                          end-or-next-command
+                          ==
+                ==
       ==
     ==
-  ==
 ++  parse-drop-database  ~+
   ;~  sfix
     ;~  pose
@@ -2099,22 +2090,6 @@
 ::
 ::  parse productions
 ::
-++  produce-column-sets
-  |=  a=*
-  ~+
-  ^-  [(list @t) (list datum:ast)]
-  =/  columns=(list @t)  ~
-  =/  values=(list datum:ast)  ~
-  |-
-  ?:  =(a ~)
-    [columns values]
-  ?:  ?&(?=(datum:ast ->.a) ?=(@ -<.a))
-    %=  $
-      columns  [-<.a columns]
-      values   [->.a values]
-      a        +.a
-    ==
-  ~|("cannot parse column setting {<a>}" !!)
 ++  produce-ctes
   |=  a=*
   ^-  (list cte:ast)
@@ -2132,44 +2107,61 @@
    ~+
   ^-  delete:ast
   ?>  ?=(qualified-object:ast -.a)
-  ?:  ?=([* %end-command ~] a)      :: delete foo; delete from foo
-    (delete:ast %delete -.a ~ ~)
-  :: delete foo as of now; delete from foo as of now
-  ?:  ?=([* [%as-of %now] %end-command ~] a)
-    (delete:ast %delete -.a ~ ~)
-  ?:  ?=([* [%as-of [@ @]] %end-command ~] a)  :: delete from foo as of date
-    (delete:ast %delete -.a ~ [~ +<+.a])
-  ?:  ?=([* [%as-of *] %end-command ~] a)      :: delete from foo as of offset
-    %:  delete:ast  %delete
-                    -.a
-                    ~
-                    [~ (as-of-offset:ast %as-of-offset +<+<.a +<+>-.a)]
-                    ==
   ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
                     -.a
-                  `(fix-predicate (produce-predicate (predicate-list +>-.a)) ~)
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>-.a))
+                        -.a
                     ~
                     ==
   ?:  ?=([* %where * [%as-of %now] %end-command ~] a)
     %:  delete:ast  %delete
                     -.a
-                  `(fix-predicate (produce-predicate (predicate-list +>-.a)) ~)
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>-.a))
+                        -.a
                     ~
                     ==
   ?:  ?=([* %where * [%as-of [@ @]] %end-command ~] a)
     %:  delete:ast  %delete
                     -.a
-                  `(fix-predicate (produce-predicate (predicate-list +>-.a)) ~)
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>-.a))
+                        -.a
                     [~ +>+<+.a]
                     ==
   ?:  ?=([* %where * [%as-of *] %end-command ~] a)
     %:  delete:ast  %delete
                     -.a
-                  `(fix-predicate (produce-predicate (predicate-list +>-.a)) ~)
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>-.a))
+                        -.a
                     [~ (as-of-offset:ast %as-of-offset +>+<+<.a +>+<+>-.a)]
                     ==
   !!
+::
+++  qualify-predicate
+  |=  [p=predicate:ast obj=qualified-object:ast]
+  ^-  predicate:ast
+  ::
+  |-
+  ?~  p  ~
+  p(n (qualify-pred-leaf n.p obj), l $(p l.p), r $(p r.p))
+::
+++  qualify-pred-leaf
+  |=  [a=predicate-component:ast obj=qualified-object:ast]
+  ^-  predicate-component:ast
+  ?.  ?&  ?=(qualified-column:ast a)
+          =('UNKNOWN' database.qualifier.a)
+          =('COLUMN-OR-CTE' namespace.qualifier.a)
+          ==
+    a
+  %:  qualified-column:ast  %qualified-column
+                            obj
+                            column.a
+                            alias.a
+                            ==
 ::
 ++  produce-insert
   |=  a=*
@@ -3024,7 +3016,8 @@
   ~+
   ^-  update:ast
   =/  table=qualified-object:ast  ?>(?=(qualified-object:ast -.a) -.a)
-  =/  columns-values=[(list @t) (list datum:ast)]  (produce-column-sets +>-.a)
+  =/  columns-values=[(list @t) (list datum:ast)]
+        (produce-column-sets +>-.a table)
   ?~  +>+.a
     (update:ast %update table -.columns-values +.columns-values ~ ~)
   ?:  ?=([* %set * ~ %as-of %now] a)
@@ -3044,7 +3037,10 @@
                     table
                     -.columns-values
                     +.columns-values
-                    `(produce-predicate (predicate-list +>+<.a))
+                    :-  ~
+                        %+  qualify-predicate
+                            (produce-predicate (predicate-list +>+<.a))
+                            table
                     ~
                     ==
   ?:  ?=([* %set * * %as-of [@ @]] a)
@@ -3052,7 +3048,10 @@
                     table
                     -.columns-values
                     +.columns-values
-                    `(produce-predicate (predicate-list +>+<.a))
+                    :-  ~
+                        %+  qualify-predicate
+                            (produce-predicate (predicate-list +>+<.a))
+                            table
                     [~ +>+>+.a]
                     ==
 
@@ -3061,16 +3060,46 @@
                     table
                     -.columns-values
                     +.columns-values
-                    `(produce-predicate (predicate-list +>+<.a))
+                    :-  ~
+                        %+  qualify-predicate
+                            (produce-predicate (predicate-list +>+<.a))
+                            table
                     [~ (as-of-offset:ast %as-of-offset +>+>+<.a +>+>+>-.a)]
                     ==
   %:  update:ast  %update
                   table
                   -.columns-values
                   +.columns-values
-                  `(produce-predicate (predicate-list +>+.a))
+                  :-  ~
+                      %+  qualify-predicate
+                          (produce-predicate (predicate-list +>+.a))
+                          table
                   ~
                   ==
+::
+++  produce-column-sets
+  |=  [a=* table=qualified-object:ast]
+  ~+
+  ^-  [(list @t) (list datum:ast)]
+  =/  columns=(list @t)  ~
+  =/  values=(list datum:ast)  ~
+  |-
+  ?:  =(a ~)
+    [columns values]
+  ?:  ?&(?=(datum:ast ->.a) ?=(@ -<.a))
+    %=  $
+      columns  [-<.a columns]
+      values   ?.  ?=(qualified-column:ast ->.a)
+                 [->.a values]
+               :-  %:  qualified-column:ast  %qualified-column
+                                             table
+                                             column.->.a
+                                             alias.->.a
+                                             ==
+                   values
+      a        +.a
+    ==
+  ~|("cannot parse column setting {<a>}" !!)
 ::
 ::  helper types
 ::

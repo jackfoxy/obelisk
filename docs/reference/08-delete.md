@@ -1,12 +1,11 @@
 # DELETE
-*supported in urQL parser, not yet supported in Obelisk*
 
 Deletes rows from a `<table-set>`.
 
 ```
 <delete> ::=
   DELETE [ FROM ] <table>
-    [ WHERE <predicate> ]
+    WHERE <predicate>
   [ <as-of-time> ]
 ```
 ### API
@@ -26,7 +25,7 @@ Deletes rows from a `<table-set>`.
 The target of the `DELETE` operation.
 
 **`<predicate>`**
-Any valid `<predicate>`, including predicates on CTEs.
+Any valid `<predicate>`, including predicates on CTEs determining rows to delete.
 
 **`<as-of-time>`**
 Timestamp of table row[s] deletion. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.

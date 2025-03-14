@@ -1,5 +1,5 @@
 # MERGE
-*supported in urQL parser, not yet supported in Obelisk*
+*partially supported in urQL parser, not yet supported in Obelisk*
 *some experimental stuff proposed here, take with a grain of salt*
 
 `MERGE` is a statement that conditionally performs `INSERT`, `UPDATE`, or `DELETE` operations. It modifies the content of the `<target-table>`, merging data from the `<source-table>` and static `<common-table-expression>` sources.
