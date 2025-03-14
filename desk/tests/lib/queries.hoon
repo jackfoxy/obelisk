@@ -4233,6 +4233,7 @@
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  test alternating file alias case in predicate, tables inverted
 ++  test-join-06
   =|  run=@ud
@@ -5410,6 +5411,64 @@
                   %db1
                   "FROM db1..tbl1 ".
                   "JOIN db1..tbl1 ".
+                  "SELECT year"
+::
+::  same object 2X with unknown column
+++  test-fail-join-01
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              ==
+  %+  expect-fail-message
+        'SELECT: column %year-month not found'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db1..tbl1 ".
+                  "JOIN db1..tbl1 ".
+                  "SELECT year-month"
+::
+::  fail natural join on incompatible keys
+++  test-fail-join-02
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              "CREATE TABLE calendar ".
+                              "( date        @da, ".
+                              "  year        @ud, ".
+                              "  month       @ud, ".
+                              "  month-name  @t, ".
+                              "  day         @ud, ".
+                              "  day-name    @t, ".
+                              "  day-of-year @ud, ".
+                              "  weekday     @ud, ".
+                              "  year-week   @ud ) ".
+                              "  PRIMARY KEY (date, year, month); "
+                              ==
+  %+  expect-fail-message
+        %-  crip
+            "no natural join or foreign key join , columns do not match: ".
+            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "name=%tbl1 alias=~] ".
+            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "name=%calendar alias=~]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db1..tbl1 ".
+                  "JOIN calendar ".
                   "SELECT year"
 ::
 ::  bugs
