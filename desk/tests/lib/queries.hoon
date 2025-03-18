@@ -5391,6 +5391,100 @@
   (eval-results expected-cross-aliased ;;(cmd-result ->+>+>+<.mov3))
   (eval-results expected-cross-as-of ;;(cmd-result ->+>+>+<.mov4))
   ==
+
+::
+::  test 3 natural joins
+++  test-join-23
+  =|  run=@ud
+  =/  insert-tbl3
+  "INSERT INTO tbl3 ".
+  "VALUES ".
+  "(~2023.12.21, 2023, 12, 21, 'row-1') ".
+  "(~2023.12.24, 2023, 12, 24, 'row-2') ".
+  "(~2023.12.25, 2023, 12, 25, 'row-3') ".
+  "(~2023.12.26, 2023, 12, 26, 'row-4') ".
+  "(~2023.12.30, 2023, 12, 30, 'row-5') ".
+  "(~2023.12.31, 2023, 12, 31, 'row-6') ".
+  "(~2024.1.1, 2024, 1, 1, 'row-7') ".
+  "(~2024.1.2, 2024, 1, 2, 'row-8') ".
+  "(~2024.2.7, 2024, 2, 7, 'row-9') ".
+  "(~2024.3.3, 2024, 3, 3, 'row-10') ".
+  "(~2024.3.4, 2024, 3, 4, 'row-11') ".
+  "(~2024.3.8, 2024, 3, 8, 'row-12') ".
+  "(~2024.4.1, 2024, 4, 1, 'row-13') ".
+  "(~2024.4.2, 2024, 4, 2, 'row-14') ".
+  "(~2024.4.7, 2024, 4, 7, 'row-15') ".
+  "(~2024.4.8, 2024, 4, 8, 'row-16');"
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              "CREATE TABLE tbl3 ".
+                              "(date      @da,".
+                              " year      @ud,".
+                              " month     @ud,".
+                              " day       @ud,".
+                              " row-name  @t)".
+                              "  PRIMARY KEY (date);"
+                              insert-tbl3
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN tbl3 T3 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
@@ -5458,9 +5552,7 @@
                               ==
   %+  expect-fail-message
         %-  crip
-            "no natural join or foreign key join , columns do not match: ".
-            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-            "name=%tbl1 alias=~] ".
+            "no natural join or foreign key join, columns do not match: ".
             "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
             "name=%calendar alias=~]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))

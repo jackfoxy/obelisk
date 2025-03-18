@@ -258,7 +258,6 @@
                       [%vector-count ->+.r]
                       ==
               results
-
       ==
   ==
 ::
@@ -372,7 +371,6 @@
     ?:  force.drop  %.y
       ?.  (is-content-populated db now.bowl)  %.y
       ~|("{<name.drop>} has populated tables and `FORCE` was not specified" !!)
-
   =/  sys-db  (~(got by state) %sys)
   =.  view-cache.sys-db  %+  run:tab:view-cache-key  view-cache.sys-db
                                                      |=(a=cache [%cache +<.a ~])
@@ -665,7 +663,6 @@
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result)]]
-
   =/  ctes=(list cte:ast)  ctes.selection  :: To Do - map CTEs
   %:  do-set-functions  set-functions.selection
                         query-has-run
@@ -682,11 +679,6 @@
           next-data=(map @tas @da)
           next-schemas=(map @tas @da)
       ==
-  ::  =/  rtree  ^+((~(rdc of tree) foo) tree)
-  ::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
-  ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
-  ::  ?~  rtree  !!  :: fuse loop
-
   ^-  [? [(map @tas @da) server (list result)]]
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
@@ -836,62 +828,53 @@
                [%data-time created-tmsp:(~(got by state) %sys)]
                (result %vector-count 1)
                ==
-  =/  all-join=[server (list from-obj)]
-        (join-all(state state, bowl bowl) q)
-  =/  =data-obj  (vector-data +.all-join q)
+  =/  =join-return        (join-all(state state, bowl bowl) q)
+  =/  output=[@ud (list vector)]  %:  vector-data  join-data.join-return
+                                                   q
+                                                   data-objs.join-return
+                                                   type-lookup.join-return
+                                                   qualified-columns.join-return
+                                                   ==
   ::
-  :-  -.all-join  :: state
+  :-  server.join-return  :: state
       %-  zing  :~  :~  [%message 'SELECT']
-                        [%result-set rows.data-obj]
+                        [%result-set +.output]
                         [%server-time now.bowl]
                         ==
-                    (from-obj-meta +.all-join)
-                    :~  [%vector-count rowcount.data-obj]
+                        (from-obj-meta data-objs.join-return)
+                    :~  [%vector-count -.output]
                         ==
                     ==
 ::
-::  +vector-data:  [(list from-obj) query:ast] -> data-obj
+::  +vector-data:  [(list from-obj) query:ast] -> [@ud (list vector)]
 ++  vector-data
-  |=  $:  sources=(list from-obj)
+  |=  $:  all-data=joined
           q=query:ast
+          sources=(list from-obj)
+          type-lookup=lookup-type
+          qualified-columns=(list qual-col-type)
           ==
-  ^-  data-obj
-  ?~  sources  ~|("can't get here" !!)
-  =/  single-source  =(1 (lent sources)) 
-  =/  =from-obj  ?:  single-source  -.sources
-                 -:(flop sources)
+  ^-  [@ud (list vector)]
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
   =.  selected  (qualify-unqualified selected qualifier-lookup)
-  =/  init-map=joined-row  ~
-  =.  joined-rows.from-obj
-        ?.  single-source  joined-rows.from-obj
-          %+  turn  indexed-rows.from-obj
-                    |=(a=[(list @) (map @tas @)] (~(put by init-map) object.from-obj +.a))
-  ::
   =/  vectors
       ?~  predicate.q
-          %+  select-columns  joined-rows.from-obj
-                              %+  mk-vect-templ  qualified-columns.from-obj
+          %+  select-columns  joined-rows.all-data
+                              %+  mk-vect-templ  qualified-columns
                                                  selected
-      %^  select-columns-filtered  joined-rows.from-obj
+      %^  select-columns-filtered  joined-rows.all-data
                                    %+  mk-vect-templ
-                                         qualified-columns.from-obj
+                                         qualified-columns
                                          selected
                                    %^  pred-ops-and-conjs
                                          %+  pred-qualify-unqualified
                                               (need predicate.q)
                                               qualifier-lookup
-                                         type-lookup.from-obj
+                                         type-lookup
                                          qualifier-lookup
   ::
-  %:  data-obj  %data-obj
-                schema-tmsp.from-obj
-                data-tmsp.from-obj
-                columns.from-obj
-                (lent vectors)
-                vectors
-                ==
+  [(lent vectors) vectors]
 ::
 ::  +select-columns:
 ::    [(list joined-row) (unit @t) (list templ-cell)]
@@ -925,7 +908,7 @@
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier))
+                  %-  ~(got by (~(got by +.i.rows) qualifier))
                       column:(need object.cell)
             row
   ==
@@ -968,7 +951,7 @@
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier))
+                  %-  ~(got by (~(got by +.i.rows) qualifier))
                       column:(need object.cell)
             row
   ==

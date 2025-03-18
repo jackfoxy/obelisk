@@ -336,11 +336,11 @@
 ::
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-templ-cell
-  |=  a=[qualified-column:ast @ta]
+  |=  a=qual-col-type
   ^-  templ-cell
   (templ-cell %templ-cell `-.a `vector-cell`[column.-.a [+.a 0]])
 ++  mk-vect-templ
-  |=  $:  cols=(list [qualified-column:ast @ta])
+  |=  $:  cols=(list qual-col-type)
           selected=(list selected-column:ast)
           ==
   ^-  (list templ-cell)
@@ -349,7 +349,7 @@
     %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
         %+  turn
               cols
-              |=(a=[qualified-column:ast @ta] [[qualifier:-.a column:-.a] +.a])
+              |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
   =/  cells=(list templ-cell)  ~
   ::
   |-
@@ -386,7 +386,7 @@
             %+  turn
               %+  skim
                     cols
-                    |=(a=[qualified-column:ast @ta] =(qualifier.a +.i.selected))
+                    |=(a=qual-col-type =(qualifier.a +.i.selected))
               mk-templ-cell
           cells
     ==
@@ -433,7 +433,7 @@
   ==
 ::
 ++  mk-object-lookup
-  |=  cols=(list [qualified-column:ast @ta])
+  |=  cols=(list qual-col-type)
   ^-  (map @tas (list qualified-object:ast))
   =/  object-lookup=(map @tas (list qualified-object:ast))  ~
   |-
