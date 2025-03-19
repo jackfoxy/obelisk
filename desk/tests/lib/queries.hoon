@@ -2749,6 +2749,14 @@
   " day         @ud,".
   " month-name  @t)".
   "  PRIMARY KEY (year, month, day);"
+++  create-tbl3
+  "CREATE TABLE tbl3 ".
+  "(date      @da,".
+  " year      @ud,".
+  " month     @ud,".
+  " day       @ud,".
+  " row-name  @t)".
+  "  PRIMARY KEY (date);"
 ++  create-cross-tbl
   "CREATE TABLE cross ".
   "(cross-key  @ud,".
@@ -2882,6 +2890,25 @@
   "(2024, 4, 7, 'Sunday') ".
   "(2024, 4, 8, 'Monday') ".
   "(2024, 4, 9, 'Tuesday');"
+++  insert-tbl3
+  "INSERT INTO tbl3 ".
+  "VALUES ".
+  "(~2023.12.21, 2023, 12, 21, 'row-1') ".
+  "(~2023.12.24, 2023, 12, 24, 'row-2') ".
+  "(~2023.12.25, 2023, 12, 25, 'row-3') ".
+  "(~2023.12.26, 2023, 12, 26, 'row-4') ".
+  "(~2023.12.30, 2023, 12, 30, 'row-5') ".
+  "(~2023.12.31, 2023, 12, 31, 'row-6') ".
+  "(~2024.1.1, 2024, 1, 1, 'row-7') ".
+  "(~2024.1.2, 2024, 1, 2, 'row-8') ".
+  "(~2024.2.7, 2024, 2, 7, 'row-9') ".
+  "(~2024.3.3, 2024, 3, 3, 'row-10') ".
+  "(~2024.3.4, 2024, 3, 4, 'row-11') ".
+  "(~2024.3.8, 2024, 3, 8, 'row-12') ".
+  "(~2024.4.1, 2024, 4, 1, 'row-13') ".
+  "(~2024.4.2, 2024, 4, 2, 'row-14') ".
+  "(~2024.4.7, 2024, 4, 7, 'row-15') ".
+  "(~2024.4.8, 2024, 4, 8, 'row-16');"
 ++  expect-rows-1
       :~
         :-  %vector
@@ -3611,7 +3638,7 @@
                   [%cross-key [~.ud q=1]]
                   [%cross-2 [~.p q=1.624.961.343]]
                   [%cross-3 [~.t q=27.353.046.622.106.211]]
-      ==
+                  ==
           :-  %vector
              :~  [%year [~.ud q=2.023]]
                   [%month [~.ud q=12]]
@@ -3631,6 +3658,92 @@
                   [%cross-3 [~.t q=27.353.046.622.106.211]]
                   ==
           ==
+++  expected-natural-cross-rows
+        :~  :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    ==
+            ==
 ++  expected-cross-aliased-rows
       :~  :-  %vector
               :~  [%year [~.ud q=2.023]]
@@ -5396,25 +5509,6 @@
 ::  test 3 natural joins
 ++  test-join-23
   =|  run=@ud
-  =/  insert-tbl3
-  "INSERT INTO tbl3 ".
-  "VALUES ".
-  "(~2023.12.21, 2023, 12, 21, 'row-1') ".
-  "(~2023.12.24, 2023, 12, 24, 'row-2') ".
-  "(~2023.12.25, 2023, 12, 25, 'row-3') ".
-  "(~2023.12.26, 2023, 12, 26, 'row-4') ".
-  "(~2023.12.30, 2023, 12, 30, 'row-5') ".
-  "(~2023.12.31, 2023, 12, 31, 'row-6') ".
-  "(~2024.1.1, 2024, 1, 1, 'row-7') ".
-  "(~2024.1.2, 2024, 1, 2, 'row-8') ".
-  "(~2024.2.7, 2024, 2, 7, 'row-9') ".
-  "(~2024.3.3, 2024, 3, 3, 'row-10') ".
-  "(~2024.3.4, 2024, 3, 4, 'row-11') ".
-  "(~2024.3.8, 2024, 3, 8, 'row-12') ".
-  "(~2024.4.1, 2024, 4, 1, 'row-13') ".
-  "(~2024.4.2, 2024, 4, 2, 'row-14') ".
-  "(~2024.4.7, 2024, 4, 7, 'row-15') ".
-  "(~2024.4.8, 2024, 4, 8, 'row-16');"
   =/  expected-rows
         :~  :-  %vector
                 :~  [%row-name [~.t 'row-3']]
@@ -5464,13 +5558,7 @@
                               insert-calendar
                               create-holiday-calendar
                               insert-holiday-calendar
-                              "CREATE TABLE tbl3 ".
-                              "(date      @da,".
-                              " year      @ud,".
-                              " month     @ud,".
-                              " day       @ud,".
-                              " row-name  @t)".
-                              "  PRIMARY KEY (date);"
+                              create-tbl3
                               insert-tbl3
                               ==
   =.  run  +(run)
@@ -5483,6 +5571,401 @@
                 "JOIN holiday-calendar T2 ".
                 "JOIN tbl3 T3 ".
                 "SELECT row-name, T1.day-name, T2.*, T3.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and cross join
+++  test-join-24
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-natural-cross-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN tbl3 T3 ".
+                "CROSS JOIN cross T4 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and cross join, join order 2
+++  test-join-25
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-natural-cross-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "CROSS JOIN cross T4 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN tbl3 T3 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and cross join, join order 3
+++  test-join-26
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-natural-cross-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl3 T3 ".
+                "CROSS JOIN cross T4 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN calendar T1 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and 2 cross joins
+++  test-join-27
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross2']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 12]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              "CREATE TABLE cross2 ".
+                              "(cross-key2  @ud,".
+                              " cross-42    @t)".
+                              "  PRIMARY KEY (cross-key2);"
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              "INSERT INTO cross2 ".
+                              "VALUES ".
+                              "(1, 'cross-1a') ".
+                              "(3, 'cross-3b');"
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl3 T3 ".
+                "CROSS JOIN cross T4 ".
+                "JOIN holiday-calendar T2 ".
+                "CROSS JOIN cross2 T5 ".
+                "JOIN calendar T1 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*, cross-42"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
