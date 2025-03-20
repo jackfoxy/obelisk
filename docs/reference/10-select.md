@@ -155,7 +155,7 @@ Used to select columns for ordering and grouping. `<column-ordinal>`s are 1-base
 
 Selects only the first and/or last `n` rows returned by the rest of the query. If the result set is less than `n`, the entire set of rows is returned. 
 
-`TOP` and `BOTTOM` require the presence of an `ORDER BY` clause.
+`TOP` and `BOTTOM` require the presence of an `ORDER BY` clause. This clause must provide for a total ordering of the returned rows, i.e. every sequence of `ORDER BY` columns must be unique within the returned rows. 
 
 ### Remarks
 
