@@ -6,23 +6,30 @@ Many of the commands and clauses in the list below already exist in the urQL gra
 
 Prioritization depends on user feedback and bribery.
 
+## Candidates for beta relase
+
+* __UPDATE__ -- Operates on user-defined tables, not on views; optional predicate
+
+* __JOIN ON__ -- JOIN ON `<predicate>`
+
+* __Set operators__ -- UNION, INTERSECT, EXCEPT, DIVIDED BY, DIVIDED BY WITH REMAINDER
+
+* __ORDER BY ...__ -- order result set
+
+* __path column type__ -- support path type as atoms
+
+
+## other functionality
+
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
 * __Views__ -- views are cached queries and can shadow user-defined tables.
 
 * __Additional system views__ -- security, views, etc.
 
-* __UPDATE__ -- Operates on user-defined tables, not on views; optional predicate.
-
 * __UPSERT__ -- INSERT that does not fail on duplicate key, but rather updates the row.
 
-* __ORDER BY ...__ -- order result set.
-
-* __path column type__ -- support path type as atoms
-
-* __Set operators__ -- UNION, INTERSECT, EXCEPT, DIVIDED BY, DIVIDED BY WITH REMAINDER
-
-* __More JOINs__ -- JOIN ON `<predicate>` and 3 kinds of outer joins.
+* __Outer JOINs__ -- 3 kinds of outer joins.
 
 * __Support column cells and/or jammed nouns__ -- currently only aura-typed atoms supported.
 

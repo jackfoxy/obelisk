@@ -586,7 +586,6 @@
       %^  next-view-cache-keys  db
                                 sys-time
                                 :~  [%sys %tables]
-                                    [%sys %table-keys]
                                     [%sys %data-log]
                                     ==
     %insert
@@ -594,14 +593,17 @@
                             db
                             sys-time
                             %+  weld  %-  limo  :~  [%sys %tables]
-                                                    [%sys %table-keys]
                                                     [%sys %data-log]
                                                     ==
                                       (need sys-vws)
     %update
       ~|("%update not implemented" !!)
     %delete
-      ~|("%delete not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %data-log]
+                                    ==
   ==
 ::
 ::  +next-view-cache-keys:  [database @da (list [@tas @tas])] -> view-cache

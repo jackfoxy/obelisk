@@ -337,7 +337,6 @@
   ^-  joined
   =/  a=(list joined-row)  joined-rows.prior
   =/  out-rows=(list joined-row)  ~
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
   =/  i  0
   ::
   |-

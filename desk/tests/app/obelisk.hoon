@@ -1070,7 +1070,6 @@
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
                        [%sys %tables ~2000.1.3]
-                       [%sys %table-keys ~2000.1.3]
                        [%sys %tables ~2000.1.4]
                        [%sys %table-keys ~2000.1.4]
                        [%sys %columns ~2000.1.4]
@@ -1202,12 +1201,10 @@
                        [%sys %tables ~2000.1.2]
                        [%sys %table-keys ~2000.1.2]
                        [%sys %tables ~2000.1.3]
-                       [%sys %table-keys ~2000.1.3]
                        [%sys %sys-log ~2000.1.2]
                        [%sys %data-log ~2000.1.2]
                        [%sys %data-log ~2000.1.3]
                        [%sys %tables ~2000.1.4]
-                       [%sys %table-keys ~2000.1.4]
                        [%sys %data-log ~2000.1.4]
                        ==
                   ~[~2000.1.1 ~2000.1.2 ~2000.1.3 ~2000.1.4]
@@ -1471,7 +1468,6 @@
                        [%sys %tables ~2023.7.9..22.35.35..7e90]
                        [%sys %table-keys ~2023.7.9..22.35.35..7e90]
                        [%sys %tables ~2023.7.9..22.35.36..7e90]
-                       [%sys %table-keys ~2023.7.9..22.35.36..7e90]
                        [%sys %data-log ~2023.7.9..22.35.35..7e90]
                        [%sys %data-log ~2023.7.9..22.35.36..7e90]
                        ==
