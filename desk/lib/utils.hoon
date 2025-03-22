@@ -50,6 +50,7 @@
 ::  +reduce-key:  (list key-column) -> (list [@ta ?])
 ++  reduce-key
   |=  key=(list key-column)
+  ^-  (list [@ta ?])
   (turn key |=(a=key-column [aura.a ascending.a]))
 ::
 ::  +idx-comp

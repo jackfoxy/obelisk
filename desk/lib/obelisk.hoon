@@ -676,10 +676,12 @@
             ==
   :: 
   =/  primary-key  (pri-key key.pri-indx.tbl)
-
-  ::=/  comparator=$-([(list @) (list @)] ?)  ~(order idx-comp (reduce-key primary-key))
-  ::=.  pri-idx.file   (gas:primary-key *((mop (list @) (map @tas @)) comparator) indexed-rows.file)
-
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.tbl))
+  =.  pri-idx.file
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             indexed-rows.file
+  ::
   =.  rowcount.file  new-rowcount
   =.  tmsp.file      sys-time
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
@@ -915,7 +917,7 @@
   ~|  "INSERT: {<tbl-key>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
   =/  file-row=(map @tas @)  (row-cells row cols)
-  =/  row-key
+  =/  row-key=(list @)
         %+  turn
             key-pick
             |=(a=[p=@tas q=@ud] (key-atom [p.a file-row]))
