@@ -25,12 +25,12 @@ Creates a new table within the specified or default database.
 ```
 +$  create-table
   $:
-    %create-table
+    %update
     table=qualified-object
-    columns=(list column)
-    pri-indx=(list ordered-column)
-    foreign-keys=(list foreign-key)
     as-of=(unit as-of)
+    columns=(list @tas)
+    values=(list value-or-default)
+    predicate=(unit predicate)
   ==
 ```
 

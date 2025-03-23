@@ -4,11 +4,10 @@ Inserts rows into a `<table>`.
 
 ```
 <insert> ::=
-  INSERT INTO <table>
+  INSERT INTO <table> [ <as-of-time> ]
     [ ( <column> [ ,...n ] ) ]
     { VALUES (<scalar-expression> [ ,...n ] ) [ ...n ]
       | <selection> }
-    [ <as-of-time> ]
 ```
 
 ```
@@ -23,9 +22,9 @@ Inserts rows into a `<table>`.
   $:
     %insert
     table=qualified-object
-    columns=(unit (list @t))
-    values=insert-values
     as-of=(unit as-of)
+    columns=(unit (list @tas))
+    values=insert-values
   ==
 ```
 

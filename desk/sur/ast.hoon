@@ -140,7 +140,7 @@
           aggregate
           ==
 +$  predicate            (tree predicate-component)
-+$  datum                $%(qualified-column dime)
++$  datum                $%(qualified-column unqualified-column dime)
 +$  datum-or-scalar      $@(datum scalar-function)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
@@ -339,8 +339,8 @@
   $:
     %delete
     table=qualified-object
-    predicate=predicate
     as-of=(unit as-of)
+    predicate=predicate
   ==
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
@@ -349,9 +349,9 @@
   $:
     %insert
     table=qualified-object
+    as-of=(unit as-of)
     columns=(unit (list @tas))
     values=insert-values
-    as-of=(unit as-of)
   ==
 +$  value-or-default     ?(%default datum)
 ::
@@ -360,10 +360,11 @@
   $:
     %update
     table=qualified-object
-    columns=(list @tas)
-    values=(list value-or-default)
-    predicate=(unit predicate)
     as-of=(unit as-of)
+    $:  columns=(list qualified-column)
+        values=(list value-or-default)
+        ==
+    predicate=(unit predicate)
   ==
 ::
 ::  $merge: merge from source table-set into target table-set

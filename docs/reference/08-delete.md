@@ -4,9 +4,8 @@ Deletes rows from a `<table-set>`.
 
 ```
 <delete> ::=
-  DELETE [ FROM ] <table>
+  DELETE [ FROM ] <table> [ <as-of-time> ]
     WHERE <predicate>
-  [ <as-of-time> ]
 ```
 ### API
 ```
@@ -14,8 +13,8 @@ Deletes rows from a `<table-set>`.
   $:
     %delete
     table=qualified-object
-    predicate=(unit predicate)
     as-of=(unit as-of)
+    predicate=predicate
   ==
 ```
 

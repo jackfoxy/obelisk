@@ -584,8 +584,9 @@
                                   [(get-qualifier l qualifier-lookup) column.l]
                         in-list
                   joined-row
-      %+  bake  (cury (cury in-lit-list +.l) in-list)
-                joined-row
+      ?:  ?=(dime l)
+        (bake (cury (cury in-lit-list +.l) in-list) joined-row)
+      ~|("to do: handle unqualified-column in predicate" !!)
     %not-in
       =/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
                    ?:  ?=(dime -.l.p)  -.l.p
@@ -614,8 +615,9 @@
                                   [(get-qualifier l qualifier-lookup) column.l]
                         in-list
                   joined-row
-      %+  bake  (cury (cury not-in-lit-list +.l) in-list)
-                joined-row
+      ?:  ?=(dime l)
+        (bake (cury (cury not-in-lit-list +.l) in-list) joined-row)
+      ~|("to do: handle unqualified-column in predicate" !!)
     ==
 ::
 ++  get-qualifier

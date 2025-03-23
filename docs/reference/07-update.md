@@ -5,10 +5,9 @@ Changes content of selected columns in existing rows of a `<table-set>`.
 
 ```
 <update> ::=
-  UPDATE [ <ship-qualifier> ] <table>
+  UPDATE [ <ship-qualifier> ] <table> [ <as-of-time> ]
     SET { <column> = <scalar-expression> } [ ,...n ]
     [ WHERE <predicate> ]
-  [ <as-of-time> ]
 ```
 
 ### API
@@ -17,10 +16,10 @@ Changes content of selected columns in existing rows of a `<table-set>`.
   $:
     %update
     table=qualified-object
-    columns=(list @t)
+    as-of=(unit as-of)
+    columns=(list @tas)
     values=(list value-or-default)
     predicate=(unit predicate)
-    as-of=(unit as-of)
   ==
 ```
 
