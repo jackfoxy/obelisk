@@ -1436,8 +1436,8 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
-                "AS OF ~2023.7.9..22.35.36..7e90"
+                "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.36..7e90 ".
+                "(col1) VALUES ('cord') "
     ==
   =+  !<(=state on-save:agent)
   ;:  weld

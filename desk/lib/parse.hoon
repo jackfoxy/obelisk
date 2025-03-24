@@ -2167,41 +2167,64 @@
   |=  a=*
   ~+
   ^-  insert:ast
-  ?:  ?=([[[* %values * %as-of %now] @ @]] a)  :: insert rows as of now
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) ~)
-  ?:  ?=([[[* %values * %as-of [@ @]]] @ @] a)  :: insert rows as of date
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) [~ ->+>+.a])
-  ?:  ?=([[[* %values * %as-of *]] @ @] a)  :: insert rows as of offset
+  =/  table  -<.a
+  =/  c      ->.a
+  ::
+  ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
     %:  insert:ast  %insert
-                    -<.a
-                    ~
-                    (insert-values:ast %data ->+<.a)
-                    [~ (as-of-offset:ast %as-of-offset ->+>+<.a ->+>+>-.a)]
-                    ==
-  ?:  ?=([[* [* %values] * %as-of %now] @ @] a) :: insert columns rows as of now
-    (insert:ast %insert -<.a `->-<.a (insert-values:ast %data ->+<.a) ~)
-  ?:  ?=([[* [* %values] * %as-of [@ @]] @ @] a) :: insert cols rows as of date
-     %:  insert:ast  %insert
-                    -<.a
-                    `->-<.a
-                    (insert-values:ast %data ->+<.a)
-                    [~ ->+>+.a]
-                    ==
-  ?:  ?=([[* [* %values] * %as-of *] @ @] a) :: insert cols rows as of offset
-     %:  insert:ast  %insert
-                    -<.a
-                    `->-<.a
-                    (insert-values:ast %data ->+<.a)
-                    [~ (as-of-offset:ast %as-of-offset ->+>+<.a ->+>+>-.a)]
-                    ==
-  ?:  ?=([[* %values *] @ @] a)            :: insert rows
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+.a) ~)
-  ?:  ?=([[* [* %values] *] @ @] a)        :: insert column names rows
+                     table
+                     ~
+                     ~
+                     (insert-values:ast %data +>.c)
+                     ==
+  ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
     %:  insert:ast  %insert
-                    -<.a
-                    `->-<.a
-                    (insert-values:ast %data ->+.a)
+                    table
+                    [~ ->.c]
                     ~
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
+    %:  insert:ast  %insert
+                    table
+                    [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
+                    ~
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    `+<-.c
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
+     %:  insert:ast  %insert
+                    table
+                    [~ ->.c]
+                    `+<-.c
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
+     %:  insert:ast  %insert
+                    table
+                    [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
+                    `+<-.c
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([%values *] c)            :: insert rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    ~
+                    (insert-values:ast %data +.c)
+                    ==
+  ?:  ?=([[* %values] *] c)        :: insert column names rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    `-<.c
+                    (insert-values:ast %data +.c)
                     ==
   ~|("Cannot parse insert {<a>}" !!)
 ++  produce-matching-profile

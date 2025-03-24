@@ -721,9 +721,8 @@
   =/  my-insert-1  "INSERT INTO db1..my-table (col1, col2, col3) ".
                    "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) "
   =/  my-insert-2  
-        "INSERT INTO db1..my-table (col1, col2, col3) ".
-        "VALUES ('cord2',~nomryg-nilref,20) ('Default2',Default, 0) ".
-        "AS OF ~2012.5.1"
+        "INSERT INTO db1..my-table AS OF ~2012.5.1 (col1, col2, col3) ".
+        "VALUES ('cord2',~nomryg-nilref,20) ('Default2',Default, 0) "
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -757,9 +756,9 @@
 :: fail on bad AS OF schema time
 ++  test-fail-insert-11
   =|  run=@ud
-  =/  my-insert  "INSERT INTO db1..my-table (col1, col2, col3) ".
-                 "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) ".
-                 "AS OF ~2012.5.1"
+  =/  my-insert  "INSERT INTO db1..my-table AS OF ~2012.5.1 ".
+                 "(col1, col2, col3) ".
+                 "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) "
   ::
   =^  mov1  agent
     %:  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -787,9 +786,9 @@
 :: successful AS OF insert followed by fail on data time
 ++  test-fail-insert-12
   =|  run=@ud
-  =/  my-insert-1  "INSERT INTO db1..my-table (col1, col2, col3) ".
-                   "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) ".
-                   "AS OF ~2012.5.5"
+  =/  my-insert-1  "INSERT INTO db1..my-table AS OF ~2012.5.5 ".
+                   "(col1, col2, col3) ".
+                   "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) "
   =/  my-insert-2  "INSERT INTO db1..my-table (col1, col2, col3) ".
                    "VALUES ('cord2',~nomryg-nilref,20) ('Default2',Default, 0) "
   ::
@@ -836,8 +835,8 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
-                "AS OF ~2023.7.9..22.35.35..7e90"
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t) PRIMARY KEY (col1) AS OF ~2023.7.9..22.35.35..7e90 "
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -853,8 +852,8 @@
           %obelisk-action
           !>  :+  %test
                   %db1
-                  "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
-                  "AS OF ~2023.7.9..22.35.36..7e90"
+                  "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.36..7e90".
+                  " (col1) VALUES ('cord') "
 ::
 ::  fail on time,  insert < schema
 ++  test-fail-insert-14
@@ -870,8 +869,8 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
-                "AS OF ~2023.7.9..22.35.34..7e90"
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t) PRIMARY KEY (col1) AS OF ~2023.7.9..22.35.34..7e90 "
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -887,8 +886,8 @@
           %obelisk-action
           !>  :+  %test
                   %db1
-                  "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
-                  "AS OF ~2023.7.9..22.35.35..7e90"
+                  "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.35..7e90 ".
+                  "(col1) VALUES ('cord') "
 ::
 ::  fail on time,  insert = data
 ++  test-fail-insert-15
@@ -904,8 +903,8 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1) ".
-                "AS OF ~2023.7.9..22.35.34..7e90"
+                "CREATE TABLE db1..my-table ".
+                " (col1 @t) PRIMARY KEY (col1) AS OF ~2023.7.9..22.35.34..7e90"
     ==
   =.  run  +(run)
   =^  mov3  agent
@@ -913,8 +912,8 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
-                "AS OF ~2023.7.9..22.35.35..7e90"
+                "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.35..7e90 ".
+                " (col1) VALUES ('cord') "
     ==
   =.  run  +(run)
   ::
@@ -924,8 +923,8 @@
           %obelisk-action
           !>  :+  %test
                   %db1
-                  "INSERT INTO db1..my-table (col1) VALUES ('foo') ".
-                  "AS OF ~2023.7.9..22.35.35..7e90"
+                  "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.35..7e90 ".
+                  "(col1) VALUES ('foo') "
 ::
 ::  fail on time,  insert < data
 ++  test-fail-insert-16
@@ -950,8 +949,8 @@
         %obelisk-action
         !>  :+  %tape
                 %db1
-                "INSERT INTO db1..my-table (col1) VALUES ('cord') ".
-                "AS OF ~2023.7.9..22.35.35..7e90"
+                "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.35..7e90 ".
+                "(col1) VALUES ('cord') "
     ==
   =.  run  +(run)
   ::
@@ -961,8 +960,8 @@
           %obelisk-action
           !>  :+  %test
                   %db1
-                  "INSERT INTO db1..my-table (col1) VALUES ('foo') ".
-                  "AS OF ~2023.7.9..22.35.34..7e90"
+                  "INSERT INTO db1..my-table AS OF ~2023.7.9..22.35.34..7e90 ".
+                  "(col1) VALUES ('foo') "
 ::
 ::  fail on changing state after select in script
 ++  test-fail-insert-17

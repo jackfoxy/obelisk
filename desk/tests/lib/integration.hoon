@@ -161,8 +161,7 @@
         !>  :+  %tape
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord'); ".
-                "INSERT INTO db1..my-table VALUES ('cord2') ".
-                "AS OF ~2000.1.4"
+                "INSERT INTO db1..my-table AS OF ~2000.1.4 VALUES ('cord2') "
     ==
   =.  run  +(run)
   =^  mov5  agent
@@ -378,8 +377,8 @@
         !>  :+  %tape
                 %db1
                 "TRUNCATE TABLE my-table;  ".
-                "INSERT INTO db1..my-table VALUES ('cord2') ('cord3') ".
-                "AS OF ~2000.1.5"
+                "INSERT INTO db1..my-table AS OF ~2000.1.5 ".
+                "VALUES ('cord2') ('cord3') "
     ==
   ::
   %+  expect-eq
@@ -430,12 +429,12 @@
                 "CREATE DATABASE db2 AS OF ~2000.1.1;".
                 "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) ".
                 "       PRIMARY KEY (col1) AS OF ~2000.1.1; ".
-                "INSERT INTO db2..my-table-1 ".
+                "INSERT INTO db2..my-table-1  AS OF ~2000.1.1".
                 "  (col1, col2) ".
                 "VALUES".
                 "  ('today', ~2000.1.1)".
                 "  ('tomorrow', ~2000.1.2)".
-                "  ('next day', ~2000.1.3) AS OF ~2000.1.1;".
+                "  ('next day', ~2000.1.3);".
                 "INSERT INTO db2..my-table-1 ".
                 "  (col1, col2) ".
                 "VALUES".
@@ -545,12 +544,12 @@
                 "CREATE DATABASE db2 AS OF ~2000.1.1;".
                 "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) ".
                 "       PRIMARY KEY (col1) AS OF ~2000.1.1; ".
-                "INSERT INTO db2..my-table-1 ".
+                "INSERT INTO db2..my-table-1  AS OF ~2000.1.1".
                 "  (col1, col2) ".
                 "VALUES".
                 "  ('today', ~2000.1.1)".
                 "  ('tomorrow', ~2000.1.2)".
-                "  ('next day', ~2000.1.3) AS OF ~2000.1.1;".
+                "  ('next day', ~2000.1.3);".
                 "DROP TABLE FORCE db2..my-table-1;"
     ==
   =.  run  +(run)
@@ -586,12 +585,12 @@
                   "  ('today', ~2000.1.1)".
                   "  ('tomorrow', ~2000.1.2)".
                   "  ('next day', ~2000.1.3);".
-                  "INSERT INTO db2..my-table-1 ".
+                  "INSERT INTO db2..my-table-1  AS OF ~2000.1.1".
                   "  (col1, col2) ".
                   "VALUES".
                   "  ('next-today', ~2000.1.1)".
                   "  ('next-tomorrow', ~2000.1.2)".
-                  "  ('next-next day', ~2000.1.3) AS OF ~2000.1.1;"
+                  "  ('next-next day', ~2000.1.3);"
 ::
 ::  create db, create tbl, insert with AS OF; DROP Table, fail select
 ++  test-fail-integrate-01
@@ -605,12 +604,12 @@
                 "CREATE DATABASE db2 AS OF ~2000.1.1;".
                 "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) ".
                 "       PRIMARY KEY (col1) AS OF ~2000.1.1; ".
-                "INSERT INTO db2..my-table-1 ".
+                "INSERT INTO db2..my-table-1  AS OF ~2000.1.1".
                 "  (col1, col2) ".
                 "VALUES".
                 "  ('today', ~2000.1.1)".
                 "  ('tomorrow', ~2000.1.2)".
-                "  ('next day', ~2000.1.3) AS OF ~2000.1.1;".
+                "  ('next day', ~2000.1.3);".
                 "DROP TABLE FORCE db2..my-table-1;"
     ==
 
