@@ -833,30 +833,33 @@
   ^-  [(map @tas @da) server (list result)]
   =/  db  ~|  "INSERT: database {<database.table.ins>} does not exist"
           (~(got by state) database.table.ins)
-  =/  sys-time  (set-tmsp as-of.ins now.bowl)
+  =/  content-time  (set-tmsp as-of.ins now.bowl)
   =/  nxt-schema=schema  ~|  "INSERT: table {<name.table.ins>} ".
                              "as-of schema time out of order"
                          %:  get-next-schema  sys.db
                                               next-schemas
-                                              sys-time
+                                              now.bowl
                                               database.table.ins
                                               ==
   =/  nxt-data=data  ~|  "INSERT: table {<name.table.ins>} ".
                          "as-of data time out of order"
                      %:  get-next-data  content.db
                                         next-data
-                                        sys-time
+                                        now.bowl
                                         database.table.ins
                                         ==
   =/  tbl-key  [namespace.table.ins name.table.ins]
   =/  =table  ~|  "INSERT: table {<tbl-key>} does not exist"
               %-  ~(got by tables:nxt-schema)
                   tbl-key
-  =/  =file  (~(got by files.nxt-data) tbl-key)
-  =.  tmsp.file            sys-time
+  =/  =file  ::(~(got by files.nxt-data) tbl-key)
+        (get-content content.db content-time tbl-key)
+  =/  source-content-time  tmsp.file
+  ::
+  =.  tmsp.file            now.bowl
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
-  =.  tmsp.nxt-data        sys-time
+  =.  tmsp.nxt-data        now.bowl
   ::
   =/  cols=(list column:ast)
         ?~  columns.ins
@@ -880,17 +883,17 @@
             |=(a=key-column (make-key-pick name.a column-lookup.table))
   =/  primary-key  (pri-key key.pri-indx.table)
   ::
-  =.  state          (update-sys state sys-time)
+  =.  state          (update-sys state now.bowl)
   ::
   |-
   ?~  value-table
-    :+  (~(put by next-data) database.table.ins sys-time)
+    :+  (~(put by next-data) database.table.ins now.bowl)
       :: %:  upd-indices-views to do: revisit when there are views & indices
       %+  ~(put by state)  name.db
                            %=  db
                            content  %^  put:data-key
                                         content.db
-                                        sys-time
+                                        now.bowl
                                         %:  update-file  file
                                                          nxt-data
                                                          tbl-key
@@ -898,7 +901,7 @@
                                                          ==
                            view-cache  %:  upd-view-caches  state
                                                             db
-                                                            sys-time
+                                                            now.bowl
                                             :: to do: get list of effected views
                                                             [~ ~]
                                                             %insert
@@ -908,7 +911,7 @@
               (crip "INSERT INTO {<namespace.table.ins>}.{<name.table.ins>}")
           [%server-time now.bowl]
           [%schema-time tmsp.table]
-          [%data-time sys-time]
+          [%data-time source-content-time]
           [%message 'inserted:']
           [%vector-count i]
           [%message 'table data:']

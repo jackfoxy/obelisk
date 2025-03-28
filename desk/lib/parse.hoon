@@ -3250,7 +3250,6 @@
   ?.  =(a 0)  $(p (scag i.c `tape`p), c t.c)
   %=  $
     p  (scag i.c `tape`p)
-    ::b  (weld (line-cmnts (slag (add 1 i.c) `tape`p)) b)
     b  (weld (weld (line-cmnts (slag (add 1 i.c) `tape`p)) " ") b)
     c  t.c
   ==

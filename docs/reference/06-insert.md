@@ -49,7 +49,7 @@ Selection creating source `<table-set>` to insert into target. Source auras must
 (Selection is a wrapper for query.)
 
 **`<as-of-time>`**
-Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
+Timestamp equal to or greater than the table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### Remarks
 
@@ -67,8 +67,8 @@ Note that multiple parentheses enclosed rows of column values are NOT comma sepa
 
 message: INSERT INTO <namespace name>.<table name>
 server-time: <timestamp>
-schema-time: <timestamp>
-data-time: <timestamp>
+schema-time: <timestamp>   The most current table schema time
+data-time: <timestamp>     The source content time upon which the INSERT acted
 message: inserted:
 vector count: <count>
 message: table data:

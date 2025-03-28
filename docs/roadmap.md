@@ -18,6 +18,11 @@ Prioritization depends on user feedback and bribery.
 
 * __path column type__ -- support path type as atoms
 
+* __Common Table Expressions (CTE)__ -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server, I forget what this is called in the SQL specification)
+
+* __Issue #1__ -- NOT predicate operator not fully functional
+
+* __Issue #2__ -- IN (list) predicate not fully type checked
 
 ## other functionality
 
@@ -42,8 +47,6 @@ Prioritization depends on user feedback and bribery.
 
 * __GROUP BY...HAVING__ -- as in SQL.
 * __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(*).
-
-* __Common Table Expressions (CTE)__ -- improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server, I forget what this is called in the SQL specification)
 
 * __Stored procedures__ -- Parameterized queries, to be designed (TBD). Possibly urQL + inlined hoon...who knows.
 * __Triggers__ -- TBD. Kick off some other process inside or outside of %obelisk.

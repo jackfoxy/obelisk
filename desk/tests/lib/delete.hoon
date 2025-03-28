@@ -270,10 +270,8 @@
 ::::        %obelisk-action
 ::::        !>([%tape %db1 "FROM calendar SELECT *"])
 ::::  ::
-::::  ;:  weld
-::::      (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
-::::      (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
-::::      ==
+::::  %+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
+::::            (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  %+  expect-fail-message
 ::        'SELECT: column %year must be qualified'
