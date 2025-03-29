@@ -33,9 +33,9 @@ This command mutates the state of the Obelisk agent. It inserts a row into the v
 
 ### Produced Metadata
 
-message:created database <name>
-server-time: <timestamp>
-schema-time: <timestamp>
+message: created database <name>
+server time: <timestamp>
+schema time: <timestamp>
 
 ### Exceptions
 
@@ -85,8 +85,11 @@ Dropping a database is permanent and leaves no trace of the database for time tr
 If the database only contains future dated content. The `DROP` command will succeed without requiring `FORCE`.
 
 ## Produced Metadata
-Schema timestamp
-Content timestamp
+
+message: DROP DATABASE <name>
+server time: <timestamp>
+message: database <name> dropped
+
 
 ## Exceptions
 database must be dropped by local agent

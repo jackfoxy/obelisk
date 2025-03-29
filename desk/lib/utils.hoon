@@ -129,7 +129,7 @@
   ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
 ::
-::  gets the data with the highest timestamp for mutation
+::  gets the data with the highest timestamp for schema mutation
 ++  get-next-data
   |=  $:  content=((mop @da data) gth)
           next-data=(map @tas @da)
@@ -142,6 +142,16 @@
   ?:  =(tmsp.nxt-data sys-time)
     ?:  =((~(got by next-data) db-name) sys-time)  nxt-data
     !!
+  nxt-data
+::
+::  gets the data with the highest timestamp for data mutation
+++  get-data-next
+  |=  $:  content=((mop @da data) gth)
+          sys-time=@da
+      ==
+  ^-  data
+  =/  nxt-data=data  +:(need (pry:data-key content))
+  ?:  (lth sys-time tmsp.nxt-data)  !!
   nxt-data
 ::
 ::  +  get-view:  [data-obj-key views] -> (unit view)

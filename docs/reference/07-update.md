@@ -47,8 +47,14 @@ Cord literal values are represented in single quotes 'this is a cord'. Single qu
 
 ### Produced Metadata
 
-Row count
-Content timestamp
+message UPDATE  <namespace name>.<table name>
+server-time: <timestamp>
+schema-time: <timestamp>   The most current table schema time
+data-time: <timestamp>     The source content time upon which the UPDATE acted
+message: updated:
+vector count: <count>
+message: table data:
+vector count: <count>
 
 ### Exceptions
 

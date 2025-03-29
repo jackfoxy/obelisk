@@ -102,8 +102,8 @@ This command mutates the state of the Obelisk agent.
 ### Produced Metadata
 
 message: CREATE TABLE <name>
-server-time: <timestamp>
-schema-time: <timestamp>
+server time: <timestamp>
+schema time: <timestamp>
 
 ### Exceptions
 
@@ -294,11 +294,11 @@ Cannot drop when the `<table>` is populated unless `FORCE` is specified.
 
 ### Produced Metadata
 
-Schema timestamp
-
-Content timestamp, if the table was populated
-
-Row count (when table was populated)
+message: DROP TABLE <name>
+server time: <timestamp>
+schema time: <timestamp>
+data time <timestamp>
+vector count: <n>
 
 ### Exceptions
 

@@ -1595,7 +1595,8 @@
           %obelisk-action
           !>  :+  %test
                   %db1
-                  "DROP TABLE db1..my-table as of ~2023.7.9..22.35.35..7e90"
+                  "DROP TABLE FORCE db1..my-table ".
+                  "as of ~2023.7.9..22.35.35..7e90"
 ::
 ::  fail on time, drop table < content
 ++  test-fail-drop-table-04
@@ -1627,7 +1628,8 @@
           %obelisk-action
           !>  :+  %test
                   %db1
-                  "DROP TABLE db1..my-table as of ~2023.7.9..22.35.34..7e90"
+                  "DROP TABLE FORCE db1..my-table ".
+                  "as of ~2023.7.9..22.35.34..7e90"
 ::
 ::  fail drop table with data no force
 ++  test-fail-drop-table-05
@@ -1843,7 +1845,7 @@
   ::
   %+  expect-eq
     !>  :-  %results
-            :~  [%message 'TRUNCATE TABLE %dbo.%my-table']
+            :~  [%message 'TRUNCATE TABLE db2.dbo.my-table']
                 [%server-time ~2000.1.5]
                 [%data-time ~2000.1.5]
                 [%vector-count 1]

@@ -5789,6 +5789,65 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
+::  cross database join
+++  test-join-28
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db2.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              "CREATE DATABASE db2;"
+                              create-calendar
+                              insert-calendar
+                              "CREATE TABLE db2..holiday-calendar ".
+                              "(date @da, us-federal-holiday @t) ".
+                              "PRIMARY KEY (date);"
+                              "INSERT INTO db2..holiday-calendar ".
+                              "(date, us-federal-holiday) ".
+                              "VALUES ".
+                              "(~2023.11.23, 'Thanksgiving Day') ".
+                              "(~2023.12.25, 'Christmas Day') ".
+                              "(~2024.1.1, 'New Years Day') ".
+                              "(~2024.1.15, 'Birth of Martin Luther King Jr.');"
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN db2..holiday-calendar T2 ".
+                "SELECT T1.day-name, T2.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud

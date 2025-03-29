@@ -243,16 +243,16 @@
             :-  :-  %results
                     :~  :-  %message
                             %-  crip
-                                "TRUNCATE TABLE ".
-                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
+                                %+  weld  "TRUNCATE TABLE "
+                                    (trip (qualified-object-to-cord table.cmd))
                         [%message 'no data in table to truncate']
                         ==
                 results
           :-  :-  %results
                   :~  :-  %message
                             %-  crip
-                                "TRUNCATE TABLE ".
-                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
+                                %+  weld  "TRUNCATE TABLE "
+                                    (trip (qualified-object-to-cord table.cmd))
                       [%server-time now.bowl]
                       [%data-time -<.r]
                       [%vector-count ->+.r]
@@ -590,125 +590,6 @@
       (~(put by next-data) database.table.d sys-time)
       (~(put by state) name.db db)
 ::
-::  +do-delete:
-::    [delete:ast (map @tas @da) (map @tas @da)] -> table-return
-++  do-delete
-  |=  $:  d=delete:ast
-          next-schemas=(map @tas @da)
-          next-data=(map @tas @da)
-          ==
-  ^-  [(map @tas @da) server (list result)]
-  =/  db  ~|  "DELETE TABLE: database {<database.table.d>} does not exist"
-             (~(got by state) database.table.d)
-  =/  sys-time  (set-tmsp as-of.d now.bowl)
-  =/  nxt-schema=schema
-        ~|  "DELETE TABLE: {<name.table.d>} as-of schema time out of order"
-          %:  get-next-schema  sys.db
-                               next-schemas
-                               sys-time
-                               database.table.d
-                               ==
-  =/  nxt-data=data
-        ~|  "DELETE TABLE: {<name.table.d>} as-of data time out of order"
-          %:  get-next-data  content.db
-                             next-data
-                             sys-time
-                             database.table.d
-                             ==
-  ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
-    ~|("DELETE TABLE: namespace {<namespace.table.d>} does not exist" !!)
-  ::
-  =/  tbl
-    ~|  "DELETE TABLE: {<name.table.d>} ".
-        "does not exists in {<namespace.table.d>}"
-    %-  ~(got by tables:nxt-schema)
-        [namespace.table.d name.table.d]
-  ::
-  =/  file
-    ~|  "DELETE TABLE: {<namespace.table.d>}.{<name.table.d>} does not exist"
-        (~(got by files.nxt-data) [namespace.table.d name.table.d])
-  ?.  (gth rowcount.file 0)  :: don't bother if table is empty
-    :+  next-data
-        state
-        :~  :-  %message
-                %-  crip
-                    "DELETE FROM ".
-                    "{<namespace.table.d>}.{<name.table.d>}"
-            [%server-time now.bowl]
-            [%schema-time tmsp.tbl]
-            [%data-time tmsp.file]
-            [%message 'no rows deleted']
-            ==
-  ::
-  =/  type-lookup=lookup-type
-        %+  ~(put by `lookup-type`~)  
-          table.d
-          (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
-  =/  qualifier-lookup
-        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
-            (turn columns.tbl |=(a=column:ast [name.a (limo ~[table.d])]))
-  =/  filter=$-(joined-row ?)  %^  pred-ops-and-conjs
-                                      %+  pred-qualify-unqualified
-                                          predicate.d
-                                          qualifier-lookup
-                                      type-lookup
-                                      qualifier-lookup
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
-  =.  indexed-rows.file
-        %+  skim
-              indexed-rows.file
-              |=(a=indexed-row !(filter [-.a (~(put by init-map) table.d +.a)]))
-  ::
-  =/  new-rowcount  (lent indexed-rows.file)
-  =/  deleted-rows  (sub rowcount.file new-rowcount)
-  ?:  =(deleted-rows 0)
-    :+  next-data
-        state
-        :~  :-  %message
-                %-  crip
-                    "DELETE FROM ".
-                    "{<namespace.table.d>}.{<name.table.d>}"
-            [%server-time now.bowl]
-            [%schema-time tmsp.tbl]
-            [%data-time tmsp.file]
-            [%message 'no rows deleted']
-            ==
-  :: 
-  =/  primary-key  (pri-key key.pri-indx.tbl)
-  =/  comparator
-        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.tbl))
-  =.  pri-idx.file
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             indexed-rows.file
-  ::
-  =.  rowcount.file  new-rowcount
-  =.  tmsp.file      sys-time
-  =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
-  =.  files.nxt-data       files
-  =.  ship.nxt-data        src.bowl
-  =.  provenance.nxt-data  sap.bowl
-  =.  tmsp.nxt-data        sys-time
-  ::
-  =.  content.db     (put:data-key content.db sys-time nxt-data)
-  =.  view-cache.db  (upd-view-caches state db sys-time ~ %delete)
-  =.  state          (update-sys state sys-time)
-  ::
-  :+  (~(put by next-data) database.table.d sys-time)
-      (~(put by state) name.db db)
-      :~  :-  %message
-              %-  crip
-                  "DELETE FROM ".
-                  "{<namespace.table.d>}.{<name.table.d>}"
-          [%server-time now.bowl]
-          [%schema-time tmsp.tbl]
-          [%data-time tmsp.file]
-          [%message 'deleted:']
-          [%vector-count deleted-rows]
-          [%message msg='table data:']
-          [%vector-count rowcount.file]
-          ==
-::
 ::  +drop-tbl:
 ::    [drop-table:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  drop-tbl
@@ -843,17 +724,11 @@
                                               ==
   =/  nxt-data=data  ~|  "INSERT: table {<name.table.ins>} ".
                          "as-of data time out of order"
-                     %:  get-next-data  content.db
-                                        next-data
-                                        now.bowl
-                                        database.table.ins
-                                        ==
+                     (get-data-next content.db now.bowl)
   =/  tbl-key  [namespace.table.ins name.table.ins]
   =/  =table  ~|  "INSERT: table {<tbl-key>} does not exist"
-              %-  ~(got by tables:nxt-schema)
-                  tbl-key
-  =/  =file  ::(~(got by files.nxt-data) tbl-key)
-        (get-content content.db content-time tbl-key)
+              (~(got by tables:nxt-schema) tbl-key)
+  =/  =file  (get-content content.db content-time tbl-key)
   =/  source-content-time  tmsp.file
   ::
   =.  tmsp.file            now.bowl
@@ -908,7 +783,9 @@
                                                             ==
                             ==
       :~  :-  %message
-              (crip "INSERT INTO {<namespace.table.ins>}.{<name.table.ins>}")
+              %-  crip
+                  %+  weld  "INSERT INTO "
+                            (trip (qualified-object-to-cord table.ins))
           [%server-time now.bowl]
           [%schema-time tmsp.table]
           [%data-time source-content-time]
@@ -929,6 +806,113 @@
                     (put:primary-key pri-idx.file row-key file-row)
   =.  rowcount.file           +(rowcount.file)
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
+::
+::  +do-delete:
+::    [delete:ast (map @tas @da) (map @tas @da)] -> table-return
+++  do-delete
+  |=  $:  d=delete:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [(map @tas @da) server (list result)]
+  =/  db  ~|  "DELETE FROM: database {<database.table.d>} does not exist"
+             (~(got by state) database.table.d)
+  =/  content-time  (set-tmsp as-of.d now.bowl)
+  =/  nxt-schema=schema
+        ~|  "DELETE FROM: {<name.table.d>} as-of schema time out of order"
+          %:  get-next-schema  sys.db
+                               next-schemas
+                               now.bowl
+                               database.table.d
+                               ==
+  =/  nxt-data=data
+        ~|  "DELETE FROM: {<name.table.d>} as-of data time out of order"
+        (get-data-next content.db now.bowl)
+  ::
+  =/  tbl-key  [namespace.table.d name.table.d]
+  =/  table  ~|  "DELETE FROM: table {<tbl-key>} does not exist"
+            (~(got by tables:nxt-schema) tbl-key)
+  =/  file  (get-content content.db content-time tbl-key)
+  =/  source-content-time  tmsp.file
+  ?.  (gth rowcount.file 0)  :: don't bother if table is empty
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    "DELETE FROM {<namespace.table.d>}.{<name.table.d>}"
+            [%server-time now.bowl]
+            [%schema-time tmsp.table]
+            [%data-time tmsp.file]
+            [%message 'no rows deleted']
+            ==
+  ::
+  =/  type-lookup=lookup-type
+        %+  ~(put by `lookup-type`~)  
+          table.d
+          (malt (turn columns.table |=(a=column:ast [name.a type.a])))
+  =/  qualifier-lookup
+        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
+            (turn columns.table |=(a=column:ast [name.a (limo ~[table.d])]))
+  =/  filter=$-(joined-row ?)  %^  pred-ops-and-conjs
+                                      %+  pred-qualify-unqualified
+                                          predicate.d
+                                          qualifier-lookup
+                                      type-lookup
+                                      qualifier-lookup
+  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+  =.  indexed-rows.file
+        %+  skim
+              indexed-rows.file
+              |=(a=indexed-row !(filter [-.a (~(put by init-map) table.d +.a)]))
+  ::
+  =/  new-rowcount  (lent indexed-rows.file)
+  =/  deleted-rows  (sub rowcount.file new-rowcount)
+  ?:  =(deleted-rows 0)
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    %+  weld  "DELETE FROM "
+                              (trip (qualified-object-to-cord table.d))
+            [%server-time now.bowl]
+            [%schema-time tmsp.table]
+            [%data-time tmsp.file]
+            [%message 'no rows deleted']
+            ==
+  :: 
+  =/  primary-key  (pri-key key.pri-indx.table)
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table))
+  =.  pri-idx.file
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             indexed-rows.file
+  ::
+  =.  rowcount.file       new-rowcount
+  =.  tmsp.file           now.bowl
+  =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
+  =.  files.nxt-data       files
+  =.  ship.nxt-data        src.bowl
+  =.  provenance.nxt-data  sap.bowl
+  =.  tmsp.nxt-data        now.bowl
+  ::
+  =.  content.db     (put:data-key content.db now.bowl nxt-data)
+  =.  view-cache.db  (upd-view-caches state db now.bowl ~ %delete)
+  =.  state          (update-sys state now.bowl)
+  ::
+  :+  (~(put by next-data) database.table.d now.bowl)
+      (~(put by state) name.db db)
+      :~  :-  %message
+              %-  crip
+                  %+  weld  "DELETE FROM "
+                            (trip (qualified-object-to-cord table.d))
+          [%server-time now.bowl]
+          [%schema-time tmsp.table]
+          [%data-time source-content-time]
+          [%message 'deleted:']
+          [%vector-count deleted-rows]
+          [%message msg='table data:']
+          [%vector-count rowcount.file]
+          ==
 ::
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]

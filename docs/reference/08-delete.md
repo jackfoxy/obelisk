@@ -37,8 +37,14 @@ Data in the *sys* namespace cannot be deleted.
 
 ### Produced Metadata
 
-Row count
-Content timestamp
+message DELETE FROM  <namespace name>.<table name>
+server-time: <timestamp>
+schema-time: <timestamp>   The most current table schema time
+data-time: <timestamp>     The source content time upon which the DELETE acted
+message: deleted:
+vector count: <count>
+message: table data:
+vector count: <count>
 
 ### Exceptions
 
