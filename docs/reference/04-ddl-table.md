@@ -226,6 +226,8 @@ The Obelisk agent raises an error if the parent foreign table has no entry with 
 **`<as-of-time>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
+WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time.
+
 ### Remarks
 
 This command mutates the state of the Obelisk agent.

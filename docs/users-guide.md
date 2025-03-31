@@ -2,15 +2,18 @@
 
 If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend.
 
-It is recommended to read the *Preliminaries* chapter of the Reference document before proceeding.
+It is recommended to read the [Preliminaries](/docs/reference/01-preliminaries.md) chapter of the Reference document before proceeding.
 
 Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
 
+You can also use the %hawk [template](https://hawk.computer/~~/templates/obelisk-ui/) which provides a UI for the %obelisk agent. 
+
+
 # Commands
 
-Obelisk commands are DDL (Data Definition Language) commands, data manipulation commands, and Query/Selection. Commands not available in the current release are marked in the Reference. You can string commands together, delimiting with semicolons, to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
+Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/Selection. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
 
-DDL commands define databases, their data tables and other components, data manipulation commands are responsible for the content of databases, and *SELECT* performs queries.
+DDL commands define databases, their data tables and other components, data manipulation commands are responsible for the content of databases, and `SELECT` performs queries.
 
 ### DDL
 | | |
@@ -32,7 +35,7 @@ DDL commands define databases, their data tables and other components, data mani
 ### Data Manipulation
 | | |
 |:------------ |:-------------------- |
-|DELETE            |*not implemented*|
+|DELETE            | |
 |INSERT            | |
 |TRUNCATE TABLE    | |
 |UPDATE            |*not implemented*|
@@ -55,13 +58,13 @@ Let's review the obelisk-action:
 
 **%tape** -- This indicates we are submitting a script in the form of a hoon tape. The alternative for this position is **%commands**, which indicates submitting a list of API commands. Submitting API commands skips the parsing step and is an advanced topic which we will not cover. But if you are interested in figuring it out for yourself, all the command APIs are in *sur/ast/hoon*.
 
-**%sys** -- This tells the parser to insert *%sys* as the default database for any objects which we do not fully qualify. There are no such holes in CREATE DATABASE, and no user-defined databases exist at this point, so we use *%sys* for convenience. Every Obelisk server has a *%sys* database which does nothing more than track all the user-defined databases.
+**%sys** -- This tells the parser to insert *%sys* as the default database for any objects which we do not fully qualify. There are no such holes in `CREATE DATABASE`, and no user-defined databases exist at this point, so we use *%sys* for convenience. Every Obelisk server has a *%sys* database which does nothing more than track all the user-defined databases.
 
-**CREATE DATABASE** -- The DDL to create a new user-defined database. CREATE DATABASE is all caps. This is not required. urQL key words can be mixed case, but it is *strongly* encouraged to write key words in all caps for human-readability.
+**CREATE DATABASE** -- The DDL to create a new user-defined database. `CREATE DATABASE` is all caps. This is not required. urQL key words can be mixed case, but it is *strongly* encouraged to write key words in all caps for human-readability.
 
 **db1** -- The name we give to our new database.
 
-The database name is in lower case, that is because all object names (database, table, view, column, etc.) follow the rules for hoon terms, i.e. their aura is *@tas*.
+The database name is in lower case. All object names (database, table, view, column, etc.) follow the rules for hoon terms, i.e. their aura is *@tas*.
 
 Aliases, which we will get to later, can be mixed case, but keeping them upper or title case helps with readability. (But we get ahead of ourselves.)
 
@@ -86,7 +89,7 @@ Let's look at the state of our server by querying a system view on the database 
 
 ```
 FROM sys.sys.databases
-SELECT *
+SELECT *;
 ```
 From here on we will dispense with the full poke command and only specify the urQL script. We could have used any valid database, *%sys* or *%db1* at this point, as the default database for the script parser. The object of our query, the *databases* system view, is fully qualified by the name of the database it resides in, *%sys*, and the namespace, also *%sys*.
 
@@ -108,7 +111,7 @@ You see the server now has a user-defined database as well as the %sys system da
 
 The first row of the *%result-set* is the column labels of the view followed by the returned data.
 
-The formatting of *%result-set* is the result of a print utility used by the %obelisk agent. The actual format of the returned data cells is
+The formatting of *%result-set* is the result of a print utility used by the %obelisk agent. The actual hoon format of the returned data cells is
 
 ```
 [@tas dime]
@@ -127,12 +130,12 @@ All user data resides in user-defined tables, so let's define some tables. Notic
 
 ```
 CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;
-CREATE TABLE dbo.my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1)
+CREATE TABLE dbo.my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);
 ```
 
 Database objects like tables and views have names qualified by database and namespace. In standard SQL namespace is called *schema*, which gets confusing because *schema* also refers to the structure of the database. In any event *namespace* is just like *namespace* in any programming environment, a way to organize named objects where any given name may only occur once within each namespace.
 
-In the first command we explicitly qualified the database name for table creation, but left a hole in the place for namespace. The default namespace is always *dbo*, for *database owner*. For the second command we are dependent on the parser filling in the database name from the default we specified (not shown), and we specify the namespace (which in this case is unnecessary). 
+In the first command we explicitly qualified the database name for table creation, but left a hole in the place for namespace (hence two dots). The default namespace is always *dbo*, for *database owner*. For the second command we are dependent on the parser filling in the database name from the default we specified (not shown), and we specify the namespace (which in this case is unnecessary). 
 
 The table's columns are defined by pairs of name/aura separated by comma, and finally we need a `PRIMARY KEY`, a column or columns whose values must be unique within the table's data contents.
 
@@ -151,7 +154,7 @@ The table's columns are defined by pairs of name/aura separated by comma, and fi
 ```
 Two commands and two %results blocks, all recorded at the same time.
 
-<sup>1</sup> In the current release of Obelisk `%schema-time` is generally the time of the Table or View schema (structure definition), but once *FOREIGN KEY* is introduced it will be the time of the entire Database schema, for reasons having to do with overriding execution time and idempotence.
+<sup>1</sup> `%schema-time` is generally the time of the Table or View schema (structure definition) creation.
 
 # Data Manipulation
 ## INSERT
@@ -171,16 +174,19 @@ VALUES
   ('tomorrow', ~2024.9.27, 2)
   ('next day', ~2024.9.28, 3);
 ```
-Notice the difference in the two INSERT commands. In the first example we specify the columns associated with the following comma separated data, in the second we do not.
+Notice the difference in the two `INSERT` commands. In the first example we specify the columns associated with the following comma separated data, in the second we do not.
 
-If the data in the INSERT command has columns ordered in the same order as the canonical ordering for the table (that is the order in which the columns were defined in the CREATE TABLE command), there is no need to specify column order. If the INSERT data rows have the columns in any other order, you do need to specify how the columns match up. In this case there was no need to specify columns in the first example.
+If the data in the `INSERT` command has columns ordered in the same order as the canonical ordering for the table (that is the order in which the columns were defined in the `CREATE TABLE` command), there is no need to specify column order. If the INSERT data rows have the columns in any other order, you do need to specify how the columns match up. In this case there was no need to specify columns in the first example.
+
+Provide the comma separated data according to the hoon format for the column's aura type. Alternatively you can use the `DEFAULT` keyword to specify the bunt (default value) of the column. 
+
 ```
 %obelisk-result:
   %results
     [ %message 'INSERT INTO %my-table-1' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
-    [ %data-time ~2024.9.27..03.31.34..646d ]
+    [ %data-time ~2024.9.26..22.28.55..f02a ]
     [ %message 'inserted:' ]
     [ %vector-count 3 ]
     [ %message 'table data:' ]
@@ -189,38 +195,59 @@ If the data in the INSERT command has columns ordered in the same order as the c
     [ %message 'INSERT INTO %my-table-2' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
-    [ %data-time ~2024.9.27..03.31.34..646d ]
+    [ %data-time ~2024.9.26..22.28.55..f02a ]
     [ %message 'inserted:' ]
     [ %vector-count 3 ]
     [ %message 'table data:' ]
     [ %vector-count 3 ]
 ```
-More meta data from INSERT:
+More meta data from `INSERT`:
 
-**%data-time** -- timestamp of last changes to data in a table. In this case, when the data was inserted.
+**%data-time** -- timestamp of last changes to data in a table upon which the INSERT acted. In this case, when the table was created.
 
 **%vector-count** -- count of data rows. Two cases: the count of rows inserted and the resulting count of rows in the table.
 
-## TRUNCATE TABLE
-
-Let's say we want to clear out the data in a table. Currently there is no DELETE command (yet). In any event DELETE is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use TRUNCATE TABLE, which always executes in O(1) time, in other words it is very fast regardless of how much data is in the table.
+## DELETE
+Unlike SQL, the urQL `DELETE` command requires a predicate. It deletes all rows in a table for which the predicate evaluates to true.
 
 ```
-TRUNCATE TABLE my-table-1
+DELETE FROM my-table-2
+WHERE col1 = 'tomorrow';
+```
+```
+%obelisk-result:
+  %results
+    [ %message 'DELETE FROM db2.dbo.my-table-2' ]
+    [ %server-time ~2025.3.31..16.28.20..063c ]
+    [ %schema-time ~2024.9.26..22.28.55..f02a ]
+    [ %data-time ~2024.9.27..03.31.34..646d ]
+    [ %message 'deleted:' ]
+    [ %vector-count 1 ]
+    [ %message 'table data:' ]
+    [ %vector-count 2 ]
+```
+
+## TRUNCATE TABLE
+
+Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`, which always executes in O(1) time, in other words it is very fast regardless of how much data is in the table.
+
+```
+TRUNCATE TABLE my-table-1;
 ```
 ```
 %obelisk-result:
   %results
     [ %message 'TRUNCATE TABLE %my-table-1' ]
     [ %server-time ~2024.9.27..17.03.38..92af ]
-    [ %data-time ~2024.9.27..17.03.38..92af ]
+    [ %schema-time ~2024.9.26..22.28.55..f02a ]
+    [ %data-time ~2024.9.27..03.31.34..646d ]
     [ %vector-count 3 ]
 ```
-This time *%data-time* references clearing the table's data and *%vector-count* is the number of rows removed.
+This time *%vector-count* is the number of rows removed.
 
 # Sample Database
 
-Before we get into queries, let's load some more interesting data to work with. The Obelisk distribution comes with a sample "animal shelter" database adapted from Ami Levin's [Animal Shelter](https://github.com/ami-levin/Animal_Shelter) database for learning SQL. Ami is a SQL educator and you can find his [advanced SQL courses here](https://www.linkedin.com/learning/instructors/ami-levin).
+Before we get into queries, let's load some more interesting data to work with. The Obelisk distribution comes with a sample "animal-shelter" database adapted from Ami Levin's [Animal Shelter](https://github.com/ami-levin/Animal_Shelter) database for learning SQL. Ami is a SQL educator and you can find his [advanced SQL courses here](https://www.linkedin.com/learning/instructors/ami-levin).
 
 Execute the following in the dojo to load the database. It will take a little over a minute to load.
 
@@ -231,7 +258,7 @@ Execute the following in the dojo to load the database. It will take a little ov
 # Query
 The simplest possible query is selecting a single literal
 ```
-SELECT 0
+SELECT 0;
 ```
 ```
 %obelisk-result:
@@ -245,12 +272,12 @@ SELECT 0
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 1 ]
 ```
-Obelisk supports most hoon aura-formatted literals. (See the Reference document *Preliminaries*).
+Obelisk supports most hoon aura-formatted literals. (See the Reference document [Preliminaries](/docs/reference/01-preliminaries.md)).
 
 The system inserted a default name for the literal column. We could have specified an alias:
 
 ```
-SELECT 0 AS My-Alias
+SELECT 0 AS My-Alias;
 ```
 ```
 %obelisk-result:
@@ -269,9 +296,9 @@ Aliases may be entered in mixed-case, but the system will always display them in
 Set the default database to animal-shelter and submit the following script:
 ```
 FROM reference.calendar
-SELECT *
+SELECT *;
 ```
-Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` clauses before SELECT.
+Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` clauses before `SELECT`.
 ```
 %obelisk-result:
   %results
@@ -296,15 +323,16 @@ Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` c
 ```
 According to the %vector-count there are nearly 22,000 rows in this table, but the print utility only prints the first 9 and the last one.
 
-`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. In a later Obelisk release ALTER TABLE can add or remove columns, in effect altering saved scripts using `SELECT *`.
+`SELECT *` returns all the columns of the selected object(s). This is fine for ad hoc work, but the best practice for composing production scripts is to specify every column. In a later Obelisk release `ALTER TABLE` can add or remove columns, in effect altering saved scripts using `SELECT *`.
 ```
-SELECT date, year, month, month-name, day, day-name, day-of-year, weekday, year-week
+FROM reference.calendar
+SELECT date, year, month, month-name, day, day-name, day-of-year, weekday, year-week;
 ```
 
 We can select a sub-set of columns:
 ```
 FROM reference.calendar
-SELECT day-name AS Day
+SELECT day-name AS Day;
 ```
 ```
 %obelisk-result:
@@ -325,7 +353,7 @@ SELECT day-name AS Day
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 7 ]
 ```
-Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper subset. In SQL you would have to specify the `DISTINCT` keyword.
+Here is another difference between Obelisk and any SQL RDBMS. Rows returned from a query are always a proper set. In SQL you would have to specify the `DISTINCT` keyword.
 
 Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order.
 
@@ -335,7 +363,7 @@ As with SQL, you can filter query results with a `WHERE` clause.
 ```
 FROM reference.calendar
 WHERE day-name = 'Thursday'
-SELECT *
+SELECT *;
 ```
 ```
   date  year  month  month-name  day  day-name  day-of-year  weekday  year-week
@@ -357,7 +385,7 @@ FROM reference.calendar
 WHERE day-name = 'nonsense'
   AND month-name = 'nonsense'
    OR day = 3
-SELECT *"
+SELECT *;
 ```
 ```
   date  year  month  month-name  day  day-name  day-of-year  weekday  year-week
@@ -373,15 +401,15 @@ SELECT *"
   ...
   ~2049.12.3  2.049  12  December  3  Friday  337  6  49
 ```
-As would be expected the `OR` conjunction operator take precedence over `AND`.
+As would be expected the *OR* conjunction operator take precedence over *AND*.
 
-Complex `WHERE` clauses may be defined by nesting parentheses. See the Reference document *Query* for the full syntax available for predicates.
+Complex `WHERE` clauses may be defined by nesting parentheses. See the [Reference document Select](/docs/reference/10-select.md) for the full syntax available for predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'nonsense'
   AND (month-name = 'nonsense'
        OR day = 3)
-SELECT *
+SELECT *;
 ```
 
 ```
@@ -389,20 +417,22 @@ SELECT *
   result set empty
 ```
 
-<sup>2</sup> The `NOT` operator currently does not parse in all expected configurations due to a bug.
+<sup>2</sup> The *NOT* operator currently does not parse in all expected configurations due to a bug.
 
 # Time Travel
 
-Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the *Preliminaries* reference document.)
+Obelisk's ability to create and reference schema and data objects outside of the current server state is called time traveling. (See the *Time* section in the [Preliminaries](/docs/reference/01-preliminaries.md) reference document.)
 
 Almost all urQL commands support an `AS OF` clause which determines the working timestamp (the default being the current server time, *NOW*).
 
-In terms of DDL commands, this is most useful for *back dating* new database schemas, or even future dating. Just be aware you may end up making your database unusable by future dating.
+In terms of DDL commands, this is most useful for *back dating* new database schemas, or even future dating. Just be aware you may end up making your database unalterable by future dating.
+
+WARNING: It is possible to future date `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
 
 For example future dating a new database
 
 ```
-CREATE DATABASE db2 AS OF ~2030.1.1
+CREATE DATABASE db2 AS OF ~2030.1.1;
 ```
 
 ```
@@ -415,7 +445,7 @@ CREATE DATABASE db2 AS OF ~2030.1.1
 Results in all operations on the database requiring a time subsequent to this future creation date.
 
 ```
-CREATE NAMESPACE db2.ns1
+CREATE NAMESPACE db2.ns1;
 ```
 ```
 ...
@@ -426,7 +456,7 @@ CREATE NAMESPACE db2.ns1
 ```
 And the database is not even visible in the current context.
 ```
-FROM sys.sys.databases AS OF NOW SELECT *
+FROM sys.sys.databases AS OF NOW SELECT *;
 ```
 
 ```
@@ -445,7 +475,7 @@ FROM sys.sys.databases AS OF NOW SELECT *
 ```
 We can see it in a future time context.
 ```
-FROM sys.sys.databases AS OF ~2030.1.1 SELECT *
+FROM sys.sys.databases AS OF ~2030.1.1 SELECT *;
 ```
 
 ```
@@ -457,7 +487,7 @@ sys  /gall/dojo  ~2024.9.26..21.12.20..2a1d  ~zod  /gall/dojo  ~2024.9.26..21.12
 ```
 Let's clean up this situation by dropping that database.
 ```
-DROP DATABASE animal-shelter
+DROP DATABASE animal-shelter;
 ```
 Whoops, we tried to drop the wrong database. Fortunately since the *animal-shelter* database is already populated Obelisk did not allow our DROP command without the `FORCE` parameter.
 
@@ -469,9 +499,9 @@ Whoops, we tried to drop the wrong database. Fortunately since the *animal-shelt
 ```
 
 ```
-DROP DATABASE db2
+DROP DATABASE db2;
 ```
-Be careful. A future dated database will DROP without the `FORCE` parameter even if it has populated tables. DROP DATABASE is the only command that does not leave traces for time travel. The database is completely erased from the server's state.
+`DROP DATABASE` is the only command that does not leave traces for time travel. The database is completely erased from the server's state.
 
 ```
 %obelisk-result:
@@ -481,17 +511,24 @@ Be careful. A future dated database will DROP without the `FORCE` parameter even
     [ %message 'database %db2 dropped' ]
 ```
 
-This time let's create the database in the past and populate it. One INSERT is in the past and one is in the present.
+This time let's create the database in the past and populate it.
+
+All data manipulation commands other than `TRUNCATE TABLE` -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, *NOW*. Use `<as-of-time>` to apply the change to any prior version of the data, thus discarding subsequent content changes for the new data context.
+
+
+ Let's make one `INSERT` operating on the present content state followed by one operating on the past.
+
+
 ```
 CREATE DATABASE db2 AS OF ~2000.1.1;
 CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) AS OF ~2000.1.1;
-INSERT INTO db2..my-table-1 
+INSERT INTO db2..my-table-1
   (col1, col2)
 VALUES
   ('today', ~2000.1.1)
   ('tomorrow', ~2000.1.2)
-  ('next day', ~2000.1.3) AS OF ~2000.1.1;
-INSERT INTO db2..my-table-1
+  ('next day', ~2000.1.3);
+INSERT INTO db2..my-table-1 AS OF ~2000.1.1
   (col1, col2)
 VALUES
   ('next-today', ~2000.1.1)
@@ -522,16 +559,17 @@ VALUES
     [ %message 'INSERT INTO %my-table-1' ]
     [ %server-time ~2024.10.2..16.54.41..df15 ]
     [ %schema-time ~2000.1.1 ]
-    [ %data-time ~2024.10.2..16.54.41..df15 ]
+    [ %data-time ~2000.1.1 ]
     [ %message 'inserted:' ]
     [ %vector-count 3 ]
     [ %message 'table data:' ]
-    [ %vector-count 6 ]
+    [ %vector-count 3 ]
 ```
-Now, if we select data from the current state we get *all* the data we have inserted so far.
+Now, if we select data from the current state we get only the data we inserted the second time. The first `INSERT` operated on the original (empty) content state of the table, resulting in a new content state with the server-time also being the new content state time. But the second `INSERT` also operated on the previous content state due to the `AS OF` clause. Thus the results of the first `INSERT` are lost forever. (The default timestamp for all commands in a script is the current server-time, and data manipulation commands result in a new content state of *NOW*. There can only be one content state produced by this script.)
+
 ```
 FROM db2..my-table-1
-SELECT *
+SELECT *;
 ```
 
 ```
@@ -540,26 +578,25 @@ SELECT *
     [ %message 'SELECT' ]
     %result-set
       col1  col2
-      next day  ~2000.1.3
       next-next day  ~2000.1.3
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
-      today  ~2000.1.1
-      tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.00.48..85c2 ]
     [ %message 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
-    [ %vector-count 6 ]
+    [ %vector-count 3 ]
 ```
-Notice that *%data-time* is the last time we inserted data.
+Notice that *%data-time* of the `SELECT` is the last time we inserted data.
 
-If we SELECT for a prior time, we get only the first set of data we submitted and the older *%data-time*.
+Let's say a week later we insert more data. Then sometime after that we want to query the previous state of the data. The `AS OF` clause works to modify the context of a data object (table or view) in the `FROM` clause of `SELECT`. 
+
 ```
 FROM db2..my-table-1
-  AS OF ~2016.11.11
-SELECT *
+  AS OF ~2024.10.3
+SELECT *;
 ```
+We did not need to specify the exact time of the content state, only a time equal to or greater than the desired state and less than any subsequent state.
 
 ```
 %obelisk-result:
@@ -567,23 +604,25 @@ SELECT *
     [ %message 'SELECT' ]
     %result-set
       col1  col2
-      next day  ~2000.1.3
-      today  ~2000.1.1
-      tomorrow  ~2000.1.2
+      next-next day  ~2000.1.3
+      next-today  ~2000.1.1
+      next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.06.08..4b55 ]
     [ %message 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
-    [ %data-time ~2000.1.1 ]
+    [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]
 ```
 
+As well as specifying a time, `AS OF` can also be an offset from the current server time. See the `<as-of-time>` documentation in [Preliminaries](/docs/reference/01-preliminaries.md).
+
 # Joins
 
-A `JOIN` is a query clause that combines rows from two or more tables and/or views, possibly based on a related column or columns between them. It allows you to retrieve and manipulate data from multiple tables as if they were a single table.
+A `JOIN` is a query clause that combines rows from two or more data objects, possibly based on a related column or columns between them. It allows you to retrieve and manipulate data from multiple tables as if they were a single table. Any number of tables, views, or CTEs can be joined.
 
 ## Natural Joins
 
-*Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk first determines if there is a `FOREIGN KEY` (*not yet implemented*) relating the objects. If no `FOREIGN KEY` exists, but the tables share the same primary key (columns having the same name and aura type) it will join on primary keys. It does not matter if the keys' columns ordered ascending/descending differently between the two.
+*Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk determines if the tables share the same primary key, all primary key columns having the same name and aura type. If so it will join on primary keys. It does not matter if the keys' columns ascending/descending ordering differ between the two.  If not joined on primary key it determines if there is a `FOREIGN KEY` (*not yet implemented*) relating the objects.
 
 Let's use the system view *sys.table-keys* to find like primary keys.
 
@@ -592,7 +631,7 @@ FROM sys.table-keys
 WHERE namespace = 'reference'
   AND name = 'calendar'
    OR name = 'calendar-us-fed-holiday' 
-SELECT name AS table-name, key-ordinal, key
+SELECT name AS table-name, key-ordinal, key;
 ```
 
 And we find the tables share a common primary key.
@@ -606,14 +645,14 @@ And we find the tables share a common primary key.
 
 What days of the week do federal holidays fall on in 2025?
 
+In this query we alias the tables so we can distinguish column names shared between the two.
+
 ```
 FROM reference.calendar T1
 JOIN reference.calendar-us-fed-holiday T2
 WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
-SELECT T1.date, day-name, us-federal-holiday
+SELECT T1.date, day-name, us-federal-holiday;
 ```
-
-In this query we alias the tables so we can distinguish column names shared between the two.
 
 ```
 %result-set
@@ -630,6 +669,11 @@ In this query we alias the tables so we can distinguish column names shared betw
   ~2025.1.20  Monday  Birthday of Martin Luther King Jr.
 ```
 
+## CROSS JOIN
+
+`CROSS JOIN` takes no predicate and joins every row of the joined object to each and every row of the rest of the selected objects. This is also know as a cartesian join.
+
+
 # Commenting urQL
 
 ```
@@ -639,7 +683,8 @@ CREATE DATABASE db3; :: this is a line comment
 /* this is a block comment
 
 everyting within /* and */
-(which must be in columns 1 and 2) is a comment
+(begin and end symbols must be in columns 1 and 2)
+is a comment
 
 CREATE TABLE db3..my-table-1
   (col1 @t, col2 @da) PRIMARY KEY (col1)
@@ -657,9 +702,9 @@ CREATE TABLE db3..my-table-1
 
 # Parsing urQL
 
-The *urQL* parser in Obelisk is completely separable from the rest of the system.
+The urQL parser in Obelisk is separable from the rest of the system.
 
-When the parser alone is applied to an *urQL* script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the *urQL* command. For instance CREATE DATABASE parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *selection*.
+When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *selection*.
 
 The parser alone may be run in the dojo from the Obelisk desk as follows:
 
@@ -668,95 +713,235 @@ The parser alone may be run in the dojo from the Obelisk desk as follows:
 (parse:parse(default-database 'animal-shelter') uql)
 ```
 
-For instance the joined query we last ran produces the following pretty-printed dojo output (omitting that the `selection` itself is contained within a list):
+For instance the joined query we last ran produces the following pretty-printed dojo output:
 
 ```
-[ %selection
-  ctes=~
-    set-functions
-  { [ %query
-        from
-      [ ~
-        [ %from
-            object
-          [ %table-set
-            object=[%qualified-object ship=~ database=%animal-shelter namespace=%reference name=%calendar]
-            alias=[~ 'T1']
-          ]
-          as-of=~
-            joins
-          ~[
-            [ %joined-object
-              join=%join
+~[
+  [ %selection
+    ctes=~
+      set-functions
+    { [ %query
+          from
+        [ ~
+          [ %from
+              object
+            [ %table-set
                 object
-              [ %table-set
-                  object
-                [ %qualified-object
-                  ship=~
-                  database=%animal-shelter
-                  namespace=%reference
-                  name=%calendar-us-fed-holiday
-                ]
-                alias=[~ 'T2']
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
               ]
-              as-of=~
-              predicate=~
+              alias=[~ 'T1']
+            ]
+            as-of=~
+              joins
+            ~[
+              [ %joined-object
+                join=%join
+                  object
+                [ %table-set
+                    object
+                  [ %qualified-object
+                    ship=~
+                    database=%animal-shelter
+                    namespace=%reference
+                    name=%calendar-us-fed-holiday
+                  ]
+                  alias=[~ 'T2']
+                ]
+                as-of=~
+                predicate=~
+              ]
             ]
           ]
         ]
-      ]
-      scalars=~
-        predicate
-      [ ~
-        { [ %qualified-column
-            qualifier=[%qualified-object ship=~ database=%animal-shelter namespace=%reference name=%calendar]
-            column=%date
-            alias=~
-          ]
-          %gte
-          [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
-          %between
-          [ %qualified-column
-            qualifier=[%qualified-object ship=~ database=%animal-shelter namespace=%reference name=%calendar]
-            column=%date
-            alias=~
-          ]
-          %lte
-          [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
-        }
-      ]
-      group-by=~
-      having=~
-        selection
-      [ %select
-        top=~
-        bottom=~
-          columns
-        ~[
-          [ %qualified-column
-            qualifier=[%qualified-object ship=~ database=%animal-shelter namespace=%reference name=%calendar]
-            column=%date
-            alias=~
-          ]
-          [ %qualified-column
-            qualifier=[%qualified-object ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%day-name]
-            column=%day-name
-            alias=~
-          ]
-          [ %qualified-column
-            qualifier=[%qualified-object ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%us-federal-holiday]
-            column=%us-federal-holiday
-            alias=~
+        scalars=~
+          predicate
+        [ ~
+          { [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+              ]
+              column=%date
+              alias=~
+            ]
+            %gte
+            [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
+            %between
+            [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+              ]
+              column=%date
+              alias=~
+            ]
+            %lte
+            [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
+          }
+        ]
+        group-by=~
+        having=~
+          selection
+        [ %select
+          top=~
+          bottom=~
+            columns
+          ~[
+            [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+              ]
+              column=%date
+              alias=~
+            ]
+            [ %qualified-column
+                qualifier
+              [%qualified-object ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%day-name]
+              column=%day-name
+              alias=~
+            ]
+            [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%UNKNOWN
+                namespace=%COLUMN-OR-CTE
+                name=%us-federal-holiday
+              ]
+              column=%us-federal-holiday
+              alias=~
+            ]
           ]
         ]
+        order-by=~
       ]
-      order-by=~
-    ]
-  }
+    }
+  ]
+]
+> =parse -build-file /=obelisk=/lib/parse/hoon
+> (parse:parse(default-database 'animal-shelter') x)
+~[
+  [ %selection
+    ctes=~
+      set-functions
+    { [ %query
+          from
+        [ ~
+          [ %from
+              object
+            [ %table-set
+                object
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+                alias=[~ 'T1']
+              ]
+            ]
+            as-of=~
+              joins
+            ~[
+              [ %joined-object
+                join=%join
+                  object
+                [ %table-set
+                    object
+                  [ %qualified-object
+                    ship=~
+                    database=%animal-shelter
+                    namespace=%reference
+                    name=%calendar-us-fed-holiday
+                    alias=[~ 'T2']
+                  ]
+                ]
+                as-of=~
+                predicate=~
+              ]
+            ]
+          ]
+        ]
+        scalars=~
+          predicate
+        [ ~
+          { [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+                alias=[~ 'T1']
+              ]
+              column=%date
+              alias=~
+            ]
+            %gte
+            [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
+            %between
+            [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+                alias=[~ 'T1']
+              ]
+              column=%date
+              alias=~
+            ]
+            %lte
+            [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
+          }
+        ]
+        group-by=~
+        having=~
+          selection
+        [ %select
+          top=~
+          bottom=~
+            columns
+          ~[
+            [ %qualified-column
+                qualifier
+              [ %qualified-object
+                ship=~
+                database=%animal-shelter
+                namespace=%reference
+                name=%calendar
+                alias=[~ 'T1']
+              ]
+              column=%date
+              alias=~
+            ]
+            [%unqualified-column column=%day-name alias=~]
+            [%unqualified-column column=%us-federal-holiday alias=~]
+          ]
+        ]
+        order-by=~
+      ]
+    }
+  ]
 ]
 ```
+The structure is wrapped in a list because a script potentially consists of multiple commands which the engine will execute in order.
 
-Notice the last two qualified columns have placeholders for *database* and *namespace*, and the qualifier's name is not a table name. This query performs a join, meaning there is more than one data source. The parser does not have enough information to determine which table an unqualified column name belongs to. This will be reconciled in the Obelisk engine at execution time.
+The last two column structures are unqualified. The parser does not have the table definition information to determine which table an unqualified column name belongs to. This will be reconciled in the Obelisk engine at execution time.
 
 # APPENDIX: System Views
 

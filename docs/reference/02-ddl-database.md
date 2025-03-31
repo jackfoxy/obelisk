@@ -25,7 +25,9 @@ Creates a new user-space database on the ship.
 The user-defined name for the new database. It must comply with the Hoon term naming standard. 
 
 **`<as-of-time>`**
-Timestamp of database creation. Defaults to `NOW` (current time). Subsequent DDL and data actions must have timestamps greater than this timestamp. 
+Timestamp of database creation. Defaults to `NOW` (current time). Subsequent DDL and data actions must have timestamps greater than this timestamp.
+
+WARNING: It is possible to future date a `CREATE DATABSE`. This will lock all schema and data updates in the database until that future time.
 
 ### Remarks
 

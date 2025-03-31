@@ -6,7 +6,7 @@ Many of the commands and clauses in the list below already exist in the urQL gra
 
 Prioritization depends on user feedback and bribery.
 
-## Candidates for beta relase
+## Candidates for beta release
 
 * __UPDATE__ -- Operates on user-defined tables, not on views; optional predicate
 
@@ -16,9 +16,9 @@ Prioritization depends on user feedback and bribery.
 
 * __ORDER BY ...__ -- order result set
 
-* __path column type__ -- support path type as atoms
+* __path column type__ -- support path type as atom
 
-* __Common Table Expressions (CTE)__ -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server, I forget what this is called in the SQL specification)
+* __Common Table Expressions (CTE)__ -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
 * __Issue #1__ -- NOT predicate operator not fully functional
 

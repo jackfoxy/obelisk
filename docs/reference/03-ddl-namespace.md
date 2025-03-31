@@ -33,7 +33,9 @@ This is a user-defined name for the new namespace. It must adhere to the hoon te
 Note: The "sys" namespace is reserved for system use.
 
 **`<as-of-time>`**
-Timestamp of namespace creation. Defaults to NOW (current time). When specified timestamp must be greater than both the latest database schema and content timestamps. 
+Timestamp of namespace creation. Defaults to NOW (current time). When specified timestamp must be greater than both the latest database schema and content timestamps.
+
+WARNING: It is possible to future date a `CREATE NAMESPACE`. This will lock all schema and data updates in the database until that future time.
 
 ### Remarks
 
