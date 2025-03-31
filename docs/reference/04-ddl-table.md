@@ -25,12 +25,12 @@ Creates a new table within the specified or default database.
 ```
 +$  create-table
   $:
-    %create-table
+    %update
     table=qualified-object
-    columns=(list column)
-    pri-indx=(list ordered-column)
-    foreign-keys=(list foreign-key)
     as-of=(unit as-of)
+    columns=(list @tas)
+    values=(list value-or-default)
+    predicate=(unit predicate)
   ==
 ```
 
@@ -102,8 +102,8 @@ This command mutates the state of the Obelisk agent.
 ### Produced Metadata
 
 message: CREATE TABLE <name>
-server-time: <timestamp>
-schema-time: <timestamp>
+server time: <timestamp>
+schema time: <timestamp>
 
 ### Exceptions
 
@@ -226,6 +226,8 @@ The Obelisk agent raises an error if the parent foreign table has no entry with 
 **`<as-of-time>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
+WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time.
+
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
@@ -294,11 +296,11 @@ Cannot drop when the `<table>` is populated unless `FORCE` is specified.
 
 ### Produced Metadata
 
-Schema timestamp
-
-Content timestamp, if the table was populated
-
-Row count (when table was populated)
+message: DROP TABLE <name>
+server time: <timestamp>
+schema time: <timestamp>
+data time <timestamp>
+vector count: <n>
 
 ### Exceptions
 

@@ -7,13 +7,13 @@
 :obelisk &obelisk-action [%tape %sys "CREATE DATABASE db1"]
 
 =uql "FROM sys.sys.databases ".
-"SELECT *"
+"SELECT *;"
 
 
 ## CREATE TABLE
 
 =uql "CREATE TABLE db1..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) ;".
-"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1)"
+"CREATE TABLE my-table-2 (col1 @t, col2 @da, col3 @ud) PRIMARY KEY (col1);"
 
 
 # Data Manipulation
@@ -31,10 +31,14 @@
 "  ('tomorrow', ~2024.9.27, 2)".
 "  ('next day', ~2024.9.28, 3);"
 
+## DELETE
+
+=uql "DELETE FROM my-table-2".
+" WHERE col1 = 'tomorrow';"
 
 ## TRUNCATE TABLE
 
-=uql "TRUNCATE TABLE my-table-1"
+=uql "TRUNCATE TABLE my-table-1;"
 
 
 # Sample Database
@@ -43,49 +47,49 @@
 
 # Query
 
-=uql "SELECT 0"
+=uql "SELECT 0;"
 
-=uql "SELECT 0 AS My-Alias"
-
-=uql "FROM reference.calendar ".
-"SELECT *"
+=uql "SELECT 0 AS My-Alias;"
 
 =uql "FROM reference.calendar ".
-"SELECT day-name AS Day"
+"SELECT *;"
+
+=uql "FROM reference.calendar ".
+"SELECT day-name AS Day;"
 
 
 # The WHERE clause
 
 =uql "FROM reference.calendar ".
 "WHERE day-name = 'Thursday' ".
-"SELECT *"
+"SELECT *;"
 
 =uql "FROM reference.calendar ".
 "WHERE day-name = 'nonsense' ".
 "  AND month-name = 'nonsense' ".
 "   OR day = 3 ".
-"SELECT *"
+"SELECT *;"
 
 =uql "FROM reference.calendar ".
 "WHERE day-name = 'nonsense' ".
 "  AND (month-name = 'nonsense' ".
 "       OR day = 3) ".
-"SELECT *"
+"SELECT *;"
 
 
 # Time Travel
 
-=uql "CREATE DATABASE db2 AS OF ~2030.1.1"
+=uql "CREATE DATABASE db2 AS OF ~2030.1.1;"
 
-=uql "CREATE NAMESPACE db2.ns1"
+=uql "CREATE NAMESPACE db2.ns1;"
 
-=uql "FROM sys.sys.databases AS OF NOW SELECT *"
+=uql "FROM sys.sys.databases AS OF NOW SELECT *;"
 
-=uql "FROM sys.sys.databases AS OF ~2030.1.1 SELECT *"
+=uql "FROM sys.sys.databases AS OF ~2030.1.1 SELECT *;"
 
-=uql "DROP DATABASE animal-shelter"
+=uql "DROP DATABASE animal-shelter;"
 
-=uql "DROP DATABASE db2"
+=uql "DROP DATABASE db2;"
 
 =uql "CREATE DATABASE db2 AS OF ~2000.1.1;".
 "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) PRIMARY KEY (col1) AS OF ~2000.1.1;".
@@ -103,11 +107,11 @@
 "  ('next-next day', ~2000.1.3);"
 
 =uql "FROM db2..my-table-1 ".
-"SELECT *"
+"SELECT *;"
 
 =uql "FROM db2..my-table-1 ".
 "  AS OF ~2016.11.11 ".
-"SELECT *"
+"SELECT *;"
 
 
 # Joins
@@ -116,12 +120,12 @@
      "WHERE namespace = 'reference' ".
      "AND name = 'calendar' ".
      " OR name = 'calendar-us-fed-holiday' ".    
-     "SELECT name AS table-name, key-ordinal, key"
+     "SELECT name AS table-name, key-ordinal, key;"
 
 =uql "FROM reference.calendar T1 ".
      "JOIN reference.calendar-us-fed-holiday T2 ".
      "WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31 ".
-     "SELECT T1.date, day-name, us-federal-holiday"
+     "SELECT T1.date, day-name, us-federal-holiday;"
 
 # comments
 
@@ -132,7 +136,7 @@
      "everyting within /* and */".
      "(which must be in columns 1 and 2) is a comment".
      "CREATE TABLE db3..my-table-1".
-     "  (col1 @t, col2 @da) PRIMARY KEY (col1)".
+     "  (col1 @t, col2 @da) PRIMARY KEY (col1);".
      "*/"
 
 # Parsing

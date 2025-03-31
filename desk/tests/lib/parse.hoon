@@ -724,15 +724,15 @@
 :: delete
 ::
 ++  col1
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col1' alias=~] column='col1' alias=~]
+  [%unqualified-column column='col1' alias=~]
 ++  col2
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col2' alias=~] column='col2' alias=~]
+  [%unqualified-column column='col2' alias=~]
 ++  col3
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col3' alias=~] column='col3' alias=~]
+  [%unqualified-column column='col3' alias=~]
 ++  col4
-  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='col4' alias=~] column='col4' alias=~]
+  [%unqualified-column column='col4' alias=~]
 ++  delete-pred
-  `[%eq [column-foo ~ ~] [column-bar ~ ~]]
+  [%eq [column-foo ~ ~] [column-bar ~ ~]]
 ++  cte-t1
   [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
 ++  cte-foobar
@@ -744,177 +744,228 @@
 ++  foo-table-t1
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']]
 ::
-:: delete from foo;delete  foo
+:: delete with predicate
 ++  test-delete-00
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo;delete  foo")
-::
-:: delete from foo as of now;delete foo as of now
-++  test-delete-01
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of now;delete  foo AS OF now")
-::
-:: delete from foo as of ~2023.12.25..7.15.0..1ef5;delete foo as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-02
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of 2023.12.25..7.15.0..1ef5;delete  foo as of ~2023.12.25..7.15.0..1ef5")
-::
-:: delete from foo as of 5 seconds ago;delete foo as of 5 seconds ago
-++  test-delete-03
-  =/  expected1  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%as-of-offset 5 %seconds]]] ~ ~]]
-  =/  expected2  [%selection ctes=~ [[%delete table=foo-table ~ [~ [%as-of-offset 4 %seconds]]] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  (parse:parse(default-database 'db1') "delete from foo as of 5 seconds ago;delete  foo as of 4 seconds ago")
-::
-:: delete with predicate as
-++  test-delete-04
-  =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred ~] ~ ~]]
+  =/  expected
+        [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') "delete from foo  where foo=bar")
 ::
-:: delete with predicate of now
-++  test-delete-05
-  =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred ~] ~ ~]]
+:: delete with predicate as of now
+++  test-delete-01
+  =/  expected
+        [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of now")
+    !>  %-  parse:parse(default-database 'db1')
+            "delete from foo as of now where foo=bar"
 ::
-:: delete with predicate of ~2023.12.25..7.15.0..1ef5
-++  test-delete-06
-  =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
+:: delete with predicate as of ~2023.12.25..7.15.0..1ef5
+++  test-delete-02
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+    !>  %-  parse:parse(default-database 'db1')
+            "delete from foo as of ~2023.12.25..7.15.0..1ef5 where foo=bar"
 ::
-:: delete with predicate of 5 seconds ago
-++  test-delete-07
-  =/  expected  [%selection ctes=~ [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+:: delete with predicate as of 5 seconds ago
+++  test-delete-03
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%as-of-offset 5 %seconds]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "delete from foo where foo=bar as of 5 seconds ago")
+    !>  %-  parse:parse(default-database 'db1')
+            "delete from foo as of 5 seconds ago where foo=bar"
 ::
 :: delete with one cte and predicate
-++  test-delete-08
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred ~] ~ ~]]
+++  test-delete-04
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  [%delete table=foo-table ~ delete-pred] 
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 delete from foo where foo=bar"
 ::
 :: delete with one cte and predicate as of now
-++  test-delete-09
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred ~] ~ ~]]
+++  test-delete-05
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    [[%delete table=foo-table ~ delete-pred] ~ ~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of now")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 delete from foo as of now where foo=bar"
 ::
 :: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-10
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
+++  test-delete-06
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 delete from ".
+            "foo as of ~2023.12.25..7.15.0..1ef5 where foo=bar"
 ::
 :: delete with one cte and predicate as of 5 seconds ago
-++  test-delete-11
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+++  test-delete-07
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%as-of-offset 5 %seconds]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo where foo=bar as of 5 seconds ago")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 delete from foo as of 5 seconds ago ".
+            "where foo=bar"
 ::
 :: delete with two ctes and predicate
-++  test-delete-12
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred ~] ~ ~]]
+++  test-delete-08
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar]
+                    :+  [%delete table=foo-table ~ delete-pred]
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar ".
+            "delete from foo where foo=bar"
 ::
 :: delete with two ctes and predicate as of now
-++  test-delete-13
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred ~] ~ ~]]
+++  test-delete-09
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar]
+                    [[%delete table=foo-table ~ delete-pred] ~ ~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of now")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar ".
+            "delete from foo as of now where foo=bar"
 ::
 :: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-14
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
+++  test-delete-10
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar]
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar ".
+            "delete from foo as of ~2023.12.25..7.15.0..1ef5 where foo=bar"
 ::
 :: delete with two ctes and predicate as of 5 seconds ago
-++  test-delete-15
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar] [[%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]]
+++  test-delete-11
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar]
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%as-of-offset 5 %seconds]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar delete from foo where foo=bar as of 5 seconds ago")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar delete ".
+            "from foo as of 5 seconds ago where foo=bar"
 ::
 :: delete with three ctes and predicate
-++  test-delete-16
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
+++  test-delete-12
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    [[%delete table=foo-table ~ delete-pred] ~ ~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "delete from foo where foo=bar"
 ::
 :: delete with three ctes and predicate as of now
-++  test-delete-17
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred ~] ~ ~]
+++  test-delete-13
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    [[%delete table=foo-table ~ delete-pred] ~ ~]
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar aS  Of    NOw")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "delete from foo aS  Of    NOw where foo=bar"
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-18
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]
+++  test-delete-14
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of ~2023.12.25..7.15.0..1ef5")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "delete from foo as of ~2023.12.25..7.15.0..1ef5 where foo=bar"
 ::
 :: delete with three ctes and predicate as of 5 seconds ago
-++  test-delete-19
-  =/  expected  [%selection ctes=~[cte-t1 cte-foobar cte-bar] [%delete table=foo-table delete-pred [~ [%as-of-offset 5 %seconds]]] ~ ~]
+++  test-delete-15
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    :+  :^  %delete
+                            table=foo-table
+                            [~ [%as-of-offset 5 %seconds]]
+                            delete-pred
+                        ~
+                        ~
   %+  expect-eq
     !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar delete from foo where foo=bar as of 5 seconds ago")
-::
-:: delete cte with no predicate
-++  test-delete-20
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo")
-::
-:: delete cte with no predicate as of now
-++  test-delete-21
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ ~] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of now")
-::
-:: delete cte with no predicate as of ~2023.12.25..7.15.0..1ef5
-++  test-delete-22
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ [~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of ~2023.12.25..7.15.0..1ef5")
-::
-:: delete cte with no predicate as of 5 seconds ago
-++  test-delete-23
-  =/  expected  [%selection ctes=~[cte-t1] [[%delete table=foo-table ~ [~ [%as-of-offset 5 %seconds]]] ~ ~]]
-  %+  expect-eq
-  !>  ~[expected]
-  !>  (parse:parse(default-database 'db1') "with (select *) as t1 delete from foo as of 5 seconds ago")
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "delete from foo as of 5 seconds ago where foo=bar"
 ::
 :: drop database
 ::
@@ -1262,10 +1313,41 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                :-  ~
+                    :~  'col1'
+                        'col2'
+                        'col3'
+                        'col4'
+                        'col5'
+                        'col6'
+                        'col7'
+                        'col8'
+                        'col9'
+                        ==
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        ==
             ==
         ~
         ~
@@ -1273,20 +1355,48 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~]
-                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                :-  ~
+                    :~  'col1'
+                        'col2'
+                        'col3'
+                        'col4'
+                        'col5'
+                        'col6'
+                        'col7'
+                        'col8'
+                        'col9'
+                        ==
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        ==
             ==
         ~
         ~
   =/  urql1  " iNsert  iNto  db.ns.my-table  ".
-"( col1 ,  col2 ,  col3 ,  col4 ,  col5 ,  col6 ,  col7 ,  col8 ,  col9 )".
-" Values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-"  (Default,.195.198.143.90, 195.198.143.900)"
+    "( col1 ,  col2 ,  col3 ,  col4 ,  col5 ,  col6 ,  col7 ,  col8 ,  col9 )".
+    " Values  ".
+    "('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    "  (Default,.195.198.143.90, 195.198.143.900)"
   =/  urql2  "insert into db..my-table ".
-"(col1, col2, col3, col4, col5, col6, col7, col8, col9)".
-"valueS ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)"
+    "(col1, col2, col3, col4, col5, col6, col7, col8, col9)".
+    "valueS ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)"
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  (parse:parse(default-database 'other-db') (weld urql1 (weld ";" urql2)))
@@ -1297,17 +1407,53 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
-                columns=~
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db1'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                columns=~
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        :~  [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
             ==
         ~
         ~
   =/  urql  "insert into my-table ".
-"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-" (default,.195.198.143.90, 195.198.143.900)".
-" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
+    "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    " (default,.195.198.143.90, 195.198.143.900)".
+    " (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,".
+    "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1318,18 +1464,53 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
-                columns=~
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db1'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                columns=~
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        :~  [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
             ==
         ~
         ~
-  =/  urql  "insert into my-table ".
-"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-" (default,.195.198.143.90, 195.198.143.900)".
-" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)".
-" as of now"
+  =/  urql  "insert into my-table as of now ".
+    "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    " (default,.195.198.143.90, 195.198.143.900)".
+    " (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,".
+    "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1340,18 +1521,53 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
-                columns=~
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db1'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                columns=~
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        :~  [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
             ==
         ~
         ~
-  =/  urql  "insert into my-table ".
-"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-" (default,.195.198.143.90, 195.198.143.900)".
-" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)".
-" as of ~2023.12.25..7.15.0..1ef5"
+  =/  urql  "insert into my-table as of ~2023.12.25..7.15.0..1ef5".
+    "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    " (default,.195.198.143.90, 195.198.143.900)".
+    " (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,".
+    "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1362,18 +1578,53 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db1' namespace='dbo' name='my-table' alias=~]
-                columns=~
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]] ~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db1'
+                    namespace='dbo'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=[~ %as-of-offset 5 %days]
+                columns=~
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        :~  [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
             ==
         ~
         ~
-  =/  urql  "insert into my-table ".
-"values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-" (default,.195.198.143.90, 195.198.143.900)".
-" (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)".
-" as of 5 days ago"
+  =/  urql  "insert into my-table  as of 5 days ago".
+    "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    " (default,.195.198.143.90, 195.198.143.900)".
+    " (2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,".
+    "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1384,17 +1635,49 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                :-  ~
+                    :~  'col1'
+                        'col2'
+                        'col3'
+                        'col4'
+                        'col5'
+                        'col6'
+                        'col7'
+                        'col8'
+                        'col9'
+                        ==
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        ==
             ==
         ~
         ~
-  =/  urql  "insert  into  db.ns.my-table ".
-"(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
-" values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-"  (default,.195.198.143.90, 195.198.143.900) as of now"
+  =/  urql  "insert  into  db.ns.my-table as of now ".
+    "(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
+    " values  ".
+    "  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    "  (default,.195.198.143.90, 195.198.143.900)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'other-db') urql)
@@ -1405,17 +1688,49 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                :-  ~
+                    :~  'col1'
+                        'col2'
+                        'col3'
+                        'col4'
+                        'col5'
+                        'col6'
+                        'col7'
+                        'col8'
+                        'col9'
+                        ==
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        ==
             ==
         ~
         ~
-  =/  urql  "insert  into  db.ns.my-table ".
-"(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
-" values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-"  (default,.195.198.143.90, 195.198.143.900) as of ~2023.12.25..7.15.0..1ef5"
+  =/  urql  "insert  into  db.ns.my-table  as of ~2023.12.25..7.15.0..1ef5".
+    "(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
+    " values ".
+    " ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    "  (default,.195.198.143.90, 195.198.143.900)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'other-db') urql)
@@ -1426,17 +1741,49 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                columns=`['col1' 'col2' 'col3' 'col4' 'col5' 'col6' 'col7' 'col8' 'col9' ~]
-                values=[%data ~[~[[~.t 1.685.221.219] [~.rs 1.078.523.331] [~.sd 39] [~.ud 20] [~.rs 1.078.523.331] [~.p 28.242.037] [~.rs 3.226.006.979] [~.t 430.158.540.643] [~.sd 6]] ~[[~.default 32.770.348.699.510.116] [~.if 3.284.569.946] [~.ud 195.198.143.900]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=[~ %as-of-offset 5 %days]
+                :-  ~
+                    :~  'col1'
+                        'col2'
+                        'col3'
+                        'col4'
+                        'col5'
+                        'col6'
+                        'col7'
+                        'col8'
+                        'col9'
+                        ==
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.rs 1.078.523.331]
+                            [~.sd 39]
+                            [~.ud 20]
+                            [~.rs 1.078.523.331]
+                            [~.p 28.242.037]
+                            [~.rs 3.226.006.979]
+                            [~.t 430.158.540.643]
+                            [~.sd 6]
+                            ==
+                        :~  [~.default 32.770.348.699.510.116]
+                            [~.if 3.284.569.946]
+                            [~.ud 195.198.143.900]
+                            ==
+                        ==
             ==
         ~
         ~
-  =/  urql  "insert  into  db.ns.my-table ".
-"(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
-" values  ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
-"  (default,.195.198.143.90, 195.198.143.900) as of 5 days ago"
+  =/  urql  "insert  into  db.ns.my-table as of 5 days ago ".
+    "(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
+    " values ".
+    " ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
+    "  (default,.195.198.143.90, 195.198.143.900)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'other-db') urql)
@@ -1447,17 +1794,53 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                columns=~
-                values=[%data ~[~[[~.t 1.685.221.219] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                columns=~
+                :-  %data
+                    :~  :~  [~.t 1.685.221.219]
+                            [~.p 28.242.037]
+                            [~.p 28.242.037]
+                            [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
+                            [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
+                            [~.dr 114.450.695.119.985.999.668.576.256]
+                            [~.dr 114.450.695.119.985.999.668.576.256]
+                            [~.if 3.284.569.946]
+                            [~.is 123.543.654.234]
+                            [~.f 0]
+                            [~.f 1]
+                            [~.f 0]
+                            [~.f 1]
+                            [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
             ==
         ~
         ~
   =/  urql  "insert into db.ns.my-table ".
-"values ('cord',~nomryg-nilref,nomryg-nilref,~2020.12.25..7.15.0..1ef5,2020.12.25..7.15.0..1ef5,".
-"~d71.h19.m26.s24..9d55, d71.h19.m26.s24..9d55,.195.198.143.90,.0.0.0.0.0.1c.c3c6.8f5a,y,n,Y,N,".
-"2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
+    "values ('cord',~nomryg-nilref,nomryg-nilref,~2020.12.25..7.15.0..1ef5,".
+    "2020.12.25..7.15.0..1ef5,~d71.h19.m26.s24..9d55, d71.h19.m26.s24..9d55,".
+    ".195.198.143.90,.0.0.0.0.0.1c.c3c6.8f5a,y,n,Y,N,".
+    "2.222,2222,195.198.143.900,.3.14,.-3.14,~3.14,~-3.14,0x12.6401,10.1011,".
+    "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1468,17 +1851,54 @@
     :+  %selection
         ctes=~
         :+  :*  %insert
-                table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                columns=~
-                values=[%data ~[~[[~.t 430.242.426.723] [~.p 28.242.037] [~.p 28.242.037] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800] [~.dr 114.450.695.119.985.999.668.576.256] [~.dr 114.450.695.119.985.999.668.576.256] [~.if 3.284.569.946] [~.is 123.543.654.234] [~.f 0] [~.f 1] [~.f 0] [~.f 1] [~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                 as-of=~
+                columns=~
+                :-  %data
+                    :~  :~  [~.t 430.242.426.723]
+                            [~.p 28.242.037]
+                            [~.p 28.242.037]
+                            [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
+                            [~.da 170.141.184.504.830.774.788.415.618.594.688.204.800]
+                            [~.dr 114.450.695.119.985.999.668.576.256]
+                            [~.dr 114.450.695.119.985.999.668.576.256]
+                            [~.if 3.284.569.946]
+                            [~.is 123.543.654.234]
+                            [~.f 0]
+                            [~.f 1]
+                            [~.f 0]
+                            [~.f 1]
+                            [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
             ==
         ~
         ~
   =/  urql  "insert into db.ns.my-table ".
-"values ( 'cor,d' , ~nomryg-nilref , nomryg-nilref , ~2020.12.25..7.15.0..1ef5 , 2020.12.25..7.15.0..1ef5 , ".
-"~d71.h19.m26.s24..9d55 ,  d71.h19.m26.s24..9d55 , .195.198.143.90 , .0.0.0.0.0.1c.c3c6.8f5a , y , n , Y , N , ".
-"2.222 , 2222 , 195.198.143.900 , .3.14 , .-3.14 , ~3.14 , ~-3.14 , 0x12.6401 , 10.1011 , -20 , --20 , e2O.l4Xpm , pm.l4e2O.l4Xpm )"
+    "values ( 'cor,d' , ~nomryg-nilref , nomryg-nilref , ".
+    "~2020.12.25..7.15.0..1ef5 , 2020.12.25..7.15.0..1ef5 , ".
+    "~d71.h19.m26.s24..9d55 ,  d71.h19.m26.s24..9d55 , .195.198.143.90 , ".
+    ".0.0.0.0.0.1c.c3c6.8f5a , y , n , Y , N , 2.222 , 2222 , ".
+    "195.198.143.900 , .3.14 , .-3.14 , ~3.14 , ~-3.14 , 0x12.6401 , 10.1011 ,".
+    " -20 , --20 , e2O.l4Xpm , pm.l4e2O.l4Xpm )"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1490,10 +1910,31 @@
       :+  %selection
           ctes=~
           :+  :*  %insert
-                  table=[%qualified-object ship=~ database='db' namespace='ns' name='my-table' alias=~]
-                  columns=~
-                  values=[%data ~[~[[~.ud 2.222] [~.ud 2.222] [~.ud 195.198.143.900] [~.rs 1.078.523.331] [~.rs 3.226.006.979] [~.rd 4.614.253.070.214.989.087] [~.rd 13.837.625.107.069.764.895] [~.ux 1.205.249] [~.ub 43] [~.sd 39] [~.sd 40] [~.uw 61.764.130.813.526] [~.uw 1.870.418.170.505.042.572.886]]]]
+                  :*  %qualified-object
+                    ship=~
+                    database='db'
+                    namespace='ns'
+                    name='my-table'
+                    alias=~
+                    ==
                   as-of=~
+                  columns=~
+                  :-  %data
+                    :~  :~  [~.ud 2.222]
+                            [~.ud 2.222]
+                            [~.ud 195.198.143.900]
+                            [~.rs 1.078.523.331]
+                            [~.rs 3.226.006.979]
+                            [~.rd 4.614.253.070.214.989.087]
+                            [~.rd 13.837.625.107.069.764.895]
+                            [~.ux 1.205.249]
+                            [~.ub 43]
+                            [~.sd 39]
+                            [~.sd 40]
+                            [~.uw 61.764.130.813.526]
+                            [~.uw 1.870.418.170.505.042.572.886]
+                            ==
+                        ==
               ==
           ~
           ~
@@ -1588,35 +2029,35 @@
 ++  all-columns  [%all %all]
 ++  select-all-columns  [%select top=~ bottom=~ columns=~[all-columns]]
 ++  foo
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo' alias=~] 'foo' ~] ~ ~]
+  [[%unqualified-column 'foo' ~] ~ ~]
 ++  t1-foo
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo' ~] ~ ~]
 ++  a1-foo
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'foo' ~] ~ ~]
 ++  foo2
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo2' alias=~] 'foo2' ~] ~ ~]
+  [[%unqualified-column 'foo2' ~] ~ ~]
 ++  t1-foo2
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo2' ~] ~ ~]
 ++  foo3
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo3' alias=~] 'foo3' ~] ~ ~]
+  [[%unqualified-column 'foo3' ~] ~ ~]
 ++  t1-foo3
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo3' ~] ~ ~]
 ++  foo4
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo4' alias=~] 'foo4' ~] ~ ~]
+  [[%unqualified-column 'foo4' ~] ~ ~]
 ++  foo5
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo5' alias=~] 'foo5' ~] ~ ~]
+  [[%unqualified-column 'foo5' ~] ~ ~]
 ++  foo6
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo6' alias=~] 'foo6' ~] ~ ~]
+  [[%unqualified-column 'foo6' ~] ~ ~]
 ++  foo7
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foo7' alias=~] 'foo7' ~] ~ ~]
+  [[%unqualified-column 'foo7' ~] ~ ~]
 ++  bar
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'bar' alias=~] 'bar' ~] ~ ~]
+  [[%unqualified-column 'bar' ~] ~ ~]
 ++  t2-bar
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T2']] 'bar' ~] ~ ~]
 ++  a2-bar
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'bar' ~] ~ ~]
 ++  foobar
-  [[%qualified-column [%qualified-object ~ 'UNKNOWN' 'COLUMN-OR-CTE' 'foobar' alias=~] 'foobar' ~] ~ ~]
+  [[%unqualified-column 'foobar' ~] ~ ~]
 ++  a1-adoption-email
   [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'adoption-email' alias=~] ~ ~]
 ++  a2-adoption-email
@@ -2137,10 +2578,28 @@
 ::
 ::  scalar
 ::
-++  column-foo       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo' alias=~] column='foo' alias=~]
-++  column-foo2      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo2' alias=~] column='foo2' alias=~]
-++  column-foo3      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo3' alias=~] column='foo3' alias=~]
-++  column-bar       [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~]
+++  column-foo       :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foo
+                             alias=~
+                             ==
+                         column=%foo
+                         alias=~
+++  column-foo2      [%unqualified-column column='foo2' alias=~]
+++  column-foo3      [%unqualified-column column='foo3' alias=~]
+++  column-bar       :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foo
+                             alias=~
+                             ==
+                         column=%bar
+                         alias=~
 ++  literal-zod      [value-type=%p value=0]
 ++  literal-1        [value-type=%ud value=1]
 ++  naked-coalesce   ~[%coalesce column-bar literal-zod literal-1 column-foo]
@@ -2250,14 +2709,19 @@
 ::
 ::  NOTE: SELECT all literal types is in test/lib/queries/hoon
 ::
-::++  simple-columns
-::  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] [%ud 1] [%p 0] [%t 'cord']]
 ++  aliased-columns-1
-  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=[~ 'foo']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=[~ 'foo2']] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=[~ 'bar']] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=[~ 'bar2']] [%selected-value value=literal-1 alias=[~ %foobar]] [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']] [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]]
+  :~  [%unqualified-column column='x1' alias=[~ 'foo']]
+      [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=[~ 'foo2']]
+      [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='table-alias' alias=~] column='name' alias=[~ 'bar']]
+      [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=[~ 'bar2']]
+      [%selected-value value=literal-1 alias=[~ %foobar]]
+      [%selected-value value=[value-type=%p value=0] alias=[~ 'f1']]
+      [%selected-value value=[value-type=%t value='cord'] alias=[~ 'bar3']]
+      ==
 ++  mixed-all
   :~  [%all-object qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='t1' alias=~]]
-      [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foo' alias=~] column='foo' alias=[~ 'foobar']]
-      column-bar
+      [%unqualified-column column='foo' alias=[~ 'foobar']]
+      [%unqualified-column column='bar' alias=~]
       [%all %all]
       [%all-object qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]]
       ==
@@ -2265,6 +2729,25 @@
   ~[column-foo [%selected-aggregate [%aggregate function='count' source=column-foo] alias=[~ 'CountFoo']] [%selected-aggregate [%aggregate function='count' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=column-bar] alias=~] [%selected-aggregate [%aggregate function='sum' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]] alias=[~ 'foobar']]]
 ++  from-t1
   [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='t1' alias=[~ 'T1']]] as-of=~ joins=~]]
+++  from-aggregate
+      :-  ~
+          :^  %from
+              object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='tbl1' alias=~]]
+              as-of=~
+              :~  :*  %joined-object
+                      join=%join
+                      :-  %table-set
+                          :*  %qualified-object
+                              ship=~
+                              database=%db1
+                              namespace=%dbo
+                              name=%tbl2
+                              alias=~
+                              ==
+                      as-of=~
+                      predicate=~
+                      ==
+                  ==
 ::
 ::  simplest possible select (bunt)
 ++  test-select-01
@@ -2331,22 +2814,84 @@
 ::
 ::  select top, bottom, simple columns
 ++  test-select-10
-  =/  select  "select top 10  bottom 10 ".
-" x1, db.ns.table.col1, table-alias.name, db..table.col2, T1.foo, 1, ~zod, 'cord'"
-  =/  my-columns  ~[[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='table-alias' alias=~] column='name' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=~] [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] [%selected-value literal-1 ~] [%selected-value [value-type=%p value=0] ~] [%selected-value [value-type=%t value='cord'] ~]]
+  =/  select  "FROM ns.table ".
+              "JOIN table-alias ".
+              "JOIN db.dbo.table T1 ".
+              "select top 10  bottom 10 ".
+              " x1, db1.ns.table.col1, table-alias.name, db..table.col2, ".
+              "T1.foo, 1, ~zod, 'cord'"
+  =/  from  :-  ~
+                :^  %from
+                    object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='ns' name='table' alias=~]]
+                    as-of=~
+                    :~  :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db1
+                                    namespace=%dbo
+                                    name=%table-alias
+                                    alias=~
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                        :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db
+                                    namespace=%dbo
+                                    name=%table
+                                    alias=[~ 'T1']
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                        ==
+  =/  my-columns
+        :~  [%unqualified-column column='x1' alias=~]
+            [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='ns' name='table' alias=~] column='col1' alias=~]
+            [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='table-alias' alias=~] column='name' alias=~]
+            [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=~] column='col2' alias=~]
+            [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='table' alias=[~ 'T1']] column='foo' alias=~]
+            [%selected-value literal-1 ~]
+            [%selected-value [value-type=%p value=0] ~]
+            [%selected-value [value-type=%t value='cord'] ~]
+            ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=my-columns] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=my-columns] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  from foo select top, bottom, simple columns, trailing space, no internal space
 ++  test-select-11
-  =/  select  "from foo T1 select top 10  bottom 10  x1,db.ns.foo.col1,t1.name,db..foo.col2,T1.foo,1,~zod,'cord' "
-  =/  from  [~ [%from object=[%table-set object=foo-table-t1] as-of=~ joins=~]]
+  =/  select  "from foo T1 join db.ns.foo select top 10  bottom 10 ".
+              "x1,db.ns.foo.col1,t1.name,db1..foo.col2,T1.foo,1,~zod,'cord' "
+  =/  from  :-  ~
+                :^  %from
+                    object=[%table-set object=foo-table-t1]
+                    as-of=~
+                    :~  :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db
+                                    namespace=%ns
+                                    name=%foo
+                                    alias=~
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                        ==
   =/  my-columns
-    :~  [%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='x1' alias=~] column='x1' alias=~]
+    :~  [%unqualified-column column='x1' alias=~]
         [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='foo' alias=~] column='col1' alias=~]
         [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']] column='name' alias=~]
-        [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='dbo' name='foo' alias=~] column='col2' alias=~]
+        [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~] column='col2' alias=~]
         [%qualified-column qualifier=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']] column='foo' alias=~]
         [%selected-value literal-1 ~]
         [%selected-value [value-type=%p value=0] ~]
@@ -2358,16 +2903,86 @@
 ::
 ::  aliased format 1 columns
 ++  test-select-12
-  =/  select  "select x1 as foo , db.ns.table.col1 as foo2 , table-alias.name as bar , db..table.col2 as bar2 , 1 as foobar , ~zod as F1 , 'cord' as BAR3 "
+  =/  select  "FROM ns.table ".
+              "JOIN table-alias ".
+              "JOIN db.dbo.table ".
+              "select x1 as foo , db.ns.table.col1 as foo2 , ".
+              "table-alias.name as bar , db..table.col2 as bar2 , ".
+              "1 as foobar , ~zod as F1 , 'cord' as BAR3 "
+  =/  from  :-  ~
+                :^  %from
+                    object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='ns' name='table' alias=~]]
+                    as-of=~
+                    :~  :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db1
+                                    namespace=%dbo
+                                    name=%table-alias
+                                    alias=~
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                          :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db
+                                    namespace=%dbo
+                                    name=%table
+                                    alias=~
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                        ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=aliased-columns-1] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=aliased-columns-1] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aliased format 1, top, bottom columns, no whitespace
 ++  test-select-13
-  =/  select  "select  top 10  bottom 10  x1 as foo,db.ns.table.col1 as foo2,table-alias.name as bar,db..table.col2 as bar2,1 as foobar,~zod as F1,'cord' as BAR3"
+  =/  select  "FROM ns.table ".
+              "JOIN table-alias ".
+              "JOIN db.dbo.table ".
+              "select  top 10  bottom 10  x1 as foo,db.ns.table.col1 as foo2,table-alias.name as bar,db..table.col2 as bar2,1 as foobar,~zod as F1,'cord' as BAR3"
+  =/  from  :-  ~
+                :^  %from
+                    object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='ns' name='table' alias=~]]
+                    as-of=~
+                    :~  :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db1
+                                    namespace=%dbo
+                                    name=%table-alias
+                                    alias=~
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                          :*  %joined-object
+                            join=%join
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db
+                                    namespace=%dbo
+                                    name=%table
+                                    alias=~
+                                    ==
+                            as-of=~
+                            predicate=~
+                            ==
+                        ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=aliased-columns-1] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=aliased-columns-1] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed all, object all, object alias all, column, aliased column
@@ -2383,20 +2998,27 @@
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query from-t1 scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=mixed-all] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
-::
-::  mixed aggregates
-++  test-select-16
-  =/  select  "select  foo , COUNT(foo) as CountFoo, cOUNT( bar) ,sum(bar ) , sum( foobar ) as foobar "
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=aggregates] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
-::
-::  , top, bottom, mixed aggregates, no whitespace
-++  test-select-17
-  =/  select  "select top 10 bottom 10 foo,COUNT(foo) as CountFoo,cOUNT( bar),sum(bar ),sum( foobar ) as foobar"
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=aggregates] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
+
+::::  to do: revive tests when group by implemented 
+::::
+::::  mixed aggregates
+::++  test-select-16
+::  =/  select  "FROM tbl1 ".
+::              "JOIN tbl2 ".
+::              "select  foo , COUNT(foo) as CountFoo, cOUNT( bar) ,sum(bar ) , sum( foobar ) as foobar "
+::  %+  expect-eq
+::    !>  ~[[%selection ctes=~ [[%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=~ columns=aggregates] ~] ~ ~]]]
+::    !>  (parse:parse(default-database 'db1') select)
+::::
+::::  , top, bottom, mixed aggregates, no whitespace
+::++  test-select-17
+::  =/  select  "FROM tbl1 ".
+::              "JOIN tbl2 ".
+::              "select top 10 bottom 10 foo,COUNT(foo) as CountFoo,cOUNT( bar),sum(bar ),sum( foobar ) as foobar"
+::  %+  expect-eq
+::    !>  ~[[%selection ctes=~ [[%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=aggregates] ~] ~ ~]]]
+::    !>  (parse:parse(default-database 'db1') select)
+
 ::
 :: fail top, bottom, no bottom parameter, trailing whitespace
 ++  test-fail-select-18
@@ -2540,138 +3162,403 @@
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
+
+::  to do: fix when update implemented
 ::
 :: update
 ::
-++  one-eq-1
-  [%eq [literal-1 ~ ~] [literal-1 ~ ~]]
+++  one-eq-1  [%eq [literal-1 ~ ~] [literal-1 ~ ~]]
 ++  update-pred
-  [%and one-eq-1 [%eq [col2 ~ ~] [[value-type=%ud value=4] ~ ~]]]
+      [%and one-eq-1 [%eq [upd-col2 ~ ~] [[value-type=%ud value=4] ~ ~]]]
+++  upd-col1  [%qualified-column foo-table column='col1' alias=~]
+++  upd-col2  [%qualified-column foo-table column='col2' alias=~]
+++  upd-col3  [%qualified-column foo-table column='col3' alias=~]
+++  unqlf-2   [%unqualified-column column=%col2 alias=~]
 ::
 :: update one column, no predicate
 ++  test-update-00
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col1]
+                                values=~[[value-type=%t value='hello']]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello'")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo set col1='hello'"
 ::
 :: update one column, no predicate as of now
 ++  test-update-01
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col1]
+                                values=~[[value-type=%t value='hello']]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of now")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of now set col1='hello'"
 ::
 :: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-02
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            :-  columns=~[upd-col1]
+                                values=~[[value-type=%t value='hello']]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of ~2023.12.25..7.15.0..1ef5 set col1='hello'"
 ::
 :: update one column, no predicate as of 4 seconds ago
 ++  test-update-03
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%as-of-offset 4 %seconds]]
+                            :-  columns=~[upd-col1]
+                                values=~[[value-type=%t value='hello']]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col1'] values=~[[value-type=%t value='hello']] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1='hello' as of 4 seconds ago")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of 4 seconds ago set col1='hello'"
 ::
 :: update two columns, no predicate
 ++  test-update-04
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello'")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo set col1=col2, col3 = 'hello'"
 ::
 :: update two columns, no predicate as of now
 ++  test-update-05
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of now")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of now set col1=col2, col3 = 'hello'"
 ::
 :: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-06
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of ~2023.12.25..7.15.0..1ef5 ".
+            "set col1=col2, col3 = 'hello'"
 ::
 :: update two columns, no predicate as of 4 seconds ago
 ++  test-update-07
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%as-of-offset 4 %seconds]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=~
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=~ as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' as of 4 seconds ago")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of 4 seconds ago set col1=col2, col3 = 'hello'"
 ::
 :: update two columns, with predicate
 ++  test-update-08
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4"
 ::
 :: update two columns, with predicate as of now
 ++  test-update-09
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of now set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-10
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of ~2023.12.25..7.15.0..1ef5 ".
+            "set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4"
 ::
 :: update two columns, with predicate as of 4 seconds ago
 ++  test-update-11
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%as-of-offset 4 %seconds]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo as of 4 seconds ago set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: update with one cte and predicate
 ++  test-update-12
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 update foo set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: update with one cte and predicate as of now
 ++  test-update-13
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 update foo as of now ".
+            "set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4"
 ::
 :: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-14
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 update foo as of ~2023.12.25..7.15.0..1ef5 ".
+            "set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: update with one cte and predicate as of 4 seconds ago
 ++  test-update-15
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%as-of-offset 4 %seconds]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 update foo as of 4 seconds ago ".
+            "set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: update with three ctes and predicate
 ++  test-update-16
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4"
 ::
 :: update with three ctes and predicate as of now
 ++  test-update-17
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of now")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "update foo as of now set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-18
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of ~2023.12.25..7.15.0..1ef5")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "update foo as of ~2023.12.25..7.15.0..1ef5 ".
+            "set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4"
 ::
 :: update with three ctes and predicate as of 4 seconds ago
 ++  test-update-19
+  =/  expected  :+  %selection
+                    ctes=~[cte-t1 cte-foobar cte-bar]
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=[~ [%as-of-offset 4 %seconds]]
+                            :-  columns=~[upd-col3 upd-col1]
+                                values=~[[value-type=%t value='hello'] unqlf-2]
+                            predicate=`update-pred
+                            ==
+                        ~
+                        ~
   %+  expect-eq
-    !>  ~[[%selection ctes=~[cte-t1 cte-foobar cte-bar] [[%update table=foo-table columns=~['col3' 'col1'] values=~[[value-type=%t value='hello'] col2] predicate=`update-pred as-of=[~ [%as-of-offset 4 %seconds]]] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "with (select *) as t1, (from foobar where col1=2 select col3, col4) as foobar, (from bar where col1=col2 select col2) as bar update foo set col1=col2, col3 = 'hello' where 1 = 1 and col2 = 4 as of 4 seconds ago")
-::
-:: fail update cte with no predicate
-::++  test-fail-update-06
-::  %-  expect-fail
-::  |.  (parse:parse(default-database 'other-db') "with (select *) as t1 update foo set col1=col2, col3 = 'hello' ")
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1, ".
+            "(from foobar where col1=2 select col3, col4) as foobar, ".
+            "(from bar where col1=col2 select col2) as bar ".
+            "update foo as of 4 seconds ago set col1=col2, col3 = 'hello' ".
+            "where 1 = 1 and col2 = 4"
 ::
 :: merge
 ::
@@ -2691,52 +3578,52 @@
   [%table-set object=[%query-row alias=[~ 'tgt'] ~['col1' 'col2' 'col3']]]
 ++  passthru-src
   [%table-set object=[%query-row alias=[~ 'src'] ~['col1' 'col2' 'col3']]]
-::
-::
-++  test-merge-01
-  =/  query  " WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO dbo.foo AS tgt ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::
-++  test-merge-02
-  =/  query  " WITH (SELECT bar, foobar) as T1 ".
-" MERGE INTO dbo.foo AS tgt ".
-" USING T1 AS src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED THEN ".
-"    UPDATE SET foobar = src.foo, ".
-"    bar = bar "
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::
-++  test-merge-03
-  =/  query  "WITH (SELECT bar, foobar) as src ".
-" MERGE dbo.foo ".
-" USING src ".
-" ON (tgt.bar = src.bar) ".
-" WHEN MATCHED AND 1 = 1 THEN ".
-"    UPDATE SET foobar = src.foobar ".
-" WHEN NOT MATCHED THEN ".
-"    INSERT (bar, foobar) ".
-"    VALUES (src.bar, 99)"
-  =/  expected
-    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='src' alias=~]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
+::::
+::::
+::++  test-merge-01
+::  =/  query  " WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO dbo.foo AS tgt ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::
+::++  test-merge-02
+::  =/  query  " WITH (SELECT bar, foobar) as T1 ".
+::" MERGE INTO dbo.foo AS tgt ".
+::" USING T1 AS src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED THEN ".
+::"    UPDATE SET foobar = src.foo, ".
+::"    bar = bar "
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
+::::
+::::
+::++  test-merge-03
+::  =/  query  "WITH (SELECT bar, foobar) as src ".
+::" MERGE dbo.foo ".
+::" USING src ".
+::" ON (tgt.bar = src.bar) ".
+::" WHEN MATCHED AND 1 = 1 THEN ".
+::"    UPDATE SET foobar = src.foobar ".
+::" WHEN NOT MATCHED THEN ".
+::"    INSERT (bar, foobar) ".
+::"    VALUES (src.bar, 99)"
+::  =/  expected
+::    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='src' alias=~]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::  %+  expect-eq
+::    !>  ~[expected]
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::  query row tests, uncomment when query row implemented
 ::::

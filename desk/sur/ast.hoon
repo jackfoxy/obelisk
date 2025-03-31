@@ -132,9 +132,15 @@
 +$  ops-and-conjs
       ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component
-      ?(ops-and-conjs qualified-column dime value-literals aggregate)
+      $?  ops-and-conjs
+          qualified-column
+          unqualified-column
+          dime
+          value-literals
+          aggregate
+          ==
 +$  predicate            (tree predicate-component)
-+$  datum                $%(qualified-column dime)
++$  datum                $%(qualified-column unqualified-column dime)
 +$  datum-or-scalar      $@(datum scalar-function)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
@@ -234,6 +240,7 @@
 +$  selected-column
   $%
     qualified-column
+    unqualified-column
     qualified-object
     selected-aggregate
     selected-value
@@ -241,6 +248,12 @@
     selected-all-object
   ==
   :: scalar-function or selected-scalar) fish-loop
++$  unqualified-column
+  $:
+    %unqualified-column
+    column=@tas
+    alias=(unit @t)
+    ==
 +$  selected-all
   $:
     %all
@@ -326,8 +339,8 @@
   $:
     %delete
     table=qualified-object
-    predicate=(unit predicate)
     as-of=(unit as-of)
+    predicate=predicate
   ==
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
@@ -336,9 +349,9 @@
   $:
     %insert
     table=qualified-object
+    as-of=(unit as-of)
     columns=(unit (list @tas))
     values=insert-values
-    as-of=(unit as-of)
   ==
 +$  value-or-default     ?(%default datum)
 ::
@@ -347,10 +360,11 @@
   $:
     %update
     table=qualified-object
-    columns=(list @tas)
-    values=(list value-or-default)
-    predicate=(unit predicate)
     as-of=(unit as-of)
+    $:  columns=(list qualified-column)
+        values=(list value-or-default)
+        ==
+    predicate=(unit predicate)
   ==
 ::
 ::  $merge: merge from source table-set into target table-set

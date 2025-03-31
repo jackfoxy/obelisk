@@ -25,7 +25,9 @@ Creates a new user-space database on the ship.
 The user-defined name for the new database. It must comply with the Hoon term naming standard. 
 
 **`<as-of-time>`**
-Timestamp of database creation. Defaults to `NOW` (current time). Subsequent DDL and data actions must have timestamps greater than this timestamp. 
+Timestamp of database creation. Defaults to `NOW` (current time). Subsequent DDL and data actions must have timestamps greater than this timestamp.
+
+WARNING: It is possible to future date a `CREATE DATABSE`. This will lock all schema and data updates in the database until that future time.
 
 ### Remarks
 
@@ -33,9 +35,9 @@ This command mutates the state of the Obelisk agent. It inserts a row into the v
 
 ### Produced Metadata
 
-message:created database <name>
-server-time: <timestamp>
-schema-time: <timestamp>
+message: created database <name>
+server time: <timestamp>
+schema time: <timestamp>
 
 ### Exceptions
 
@@ -85,8 +87,11 @@ Dropping a database is permanent and leaves no trace of the database for time tr
 If the database only contains future dated content. The `DROP` command will succeed without requiring `FORCE`.
 
 ## Produced Metadata
-Schema timestamp
-Content timestamp
+
+message: DROP DATABASE <name>
+server time: <timestamp>
+message: database <name> dropped
+
 
 ## Exceptions
 database must be dropped by local agent

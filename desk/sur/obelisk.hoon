@@ -78,22 +78,14 @@
       provenance=path
       tmsp=@da
       rowcount=@
-      pri-idx=(tree [(list @) (map @tas @)])
-      indexed-rows=(list [(list @) (map @tas @)])
+      pri-idx=(tree indexed-row)
+      indexed-rows=(list indexed-row)
       ::    =indices
   ==
 +$  data-obj-key
   $:  ns=@tas
       obj=@tas
       time=@da
-  ==
-+$  data-obj
-  $:  %data-obj
-      sys-time=@da
-      data-time=@da
-      columns=(list column)
-      rowcount=@
-      rows=(list vector)
   ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
@@ -103,7 +95,6 @@
       provenance=path
       tmsp=@da
       =column-lookup
-      key=(list [@ta ?])
       pri-indx=index
       columns=(list column)      ::  canonical column list
       indices=(list index)      :: to do: indices indexed by (list column)
@@ -124,7 +115,14 @@
 +$  index
   $:  %index
       unique=?
-      columns=(list ordered-column)
+      key=(list key-column)
+  ==
++$  key-column
+  $:
+    %key-column
+    name=@tas
+    =aura
+    ascending=?
   ==
 +$  vector-cell  [p=@tas q=dime]
 +$  vector
@@ -157,19 +155,34 @@
       schema-tmsp=@da
       data-tmsp=@da
       columns=(list column)
-      qualified-columns=(list [qualified-column @ta])
-      key=(list [@ta ?])
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
-      type-lookup=(map qualified-object (map @tas @ta))
       rowcount=@
-      pri-indexed=(tree [(list @) (map @tas @)])
-      indexed-rows=(list [(list @) (map @tas @)])
-      joined-rows=(list joined-row)
+      pri-indexed=(tree indexed-row)
+      indexed-rows=(list indexed-row)
   ==
++$  qual-col-type  [qualified-column @ta]
++$  lookup-type    (map qualified-object (map @tas @ta))
 ::
-+$  joined-row  (map qualified-object (map @tas @))
++$  indexed-row  [(list @) (map @tas @)]
++$  joined-row   [(list @) (map qualified-object (map @tas @))]
+::
++$  joined
+  $:  %joined
+      key=(list key-column)
+      rowcount=@ud
+      joined-rows=(list joined-row)
+      ==
+::
++$  join-return
+  $:  %join-return
+      =server
+      data-objs=(list from-obj)
+      join-data=joined
+      type-lookup=lookup-type
+      qualified-columns=(list qual-col-type)
+      ==
 ::
 +$  relation
   $:

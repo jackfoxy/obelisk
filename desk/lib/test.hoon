@@ -21,14 +21,12 @@
 ++  eval-results
   |=  [expected=cmd-result actual=cmd-result]
   =/  expct-actual  (parse-results expected actual)
-  ;:  weld
-  %+  expect-eq
-    !>  -<.expct-actual
-    !>  +<.expct-actual
-  %+  expect-eq
-    !>  ->.expct-actual
-    !>  +>.expct-actual
-  ==
+  %+    weld  %+  expect-eq
+                !>  -<.expct-actual
+                !>  +<.expct-actual
+              %+  expect-eq
+                !>  ->.expct-actual
+                !>  +>.expct-actual
 ::
 ::  +expect-eq: compares :expected and :actual and pretty-prints the result
 ::

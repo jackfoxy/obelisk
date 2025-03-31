@@ -57,23 +57,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -82,13 +80,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT *"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -138,23 +134,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -163,13 +157,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT *, *"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -207,23 +199,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -232,13 +222,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT my-table.*"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -276,23 +264,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -301,13 +287,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table T1 SELECT T1.*"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -345,23 +329,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -370,13 +352,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col1,col2,col3,col4"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -414,23 +394,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -439,15 +417,13 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table SELECT col1 as c1,col2 as c2,col3 as c3,col4 as c4"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -497,16 +473,14 @@
               "195.198.143.900, .3.14, .-3.14, ~3.14, ~-3.14, 0x12.6401, ".
               "10.1011, -20, --20, 'cor\\'d'"
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %sys select])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -559,16 +533,14 @@
               "~-3.14 as float64-2, 0x12.6401 AS UNHEX, 10.1011 as unbinary, ".
               "-20 as signdec1, --20 as signdec2, 'cor\\'d' AS CORD2"
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %sys select])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -618,23 +590,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -643,17 +613,15 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 ".
               "SELECT 'cor\\'d' AS cord, col1 as C1, ~nomryg-nilref, col2, ".
                      ".-3.14 as pi, col3, col4, ~2023.12.25"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -691,23 +659,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -716,13 +682,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col4,col3,col2,col1"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -760,23 +724,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -785,15 +747,13 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table SELECT col4 as c4,col3 as C3,col2 as c2,col1 as c1"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -831,23 +791,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -856,16 +814,14 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table ".
               "SELECT my-table.col1,my-table.col2,my-table.col3,my-table.col4"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -903,23 +859,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -928,15 +882,13 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT T1.col1,T1.col2,T1.col3,T1.col4"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -974,23 +926,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -999,16 +949,14 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table ".
               "SELECT my-table.col4,my-table.col3,my-table.col2,my-table.col1"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1046,23 +994,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1071,15 +1017,13 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT T1.col4,T1.col3,T1.col2,T1.col1"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1120,23 +1064,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1145,13 +1087,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3,*"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1192,23 +1132,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1217,13 +1155,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3,my-table.*"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1264,23 +1200,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1289,13 +1223,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table T1 SELECT col2, T1.*"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1363,23 +1295,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1388,15 +1318,13 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1464,23 +1392,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1489,15 +1415,13 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT col1 as C1, T1.*, col2,col4, *"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1563,26 +1487,23 @@
   "0x12.6401 AS Unsigned-hexadecimal"
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 my-select])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1599,26 +1520,23 @@
                 ==
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "SELECT 0"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1656,29 +1574,26 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.29]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.29]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db2"])
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db2
                 "CREATE TABLE my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db2
@@ -1687,13 +1602,11 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov5  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM db2..my-table SELECT *"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov5))
 ::
@@ -1731,7 +1644,7 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.29]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.29]))
         %obelisk-action
         !>  :+  %tape
                 %db2 
@@ -1746,7 +1659,6 @@
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3'); ".
                 "FROM db2..my-table SELECT *"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+>+>+<.mov1))
 ::
@@ -1826,23 +1738,21 @@
                     [%vector-count 3]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -1851,16 +1761,14 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT ~2024.10.20, col1 as C1, ".
               "~sampel-palnet as home, T1.*, col2,col4, *"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -1896,16 +1804,14 @@
                     [%vector-count 2]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM sys.sys.databases V1 select v1.*"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2022,23 +1928,21 @@
 ++  test-time-query-01
   =|  run=@ud
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2047,10 +1951,9 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2058,53 +1961,46 @@
                 " VALUES".
                 " ('Baker', ~1998.3.8, 'caleco', 'row4')".
                 " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
-    ==
   =.  run  +(run)
   =^  mov5  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
   =.  run  +(run)
   =^  mov6  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table AS OF ~2012.5.2 T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
-  ;:  weld
-  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
-  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
-  ==
+  %+  weld  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  as-of 3 days ago (data-time = days ago)
 ::  *, two column names, table-name.*, one column alias
 ++  test-time-query-02
   =|  run=@ud
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2113,10 +2009,9 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2124,30 +2019,25 @@
                 " VALUES".
                 " ('Baker', ~1998.3.8, 'caleco', 'row4')".
                 " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
-    ==
   =.  run  +(run)
   =^  mov5  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
   =.  run  +(run)
   =^  mov6  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table AS OF 3 DAYS AGO T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
-  ;:  weld
-  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
-  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
-  ==
+  %+  weld  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  as-of 2 days ago (data-time < days ago)
 ::  *, two column names, table-name.*, one column alias
@@ -2164,23 +2054,21 @@
                      ==
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2189,10 +2077,9 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.4]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2200,53 +2087,46 @@
                 " VALUES".
                 " ('Baker', ~1998.3.8, 'caleco', 'row4')".
                 " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
-    ==
   =.  run  +(run)
   =^  mov5  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
   =.  run  +(run)
   =^  mov6  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table AS OF 2 DAYS AGO T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
-  ;:  weld
-  (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
-  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
-  ==
+  %+  weld  (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  as-of ~d3 (data-time = ~d3 ago)
 ::  *, two column names, table-name.*, one column alias
 ++  test-time-query-04
   =|  run=@ud
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2255,10 +2135,9 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2266,30 +2145,25 @@
                 " VALUES".
                 " ('Baker', ~1998.3.8, 'caleco', 'row4')".
                 " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
-    ==
   =.  run  +(run)
   =^  mov5  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
   =.  run  +(run)
   =^  mov6  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table AS OF ~d3 T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
-  ;:  weld
-  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
-  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
-  ==
+  %+  weld  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  as-of ~d2 (data-time < ~d2 ago)
 ::  *, two column names, table-name.*, one column alias
@@ -2306,23 +2180,21 @@
                      ==
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2331,10 +2203,9 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.4]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2342,30 +2213,25 @@
                 " VALUES".
                 " ('Baker', ~1998.3.8, 'caleco', 'row4')".
                 " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
-    ==
   =.  run  +(run)
   =^  mov5  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
   =.  run  +(run)
   =^  mov6  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.5]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
         %obelisk-action
         !>  :+  %tape
               %db1
               "FROM my-table AS OF ~d2 T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"
-    ==
   ::
-  ;:  weld
-  (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
-  (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
-  ==
+  %+  weld  (eval-results expected1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  shrinking
 ::
@@ -2382,23 +2248,21 @@
                     [%vector-count 1]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2407,13 +2271,11 @@
                 " ('Abby', ~2005.12.19, 'tricolor', 'row1')".
                 " ('Angel', ~2005.12.19, 'tuxedo', 'row3')".
                 " ('Ace', ~2005.12.19, 'tricolor', 'row2')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col2"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2434,23 +2296,21 @@
                     [%vector-count 2]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2459,14 +2319,11 @@
                 " ('Abby', ~2005.12.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'tuxedo', 'row2')".
                 " ('Angel', ~2005.12.19, 'tricolor', 'row3')"
-                
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2487,23 +2344,21 @@
                     [%vector-count 2]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2512,13 +2367,11 @@
                 " ('Abby', ~2005.12.19, 'tricolor', 'row1')".
                 " ('Angel', ~2005.12.19, 'tuxedo', 'row3')".
                 " ('Ace', ~2005.12.19, 'tricolor', 'row2')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col3"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2539,23 +2392,21 @@
                     [%vector-count 2]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2564,13 +2415,11 @@
                 " ('Abby', ~2005.12.19, 'tricolor', 'row1')".
                 " ('Angel', ~2005.12.19, 'tuxedo', 'row3')".
                 " ('Ace', ~2005.12.19, 'tricolor', 'row2')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape %db1 "FROM my-table SELECT col2 as c2, col3"])
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2601,23 +2450,21 @@
                     [%vector-count 2]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -2626,16 +2473,14 @@
                 " ('Abby', ~2005.12.19, 'tricolor', 'row1')".
                 " ('Angel', ~2005.12.19, 'tuxedo', 'row3')".
                 " ('Ace', ~2005.12.19, 'tricolor', 'row2')"
-    ==
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "FROM my-table SELECT  ~2024.10.20, col2 as c2, ".
                 "~sampel-palnet as home, col3"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2664,40 +2509,36 @@
                     [%vector-count 2]
                 ==
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table-2 ".
                 "(c2-col1 @t, c2-col2 @da, c2-col3 @t, c2-col4 @t) ".
                 "PRIMARY KEY (c2-col1, c2-col2)"
-    ==
   ::
   =.  run  +(run)
   =^  mov4  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "FROM sys.tables SELECT  ~2024.10.20, tmsp as time, ".
                 "~sampel-palnet as home"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -2749,6 +2590,14 @@
   " day         @ud,".
   " month-name  @t)".
   "  PRIMARY KEY (year, month, day);"
+++  create-tbl3
+  "CREATE TABLE tbl3 ".
+  "(date      @da,".
+  " year      @ud,".
+  " month     @ud,".
+  " day       @ud,".
+  " row-name  @t)".
+  "  PRIMARY KEY (date);"
 ++  create-cross-tbl
   "CREATE TABLE cross ".
   "(cross-key  @ud,".
@@ -2810,6 +2659,14 @@
   "(2023, 12, 29, 'December') ".
   "(2023, 12, 30, 'December') ".
   "(2023, 12, 31, 'December');"
+++  insert-tbl1-b
+  "INSERT INTO tbl1 ".
+  "VALUES ".
+  "(2023, 8, 21, 'August') ".
+  "(2023, 9, 22, 'September') ".
+  "(2023, 10, 23, 'October') ".
+  "(2023, 11, 24, 'November') ".
+  "(2023, 12, 25, 'December');"
 ++  insert-tbl2
   "INSERT INTO tbl2 ".
   "VALUES ".
@@ -2874,6 +2731,25 @@
   "(2024, 4, 7, 'Sunday') ".
   "(2024, 4, 8, 'Monday') ".
   "(2024, 4, 9, 'Tuesday');"
+++  insert-tbl3
+  "INSERT INTO tbl3 ".
+  "VALUES ".
+  "(~2023.12.21, 2023, 12, 21, 'row-1') ".
+  "(~2023.12.24, 2023, 12, 24, 'row-2') ".
+  "(~2023.12.25, 2023, 12, 25, 'row-3') ".
+  "(~2023.12.26, 2023, 12, 26, 'row-4') ".
+  "(~2023.12.30, 2023, 12, 30, 'row-5') ".
+  "(~2023.12.31, 2023, 12, 31, 'row-6') ".
+  "(~2024.1.1, 2024, 1, 1, 'row-7') ".
+  "(~2024.1.2, 2024, 1, 2, 'row-8') ".
+  "(~2024.2.7, 2024, 2, 7, 'row-9') ".
+  "(~2024.3.3, 2024, 3, 3, 'row-10') ".
+  "(~2024.3.4, 2024, 3, 4, 'row-11') ".
+  "(~2024.3.8, 2024, 3, 8, 'row-12') ".
+  "(~2024.4.1, 2024, 4, 1, 'row-13') ".
+  "(~2024.4.2, 2024, 4, 2, 'row-14') ".
+  "(~2024.4.7, 2024, 4, 7, 'row-15') ".
+  "(~2024.4.8, 2024, 4, 8, 'row-16');"
 ++  expect-rows-1
       :~
         :-  %vector
@@ -3603,7 +3479,7 @@
                   [%cross-key [~.ud q=1]]
                   [%cross-2 [~.p q=1.624.961.343]]
                   [%cross-3 [~.t q=27.353.046.622.106.211]]
-      ==
+                  ==
           :-  %vector
              :~  [%year [~.ud q=2.023]]
                   [%month [~.ud q=12]]
@@ -3623,6 +3499,341 @@
                   [%cross-3 [~.t q=27.353.046.622.106.211]]
                   ==
           ==
+++  expected-natural-cross-rows
+        :~  :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    ==
+            ==
+++  expected-cross-aliased-rows
+      :~  :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=4]]
+                  [%cross-2 [~.p q=~sev]]
+                  ==
+          ==
+++  expected-cross-as-of-rows
+      :~  :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='August']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='September']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='October']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='November']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=1]]
+                  [%cross-2 [~.p q=~sampel-palnet]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=2]]
+                  [%cross-2 [~.p q=~nec]]
+                  ==
+          :-  %vector
+              :~  [%year [~.ud q=2.023]]
+                  [%month-name [~.t q='December']]
+                  [%literal-2 [~.t q='cross joining']]
+                  [%cross-key [~.ud q=3]]
+                  [%cross-2 [~.p q=~bus]]
+                  ==
+          ==
 ++  expected-cross
       :~  %results
           [%message 'SELECT']
@@ -3635,6 +3846,32 @@
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 33]
+          ==
+++  expected-cross-aliased
+      :~  %results
+          [%message 'SELECT']
+          [%result-set expected-cross-aliased-rows]
+          [%server-time ~2012.5.3]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'db1.dbo.cross']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.5.2]
+          [%vector-count 20]
+          ==
+++  expected-cross-as-of
+      :~  %results
+          [%message 'SELECT']
+          [%result-set expected-cross-as-of-rows]
+          [%server-time ~2012.5.4]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'db1.dbo.cross']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%vector-count 15]
           ==
 ++  expected-cross-inverted
       :~  %results
@@ -3950,6 +4187,7 @@
                 "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  test alternating file alias case in predicate, tables inverted
 ++  test-join-06
   =|  run=@ud
@@ -4043,6 +4281,7 @@
                 "SELECT T1.day-name AS Day, t2.us-federal-holiday"
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  test mixed column alias case in predicate, tables inverted
 ++  test-join-08
   =|  run=@ud
@@ -4152,10 +4391,8 @@
                 "WHERE day-name = 'Monday' ".
                 "SELECT T1.year, T2.month, T1.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join multi-column keys
 ++  test-join-10
@@ -4220,10 +4457,8 @@
                 "WHERE day-name = 'Monday' ".
                 "SELECT T1.year, T2.month, T1.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join multi-column keys, tables inverted
 ++  test-join-11
@@ -4288,10 +4523,8 @@
                 "WHERE day-name = 'Monday' ".
                 "SELECT T2.year, T1.month, T2.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and descending multi-column keys, all rows join
 ++  test-join-12
@@ -4356,10 +4589,8 @@
                 "WHERE T2.day-name = 'Monday' ".
                 "SELECT T1.year, T2.month, T1.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and descending multi-column keys
 ++  test-join-13
@@ -4424,10 +4655,8 @@
                 "WHERE T2.day-name = 'Monday' ".
                 "SELECT T1.year, T2.month, T1.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and descending multi-column keys, tables inverted 
 ++  test-join-14
@@ -4492,10 +4721,8 @@
                 "WHERE T1.day-name = 'Monday' ".
                 "SELECT T2.year, T1.month, T2.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and partial descending multi-column keys, all rows join
 ++  test-join-15
@@ -4560,10 +4787,8 @@
                 "WHERE day-name = 'Monday' ".
                 "SELECT T1.year, T2.month, T1.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and partial descending multi-column keys
 ++  test-join-16
@@ -4628,10 +4853,8 @@
                 "WHERE day-name = 'Monday' ".
                 "SELECT T1.year, T2.month, T1.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and partial descending multi-column keys, tables inverted 
 ++  test-join-17
@@ -4696,10 +4919,8 @@
                 "WHERE day-name = 'Monday' ".
                 "SELECT T2.year, T1.month, T2.day, month-name, day-name"
   ::
-  ;:  weld
-  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
-  (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
-  ==
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov2))
+            (eval-results expected-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  join ascending and partial descending multi-column keys
 ::  with column aliases and literals
@@ -5059,6 +5280,574 @@
   ::
   (eval-results expected-cross-inverted ;;(cmd-result ->+>+>+<.mov2))
 ::
+::  cross join, as of, aliased, literals
+++  test-join-22
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              create-cross-tbl
+                              insert-tbl1-b
+                              insert-cross
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "INSERT INTO cross ".
+                "VALUES ".
+                "(4, ~sev, 'cross-d');"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 T1 ".
+                "CROSS JOIN cross T2 ".
+                "SELECT T1.year, T1.month-name, 'cross joining', ".
+                "T2.cross-key, T2.cross-2"
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl1 T1 ".
+                "CROSS JOIN cross as of ~2012.5.1 T2 ".
+                "SELECT T1.year, T1.month-name, 'cross joining', ".
+                "T2.cross-key, T2.cross-2"
+  ::
+  %+  weld  (eval-results expected-cross-aliased ;;(cmd-result ->+>+>+<.mov3))
+            (eval-results expected-cross-as-of ;;(cmd-result ->+>+>+<.mov4))
+::
+::  test 3 natural joins
+++  test-join-23
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              create-tbl3
+                              insert-tbl3
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN tbl3 T3 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and cross join
+++  test-join-24
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-natural-cross-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN tbl3 T3 ".
+                "CROSS JOIN cross T4 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and cross join, join order 2
+++  test-join-25
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-natural-cross-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "CROSS JOIN cross T4 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN tbl3 T3 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and cross join, join order 3
+++  test-join-26
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-natural-cross-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 6]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl3 T3 ".
+                "CROSS JOIN cross T4 ".
+                "JOIN holiday-calendar T2 ".
+                "JOIN calendar T1 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  test 3 natural joins and 2 cross joins
+++  test-join-27
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    [%cross-42 [~.t 'cross-1a']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 1]]
+                    [%cross-2 [~.p ~sampel-palnet]]
+                    [%cross-3 [~.t 'cross-a']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 2]]
+                    [%cross-2 [~.p ~nec]]
+                    [%cross-3 [~.t 'cross-b']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-3']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date [~.da ~2023.12.25]]
+                    [%year [~.ud 2.023]]
+                    [%month [~.ud 12]]
+                    [%day [~.ud 25]]
+                    [%row-name [~.t 'row-3']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            :-  %vector
+                :~  [%row-name [~.t 'row-7']]
+                    [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date [~.da ~2024.1.1]]
+                    [%year [~.ud 2.024]]
+                    [%month [~.ud 1]]
+                    [%day [~.ud 1]]
+                    [%row-name [~.t 'row-7']]
+                    [%cross-key [~.ud 3]]
+                    [%cross-2 [~.p ~bus]]
+                    [%cross-3 [~.t 'cross-c']]
+
+                    [%cross-42 [~.t 'cross-3b']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.tbl3']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross2']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 12]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              create-holiday-calendar
+                              create-tbl3
+                              create-cross-tbl
+                              "CREATE TABLE cross2 ".
+                              "(cross-key2  @ud,".
+                              " cross-42    @t)".
+                              "  PRIMARY KEY (cross-key2);"
+                              insert-calendar
+                              insert-holiday-calendar
+                              insert-tbl3
+                              insert-cross
+                              "INSERT INTO cross2 ".
+                              "VALUES ".
+                              "(1, 'cross-1a') ".
+                              "(3, 'cross-3b');"
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM tbl3 T3 ".
+                "CROSS JOIN cross T4 ".
+                "JOIN holiday-calendar T2 ".
+                "CROSS JOIN cross2 T5 ".
+                "JOIN calendar T1 ".
+                "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*, cross-42"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
+::  cross database join
+++  test-join-28
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db2.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              "CREATE DATABASE db2;"
+                              create-calendar
+                              insert-calendar
+                              "CREATE TABLE db2..holiday-calendar ".
+                              "(date @da, us-federal-holiday @t) ".
+                              "PRIMARY KEY (date);"
+                              "INSERT INTO db2..holiday-calendar ".
+                              "(date, us-federal-holiday) ".
+                              "VALUES ".
+                              "(~2023.11.23, 'Thanksgiving Day') ".
+                              "(~2023.12.25, 'Christmas Day') ".
+                              "(~2024.1.1, 'New Years Day') ".
+                              "(~2024.1.15, 'Birth of Martin Luther King Jr.');"
+                              ==
+  =.  run  +(run)
+   =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                "FROM calendar T1 ".
+                "JOIN db2..holiday-calendar T2 ".
+                "SELECT T1.day-name, T2.*"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud
@@ -5079,6 +5868,63 @@
                   "FROM db1..tbl1 ".
                   "JOIN db1..tbl1 ".
                   "SELECT year"
+::
+::  same object 2X with unknown column
+++  test-fail-join-01
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              ==
+  %+  expect-fail-message
+        'SELECT: column %year-month not found'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db1..tbl1 ".
+                  "JOIN db1..tbl1 ".
+                  "SELECT year-month"
+::
+::  fail natural join on incompatible keys
+++  test-fail-join-02
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-tbl1
+                              "CREATE TABLE calendar ".
+                              "( date        @da, ".
+                              "  year        @ud, ".
+                              "  month       @ud, ".
+                              "  month-name  @t, ".
+                              "  day         @ud, ".
+                              "  day-name    @t, ".
+                              "  day-of-year @ud, ".
+                              "  weekday     @ud, ".
+                              "  year-week   @ud ) ".
+                              "  PRIMARY KEY (date, year, month); "
+                              ==
+  %+  expect-fail-message
+        %-  crip
+            "no natural join or foreign key join, columns do not match: ".
+            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "name=%calendar alias=~]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM db1..tbl1 ".
+                  "JOIN calendar ".
+                  "SELECT year"
+::
 ::  bugs
 ::
 ::  bug selecting calendar because of screw-up in views schema API
@@ -5142,13 +5988,12 @@
                     [%vector-count 4]
                 ==
   =^  mov1  agent
-   %:  ~(on-poke agent (bowl [run ~2024.8.22..15.31.16]))
+   %+  ~(on-poke agent (bowl [run ~2024.8.22..15.31.16]))
        %obelisk-action
        !>([%tape %sys "CREATE DATABASE animal-shelter"])
-   ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2024.8.22..15.31.46]))
+    %+  ~(on-poke agent (bowl [run ~2024.8.22..15.31.46]))
         %obelisk-action
         !>  :+  %tape
                 %animal-shelter
@@ -5172,15 +6017,13 @@
                 "  (~1990.1.2, 1990, 1, 'January', 2, 'Tuesday', 2, 3, 1) ".
                 "  (~1990.1.3, 1990, 1, 'January', 3, 'Wednesday', 3, 4, 1) ".
                 "  (~1990.1.4, 1990, 1, 'January', 4, 'Thursday', 4, 5, 1);"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2024.8.22..16.11.26]))
+    %+  ~(on-poke agent (bowl [run ~2024.8.22..16.11.26]))
         %obelisk-action
         !>  :+  %tape
               %animal-shelter
               "FROM reference.calendar SELECT *"
-    ==
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
@@ -5193,13 +6036,12 @@
                  "my-table.col4,my-table.col3,my-table.col2,my-table.col1"
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -5207,10 +6049,9 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1) ".
                 "AS OF ~2012.5.3"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -5220,7 +6061,6 @@
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
                 "AS OF ~2012.5.4"
-    ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -5236,13 +6076,12 @@
                  "col4, foo"
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.1]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -5250,10 +6089,9 @@
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1) ".
                 "AS OF ~2012.5.3"
-    ==
   =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -5263,7 +6101,6 @@
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
                 "AS OF ~2012.5.4"
-    ==
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -5301,23 +6138,21 @@
                      ==
   ::
   =^  mov1  agent
-    %:  ~(on-poke agent (bowl [run ~2012.4.30]))
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
         !>([%tape %sys "CREATE DATABASE db1"])
-    ==
   =.  run  +(run)
   =^  mov2  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
         !>  :+  %tape
                 %db1
                 "CREATE TABLE db1..my-table ".
                 "(col1 @t, col2 @da, col3 @t, col4 @t) ".
                 "PRIMARY KEY (col1)"
-    ==
     =.  run  +(run)
   =^  mov3  agent
-    %:  ~(on-poke agent (bowl [run ~2012.5.3]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>  :+  %tape
                 %db1
@@ -5326,7 +6161,6 @@
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
                 " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-    ==
   %+  expect-fail-message
     'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))

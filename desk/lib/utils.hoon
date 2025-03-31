@@ -47,17 +47,23 @@
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
 ::
+::  +reduce-key:  (list key-column) -> (list [@ta ?])
+++  reduce-key
+  |=  key=(list key-column)
+  ^-  (list [@ta ?])
+  (turn key |=(a=key-column [aura.a ascending.a]))
+::
 ::  +idx-comp
 ::
 ::  comparator for index mops
 ++  idx-comp
-  |_  index=(list [@tas ?])
+  |_  index=(list [@ta ?])
   ++  order
     |=  [p=(list @) q=(list @)]
-    =/  k=(list [@tas ?])  index
+    =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  =(-<.k ~.t)  (alpha -.q -.p)
     ?:  ->.k  (gth -.p -.q)
     (lth -.p -.q)
   --
@@ -81,8 +87,8 @@
   --
 ::
 ++  pri-key
-  |=  key=(list [@tas ?])
-        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp key))
+  |=  key=(list key-column)
+        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
@@ -123,7 +129,7 @@
   ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
 ::
-::  gets the data with the highest timestamp for mutation
+::  gets the data with the highest timestamp for schema mutation
 ++  get-next-data
   |=  $:  content=((mop @da data) gth)
           next-data=(map @tas @da)
@@ -136,6 +142,16 @@
   ?:  =(tmsp.nxt-data sys-time)
     ?:  =((~(got by next-data) db-name) sys-time)  nxt-data
     !!
+  nxt-data
+::
+::  gets the data with the highest timestamp for data mutation
+++  get-data-next
+  |=  $:  content=((mop @da data) gth)
+          sys-time=@da
+      ==
+  ^-  data
+  =/  nxt-data=data  +:(need (pry:data-key content))
+  ?:  (lth sys-time tmsp.nxt-data)  !!
   nxt-data
 ::
 ::  +  get-view:  [data-obj-key views] -> (unit view)
@@ -254,21 +270,7 @@
         [[%.y ascending.ordering -.offset-type] out]
       [[%.n ascending.ordering -.offset-type] out]
   ==
-::
-::    +make-index-key:  [(map @tas [@tas @ud]) (list ordered-column:ast)]
-::                      -> (list [@tas ?])
-++  make-index-key
-  |=  [column-lookup=(map @tas [@tas @ud]) pri-indx=(list ordered-column:ast)]
-  ^-  (list [@tas ?])
-  =/  a=(list [@tas ?])  ~
-  |-
-  ?~  pri-indx  (flop a)
-  =/  b=ordered-column:ast  -.pri-indx
-  =/  col  (~(got by column-lookup) name.b)
-  %=  $
-    pri-indx  +.pri-indx
-    a  [[-.col ascending.b] a]
-  ==
+
 ::
 ++  try-find-col-index
   |=  [a=(list column:ast) name=@tas]
@@ -345,11 +347,11 @@
 ::
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-templ-cell
-  |=  a=[qualified-column:ast @ta]
+  |=  a=qual-col-type
   ^-  templ-cell
   (templ-cell %templ-cell `-.a `vector-cell`[column.-.a [+.a 0]])
 ++  mk-vect-templ
-  |=  $:  cols=(list [qualified-column:ast @ta])
+  |=  $:  cols=(list qual-col-type)
           selected=(list selected-column:ast)
           ==
   ^-  (list templ-cell)
@@ -358,7 +360,7 @@
     %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
         %+  turn
               cols
-              |=(a=[qualified-column:ast @ta] [[qualifier:-.a column:-.a] +.a])
+              |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
   =/  cells=(list templ-cell)  ~
   ::
   |-
@@ -395,7 +397,7 @@
             %+  turn
               %+  skim
                     cols
-                    |=(a=[qualified-column:ast @ta] =(qualifier.a +.i.selected))
+                    |=(a=qual-col-type =(qualifier.a +.i.selected))
               mk-templ-cell
           cells
     ==
@@ -413,24 +415,19 @@
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
-++  fix-selected
+++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
   =/  selected-out=(list selected-column:ast)  ~
   |-
   ?~  selected  (flop selected-out)
-  ?.  ?=(qualified-column:ast -.selected)
+  ?.  ?=(unqualified-column:ast -.selected)
     %=  $
       selected      +.selected
       selected-out  [-.selected selected-out]
     ==
-  =/  sel=qualified-column:ast  -.selected
-  ?.  =('UNKNOWN' database.qualifier.sel)
-    %=  $
-      selected      +.selected
-      selected-out  [-.selected selected-out]
-    ==
+  =/  sel=unqualified-column:ast  -.selected
   =/  qualifiers   ~|  "SELECT: column {<column.sel>} not found"
                        (~(got by qualifier-lookup) column.sel)
   ?:  (gth (lent qualifiers) 1)
@@ -447,7 +444,7 @@
   ==
 ::
 ++  mk-object-lookup
-  |=  cols=(list [qualified-column:ast @ta])
+  |=  cols=(list qual-col-type)
   ^-  (map @tas (list qualified-object:ast))
   =/  object-lookup=(map @tas (list qualified-object:ast))  ~
   |-
@@ -461,6 +458,24 @@
                         (~(got by object-lookup) column.column)
                    %+  ~(put by object-lookup)  column.column
                                                 [qualifier.column objects]
+  ==
+::
+::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
+::                   -> (list key-column)
+++  mk-key-column
+  |=  [=column-lookup pri-indx=(list ordered-column:ast)]
+  ^-  (list key-column)
+  =/  key=(list key-column)  ~
+  |-
+  ?~  pri-indx  (flop key)
+  %=  $
+    pri-indx  t.pri-indx
+    key       :-  %:  key-column  %key-column
+                                  name.i.pri-indx
+                                  -:(~(got by column-lookup) name.i.pri-indx)
+                                  ascending.i.pri-indx
+                                  ==
+                  key
   ==
 ::
 ::    +set-tmsp: [(unit as-of:ast) @da] -> @da
@@ -582,7 +597,6 @@
       %^  next-view-cache-keys  db
                                 sys-time
                                 :~  [%sys %tables]
-                                    [%sys %table-keys]
                                     [%sys %data-log]
                                     ==
     %insert
@@ -590,14 +604,17 @@
                             db
                             sys-time
                             %+  weld  %-  limo  :~  [%sys %tables]
-                                                    [%sys %table-keys]
                                                     [%sys %data-log]
                                                     ==
                                       (need sys-vws)
     %update
       ~|("%update not implemented" !!)
     %delete
-      ~|("%delete not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %data-log]
+                                    ==
   ==
 ::
 ::  +next-view-cache-keys:  [database @da (list [@tas @tas])] -> view-cache
@@ -662,7 +679,7 @@
   (~(got by q.a) p.a)
 ::
 ++  update-file
-  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list [@tas ?])]
+  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
   =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
   =.  files.data  (~(put by files.data) tbl-key file)
   data

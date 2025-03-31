@@ -5,10 +5,9 @@ Changes content of selected columns in existing rows of a `<table-set>`.
 
 ```
 <update> ::=
-  UPDATE [ <ship-qualifier> ] <table>
+  UPDATE [ <ship-qualifier> ] <table> [ <as-of-time> ]
     SET { <column> = <scalar-expression> } [ ,...n ]
     [ WHERE <predicate> ]
-  [ <as-of-time> ]
 ```
 
 ### API
@@ -17,10 +16,10 @@ Changes content of selected columns in existing rows of a `<table-set>`.
   $:
     %update
     table=qualified-object
-    columns=(list @t)
+    as-of=(unit as-of)
+    columns=(list @tas)
     values=(list value-or-default)
     predicate=(unit predicate)
-    as-of=(unit as-of)
   ==
 ```
 
@@ -36,7 +35,7 @@ The target of the `UPDATE` operation.
 Any valid `<predicate>`, including predicates on CTEs.
 
 **`<as-of-time>`**
-Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
+Timestamp equal to or greater than the table content state upon which to perform the UPDATE operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### Remarks
 
@@ -48,8 +47,14 @@ Cord literal values are represented in single quotes 'this is a cord'. Single qu
 
 ### Produced Metadata
 
-Row count
-Content timestamp
+message UPDATE  <namespace name>.<table name>
+server-time: <timestamp>
+schema-time: <timestamp>   The most current table schema time
+data-time: <timestamp>     The source content time upon which the UPDATE acted
+message: updated:
+vector count: <count>
+message: table data:
+vector count: <count>
 
 ### Exceptions
 

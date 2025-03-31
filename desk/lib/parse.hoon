@@ -1408,33 +1408,24 @@
   ;~  pose
     ;~  plug
       ;~(pfix whitespace parse-qualified-3object)
-      ;~  pose
-        ;~  pfix  whitespace
-                  ;~  plug  (cold %where (jester 'where'))
-                            parse-predicate
-                            parse-as-of
-                            end-or-next-command
-                            ==
-                  ==
-        ;~  plug
-          parse-as-of
-          end-or-next-command
-        ==
+      parse-as-of
+      ;~  pfix  whitespace
+                ;~  plug  (cold %where (jester 'where'))
+                          parse-predicate
+                          end-or-next-command
+                          ==
+                ==
       ==
-    ==
     ;~  plug
       ;~(pfix whitespace parse-qualified-3object)
-      ;~  pose
-        ;~  pfix  whitespace
-                  ;~  plug  (cold %where (jester 'where'))
-                            parse-predicate
-                            end-or-next-command
-                            ==
-                  ==
-        end-or-next-command
+      ;~  pfix  whitespace
+                ;~  plug  (cold %where (jester 'where'))
+                          parse-predicate
+                          end-or-next-command
+                          ==
+                ==
       ==
     ==
-  ==
 ++  parse-drop-database  ~+
   ;~  sfix
     ;~  pose
@@ -1603,6 +1594,7 @@
     ;~  pose
       ;~  plug
         ;~(pfix whitespace parse-qualified-object)
+        parse-as-of
         ;~  pose
           ;~(plug face-list ;~(pfix whitespace (jester 'values')))
           ;~(pfix whitespace (jester 'values'))
@@ -1611,7 +1603,6 @@
           whitespace
           (more whitespace (ifix [pal par] (more com parse-insert-value)))
           ==
-        parse-as-of
       ==
       ;~  plug
         ;~(pfix whitespace parse-qualified-object)
@@ -1954,13 +1945,13 @@
   ;~  pose
     ;~  plug
       ;~(pfix whitespace parse-qualified-object)
+      parse-as-of
       (cold %set ;~(plug whitespace (jester 'set')))
       (more com update-column)
       ;~  pose
         ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
         (easy ~)
         ==
-      parse-as-of
     ==
     ;~  plug
       ;~(pfix whitespace parse-qualified-object)
@@ -2099,22 +2090,6 @@
 ::
 ::  parse productions
 ::
-++  produce-column-sets
-  |=  a=*
-  ~+
-  ^-  [(list @t) (list datum:ast)]
-  =/  columns=(list @t)  ~
-  =/  values=(list datum:ast)  ~
-  |-
-  ?:  =(a ~)
-    [columns values]
-  ?:  ?&(?=(datum:ast ->.a) ?=(@ -<.a))
-    %=  $
-      columns  [-<.a columns]
-      values   [->.a values]
-      a        +.a
-    ==
-  ~|("cannot parse column setting {<a>}" !!)
 ++  produce-ctes
   |=  a=*
   ^-  (list cte:ast)
@@ -2132,36 +2107,378 @@
    ~+
   ^-  delete:ast
   ?>  ?=(qualified-object:ast -.a)
-  ?:  ?=([* %end-command ~] a)      :: delete foo; delete from foo
-    (delete:ast %delete -.a ~ ~)
-  :: delete foo as of now; delete from foo as of now
-  ?:  ?=([* [%as-of %now] %end-command ~] a)
-    (delete:ast %delete -.a ~ ~)
-  ?:  ?=([* [%as-of [@ @]] %end-command ~] a)  :: delete from foo as of date
-    (delete:ast %delete -.a ~ [~ +<+.a])
-  ?:  ?=([* [%as-of *] %end-command ~] a)      :: delete from foo as of offset
+  ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
                     -.a
                     ~
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>-.a))
+                        -.a
+                    ==
+  ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
+    %:  delete:ast  %delete
+                    -.a
+                    ~
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>+<.a))
+                        -.a
+                    ==
+  ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
+    %:  delete:ast  %delete
+                    -.a
+                    [~ +<+.a]
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>+<.a))
+                        -.a
+                    ==
+  ?:  ?=([* [%as-of *] %where * %end-command ~] a)
+    %:  delete:ast  %delete
+                    -.a
                     [~ (as-of-offset:ast %as-of-offset +<+<.a +<+>-.a)]
-                    ==
-  ?:  ?=([* %where * %end-command ~] a)
-    (delete:ast %delete -.a `(produce-predicate (predicate-list +>-.a)) ~)
-  ?:  ?=([* %where * [%as-of %now] %end-command ~] a)
-    (delete:ast %delete -.a `(produce-predicate (predicate-list +>-.a)) ~)
-  ?:  ?=([* %where * [%as-of [@ @]] %end-command ~] a)
-    %:  delete:ast  %delete
-                    -.a
-                    `(produce-predicate (predicate-list +>-.a))
-                    [~ +>+<+.a]
-                    ==
-  ?:  ?=([* %where * [%as-of *] %end-command ~] a)
-    %:  delete:ast  %delete
-                    -.a
-                    `(produce-predicate (predicate-list +>-.a))
-                    [~ (as-of-offset:ast %as-of-offset +>+<+<.a +>+<+>-.a)]
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>+<.a))
+                        -.a
                     ==
   !!
+::
+++  qualify-predicate
+  |=  [p=predicate:ast obj=qualified-object:ast]
+  ^-  predicate:ast
+  ::
+  |-
+  ?~  p  ~
+  p(n (qualify-pred-leaf n.p obj), l $(p l.p), r $(p r.p))
+::
+++  qualify-pred-leaf
+  |=  [a=predicate-component:ast obj=qualified-object:ast]
+  ^-  predicate-component:ast
+  ?.  ?&  ?=(qualified-column:ast a)
+          =('UNKNOWN' database.qualifier.a)
+          =('COLUMN-OR-CTE' namespace.qualifier.a)
+          ==
+    a
+  %:  qualified-column:ast  %qualified-column
+                            obj
+                            column.a
+                            alias.a
+                            ==
+::
+++  produce-insert
+  |=  a=*
+  ~+
+  ^-  insert:ast
+  =/  table  -<.a
+  =/  c      ->.a
+  ::
+  ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
+    %:  insert:ast  %insert
+                     table
+                     ~
+                     ~
+                     (insert-values:ast %data +>.c)
+                     ==
+  ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
+    %:  insert:ast  %insert
+                    table
+                    [~ ->.c]
+                    ~
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
+    %:  insert:ast  %insert
+                    table
+                    [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
+                    ~
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    `+<-.c
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
+     %:  insert:ast  %insert
+                    table
+                    [~ ->.c]
+                    `+<-.c
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
+     %:  insert:ast  %insert
+                    table
+                    [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
+                    `+<-.c
+                    (insert-values:ast %data +>.c)
+                    ==
+  ?:  ?=([%values *] c)            :: insert rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    ~
+                    (insert-values:ast %data +.c)
+                    ==
+  ?:  ?=([[* %values] *] c)        :: insert column names rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    `-<.c
+                    (insert-values:ast %data +.c)
+                    ==
+  ~|("Cannot parse insert {<a>}" !!)
+++  produce-matching-profile
+  |=  a=*
+  ^-  (list [@t datum:ast])
+  =/  profile=(list [@t datum:ast])  ~
+  |-
+  ?~  a  (flop profile)
+  ?:  ?=([@ %qualified-column qualified-object:ast @ ~] -.a)
+    %=  $
+      profile  :-  :-  -<.a
+                      %:  qualified-column:ast  %qualified-column
+                                                `qualified-object:ast`->+<.a
+                                                ->+>-.a
+                                                ~
+                                                ==
+                   profile
+      a  +.a
+    ==
+  ?:  =(%values ->.a)
+    ?:  =(~ -<.a)
+      ?:  =(~ +<.a)  $(a ~)
+        ~|("produce-matching-profile error:  {<a>}" !!)
+    ?@  -<-.a
+      ?:  ?=(datum:ast +<-.a)
+        %=  $
+         profile  [[-<-.a +<-.a] profile]
+          a  [[-<+.a 'values'] +<+.a ~]
+        ==
+      ~|("produce-matching-profile error on source:  {<+<-.a>}" !!)
+    ~|("produce-matching-profile error:  {<a>}" !!)
+  ~|("produce-matching-profile error:  {<a>}" !!)
+++  produce-matching
+  |=  a=*
+  ^-  [(list matching:ast) (list matching:ast) (list matching:ast)]
+  =/  matched=(list matching:ast)  ~
+  =/  not-matched-by-target=(list matching:ast)  ~
+  =/  not-matched-by-source=(list matching:ast)  ~
+  |-
+  ?~  a
+    [(flop matched) (flop not-matched-by-target) (flop not-matched-by-source)]
+  ?>  ?=(matching-action:ast ->-.a)
+  ?-  `matching-action:ast`->-.a
+    %insert
+      ?:  ?=([%matched @ *] -.a)
+        %=  $
+          matched
+            :-  %:  matching:ast  %matching
+                                  predicate=~
+                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
+                                  ==
+                matched
+          a  +.a
+        ==
+      ?:  =(%unmatch-target -<.a)
+        %=  $
+          not-matched-by-target
+            :-  %:  matching:ast  %matching
+                                  predicate=~
+                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
+                                  ==
+                not-matched-by-target
+          a  +.a
+        ==
+      ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
+        %=  $
+          matched
+            :-  %:  matching:ast  %matching
+                      predicate=`(produce-predicate (predicate-list -<+>.a))
+                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
+                                  ==
+                matched
+          a  +.a
+        ==
+      ~|("merge insert can't get here:  {<-.a>}" !!)
+    %update
+      ?:  ?=([%matched @ *] -.a)
+        %=  $
+          matched
+            :-  %:  matching:ast  %matching
+                                  predicate=~
+                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
+                                  ==
+                matched
+          a  +.a
+        ==
+      ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
+        %=  $
+          matched
+            :-  %:  matching:ast  %matching
+                      predicate=`(produce-predicate (predicate-list -<+>.a))
+                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
+                                  ==
+                      matched
+          a  +.a
+        ==
+      ~|("merge update can't get here:  {<-.a>}" !!)
+    %delete
+      ?:  ?=([%matched @ *] -.a)
+        %=  $
+          matched
+            :-  %:  matching:ast  %matching
+                                  predicate=~
+                                  matching-profile=%delete
+                                  ==
+                matched
+          a  +.a
+        ==
+      ?:  =(%unmatch-target -<.a)
+        %=  $
+          not-matched-by-target
+            :-  %:  matching:ast  %matching
+                                  predicate=~
+                                  matching-profile=%delete
+                                  ==
+                not-matched-by-target
+          a  +.a
+        ==
+      ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
+        %=  $
+          matched
+            :-  %:  matching:ast  %matching
+                                  `(produce-predicate (predicate-list -<+>.a))
+                                  matching-profile=%delete
+                                  ==
+                matched
+          a  +.a
+        ==
+      ~|("merge delete can't get here:  {<-.a>}" !!)
+  ==
+++  produce-merge
+  |=  a=*
+  ^-  merge:ast
+  =/  into=?  %.y
+  =/  target-table=(unit table-set:ast)  ~
+  =/  new-table=(unit table-set:ast)  ~
+  =/  source-table=(unit table-set:ast)  ~
+  =/  predicate=(unit predicate:ast)  ~
+  =/  matching=matching-lists:ast  [~ ~ ~]
+  |-
+  ?~  a  ?:  ?&(=(target-table ~) =(source-table ~))
+    ~|("target and source tables cannot both be pass through" !!)
+  %:  merge:ast  %merge
+                (need target-table)
+                new-table
+                (need source-table)
+                (need predicate)
+                matched=matched.matching
+                unmatched-by-target=not-target.matching
+                unmatched-by-source=not-source.matching
+                ~
+                ==
+  ?:  ?=(qualified-object:ast -.a)
+    %=  $
+      a  +.a
+      target-table  `(table-set:ast %table-set -.a)
+    ==
+  ?:  ?=([%using @ %as @] -.a)
+    %=  $
+      a  +.a
+      source-table
+        :-  ~  %:  table-set:ast  %table-set
+                                  %:  qualified-object:ast  %qualified-object
+                                                            ~
+                                                            default-database
+                                                            'dbo'
+                                                            +<.a
+                                                            ==
+                                   `+>+.a
+                                   ==
+    ==
+  ?:  ?=([qualified-object:ast @] -.a)
+    %=  $
+      a  +.a
+      target-table  `(make-query-object -.a)
+    ==
+  ?:  ?=([%using qualified-object:ast %as @] -.a)
+    %=  $
+      a  +.a
+      source-table  `(table-set:ast %table-set ->-.a `->+>.a)
+    ==
+  ?:  =(%on -<.a)
+    %=  $
+      a  +.a
+      predicate  `(produce-predicate (predicate-list ->.a))
+    ==
+  ?:  =(%query-row -<.a)
+    %=  $
+      a  +.a
+      target-table  `(make-query-object -.a)
+    ==
+  ?:  =(%using -<.a)
+    %=  $
+      a  +.a
+      source-table  `(make-query-object ->.a)
+    ==
+  ?:  =(%query-row -<-.a)
+    %=  $
+      a  +.a
+      target-table  `(make-query-object -.a)
+    ==
+  %=  $
+    a  +.a
+    matching  (produce-matching -.a)
+  ==
+::
+++  produce-query
+  |=  a=*
+  ~+
+  ^-  query:ast     
+  =/  from=(unit from:ast)  ~
+  =/  scalars=(list scalar-function:ast)  ~
+  =/  predicate=(unit predicate:ast)  ~
+  =/  group-by=(list grouping-column:ast)  ~
+  =/  having=(unit predicate:ast)  ~
+  =/  select=(unit select:ast)  ~
+  =/  order-by=(list ordering-column:ast)  ~
+  =/  alias-map=(map @t qualified-object:ast)  ~
+  |-
+  ?~  a  ~|("cannot parse query  {<a>}" !!)
+
+  =.  alias-map  ?~   alias-map
+                   ?~   from  ~
+                   (mk-alias-map (need from))
+                 alias-map 
+
+  ?:  =(-.a %query)           $(a +.a)
+  ?:  =(-.a %end-command)    %:  query:ast
+                                %query
+                                ?~  from  ~
+                                  `(fix-from-predicates (need from) alias-map)
+                                scalars
+                                ?~  predicate  ~
+                                  `(fix-predicate (need predicate) alias-map)
+                                group-by
+                                having
+                                (need select)
+                                order-by
+                                ==
+  ?:  =(-<.a %scalars)        $(a +.a, scalars ~)
+  ?:  =(-<.a %where)          %=  $
+                                a          +.a
+                                predicate  :-  ~
+                                               %-  produce-predicate
+                                                   (predicate-list ->.a)
+                              ==
+  ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
+  ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
+  ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
+  ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
+  ~|("cannot parse query  {<a>}" !!)
+::
 ++  produce-from
   |=  a=*
   ^-  from:ast
@@ -2338,7 +2655,7 @@
                 [~ ;;(as-of:ast +<+.raw-join)]
               ~
               :: predicate
-              `(produce-predicate (predicate-list +>.raw-join))
+            `(produce-predicate (predicate-list +>.raw-join))
             ==
             joined-objects
         raw-joined-objects    +.raw-joined-objects
@@ -2357,306 +2674,13 @@
               :: as-of
               ~
               :: predicate
-              `(produce-predicate (predicate-list +>.raw-join))
+            `(produce-predicate (predicate-list +>.raw-join))
             ==
             joined-objects
         raw-joined-objects    +.raw-joined-objects
       ==
     ~|("join not supported: {<raw-join>}" !!)
   ~|("join type not supported: {<-.raw-join>}" !!)
-::
-++  produce-insert
-  |=  a=*
-  ~+
-  ^-  insert:ast
-  ?:  ?=([[[* %values * %as-of %now] @ @]] a)  :: insert rows as of now
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) ~)
-  ?:  ?=([[[* %values * %as-of [@ @]]] @ @] a)  :: insert rows as of date
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+<.a) [~ ->+>+.a])
-  ?:  ?=([[[* %values * %as-of *]] @ @] a)  :: insert rows as of offset
-    %:  insert:ast  %insert
-                    -<.a
-                    ~
-                    (insert-values:ast %data ->+<.a)
-                    [~ (as-of-offset:ast %as-of-offset ->+>+<.a ->+>+>-.a)]
-                    ==
-  ?:  ?=([[* [* %values] * %as-of %now] @ @] a) :: insert columns rows as of now
-    (insert:ast %insert -<.a `->-<.a (insert-values:ast %data ->+<.a) ~)
-  ?:  ?=([[* [* %values] * %as-of [@ @]] @ @] a) :: insert cols rows as of date
-     %:  insert:ast  %insert
-                    -<.a
-                    `->-<.a
-                    (insert-values:ast %data ->+<.a)
-                    [~ ->+>+.a]
-                    ==
-  ?:  ?=([[* [* %values] * %as-of *] @ @] a) :: insert cols rows as of offset
-     %:  insert:ast  %insert
-                    -<.a
-                    `->-<.a
-                    (insert-values:ast %data ->+<.a)
-                    [~ (as-of-offset:ast %as-of-offset ->+>+<.a ->+>+>-.a)]
-                    ==
-  ?:  ?=([[* %values *] @ @] a)            :: insert rows
-    (insert:ast %insert -<.a ~ (insert-values:ast %data ->+.a) ~)
-  ?:  ?=([[* [* %values] *] @ @] a)        :: insert column names rows
-    %:  insert:ast  %insert
-                    -<.a
-                    `->-<.a
-                    (insert-values:ast %data ->+.a)
-                    ~
-                    ==
-  ~|("Cannot parse insert {<a>}" !!)
-++  produce-matching-profile
-  |=  a=*
-  ^-  (list [@t datum:ast])
-  =/  profile=(list [@t datum:ast])  ~
-  |-
-  ?~  a  (flop profile)
-  ?:  ?=([@ %qualified-column qualified-object:ast @ ~] -.a)
-    %=  $
-      profile  :-  :-  -<.a
-                      %:  qualified-column:ast  %qualified-column
-                                                `qualified-object:ast`->+<.a
-                                                ->+>-.a
-                                                ~
-                                                ==
-                   profile
-      a  +.a
-    ==
-  ?:  =(%values ->.a)
-    ?:  =(~ -<.a)
-      ?:  =(~ +<.a)  $(a ~)
-        ~|("produce-matching-profile error:  {<a>}" !!)
-    ?@  -<-.a
-      ?:  ?=(datum:ast +<-.a)
-        %=  $
-         profile  [[-<-.a +<-.a] profile]
-          a  [[-<+.a 'values'] +<+.a ~]
-        ==
-      ~|("produce-matching-profile error on source:  {<+<-.a>}" !!)
-    ~|("produce-matching-profile error:  {<a>}" !!)
-  ~|("produce-matching-profile error:  {<a>}" !!)
-++  produce-matching
-  |=  a=*
-  ^-  [(list matching:ast) (list matching:ast) (list matching:ast)]
-  =/  matched=(list matching:ast)  ~
-  =/  not-matched-by-target=(list matching:ast)  ~
-  =/  not-matched-by-source=(list matching:ast)  ~
-  |-
-  ?~  a
-    [(flop matched) (flop not-matched-by-target) (flop not-matched-by-source)]
-  ?>  ?=(matching-action:ast ->-.a)
-  ?-  `matching-action:ast`->-.a
-    %insert
-      ?:  ?=([%matched @ *] -.a)
-        %=  $
-          matched
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
-                matched
-          a  +.a
-        ==
-      ?:  =(%unmatch-target -<.a)
-        %=  $
-          not-matched-by-target
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
-                not-matched-by-target
-          a  +.a
-        ==
-      ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
-        %=  $
-          matched
-            :-  %:  matching:ast  %matching
-                      predicate=`(produce-predicate (predicate-list -<+>.a))
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
-                matched
-          a  +.a
-        ==
-      ~|("merge insert can't get here:  {<-.a>}" !!)
-    %update
-      ?:  ?=([%matched @ *] -.a)
-        %=  $
-          matched
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
-                matched
-          a  +.a
-        ==
-      ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
-        %=  $
-          matched
-            :-  %:  matching:ast  %matching
-                      predicate=`(produce-predicate (predicate-list -<+>.a))
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
-                      matched
-          a  +.a
-        ==
-      ~|("merge update can't get here:  {<-.a>}" !!)
-    %delete
-      ?:  ?=([%matched @ *] -.a)
-        %=  $
-          matched
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                                  matching-profile=%delete
-                                  ==
-                matched
-          a  +.a
-        ==
-      ?:  =(%unmatch-target -<.a)
-        %=  $
-          not-matched-by-target
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                                  matching-profile=%delete
-                                  ==
-                not-matched-by-target
-          a  +.a
-        ==
-      ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
-        %=  $
-          matched
-            :-  %:  matching:ast  %matching
-                          predicate=`(produce-predicate (predicate-list -<+>.a))
-                                  matching-profile=%delete
-                                  ==
-                matched
-          a  +.a
-        ==
-      ~|("merge delete can't get here:  {<-.a>}" !!)
-  ==
-++  produce-merge
-  |=  a=*
-  ^-  merge:ast
-  =/  into=?  %.y
-  =/  target-table=(unit table-set:ast)  ~
-  =/  new-table=(unit table-set:ast)  ~
-  =/  source-table=(unit table-set:ast)  ~
-  =/  predicate=(unit predicate:ast)  ~
-  =/  matching=matching-lists:ast  [~ ~ ~]
-  |-
-  ?~  a  ?:  ?&(=(target-table ~) =(source-table ~))
-    ~|("target and source tables cannot both be pass through" !!)
-  %:  merge:ast  %merge
-                (need target-table)
-                new-table
-                (need source-table)
-                (need predicate)
-                matched=matched.matching
-                unmatched-by-target=not-target.matching
-                unmatched-by-source=not-source.matching
-                ~
-                ==
-  ?:  ?=(qualified-object:ast -.a)
-    %=  $
-      a  +.a
-      target-table  `(table-set:ast %table-set -.a)
-    ==
-  ?:  ?=([%using @ %as @] -.a)
-    %=  $
-      a  +.a
-      source-table
-        :-  ~  %:  table-set:ast  %table-set
-                                  %:  qualified-object:ast  %qualified-object
-                                                            ~
-                                                            default-database
-                                                            'dbo'
-                                                            +<.a
-                                                            ==
-                                   `+>+.a
-                                   ==
-    ==
-  ?:  ?=([qualified-object:ast @] -.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
-    ==
-  ?:  ?=([%using qualified-object:ast %as @] -.a)
-    %=  $
-      a  +.a
-      source-table  `(table-set:ast %table-set ->-.a `->+>.a)
-    ==
-  ?:  =(%on -<.a)
-    %=  $
-      a  +.a
-      predicate  `(produce-predicate (predicate-list ->.a))
-    ==
-  ?:  =(%query-row -<.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
-    ==
-  ?:  =(%using -<.a)
-    %=  $
-      a  +.a
-      source-table  `(make-query-object ->.a)
-    ==
-  ?:  =(%query-row -<-.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
-    ==
-  %=  $
-    a  +.a
-    matching  (produce-matching -.a)
-  ==
-::
-++  produce-query
-  |=  a=*
-  ~+
-  ^-  query:ast     
-  =/  from=(unit from:ast)  ~
-  =/  scalars=(list scalar-function:ast)  ~
-  =/  predicate=(unit predicate:ast)  ~
-  =/  group-by=(list grouping-column:ast)  ~
-  =/  having=(unit predicate:ast)  ~
-  =/  select=(unit select:ast)  ~
-  =/  order-by=(list ordering-column:ast)  ~
-  =/  alias-map=(map @t qualified-object:ast)  ~
-  |-
-  ?~  a  ~|("cannot parse query  {<a>}" !!)
-
-  =.  alias-map  ?~   alias-map
-                   ?~   from  ~
-                   (mk-alias-map (need from))
-                 alias-map 
-
-  ?:  =(-.a %query)           $(a +.a)
-  ?:  =(-.a %end-command)    %:  query:ast
-                                %query
-                                ?~  from  ~
-                                  `(fix-from-predicates (need from) alias-map)
-                                scalars
-                                ?~  predicate  ~
-                                  `(fix-predicate (need predicate) alias-map)
-                                group-by
-                                having
-                                (need select)
-                                order-by
-                                ==
-  ?:  =(-<.a %scalars)        $(a +.a, scalars ~)
-  ?:  =(-<.a %where)          %=  $
-                                a          +.a
-                                predicate  :-  ~
-                                               %-  produce-predicate
-                                                   (predicate-list ->.a)
-                              ==
-  ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
-  ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
-  ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
-  ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
-  ~|("cannot parse query  {<a>}" !!)
 ::
 ++  fix-from-predicates
   |=  [f=from:ast alias-map=(map @t qualified-object:ast)]
@@ -2683,11 +2707,44 @@
 ++  fix-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
   ^-  predicate:ast
-  ?~  alias-map  p
   ::
   |-
   ?~  p  ~
   p(n (fix-leaf n.p alias-map), l $(p l.p), r $(p r.p))
+::
+++  fix-leaf
+  |=  [a=predicate-component:ast alias-map=(map @t qualified-object:ast)]
+  ^-  predicate-component:ast
+  ?-  a
+    ops-and-conjs:ast
+      a
+    qualified-column:ast
+      ?:  ?&  =('UNKNOWN' database.qualifier.a)
+              =('COLUMN-OR-CTE' namespace.qualifier.a)
+              ==
+        %^  unqualified-column:ast  %unqualified-column
+                                    column.a
+                                    alias.a
+      ?:  ?&  =('UNKNOWN' database.qualifier.a)
+              =('COLUMN' namespace.qualifier.a)
+              ==
+        %:  qualified-column:ast  %qualified-column
+                                  %-  ~(got by alias-map)
+                                      (crip (cass (trip name.qualifier.a)))
+                                  column.a
+                                  alias.a
+                                  ==
+      a
+    unqualified-column:ast
+      a
+    dime:ast
+      a
+    value-literals:ast
+      a
+    aggregate:ast
+      a
+    ==
+::
 ::
 ++  mk-all-object
   |=  [=qualified-column:ast alias-map=(map @t qualified-object:ast)]
@@ -2750,14 +2807,20 @@
                        =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
                        =('ALL' column.sel-col)
                        ==
-                  (mk-all-object sel-col alias-map)
-               ?.  ?&  =('ALL' column.sel-col)
+                  (mk-all-object sel-col alias-map) 
+               ?:  ?&  =('ALL' column.sel-col)
                        !=(name.qualifier.sel-col column.sel-col)
                        ==
-                 sel-col
-               %+  selected-all-object:ast
-                   %all-object
-                   qualifier.sel-col
+                  %+  selected-all-object:ast
+                      %all-object
+                      qualifier.sel-col
+               ?:  ?&  =('UNKNOWN' database.qualifier.sel-col)
+                       =('COLUMN-OR-CTE' namespace.qualifier.sel-col)
+                       ==
+                  %^  unqualified-column:ast  %unqualified-column
+                                              column.sel-col
+                                              alias.sel-col
+               sel-col
                ::
                s-out
   ==
@@ -2822,30 +2885,6 @@
                          object.object.j
     js  +.js
   ==
-::
-++  fix-leaf
-  |=  [a=predicate-component:ast alias-map=(map @t qualified-object:ast)]
-  ^-  predicate-component:ast
-  ?-  a
-   ops-and-conjs:ast
-    a
-   qualified-column:ast
-    ?.  &(=('UNKNOWN' database.qualifier.a) =('COLUMN' namespace.qualifier.a))
-      a
-    %:  qualified-column:ast  %qualified-column
-                              %-  ~(got by alias-map)
-                                  (crip (cass (trip name.qualifier.a)))
-                              column.a
-                              alias.a
-                              ==
-   dime:ast
-    a
-   value-literals:ast
-    a
-   aggregate:ast
-    a
-   ==
-::
 +$  select-mold-1
   $:
     $:  %selected-aggregate
@@ -3000,53 +3039,108 @@
   ~+
   ^-  update:ast
   =/  table=qualified-object:ast  ?>(?=(qualified-object:ast -.a) -.a)
-  =/  columns-values=[(list @t) (list datum:ast)]  (produce-column-sets +>-.a)
-  ?~  +>+.a
-    (update:ast %update table -.columns-values +.columns-values ~ ~)
-  ?:  ?=([* %set * ~ %as-of %now] a)
-    (update:ast %update table -.columns-values +.columns-values ~ ~)
-  ?:  ?=([* %set * ~ %as-of [@ @]] a)
-    (update:ast %update table -.columns-values +.columns-values ~ [~ +>+>+.a])
-  ?:  ?=([* %set * ~ %as-of *] a)
+  =/  b  +.a
+  ?:  ?=([%set * ~] b)
     %:  update:ast  %update
                     table
-                    -.columns-values
-                    +.columns-values
                     ~
-                    [~ (as-of-offset:ast %as-of-offset +>+>+<.a +>+>+>-.a)]
-                    ==
-  ?:  ?=([* %set * * %as-of %now] a)
-    %:  update:ast  %update
-                    table
-                    -.columns-values
-                    +.columns-values
-                    `(produce-predicate (predicate-list +>+<.a))
+                    (produce-column-sets table +<.b)
                     ~
                     ==
-  ?:  ?=([* %set * * %as-of [@ @]] a)
+  ?:  ?=([[%as-of %now] %set * ~] b)
     %:  update:ast  %update
                     table
-                    -.columns-values
-                    +.columns-values
-                    `(produce-predicate (predicate-list +>+<.a))
-                    [~ +>+>+.a]
+                    ~
+                    (produce-column-sets table +>-.b)
+                    ~
                     ==
-
-  ?:  ?=([* %set * * %as-of *] a)
+  ?:  ?=([[%as-of @ @] %set * ~] b)
     %:  update:ast  %update
                     table
-                    -.columns-values
-                    +.columns-values
-                    `(produce-predicate (predicate-list +>+<.a))
-                    [~ (as-of-offset:ast %as-of-offset +>+>+<.a +>+>+>-.a)]
+                    [~ ->.b]
+                    (produce-column-sets table +>-.b)
+                    ~
+                    ==
+  ?:  ?=([[%as-of *] %set * ~] b)
+    %:  update:ast  %update
+                    table
+                    [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
+                    (produce-column-sets table +>-.b)
+                    ~
+                    ==                    
+  ?:  ?=([[%as-of %now] %set * *] b)
+    %:  update:ast  %update
+                    table
+                    ~
+                    (produce-column-sets table +>-.b)
+                    :-  ~
+                        %+  qualify-predicate
+                            (produce-predicate (predicate-list +>+.b))
+                            table
+                    ==
+  ?:  ?=([[%as-of @ @] %set * *] b)
+    %:  update:ast  %update
+                    table
+                    [~ ->.b]
+                    (produce-column-sets table +>-.b)
+                    :-  ~
+                        %+  qualify-predicate
+                            (produce-predicate (predicate-list +>+.b))
+                            table
+                    ==
+  ?:  ?=([[%as-of @ @ @] %set * *] b)
+    %:  update:ast  %update
+                    table
+                    [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
+                    (produce-column-sets table +>-.b)
+                    :-  ~
+                        %+  qualify-predicate
+                            (produce-predicate (predicate-list +>+.b))
+                            table
                     ==
   %:  update:ast  %update
                   table
-                  -.columns-values
-                  +.columns-values
-                  `(produce-predicate (predicate-list +>+.a))
                   ~
+                  (produce-column-sets table +<.b)
+                  :-  ~
+                      %+  qualify-predicate
+                          (produce-predicate (predicate-list +>.b))
+                          table
                   ==
+::
+++  produce-column-sets
+  |=  [table=qualified-object:ast a=*]
+  ~+
+  ^-  [(list qualified-column:ast) (list datum:ast)]
+  =/  columns=(list qualified-column:ast)  ~
+  =/  values=(list datum:ast)  ~
+  |-
+  ?:  =(a ~)
+    [columns values]
+  =/  b  -.a
+  ?:  ?&  |(?=(qualified-column:ast -.b) ?=(@tas -.b))
+          ?=(datum:ast +.b)
+          ==
+    %=  $
+      columns  ?:  ?=(qualified-column:ast -.b)
+                 [-.b columns]
+               :-  %:  qualified-column:ast  %qualified-column
+                                             table
+                                             -.b
+                                             ~
+                                             ==
+                   columns
+      values   ?.  ?=(qualified-column:ast +.b)
+                 [+.b values]
+               ?:  ?&  =('UNKNOWN' database.qualifier.+.b)
+                      =('COLUMN-OR-CTE' namespace.qualifier.+.b)
+                      ==
+                 :-  (unqualified-column:ast %unqualified-column column.+.b ~)
+                     values
+               [+.b values]
+      a        +.a
+    ==
+  ~|("cannot parse column setting {<a>}" !!)
 ::
 ::  helper types
 ::
@@ -3156,7 +3250,6 @@
   ?.  =(a 0)  $(p (scag i.c `tape`p), c t.c)
   %=  $
     p  (scag i.c `tape`p)
-    ::b  (weld (line-cmnts (slag (add 1 i.c) `tape`p)) b)
     b  (weld (weld (line-cmnts (slag (add 1 i.c) `tape`p)) " ") b)
     c  t.c
   ==

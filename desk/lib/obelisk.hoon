@@ -243,22 +243,21 @@
             :-  :-  %results
                     :~  :-  %message
                             %-  crip
-                                "TRUNCATE TABLE ".
-                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
+                                %+  weld  "TRUNCATE TABLE "
+                                    (trip (qualified-object-to-cord table.cmd))
                         [%message 'no data in table to truncate']
                         ==
                 results
           :-  :-  %results
                   :~  :-  %message
                             %-  crip
-                                "TRUNCATE TABLE ".
-                                "{<namespace.table.cmd>}.{<name.table.cmd>}"
+                                %+  weld  "TRUNCATE TABLE "
+                                    (trip (qualified-object-to-cord table.cmd))
                       [%server-time now.bowl]
                       [%data-time -<.r]
                       [%vector-count ->+.r]
                       ==
               results
-
       ==
   ==
 ::
@@ -372,7 +371,6 @@
     ?:  force.drop  %.y
       ?.  (is-content-populated db now.bowl)  %.y
       ~|("{<name.drop>} has populated tables and `FORCE` was not specified" !!)
-
   =/  sys-db  (~(got by state) %sys)
   =.  view-cache.sys-db  %+  run:tab:view-cache-key  view-cache.sys-db
                                                      |=(a=cache [%cache +<.a ~])
@@ -479,11 +477,10 @@
             sap.bowl
             sys-time
             column-look-up
-            (make-index-key column-look-up pri-indx.create-table)
             %:  index
                 %index
                 %.y
-                pri-indx.create-table
+                (mk-key-column column-look-up pri-indx.create-table)
             ==
             columns.create-table
             ~
@@ -666,7 +663,6 @@
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result)]]
-
   =/  ctes=(list cte:ast)  ctes.selection  :: To Do - map CTEs
   %:  do-set-functions  set-functions.selection
                         query-has-run
@@ -683,17 +679,13 @@
           next-data=(map @tas @da)
           next-schemas=(map @tas @da)
       ==
-  ::  =/  rtree  ^+((~(rdc of tree) foo) tree)
-  ::  =/  rtree  `(tree set-function:ast)`(~(rdc of tree) foo)
-  ::  =/  rtree=(tree set-function:ast)  (~(rdc of tree) foo)
-  ::  ?~  rtree  !!  :: fuse loop
-
   ^-  [? [(map @tas @da) server (list result)]]
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %delete
       ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
-      !!
+      :-  %.n
+          (do-delete -.rtree next-data next-schemas)
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
@@ -722,30 +714,27 @@
   ^-  [(map @tas @da) server (list result)]
   =/  db  ~|  "INSERT: database {<database.table.ins>} does not exist"
           (~(got by state) database.table.ins)
-  =/  sys-time  (set-tmsp as-of.ins now.bowl)
+  =/  content-time  (set-tmsp as-of.ins now.bowl)
   =/  nxt-schema=schema  ~|  "INSERT: table {<name.table.ins>} ".
                              "as-of schema time out of order"
                          %:  get-next-schema  sys.db
                                               next-schemas
-                                              sys-time
+                                              now.bowl
                                               database.table.ins
                                               ==
   =/  nxt-data=data  ~|  "INSERT: table {<name.table.ins>} ".
                          "as-of data time out of order"
-                     %:  get-next-data  content.db
-                                        next-data
-                                        sys-time
-                                        database.table.ins
-                                        ==
+                     (get-data-next content.db now.bowl)
   =/  tbl-key  [namespace.table.ins name.table.ins]
   =/  =table  ~|  "INSERT: table {<tbl-key>} does not exist"
-              %-  ~(got by tables:nxt-schema)
-                  tbl-key
-  =/  =file  (~(got by files.nxt-data) tbl-key)
-  =.  tmsp.file            sys-time
+              (~(got by tables:nxt-schema) tbl-key)
+  =/  =file  (get-content content.db content-time tbl-key)
+  =/  source-content-time  tmsp.file
+  ::
+  =.  tmsp.file            now.bowl
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
-  =.  tmsp.nxt-data        sys-time
+  =.  tmsp.nxt-data        now.bowl
   ::
   =/  cols=(list column:ast)
         ?~  columns.ins
@@ -765,39 +754,41 @@
   =/  i=@ud  0
   =/  key-pick=(list [@tas @])
         %+  turn
-            columns.pri-indx.table
-            |=(a=ordered-column:ast (make-key-pick name.a column-lookup.table))
-  =/  primary-key  (pri-key key.table)
+            key.pri-indx.table
+            |=(a=key-column (make-key-pick name.a column-lookup.table))
+  =/  primary-key  (pri-key key.pri-indx.table)
   ::
-  =.  state          (update-sys state sys-time)
+  =.  state          (update-sys state now.bowl)
   ::
   |-
   ?~  value-table
-    :+  (~(put by next-data) database.table.ins sys-time)
+    :+  (~(put by next-data) database.table.ins now.bowl)
       :: %:  upd-indices-views to do: revisit when there are views & indices
       %+  ~(put by state)  name.db
                            %=  db
                            content  %^  put:data-key
                                         content.db
-                                        sys-time
+                                        now.bowl
                                         %:  update-file  file
                                                          nxt-data
                                                          tbl-key
-                                                         key.table
+                                                         key.pri-indx.table
                                                          ==
                            view-cache  %:  upd-view-caches  state
                                                             db
-                                                            sys-time
+                                                            now.bowl
                                             :: to do: get list of effected views
                                                             [~ ~]
                                                             %insert
                                                             ==
                             ==
       :~  :-  %message
-              (crip "INSERT INTO {<namespace.table.ins>}.{<name.table.ins>}")
+              %-  crip
+                  %+  weld  "INSERT INTO "
+                            (trip (qualified-object-to-cord table.ins))
           [%server-time now.bowl]
           [%schema-time tmsp.table]
-          [%data-time sys-time]
+          [%data-time source-content-time]
           [%message 'inserted:']
           [%vector-count i]
           [%message 'table data:']
@@ -806,7 +797,7 @@
   ~|  "INSERT: {<tbl-key>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
   =/  file-row=(map @tas @)  (row-cells row cols)
-  =/  row-key
+  =/  row-key=(list @)
         %+  turn
             key-pick
             |=(a=[p=@tas q=@ud] (key-atom [p.a file-row]))
@@ -815,6 +806,113 @@
                     (put:primary-key pri-idx.file row-key file-row)
   =.  rowcount.file           +(rowcount.file)
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
+::
+::  +do-delete:
+::    [delete:ast (map @tas @da) (map @tas @da)] -> table-return
+++  do-delete
+  |=  $:  d=delete:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [(map @tas @da) server (list result)]
+  =/  db  ~|  "DELETE FROM: database {<database.table.d>} does not exist"
+             (~(got by state) database.table.d)
+  =/  content-time  (set-tmsp as-of.d now.bowl)
+  =/  nxt-schema=schema
+        ~|  "DELETE FROM: {<name.table.d>} as-of schema time out of order"
+          %:  get-next-schema  sys.db
+                               next-schemas
+                               now.bowl
+                               database.table.d
+                               ==
+  =/  nxt-data=data
+        ~|  "DELETE FROM: {<name.table.d>} as-of data time out of order"
+        (get-data-next content.db now.bowl)
+  ::
+  =/  tbl-key  [namespace.table.d name.table.d]
+  =/  table  ~|  "DELETE FROM: table {<tbl-key>} does not exist"
+            (~(got by tables:nxt-schema) tbl-key)
+  =/  file  (get-content content.db content-time tbl-key)
+  =/  source-content-time  tmsp.file
+  ?.  (gth rowcount.file 0)  :: don't bother if table is empty
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    "DELETE FROM {<namespace.table.d>}.{<name.table.d>}"
+            [%server-time now.bowl]
+            [%schema-time tmsp.table]
+            [%data-time tmsp.file]
+            [%message 'no rows deleted']
+            ==
+  ::
+  =/  type-lookup=lookup-type
+        %+  ~(put by `lookup-type`~)  
+          table.d
+          (malt (turn columns.table |=(a=column:ast [name.a type.a])))
+  =/  qualifier-lookup
+        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
+            (turn columns.table |=(a=column:ast [name.a (limo ~[table.d])]))
+  =/  filter=$-(joined-row ?)  %^  pred-ops-and-conjs
+                                      %+  pred-qualify-unqualified
+                                          predicate.d
+                                          qualifier-lookup
+                                      type-lookup
+                                      qualifier-lookup
+  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+  =.  indexed-rows.file
+        %+  skim
+              indexed-rows.file
+              |=(a=indexed-row !(filter [-.a (~(put by init-map) table.d +.a)]))
+  ::
+  =/  new-rowcount  (lent indexed-rows.file)
+  =/  deleted-rows  (sub rowcount.file new-rowcount)
+  ?:  =(deleted-rows 0)
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    %+  weld  "DELETE FROM "
+                              (trip (qualified-object-to-cord table.d))
+            [%server-time now.bowl]
+            [%schema-time tmsp.table]
+            [%data-time tmsp.file]
+            [%message 'no rows deleted']
+            ==
+  :: 
+  =/  primary-key  (pri-key key.pri-indx.table)
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table))
+  =.  pri-idx.file
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             indexed-rows.file
+  ::
+  =.  rowcount.file       new-rowcount
+  =.  tmsp.file           now.bowl
+  =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
+  =.  files.nxt-data       files
+  =.  ship.nxt-data        src.bowl
+  =.  provenance.nxt-data  sap.bowl
+  =.  tmsp.nxt-data        now.bowl
+  ::
+  =.  content.db     (put:data-key content.db now.bowl nxt-data)
+  =.  view-cache.db  (upd-view-caches state db now.bowl ~ %delete)
+  =.  state          (update-sys state now.bowl)
+  ::
+  :+  (~(put by next-data) database.table.d now.bowl)
+      (~(put by state) name.db db)
+      :~  :-  %message
+              %-  crip
+                  %+  weld  "DELETE FROM "
+                            (trip (qualified-object-to-cord table.d))
+          [%server-time now.bowl]
+          [%schema-time tmsp.table]
+          [%data-time source-content-time]
+          [%message 'deleted:']
+          [%vector-count deleted-rows]
+          [%message msg='table data:']
+          [%vector-count rowcount.file]
+          ==
 ::
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]
@@ -837,60 +935,53 @@
                [%data-time created-tmsp:(~(got by state) %sys)]
                (result %vector-count 1)
                ==
-  =/  all-join=[server (list from-obj)]
-        (join-all(state state, bowl bowl) q)
-  =/  =data-obj  (vector-data +.all-join q)
+  =/  =join-return        (join-all(state state, bowl bowl) q)
+  =/  output=[@ud (list vector)]  %:  vector-data  join-data.join-return
+                                                   q
+                                                   data-objs.join-return
+                                                   type-lookup.join-return
+                                                   qualified-columns.join-return
+                                                   ==
   ::
-  :-  -.all-join  :: state
+  :-  server.join-return  :: state
       %-  zing  :~  :~  [%message 'SELECT']
-                        [%result-set rows.data-obj]
+                        [%result-set +.output]
                         [%server-time now.bowl]
                         ==
-                    (from-obj-meta +.all-join)
-                    :~  [%vector-count rowcount.data-obj]
+                        (from-obj-meta data-objs.join-return)
+                    :~  [%vector-count -.output]
                         ==
                     ==
 ::
-::  +vector-data:  [(list from-obj) query:ast] -> data-obj
+::  +vector-data:  [(list from-obj) query:ast] -> [@ud (list vector)]
 ++  vector-data
-  |=  $:  sources=(list from-obj)
+  |=  $:  all-data=joined
           q=query:ast
+          sources=(list from-obj)
+          type-lookup=lookup-type
+          qualified-columns=(list qual-col-type)
           ==
-  ^-  data-obj
-  ?~  sources  ~|("can't get here" !!)
-  =/  single-source  =(1 (lent sources)) 
-  =/  =from-obj  ?:  single-source  -.sources
-                 -:(flop sources)
+  ^-  [@ud (list vector)]
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
-  =.  selected  (fix-selected selected qualifier-lookup)
-  =/  init-map=joined-row  ~
-  =.  joined-rows.from-obj
-        ?.  single-source  joined-rows.from-obj
-          %+  turn  indexed-rows.from-obj
-                    |=(a=[(list @) (map @tas @)] (~(put by init-map) object.from-obj +.a))
-  ::
+  =.  selected  (qualify-unqualified selected qualifier-lookup)
   =/  vectors
       ?~  predicate.q
-          %+  select-columns  joined-rows.from-obj
-                              %+  mk-vect-templ  qualified-columns.from-obj
+          %+  select-columns  joined-rows.all-data
+                              %+  mk-vect-templ  qualified-columns
                                                  selected
-      %^  select-columns-filtered  joined-rows.from-obj
+      %^  select-columns-filtered  joined-rows.all-data
                                    %+  mk-vect-templ
-                                         qualified-columns.from-obj
+                                         qualified-columns
                                          selected
                                    %^  pred-ops-and-conjs
-                                         (need predicate.q)
-                                         type-lookup.from-obj
+                                         %+  pred-qualify-unqualified
+                                              (need predicate.q)
+                                              qualifier-lookup
+                                         type-lookup
                                          qualifier-lookup
   ::
-  %:  data-obj  %data-obj
-                schema-tmsp.from-obj
-                data-tmsp.from-obj
-                columns.from-obj
-                (lent vectors)
-                vectors
-                ==
+  [(lent vectors) vectors]
 ::
 ::  +select-columns:
 ::    [(list joined-row) (unit @t) (list templ-cell)]
@@ -924,7 +1015,7 @@
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier))
+                  %-  ~(got by (~(got by +.i.rows) qualifier))
                       column:(need object.cell)
             row
   ==
@@ -967,7 +1058,7 @@
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by i.rows) qualifier))
+                  %-  ~(got by (~(got by +.i.rows) qualifier))
                       column:(need object.cell)
             row
   ==

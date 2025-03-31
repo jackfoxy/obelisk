@@ -3,8 +3,12 @@
 ## v0.5 alpha
 
 * SELECT all from table in JOIN
-* refactored multiple AST components
+* CROSS JOIN
 * natural JOIN on primary keys when key column ordering differs
+* support multiple natural JOINs and CROSS JOINs
+* sys.tables view changed and sys.table-keys view added
+* refactored multiple AST components
+* add unqualified-column to AST/API
 * fixed several JOIN bugs
 * updated docs
 

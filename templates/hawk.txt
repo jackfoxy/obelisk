@@ -62,11 +62,8 @@
     ;*
     %+  turn  +.vector
     |=  cell=vector-cell
-    ;td.p1.bd1(style "white-space: nowrap;"): {(print-cell cell)}
+    ;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
   ==
-++  print-cell
-  |=  cell=vector-cell
-  ?:  =(+<.cell ~.t)  `tape`~[`@t`+>.cell]  (scow q.cell)
 +$  poke-result  (each (list cmd-result) tang)
 +$  cmd-result  [%results (list result)]
 +$  result
@@ -242,7 +239,7 @@
     =hx-on-htmx-config-request  "configRequest(event)"
     ;input.hidden(name "/", value "query");
     ;textarea#query-text.p3.grow.b0
-      =name  "/query-text"
+      =name  "tas//query-text"
       =spellcheck  "false"
       =placeholder  "FROM ... SELECT *"
       =autocomplete  "off"

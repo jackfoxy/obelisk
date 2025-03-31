@@ -4,11 +4,10 @@ Inserts rows into a `<table>`.
 
 ```
 <insert> ::=
-  INSERT INTO <table>
+  INSERT INTO <table> [ <as-of-time> ]
     [ ( <column> [ ,...n ] ) ]
     { VALUES (<scalar-expression> [ ,...n ] ) [ ...n ]
       | <selection> }
-    [ <as-of-time> ]
 ```
 
 ```
@@ -23,9 +22,9 @@ Inserts rows into a `<table>`.
   $:
     %insert
     table=qualified-object
-    columns=(unit (list @t))
-    values=insert-values
     as-of=(unit as-of)
+    columns=(unit (list @tas))
+    values=insert-values
   ==
 ```
 
@@ -35,7 +34,7 @@ Inserts rows into a `<table>`.
 The target of the `INSERT` operation.
 
 **`<column>` [ ,...n ]**
-When present, the column list must account for all column identifiers (names or aliases) in the target once. It determines the order in which the update values are applied and the output `<table>`'s column order.   
+When present, the column list must account for all column identifiers (names or aliases) in the target. This determines the order in which values are applied in the `<table>`'s data rows. If not specified row values must be in the `<table>`'s canonical column order.
 
 **(`<scalar-expression>` [ ,...n ] ) [ ,...n ]**
 *fully supported in urQL parser, only literals supported in Obelisk*
@@ -50,26 +49,26 @@ Selection creating source `<table-set>` to insert into target. Source auras must
 (Selection is a wrapper for query.)
 
 **`<as-of-time>`**
-Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
+Timestamp equal to or greater than the table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
 
-The `VALUES` or `<selection>` must provide data for all columns in the expected order.
+The `VALUES` or `<selection>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
+
+The `default` keyword may be used instead of a value to specify the column type's bunt (default) value.
 
 Cord values are represented in single quotes `'this is a cord'`. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
-
-If `( <column> [ ,...n ] )` is not specified, the inserted columns must be arranged in the same order as the target `<table>` columns.
 
 Note that multiple parentheses enclosed rows of column values are NOT comma separated.
 
 ### Produced Metadata
 
 message: INSERT INTO <namespace name>.<table name>
-server-time: <timestamp>
-schema-time: <timestamp>
-data-time: <timestamp>
+server time: <timestamp>
+schema time: <timestamp>   The most current table schema time
+data time: <timestamp>     The source content time upon which the INSERT acted
 message: inserted:
 vector count: <count>
 message: table data:
