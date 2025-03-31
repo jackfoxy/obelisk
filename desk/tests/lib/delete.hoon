@@ -67,7 +67,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -77,7 +77,7 @@
    =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE FROM calendar ".
                 "WHERE day-name = 'Sunday' ".
@@ -103,7 +103,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -113,7 +113,7 @@
    =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE calendar ".
                 "WHERE day-name = 'asdf'"
@@ -136,7 +136,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -146,7 +146,7 @@
    =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE calendar ".
                 "WHERE day-name = 'Monday'"
@@ -169,7 +169,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -179,7 +179,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE FROM calendar ".
                 "WHERE day-name = 'Sunday' ".
@@ -230,7 +230,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -240,7 +240,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO calendar ".
                 "VALUES ".
@@ -251,7 +251,7 @@
    =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE FROM calendar AS OF ~2012.5.1 ".
                 "WHERE day-name = 'Sunday' ".
@@ -266,7 +266,7 @@
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
-        !>([%tape %db1 "FROM calendar SELECT *"])
+        !>([%tape2 %db1 "FROM calendar SELECT *"])
   ::
   %+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
             (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
@@ -319,7 +319,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -329,7 +329,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO calendar ".
                 "VALUES ".
@@ -340,7 +340,7 @@
    =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE FROM calendar ".
                 "WHERE day-name = 'Saturday'; ".
@@ -357,7 +357,7 @@
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
-        !>([%tape %db1 "FROM calendar SELECT *"])
+        !>([%tape2 %db1 "FROM calendar SELECT *"])
   ::
   %+  weld  %+  expect-eq
                 !>  expected-deletes
@@ -478,7 +478,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -488,7 +488,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO calendar ".
                 "VALUES ".
@@ -499,7 +499,7 @@
    =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE FROM calendar AS OF ~2012.5.1 ".
                 "WHERE day-name = 'Wednesday'; ".
@@ -512,7 +512,7 @@
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
-        !>([%tape %db1 "FROM calendar SELECT *"])
+        !>([%tape2 %db1 "FROM calendar SELECT *"])
   ::
   %+  weld  %+  expect-eq
                 !>  expected-deletes
@@ -568,7 +568,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
@@ -577,7 +577,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO calendar ".
                 "VALUES ".
@@ -588,7 +588,7 @@
    =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "DELETE FROM calendar ".
                 "WHERE day-name = 'Saturday' ".
@@ -600,7 +600,7 @@
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
-        !>([%tape %db1 "FROM calendar SELECT *"])
+        !>([%tape2 %db1 "FROM calendar SELECT *"])
   ::
   (eval-results expected-select ;;(cmd-result ->+>+>+<.mov4))
 ::
@@ -610,7 +610,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar

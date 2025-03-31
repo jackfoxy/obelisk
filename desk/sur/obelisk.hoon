@@ -134,6 +134,7 @@
 ::
 +$  action
   $%  [%tape default-database=@tas urql=tape]
+      [%tape2 default-database=@tas urql=tape]
       [%commands cmds=(list command)]
       [%test default-database=@tas urql=tape]
   ==
