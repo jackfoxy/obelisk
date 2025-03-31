@@ -380,7 +380,7 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   ::
   %+  expect-fail-message
         'database %db1 already exists'
@@ -440,7 +440,7 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   ::
   =.  run  +(run)
   =^  move2  agent
@@ -500,13 +500,13 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   ::
   =.  run  +(run)
   =^  move2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   ::
   =.  run  +(run)
   =^  move3  agent
@@ -566,26 +566,26 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
   =.  run  +(run)
   =^  move5  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   ::
   =.  run  +(run)
   =^  move6  agent
@@ -645,19 +645,19 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  move4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   ::
   =.  run  +(run)
   =^  move5  agent
@@ -689,26 +689,26 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
   =.  run  +(run)
   =^  move5  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   ::
   %+  expect-fail-message
         '%db1 has populated tables and `FORCE` was not specified'
@@ -725,26 +725,26 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
   =.  run  +(run)
   =^  move5  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   ::
   %+  expect-fail-message
         'database %db3 does not exist'
@@ -761,26 +761,26 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
   =.  run  +(run)
   =^  move4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   ::
   %+  expect-fail-message
         'DROP DATABASE: state change after query in script'
@@ -801,26 +801,26 @@
 ::  =^  move  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
+::        !>([%tape2 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"])
 ::  =.  run  +(run)
 ::  =^  mov2  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
 ::        %obelisk-action
-::        !>  :+  %tape
+::        !>  :+  %tape2
 ::                %db1
 ::                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
 ::  =.  run  +(run)
 ::  =^  mov3  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
 ::        %obelisk-action
-::        !>  :+  %tape
+::        !>  :+  %tape2
 ::                %db1
 ::                "INSERT INTO db1..my-table (col1) VALUES ('cord') "
 ::  =.  run  +(run)
 ::  =^  move4  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
 ::        %obelisk-action
-::        !>([%tape %sys "CREATE DATABASE db2"])
+::        !>([%tape2 %sys "CREATE DATABASE db2"])
 ::  ::
 ::  %+  expect-fail-message
 ::        'DROP DATABASE: database must be dropped by local agent'
@@ -837,7 +837,7 @@
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   %+  expect-fail-message
         'database %sys cannot be dropped'
   |.  %+  ~(on-poke agent (bowl [run ~ ~2012.5.3]))
@@ -854,12 +854,12 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
@@ -929,7 +929,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
@@ -948,7 +948,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
@@ -967,19 +967,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -999,19 +999,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -1034,7 +1034,7 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape %sys "CREATE DATABASE db1"])
+::        !>([%tape2 %sys "CREATE DATABASE db1"])
 ::  =.  run  +(run)
 ::  ::
 ::  %+  expect-fail-message
@@ -1053,12 +1053,12 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
@@ -1210,19 +1210,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -1243,19 +1243,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -1276,7 +1276,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
@@ -1297,7 +1297,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
@@ -1427,19 +1427,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
   =.  run  +(run)
@@ -1461,24 +1461,24 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db2
                 "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %db2 "INSERT INTO my-table (col1) VALUES ('cord')"])
+        !>([%tape2 %db2 "INSERT INTO my-table (col1) VALUES ('cord')"])
   =.  run  +(run)
   =^  mov5  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.5]))
@@ -1503,14 +1503,14 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
                 "PRIMARY KEY (col1, col2) ".
@@ -1519,7 +1519,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+        !>([%tape2 %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1537,14 +1537,14 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
                 "PRIMARY KEY (col1, col2) ".
@@ -1553,7 +1553,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+        !>([%tape2 %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1571,19 +1571,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -1604,19 +1604,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -1648,19 +1648,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+        !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1686,7 +1686,7 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1753,19 +1753,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+        !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1786,19 +1786,19 @@
 ::  =^  mov1  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
 ::        %obelisk-action
-::        !>([%tape %sys "CREATE DATABASE db1"])
+::        !>([%tape2 %sys "CREATE DATABASE db1"])
 ::  =.  run  +(run)
 ::  =^  mov2  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
 ::        %obelisk-action
-::        !>  :+  %tape
+::        !>  :+  %tape2
 ::                %db1
 ::                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
 ::  =.  run  +(run)
 ::  =^  mov3  agent
 ::    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
 ::        %obelisk-action
-::        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+::        !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
 ::  =.  run  +(run)
 ::  ::
 ::  %+  expect-fail-message
@@ -1817,24 +1817,24 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db2"])
+        !>([%tape2 %sys "CREATE DATABASE db2"])
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db2
                 "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov4  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
         %obelisk-action
-        !>([%tape %db2 "INSERT INTO my-table (col1) VALUES ('cord')"])
+        !>([%tape2 %db2 "INSERT INTO my-table (col1) VALUES ('cord')"])
   =.  run  +(run)
   =^  mov5  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.5]))
@@ -1921,19 +1921,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
+        !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1951,14 +1951,14 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %sys
                 "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
                 "PRIMARY KEY (col1, col2) ".
@@ -1967,7 +1967,7 @@
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>([%tape %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
+        !>([%tape2 %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -1985,19 +1985,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2023.7.9..22.35.35..7e90]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
@@ -2017,19 +2017,19 @@
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
-        !>([%tape %sys "CREATE DATABASE db1"])
+        !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
   =.  run  +(run)
   =^  mov3  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
-        !>  :+  %tape
+        !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
   =.  run  +(run)

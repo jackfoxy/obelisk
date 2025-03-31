@@ -63,6 +63,30 @@
         ==
     ==
   ::
+  ::  for testing without printing results
+  %tape2
+    =/  virtualized
+      ^-  (each (pair (list cmd-result:obelisk) server:obelisk) tang)
+      %-  mule
+      |.
+      %:  state-server
+      ::~>  %bout.[0 %parse-cmds]
+      (parse-urql +<.act +>.act)
+      ==
+    ?-  -.virtualized
+      %.n
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+            [%give %kick ~[/server] ~]
+        ==
+      %.y
+        =/  res  p.virtualized
+        :_  this(server +.res)
+        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+            [%give %kick ~[/server] ~]
+        ==
+    ==
+  ::
   %commands
     =/  res  (state-server +.act)
     :_  this(server +.res)
@@ -70,6 +94,7 @@
         [%give %kick ~[/server] ~]
     ==
   ::
+  ::  for testing with expect-fail-message
   %test
     =/  res2  %:  state-server
                   ::~>  %bout.[0 %parse-cmds]
