@@ -75,7 +75,7 @@
 +$  value-literals
   $:
     %value-literals
-    dime
+    dime               :: false dime [<aura of type> <crip of literal list>]
   ==
 +$  ordered-column
   $:
