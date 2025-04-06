@@ -2455,10 +2455,12 @@
   ?:  =(-.a %end-command)    %:  query:ast
                                 %query
                                 ?~  from  ~
-                                  `(fix-from-predicates (need from) alias-map)
+                                  `(finalize-predicates (need from) alias-map)
                                 scalars
                                 ?~  predicate  ~
-                                  `(fix-predicate (need predicate) alias-map)
+                                  :-  ~
+                                      %+  finalize-predicate  (need predicate)
+                                                              alias-map
                                 group-by
                                 having
                                 (need select)
@@ -2682,7 +2684,7 @@
     ~|("join not supported: {<raw-join>}" !!)
   ~|("join type not supported: {<-.raw-join>}" !!)
 ::
-++  fix-from-predicates
+++  finalize-predicates
   |=  [f=from:ast alias-map=(map @t qualified-object:ast)]
   ^-  from:ast
   =/  jss  joins.f
@@ -2698,21 +2700,21 @@
                    join.j
                    object.j
                    as-of.j
-                   `(fix-predicate (need predicate.j) alias-map)
+                   `(finalize-predicate (need predicate.j) alias-map)
                    ==
              js
     jss  +.jss
   ==
 ::
-++  fix-predicate
+++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
   ^-  predicate:ast
   ::
   |-
   ?~  p  ~
-  p(n (fix-leaf n.p alias-map), l $(p l.p), r $(p r.p))
+  p(n (finalize-leaf n.p alias-map), l $(p l.p), r $(p r.p))
 ::
-++  fix-leaf
+++  finalize-leaf
   |=  [a=predicate-component:ast alias-map=(map @t qualified-object:ast)]
   ^-  predicate-component:ast
   ?-  a
@@ -2787,7 +2789,7 @@
       alias.sel-col
       ==
 ::
-++  fix-select
+++  finalize-select
   |=  [s=(list selected-column:ast) alias-map=(map @t qualified-object:ast)]
   ^-  (list selected-column:ast)
   =/  s-out=(list selected-column:ast)  ~
@@ -2919,7 +2921,7 @@
       ?~  columns  ~|('no columns selected' !!)
       ?~  f
         (select:ast %select top bottom (flop columns))
-      (select:ast %select top bottom (fix-select (flop columns) alias-map))
+      (select:ast %select top bottom (finalize-select (flop columns) alias-map))
     ?@  -.a
       ?+  -.a  ~|('some other select atom' !!)
       %top       ?>  ?=(@ud +<.a)  $(top `+<.a, a +>.a)
