@@ -697,6 +697,8 @@
       !!
     %query
       :-  %.y
+          ::~&  "{<->->+.rtree>}"   :: from objects
+          ::~>  %bout.[0 %select]
           [next-data (do-query -.rtree next-data next-schemas)]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
