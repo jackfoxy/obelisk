@@ -3449,15 +3449,14 @@
   |=  a=(list dime)
   ~+
   =/  literal-type=@tas  -<.a
-  =/  b  a
   =/  literal-list=tape  ~
   |-
-  ?:  =(b ~)
+  ?:  =(a ~)
     (value-literals:ast %value-literals literal-type (crip literal-list))
-  ?:  =(-<.b literal-type)
+  ?:  =(-<.a literal-type)
     ?:  =(literal-list ~)
-      $(b +.b, literal-list (a-co:co ->.b))
-    $(b +.b, literal-list (weld (weld (a-co:co ->.b) ";") literal-list))
+      $(a +.a, literal-list (a-co:co ->.a))
+    $(a +.a, literal-list (weld (weld (a-co:co ->.a) ";") literal-list))
   ~|("cannot parse literal-list  {<a>}" !!)
 ++  value-literal-list  ~+
   %:  cook  cook-literal-list
