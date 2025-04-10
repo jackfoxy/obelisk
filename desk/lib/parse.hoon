@@ -1242,31 +1242,6 @@
         ==
       !!
   ==
-+$  urql-command
-  $%
-    %alter-index
-    %alter-namespace
-    %alter-table
-    %create-database
-    %create-index
-    %create-namespace
-    %create-table
-    %create-view
-    %delete
-    %drop-database
-    %drop-index
-    %drop-namespace
-    %drop-table
-    %drop-view
-    %grant
-    %insert
-    %merge
-    %query
-    %revoke
-    %truncate-table
-    %update
-    %with
-  ==
 ::
 ::  parse urQL commands
 ::
@@ -2882,28 +2857,6 @@
                          object.object.j
     js  +.js
   ==
-+$  select-mold-1
-  $:
-    $:  %selected-aggregate
-        @
-        %qualified-column
-        [%qualified-object (unit @p) @ @ @ (unit @t)]
-        @
-        @
-        ==
-    %as
-    @
-  ==
-+$  select-mold-2
-  $:
-    $:  %selected-aggregate
-        @
-        %qualified-column
-        [%qualified-object (unit @p) @ @ @ (unit @t)]
-        @
-        @
-        ==
-  ==
 ++  produce-select
   |=  [a=* f=(unit from:ast) alias-map=(map @t qualified-object:ast)]
   ^-  select:ast
@@ -3138,18 +3091,6 @@
       a        +.a
     ==
   ~|("cannot parse column setting {<a>}" !!)
-::
-::  helper types
-::
-+$  interim-key
-  $:
-    %interim-key
-    columns=(list ordered-column:ast)
-  ==
-+$  parens        ?(%pal %par)
-+$  raw-pred-cmpnt  ?(parens predicate-component:ast)
-+$  group-by-list  (list grouping-column:ast)
-+$  order-by-list  (list ordering-column:ast)
 ::
 ::  parser rules and helpers
 ::
@@ -4375,14 +4316,6 @@
         (update-pred-folder-state pred-comp state)
       (advance-pred-folder-state state)
   ==
-+$  pred-folder-state
-  $:
-    displ=@
-    level=@
-    cmpnt=(unit raw-pred-cmpnt)
-    cmpnt-displ=@
-    the-list=(list raw-pred-cmpnt)
-  ==
 ::
 ::    +split-at: [(list T) index:@] -> [(list T) (list T)]
 ++  split-at
@@ -4650,5 +4583,72 @@
               ;~(plug whitespace (jester 'order') whitespace (jester 'by'))
               ==
     (more com parse-ordering-column)
+  ==
+::
+::  helper types
+::
++$  urql-command
+  $%
+    %alter-index
+    %alter-namespace
+    %alter-table
+    %create-database
+    %create-index
+    %create-namespace
+    %create-table
+    %create-view
+    %delete
+    %drop-database
+    %drop-index
+    %drop-namespace
+    %drop-table
+    %drop-view
+    %grant
+    %insert
+    %merge
+    %query
+    %revoke
+    %truncate-table
+    %update
+    %with
+  ==
++$  interim-key
+  $:
+    %interim-key
+    columns=(list ordered-column:ast)
+  ==
++$  parens        ?(%pal %par)
++$  raw-pred-cmpnt  ?(parens predicate-component:ast)
++$  group-by-list  (list grouping-column:ast)
++$  order-by-list  (list ordering-column:ast)
++$  pred-folder-state
+  $:
+    displ=@
+    level=@
+    cmpnt=(unit raw-pred-cmpnt)
+    cmpnt-displ=@
+    the-list=(list raw-pred-cmpnt)
+  ==
++$  select-mold-1
+  $:
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
+    %as
+    @
+  ==
++$  select-mold-2
+  $:
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
   ==
 --
