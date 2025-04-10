@@ -74,7 +74,6 @@
 ++  idx-comp-2
   |_  index=(list [@tas ?])
   ++  order
-    ::|=  [p=(list @) q=(list @)]
     |=  [a=[(list @) *] b=[(list @) *]]
     =/  p  -.a
     =/  q  -.b
@@ -88,7 +87,7 @@
 ::
 ++  pri-key
   |=  key=(list key-column)
-        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
+  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
@@ -119,7 +118,7 @@
   nxt-schema
 ::
 ::  gets the data with matching or highest timestamp prior to
-++  data-key    ((on @da data) gth)
+++  data-key  ((on @da data) gth)
 ++  get-data
   |=  [sys=((mop @da data) gth) time=@da]
   ^-  data
@@ -443,23 +442,6 @@
                       selected-out
   ==
 ::
-++  mk-object-lookup
-  |=  cols=(list qual-col-type)
-  ^-  (map @tas (list qualified-object:ast))
-  =/  object-lookup=(map @tas (list qualified-object:ast))  ~
-  |-
-  ?~  cols  object-lookup
-  =/  column=qualified-column:ast  -<.cols
-  %=  $
-    cols  +.cols
-    object-lookup  ?.  (~(has by object-lookup) column.column)
-                     (~(put by object-lookup) column.column ~[qualifier.column])
-                   =/  objects=(list qualified-object:ast)
-                        (~(got by object-lookup) column.column)
-                   %+  ~(put by object-lookup)  column.column
-                                                [qualifier.column objects]
-  ==
-::
 ::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
 ::                   -> (list key-column)
 ++  mk-key-column
@@ -680,6 +662,7 @@
 ::
 ++  update-file
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
+  ~+  :: keeper
   =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
   =.  files.data  (~(put by files.data) tbl-key file)
   data
@@ -750,6 +733,7 @@
 ::  alphabetic order cords
 ++  alpha 
   |=  [a=@ b=@]
+  ~+  :: keep, makes big difference inserting large @t
   ^-  ?
   ?:  =(a b)  %.y
   =/  e=(list ?)  ~
@@ -810,6 +794,7 @@
 ::
 ++  name-set
   |*  a=(set)
+  ~+   :: keep, seems to make small difference
   ^-  (set @tas)
   (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 ::
