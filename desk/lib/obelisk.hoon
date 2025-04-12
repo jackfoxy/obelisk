@@ -930,7 +930,9 @@
           next-schemas=(map @tas @da)  :: problematic w/ same times in 1 script
           ==
   ^-  [server (list result)]
-  =/  sys-db  (~(got by state) %sys)
+  =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
+                  "can be accessed"
+                  (~(got by state) %sys)
   ?~  from.q
        :-  state    :: no from? only literals
            :~  [%message 'SELECT']
