@@ -4082,6 +4082,7 @@
     %:  cold  %not-exists
               ;~(plug (jester 'not') whitespace (jester 'exists') whitespace)
               ==
+    (cold %not ;~(plug (jester 'not') whitespace))
     (cold %exists ;~(plug (jester 'exists') whitespace))
     (cold %any ;~(plug (jester 'any') whitespace))
     (cold %all ;~(plug (jester 'all') whitespace))
@@ -4203,9 +4204,17 @@
   =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
         (split-at parsed cmpnt-displ.state)
   ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
-    unary-op:ast     :: ?(%not-exists %exists)
-      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+    unary-op:ast     :: ?(%not %not-exists %exists)
+      ?~  p.r
+        [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+      ?:  ?=(unary-op:ast -.p.r)
+        [-.p.r (produce-predicate q.r) ~]
+      ~|("unknown predicate node {<-.p.r>}" !!)
     binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
+      ?:  ?=(unary-op:ast -.p.r)
+        ?:  ?=(%not -.p.r)
+          [-.p.r (produce-predicate +.parsed) ~]
+        ~|("malformed predicate {<-.p.r>}" !!)
       [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
     ternary-op:ast   :: %between, %not-between
       ?:  =(%and +>-.q.r)
@@ -4263,7 +4272,7 @@
           ==
     ::
     :: these operators have equivalent precendence, choose first in lowest level
-    unary-op:ast     :: ?(%not %exists)
+    unary-op:ast     :: ?(%not %exists %not-exists)
       ?:  &(=(level.state 0) =(cmpnt.state ~))
         (update-pred-folder-state pred-comp state)
       (advance-pred-folder-state state)

@@ -1514,4 +1514,251 @@
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
+::
+::  NOT unary operator
+::
+++  test-predicate-38
+  =/  query
+        "FROM adoptions T1 WHERE NOT foo = bar SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        :+  %not
+            :+  %eq
+                :+  [%unqualified-column column=%foo alias=~]
+                    ~
+                    ~
+                :+  [%unqualified-column column=%bar alias=~]
+                    ~
+                    ~
+            ~
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    :-  ~
+                        :^  %from
+                            object=adoptions
+                            as-of=~
+                            ~
+                    scalars=~
+                    `pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    ~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+++  test-predicate-39
+  =/  query
+        "FROM adoptions T1 WHERE NOT (foo = bar) SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        :+  %not
+            :+  %eq
+                :+  [%unqualified-column column=%foo alias=~]
+                    ~
+                    ~
+                :+  [%unqualified-column column=%bar alias=~]
+                    ~
+                    ~
+            ~
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    :-  ~
+                        :^  %from
+                            object=adoptions
+                            as-of=~
+                            ~
+                    scalars=~
+                    `pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    ~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+++  test-predicate-40
+  =/  query
+        "FROM adoptions T1 WHERE NOT NOT foo = bar SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        :+  %not
+            :+  %not
+                :+  %eq
+                    :+  [%unqualified-column column=%foo alias=~]
+                        ~
+                        ~
+                    :+  [%unqualified-column column=%bar alias=~]
+                        ~
+                        ~
+                ~
+            ~
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    :-  ~
+                        :^  %from
+                            object=adoptions
+                            as-of=~
+                            ~
+                    scalars=~
+                    `pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    ~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+++  test-predicate-41
+  =/  query
+        "FROM adoptions T1 WHERE NOT NOT (foo = bar) SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        :+  %not
+            :+  %not
+                :+  %eq
+                    :+  [%unqualified-column column=%foo alias=~]
+                        ~
+                        ~
+                    :+  [%unqualified-column column=%bar alias=~]
+                        ~
+                        ~
+                ~
+            ~
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    :-  ~
+                        :^  %from
+                            object=adoptions
+                            as-of=~
+                            ~
+                    scalars=~
+                    `pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    ~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+++  test-predicate-42
+  =/  query  "FROM adoptions AS T1 ".
+    " WHERE not NOT  EXISTS  T1.foo ".
+    " SELECT *"
+  =/  pred=(tree predicate-component:ast)  [%not [%not-exists t1-foo ~] ~]
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    :-  ~
+                        :^  %from
+                            object=adoptions
+                            as-of=~
+                            ~
+                    scalars=~
+                    `pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  complext predicate with NOT
+++  test-predicate-43
+  =/  query  "FROM adoptions AS A1 JOIN adoptions AS A2 ON A1.foo = A2.bar ".
+    " WHERE  A1.adoption-email = A2.adoption-email  ".
+    "  AND     A1.adoption-date = A2.adoption-date  ".
+    "  AND    foo = bar  ".
+    "  AND NOT ( NOT (A1.name = A2.name AND NOT A1.species > A2.species) ".
+    "       OR ".
+    "       (A1.name > A2.name AND A1.species = A2.species) ".
+    "       OR ".
+    "      (A1.name > A2.name AND A1.species > A2.species) ".
+    "     ) ".
+    " SELECT *"
+  =/  joinpred=(tree predicate-component:ast)  [%eq a1-foo a2-bar]
+  =/  pred=(tree predicate-component:ast)
+        :+  %and
+            :+  %and
+                :+  %and
+                    [%eq a1-adoption-email a2-adoption-email]
+                    [%eq a1-adoption-date a2-adoption-date]
+                [%eq foo bar]
+            :+  %not
+                :+  %or
+                    :+  %or
+                        :+  %not
+                            :+  %and
+                                [%eq a1-name a2-name]
+                                [%not [%gt a1-species a2-species] ~]
+                            ~
+                        :+  %and
+                            [%gt a1-name a2-name]
+                            [%eq a1-species a2-species]
+                    [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]
+                ~
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    :-  ~
+                        :^  %from
+                            :-  %table-set
+                                :*  %qualified-object
+                                    ship=~
+                                    database='db1'
+                                    namespace='dbo'
+                                    name='adoptions'
+                                    alias=[~ 'A1']
+                                    ==
+                            as-of=~
+                            :~  :*  %joined-object
+                                    join=%join
+                                    :-  %table-set
+                                        :*  %qualified-object
+                                            ship=~
+                                            database='db1'
+                                            namespace='dbo'
+                                            name='adoptions'
+                                            alias=[~ 'A2']
+                                            ==
+                                    as-of=~
+                                    predicate=`joinpred
+                                    ==
+                                ==
+                    scalars=~
+                    `pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
 --
