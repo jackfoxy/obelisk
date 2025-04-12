@@ -366,6 +366,15 @@
   ?:  =(val -.b)  %.n
   $(b +.b)
 ::
+::  not
+::
+++  not
+  |=  $:  l=$-(joined-row ?)
+          c=joined-row
+          ==
+  ^-  ?
+  !(l c)
+::
 ++  and
   |=  $:  l=$-(joined-row ?)
           r=$-(joined-row ?)
@@ -442,12 +451,9 @@
       ?:  =(%between n.p)
         (bake (cury (cury and ll) rr) joined-row)
       (bake (cury (cury and-not ll) rr) joined-row)
-    binary-op
-      (pred-binary-op p type-lookup qualifier-lookup)
-    unary-op
-      ~|("%exists %not-exists not implemented" !!)
-    all-any-op
-      ~|("%all and %any not implemented" !!)
+    binary-op   (pred-binary-op p type-lookup qualifier-lookup)
+    unary-op    (pred-unary-op p type-lookup qualifier-lookup)
+    all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
       ?~  l.p  ~|("can't get here" !!)
       ?~  r.p  ~|("can't get here" !!)
@@ -458,6 +464,27 @@
       ?:  =(%and n.p)
         (bake (cury (cury and ll) rr) joined-row)
       (bake (cury (cury or ll) rr) joined-row)
+    ==
+:: 
+++  pred-unary-op
+  |=  $:  p=predicate:ast
+          type-lookup=lookup-type
+          qualifier-lookup=(map @tas (list qualified-object:ast))
+          ==
+  ^-  $-(joined-row ?)
+  ?~  p  ~|("can't get here" !!)
+  ?~  l.p  ~|("can't get here" !!)
+  ?.  ?=(unary-op n.p)  ~|("can't get here" !!)
+  ::
+  ?-  n.p
+    %not
+        =/  ll=$-(joined-row ?)
+            (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
+        (bake (cury not ll) joined-row)
+    %exists
+      ~|("%exists not implemented" !!)
+    %not-exists
+      ~|("%not-exists not implemented" !!)
     ==
 :: 
 ++  pred-binary-op

@@ -750,7 +750,7 @@
     !>  expected
     !>  ;;(cmd-result ->+>+>+<.mov3)
 ::
-::  view WHERE <column> <> <literal>
+::  view WHERE <literal> <> <column>
 ++  test-neq-04
   =|  run=@ud
   =/  expected-rows
@@ -5141,4 +5141,393 @@
   %+  expect-eq
     !>  expected
     !>  ;;(cmd-result ->+>+>+<.mov4)
+::
+::  NOT
+::
+::  WHERE NOT <column> = <literal>
+++  test-not-00
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+  =.  run  +(run)
+    =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape2 %db1 "FROM my-table WHERE NOT col3 = 'tuxedo' SELECT *"])
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov4)
+::
+::  WHERE NOT <literal> = <column>
+++  test-not-01
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape2 %db1 "FROM my-table WHERE NOT 'tuxedo' = col3 SELECT *"])
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov4)
+::
+::  WHERE NOT <column> = <column>
+++  test-not-02
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Ace']]
+                  [%col2 [~.da ~2005.12.19]]
+                  [%col3 [~.t 'ticolor']]
+                  [%col4 [~.t 'row2']]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 2]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'Angel', 'row3')"
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape2 %db1 "FROM my-table WHERE NOT col1 = col3 SELECT *"])
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov4)
+::
+::  view WHERE NOT <literal> = <literal>
+++  test-not-03
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set ~]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.sys.columns']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.1]
+                    [%vector-count 0]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape2 %db1 "FROM sys.columns WHERE NOT 1 = 1 SELECT *"])
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov3)
+::
+::  WHERE NOT <column> = <column> AND NOT <column> = <literal>
+++  test-not-04
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Abby']]
+                  [%col2 [~.da ~1999.2.19]]
+                  [%col3 [~.t 'tricolor']]
+                  [%col4 [~.t 'row1']]
+                  ==
+          ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 1]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'Angel', 'row3')"
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+         !>  :+  %tape2
+                 %db1
+                 "FROM my-table WHERE NOT col1 = col3 AND NOT col4='row2' ".
+                 "SELECT *"
+  %+  expect-eq
+    !>  expected
+    !>  ;;(cmd-result ->+>+>+<.mov4)
+::
+::  fail WHERE NOT <literal> = <column> types differ
+++  test-fail-not-00
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'Angel']]
+                  [%col4 [~.t 'row3']]
+                  ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 1]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'Angel', 'row3')"
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+      %-  crip
+          "comparing literal to column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+          %obelisk-action
+          !>([%test %db1 "FROM my-table WHERE NOT ~1999.2.19 = col1 SELECT *"])
+::
+::  fail WHERE NOT <column> = <column> types differ
+++  test-fail-not-01
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'Angel']]
+                  [%col2 [~.da ~2001.9.19]]
+                  [%col3 [~.t 'Angel']]
+                  [%col4 [~.t 'row3']]
+                  ==
+            ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 1]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'Angel', 'row3')"
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+      %-  crip
+          "comparing columns of different auras: ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col1] ".
+          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+          "name=%my-table alias=~] %col2]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+          %obelisk-action
+          !>([%test %db1 "FROM my-table WHERE NOT col1 = col2 SELECT *"])
+
 --
