@@ -212,9 +212,6 @@
   :+
     %:  from-obj  %from-obj
                   query-obj
-                  ?~  alias
-                      ~
-                  `(crip (cass (trip (need alias))))
                   tmsp.tbl
                   tmsp.file
                   columns.tbl
@@ -275,9 +272,6 @@
   :+
     %:  from-obj  %from-obj
                   query-obj
-                  ?~  alias
-                      ~
-                  `(crip (cass (trip (need alias))))
                   tmsp.schema
                   tmsp.+.r
                   columns.view

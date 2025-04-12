@@ -152,7 +152,6 @@
 +$  from-obj
   $:  %from-obj
       object=qualified-object
-      alias=(unit @t)
       schema-tmsp=@da
       data-tmsp=@da
       columns=(list column)

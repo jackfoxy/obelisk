@@ -52,7 +52,10 @@
           ?.  =(our.bowl src.bowl)
             ~|("all access by local agent only" !!)
   ::
-  ::
+  ::  next-schemas and next-data respectively track whether the current script 
+  ::  has advanced the schema and data times, respectively.
+  ::  If so, schema and data changes at the current schema and data times are
+  ::  allowed.
   =/  next-schemas=(map @tas @da)  ~
   =/  next-data=(map @tas @da)  ~
   =/  results=(list cmd-result)  ~
