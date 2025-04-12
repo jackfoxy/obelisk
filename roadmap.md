@@ -20,9 +20,7 @@ Prioritization depends on user feedback and bribery.
 
 * __Common Table Expressions (CTE)__ -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
-* __Issue #1__ -- NOT predicate operator not fully functional
-
-* __Issue #2__ -- IN (list) predicate not fully type checked
+* __Issue #1__ (completed) -- NOT predicate operator not fully functional
 
 ## other functionality
 
