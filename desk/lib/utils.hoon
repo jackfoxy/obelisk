@@ -636,6 +636,47 @@
                                      (limo ~[object.source])
     ==
 ::
+::  +common-txn  [@t qualified-object:ast] -> txn-meta
+::
+::  source-content-time is the data state time against which to apply the
+::  change. It is the closest available table state = or < than requested
+::  as-of time.
+::  The resulting data state time will always be NOW.
+++  common-txn
+  |=  $:  txn=tape
+          now=@da
+          as-of=(unit as-of:ast)
+          t=qualified-object:ast
+          state=server
+          next-schemas=(map @tas @da)
+          ==
+  ^-  txn-meta
+  =/  db  ~|  %+  weld  txn  ": database {<database.t>} does not exist"
+          (~(got by state) database.t)
+  =/  content-time  (set-tmsp as-of now)
+  =/  nxt-schema=schema  ~|  %+  weld  txn  ": table {<name.t>} ".
+                             "as-of schema time out of order"
+                              %:  get-next-schema  sys.db
+                                                    next-schemas
+                                                    now
+                                                    database.t
+                                                    ==
+  =/  nxt-data=data  ~|  %+  weld  txn  ": table {<name.t>} ".
+                         "as-of data time out of order"
+                         (get-data-next content.db now)
+  =/  tbl-key  [namespace.t name.t]
+  =/  =table  ~|  %+  weld  txn  ": table {<tbl-key>} does not exist"
+                  (~(got by tables:nxt-schema) tbl-key)
+  =/  f=file  (get-content content.db content-time tbl-key)
+  :*  %txn-meta
+      db
+      tbl-key
+      nxt-data
+      table
+      f
+      tmsp.f
+      ==
+::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
 ::  Applies a function to each element of the list, threading an
@@ -820,4 +861,15 @@
       object=(unit qualified-column:ast)
       vc=vector-cell
   ==
+::
+::  common metadata for DELETE, INSERT, UPDATE
++$  txn-meta
+  $:  %txn-meta
+      db=database
+      tbl-key=[@tas @tas]
+      nxt-data=data
+      =table
+      =file
+      source-content-time=@da
+      ==
 --
