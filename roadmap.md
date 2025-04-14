@@ -65,3 +65,5 @@ Prioritization depends on user feedback and bribery.
 
 * __in-line table-set__ -- much infrastructure is in place for this, not sure it is a good idea (idea floated at Re-Assembly 2023)
 * __alternate urQL grammar__ -- row tuple in square brackets and/or pith for from.
+
+* __CLONE DATABASE__ -- copy schema and data to a new database with optional effective <as-of-time>.

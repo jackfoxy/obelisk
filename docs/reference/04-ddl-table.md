@@ -91,6 +91,8 @@ The Obelisk agent raises an error if the parent foreign table has no entry with 
 **`<as-of-time>`**
 Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
 
+WARNING: Future `<as-of-time>` is possible, but this sets the database content timestamp to the future, effectively locking the database for content updates until the future date is realized.
+
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
@@ -109,8 +111,8 @@ schema time: <timestamp>
 
 table must be created by local agent
 database `<database>` does not exist
-table `<table>` as-of schema time out of order
-table `<table>`as-of data time out of order
+`<table>` as-of schema time out of order
+`<table>`as-of data time out of order
 namespace `<namespace>` does not exist
 duplicate column names `<columns>`
 duplicate column names in key `<columns>`
@@ -306,7 +308,7 @@ vector count: <n>
 
 table must be dropped by local agent
 database `<database>` does not exist
-table `<table>` as-of schema time out of order
+`<table>` as-of schema time out of order
 `<table>`as-of data time out of order
 namespace `<namespace>` does not exist
 `<table>` does not exist in `<namespace>`

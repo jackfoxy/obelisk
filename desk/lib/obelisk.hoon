@@ -436,24 +436,24 @@
   ^-  table-return
   =/  db  ~|  "CREATE TABLE: database {<database.table.create-table>} ".
               "does not exist"
-                 (~(got by state) database.table.create-table)
+              (~(got by state) database.table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
   =/  nxt-schema=schema
-        ~|  "CREATE TABLE: table {<name.table.create-table>} as-of schema ".
+        ~|  "CREATE TABLE: {<name.table.create-table>} as-of schema ".
             "time out of order"
-          %:  get-next-schema  sys.db
-                              next-schemas
-                              sys-time
-                              database.table.create-table
-                              ==
+            %:  get-next-schema  sys.db
+                                 next-schemas
+                                 sys-time
+                                 database.table.create-table
+                                 ==
   =/  nxt-data=data
-        ~|  "CREATE TABLE: table {<name.table.create-table>} as-of data ".
+        ~|  "CREATE TABLE: {<name.table.create-table>} as-of data ".
             "time out of order"
-          %:  get-next-data  content.db
-                              next-data
-                              sys-time
-                              database.table.create-table
-                              ==
+            %:  get-next-data  content.db
+                               next-data
+                               sys-time
+                               database.table.create-table
+                               ==
   ::
   ?.  (~(has by namespaces.nxt-schema) namespace.table.create-table)
     ~|  "CREATE TABLE: namespace {<namespace.table.create-table>} ".

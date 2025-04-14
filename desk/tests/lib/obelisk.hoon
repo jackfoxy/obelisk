@@ -1075,6 +1075,41 @@
                 ==
     !>  ;;(cmd-result ->+>+>-.mov3)
 ::
+::  create table in future, create table in further future
+++  test-create-table-02
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1;"
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) ".
+                "PRIMARY KEY (col1) as of ~2023.7.9"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t) ".
+                "PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.10;"
+  ::
+  %+  expect-eq
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.3]
+                [%schema-time date=~2023.7.10]
+                ==
+    !>  ;;(cmd-result ->+>+>+<.mov3)
+::
 ::  fail on database does not exist
 ++  test-fail-create-table-01
   =|  run=@ud
@@ -1229,7 +1264,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: table %my-table-2 as-of data time out of order'
+        'CREATE TABLE: %my-table-2 as-of data time out of order'
   |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
           !>  :+  %test
@@ -1262,7 +1297,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: table %my-table-2 as-of data time out of order'
+        'CREATE TABLE: %my-table-2 as-of data time out of order'
   |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
           !>  :+  %test
@@ -1282,7 +1317,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: table %my-table-2 as-of schema time out of order'
+        'CREATE TABLE: %my-table-2 as-of schema time out of order'
   |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
           !>  :+  %test
@@ -1303,7 +1338,7 @@
   =.  run  +(run)
   ::
   %+  expect-fail-message
-        'CREATE TABLE: table %my-table-2 as-of schema time out of order'
+        'CREATE TABLE: %my-table-2 as-of schema time out of order'
   |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
           %obelisk-action
           !>  :+  %test
@@ -1386,11 +1421,66 @@
           %obelisk-action
           !>([%commands ~[cmd]])
 ::
+::  create table in future, fail on insert of other table in present
+++  test-fail-create-table-11
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1; ".
+                "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1); "
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) ".
+                "PRIMARY KEY (col1) as of ~2023.7.9"
+  ::
+  %+  expect-fail-message
+        'INSERT: table %my-table-2 as-of schema time out of order'
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "INSERT INTO db1..my-table-2 ".
+                  "(col1) VALUES ('cord') "
+::
+::  create table in future, fail on create other table in present
+++  test-fail-create-table-12
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1;"
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table (col1 @t) ".
+                "PRIMARY KEY (col1) as of ~2023.7.9"
+  ::
+  %+  expect-fail-message
+        'CREATE TABLE: %my-table-2 as-of schema time out of order'
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1); "
+
+::
 ::  fail table must be created by local agent
 
 ::  to do:  re-enable this test after persmissions implemented
 ::          currently fails on wrong message
-::++  test-fail-create-table-11
+::++  test-fail-create-table-13
 ::  =|  run=@ud
 ::  =/  cmd
 ::    :*  %create-table
@@ -1422,7 +1512,7 @@
 ::      !>([%commands ~[cmd]])
 ::
 ::  fail on state change after query in script
-++  test-fail-create-table-12
+++  test-fail-create-table-14
   =|  run=@ud
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
@@ -1852,6 +1942,43 @@
                 ==
     !>  ;;(cmd-result ->+>+>-.mov5)
 ::
+::  truncate table in future, define table in further future
+++  test-truncate-table-02
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1; ".
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                "INSERT INTO db1..my-table ".
+                "(col1) VALUES ('cord') "
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "TRUNCATE TABLE db1..my-table as of ~2023.7.9"
+  =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table-2 (col1 @t) ".
+                "PRIMARY KEY (col1) ".
+                "AS OF ~2023.7.10;"
+  ::
+  %+  expect-eq
+    !>  :-  %results
+            :~  [%message 'CREATE TABLE %my-table-2']
+                [%server-time ~2000.1.3]
+                [%schema-time date=~2023.7.10]
+                ==
+    !>  ;;(cmd-result ->+>+>+<.mov3)
+::
 ::  fail on database does not exist
 ++  test-fail-truncate-tbl-01
   =|  run=@ud
@@ -1863,7 +1990,6 @@
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
         !>([%commands ~[[%create-database 'db1' ~]]])
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: database %db does not exist'
@@ -1882,7 +2008,6 @@
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
         !>([%commands ~[[%create-database 'db1' ~]]])
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: namespace %ns1 does not exist'
@@ -1907,7 +2032,6 @@
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
         %obelisk-action
         !>([%commands ~[[%create-database 'db1' ~]]])
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: %my-table does not exists in %dbo'
@@ -1934,7 +2058,6 @@
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
         !>([%tape2 %db1 "INSERT INTO db1..my-table (col1) VALUES ('cord')"])
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: state change after query in script'
@@ -1968,7 +2091,6 @@
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
         %obelisk-action
         !>([%tape2 %db1 "CREATE NAMESPACE ns1 as of ~2023.7.9..22.35.37..7e90"])
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: %my-table-2 as-of schema time out of order'
@@ -2001,7 +2123,6 @@
                 %db1
                 "INSERT INTO db1..my-table ".
                 "(col1) VALUES ('cord') "
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: %my-table as-of data time out of order'
@@ -2032,7 +2153,6 @@
         !>  :+  %tape2
                 %db1
                 "INSERT INTO db1..my-table (col1) VALUES ('cord') "
-  =.  run  +(run)
   ::
   %+  expect-fail-message
         'TRUNCATE TABLE: %my-table as-of data time out of order'
@@ -2041,4 +2161,95 @@
           !>  :+  %test
                   %db1
                   "TRUNCATE TABLE my-table as of 1 day ago"
+
+::
+::  truncate table in future, fail on insert of other table in present
+++  test-fail-truncate-tbl-08
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1; ".
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1); ".
+                "INSERT INTO db1..my-table ".
+                "(col1) VALUES ('cord') "
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "TRUNCATE TABLE db1..my-table as of ~2023.7.9"
+  ::
+  %+  expect-fail-message
+        'INSERT: table %my-table-2 as-of data time out of order'
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "INSERT INTO db1..my-table-2 ".
+                  "(col1) VALUES ('cord') "
+::
+::  truncate table in future, fail on truncate other table in present
+++  test-fail-truncate-tbl-09
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1; ".
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1); ".
+                "INSERT INTO db1..my-table ".
+                "(col1) VALUES ('cord') ".
+                "INSERT INTO db1..my-table-2 ".
+                "(col1) VALUES ('cord') "
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "TRUNCATE TABLE db1..my-table as of ~2023.7.9"
+  ::
+  %+  expect-fail-message
+        'TRUNCATE TABLE: %my-table-2 as-of data time out of order'
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "TRUNCATE TABLE db1..my-table-2 "
+::
+::  truncate table in future, fail on define table in present
+++  test-fail-truncate-tbl-10
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db1; ".
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                "INSERT INTO db1..my-table ".
+                "(col1) VALUES ('cord') "
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~ ~2000.1.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "TRUNCATE TABLE db1..my-table as of ~2023.7.9"
+  ::
+  %+  expect-fail-message
+        'CREATE TABLE: %my-table-2 as-of data time out of order'
+  |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "CREATE TABLE db1..my-table-2 (col1 @t) ".
+                  "PRIMARY KEY (col1); "
 --
