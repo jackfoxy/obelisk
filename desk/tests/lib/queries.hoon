@@ -1985,6 +1985,15 @@
 ::  *, two column names, table-name.*, one column alias
 ++  test-time-query-02
   =|  run=@ud
+  =/  expected-1  :~  %results
+                      [%message 'SELECT']
+                      [%result-set (weld time-new-rows time-expected-rows)]
+                      [%server-time ~2012.5.5]
+                      [%message 'db1.dbo.my-table']
+                      [%schema-time ~2012.5.1]
+                      [%data-time ~2012.5.4]
+                      [%vector-count 5]
+                      ==
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
@@ -2036,7 +2045,7 @@
               "FROM my-table AS OF ~2012.5.3 T1 ".
               "SELECT *, col2,col4, my-table.*, col1 as C1"
   ::
-  %+  weld  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+  %+  weld  (eval-results expected-1 ;;(cmd-result ->+>+>+<.mov5))
             (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  as-of 3 days ago (data-time = days ago)

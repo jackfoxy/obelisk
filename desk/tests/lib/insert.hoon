@@ -941,7 +941,7 @@
   %+  expect-eq
     !>  expected
     !>  ;;(cmd-result ->+>+>+<.mov2)
-::::
+::
 ::  create db, create tbl, 2X insert with AS OF on second
 ++  test-insert-15
   =|  run=@ud
@@ -989,7 +989,6 @@
                   "  ('next-today', ~2000.1.1)".
                   "  ('next-tomorrow', ~2000.1.2)".
                   "  ('next-next day', ~2000.1.3);"
-          
   =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.1]))
         %obelisk-action
@@ -1000,8 +999,70 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
-:: insert then insert to previous AS OF time
+::  2X insert with AS OF > second
 ++  test-insert-16
+  =|  run=@ud
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    :-  %result-set
+                        :~
+                          :-  %vector
+                              :~  [%col1 [~.t 'next-today']]
+                                  [%col2 [~.da ~2000.1.1]]
+                                  ==
+                          :-  %vector
+                              :~  [%col1 [~.t 'next-tomorrow']]
+                                  [%col2 [~.da ~2000.1.2]]
+                                  ==
+                          :-  %vector
+                              :~  [%col1 [~.t 'next-next day']]
+                                  [%col2 [~.da ~2000.1.3]]
+                                  ==
+                          ==
+                    [%server-time ~2012.5.2]
+                    [%message 'db2.dbo.my-table-1']
+                    [%schema-time ~2000.1.1]
+                    [%data-time ~2012.5.1]
+                    [%vector-count 3]
+                    ==
+  ::
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2005.2.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                  "CREATE DATABASE db2 AS OF ~2000.1.1;".
+                  "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) ".
+                  "       PRIMARY KEY (col1) AS OF ~2000.1.1; ".
+                  "INSERT INTO db2..my-table-1 ".
+                  "  (col1, col2) ".
+                  "VALUES".
+                  "  ('today', ~2000.1.1)".
+                  "  ('tomorrow', ~2000.1.2)".
+                  "  ('next day', ~2000.1.3);"
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO db2..my-table-1  AS OF ~2001.1.1".
+                  "  (col1, col2) ".
+                  "VALUES".
+                  "  ('next-today', ~2000.1.1)".
+                  "  ('next-tomorrow', ~2000.1.2)".
+                  "  ('next-next day', ~2000.1.3);"
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "FROM db2..my-table-1 ".
+                "SELECT *"
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
+::
+:: insert then insert to previous AS OF time
+++  test-insert-17
   =|  run=@ud
   =/  expected  :~  %results
                     [%message 'SELECT']
@@ -1065,7 +1126,7 @@
   (eval-results expected ;;(cmd-result ->+>+>+<.mov5))
 ::
 :: create table, then insert AS OF
-++  test-insert-17
+++  test-insert-18
   =|  run=@ud
   =/  expected  :-  %results
                     :~  [%message 'INSERT INTO db1.dbo.my-table']
