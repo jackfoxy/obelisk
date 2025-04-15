@@ -193,7 +193,7 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
-::  delete all but 1 FROM AS OF
+::  delete all but 1 FROM AS OF > data time
 ++  test-delete-04
   =|  run=@ud
   =/  expected-delete  :~  %results
@@ -271,8 +271,86 @@
   %+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
             (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
 ::
-::  DELETE followed by DELETE AS OF in same script
+::  delete all but 1 FROM AS OF = data time
 ++  test-delete-05
+  =|  run=@ud
+  =/  expected-delete  :~  %results
+                           [%message 'DELETE FROM db1.dbo.calendar']
+                           [%server-time ~2012.5.3]
+                           [%schema-time ~2012.4.30]
+                           [%data-time ~2012.4.30]
+                           [%message 'deleted:']
+                           [%vector-count 12]
+                           [%message 'table data:']
+                           [%vector-count 1]
+                           ==
+  =/  expected-rows  :~  :-  %vector
+                             :~  [%date [~.da ~2023.12.30]]
+                                 [%year [~.ud 2.023]]
+                                 [%month [~.ud 12]]
+                                 [%month-name [~.t 'December']]
+                                 [%day [~.ud 30]]
+                                 [%day-name [~.t 'Saturday']]
+                                 [%day-of-year [~.ud 364]]
+                                 [%weekday [~.ud 7]]
+                                 [%year-week [~.ud 52]]
+                                 ==
+                         ==
+  =/  expected-after-delete  :-  %results
+                                 :~  [%message 'SELECT']
+                                     [%result-set expected-rows]
+                                     [%server-time ~2012.5.4]
+                                     [%message 'db1.dbo.calendar']
+                                     [%schema-time ~2012.4.30]
+                                     [%data-time ~2012.5.3]
+                                     [%vector-count 1]
+                                 ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              ==
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO calendar ".
+                "VALUES ".
+                "(~2024.1.6, 2024, 1, 'January', 6, 'Saturday', 6, 7, 1) ".
+                "(~2024.1.13, 2024, 1, 'January', 13, 'Saturday', 13, 7, 2) ".
+                "(~2024.1.20, 2024, 1, 'January', 20, 'Saturday', 20, 7, 3) "
+  =.  run  +(run)
+   =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "DELETE FROM calendar AS OF ~2012.4.30 ".
+                "WHERE day-name = 'Sunday' ".
+                "   OR day-name = 'Monday' ".
+                "   OR day-name = 'Tuesday' ".
+                "   OR day-name = 'Wednesday' ".
+                "   OR day-name = 'Thursday' ".
+                "   OR day-name = 'Friday' ".
+                "   OR (day-name = 'Saturday' ".
+                "       AND day-of-year = 357) "
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>([%tape2 %db1 "FROM calendar SELECT *"])
+  ::
+  %+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
+            (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
+::
+::  DELETE followed by DELETE AS OF in same script
+++  test-delete-06
   =|  run=@ud
   =/  expected-deletes  :~  :-  %results
                                 :~  [%message 'DELETE FROM db1.dbo.calendar']
@@ -365,7 +443,7 @@
             (eval-results expected-select ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  DELETE AS OF followed by DELETE in same script
-++  test-delete-06
+++  test-delete-07
   =|  run=@ud
   =/  expected-deletes  :~  :-  %results
                                 :~  [%message 'DELETE FROM db1.dbo.calendar']
@@ -520,7 +598,7 @@
             (eval-results expected-select ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  DELETE then INSERT same key
-  ++  test-delete-07
+++  test-delete-08
   =|  run=@ud
   =/  expected-rows  :~   :-  %vector
                               :~  [%date [~.da ~2024.1.6]]

@@ -1923,7 +1923,7 @@
                         [%vector-count 3]
                         ==
 ::
-::  as-of ~time
+::  as-of ~time >
 ::  *, two column names, table-name.*, one column alias
 ++  test-time-query-01
   =|  run=@ud
@@ -1981,9 +1981,67 @@
   %+  weld  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
             (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
 ::
-::  as-of 3 days ago (data-time = days ago)
+::  as-of ~time =
 ::  *, two column names, table-name.*, one column alias
 ++  test-time-query-02
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Baker', ~1998.3.8, 'caleco', 'row4')".
+                " ('Bandit', ~2006.12.23, 'tricolor', 'row5')"
+  =.  run  +(run)
+  =^  mov5  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape2
+              %db1
+              "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
+  ::
+  =.  run  +(run)
+  =^  mov6  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+        %obelisk-action
+        !>  :+  %tape2
+              %db1
+              "FROM my-table AS OF ~2012.5.3 T1 ".
+              "SELECT *, col2,col4, my-table.*, col1 as C1"
+  ::
+  %+  weld  (eval-results time-expected1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results time-expected2 ;;(cmd-result ->+>+>+<.mov6))
+::
+::  as-of 3 days ago (data-time = days ago)
+::  *, two column names, table-name.*, one column alias
+++  test-time-query-03
   =|  run=@ud
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -2041,7 +2099,7 @@
 ::
 ::  as-of 2 days ago (data-time < days ago)
 ::  *, two column names, table-name.*, one column alias
-++  test-time-query-03
+++  test-time-query-04
   =|  run=@ud
   =/  expected1  :~  %results
                      [%message 'SELECT']
@@ -2109,7 +2167,7 @@
 ::
 ::  as-of ~d3 (data-time = ~d3 ago)
 ::  *, two column names, table-name.*, one column alias
-++  test-time-query-04
+++  test-time-query-05
   =|  run=@ud
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
@@ -2167,7 +2225,7 @@
 ::
 ::  as-of ~d2 (data-time < ~d2 ago)
 ::  *, two column names, table-name.*, one column alias
-++  test-time-query-05
+++  test-time-query-06
   =|  run=@ud
   =/  expected1  :~  %results
                      [%message 'SELECT']
