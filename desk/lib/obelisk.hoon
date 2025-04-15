@@ -701,7 +701,8 @@
           (do-insert -.rtree next-data next-schemas)
     %update
       ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
-      !!
+      :-  %.n
+          (do-update -.rtree next-data next-schemas)
     %query
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects
@@ -897,6 +898,110 @@
           [%message msg='table data:']
           [%vector-count rowcount.file.txn]
           ==
+::
+::  +do-update:
+::    [update:ast (map @tas @da) (map @tas @da)] -> table-return
+++  do-update
+  |=  $:  u=update:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [(map @tas @da) server (list result)]
+  =/  txn  %:  common-txn  "UPDATE"
+                           now.bowl
+                           as-of.u
+                           table.u
+                           state
+                           next-schemas
+                           ==
+  ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    "UPDATE {<namespace.table.u>}.{<name.table.u>}"
+            [%server-time now.bowl]
+            [%schema-time tmsp.table.txn]
+            [%data-time tmsp.file.txn]
+            [%message 'no rows updated']
+            ==
+  ::
+  =/  type-lookup=lookup-type
+        %+  ~(put by `lookup-type`~)  
+          table.u
+          (malt (turn columns.table.txn |=(a=column:ast [name.a type.a])))
+  =/  qualifier-lookup
+        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
+            (turn columns.table.txn |=(a=column:ast [name.a (limo ~[table.u])]))
+  =/  filter=(unit $-(joined-row ?))
+        ?~  predicate.u  ~
+        :-  ~
+            %^  pred-ops-and-conjs  %+  pred-qualify-unqualified
+                                          (need predicate.u)
+                                          qualifier-lookup
+                                        type-lookup
+                                        qualifier-lookup
+  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+
+    ::@@@@@@@@@@@
+  =.  indexed-rows.file.txn
+        %+  skim
+              indexed-rows.file.txn
+              |=(a=indexed-row !((need filter) [-.a (~(put by init-map) table.u +.a)]))
+    ::@@@@@@@@@@@
+
+  ::
+  =/  new-rowcount  (lent indexed-rows.file.txn)
+  =/  updated-rows  (sub rowcount.file.txn new-rowcount)
+  ?:  =(updated-rows 0)
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    %+  weld  "UPDATE "
+                              (trip (qualified-object-to-cord table.u))
+            [%server-time now.bowl]
+            [%schema-time tmsp.table.txn]
+            [%data-time tmsp.file.txn]
+            [%message 'no rows updated']
+            ==
+  :: 
+  =/  primary-key  (pri-key key.pri-indx.table.txn)
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+  =.  pri-idx.file.txn
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             indexed-rows.file.txn
+  ::
+  =.  rowcount.file.txn        new-rowcount
+  =.  tmsp.file.txn            now.bowl
+  =/  files                    %+  ~(put by files.nxt-data.txn)
+                                   [namespace.table.u name.table.u]
+                                   file.txn
+  =.  files.nxt-data.txn       files
+  =.  ship.nxt-data.txn        src.bowl
+  =.  provenance.nxt-data.txn  sap.bowl
+  =.  tmsp.nxt-data.txn        now.bowl
+  ::
+  =.  content.db.txn     (put:data-key content.db.txn now.bowl nxt-data.txn)
+  =.  view-cache.db.txn  (upd-view-caches state db.txn now.bowl ~ %update)
+  =.  state          (update-sys state now.bowl)
+  ::
+  :+  (~(put by next-data) database.table.u now.bowl)
+      (~(put by state) name.db.txn db.txn)
+      :~  :-  %message
+              %-  crip
+                  %+  weld  "UPDATE "
+                            (trip (qualified-object-to-cord table.u))
+          [%server-time now.bowl]
+          [%schema-time tmsp.table.txn]
+          [%data-time source-content-time.txn]
+          [%message 'updated:']
+          [%vector-count updated-rows]
+          [%message msg='table data:']
+          [%vector-count rowcount.file.txn]
+          ==
+
 ::
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]
