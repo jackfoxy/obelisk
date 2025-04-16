@@ -10,9 +10,9 @@ If you don't find your question here, open an issue or contact us directly.
 
 3) Reliance on a data store that provides for good data hygiene. Obelisk provides not only for storing data using the relational model, but unlike other SQL databases, Obelisk data sets are always proper sets. Full relational integrity is on [the roadmap](roadmap.md).
 
-4) Never lose your data. Obelisk's unique time travelling capability means if you delete or overwrite the wrong data you can always recover.
+4) Never lose your data. Obelisk's unique time traveling capability means if you delete or overwrite the wrong data you can always recover.
 
-5) Built in auditing of content and schema changes via Obelisk time travelling.
+5) Built in auditing of content and schema changes via Obelisk time traveling.
 
 ## How can I get familiar with Obelisk?
 
@@ -20,13 +20,13 @@ Obelisk comes with a sample database and instructions on loading it in the [User
 
 It also integrates with the popular %hawk app which provides an ad hoc scripting environment much like popular "SQL Studio" apps. Get the latest [Obelisk UI](https://hawk.computer/~~/templates/obelisk-ui/).
 
-Read [the Preliminaries document](docs/reference/01-preliminaries.md), especially the last section on *Time* to understand Obelisk's unique time travelling capabilities.
+Read [the Preliminaries document](docs/reference/01-preliminaries.md), especially the last section on *Time* to understand Obelisk's unique time traveling capabilities.
 
 ## I tried Obelisk for my database and some queries were too slow.
 
 The second beta release of Obelisk will include user-defined views.
 
-Obelisk's unique time-travelling capability provides for all SELECT queries being implicitly idempotent. This allows us to cache view results, meaning that whenever underlying content changes there is a one-time performance hit while the system performs a raw SELECT query and caches the results. We believe this will result in sub-half-second queries on views.
+Obelisk's unique time-traveling capability provides for all SELECT queries being implicitly idempotent. This allows us to cache view results, meaning that whenever underlying content changes there is a one-time performance hit while the system performs a raw SELECT query and caches the results. We believe this will result in sub-half-second queries on views.
 
 In principle there is no reason we cannot cache every SELECT query's results and look-up whether a query has been cached.
 
@@ -34,7 +34,7 @@ That being said, we are always working on improving Obelisk's query plan executi
 
 ## Relying on an app for the database of another app and/or my important personal data seems sketchy.
 
-We are talking to the Urbit Foundation about integrating the Obelisk RDBMS directly into Urbit by making Obelisk a vane. Reach out to us about this and let the foundation know you want a time-travelling RDBMS vane.
+We are talking to the Urbit Foundation about integrating the Obelisk RDBMS directly into Urbit by making Obelisk a vane. Reach out to us about this and let the foundation know you want a time-traveling RDBMS vane.
 
 ## I need RDBMS functionality missing in Obelisk.
 
@@ -56,4 +56,4 @@ You may want to allow injection of some SQL commands in your app. The general so
 
 RTFM. Obelisk has comprehensive reference documents and Users Guide. If any SQL RDBMS can do it, Obelisk can or it is on [the roadmap](roadmap.md).
 
-And Obelisk can do much more, like built it data recovery and change auditing. And because data sets are always proper sets data hygeine is better than any other SQL database.
+And Obelisk can do much more, like built it data recovery and change auditing. And because data sets are always proper sets data hygiene is better than any other SQL database.
