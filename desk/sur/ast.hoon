@@ -353,7 +353,7 @@
     columns=(unit (list @tas))
     values=insert-values
   ==
-+$  value-or-default     ?(%default datum)
++$  value-or-default     $@(%default datum)
 ::
 ::  $update:
 +$  update

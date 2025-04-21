@@ -722,7 +722,7 @@
       ==
     :: to do: aura validation? (isn't this covered in testing? see roadmap)
   ^-  [(map @tas @da) server (list result)]
-  =/  txn  (common-txn "INSERT" now.bowl as-of.ins table.ins state next-schemas)
+  =/  txn  (common-txn "INSERT" state now.bowl table.ins as-of.ins next-schemas)
   ::
   =.  tmsp.file.txn            now.bowl
   =.  ship.nxt-data.txn        src.bowl
@@ -811,10 +811,10 @@
           ==
   ^-  [(map @tas @da) server (list result)]
   =/  txn  %:  common-txn  "DELETE FROM"
-                           now.bowl
-                           as-of.d
-                           table.d
                            state
+                           now.bowl
+                           table.d
+                           as-of.d
                            next-schemas
                            ==
   ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
@@ -908,10 +908,10 @@
           ==
   ^-  [(map @tas @da) server (list result)]
   =/  txn  %:  common-txn  "UPDATE"
-                           now.bowl
-                           as-of.u
-                           table.u
                            state
+                           now.bowl
+                           table.u
+                           as-of.u
                            next-schemas
                            ==
   ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
@@ -926,6 +926,8 @@
             [%message 'no rows updated']
             ==
   ::
+  ?.  =((lent columns.u) (lent values.u))
+    ~|("UPDATE: columns and values mismatch" !!)
   =/  type-lookup=lookup-type
         %+  ~(put by `lookup-type`~)  
           table.u
@@ -941,19 +943,36 @@
                                           qualifier-lookup
                                         type-lookup
                                         qualifier-lookup
+  =/  updates=(list [@tas @])  %:  mk-updates  table.u
+                                               columns.u
+                                               values.u
+                                               type-lookup
+                                               ==
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
 
     ::@@@@@@@@@@@
-  =.  indexed-rows.file.txn
-        %+  skim
+
+  ::=.  indexed-rows.file.txn
+  ::      %+  skim
+  ::            indexed-rows.file.txn
+  ::            |=(a=indexed-row !((need filter) [-.a (~(put by init-map) table.u +.a)]))
+
+      :: +spin: [(list T1) state:T2 $-([T1 T2] [T3 T2])] -> [(list T3) T2]
+  =/  foo=[(list indexed-row) @ud]
+        ::?~  filter
+        ::  %^  spin
+        ::        indexed-rows.file.txn
+        ::        0
+        ::        |=([a=indexed-row count=@ud] (plan-upd a count filter txn updates))
+        %^  spin
               indexed-rows.file.txn
-              |=(a=indexed-row !((need filter) [-.a (~(put by init-map) table.u +.a)]))
+              0
+              |=([a=indexed-row count=@ud] (plan-upd a count filter txn updates))
+
     ::@@@@@@@@@@@
 
   ::
-  =/  new-rowcount  (lent indexed-rows.file.txn)
-  =/  updated-rows  (sub rowcount.file.txn new-rowcount)
-  ?:  =(updated-rows 0)
+  ?:  =(+.foo 0)
     :+  next-data
         state
         :~  :-  %message
@@ -965,15 +984,17 @@
             [%data-time tmsp.file.txn]
             [%message 'no rows updated']
             ==
-  :: 
+  ::
+          :: to do: check dup keys
+
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+  =.  indexed-rows.file.txn  -.foo
   =.  pri-idx.file.txn
         %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                              indexed-rows.file.txn
   ::
-  =.  rowcount.file.txn        new-rowcount
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
                                    [namespace.table.u name.table.u]
@@ -997,11 +1018,52 @@
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
           [%message 'updated:']
-          [%vector-count updated-rows]
+          [%vector-count u+.foo]
           [%message msg='table data:']
           [%vector-count rowcount.file.txn]
           ==
-
+++  plan-upd
+  |=  [i=indexed-row count=@ud f=(unit f=$-(joined-row ?)) txn=txn-meta updates=(list [@tas @])]
+  ^-  [indexed-row @ud]
+  [i 0]
+++  mk-updates
+  |=  $:  table=qualified-object:ast
+          columns=(list qualified-column:ast)
+          ::values=(list value-or-default:ast)
+          values=(list *)
+          type-lookup=lookup-type
+          ==
+  ^-  (list [@tas @])
+  =/  updates=(list [@tas @])  ~
+  |-
+  ?~  columns  updates
+  ?~  values  !!   :: can't get here
+  ?:  ?=(dime i.values)
+    %=  $
+      columns   t.columns
+      values    t.values
+      updates
+        ?.  =(table qualifier.i.columns)
+          ~|  "UPDATE: {<table>} not matched by column qualifier ".
+              "{<qualifier.i.columns>}"
+              !!
+        ~|  "value type: {<i.values>} does not match column: {<i.columns>}"
+            ?.  .=  p.i.values
+                    (~(got by (~(got by type-lookup) table)) column.i.columns)
+              !!
+            [[column.i.columns +.i.values] updates]
+    ==
+  ?:  ?=(%default i.values)
+    %=  $
+      columns   t.columns
+      values    t.values
+      updates   ?:  .=  ~.da
+                        %-  ~(got by (~(got by type-lookup) table))
+                            column.i.columns
+                  [[column.i.columns *@da] updates]
+                [[column.i.columns 0] updates]
+    ==
+  ~|("value type not supported: {<i.values>}" !!)
 ::
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]

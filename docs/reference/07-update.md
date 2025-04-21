@@ -63,6 +63,10 @@ database `<database>` does not exist
 update into table `<table>` as-of data time out of order
 update into table `<table>` as-of schema time out of order
 table `<namespace>`.`<table>` does not exist
+`<namespace>`.`<table>` not matched by column qualifier
+columns and values mismatch
+value type not supported: `<value>`
+value type: `<value>` does not match column: `<columns>`
 update invalid column: `<columns>`
 aura mismatch on `SET`
 `GRANT` permission on `<table>` violated

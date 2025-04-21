@@ -636,7 +636,9 @@
                                      (limo ~[object.source])
     ==
 ::
-::  +common-txn  [@t qualified-object:ast] -> txn-meta
+::  +common-txn
+::    [tape server @da qualified-object:ast (unit as-of:ast) (map @tas @da)]
+::    -> txn-meta
 ::
 ::  source-content-time is the data state time against which to apply the
 ::  change. It is the closest available table state = or < than requested
@@ -644,10 +646,10 @@
 ::  The resulting data state time will always be NOW.
 ++  common-txn
   |=  $:  txn=tape
-          now=@da
-          as-of=(unit as-of:ast)
-          t=qualified-object:ast
           state=server
+          now=@da
+          t=qualified-object:ast
+          as-of=(unit as-of:ast)
           next-schemas=(map @tas @da)
           ==
   ^-  txn-meta

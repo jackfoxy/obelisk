@@ -34,7 +34,27 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-
+::
+::  +mk-filter:  [predicate txn-meta lookup-type (list qualified-object)] 
+::               -> (unit $-(joined-row ?))
+++  mk-filter
+  |=  $:  =predicate
+          txn=txn-meta
+          type-lookup=lookup-type
+          qs=(list qualified-object:ast)
+          ==
+  ^-  (unit $-(joined-row ?))
+  =/  qualifier-lookup
+        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
+            (turn columns.table.txn |=(a=column:ast [name.a qs]))
+  :-  ~
+      %:  pred-ops-and-conjs
+            ::predicate
+            %+  pred-qualify-unqualified  predicate
+                                          qualifier-lookup
+            type-lookup
+            qualifier-lookup
+            ==
 ::
 ::  $binary-op:            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
 ::
