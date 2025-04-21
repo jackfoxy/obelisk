@@ -952,22 +952,13 @@
 
     ::@@@@@@@@@@@
 
-  ::=.  indexed-rows.file.txn
-  ::      %+  skim
-  ::            indexed-rows.file.txn
-  ::            |=(a=indexed-row !((need filter) [-.a (~(put by init-map) table.u +.a)]))
+          :: do to:handle changing index
 
-      :: +spin: [(list T1) state:T2 $-([T1 T2] [T3 T2])] -> [(list T3) T2]
   =/  foo=[(list indexed-row) @ud]
-        ::?~  filter
-        ::  %^  spin
-        ::        indexed-rows.file.txn
-        ::        0
-        ::        |=([a=indexed-row count=@ud] (plan-upd a count filter txn updates))
         %^  spin
               indexed-rows.file.txn
               0
-              |=([a=indexed-row count=@ud] (plan-upd a count filter txn updates))
+              |=([a=indexed-row count=@ud] (plan-upd a count filter table.u updates))
 
     ::@@@@@@@@@@@
 
@@ -1018,14 +1009,26 @@
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
           [%message 'updated:']
-          [%vector-count u+.foo]
+          [%vector-count +.foo]
           [%message msg='table data:']
           [%vector-count rowcount.file.txn]
           ==
 ++  plan-upd
-  |=  [i=indexed-row count=@ud f=(unit f=$-(joined-row ?)) txn=txn-meta updates=(list [@tas @])]
+  |=  [i=indexed-row count=@ud f=(unit $-(joined-row ?)) obj=qualified-object:ast updates=(list [@tas @])]
   ^-  [indexed-row @ud]
-  [i 0]
+  ?~  f  |-
+         ?~  updates  [i +(count)]
+         %=  $
+           i        [-.i (~(put by +.i) -.i.updates +.i.updates)]
+           updates  +.updates
+         ==
+  ?.  ((need f) ;;(joined-row [[obj -.i] ~ ~]))  [i count]
+  |-
+  ?~  updates  [i +(count)]
+  %=  $
+    i        [-.i (~(put by +.i) -.i.updates +.i.updates)]
+    updates  +.updates
+  ==
 ++  mk-updates
   |=  $:  table=qualified-object:ast
           columns=(list qualified-column:ast)

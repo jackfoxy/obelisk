@@ -590,7 +590,11 @@
                                                     ==
                                       (need sys-vws)
     %update
-      ~|("%update not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %data-log]
+                                    ==
     %delete
       %^  next-view-cache-keys  db
                                 sys-time
