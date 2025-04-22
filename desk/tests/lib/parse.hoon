@@ -2623,6 +2623,7 @@
 ++  upd-col1  [%qualified-column foo-table column='col1' alias=~]
 ++  upd-col2  [%qualified-column foo-table column='col2' alias=~]
 ++  upd-col3  [%qualified-column foo-table column='col3' alias=~]
+++  upd-col4  [%qualified-column foo-table column='col4' alias=~]
 ++  unqlf-2   [%unqualified-column column=%col2 alias=~]
 ::
 :: update one column, no predicate
@@ -2714,6 +2715,29 @@
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
             "update foo set col1=col2, col3 = 'hello'"
+::
+:: update three columns, no predicate, end of command marker
+++  test-update-04a
+  =/  expected  :+  %selection
+                    ctes=~
+                    :+  :*  %update
+                            table=foo-table
+                            as-of=~
+                            :-  columns=~[upd-col4 upd-col3 upd-col1]
+                                :~  [value-type=%da value=~2001.1.1]
+                                    [value-type=%ud value=44]
+                                    [value-type=%t value='hello']
+                                    ==
+                            predicate=~
+                            ==
+                        ~
+                        ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo set col1='hello', ".
+                  "                    col3=44, ".
+                  "                    col4=~2001.1.1; "
 ::
 :: update two columns, no predicate as of now
 ++  test-update-05

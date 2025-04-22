@@ -1899,26 +1899,29 @@
     update-column-inner
   ==
 ++  parse-update  ~+
-  ;~  pose
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-object)
-      parse-as-of
-      (cold %set ;~(plug whitespace (jester 'set')))
-      (more com update-column)
+  ;~  sfix
       ;~  pose
-        ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
-        (easy ~)
+        ;~  plug
+          ;~(pfix whitespace parse-qualified-object)
+          parse-as-of
+          (cold %set ;~(plug whitespace (jester 'set')))
+          (more com update-column)
+          ;~  pose
+            ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
+            (easy ~)
+            ==
         ==
-    ==
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-object)
-      (cold %set ;~(plug whitespace (jester 'set')))
-      (more com update-column)
-      ;~  pose
-        ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
-        (easy ~)
+        ;~  plug
+          ;~(pfix whitespace parse-qualified-object)
+          (cold %set ;~(plug whitespace (jester 'set')))
+          (more com update-column)
+          ;~  pose
+            ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
+            (easy ~)
+            ==
         ==
-    ==
+      ==
+      end-or-next-command
   ==
 ++  parse-with  ~+
   ;~  plug
