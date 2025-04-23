@@ -2724,7 +2724,7 @@
                             table=foo-table
                             as-of=~
                             :-  columns=~[upd-col4 upd-col3 upd-col1]
-                                :~  [value-type=%da value=~2001.1.1]
+                                :~  [~.default %default]
                                     [value-type=%ud value=44]
                                     [value-type=%t value='hello']
                                     ==
@@ -2737,7 +2737,7 @@
     !>  %-  parse:parse(default-database 'db1')
             "update foo set col1='hello', ".
                   "                    col3=44, ".
-                  "                    col4=~2001.1.1; "
+                  "                    col4=DEFAULT; "
 ::
 :: update two columns, no predicate as of now
 ++  test-update-05

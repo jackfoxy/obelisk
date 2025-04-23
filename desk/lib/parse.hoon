@@ -1879,18 +1879,22 @@
     ;~(plug (jester 'when') whitespace)
   ==
 ++  update-column-inner  ~+
-  ;~  pose
   ;~  plug
     sym
     ;~  pfix
       whitespace
       ;~  pfix
         (jest '=')
-        ;~(pfix whitespace ;~(pose parse-qualified-column parse-value-literal))
+        ;~  pfix
+            whitespace
+            ;~  pose  parse-qualified-column
+                      parse-value-literal
+                      (cold [%default %default] (jester 'default'))
+                      ==
+            ==
         ==
       ==
     ==
-  ==
 ++  update-column  ~+
   ;~  pose
     ;~(pfix whitespace ;~(sfix update-column-inner whitespace))

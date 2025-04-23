@@ -1,5 +1,4 @@
 # UPDATE
-*supported in urQL parser, not yet supported in Obelisk*
 
 Changes content of selected columns in existing rows of a `<table-set>`. 
 
@@ -44,6 +43,8 @@ This command mutates the state of the Obelisk agent.
 Data in the *sys* namespace cannot be updated.
 
 Cord literal values are represented in single quotes 'this is a cord'. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
+
+The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
 
 ### Produced Metadata
 
