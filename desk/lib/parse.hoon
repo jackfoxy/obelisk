@@ -155,6 +155,7 @@
   ?:  =(0 (lent q.q:check-empty))                  :: after last end-command (;)
     (flop commands)
   =/  command-nail  u.+3:q.+3:(parse-command [[1 1] script])
+  ~|  "PARSER: "
   ?-  `urql-command`p.command-nail
     %alter-index
       ~|  "alter index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1889,7 +1890,7 @@
             whitespace
             ;~  pose  parse-qualified-column
                       parse-value-literal
-                      (cold [%default %default] (jester 'default'))
+                      (cold %default (jester 'default'))
                       ==
             ==
         ==
@@ -3068,36 +3069,30 @@
 ++  produce-column-sets
   |=  [table=qualified-object:ast a=*]
   ~+
-  ^-  [(list qualified-column:ast) (list datum:ast)]
+  ^-  [(list qualified-column:ast) (list value-or-default:ast)]
   =/  columns=(list qualified-column:ast)  ~
-  =/  values=(list datum:ast)  ~
+  =/  values=(list value-or-default:ast)  ~
   |-
   ?:  =(a ~)
     [columns values]
   =/  b  -.a
-  ?:  ?&  |(?=(qualified-column:ast -.b) ?=(@tas -.b))
-          ?=(datum:ast +.b)
-          ==
-    %=  $
-      columns  ?:  ?=(qualified-column:ast -.b)
-                 [-.b columns]
-               :-  %:  qualified-column:ast  %qualified-column
+  %=  $
+      columns  :-  %:  qualified-column:ast  %qualified-column
                                              table
                                              -.b
                                              ~
                                              ==
                    columns
       values   ?.  ?=(qualified-column:ast +.b)
-                 [+.b values]
+                 [;;(value-or-default:ast +.b) values]
                ?:  ?&  =('UNKNOWN' database.qualifier.+.b)
                       =('COLUMN-OR-CTE' namespace.qualifier.+.b)
                       ==
                  :-  (unqualified-column:ast %unqualified-column column.+.b ~)
                      values
-               [+.b values]
+               [;;(value-or-default:ast +.b) values]
       a        +.a
-    ==
-  ~|("cannot parse column setting {<a>}" !!)
+  ==
 ::
 ::  parser rules and helpers
 ::
@@ -3372,7 +3367,7 @@
             ==
 ++  insert-value  ~+
   ;~  pose
-    (cold [%default %default] (jester 'default'))  :: \/ to do: inside-out
+    (cold %default (jester 'default'))  :: \/ to do: inside-out
     ;~(pose non-numeric-parser (cook cook-numbers numeric-characters))
   ==
 ++  get-value-literal  ~+

@@ -730,13 +730,13 @@
   |=  [p=value-or-default:ast q=column:ast]
   ^-  [@tas @]
   ?:  ?=(dime p)
-    ?:  =(%default p.p)
-      ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
-      [name.q 0]
     ?:  =(p.p type.q)  [name.q q.p]
     ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
         "does not match input value type {<p.p>}"
         !!
+  ?:  =(%default p)
+    ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
+    [name.q 0]
   ~|("row cell {<p>} not supported" !!)
 ::
 ++  make-key-pick

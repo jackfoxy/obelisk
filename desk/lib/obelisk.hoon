@@ -949,12 +949,10 @@
                                                type-lookup
                                                ==
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
+    
+    ::@@@@@@@@@@@@@@@@@@@@@@@@
 
-    ::@@@@@@@@@@@
-
-          :: do to:handle changing index
-
-  =/  foo=[(list indexed-row) @ud]
+  =/  rows-count=[(list indexed-row) @ud]
         %^  spin
               indexed-rows.file.txn
               0
@@ -963,7 +961,7 @@
     ::@@@@@@@@@@@
 
   ::
-  ?:  =(+.foo 0)
+  ?:  =(+.rows-count 0)
     :+  next-data
         state
         :~  :-  %message
@@ -975,16 +973,31 @@
             [%data-time tmsp.file.txn]
             [%message 'no rows updated']
             ==
+  ::  updating key column requires re-indexing
+  =/  aa  %-  silt
+              %+  turn
+                  key.pri-indx.table.txn
+                  |=(a=key-column name.a)
+  =/  bb  %-  silt
+              %+  turn
+                  updates
+                  |=(a=[@tas @] -.a)
+  =/  upd-key  (gth ~(wyt in (~(int in aa) bb)) 0)
+  ::
+
   ::
           :: to do: check dup keys
+
+    ~&  "upd-key:  {<upd-key>}"
 
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
-  =.  indexed-rows.file.txn  -.foo
+  =.  indexed-rows.file.txn  -.rows-count
   =.  pri-idx.file.txn
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             indexed-rows.file.txn
+        ~|  "dup key message here"
+            %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                                indexed-rows.file.txn
   ::
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
@@ -1009,12 +1022,17 @@
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
           [%message 'updated:']
-          [%vector-count +.foo]
+          [%vector-count +.rows-count]
           [%message msg='table data:']
           [%vector-count rowcount.file.txn]
           ==
 ++  plan-upd
-  |=  [i=indexed-row count=@ud f=(unit $-(joined-row ?)) obj=qualified-object:ast updates=(list [@tas @])]
+  |=  $:  i=indexed-row
+          count=@ud
+          f=(unit $-(joined-row ?))
+          obj=qualified-object:ast
+          updates=(list [@tas @])
+          ==
   ^-  [indexed-row @ud]
   ?~  f  |-
          ?~  updates  [i +(count)]
@@ -1022,7 +1040,7 @@
            i        [-.i (~(put by +.i) -.i.updates +.i.updates)]
            updates  +.updates
          ==
-  ?.  ((need f) ;;(joined-row [[obj -.i] ~ ~]))  [i count]
+  ?.  ((need f) [-.i [[obj +.i] ~ ~]])  [i count]
   |-
   ?~  updates  [i +(count)]
   %=  $
@@ -1041,6 +1059,16 @@
   |-
   ?~  columns  updates
   ?~  values  !!   :: can't get here
+  ?:  ?=(%default i.values)
+    %=  $
+      columns   t.columns
+      values    t.values
+      updates   ?:  .=  ~.da
+                        %-  ~(got by (~(got by type-lookup) table))
+                            column.i.columns
+                  [[column.i.columns *@da] updates]
+                [[column.i.columns 0] updates]
+    ==
   ?:  ?=(dime i.values)
     %=  $
       columns   t.columns
@@ -1055,16 +1083,6 @@
                     (~(got by (~(got by type-lookup) table)) column.i.columns)
               !!
             [[column.i.columns +.i.values] updates]
-    ==
-  ?:  ?=(%default i.values)
-    %=  $
-      columns   t.columns
-      values    t.values
-      updates   ?:  .=  ~.da
-                        %-  ~(got by (~(got by type-lookup) table))
-                            column.i.columns
-                  [[column.i.columns *@da] updates]
-                [[column.i.columns 0] updates]
     ==
   ~|("value type not supported: {<i.values>}" !!)
 ::
