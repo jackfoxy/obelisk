@@ -113,20 +113,24 @@
 ::
 ::
 ++  failon
-  |=  [run=@ud init=tape action=tape resolve=tape expect1=tape expect2=tape]
+  |=  [run=@ud init=tape action=tape expect1=tape]
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run ~2012.4.30]))
       %obelisk-action
       !>  [%tape2 %db1 init]                        :: <==
-  =^  mov2  agent
-  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-      %obelisk-action
-      !>  [%tape2 %db1 action]                      :: <==
+  
+  ::=^  mov2  agent
+  ::%+  ~(on-poke agent (bowl [run ~2012.5.1]))
+  ::    %obelisk-action
+  ::    !>  [%tape2 %db1 action]                      :: <==
+  
+      ::  ~&  "mov2:  {<->+>+>+<.mov2>}"
+
   %+  expect-fail-message
     (crip expect1)
     |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
             %obelisk-action
-            !>  [%test %db1 resolve]
+            !>  [%test %db1 action]
 ::
 ::  no predicate, one column
 ++  test-update-00
@@ -1313,13 +1317,11 @@
                                 insert-table
                                 ==
                   ::
-                  ""
+                  "UPDATE my-table ".
+                  "   SET col0=~1980.1.1, ".
+                  "       col2=~nec; "
                   ::
-                  ""
-                  ::
-                  ""
-                  ::
-                  ""
+                  "test"
                   ==
 ::
 ::  fail on predicate, create dup key
@@ -1330,10 +1332,6 @@
                                 create-table
                                 insert-table
                                 ==
-                  ::
-                  ""
-                  ::
-                  ""
                   ::
                   ""
                   ::
@@ -1352,10 +1350,6 @@
                   ""
                   ::
                   ""
-                  ::
-                  ""
-                  ::
-                  ""
                   ==
 ::
 ::  fail on column is wrong type
@@ -1366,10 +1360,6 @@
                                 create-table
                                 insert-table
                                 ==
-                  ::
-                  ""
-                  ::
-                  ""
                   ::
                   ""
                   ::
@@ -1388,10 +1378,6 @@
                   ""
                   ::
                   ""
-                  ::
-                  ""
-                  ::
-                  ""
                   ==
 ::
 ::  fail on columns and values mismatch
@@ -1402,10 +1388,6 @@
                                 create-table
                                 insert-table
                                 ==
-                  ::
-                  ""
-                  ::
-                  ""
                   ::
                   ""
                   ::

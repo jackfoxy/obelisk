@@ -950,29 +950,6 @@
                                                ==
   =/  init-map=(map qualified-object:ast (map @tas @))  ~
     
-    ::@@@@@@@@@@@@@@@@@@@@@@@@
-
-  =/  rows-count=[(list indexed-row) @ud]
-        %^  spin
-              indexed-rows.file.txn
-              0
-              |=([a=indexed-row count=@ud] (plan-upd a count filter table.u updates))
-
-    ::@@@@@@@@@@@
-
-  ::
-  ?:  =(+.rows-count 0)
-    :+  next-data
-        state
-        :~  :-  %message
-                %-  crip
-                    %+  weld  "UPDATE "
-                              (trip (qualified-object-to-cord table.u))
-            [%server-time now.bowl]
-            [%schema-time tmsp.table.txn]
-            [%data-time tmsp.file.txn]
-            [%message 'no rows updated']
-            ==
   ::  updating key column requires re-indexing
   =/  aa  %-  silt
               %+  turn
@@ -989,6 +966,39 @@
           :: to do: check dup keys
 
     ~&  "upd-key:  {<upd-key>}"
+    ::@@@@@@@@@@@@@@@@@@@@@@@@
+
+    ::~&  "indexed-rows.file.txn:  {<indexed-rows.file.txn>}"
+    ::~&  " "
+
+  ::?:  =(1 1)  !!
+  =/  xx  ?:  upd-key
+            [filter table.u updates key.pri-indx.table.txn]
+          [filter table.u updates ~]
+
+  =/  rows-count=[(list indexed-row) @ud]
+        %^  spin
+              indexed-rows.file.txn
+              0
+              |=([a=indexed-row count=@ud] (plan-upd a count xx))
+
+    ::@@@@@@@@@@@
+
+    ~&  "rows-count:  {<rows-count>}"
+
+  ::
+  ?:  =(+.rows-count 0)
+    :+  next-data
+        state
+        :~  :-  %message
+                %-  crip
+                    %+  weld  "UPDATE "
+                              (trip (qualified-object-to-cord table.u))
+            [%server-time now.bowl]
+            [%schema-time tmsp.table.txn]
+            [%data-time tmsp.file.txn]
+            [%message 'no rows updated']
+            ==
 
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
@@ -998,6 +1008,10 @@
         ~|  "dup key message here"
             %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                                 indexed-rows.file.txn
+
+    ~&  " "
+    ~&  "pri-idx.file.txn:  {<pri-idx.file.txn>}"
+
   ::
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
@@ -1027,24 +1041,41 @@
           [%vector-count rowcount.file.txn]
           ==
 ++  plan-upd
-  |=  $:  i=indexed-row
+  |=  $:  r=indexed-row
           count=@ud
           f=(unit $-(joined-row ?))
           obj=qualified-object:ast
           updates=(list [@tas @])
+          key-columns=(list key-column)
           ==
   ^-  [indexed-row @ud]
-  ?~  f  |-
-         ?~  updates  [i +(count)]
-         %=  $
-           i        [-.i (~(put by +.i) -.i.updates +.i.updates)]
-           updates  +.updates
-         ==
-  ?.  ((need f) [-.i [[obj +.i] ~ ~]])  [i count]
+  ?~  f
+    ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
+    [(update-key r updates key-columns) +(count)]
+
+  ?.  ((need f) [-.r [[obj +.r] ~ ~]])  [r count]
+  ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
+  [(update-key r updates key-columns) +(count)]
+++  update-key
+  |=  [r=indexed-row updates=(list [@tas @]) key-columns=(list key-column)]
+  ^-  indexed-row
+  =/  new-key=(list @)  ~
+  ~&  "updated key"
+  =/  upd-row  (produce-update r updates)
   |-
-  ?~  updates  [i +(count)]
+  ?~  key-columns  [(flop new-key) upd-row]
   %=  $
-    i        [-.i (~(put by +.i) -.i.updates +.i.updates)]
+    new-key      [(~(got by upd-row) name.i.key-columns) new-key]
+    key-columns  t.key-columns
+  ==
+++  produce-update
+  |=  [r=indexed-row updates=(list [@tas @])]
+  ^-  (map @tas @)
+  =/  x  +.r
+  |-
+  ?~  updates  x
+  %=  $
+    x        (~(put by x) -.i.updates +.i.updates)
     updates  +.updates
   ==
 ++  mk-updates
