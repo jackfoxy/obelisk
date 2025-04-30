@@ -1,5 +1,5 @@
 /-  ast, *obelisk
-/+  *sys-views, *utils, *joins, *predicate, parse
+/+  *sys-views, *utils, *joins, *predicate, *ddl, parse
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
@@ -107,19 +107,13 @@
       ?:  query-has-run
         ~|("CREATE NAMESPACE: state change after query in script" !!)
       =/  cmd=create-namespace:ast  -.cmds
-      =/  r=[@da (map @tas @da) server]
-            (create-ns cmd next-schemas next-data)
+      =/  r=[cmd-result (map @tas @da) server]
+            (create-ns(state state, bowl bowl) cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         state         +>.r
         cmds          +.cmds
-        results     :-
-                      :-  %results
-                          :~  [%message (crip "CREATE NAMESPACE {<name.cmd>}")]
-                              [%server-time now.bowl]
-                              [%schema-time -.r]
-                              ==
-                      results
+        results       [-.r results]
       ==
     %create-table
       ?.  =(our.bowl src.bowl)
@@ -127,19 +121,14 @@
       ?:  query-has-run
         ~|("CREATE TABLE: state change after query in script" !!)
       =/  cmd=create-table:ast  -.cmds
-      =/  r=table-return  (create-tbl cmd next-schemas next-data)
+      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+            (create-tbl(state state, bowl bowl) cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
         cmds          +.cmds
-        results   :-
-                    :-  %results
-                        :~  [%message (crip "CREATE TABLE {<name.table.cmd>}")]
-                            [%server-time now.bowl]
-                            [%schema-time -<.r]
-                            ==
-                    results
+        results       [-.r results]
       ==
     %create-view
       ?.  =(our.bowl src.bowl)
@@ -180,29 +169,14 @@
             ~|("DROP TABLE: table must be dropped by local agent" !!)
       ?:  query-has-run  ~|("DROP TABLE: state change after query in script" !!)
       =/  cmd=drop-table:ast  -.cmds
-      =/  r=table-return      (drop-tbl cmd next-schemas next-data)
+      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+            (drop-tbl(state state, bowl bowl) cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
         cmds          +.cmds
-        results
-          ?:  ->-.r
-            :-  :-  %results
-                    :~  [%message (crip "DROP TABLE {<name.table.cmd>}")]
-                        [%server-time now.bowl]
-                        [%schema-time -<.r]
-                        [%data-time -<.r]
-                        [%vector-count ->+.r]
-                        ==
-                results
-          :-
-            :-  %results
-                :~  [%message (crip "DROP TABLE {<name.table.cmd>}")]
-                    [%server-time now.bowl]
-                    [%schema-time -<.r]
-                    ==
-            results
+        results       [-.r results]
       ==
     %drop-view
       ?.  =(our.bowl src.bowl)
@@ -379,159 +353,6 @@
                                                      |=(a=cache [%cache +<.a ~])
   (~(del by (~(put by state) %sys sys-db)) name.drop)
 ::
-::  +create-ns:
-::    [create-namespace:ast (map @tas @da) (map @tas @da)]
-::    -> [@da (map @tas @da) server]
-++  create-ns
-  |=  $:  =create-namespace:ast
-          next-schemas=(map @tas @da)
-          next-data=(map @tas @da)
-      ==
-  ^-  [@da (map @tas @da) server]
-  =/  db  ~|  "CREATE NAMESPACE: database {<database-name.create-namespace>} ".
-              "does not exist"
-                 (~(got by state) database-name.create-namespace)
-  =/  sys-time  (set-tmsp as-of.create-namespace now.bowl)
-  =/  nxt-schema=schema
-        ~|  "CREATE NAMESPACE: namespace {<name.create-namespace>} as-of ".
-            "schema time out of order"
-            %:  get-next-schema  sys.db
-                                 next-schemas
-                                 sys-time
-                                 database-name.create-namespace
-                                 ==
-  =/  dummy
-        ~|  "CREATE NAMESPACE: namespace {<name.create-namespace>} as-of ".
-            "content time out of order"
-          %:  get-next-data  content.db  :: for date checking purposes
-                              next-data
-                              sys-time
-                              database-name.create-namespace
-                              ==
-  =.  namespaces.nxt-schema
-        ~|  "CREATE NAMESPACE: namespace {<name.create-namespace>} ".
-            "already exists"
-        %:  map-insert
-            namespaces.nxt-schema
-            name.create-namespace
-            sys-time
-        ==
-  =.  tmsp.nxt-schema        sys-time
-  =.  provenance.nxt-schema  sap.bowl
-  ::
-  =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
-  =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-namespace)
-  ::
-  :+  sys-time
-      (~(put by next-schemas) database-name.create-namespace sys-time)
-      (~(put by state) name.db db)
-::
-::  +create-tbl:
-::    [create-table:ast (map @tas @da) (map @tas @da)] -> table-return
-++  create-tbl
-  |=  $:  =create-table:ast
-          next-schemas=(map @tas @da)
-          next-data=(map @tas @da)
-          ==
-  ^-  table-return
-  =/  db  ~|  "CREATE TABLE: database {<database.table.create-table>} ".
-              "does not exist"
-              (~(got by state) database.table.create-table)
-  =/  sys-time  (set-tmsp as-of.create-table now.bowl)
-  =/  nxt-schema=schema
-        ~|  "CREATE TABLE: {<name.table.create-table>} as-of schema ".
-            "time out of order"
-            %:  get-next-schema  sys.db
-                                 next-schemas
-                                 sys-time
-                                 database.table.create-table
-                                 ==
-  =/  nxt-data=data
-        ~|  "CREATE TABLE: {<name.table.create-table>} as-of data ".
-            "time out of order"
-            %:  get-next-data  content.db
-                               next-data
-                               sys-time
-                               database.table.create-table
-                               ==
-  ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.table.create-table)
-    ~|  "CREATE TABLE: namespace {<namespace.table.create-table>} ".
-        "does not exist"
-        !!
-  =/  col-set  (name-set (silt columns.create-table))
-  ?.  =((lent columns.create-table) ~(wyt in col-set))
-    ~|("CREATE TABLE: duplicate column names {<columns.create-table>}" !!)
-  =/  key-col-set  (name-set (silt pri-indx.create-table))
-  =/  key-count  ~(wyt in key-col-set)
-  ?.  =((lent pri-indx.create-table) key-count)
-    ~|  "CREATE TABLE: duplicate column names in key {<pri-indx.create-table>}"
-        !!
-  ?.  =(key-count ~(wyt in (~(int in col-set) key-col-set)))
-    ~|  "CREATE TABLE: key column not in column definitions ".
-        "{<pri-indx.create-table>}"
-        !!
-  ::
-  =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
-  ::
-  =/  table
-        %:  table
-            %table
-            sap.bowl
-            sys-time
-            column-look-up
-            %:  index
-                %index
-                %.y
-                (mk-key-column column-look-up pri-indx.create-table)
-            ==
-            columns.create-table
-            ~
-        ==
-  =/  tables
-    ~|  "CREATE TABLE: {<name.table.create-table>} ".
-        "exists in {<namespace.table.create-table>}"
-    %:  map-insert
-        tables.nxt-schema
-        [namespace.table.create-table name.table.create-table]
-        table
-    ==
-  =.  tables.nxt-schema      tables
-  =.  tmsp.nxt-schema        sys-time
-  =.  provenance.nxt-schema  sap.bowl
-  ::
-  =/  file  %:  file
-                %file
-                src.bowl
-                sap.bowl
-                sys-time
-                0
-                ~
-                ~
-            ==
-  =/  files
-    ~|  "CREATE TABLE: {<name.table.create-table>} ".
-        "exists in {<namespace.table.create-table>}"
-    %:  map-insert
-        files.nxt-data
-        [namespace.table.create-table name.table.create-table]
-        file
-    ==
-  =.  files.nxt-data       files
-  =.  ship.nxt-data        src.bowl
-  =.  provenance.nxt-data  sap.bowl
-  =.  tmsp.nxt-data        sys-time
-  ::
-  =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
-  =.  content.db     (put:data-key content.db sys-time nxt-data)
-  =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-table)
-  =.  state          (update-sys state sys-time)
-  ::
-  :^  [sys-time %.n 0]
-      (~(put by next-schemas) database.table.create-table sys-time)
-      (~(put by next-data) database.table.create-table sys-time)
-      (~(put by state) name.db db)
-::
 ::  +truncate-tbl:
 ::    [truncate-table:ast (map @tas @da) (map @tas @da)] -> table-return
 ::
@@ -594,69 +415,6 @@
   ::
   :^  [sys-time %.y dropped-rows]
       next-schemas
-      (~(put by next-data) database.table.d sys-time)
-      (~(put by state) name.db db)
-::
-::  +drop-tbl:
-::    [drop-table:ast (map @tas @da) (map @tas @da)] -> table-return
-++  drop-tbl
-  |=  $:  d=drop-table:ast
-          next-schemas=(map @tas @da)
-          next-data=(map @tas @da)
-          ==
-  ^-  table-return
-  =/  db  ~|  "DROP TABLE: database {<database.table.d>} does not exist"
-             (~(got by state) database.table.d)
-  =/  sys-time  (set-tmsp as-of.d now.bowl)
-  =/  nxt-schema=schema
-        ~|  "DROP TABLE: {<name.table.d>} as-of schema time out of order"
-          %:  get-next-schema  sys.db
-                              next-schemas
-                              sys-time
-                              database.table.d
-                              ==
-  =/  nxt-data=data
-        ~|  "DROP TABLE: {<name.table.d>} as-of data time out of order"
-          %:  get-next-data  content.db
-                              next-data
-                              sys-time
-                              database.table.d
-                              ==
-  ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
-    ~|("DROP TABLE: namespace {<namespace.table.d>} does not exist" !!)
-  ::
-  =/  tables
-    ~|  "DROP TABLE: {<name.table.d>} does not exist in {<namespace.table.d>}"
-    %+  map-delete
-        tables.nxt-schema
-        [namespace.table.d name.table.d]
-  =.  tables.nxt-schema      tables
-  =.  tmsp.nxt-schema        sys-time
-  =.  provenance.nxt-schema  sap.bowl
-  ::
-  =/  file
-        ~|  "DROP TABLE: {<namespace.table.d>}.{<name.table.d>} does not exist"
-            (~(got by files.nxt-data) [namespace.table.d name.table.d])
-  ?:  ?&((gth rowcount.file 0) =(force.d %.n))
-    ~|("DROP TABLE: {<name.table.d>} has data, use FORCE to DROP" !!)
-  =/  dropped-data=?  (gth rowcount.file 0)
-  =/  files
-    %+  map-delete
-        files.nxt-data
-        [namespace.table.d name.table.d]
-  =.  files.nxt-data       files
-  =.  ship.nxt-data        src.bowl
-  =.  provenance.nxt-data  sap.bowl
-  =.  tmsp.nxt-data        sys-time
-  ::
-  =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
-  =.  content.db     (put:data-key content.db sys-time nxt-data)
-  =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-table)
-  =.  state          (update-sys state sys-time)
-  ::
-  :^  [sys-time dropped-data rowcount.file]
-      (~(put by next-schemas) database.table.d sys-time)
       (~(put by next-data) database.table.d sys-time)
       (~(put by state) name.db db)
 ::
