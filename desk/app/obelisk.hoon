@@ -1,5 +1,5 @@
 /-  *obelisk, obelisk, ast
-/+  default-agent, dbug, *obelisk, *print
+/+  default-agent, dbug, *server, *print
 |%
 +$  versioned-state
   $%  state-0

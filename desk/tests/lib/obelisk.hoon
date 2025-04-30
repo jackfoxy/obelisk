@@ -1,7 +1,7 @@
 ::  unit tests on %obelisk library simulating pokes
 ::
 /-  ast, *obelisk
-/+  *test, *obelisk, parse, utils
+/+  *test, parse, utils
 /=  agent  /app/obelisk
 |%
 ::
@@ -33,7 +33,7 @@
 ++  test-set-tmsp-00
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %seconds)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -41,7 +41,7 @@
 ++  test-set-tmsp-01
   %+  expect-eq
     !>  ~2023.12.25..7.13.55..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
           :-  `(as-of-offset:ast %as-of-offset 65 %seconds)
               ~2023.12.25..7.15.0..1ef5
 ::
@@ -49,7 +49,7 @@
 ++  test-set-tmsp-02
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %minutes)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -57,7 +57,7 @@
 ++  test-set-tmsp-03
   %+  expect-eq
     !>  ~2023.12.25..6.10.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 65 %minutes)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -65,7 +65,7 @@
 ++  test-set-tmsp-04
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %hours)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -73,7 +73,7 @@
 ++  test-set-tmsp-05
   %+  expect-eq
     !>  ~2023.12.22..14.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 65 %hours)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -81,7 +81,7 @@
 ++  test-set-tmsp-06
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %days)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -89,7 +89,7 @@
 ++  test-set-tmsp-07
   %+  expect-eq
     !>  ~2023.10.21..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 65 %days)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -97,7 +97,7 @@
 ++  test-set-tmsp-08
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %weeks)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -105,7 +105,7 @@
 ++  test-set-tmsp-09
   %+  expect-eq
     !>  ~2022.9.26..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 65 %weeks)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -113,7 +113,7 @@
 ++  test-set-tmsp-10
   %+  expect-eq
     !>  ~2020.2.27..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 7 %days)
                 ~2020.3.5..7.15.0..1ef5
 ::
@@ -121,7 +121,7 @@
 ++  test-set-tmsp-11
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %months)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -129,7 +129,7 @@
 ++  test-set-tmsp-12
   %+  expect-eq
     !>  ~2018.7.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 65 %months)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -137,7 +137,7 @@
 ++  test-set-tmsp-13
   %+  expect-eq
     !>  ~2019.12.5..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 3 %months)
                 ~2020.3.5..7.15.0..1ef5
 ::
@@ -145,7 +145,7 @@
 ++  test-set-tmsp-14
   %+  expect-eq
     !>  ~2020.1.5..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 2 %months)
                 ~2020.3.5..7.15.0..1ef5
 ::
@@ -153,7 +153,7 @@
 ++  test-set-tmsp-15
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 0 %years)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -161,7 +161,7 @@
 ++  test-set-tmsp-16
   %+  expect-eq
     !>  ~1958.12.25..7.15.0..1ef5
-    !>  %-  set-tmsp
+    !>  %-  set-tmsp:utils
             :-  `(as-of-offset:ast %as-of-offset 65 %years)
                 ~2023.12.25..7.15.0..1ef5
 ::
@@ -169,49 +169,50 @@
 ++  test-set-tmsp-17
   %+  expect-eq
     !>  ~1962.2.2..7.15.0..1ef5
-    !>  (set-tmsp [`[%da ~1962.2.2..7.15.0..1ef5] ~2023.12.25..7.15.0..1ef5])
+    !>  %-  set-tmsp:utils
+            [`[%da ~1962.2.2..7.15.0..1ef5] ~2023.12.25..7.15.0..1ef5]
 ::
 ::  set-tmsp back ~s65
 ++  test-set-tmsp-18
   %+  expect-eq
     !>  ~2023.12.25..7.13.55..1ef5
-    !>  (set-tmsp [`[%dr ~s65] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~s65] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~m65
 ++  test-set-tmsp-19
   %+  expect-eq
     !>  ~2023.12.25..6.10.0..1ef5
-    !>  (set-tmsp [`[%dr ~m65] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~m65] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~m65.s65
 ++  test-set-tmsp-20
   %+  expect-eq
     !>  ~2023.12.25..6.8.55..1ef5
-    !>  (set-tmsp [`[%dr ~m65.s65] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~m65.s65] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~h2.m12.s5
 ++  test-set-tmsp-21
   %+  expect-eq
     !>  ~2023.12.25..5.2.55..1ef5
-    !>  (set-tmsp [`[%dr ~h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~d5.h2.m12.s5
 ++  test-set-tmsp-22
   %+  expect-eq
     !>  ~2023.12.20..5.2.55..1ef5
-    !>  (set-tmsp [`[%dr ~d5.h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~d5.h2.m12.s5] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~s0
 ++  test-set-tmsp-23
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  (set-tmsp [`[%dr ~s0] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~s0] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  set-tmsp back ~d0.h0.m0.s0
 ++  test-set-tmsp-24
   %+  expect-eq
     !>  ~2023.12.25..7.15.0..1ef5
-    !>  (set-tmsp [`[%dr ~d0.h0.m0.s0] ~2023.12.25..7.15.0..1ef5])
+    !>  (set-tmsp:utils [`[%dr ~d0.h0.m0.s0] ~2023.12.25..7.15.0..1ef5])
 ::
 ::  alphanumeric ordering
 ::
@@ -225,7 +226,7 @@
 ++  test-alpha-01
   %+  expect-eq
     !>  alpha-ordering
-    !>  (sort printable-ascii alpha)
+    !>  (sort printable-ascii alpha:utils)
 ::
 ++  test-alpha-02
   %+  expect-eq
@@ -237,17 +238,17 @@
            "LMNOPQR789:;<=>?@ABCDSTUVWXfghtuvwxyz|}~\{\"\\"
   %+  expect-eq
     !>  alpha-ordering
-    !>  (sort foo alpha)
+    !>  (sort foo alpha:utils)
 ::
 ++  test-alpha-04
   %+  expect-eq
     !>  alpha-ordering
-    !>  (sort aor-ordering alpha)
+    !>  (sort aor-ordering alpha:utils)
 ::
 ++  test-alpha-05
   %+  expect-eq
     !>  alpha-ordering
-    !>  (sort alpha-ordering alpha)
+    !>  (sort alpha-ordering alpha:utils)
 ++  test-alpha-06
   =/  the-list  :~  'abc'
                     'aBc'
