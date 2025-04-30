@@ -716,10 +716,7 @@
 ::  +do-insert:  [insert:ast (map @tas @da) (map @tas @da)]
 ::               -> [(map @tas @da) server (list result)]
 ++  do-insert
-  |=  $:  ins=insert:ast
-          next-data=(map @tas @da)
-          next-schemas=(map @tas @da)
-      ==
+  |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
     :: to do: aura validation? (isn't this covered in testing? see roadmap)
   ^-  [(map @tas @da) server (list result)]
   =/  txn  (common-txn "INSERT" state now.bowl table.ins as-of.ins next-schemas)
@@ -805,10 +802,7 @@
 ::  +do-delete:
 ::    [delete:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  do-delete
-  |=  $:  d=delete:ast
-          next-schemas=(map @tas @da)
-          next-data=(map @tas @da)
-          ==
+  |=  [d=delete:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
   ^-  [(map @tas @da) server (list result)]
   =/  txn  %:  common-txn  "DELETE FROM"
                            state
@@ -902,10 +896,7 @@
 ::  +do-update:
 ::    [update:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  do-update
-  |=  $:  u=update:ast
-          next-schemas=(map @tas @da)
-          next-data=(map @tas @da)
-          ==
+  |=  [u=update:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
   ^-  [(map @tas @da) server (list result)]
   =/  txn  %:  common-txn  "UPDATE"
                            state
@@ -941,15 +932,13 @@
             %^  pred-ops-and-conjs  %+  pred-qualify-unqualified
                                           (need predicate.u)
                                           qualifier-lookup
-                                        type-lookup
-                                        qualifier-lookup
+                                    type-lookup
+                                    qualifier-lookup
   =/  updates=(list [@tas @])  %:  mk-updates  table.u
                                                columns.u
                                                values.u
                                                type-lookup
                                                ==
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
-    
   ::  updating key column requires re-indexing
   =/  aa  %-  silt
               %+  turn
@@ -959,33 +948,14 @@
               %+  turn
                   updates
                   |=(a=[@tas @] -.a)
-  =/  upd-key  (gth ~(wyt in (~(int in aa) bb)) 0)
-  ::
-
-  ::
-          :: to do: check dup keys
-
-    ~&  "upd-key:  {<upd-key>}"
-    ::@@@@@@@@@@@@@@@@@@@@@@@@
-
-    ::~&  "indexed-rows.file.txn:  {<indexed-rows.file.txn>}"
-    ::~&  " "
-
-  ::?:  =(1 1)  !!
-  =/  xx  ?:  upd-key
+  =/  xx  ?:  (gth ~(wyt in (~(int in aa) bb)) 0)  :: update key column?
             [filter table.u updates key.pri-indx.table.txn]
           [filter table.u updates ~]
-
   =/  rows-count=[(list indexed-row) @ud]
         %^  spin
               indexed-rows.file.txn
               0
               |=([a=indexed-row count=@ud] (plan-upd a count xx))
-
-    ::@@@@@@@@@@@
-
-    ~&  "rows-count:  {<rows-count>}"
-
   ::
   ?:  =(+.rows-count 0)
     :+  next-data
@@ -1005,13 +975,13 @@
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
   =.  indexed-rows.file.txn  -.rows-count
   =.  pri-idx.file.txn
-        ~|  "dup key message here"
-            %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                                indexed-rows.file.txn
-
-    ~&  " "
-    ~&  "pri-idx.file.txn:  {<pri-idx.file.txn>}"
-
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             indexed-rows.file.txn
+  ::
+  =/  idx  ~(wyt by pri-idx.file.txn)
+  =/  fil  (lent indexed-rows.file.txn)
+  ?.  =(idx fil)
+    ~|("{<(sub fil idx)>} duplicate row key(s)" !!)
   ::
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
@@ -1060,7 +1030,6 @@
   |=  [r=indexed-row updates=(list [@tas @]) key-columns=(list key-column)]
   ^-  indexed-row
   =/  new-key=(list @)  ~
-  ~&  "updated key"
   =/  upd-row  (produce-update r updates)
   |-
   ?~  key-columns  [(flop new-key) upd-row]
@@ -1109,7 +1078,7 @@
           ~|  "UPDATE: {<table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ~|  "value type: {<i.values>} does not match column: {<i.columns>}"
+        ~|  "value type: {<-.i.values>} does not match column: {<i.columns>}"
             ?.  .=  p.i.values
                     (~(got by (~(got by type-lookup) table)) column.i.columns)
               !!
@@ -1123,10 +1092,7 @@
 ::  state may be updated by insertion into view-cache, which does not effect
 ::  any other part of the state
 ++  do-query
-  |=  $:  q=query:ast
-          next-data=(map @tas @da)     :: probably no longer necessary, but
-          next-schemas=(map @tas @da)  :: problematic w/ same times in 1 script
-          ==
+  |=  [q=query:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
   ^-  [server (list result)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"

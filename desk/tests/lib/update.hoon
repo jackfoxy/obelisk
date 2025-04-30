@@ -113,7 +113,7 @@
 ::
 ::
 ++  failon
-  |=  [run=@ud init=tape action=tape expect1=tape]
+  |=  [run=@ud init=tape action=tape expect1=@t]
   =^  mov1  agent
   %+  ~(on-poke agent (bowl [run ~2012.4.30]))
       %obelisk-action
@@ -127,10 +127,10 @@
       ::  ~&  "mov2:  {<->+>+>+<.mov2>}"
 
   %+  expect-fail-message
-    (crip expect1)
-    |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
-            %obelisk-action
-            !>  [%test %db1 action]
+      expect1
+      |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
+              %obelisk-action
+              !>  [%test %db1 action]
 ::
 ::  no predicate, one column
 ++  test-update-00
@@ -1321,10 +1321,10 @@
                   "   SET col0=~1980.1.1, ".
                   "       col2=~nec; "
                   ::
-                  "test"
+                  '3 duplicate row key(s)'
                   ==
 ::
-::  fail on predicate, create dup key
+::  fail on predicate, create 1 dup key
 ++  test-fail-update-01
   =|  run=@ud
   %-  failon  :*  run
@@ -1333,24 +1333,30 @@
                                 insert-table
                                 ==
                   ::
-                  ""
+                  "UPDATE my-table ".
+                  "   SET col0=~2010.5.31, ".
+                  "       col2=~nec ".
+                  "WHERE col2=~nomryg-nilref;"
                   ::
-                  ""
+                  '1 duplicate row key(s)'
                   ==
 ::
 ::  fail on column does not exist
-++  test-fail-update-02
-  =|  run=@ud
-  %-  failon  :*  run
-                  %-  zing  :~  "CREATE DATABASE db1;"
-                                create-table
-                                insert-table
-                                ==
-                  ::
-                  ""
-                  ::
-                  ""
-                  ==
+  :: to do: after making type lookup 3 layer
+::++  test-fail-update-02
+::  =|  run=@ud
+::  %-  failon  :*  run
+::                  %-  zing  :~  "CREATE DATABASE db1;"
+::                                create-table
+::                                insert-table
+::                                ==
+::                  ::
+::                  "UPDATE my-table ".
+::                  "   SET col5=~1980.1.1, ".
+::                  "       col2=~nec; "
+::                  ::
+::                  'jftest'
+::                  ==
 ::
 ::  fail on column is wrong type
 ++  test-fail-update-03
@@ -1361,36 +1367,138 @@
                                 insert-table
                                 ==
                   ::
-                  ""
+                  "UPDATE my-table ".
+                  "   SET col0=~1980.1.1, ".
+                  "       col2=44; "
                   ::
-                  ""
+                  %-  crip  "value type: p=~.ud does not match column: ".
+                            "[%qualified-column qualifier=[%qualified-object ".
+                            "ship=~ database=%db1 namespace=%dbo ".
+                            "name=%my-table alias=~] column=%col2 alias=~]"
                   ==
 ::
 ::  fail on table not matching by column qualifier
 ++  test-fail-update-04
   =|  run=@ud
-  %-  failon  :*  run
-                  %-  zing  :~  "CREATE DATABASE db1;"
-                                create-table
-                                insert-table
+   =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+      %obelisk-action
+      !>  :+  %tape2
+              %db1
+              %-  zing  :~  "CREATE DATABASE db1;"
+                            create-table
+                            insert-table
+                            ==
+  ::
+  %+  expect-fail-message
+        %-  crip
+            "UPDATE: [%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "name=%my-table alias=~] not matched by column qualifier ".
+            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "name=%my-table-1 alias=~]"
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+          %obelisk-action
+          !>  :-  %commands
+                  :~
+                    :+  %selection
+                        ctes=~
+                        :+  :*  %update
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db1
+                                    namespace=%dbo
+                                    name=%my-table
+                                    alias=~
+                                    ==
+                                as-of=~
+                                :-  :~  :^  %qualified-column
+                                            :*  %qualified-object
+                                                ship=~
+                                                database=%db1
+                                                namespace=%dbo
+                                                name=%my-table-1
+                                                alias=~
+                                                ==
+                                            column=%col2
+                                            alias=~
+                                        :^  %qualified-column
+                                            :*  %qualified-object
+                                                ship=~
+                                                database=%db1
+                                                namespace=%dbo
+                                                name=%my-table
+                                                alias=~
+                                                ==
+                                            column=%col0
+                                            alias=~
+                                        ==
+                                    :~  [p=~.p q=44]
+                                        [p=~.da q=~1980.1.1]
+                                        ==
+                                predicate=~
                                 ==
-                  ::
-                  ""
-                  ::
-                  ""
-                  ==
+                            ~
+                            ~
+                    ==
 ::
-::  fail on columns and values mismatch
+::  fail on length of columns and values mismatch
 ++  test-fail-update-05
   =|  run=@ud
-  %-  failon  :*  run
-                  %-  zing  :~  "CREATE DATABASE db1;"
-                                create-table
-                                insert-table
+   =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+      %obelisk-action
+      !>  :+  %tape2
+              %db1
+              %-  zing  :~  "CREATE DATABASE db1;"
+                            create-table
+                            insert-table
+                            ==
+  ::
+  %+  expect-fail-message
+        'UPDATE: columns and values mismatch'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+          %obelisk-action
+          !>  :-  %commands
+                  :~
+                    :+  %selection
+                        ctes=~
+                        :+  :*  %update
+                                :*  %qualified-object
+                                    ship=~
+                                    database=%db1
+                                    namespace=%dbo
+                                    name=%my-table
+                                    alias=~
+                                    ==
+                                as-of=~
+                                :-  :~  :^  %qualified-column
+                                            :*  %qualified-object
+                                                ship=~
+                                                database=%db1
+                                                namespace=%dbo
+                                                name=%my-table
+                                                alias=~
+                                                ==
+                                            column=%col2
+                                            alias=~
+                                        :^  %qualified-column
+                                            :*  %qualified-object
+                                                ship=~
+                                                database=%db1
+                                                namespace=%dbo
+                                                name=%my-table
+                                                alias=~
+                                                ==
+                                            column=%col0
+                                            alias=~
+                                        ==
+                                    :~  [p=~.p q=44]
+                                        [p=~.da q=~1980.1.1]
+                                        [p=~.ud q=44]
+                                        ==
+                                predicate=~
                                 ==
-                  ::
-                  ""
-                  ::
-                  ""
-                  ==
+                            ~
+                            ~
+                    ==
 --
