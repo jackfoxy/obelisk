@@ -157,9 +157,9 @@
         ?.  .=  ~(wyt by column-lookup.table.txn)
                 ~(wyt in (silt (need columns.ins)))
           ~|("INSERT: incorrect columns specified: {<columns.ins>}" !!)
-          %+  turn
-              `(list @t)`(need columns.ins)
-              |=(a=@t (to-column a column-lookup.table.txn))
+        %+  turn
+            `(list @t)`(need columns.ins)
+            |=(a=@t (to-column a column-lookup.table.txn))
   ::
   ?.  ?=([%data *] values.ins)  ~|("INSERT: not implemented: {<values.ins>}" !!)
   =/  value-table  `(list (list value-or-default:ast))`+.values.ins
