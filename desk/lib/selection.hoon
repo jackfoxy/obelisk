@@ -562,14 +562,17 @@
   =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
   =.  selected  (qualify-unqualified selected qualifier-lookup)
   =/  vectors
+      ?~  joined-rows.all-data  ~
       ?~  predicate.q
           %+  select-columns  joined-rows.all-data
-                              %+  mk-vect-templ  qualified-columns
+                              %^  mk-vect-templ  qualified-columns
                                                  selected
+                                                 -.joined-rows.all-data
       %^  select-columns-filtered  joined-rows.all-data
-                                   %+  mk-vect-templ
+                                   %^  mk-vect-templ
                                          qualified-columns
                                          selected
+                                         -.joined-rows.all-data
                                    %^  pred-ops-and-conjs
                                          %+  pred-qualify-unqualified
                                               (need predicate.q)
@@ -611,8 +614,9 @@
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  %-  ~(got by (~(got by +.i.rows) qualifier))
-                      column:(need object.cell)
+                  ::%-  ~(got by (~(got by +.i.rows) qualifier))
+                  ::    column:(need object.cell)
+                  ;;(@ +:.*((~(got by +.i.rows) qualifier) [0 addr.cell]))
             row
   ==
 ::

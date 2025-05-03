@@ -78,10 +78,23 @@
       provenance=path
       tmsp=@da
       rowcount=@
-      pri-idx=(tree indexed-row)
+      pri-idx=(tree indexed-row)   :: generically tree, reified as mop
       indexed-rows=(list indexed-row)
       ::    =indices
   ==
+
++$  column-catalog  (map @tas column-idx)
++$  column-idx  (map @ value-idx)
++$  value-idx
+  $:  addr=@
+      count=@ud
+      distinct=@ud              :: (~(wyt by column-idx))
+      first=file-ord
+      last=file-ord
+      domain=(list file-ord)    :: ordered
+  ==
++$  file-ord   @ud              :: ordinal position in indexed-row sorted file
+
 +$  data-obj-key
   $:  ns=@tas
       obj=@tas

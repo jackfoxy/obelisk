@@ -348,10 +348,25 @@
 ++  mk-templ-cell
   |=  a=qual-col-type
   ^-  templ-cell
-  (templ-cell %templ-cell `-.a `vector-cell`[column.-.a [+.a 0]])
+  (templ-cell %templ-cell `-.a 0 `vector-cell`[column.-.a [+.a 0]])
+++  addr-join
+  |=  [j=joined-row cs=(list templ-cell)]
+  ^-  (list templ-cell)
+  =/  cs2=(list templ-cell)  ~
+  |-
+  ?~  cs  (flop cs2)
+  ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
+  =/  qual-col  (need object.i.cs)
+  =/  xx=(map @tas @)  (~(got by +.j) qualifier.qual-col)
+  =/  addr  (~(dig by xx) column:(need object.i.cs))
+  %=  $
+    cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
+    cs  t.cs
+  ==
 ++  mk-vect-templ
   |=  $:  cols=(list qual-col-type)
           selected=(list selected-column:ast)
+          j=joined-row
           ==
   ^-  (list templ-cell)
   =/  i  0
@@ -363,7 +378,7 @@
   =/  cells=(list templ-cell)  ~
   ::
   |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
+  ?~  selected  ?~  cells  ~|("no cells" !!)  (addr-join j cells)
   ?:  =([%all %all] i.selected)
     %=  $
       i         +(i)
@@ -379,6 +394,7 @@
                %:  templ-cell
                      %templ-cell
                      [~ i.selected]
+                     0  :: addr
                      :-  (heading i.selected column.i.selected)
                          :-  %-  ~(got by col-lookup)
                                  [qualifier.i.selected column.i.selected]
@@ -407,6 +423,7 @@
       cells
         :-  %:  templ-cell  %templ-cell
                             ~
+                            0  :: addr
                             :-  (heading i.selected (crip "literal-{<i>}"))
                                 [p=+<-.i.selected q=+<+.i.selected]
                             ==
@@ -865,6 +882,7 @@
 +$  templ-cell
   $:  %templ-cell
       object=(unit qualified-column:ast)
+      addr=@
       vc=vector-cell
   ==
 ::
