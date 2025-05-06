@@ -83,13 +83,12 @@
       ::    =indices
   ==
 
-+$  column-catalog  (map @tas column-idx)
-+$  column-idx  (map @ value-idx)
++$  column-catalog  (map @tas column-mta)
+                            :: (~(wyt by covaluelumn-idx))
++$  column-mta      [addr=@ distinct=@ud values=((mop @ value-idx) lth)]
++$  column-addr     (map @tas @)
 +$  value-idx
-  $:  addr=@
-      count=@ud
-      distinct=@ud              :: (~(wyt by column-idx))
-      first=file-ord
+  $:  first=file-ord
       last=file-ord
       domain=(list file-ord)    :: ordered
   ==

@@ -2,6 +2,40 @@
 /+  *utils, *joins, *predicate
 |_  [state=server =bowl:gall]
 ::
+::  +license:  MIT+n license
+++  license
+  ^-  @  %-  crip
+  "Original Copyright 2024 Jack Fox".
+  " ".
+  "Permission is hereby granted, free of charge, to any person obtaining a ".
+  "copy of this software and associated documentation files ".
+  "(the \"Software\"), to deal in the Software without restriction, ".
+  "including without limitation the rights to use, copy, modify, merge, ".
+  "publish, distribute, sublicense, and/or sell copies of the Software, ".
+  "and to permit persons to whom the Software is furnished to do so, ".
+  "subject to the following conditions: ".
+  " ".
+  "The above original copyright notice, this permission notice and the words".
+  " ".
+  "\"I AM - CHRIST LIVES - SATAN BE GONE\"".
+  "  ".
+  "shall be included in all copies or substantial portions of the Software, ".
+  "as well as the story".
+  " ".
+  "\"Jesus was crucified for exposing the corruption of the ruling class and ".
+  "their rulers, the bankers\"".
+  ",".
+  " all unaltered.".
+  " ".
+  "THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, ".
+  "EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF ".
+  "MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. ".
+  "IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,".
+  " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
+  "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
+  "USE OR OTHER DEALINGS IN THE SOFTWARE."
+
+::
 ::  +truncate-tbl:
 ::    [truncate-table:ast (map @tas @da) (map @tas @da)] -> table-return
 ::
@@ -511,6 +545,45 @@
     ==
   ~|("value type not supported: {<i.values>}" !!)
 ::
+::  +update-cat
+::
+++  update-cat
+  |=  [[ord=ud addrs=(list [@tas @]) q=column-catalog] r=indexed-row]
+  ^-  [ord=ud q=column-catalog]
+  |-
+  ?~  addrs  [ord q]
+  =/  mta=column-meta   (~(got by q) -.i.addrs)
+  =/  mta2=column-meta  .*(q [%0 +.i.addrs])
+  ?.  =(mta mta2)  ~|("bad metadata" !!)
+  =/  col-val=@  .*(+.r [%0 +.i.addrs])
+  =/  col-mta
+        ?:  (~(has on values.mta) col-val)
+          :+  addr.mta
+              distinct.mta
+
+              
+              (~(put on values.mta) col-val ord)
+  %=  $
+    ord    +(ord)
+    addrs  t.addrs
+  ==
+::
+::  +update-cat
+::
+++  init-cat
+  |=  r=indexed-row
+  ^-  [column-addr column-catalog]
+  =/  addrs=column-addr       ~
+  =/  cat=(list @tas @)       ~(tap by +.q)
+  =/  catalog=column-catalog  ~
+  |-   
+  ?~  cat  [addrs catalog]
+  =/  addr  (~(dig b +.i.cat) -.i.cat)
+  %=  $
+    cat      t.cat
+    addrs    (~(put by addrs) -.i.cat addr)
+    catalog  (~(put by catalog) -.i.cat [addr 0 ~])
+  ==
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]
 ::
