@@ -81,6 +81,12 @@ Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<sel
     | expression [ NOT ] BETWEEN expression [ AND ] expression
     | [ NOT ] EXISTS { <column value> | <scalar-query> } }
 ```
+`NOT` negates the succeeding predicate.
+
+`AND` performs logical *AND* on left and right predicates.
+
+`OR` performs logical *OR* on left and right predicates, takes precedence over *AND*.
+
 `[ NOT ] EQUIV` is a binary operator, similar to (not) equals `<>`, `=`. However, comparing two `NOT EXISTS` yields true. *EQUIV will be implemented in Obelisk when outer joins are available.*
 
 `[ NOT ] BETWEEN ... [ AND ]`
@@ -90,6 +96,10 @@ tests for in the range defined by the beginning expression and the ending expres
 `BETWEEN` returns TRUE if the value of the test expression is greater than or equal to the value of beginning expression and less than or equal to the value of ending expression.
 
 When applied to a column `EXISTS` tests whether the returned `<row-type>` includes the required column. In the case of `<scalar-query>`, it tests whether a CTE returns any rows. *EXISTS will be implemented in Obelisk when outer joins are available.*
+
+`ALL` *not implemented.*
+
+`ANY` *not implemented.*
 
 `<scalar-query>` is a CTE that selects for one column. Depending on whether the operator expects a set or a value, it operates on the entire result set or on the first row returned, respectively.
 

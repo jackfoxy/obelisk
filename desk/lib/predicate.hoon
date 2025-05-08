@@ -34,7 +34,27 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-
+::
+::  +mk-filter:  [predicate txn-meta lookup-type (list qualified-object)] 
+::               -> (unit $-(joined-row ?))
+++  mk-filter
+  |=  $:  =predicate
+          txn=txn-meta
+          type-lookup=lookup-type
+          qs=(list qualified-object:ast)
+          ==
+  ^-  (unit $-(joined-row ?))
+  =/  qualifier-lookup
+        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
+            (turn columns.table.txn |=(a=column:ast [name.a qs]))
+  :-  ~
+      %:  pred-ops-and-conjs
+            ::predicate
+            %+  pred-qualify-unqualified  predicate
+                                          qualifier-lookup
+            type-lookup
+            qualifier-lookup
+            ==
 ::
 ::  $binary-op:            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
 ::
@@ -366,6 +386,15 @@
   ?:  =(val -.b)  %.n
   $(b +.b)
 ::
+::  not
+::
+++  not
+  |=  $:  l=$-(joined-row ?)
+          c=joined-row
+          ==
+  ^-  ?
+  !(l c)
+::
 ++  and
   |=  $:  l=$-(joined-row ?)
           r=$-(joined-row ?)
@@ -442,12 +471,9 @@
       ?:  =(%between n.p)
         (bake (cury (cury and ll) rr) joined-row)
       (bake (cury (cury and-not ll) rr) joined-row)
-    binary-op
-      (pred-binary-op p type-lookup qualifier-lookup)
-    unary-op
-      ~|("%exists %not-exists not implemented" !!)
-    all-any-op
-      ~|("%all and %any not implemented" !!)
+    binary-op   (pred-binary-op p type-lookup qualifier-lookup)
+    unary-op    (pred-unary-op p type-lookup qualifier-lookup)
+    all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
       ?~  l.p  ~|("can't get here" !!)
       ?~  r.p  ~|("can't get here" !!)
@@ -458,6 +484,27 @@
       ?:  =(%and n.p)
         (bake (cury (cury and ll) rr) joined-row)
       (bake (cury (cury or ll) rr) joined-row)
+    ==
+:: 
+++  pred-unary-op
+  |=  $:  p=predicate:ast
+          type-lookup=lookup-type
+          qualifier-lookup=(map @tas (list qualified-object:ast))
+          ==
+  ^-  $-(joined-row ?)
+  ?~  p  ~|("can't get here" !!)
+  ?~  l.p  ~|("can't get here" !!)
+  ?.  ?=(unary-op n.p)  ~|("can't get here" !!)
+  ::
+  ?-  n.p
+    %not
+        =/  ll=$-(joined-row ?)
+            (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
+        (bake (cury not ll) joined-row)
+    %exists
+      ~|("%exists not implemented" !!)
+    %not-exists
+      ~|("%not-exists not implemented" !!)
     ==
 :: 
 ++  pred-binary-op

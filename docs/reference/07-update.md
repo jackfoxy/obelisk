@@ -1,5 +1,4 @@
 # UPDATE
-*supported in urQL parser, not yet supported in Obelisk*
 
 Changes content of selected columns in existing rows of a `<table-set>`. 
 
@@ -45,6 +44,8 @@ Data in the *sys* namespace cannot be updated.
 
 Cord literal values are represented in single quotes 'this is a cord'. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
 
+The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
+
 ### Produced Metadata
 
 message UPDATE  <namespace name>.<table name>
@@ -63,6 +64,10 @@ database `<database>` does not exist
 update into table `<table>` as-of data time out of order
 update into table `<table>` as-of schema time out of order
 table `<namespace>`.`<table>` does not exist
+`<namespace>`.`<table>` not matched by column qualifier
+columns and values mismatch
+value type not supported: `<value>`
+value type: `<value>` does not match column: `<columns>`
 update invalid column: `<columns>`
 aura mismatch on `SET`
 `GRANT` permission on `<table>` violated

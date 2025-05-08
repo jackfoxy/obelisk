@@ -75,7 +75,7 @@
 +$  value-literals
   $:
     %value-literals
-    dime
+    dime               :: false dime [<aura of type> <crip of literal list>]
   ==
 +$  ordered-column
   $:
@@ -127,7 +127,7 @@
 +$  inequality-op        ?(%neq %gt %gte %lt %lte)
 +$  all-any-op           ?(%all %any)
 +$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
-+$  unary-op             ?(%exists %not-exists)
++$  unary-op             ?(%exists %not-exists %not)
 +$  conjunction          ?(%and %or)
 +$  ops-and-conjs
       ?(ternary-op binary-op unary-op all-any-op conjunction)

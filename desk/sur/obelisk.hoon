@@ -78,10 +78,22 @@
       provenance=path
       tmsp=@da
       rowcount=@
-      pri-idx=(tree indexed-row)
+      pri-idx=(tree indexed-row)   :: generically tree, reified as mop
       indexed-rows=(list indexed-row)
       ::    =indices
   ==
+
++$  column-catalog  (map @tas column-mta)
+                            :: (~(wyt by covaluelumn-idx))
++$  column-mta      [addr=@ distinct=@ud values=((mop @ value-idx) lth)]
++$  column-addr     (map @tas @)
++$  value-idx
+  $:  first=file-ord
+      last=file-ord
+      domain=(list file-ord)    :: ordered
+  ==
++$  file-ord   @ud              :: ordinal position in indexed-row sorted file
+
 +$  data-obj-key
   $:  ns=@tas
       obj=@tas
@@ -134,6 +146,7 @@
 ::
 +$  action
   $%  [%tape default-database=@tas urql=tape]
+      [%tape2 default-database=@tas urql=tape]
       [%commands cmds=(list command)]
       [%test default-database=@tas urql=tape]
   ==
@@ -151,7 +164,6 @@
 +$  from-obj
   $:  %from-obj
       object=qualified-object
-      alias=(unit @t)
       schema-tmsp=@da
       data-tmsp=@da
       columns=(list column)
