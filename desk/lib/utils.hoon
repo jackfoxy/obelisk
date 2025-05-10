@@ -700,6 +700,23 @@
       tmsp.f
       ==
 ::
+::  +init-cat:  indexed-row -> [column-addrs column-catalog]
+::
+++  init-cat
+  |=  r=indexed-row
+  ^-  [column-addrs column-catalog]
+  =/  addrs=column-addrs      ~
+  =/  cat       ~(tap by +.r)
+  =/  catalog=column-catalog  ~
+  |-   
+  ?~  cat  [addrs catalog]
+  =/  addr  (need (~(dig by +.r) -.i.cat))
+  %=  $
+    cat      t.cat
+    addrs    (~(put by addrs) -.i.cat addr)
+    catalog  (~(put by catalog) -.i.cat (column-mta %column-mta addr 0 ~))
+  ==
+::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
 ::  Applies a function to each element of the list, threading an
@@ -727,7 +744,11 @@
 ++  update-file
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
   ~+  :: keeper
-  =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
+  =/  new-indexed-rows  (tap:(pri-key primary-key) pri-idx.file)
+  =/  pq=[column-addrs column-catalog]  (init-cat -.new-indexed-rows)
+  =.  column-addrs.file    -.pq
+  =.  column-catalog.file  +.pq
+  =.  indexed-rows.file    new-indexed-rows 
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::

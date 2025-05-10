@@ -323,6 +323,10 @@
         %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                              indexed-rows.file.txn
   ::
+  =/  pq=[column-addrs column-catalog]  ?:  =(new-rowcount 0)  [~ ~]
+                                        (init-cat -.indexed-rows.file.txn)
+  =.  column-addrs.file.txn    -.pq
+  =.  column-catalog.file.txn  +.pq
   =.  rowcount.file.txn        new-rowcount
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
@@ -432,20 +436,25 @@
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
-  =.  indexed-rows.file.txn  -.rows-count
   =.  pri-idx.file.txn
         %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             indexed-rows.file.txn
+                             -.rows-count
   ::
   =/  idx  ~(wyt by pri-idx.file.txn)
   =/  fil  (lent indexed-rows.file.txn)
   ?.  =(idx fil)
     ~|("{<(sub fil idx)>} duplicate row key(s)" !!)
   ::
+  =/  new-indexed-rows  (tap:primary-key pri-idx.file.txn)
+  =/  pq=[column-addrs column-catalog]  (init-cat -.new-indexed-rows)
+  =.  column-addrs.file.txn    -.pq
+  =.  column-catalog.file.txn  +.pq
+  =.  indexed-rows.file.txn    new-indexed-rows
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
                                    [namespace.table.u name.table.u]
                                    file.txn
+  ::
   =.  files.nxt-data.txn       files
   =.  ship.nxt-data.txn        src.bowl
   =.  provenance.nxt-data.txn  sap.bowl
@@ -469,121 +478,6 @@
           [%message msg='table data:']
           [%vector-count rowcount.file.txn]
           ==
-++  plan-upd
-  |=  $:  r=indexed-row
-          count=@ud
-          f=(unit $-(joined-row ?))
-          obj=qualified-object:ast
-          updates=(list [@tas @])
-          key-columns=(list key-column)
-          ==
-  ^-  [indexed-row @ud]
-  ?~  f
-    ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
-    [(update-key r updates key-columns) +(count)]
-
-  ?.  ((need f) [-.r [[obj +.r] ~ ~]])  [r count]
-  ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
-  [(update-key r updates key-columns) +(count)]
-++  update-key
-  |=  [r=indexed-row updates=(list [@tas @]) key-columns=(list key-column)]
-  ^-  indexed-row
-  =/  new-key=(list @)  ~
-  =/  upd-row  (produce-update r updates)
-  |-
-  ?~  key-columns  [(flop new-key) upd-row]
-  %=  $
-    new-key      [(~(got by upd-row) name.i.key-columns) new-key]
-    key-columns  t.key-columns
-  ==
-++  produce-update
-  |=  [r=indexed-row updates=(list [@tas @])]
-  ^-  (map @tas @)
-  =/  x  +.r
-  |-
-  ?~  updates  x
-  %=  $
-    x        (~(put by x) -.i.updates +.i.updates)
-    updates  +.updates
-  ==
-++  mk-updates
-  |=  $:  table=qualified-object:ast
-          columns=(list qualified-column:ast)
-          ::values=(list value-or-default:ast)
-          values=(list *)
-          type-lookup=lookup-type
-          ==
-  ^-  (list [@tas @])
-  =/  updates=(list [@tas @])  ~
-  |-
-  ?~  columns  updates
-  ?~  values  !!   :: can't get here
-  ?:  ?=(%default i.values)
-    %=  $
-      columns   t.columns
-      values    t.values
-      updates   ?:  .=  ~.da
-                        %-  ~(got by (~(got by type-lookup) table))
-                            column.i.columns
-                  [[column.i.columns *@da] updates]
-                [[column.i.columns 0] updates]
-    ==
-  ?:  ?=(dime i.values)
-    %=  $
-      columns   t.columns
-      values    t.values
-      updates
-        ?.  =(table qualifier.i.columns)
-          ~|  "UPDATE: {<table>} not matched by column qualifier ".
-              "{<qualifier.i.columns>}"
-              !!
-        ~|  "value type: {<-.i.values>} does not match column: {<i.columns>}"
-            ?.  .=  p.i.values
-                    (~(got by (~(got by type-lookup) table)) column.i.columns)
-              !!
-            [[column.i.columns +.i.values] updates]
-    ==
-  ~|("value type not supported: {<i.values>}" !!)
-::
-::  +update-cat
-::
-++  update-cat
-  |=  [[ord=ud addrs=(list [@tas @]) q=column-catalog] r=indexed-row]
-  ^-  [ord=ud q=column-catalog]
-  |-
-  ?~  addrs  [ord q]
-  =/  mta=column-meta   (~(got by q) -.i.addrs)
-  =/  mta2=column-meta  .*(q [%0 +.i.addrs])
-  ?.  =(mta mta2)  ~|("bad metadata" !!)
-  =/  col-val=@  .*(+.r [%0 +.i.addrs])
-  =/  col-mta
-        ?:  (~(has on values.mta) col-val)
-          :+  addr.mta
-              distinct.mta
-
-              
-              (~(put on values.mta) col-val ord)
-  %=  $
-    ord    +(ord)
-    addrs  t.addrs
-  ==
-::
-::  +update-cat
-::
-++  init-cat
-  |=  r=indexed-row
-  ^-  [column-addr column-catalog]
-  =/  addrs=column-addr       ~
-  =/  cat=(list @tas @)       ~(tap by +.q)
-  =/  catalog=column-catalog  ~
-  |-   
-  ?~  cat  [addrs catalog]
-  =/  addr  (~(dig b +.i.cat) -.i.cat)
-  %=  $
-    cat      t.cat
-    addrs    (~(put by addrs) -.i.cat addr)
-    catalog  (~(put by catalog) -.i.cat [addr 0 ~])
-  ==
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]
 ::
@@ -755,4 +649,102 @@
       [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
   ==
 
+++  plan-upd
+  |=  $:  r=indexed-row
+          count=@ud
+          f=(unit $-(joined-row ?))
+          obj=qualified-object:ast
+          updates=(list [@tas @])
+          key-columns=(list key-column)
+          ==
+  ^-  [indexed-row @ud]
+  ?~  f
+    ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
+    [(update-key r updates key-columns) +(count)]
+
+  ?.  ((need f) [-.r [[obj +.r] ~ ~]])  [r count]
+  ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
+  [(update-key r updates key-columns) +(count)]
+++  update-key
+  |=  [r=indexed-row updates=(list [@tas @]) key-columns=(list key-column)]
+  ^-  indexed-row
+  =/  new-key=(list @)  ~
+  =/  upd-row  (produce-update r updates)
+  |-
+  ?~  key-columns  [(flop new-key) upd-row]
+  %=  $
+    new-key      [(~(got by upd-row) name.i.key-columns) new-key]
+    key-columns  t.key-columns
+  ==
+++  produce-update
+  |=  [r=indexed-row updates=(list [@tas @])]
+  ^-  (map @tas @)
+  =/  x  +.r
+  |-
+  ?~  updates  x
+  %=  $
+    x        (~(put by x) -.i.updates +.i.updates)
+    updates  +.updates
+  ==
+++  mk-updates
+  |=  $:  table=qualified-object:ast
+          columns=(list qualified-column:ast)
+          ::values=(list value-or-default:ast)
+          values=(list *)
+          type-lookup=lookup-type
+          ==
+  ^-  (list [@tas @])
+  =/  updates=(list [@tas @])  ~
+  |-
+  ?~  columns  updates
+  ?~  values  !!   :: can't get here
+  ?:  ?=(%default i.values)
+    %=  $
+      columns   t.columns
+      values    t.values
+      updates   ?:  .=  ~.da
+                        %-  ~(got by (~(got by type-lookup) table))
+                            column.i.columns
+                  [[column.i.columns *@da] updates]
+                [[column.i.columns 0] updates]
+    ==
+  ?:  ?=(dime i.values)
+    %=  $
+      columns   t.columns
+      values    t.values
+      updates
+        ?.  =(table qualifier.i.columns)
+          ~|  "UPDATE: {<table>} not matched by column qualifier ".
+              "{<qualifier.i.columns>}"
+              !!
+        ~|  "value type: {<-.i.values>} does not match column: {<i.columns>}"
+            ?.  .=  p.i.values
+                    (~(got by (~(got by type-lookup) table)) column.i.columns)
+              !!
+            [[column.i.columns +.i.values] updates]
+    ==
+  ~|("value type not supported: {<i.values>}" !!)
+::
+::  +update-cat
+::
+::++  update-cat
+::  |=  [[ord=ud addrs=(list [@tas @]) q=column-catalog] r=indexed-row]
+::  ^-  [ord=ud q=column-catalog]
+::  |-
+::  ?~  addrs  [ord q]
+::  =/  mta=column-meta   (~(got by q) -.i.addrs)
+::  =/  mta2=column-meta  .*(q [%0 +.i.addrs])
+::  ?.  =(mta mta2)  ~|("bad metadata" !!)
+::  =/  col-val=@  .*(+.r [%0 +.i.addrs])
+::  =/  col-mta
+::        ?:  (~(has on values.mta) col-val)
+::          :+  addr.mta
+::              distinct.mta
+::
+::              
+::              (~(put on values.mta) col-val ord)
+::  %=  $
+::    ord    +(ord)
+::    addrs  t.addrs
+::  ==
 --

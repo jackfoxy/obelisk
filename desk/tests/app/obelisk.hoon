@@ -356,7 +356,17 @@
         ~zod
         `path`/test-agent
         ~2023.7.9..22.35.35..7e90
-        :+  file-my-table
+        :+  :-  [%dbo %my-table]
+                :*  %file
+                    ship=~zod
+                    provenance=`path`/test-agent
+                    tmsp=~2023.7.9..22.35.35..7e90
+                    rowcount=0
+                    column-addrs=~
+                    pri-idx=~
+                    column-catalog=~
+                    indexed-rows=~
+                ==
             ~
             ~
     ==
@@ -400,6 +410,8 @@
           0
           ~
           ~
+          ~
+          ~
       ==
 ++  file-2col-1-2
   :-  [%dbo %my-table-2]
@@ -408,6 +420,8 @@
           `path`/test-agent
           ~2000.1.2
           0
+          ~
+          ~
           ~
           ~
       ==
@@ -420,6 +434,8 @@
           0
           ~
           ~
+          ~
+          ~
       ==
 ++  file-time-3
   :-  [%dbo %my-table-2]
@@ -428,6 +444,8 @@
           `path`/test-agent
           ~2023.7.9..22.35.36..7e90
           0
+          ~
+          ~
           ~
           ~
       ==
@@ -440,6 +458,8 @@
           0
           ~
           ~
+          ~
+          ~
       ==
 ++  file-4
   ^-  (map [@tas @tas] file)
@@ -449,7 +469,9 @@
               provenance=`path`/test-agent
               tmsp=~2000.1.3
               rowcount=1
+              column-addrs=[n=[p=%col1 q=2] l=~ r=~]
               pri-idx=file-4-pri-idx
+              [[p=%col1 q=[%column-mta addr=2 distinct=0 values=~]] ~ ~]
               ^-  (list [(list @) (map @tas @)])
                   ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
               ==
@@ -462,21 +484,15 @@
               provenance=`path`/test-agent
               tmsp=~2000.1.4
               rowcount=0
+              column-addrs=[[p=%col1 q=2] ~ ~]
               pri-idx=~
+              :+  [p=%col1 q=[%column-mta addr=2 distinct=0 values=~]]
+                  ~
+                  ~
               indexed-rows=~
           ==
       l=~
       r=~
-++  file-my-table
-  :-  p=[%dbo %my-table]
-      :*  %file
-          ship=~zod
-          provenance=`path`/test-agent
-          tmsp=~2023.7.9..22.35.35..7e90
-          rowcount=0
-          pri-idx=~
-          indexed-rows=~
-      ==
 ++  file-insert
   ^-  (map [@tas @tas] file)
   :+  :-  p=[%dbo %my-table]
@@ -485,7 +501,9 @@
               provenance=`path`/test-agent
               tmsp=~2023.7.9..22.35.36..7e90
               rowcount=1
+              column-addrs=[[p=%col1 q=2] ~ ~]
               pri-idx=file-4-pri-idx
+              column-catalog=[[%col1 [%column-mta 2 0 ~]] ~ ~]
               ^-  (list [(list @) (map @tas @)])
                   ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
               ==

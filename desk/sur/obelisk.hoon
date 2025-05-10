@@ -78,22 +78,27 @@
       provenance=path
       tmsp=@da
       rowcount=@
+      =column-addrs
       pri-idx=(tree indexed-row)   :: generically tree, reified as mop
+      =column-catalog
       indexed-rows=(list indexed-row)
       ::    =indices
   ==
-
-+$  column-catalog  (map @tas column-mta)
-                            :: (~(wyt by covaluelumn-idx))
-+$  column-mta      [addr=@ distinct=@ud values=((mop @ value-idx) lth)]
-+$  column-addr     (map @tas @)
++$  column-addrs    (map @tas @)
++$  column-catalog  (map @tas column-mta)                 
++$  column-mta
+  $:  %column-mta
+      addr=@
+      distinct=@ud              :: (~(wyt by values))
+      values=((mop @ value-idx) lth)
+  ==
 +$  value-idx
   $:  first=file-ord
       last=file-ord
       domain=(list file-ord)    :: ordered
   ==
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
-
+::
 +$  data-obj-key
   $:  ns=@tas
       obj=@tas
