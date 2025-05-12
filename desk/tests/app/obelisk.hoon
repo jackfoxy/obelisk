@@ -471,7 +471,10 @@
               rowcount=1
               column-addrs=[n=[p=%col1 q=2] l=~ r=~]
               pri-idx=file-4-pri-idx
-              [[p=%col1 q=[%column-mta addr=2 distinct=0 values=~]] ~ ~]
+              :+  :-  %col1
+                      [%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
+                  ~
+                  ~
               ^-  (list [(list @) (map @tas @)])
                   ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
               ==
@@ -484,11 +487,9 @@
               provenance=`path`/test-agent
               tmsp=~2000.1.4
               rowcount=0
-              column-addrs=[[p=%col1 q=2] ~ ~]
+              column-addrs=~
               pri-idx=~
-              :+  [p=%col1 q=[%column-mta addr=2 distinct=0 values=~]]
-                  ~
-                  ~
+              column-catalog=~
               indexed-rows=~
           ==
       l=~
@@ -503,7 +504,10 @@
               rowcount=1
               column-addrs=[[p=%col1 q=2] ~ ~]
               pri-idx=file-4-pri-idx
-              column-catalog=[[%col1 [%column-mta 2 0 ~]] ~ ~]
+              :+  :-  %col1
+                      [%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
+                  ~
+                  ~
               ^-  (list [(list @) (map @tas @)])
                   ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
               ==

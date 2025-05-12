@@ -706,7 +706,6 @@
   |=  rs=(list indexed-row)
   ^-  [@ud column-addrs column-catalog]
   =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
-  ::=/  pq  (init-cat -.rs)
   =/  ord  0
   =/  p  -.pq
   =/  q  +.pq
@@ -720,7 +719,7 @@
 ++  record-values
   |=  [ord=@ud mta=column-mta r=indexed-row]
   ^-  column-mta
-  =/  col-val=@  ;;(@ .*(+.r [0 addr.mta]))
+  =/  col-val  ;;(@ +:.*(+.r [0 addr.mta]))
   =/  idx  ((on @ value-idx) lth)
   =/  val-log  (get:idx values.mta col-val)
   ?~  val-log
@@ -733,9 +732,7 @@
   %:  column-mta  %column-mta
                   addr.mta
                   distinct.mta
-                  %^  put:idx  values.mta
-                               col-val
-                               [first.log last.log [ord values.log]]
+                  (put:idx values.mta col-val [first.log ord [ord domain.log]])
                   ==
 ::
 ::  +init-cat:  indexed-row -> [column-addrs column-catalog]
@@ -783,10 +780,11 @@
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
   ~+  :: keeper
   =/  new-indexed-rows  (tap:(pri-key primary-key) pri-idx.file)
-  =/  pq=[column-addrs column-catalog]  (init-cat -.new-indexed-rows)
-  =.  column-addrs.file    -.pq
-  =.  column-catalog.file  +.pq
-  =.  indexed-rows.file    new-indexed-rows 
+  =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
+  =.  column-addrs.file    +<.rpq
+  =.  column-catalog.file  +>.rpq
+  =.  indexed-rows.file    new-indexed-rows
+  =.  rowcount.file        -.rpq
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::

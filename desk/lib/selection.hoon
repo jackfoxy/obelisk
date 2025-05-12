@@ -92,10 +92,12 @@
 
   ::
   =/  dropped-rows  rowcount.file
-  =.  pri-idx.file    ~
-  =.  indexed-rows.file       ~
-  =.  rowcount.file   0
-  =.  tmsp.file       sys-time
+  =.  pri-idx.file         ~
+  =.  indexed-rows.file    ~
+  =.  rowcount.file        0
+  =.  tmsp.file            sys-time
+  =.  column-addrs.file    ~
+  =.  column-catalog.file  ~
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
@@ -243,7 +245,7 @@
           [%message 'inserted:']
           [%vector-count i]
           [%message 'table data:']
-          [%vector-count rowcount.file.txn]
+          [%vector-count (add rowcount.file.txn i)]
           ==
   ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
@@ -255,7 +257,6 @@
   =.  pri-idx.file.txn  ?:  (has:primary-key pri-idx.file.txn row-key)
                           ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
                         (put:primary-key pri-idx.file.txn row-key file-row)
-  =.  rowcount.file.txn           +(rowcount.file.txn)
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ::
 ::  +do-delete:
@@ -308,7 +309,9 @@
         %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                              indexed-rows.file.txn
   ::
-  =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
+  =/  rpq=[@ud column-addrs column-catalog]
+        ?~  indexed-rows.file.txn  [0 ~ ~]
+        (update-cat indexed-rows.file.txn)
   =.  column-addrs.file.txn    +<.rpq
   =.  column-catalog.file.txn  +>.rpq
   ::
@@ -444,9 +447,9 @@
     ~|("{<(sub fil idx)>} duplicate row key(s)" !!)
   ::
   =/  new-indexed-rows  (tap:primary-key pri-idx.file.txn)
-  =/  pq=[column-addrs column-catalog]  (init-cat -.new-indexed-rows)
-  =.  column-addrs.file.txn    -.pq
-  =.  column-catalog.file.txn  +.pq
+  =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
+  =.  column-addrs.file.txn    +<.rpq
+  =.  column-catalog.file.txn  +>.rpq
   =.  indexed-rows.file.txn    new-indexed-rows
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
