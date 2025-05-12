@@ -300,9 +300,19 @@
         %+  skim
               indexed-rows.file.txn
               |=(a=indexed-row !(filter [-.a (~(put by init-map) table.d +.a)]))
+  :: 
+  =/  primary-key  (pri-key key.pri-indx.table.txn)
+  =/  comparator
+        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+  =.  pri-idx.file.txn
+        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                             indexed-rows.file.txn
   ::
-  =/  new-rowcount  (lent indexed-rows.file.txn)
-  =/  deleted-rows  (sub rowcount.file.txn new-rowcount)
+  =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
+  =.  column-addrs.file.txn    +<.rpq
+  =.  column-catalog.file.txn  +>.rpq
+  ::
+  =/  deleted-rows  (sub rowcount.file.txn -.rpq)
   ?:  =(deleted-rows 0)
     :+  next-data
         state
@@ -315,19 +325,7 @@
             [%data-time tmsp.file.txn]
             [%message 'no rows deleted']
             ==
-  :: 
-  =/  primary-key  (pri-key key.pri-indx.table.txn)
-  =/  comparator
-        ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
-  =.  pri-idx.file.txn
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             indexed-rows.file.txn
-  ::
-  =/  pq=[column-addrs column-catalog]  ?:  =(new-rowcount 0)  [~ ~]
-                                        (init-cat -.indexed-rows.file.txn)
-  =.  column-addrs.file.txn    -.pq
-  =.  column-catalog.file.txn  +.pq
-  =.  rowcount.file.txn        new-rowcount
+  =.  rowcount.file.txn        -.rpq
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
                                    [namespace.table.d name.table.d]

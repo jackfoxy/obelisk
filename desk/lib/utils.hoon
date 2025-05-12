@@ -706,27 +706,37 @@
   |=  rs=(list indexed-row)
   ^-  [@ud column-addrs column-catalog]
   =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
+  ::=/  pq  (init-cat -.rs)
   =/  ord  0
   =/  p  -.pq
   =/  q  +.pq
-  =/  addrs  ~(tap by p)
   |-
-  ?~  addrs  [ord p q]
-  =/  mta=column-meta   (~(got by q) -.i.addrs)
-  =/  mta2=column-meta  .*(q [%0 +.i.addrs])
-  ?.  =(mta mta2)  ~|("bad metadata" !!)
-  =/  col-val=@  .*(+.r [%0 +.i.addrs])
-  =/  col-mta
-        ?:  (~(has on values.mta) col-val)
-          :+  addr.mta
-              distinct.mta
-
-              
-              (~(put on values.mta) col-val ord)
+  ?~  rs  [ord p q]
   %=  $
     ord    +(ord)
-    addrs  t.addrs
+    rs     +.rs
+    q      (~(urn by q) |=([k=@tas v=column-mta] (record-values ord v i.rs)))
   ==
+++  record-values
+  |=  [ord=@ud mta=column-mta r=indexed-row]
+  ^-  column-mta
+  =/  col-val=@  ;;(@ .*(+.r [0 addr.mta]))
+  =/  idx  ((on @ value-idx) lth)
+  =/  val-log  (get:idx values.mta col-val)
+  ?~  val-log
+    %:  column-mta  %column-mta
+                    addr.mta
+                    +(distinct.mta)
+                    (put:idx values.mta col-val [ord ord ~[ord]])
+                    ==
+  =/  log  (need val-log)
+  %:  column-mta  %column-mta
+                  addr.mta
+                  distinct.mta
+                  %^  put:idx  values.mta
+                               col-val
+                               [first.log last.log [ord values.log]]
+                  ==
 ::
 ::  +init-cat:  indexed-row -> [column-addrs column-catalog]
 ::
