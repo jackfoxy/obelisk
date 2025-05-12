@@ -700,6 +700,34 @@
       tmsp.f
       ==
 ::
+::  +update-cat:  (list indexed-row) -> [@ud column-addrs column-catalog]
+::
+++  update-cat
+  |=  rs=(list indexed-row)
+  ^-  [@ud column-addrs column-catalog]
+  =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
+  =/  ord  0
+  =/  p  -.pq
+  =/  q  +.pq
+  =/  addrs  ~(tap by p)
+  |-
+  ?~  addrs  [ord p q]
+  =/  mta=column-meta   (~(got by q) -.i.addrs)
+  =/  mta2=column-meta  .*(q [%0 +.i.addrs])
+  ?.  =(mta mta2)  ~|("bad metadata" !!)
+  =/  col-val=@  .*(+.r [%0 +.i.addrs])
+  =/  col-mta
+        ?:  (~(has on values.mta) col-val)
+          :+  addr.mta
+              distinct.mta
+
+              
+              (~(put on values.mta) col-val ord)
+  %=  $
+    ord    +(ord)
+    addrs  t.addrs
+  ==
+::
 ::  +init-cat:  indexed-row -> [column-addrs column-catalog]
 ::
 ++  init-cat

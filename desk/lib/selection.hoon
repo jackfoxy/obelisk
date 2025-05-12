@@ -724,27 +724,4 @@
             [[column.i.columns +.i.values] updates]
     ==
   ~|("value type not supported: {<i.values>}" !!)
-::
-::  +update-cat
-::
-::++  update-cat
-::  |=  [[ord=ud addrs=(list [@tas @]) q=column-catalog] r=indexed-row]
-::  ^-  [ord=ud q=column-catalog]
-::  |-
-::  ?~  addrs  [ord q]
-::  =/  mta=column-meta   (~(got by q) -.i.addrs)
-::  =/  mta2=column-meta  .*(q [%0 +.i.addrs])
-::  ?.  =(mta mta2)  ~|("bad metadata" !!)
-::  =/  col-val=@  .*(+.r [%0 +.i.addrs])
-::  =/  col-mta
-::        ?:  (~(has on values.mta) col-val)
-::          :+  addr.mta
-::              distinct.mta
-::
-::              
-::              (~(put on values.mta) col-val ord)
-::  %=  $
-::    ord    +(ord)
-::    addrs  t.addrs
-::  ==
 --
