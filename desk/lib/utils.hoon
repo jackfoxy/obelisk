@@ -709,12 +709,21 @@
   =/  ord  0
   =/  p  -.pq
   =/  q  +.pq
+  =/  idx  ((on @ value-idx) lth)
+  =/  flop-domains
+        |=  [k=@tas v=column-mta]
+        ^-  column-mta
+        =/  idx  ((on @ value-idx) lth)
+        :^  %column-mta
+            addr.v
+            distinct.v
+            (run:idx values.v |=(a=value-idx [first.a last.a (flop domain.a)]))
   |-
-  ?~  rs  [ord p q]
+  ?~  rs  [ord p (~(urn by q) flop-domains)]
   %=  $
-    ord    +(ord)
-    rs     +.rs
-    q      (~(urn by q) |=([k=@tas v=column-mta] (record-values ord v i.rs)))
+    ord  +(ord)
+    rs   +.rs
+    q    (~(urn by q) |=([k=@tas v=column-mta] (record-values ord v i.rs)))
   ==
 ++  record-values
   |=  [ord=@ud mta=column-mta r=indexed-row]
