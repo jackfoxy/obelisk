@@ -224,7 +224,7 @@
                   ==
     %+  ~(put by type-lookup)  
           query-obj
-          (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
+          column-types.tbl
     (mk-qualified-columns query-obj qualified-columns columns.tbl)
 ::
 ++  mk-qualified-columns
@@ -285,7 +285,7 @@
                   ==
     %+  ~(put by type-lookup)  
           query-obj
-          (malt (turn columns.view |=(a=column:ast [name.a type.a])))
+          column-types.view
     (mk-qualified-columns query-obj qualified-columns columns.view)
 ::
 ::  +got-view-cache:

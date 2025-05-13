@@ -118,6 +118,7 @@
               ~
               sys-sys-dbs-query
           (malt (spun columns make-col-lu-data))
+          (malt (turn columns |=(a=column:ast [name.a type.a])))
           columns
           :~  [aor=%.y ascending=%.y offset=0]
               [aor=%.n ascending=%.y offset=2]
@@ -523,6 +524,7 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.2
           [[%col1 [%t 0]] ~ ~]
+          [[%col1 ~.t] ~ ~]
           :+  %index
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
@@ -535,6 +537,7 @@
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
           [[%col1 [%t 0]] ~ ~]
+          [[%col1 ~.t] ~ ~]
           :+  %index
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
@@ -547,6 +550,7 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.3
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          [[%col2 ~.p] ~ [[%col1 ~.t] ~ ~]]
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
@@ -559,6 +563,7 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.2
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          [[%col2 ~.p] ~ [[%col1 ~.t] ~ ~]]
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
@@ -571,6 +576,7 @@
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.36..7e90
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
+          [[%col2 ~.p] ~ [[%col1 ~.t] ~ ~]]
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]

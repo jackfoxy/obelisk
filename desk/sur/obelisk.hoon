@@ -112,6 +112,7 @@
       provenance=path
       tmsp=@da
       =column-lookup
+      column-types=(map @tas @ta)
       pri-indx=index
       columns=(list column)      ::  canonical column list
       indices=(list index)      :: to do: indices indexed by (list column)
@@ -124,6 +125,7 @@
       tmsp=@da
       =selection
       =column-lookup
+      column-types=(map @tas @ta)
       columns=(list column)      ::  canonical column list
       ordering=(list column-order)
       :: indices  -  to do

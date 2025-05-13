@@ -142,6 +142,7 @@
             sap.bowl
             sys-time
             column-look-up
+            (malt (turn columns.create-table |=(a=column:ast [name.a type.a])))
             %:  index
                 %index
                 %.y

@@ -25,14 +25,15 @@
                                        [%column %data-tmsp ~.da]
                                        ==
     :*  %view
-        provenance                     ::provenance=path
-        tmsp                           ::tmsp=@da
-        :+  %selection                 ::selection
-            ~                              ::ctes=(list cte)
-            sys-sys-dbs-query              ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        columns                        ::columns=(list column)
-        ~                              ::ordering=(list column-order)
+        provenance                                            ::provenance=path
+        tmsp                                                    ::tmsp=@da
+        :+  %selection                                          ::selection
+            ~                                                 ::ctes=(list cte)
+            sys-sys-dbs-query                                   ::query
+        (malt (spun columns make-col-lu-data))                  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        columns                                         ::columns=(list column)
+        ~                                         ::ordering=(list column-order)
         ==
 ++  sys-sys-dbs-query
     ^-  (tree set-function:ast)
@@ -182,6 +183,7 @@
             ~                              ::ctes=(list cte)
             (sys-namespaces-query db)      ::query
         (malt (spun columns make-col-lu-data))  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -283,6 +285,7 @@
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
         (malt (spun columns make-col-lu-data))  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -410,6 +413,7 @@
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
         (malt (spun columns make-col-lu-data))  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -546,6 +550,7 @@
             ~                              ::ctes=(list cte)
             (sys-columns-query db)         ::query
         (malt (spun columns make-col-lu-data))  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -681,6 +686,7 @@
             ~                              ::ctes=(list cte)
             (sys-sys-log-query database)   ::query
         (malt (spun columns make-col-lu-data))  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -808,6 +814,7 @@
             ~                              ::ctes=(list cte)
             (sys-data-log-query database)  ::query
         (malt (spun columns make-col-lu-data))  ::column-lookup
+        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
