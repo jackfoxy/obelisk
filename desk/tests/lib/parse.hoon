@@ -731,8 +731,30 @@
   [%unqualified-column column='col3' alias=~]
 ++  col4
   [%unqualified-column column='col4' alias=~]
+++  column-foo4      :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foobar
+                             alias=~
+                             ==
+                         column=%foo
+                         alias=~
+++  column-bar2      :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foobar
+                             alias=~
+                             ==
+                         column=%bar
+                         alias=~
 ++  delete-pred
   [%eq [column-foo ~ ~] [column-bar ~ ~]]
+++  delete-pred2
+  [%eq [column-bar2 ~ ~] [column-foo4 ~ ~]]
 ++  cte-t1
   [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
 ++  cte-foobar
@@ -741,16 +763,21 @@
   [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
 ++  foo-table
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+++  foobar-table
+  [%qualified-object ~ 'db1' 'dbo' 'foobar' ~]
 ++  foo-table-t1
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']]
 ::
-:: delete with predicate
+:: delete with predicate 2X
 ++  test-delete-00
-  =/  expected
+  =/  expected1
         [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
+  =/  expected2
+        [%selection ctes=~ [[%delete table=foobar-table ~ delete-pred2] ~ ~]]
+  =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "delete from foo  where foo=bar")
+    !>  ~[expected1 expected2]
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: delete with predicate as of now
 ++  test-delete-01
