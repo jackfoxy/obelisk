@@ -123,13 +123,15 @@
                 :^  %column-mta
                     addr=2
                     distinct=1
-                    values=[[170.141.184.503.478.752.038.767.313.124.799.283.200 [first=0 last=0 domain=~[0]]] ~ ~]
+                    values=[[~2018.8.30 [first=0 last=0 domain=~[0]]] ~ ~]
             l=~
             :+  :-  %adopter-email
                     :^  %column-mta
                         addr=14
                         distinct=1
-                        values=[[49.498.905.044.859.653.273.534.984.479.647.971.735.548.487.048.996.602.282.196.669.754.798.507.319.664 [first=0 last=0 domain=~[0]]] ~ ~]
+                        :+  ['patrick.hughes@animalshelter.com' [0 0 ~[0]]]
+                            ~
+                            ~
                 l=~
                 :+  :-  %adoption-fee 
                         :^  %column-mta
@@ -140,7 +142,7 @@
                             :^  %column-mta
                                 addr=252
                                 distinct=1
-                                values=[[6.778.692 [first=0 last=0 domain=~[0]]] ~ ~]
+                                [[6.778.692 [first=0 last=0 domain=~[0]]] ~ ~]
                         ~
                         ~
                     r=~
