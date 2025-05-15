@@ -550,7 +550,7 @@
 ::
 ::  +select-columns:
 ::    [(list joined-row) (unit @t) (list templ-cell)]
-::    -> (list (map @tas @))
+::    -> (list vector)
 ::
 ::  select columns from join
 ++   select-columns
@@ -580,8 +580,6 @@
     row   :-
             :-  p.vc.cell
               :-  p.q.vc.cell
-                  ::%-  ~(got by (~(got by +.i.rows) qualifier))
-                  ::    column:(need object.cell)
                   ;;(@ +:.*((~(got by +.i.rows) qualifier) [0 addr.cell]))
             row
   ==
@@ -590,7 +588,7 @@
 ::    $:  (list joined-row)
 ::        (list templ-cell)
 ::        $-((map @tas @) ?)
-::        -> (list (map @tas @))
+::        -> (list vector)
 ::
 ::  select columns from join
 ::  rejects rows that do not pass filter
