@@ -702,4 +702,24 @@
           !>  :+  %test
                   %db1
                   "DELETE FROM calendar "
+::
+::  fail on changing state after select in script
+++  test-fail-delete-01
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  ::
+  %+  expect-fail-message
+        'DELETE: state change after query in script'
+  |.  %+  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+                  "SELECT 0;".
+                  "DELETE FROM calendar ".
+                  "WHERE 1 = 1 "
 --

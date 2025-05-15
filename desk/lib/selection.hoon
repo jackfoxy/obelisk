@@ -309,9 +309,7 @@
         %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                              indexed-rows.file.txn
   ::
-  =/  rpq=[@ud column-addrs column-catalog]
-        ?~  indexed-rows.file.txn  [0 ~ ~]
-        (update-cat indexed-rows.file.txn)
+  =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
   =.  column-addrs.file.txn    +<.rpq
   =.  column-catalog.file.txn  +>.rpq
   ::

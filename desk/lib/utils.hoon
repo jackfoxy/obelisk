@@ -705,6 +705,7 @@
 ++  update-cat
   |=  rs=(list indexed-row)
   ^-  [@ud column-addrs column-catalog]
+  ?:  =(rs ~)  [0 ~ ~]
   =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
   =/  ord  0
   =/  p  -.pq
