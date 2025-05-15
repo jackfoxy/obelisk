@@ -157,56 +157,52 @@
                         :+  n=[%adopter-email 14]
                             l=~
                             r=[[%adoption-fee 62] [[%species 252] ~ ~] ~]
-  =/  xx  %-  limo  :~  [58 [0 0 (limo ~[0])]]
-                        [68 [1 1 (limo ~[1])]]
-                        [82 [2 2 (limo ~[2])]]
+  =/  adoption-fee  :~  [58 [0 0 ~[0]]]
+                        [68 [1 1 ~[1]]]
+                        [82 [2 2 ~[2]]]
                         ==
   =/  adoption-fee-mop
-        ::(gas:((on @ [@ @ (list @)]) lth) *((mop @ [@ @ (list @)]) lth) 1^1 2^2 3^3 ~)
-        (gas:((on @ value-idx) lth) *((mop @ value-idx) lth) xx)
-                                             
+        (gas:((on @ value-idx) lth) *((mop @ value-idx) lth) adoption-fee)
+  =/  adoption-date
+        :~  [170.141.184.504.151.335.085.090.022.344.359.936.000 [1 1 ~[1]]] 
+            [170.141.184.503.478.752.038.767.313.124.799.283.200 [0 2 ~[0 2]]]
+            ==
+  =/  adoption-date-mop
+        (gas:((on @ value-idx) lth) *((mop @ value-idx) lth) adoption-date)
+  =/  adopter-email
+        :~  ['patrick.hughes@animalshelter.com' [0 2 ~[0 2]]]
+            ['justin.ruiz@hotmail.com' [1 1 ~[1]]]
+            ==
+  =/  adopter-email-mop
+        (gas:((on @ value-idx) lth) *((mop @ value-idx) lth) adopter-email)
+  =/  species  :~  [6.778.692 0 1 ~[0 1]]
+                   [7.627.075 [2 2 ~[2]]]
+                   ==
+  =/  species-mop
+        (gas:((on @ value-idx) lth) *((mop @ value-idx) lth) species)
   =/  column-catalog
         :+  :-  %adoption-date
                 :^  %column-mta
                     addr=2
                     distinct=2
-                    ::values=[[170.141.184.503.478.752.038.767.313.124.799.283.200 [first=0 last=0 domain=~[0]]] ~ ~]
-                    values=[[key=170.141.184.504.151.335.085.090.022.344.359.936.000 val=[first=1 last=1 domain=~[1]]] ~ [[key=170.141.184.503.478.752.038.767.313.124.799.283.200 val=[first=0 last=2 domain=~[0 2]]] ~ ~]]
-                    ::{ [key=170.141.184.503.478.752.038.767.313.124.799.283.200 val=[first=0 last=2 domain=~[0 2]]]
-                    ::  [key=170.141.184.504.151.335.085.090.022.344.359.936.000 val=[first=1 last=1 domain=~[1]]]
-                    ::}
+                    values=adoption-date-mop
             l=~
             :+  :-  %adopter-email
                     :^  %column-mta
                         addr=14
                         distinct=2
-                        values=[[49.498.905.044.859.653.273.534.984.479.647.971.735.548.487.048.996.602.282.196.669.754.798.507.319.664 [first=0 last=2 domain=~[0 2]]] ~ [[10.481.800.856.368.594.426.519.586.349.701.518.096.515.101.215.583.073.642 [first=1 last=1 domain=~[1]]] ~ ~]]
-                        ::{ [ key=10.481.800.856.368.594.426.519.586.349.701.518.096.515.101.215.583.073.642
-                        ::    val=[first=1 last=1 domain=~[1]]
-                        ::  ]
-                        ::  [   key
-                        ::    49.498.905.044.859.653.273.534.984.479.647.971.735.548.487.048.996.602.282.196.669.754.798.507.319.664
-                        ::    val=[first=0 last=2 domain=~[0 2]]
-                        ::  ]
-                        ::}
+                        values=adopter-email-mop
                 l=~
                 :+  :-  %adoption-fee 
                         :^  %column-mta
                             addr=62
                             distinct=3
                             values=adoption-fee-mop
-                            ::values=[[key=68 val=[first=1 last=1 domain=~[1]]] [[key=58 val=[first=0 last=0 domain=~[0]]] ~ ~] [[key=82 val=[first=2 last=2 domain=~[2]]] ~ ~]]
-                            ::{ [key=58 val=[first=0 last=0 domain=~[0]]]
-                            ::  [key=68 val=[first=1 last=1 domain=~[1]]]
-                            ::  [key=82 val=[first=2 last=2 domain=~[2]]]
-                            ::}
-
                     :+  :-  %species
                             :^  %column-mta
                                 addr=252
                                 distinct=2
-                                values=[[6.778.692 [first=0 last=1 domain=~[0 1]]] ~ [[key=7.627.075 val=[first=2 last=2 domain=~[2]]] ~ ~]]
-                                ::{[key=6.778.692 val=[first=0 last=1 domain=~[0 1]]] [key=7.627.075 val=[first=2 last=2 domain=~[2]]]}
+                                values=species-mop
                         ~
                         ~
                     r=~
