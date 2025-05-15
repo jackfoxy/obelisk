@@ -87,6 +87,29 @@
         ==
     ==
   ::
+  %parse  !!
+    ::=/  virtualized
+    ::  ::^-  (each (pair (list command:ast) server:obelisk) tang)
+    ::  ^-  (each (pair tape server:obelisk) tang)
+    ::  %-  mule
+    ::  |.
+    ::  ::~>  %bout.[0 %parse-cmds]
+    ::  (parse-urql +<.act +>.act)
+    ::?-  -.virtualized
+    ::  %.n
+    ::    :_  this
+    ::    :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+    ::        [%give %kick ~[/server] ~]
+    ::    ==
+    ::  %.y
+    ::    =/  res  p.virtualized
+    ::    =/  x  (print -.res)
+    ::    :_  this(server +.res)
+    ::    :~  [%give %fact ~[/server] %noun !>([& -.res])]
+    ::        [%give %kick ~[/server] ~]
+    ::    ==
+    ::==
+  ::
   %commands
     =/  res  (state-server +.act)
     :_  this(server +.res)
