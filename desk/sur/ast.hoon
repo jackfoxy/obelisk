@@ -313,7 +313,7 @@
   $:
     %cte
     name=@tas
-    set-cmd
+    query
   ==
 +$  set-op
   $?
@@ -324,7 +324,7 @@
     %divide-with-remainder
     %into
   ==
-+$  set-cmd       $%(insert query)
++$  set-cmd       $%(delete insert merge query update)
 +$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs

@@ -491,7 +491,7 @@
   ?~  from.q
        :-  state    :: no from? only literals
            :~  [%message 'SELECT']
-               (result %result-set (select-literals columns.selection.q))
+               [%result-set (select-literals columns.selection.q)]
                [%server-time now.bowl]
                [%schema-time created-tmsp.sys-db]
                [%data-time created-tmsp:(~(got by state) %sys)]
@@ -645,7 +645,6 @@
     vals
       [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
   ==
-
 ++  plan-upd
   |=  $:  r=indexed-row
           count=@ud
