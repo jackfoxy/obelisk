@@ -323,12 +323,8 @@
     %divided-by
     %divide-with-remainder
     %into
-    %pass-thru
-    %nop
-    %tee
-    %multee
   ==
-+$  set-cmd       $%(delete insert update query merge)
++$  set-cmd       $%(insert query)
 +$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
