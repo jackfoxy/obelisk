@@ -720,4 +720,27 @@
             [[column.i.columns +.i.values] updates]
     ==
   ~|("value type not supported: {<i.values>}" !!)
+::
+::  +named-queries:  (list cte:ast) -> (map @tas [@ud (list indexed-row)])
+::  resolve CTEs
+++  named-queries
+  |=  ctes=(list cte:ast)
+  ^-  (map @tas [@ud (list indexed-row)])
+  =/  cte-rows=(map @tas [@ud (list indexed-row)])  ~
+  |-
+  ?~  ctes  cte-rows
+  %=  $
+    cte-rows  (~(put by cte-rows) +<.i.ctes (named-query +>.i.ctes))
+    ctes  +.ctes
+  ==
+::
+::  +named-query:  (list cte:ast) -> (map @tas from-obj)
+::  resolve CTEs
+++  named-query
+  |=  q=query:ast
+  ^-  [@ud (list indexed-row)]
+  ?~  from.q  [1 (select-literals columns.selection.q)]
+  =/  =join-return        (join-all(state state, bowl bowl) q)
+  ?~  data-objs.join-return  ~|("can't get here" !!)
+  [rowcount.i.data-objs.join-return indexed-rows.i.data-objs.join-return]
 --
