@@ -77,11 +77,11 @@
       ship=@p
       provenance=path
       tmsp=@da
-      rowcount=@
       =column-addrs
+      rowcount=@
       pri-idx=(tree indexed-row)   :: generically tree, reified as mop
-      =column-catalog
       indexed-rows=(list indexed-row)
+      =column-catalog
       ::    =indices
   ==
 +$  column-addrs    (map @tas @)

@@ -739,7 +739,14 @@
 ++  named-query
   |=  q=query:ast
   ^-  [@ud (list indexed-row)]
-  ?~  from.q  [1 (select-literals columns.selection.q)]
+  =/  vs=(list vector)  (select-literals columns.selection.q)
+  ?~  vs  ~|("can't get here" !!)
+  =/  xx=(list [p=@tas q=dime])  +.i.vs
+  =/  yy  %^  spin
+              xx
+              *(map @tas @)
+              |=([a=[p=@tas q=dime] s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
+  ?~  from.q  [1 ~[[`(list @)`~ +.yy]]]
   =/  =join-return        (join-all(state state, bowl bowl) q)
   ?~  data-objs.join-return  ~|("can't get here" !!)
   [rowcount.i.data-objs.join-return indexed-rows.i.data-objs.join-return]
