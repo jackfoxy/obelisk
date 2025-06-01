@@ -134,6 +134,21 @@
       ?:  query-has-run
             ~|("CREATE VIEW: state change after query in script" !!)
       ~|("%create-view not implemented" !!)
+    %delete
+      ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
+      =/  ctes=(map @tas [@ud (list indexed-row)])
+            (named-queries ->-.cmds)
+      =/  r=[(map @tas @da) server (list result)]
+            %^  do-delete(state state, bowl bowl)  -.cmds
+                                                   next-data
+                                                   next-schemas
+      %=  $
+        query-has-run   %.n
+        next-data       -.r
+        state           +<.r
+        cmds            +.cmds
+        results         [[%results +>.r] results]
+      ==
     %drop-database
       ?.  =(our.bowl src.bowl)
             ~|("DROP DATABASE: database must be dropped by local agent" !!)
@@ -214,6 +229,21 @@
         state         +>+.r
         cmds          +.cmds
         results       [-.r results]
+      ==
+    %update
+      ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
+      =/  ctes=(map @tas [@ud (list indexed-row)])
+            (named-queries ->-.cmds)
+      =/  r=[(map @tas @da) server (list result)]
+            %^  do-update(state state, bowl bowl)  -.cmds
+                                                   next-data
+                                                   next-schemas
+      %=  $
+        query-has-run   %.n
+        next-data       -.r
+        state           +<.r
+        cmds            +.cmds
+        results         [[%results +>.r] results]
       ==
   ==
 ::

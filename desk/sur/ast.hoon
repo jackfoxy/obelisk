@@ -49,6 +49,7 @@
     create-namespace
     create-table
     create-view
+    delete
     drop-database
     drop-index
     drop-namespace
@@ -58,6 +59,7 @@
     revoke
     selection
     truncate-table
+    update
   ==
 ::
 ::  simple union types
@@ -324,7 +326,7 @@
     %divide-with-remainder
     %into
   ==
-+$  set-cmd       $%(delete insert merge query update)
++$  set-cmd       $%(insert merge query)
 +$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
@@ -334,10 +336,26 @@
 +$  delete
   $:
     %delete
+    ctes=(list cte)
     table=qualified-object
     as-of=(unit as-of)
     predicate=predicate
   ==
+::
+::  $update:
++$  update
+  $:
+    %update
+    ctes=(list cte)
+    table=qualified-object
+    as-of=(unit as-of)
+    $:  columns=(list qualified-column)
+        values=(list value-or-default)
+        ==
+    predicate=(unit predicate)
+  ==
+::
+::
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
 ::  $insert:
@@ -350,18 +368,6 @@
     values=insert-values
   ==
 +$  value-or-default     ?(%default datum)
-::
-::  $update:
-+$  update
-  $:
-    %update
-    table=qualified-object
-    as-of=(unit as-of)
-    $:  columns=(list qualified-column)
-        values=(list value-or-default)
-        ==
-    predicate=(unit predicate)
-  ==
 ::
 ::  $merge: merge from source table-set into target table-set
 +$  merge

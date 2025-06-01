@@ -131,7 +131,7 @@
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result)]]
-  =/  ctes=(list cte:ast)  ctes.selection  :: To Do - map CTEs
+  =/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
   %:  do-set-functions  set-functions.selection
                         query-has-run
                         next-data
@@ -150,20 +150,12 @@
   ^-  [? [(map @tas @da) server (list result)]]
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
-    %delete
-      ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
-      :-  %.n
-          (do-delete -.rtree next-data next-schemas)
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
           ::~&  "{<->->+>+.rtree>}"   :: table name
           ::~>  %bout.[0 %insert]
           (do-insert -.rtree next-data next-schemas)
-    %update
-      ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
-      :-  %.n
-          (do-update -.rtree next-data next-schemas)
     %query
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects

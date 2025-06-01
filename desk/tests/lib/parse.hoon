@@ -770,10 +770,8 @@
 ::
 :: delete with predicate 2X
 ++  test-delete-00
-  =/  expected1
-        [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
-  =/  expected2
-        [%selection ctes=~ [[%delete table=foobar-table ~ delete-pred2] ~ ~]]
+  =/  expected1  [%delete ctes=~ table=foo-table ~ delete-pred]
+  =/  expected2  [%delete ctes=~ table=foobar-table ~ delete-pred2]
   =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
     !>  ~[expected1 expected2]
@@ -781,8 +779,7 @@
 ::
 :: delete with predicate as of now
 ++  test-delete-01
-  =/  expected
-        [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
+  =/  expected  [%delete ctes=~ table=foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -790,14 +787,12 @@
 ::
 :: delete with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-02
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -805,14 +800,12 @@
 ::
 :: delete with predicate as of 5 seconds ago
 ++  test-delete-03
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -820,11 +813,7 @@
 ::
 :: delete with one cte and predicate
 ++  test-delete-04
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1]
-                    :+  [%delete table=foo-table ~ delete-pred] 
-                        ~
-                        ~
+  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred] 
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -832,9 +821,7 @@
 ::
 :: delete with one cte and predicate as of now
 ++  test-delete-05
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -842,14 +829,12 @@
 ::
 :: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-06
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -858,14 +843,12 @@
 ::
 :: delete with one cte and predicate as of 5 seconds ago
 ++  test-delete-07
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -874,11 +857,12 @@
 ::
 :: delete with two ctes and predicate
 ++  test-delete-08
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    :+  [%delete table=foo-table ~ delete-pred]
-                        ~
-                        ~
+                    table=foo-table
+                    ~
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -888,9 +872,12 @@
 ::
 :: delete with two ctes and predicate as of now
 ++  test-delete-09
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+                    table=foo-table
+                    ~
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -900,14 +887,12 @@
 ::
 :: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-10
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -917,14 +902,12 @@
 ::
 :: delete with two ctes and predicate as of 5 seconds ago
 ++  test-delete-11
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -934,9 +917,7 @@
 ::
 :: delete with three ctes and predicate
 ++  test-delete-12
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1 cte-foobar cte-bar]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -947,9 +928,7 @@
 ::
 :: delete with three ctes and predicate as of now
 ++  test-delete-13
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1 cte-foobar cte-bar]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -960,14 +939,12 @@
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-14
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -978,14 +955,12 @@
 ::
 :: delete with three ctes and predicate as of 5 seconds ago
 ++  test-delete-15
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2655,17 +2630,14 @@
 ::
 :: update one column, no predicate
 ++  test-update-00
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2673,17 +2645,14 @@
 ::
 :: update one column, no predicate as of now
 ++  test-update-01
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2691,17 +2660,14 @@
 ::
 :: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-02
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2709,17 +2675,14 @@
 ::
 :: update one column, no predicate as of 4 seconds ago
 ++  test-update-03
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2727,17 +2690,14 @@
 ::
 :: update two columns, no predicate
 ++  test-update-04
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2745,20 +2705,17 @@
 ::
 :: update three columns, no predicate, end of command marker
 ++  test-update-04a
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col4 upd-col3 upd-col1]
-                                :~  %default
-                                    [value-type=%ud value=44]
-                                    [value-type=%t value='hello']
-                                    ==
-                            predicate=~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col4 upd-col3 upd-col1]
+                        :~  %default
+                            [value-type=%ud value=44]
+                            [value-type=%t value='hello']
                             ==
-                        ~
-                        ~
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2768,17 +2725,14 @@
 ::
 :: update two columns, no predicate as of now
 ++  test-update-05
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2786,17 +2740,14 @@
 ::
 :: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-06
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2805,17 +2756,14 @@
 ::
 :: update two columns, no predicate as of 4 seconds ago
 ++  test-update-07
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2823,17 +2771,14 @@
 ::
 :: update two columns, with predicate
 ++  test-update-08
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2841,17 +2786,14 @@
 ::
 :: update two columns, with predicate as of now
 ++  test-update-09
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2860,17 +2802,14 @@
 ::
 :: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-10
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2879,17 +2818,14 @@
 ::
 :: update two columns, with predicate as of 4 seconds ago
 ++  test-update-11
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2898,17 +2834,14 @@
 ::
 :: update with one cte and predicate
 ++  test-update-12
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2917,17 +2850,14 @@
 ::
 :: update with one cte and predicate as of now
 ++  test-update-13
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2936,17 +2866,14 @@
 ::
 :: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-14
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2956,17 +2883,14 @@
 ::
 :: update with one cte and predicate as of 4 seconds ago
 ++  test-update-15
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2976,17 +2900,14 @@
 ::
 :: update with three ctes and predicate
 ++  test-update-16
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2997,17 +2918,14 @@
 ::
 :: update with three ctes and predicate as of now
 ++  test-update-17
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3019,17 +2937,14 @@
 ::
 :: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-18
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3041,17 +2956,14 @@
 ::
 :: update with three ctes and predicate as of 4 seconds ago
 ++  test-update-19
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')

@@ -823,11 +823,7 @@
       =/  parsed  (wonk delete-nail)
       %=  $
         script    q.q.u.+3.q:delete-nail
-        commands  :-  %:  selection:ast  %selection
-                                        ~
-                                        [(produce-delete parsed) ~ ~]
-                                        ==
-                      commands
+        commands  [(produce-delete ~ parsed) commands]
       ==
     %drop-database
       ~|  "drop database error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1188,9 +1184,8 @@
       =/  update-nail  (parse-update [[1 1] q.q.command-nail])
       =/  parsed  (wonk update-nail)
       %=  $
-        script           q.q.u.+3.q:update-nail
-        commands
-          [(selection:ast %selection ~ [(produce-update parsed) ~ ~]) commands]
+        script    q.q.u.+3.q:update-nail
+        commands  [(produce-update ~ parsed) commands]
       ==
     %with
       ~|  "with error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1199,19 +1194,16 @@
       ?:  =(+<.parsed %delete)
         %=  $
           script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-delete +>.parsed) ~ ~]
-                                          ==
+          commands  :-  (produce-delete (produce-ctes -.parsed) +>.parsed)
                         commands
         ==
       ?:  =(+<.parsed %insert)
         %=  $
           script    q.q.u.+3.q:with-nail
           commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-insert +>.parsed) ~ ~]
-                                          ==
+                                           (produce-ctes -.parsed)
+                                           [(produce-insert +>.parsed) ~ ~]
+                                           ==        
                         commands
         ==
       ?:  =(+<.parsed %merge)
@@ -1235,10 +1227,7 @@
       ?:  =(+<.parsed %update)
         %=  $
           script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-update +>.parsed) ~ ~]
-                                          ==
+          commands  :-  (produce-update (produce-ctes -.parsed) +>.parsed)
                         commands
         ==
       !!
@@ -2068,12 +2057,13 @@
     ==
   ~|('cannot produce ctes from parsed:  {<a>}' !!)
 ++  produce-delete
-  |=  a=*
+  |=  [ctes=(list cte:ast) a=*]
    ~+
   ^-  delete:ast
   ?>  ?=(qualified-object:ast -.a)
   ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     ~
                     %+  qualify-predicate
@@ -2082,6 +2072,7 @@
                     ==
   ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     ~
                     %+  qualify-predicate
@@ -2090,6 +2081,7 @@
                     ==
   ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     [~ +<+.a]
                     %+  qualify-predicate
@@ -2098,6 +2090,7 @@
                     ==
   ?:  ?=([* [%as-of *] %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     [~ (as-of-offset:ast %as-of-offset +<+<.a +<+>-.a)]
                     %+  qualify-predicate
@@ -2139,13 +2132,15 @@
   ::
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
     %:  insert:ast  %insert
-                     table
-                     ~
-                     ~
-                     (insert-values:ast %data +>.c)
-                     ==
+
+                    table
+                    ~
+                    ~
+                    (insert-values:ast %data +>.c)
+                    ==
   ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
     %:  insert:ast  %insert
+
                     table
                     [~ ->.c]
                     ~
@@ -2153,6 +2148,7 @@
                     ==
   ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
     %:  insert:ast  %insert
+
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
                     ~
@@ -2160,20 +2156,23 @@
                     ==
   ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
     %:  insert:ast  %insert
+
                     table
                     ~
                     `+<-.c
                     (insert-values:ast %data +>.c)
                     ==
   ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
-     %:  insert:ast  %insert
+    %:  insert:ast  %insert
+
                     table
                     [~ ->.c]
                     `+<-.c
                     (insert-values:ast %data +>.c)
                     ==
   ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
-     %:  insert:ast  %insert
+    %:  insert:ast  %insert
+
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
                     `+<-.c
@@ -2181,6 +2180,7 @@
                     ==
   ?:  ?=([%values *] c)            :: insert rows
     %:  insert:ast  %insert
+
                     table
                     ~
                     ~
@@ -2188,6 +2188,7 @@
                     ==
   ?:  ?=([[* %values] *] c)        :: insert column names rows
     %:  insert:ast  %insert
+
                     table
                     ~
                     `-<.c
@@ -2993,13 +2994,14 @@
       ==
     ?>  ?=(qualified-column:ast -.a)  $(columns [-.a columns], a +.a)
 ++  produce-update
-  |=  a=*
+  |=  [ctes=(list cte:ast) a=*]
   ~+
   ^-  update:ast
   =/  table=qualified-object:ast  ?>(?=(qualified-object:ast -.a) -.a)
   =/  b  +.a
   ?:  ?=([%set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     ~
                     (produce-column-sets table +<.b)
@@ -3007,6 +3009,7 @@
                     ==
   ?:  ?=([[%as-of %now] %set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     ~
                     (produce-column-sets table +>-.b)
@@ -3014,6 +3017,7 @@
                     ==
   ?:  ?=([[%as-of @ @] %set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
@@ -3021,6 +3025,7 @@
                     ==
   ?:  ?=([[%as-of *] %set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
                     (produce-column-sets table +>-.b)
@@ -3028,6 +3033,7 @@
                     ==                    
   ?:  ?=([[%as-of %now] %set * *] b)
     %:  update:ast  %update
+                    ctes
                     table
                     ~
                     (produce-column-sets table +>-.b)
@@ -3038,6 +3044,7 @@
                     ==
   ?:  ?=([[%as-of @ @] %set * *] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
@@ -3048,6 +3055,7 @@
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
                     (produce-column-sets table +>-.b)
@@ -3057,6 +3065,7 @@
                             table
                     ==
   %:  update:ast  %update
+                  ctes
                   table
                   ~
                   (produce-column-sets table +<.b)
