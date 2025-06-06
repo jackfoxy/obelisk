@@ -57,7 +57,7 @@ This command mutates the state of the Obelisk agent.
 
 The `VALUES` or `<selection>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
 
-The `default` keyword may be used instead of a value to specify the column type's bunt (default) value.
+The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
 
 Cord values are represented in single quotes `'this is a cord'`. Single quotes within cord values must be escaped with double backslash as `'this is a cor\\'d'`.
 

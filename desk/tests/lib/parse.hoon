@@ -731,8 +731,30 @@
   [%unqualified-column column='col3' alias=~]
 ++  col4
   [%unqualified-column column='col4' alias=~]
+++  column-foo4      :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foobar
+                             alias=~
+                             ==
+                         column=%foo
+                         alias=~
+++  column-bar2      :^  %qualified-column
+                         :*  %qualified-object
+                             ship=~
+                             database=%db1
+                             namespace=%dbo
+                             name=%foobar
+                             alias=~
+                             ==
+                         column=%bar
+                         alias=~
 ++  delete-pred
   [%eq [column-foo ~ ~] [column-bar ~ ~]]
+++  delete-pred2
+  [%eq [column-bar2 ~ ~] [column-foo4 ~ ~]]
 ++  cte-t1
   [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
 ++  cte-foobar
@@ -741,21 +763,23 @@
   [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
 ++  foo-table
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+++  foobar-table
+  [%qualified-object ~ 'db1' 'dbo' 'foobar' ~]
 ++  foo-table-t1
   [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'T1']]
 ::
-:: delete with predicate
+:: delete with predicate 2X
 ++  test-delete-00
-  =/  expected
-        [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
+  =/  expected1  [%delete ctes=~ table=foo-table ~ delete-pred]
+  =/  expected2  [%delete ctes=~ table=foobar-table ~ delete-pred2]
+  =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') "delete from foo  where foo=bar")
+    !>  ~[expected1 expected2]
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: delete with predicate as of now
 ++  test-delete-01
-  =/  expected
-        [%selection ctes=~ [[%delete table=foo-table ~ delete-pred] ~ ~]]
+  =/  expected  [%delete ctes=~ table=foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -763,14 +787,12 @@
 ::
 :: delete with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-02
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -778,14 +800,12 @@
 ::
 :: delete with predicate as of 5 seconds ago
 ++  test-delete-03
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -793,11 +813,7 @@
 ::
 :: delete with one cte and predicate
 ++  test-delete-04
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1]
-                    :+  [%delete table=foo-table ~ delete-pred] 
-                        ~
-                        ~
+  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred] 
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -805,9 +821,7 @@
 ::
 :: delete with one cte and predicate as of now
 ++  test-delete-05
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -815,14 +829,12 @@
 ::
 :: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-06
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -831,14 +843,12 @@
 ::
 :: delete with one cte and predicate as of 5 seconds ago
 ++  test-delete-07
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -847,11 +857,12 @@
 ::
 :: delete with two ctes and predicate
 ++  test-delete-08
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    :+  [%delete table=foo-table ~ delete-pred]
-                        ~
-                        ~
+                    table=foo-table
+                    ~
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -861,9 +872,12 @@
 ::
 :: delete with two ctes and predicate as of now
 ++  test-delete-09
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+                    table=foo-table
+                    ~
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -873,14 +887,12 @@
 ::
 :: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-10
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -890,14 +902,12 @@
 ::
 :: delete with two ctes and predicate as of 5 seconds ago
 ++  test-delete-11
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -907,9 +917,7 @@
 ::
 :: delete with three ctes and predicate
 ++  test-delete-12
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1 cte-foobar cte-bar]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -920,9 +928,7 @@
 ::
 :: delete with three ctes and predicate as of now
 ++  test-delete-13
-  =/  expected  :+  %selection
-                    ctes=~[cte-t1 cte-foobar cte-bar]
-                    [[%delete table=foo-table ~ delete-pred] ~ ~]
+  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -933,14 +939,12 @@
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-14
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -951,14 +955,12 @@
 ::
 :: delete with three ctes and predicate as of 5 seconds ago
 ++  test-delete-15
-  =/  expected  :+  %selection
+  =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :^  %delete
-                            table=foo-table
-                            [~ [%as-of-offset 5 %seconds]]
-                            delete-pred
-                        ~
-                        ~
+                    table=foo-table
+                    [~ [%as-of-offset 5 %seconds]]
+                    delete-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1343,7 +1345,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1427,7 +1429,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1484,7 +1486,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1541,7 +1543,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1598,7 +1600,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1665,7 +1667,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1718,7 +1720,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -1771,7 +1773,7 @@
                             [~.t 430.158.540.643]
                             [~.sd 6]
                             ==
-                        :~  [~.default 32.770.348.699.510.116]
+                        :~  %default
                             [~.if 3.284.569.946]
                             [~.ud 195.198.143.900]
                             ==
@@ -2023,559 +2025,6 @@
   %-  expect-fail
   |.  (parse:parse(default-database 'dummy') "truncate table ~shitty-shippp db.ns.nAme")
 ::
-::  predicate
-::
-::  re-used components
-++  all-columns  [%all %all]
-++  select-all-columns  [%select top=~ bottom=~ columns=~[all-columns]]
-++  foo
-  [[%unqualified-column 'foo' ~] ~ ~]
-++  t1-foo
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo' ~] ~ ~]
-++  a1-foo
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'foo' ~] ~ ~]
-++  foo2
-  [[%unqualified-column 'foo2' ~] ~ ~]
-++  t1-foo2
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo2' ~] ~ ~]
-++  foo3
-  [[%unqualified-column 'foo3' ~] ~ ~]
-++  t1-foo3
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']] 'foo3' ~] ~ ~]
-++  foo4
-  [[%unqualified-column 'foo4' ~] ~ ~]
-++  foo5
-  [[%unqualified-column 'foo5' ~] ~ ~]
-++  foo6
-  [[%unqualified-column 'foo6' ~] ~ ~]
-++  foo7
-  [[%unqualified-column 'foo7' ~] ~ ~]
-++  bar
-  [[%unqualified-column 'bar' ~] ~ ~]
-++  t2-bar
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T2']] 'bar' ~] ~ ~]
-++  a2-bar
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'bar' ~] ~ ~]
-++  foobar
-  [[%unqualified-column 'foobar' ~] ~ ~]
-++  a1-adoption-email
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'adoption-email' alias=~] ~ ~]
-++  a2-adoption-email
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'adoption-email' alias=~] ~ ~]
-++  a1-adoption-date
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'adoption-date' alias=~] ~ ~]
-++  a2-adoption-date
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'adoption-date' alias=~] ~ ~]
-++  a1-name
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'name' alias=~] ~ ~]
-++  a2-name
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'name' alias=~] ~ ~]
-++  a1-species
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']] 'species' alias=~] ~ ~]
-++  a2-species
-  [[%qualified-column [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']] 'species' alias=~] ~ ~]
-++  value-literals   [[%value-literals %ud '3;2;1'] ~ ~]
-++  aggregate-count-foobar
-  [%aggregate function='count' source=[%qualified-column qualifier=[%qualified-object ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]
-++  literal-10           [[%ud 10] ~ ~]
-::
-::  re-used simple predicates
-++  foobar-gte-foo       [%gte foobar foo]
-++  foobar-lte-bar       [%lte foobar bar]
-++  foo-eq-1             [%eq foo [[%ud 1] ~ ~]]
-++  t1-foo-gt-foo2       [%gt t1-foo foo2]
-++  t2-bar-in-list       [%in t2-bar value-literals]
-++  t1-foo2-eq-zod       [%eq t1-foo2 [[%p 0] ~ ~]]
-++  t1-foo3-lt-any-list  [%lt t1-foo3 [%any value-literals ~]]
-::
-::  re-used predicates with conjunctions
-++  and-fb-gte-f--fb-lte-b   [%and foobar-gte-foo foobar-lte-bar]
-++  and-fb-gte-f--t1f2-eq-z  [%and foobar-gte-foo t1-foo2-eq-zod]
-++  and-f-eq-1--t1f3-lt-any  [%and foo-eq-1 t1-foo3-lt-any-list]
-++  and-and                  [%and and-fb-gte-f--fb-lte-b t1-foo2-eq-zod]
-++  and-and-or               [%or and-and t2-bar-in-list]
-++  and-and-or-and           [%or and-and and-fb-gte-f--t1f2-eq-z]
-++  and-and-or-and-or-and    [%or and-and-or-and and-f-eq-1--t1f3-lt-any]
-::
-::  predicates with conjunctions and nesting
-++  and-fb-gt-f--fb-lt-b     [%and [%gt foobar foo] [%lt foobar bar]]
-++  and-t1f-gt-f2--t2b-in-l  [%and t1-foo-gt-foo2 t2-bar-in-list]
-++  or2                      [%and [%and t1-foo3-lt-any-list t1-foo2-eq-zod] foo-eq-1]
-++  or3                      [%and [%eq foo3 foo4] [%eq foo5 foo6]]
-++  big-or                   [%or [%or [%or and-t1f-gt-f2--t2b-in-l or2] or3] [%eq foo4 foo5]]
-++  big-and                  [%and and-fb-gt-f--fb-lt-b big-or]
-++  a-a-l-a-o-l-a-a-r-o-r-a-l-o-r-a
-                             [%and big-and [%eq foo6 foo7]]
-++  first-or                 [%or [%gt foobar foo] [%lt foobar bar]]
-++  last-or                  [%or t1-foo3-lt-any-list [%and t1-foo2-eq-zod foo-eq-1]]
-++  first-and                [%and first-or t1-foo-gt-foo2]
-++  second-and               [%and first-and t2-bar-in-list]
-++  king-and                 [%and [second-and] last-or]
-::
-++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
-++  from-foo
-  [~ [%from object=[%table-set object=foo-table] as-of=~ joins=~]]
-++  foo-table-f1
-  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'F1']]
-++  from-foo-aliased
-  [~ [%from object=[%table-set object=foo-table-f1] as-of=~ joins=~]]
-++  simple-from-foo
-  [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  aliased-from-foo
-  [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
-++  foo-alias-y
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'y']]]
-++  bar-alias-x
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=[~ 'x']]]
-++  foo-unaliased
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]]
-++  bar-unaliased
-  [%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='bar' alias=~]]
-++  passthru-row-y
-  [%table-set object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
-++  passthru-row-x
-  [%table-set object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
-++  passthru-unaliased
-  [%table-set object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
-::
-::  test binary operators, varying spacing
-++  test-predicate-01
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-02
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo<>bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%neq foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-03
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!= bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%neq foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns ~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-04
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo >bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%gt foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-05
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%lt foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-06
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo>= bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%gte foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-07
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!< bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%gte foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-08
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <= bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%lte foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-09
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo !> bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%lte foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-10
-  =/  query  "FROM foo WHERE foobar EQUIV bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%equiv foobar bar]
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ `pred group-by=~ having=~ [%select top=~ bottom=~ columns=~[all-columns]] ~]] ~ ~]]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-11
-  =/  query  "FROM foo WHERE foobar NOT EQUIV bar SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%not-equiv foobar bar]
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~]] ~ ~]]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::  remaining simple predicates, varying spacing and keywork casing
-++  test-predicate-12
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar  Not  Between foo  And bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-13
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar  Not  Between foo   bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not-between foobar-gte-foo foobar-lte-bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-14
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar  Between foo  And bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%between foobar-gte-foo foobar-lte-bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-15
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar between foo  And bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%between foobar-gte-foo foobar-lte-bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-16
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE T1.foo>=aLl bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%gte t1-foo [%all bar ~]]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-17
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE T1.foo nOt In bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not-in t1-foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-18
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE T1.foo not in (1,2,3) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not-in t1-foo value-literals]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-19
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE T1.foo in bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%in t1-foo bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-20
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE T1.foo in (1,2,3) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literals]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-21
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE NOT  EXISTS  T1.foo ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not-exists t1-foo ~]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-22
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE NOT  exists  foo ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%not-exists foo ~]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-23
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE EXISTS T1.foo ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%exists t1-foo ~]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-++  test-predicate-24
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE EXISTS  foo ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      [%exists foo ~]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::  test conjunctions, varying spacing and keyword casing
-++  test-predicate-25
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar >=foo And foobar<=bar ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      and-fb-gte-f--fb-lte-b
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: expected/actual match
-++  test-predicate-26
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar >=foo And foobar<=bar ".
-    " and T1.foo2 = ~zod ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)
-        :+  %and
-            :+  %and
-                [%gte foobar foo]
-                [%lte foobar bar]
-            :+  %eq
-                t1-foo2
-                [[%p 0] ~ ~]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: expected/actual match
-++  test-predicate-27
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar >=foo And foobar<=bar ".
-    " and T1.foo2 = ~zod ".
-    " or T2.bar in (1,2,3)".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      and-and-or
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: expected/actual match
-++  test-predicate-28
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar >=foo And foobar<=bar ".
-    " and T1.foo2 = ~zod ".
-    " or  ".
-    " foobar>=foo ".
-    " AND   T1.foo2=~zod ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      and-and-or-and
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: expected/actual match
-++  test-predicate-29
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar >=foo And foobar<=bar ".
-    " and T1.foo2 = ~zod ".
-    " or  ".
-    " foobar>=foo ".
-    " AND   T1.foo2=~zod ".
-    "  OR ".
-    " foo = 1 ".
-    " AND T1.foo3 < any (1,2,3) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-:: simple nesting
-++  test-predicate-30
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE (foobar > foo OR foobar < bar) ".
-    " AND T1.foo>foo2 ".
-    " AND T2.bar IN (1,2,3) ".
-    " AND (T1.foo3< any (1,2,3) OR T1.foo2=~zod AND foo=1 ) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)
-        :+  %and
-            :+  %and
-                :+  %and
-                    first-or
-                    t1-foo-gt-foo2
-                :+  %in
-                    t2-bar
-                    value-literals
-            :+  %or
-                t1-foo3-lt-any-list
-                :+  %and
-                    t1-foo2-eq-zod
-                    foo-eq-1
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::  nesting
-++  test-predicate-31
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE foobar > foo AND foobar < bar ".
-    " AND ( T1.foo>foo2 AND T2.bar IN (1,2,3) ".
-    "       OR (T1.foo3< any (1,2,3) AND T1.foo2=~zod AND foo=1 ) ".
-    "       OR (foo3=foo4 AND foo5=foo6) ".
-    "       OR foo4=foo5 ".
-    "      ) ".
-    " AND foo6=foo7".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      a-a-l-a-o-l-a-a-r-o-r-a-l-o-r-a
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::  simple nesting, superfluous () around entire predicate
-++  test-predicate-32
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
-    " WHERE ((foobar > foo OR foobar < bar) ".
-    " AND T1.foo>foo2 ".
-    " AND T2.bar IN (1,2,3) ".
-    " AND (T1.foo3< any (1,2,3) OR T1.foo2=~zod AND foo=1 )) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  pred=(tree predicate-component:ast)      king-and
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::  aggregate inequality
-++  test-predicate-33
-  =/  select  "from foo where  count( foobar )  > 10 select * "
-  =/  pred=(tree predicate-component:ast)  [%gt [aggregate-count-foobar ~ ~] literal-10]
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~]] ~ ~]]
-    !>  (parse:parse(default-database 'db1') select)
-::
-::  aggregate inequality, no whitespace
-++  test-predicate-34
-  =/  select  "from foo where count(foobar) > 10 select *"
-  =/  pred=(tree predicate-component:ast)  [%gt [aggregate-count-foobar ~ ~] literal-10]
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~]] ~ ~]]
-    !>  (parse:parse(default-database 'db1') select)
-::
-::  aggregate equality
-++  test-predicate-35
-  =/  select  "from foo where bar = count(foobar) select *"
-  =/  pred=(tree predicate-component:ast)  [%eq bar [aggregate-count-foobar ~ ~]]
-  %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~]] ~ ~]]
-    !>  (parse:parse(default-database 'db1') select)
-::
-::  complext predicate, bug test
-++  test-predicate-36
-  =/  query  "FROM adoptions AS A1 JOIN adoptions AS A2 ON A1.foo = A2.bar ".
-    " WHERE  A1.adoption-email = A2.adoption-email  ".
-    "  AND     A1.adoption-date = A2.adoption-date  ".
-    "  AND    foo = bar  ".
-    "  AND ((A1.name = A2.name AND A1.species > A2.species) ".
-    "       OR ".
-    "       (A1.name > A2.name AND A1.species = A2.species) ".
-    "       OR ".
-    "      (A1.name > A2.name AND A1.species > A2.species) ".
-    "     ) ".
-    " SELECT *"
-  =/  joinpred=(tree predicate-component:ast)  [%eq a1-foo a2-bar]
-  =/  pred=(tree predicate-component:ast)
-    [%and [%and [%and [%eq a1-adoption-email a2-adoption-email] [%eq a1-adoption-date a2-adoption-date]] [%eq foo bar]] [%or [%or [%and [%eq a1-name a2-name] [%gt a1-species a2-species]] [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]] [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]]]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'A1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'A2']]] as-of=~ predicate=`joinpred]]]] scalars=~ `pred group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
-::  outer parens
-++  test-predicate-37
-  =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON (T1.foo = T2.bar) SELECT *"
-  =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
-  =/  expected
-    [%selection ctes=~ [[%query [~ [%from object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T1']]] as-of=~ joins=~[[%joined-object join=%join object=[%table-set object=[%qualified-object ship=~ database='db1' namespace='dbo' name='adoptions' alias=[~ 'T2']]] as-of=~ predicate=`pred]]]] scalars=~ ~ group-by=~ having=~ select-all-columns order-by=~] ~ ~]]
-  %+  expect-eq
-    !>  ~[expected]
-    !>  (parse:parse(default-database 'db1') query)
-::
 ::  scalar
 ::
 ++  column-foo       :^  %qualified-column
@@ -2709,6 +2158,9 @@
 ::
 ::  NOTE: SELECT all literal types is in test/lib/queries/hoon
 ::
+++  select-all-columns  [%select top=~ bottom=~ columns=~[[%all %all]]]
+++  from-foo
+  [~ [%from object=[%table-set object=foo-table] as-of=~ joins=~]]
 ++  aliased-columns-1
   :~  [%unqualified-column column='x1' alias=[~ 'foo']]
       [%qualified-column qualifier=[%qualified-object ship=~ database='db' namespace='ns' name='table' alias=~] column='col1' alias=[~ 'foo2']]
@@ -2760,28 +2212,28 @@
 ++  test-select-02
   =/  select  "select top 10  bottom 10 * "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=~[all-columns]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=~[[%all %all]]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top, bottom
 ++  test-select-03
   =/  select  "select top 10  bottom 10 *"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=~[all-columns]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=[~ 10] columns=~[[%all %all]]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top, trailing whitespace
 ++  test-select-04
   =/  select  "select top 10   * "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=~ columns=~[all-columns]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=~ columns=~[[%all %all]]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top
 ++  test-select-05
   =/  select  "select top 10   *"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=~ columns=~[all-columns]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] bottom=~ columns=~[[%all %all]]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select, trailing whitespace
@@ -2802,14 +2254,14 @@
 ++  test-select-08
   =/  select  "select bottom 10 * "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=[~ 10] columns=~[all-columns]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=[~ 10] columns=~[[%all %all]]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select bottom
 ++  test-select-09
   =/  select  "select bottom 10 *"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=[~ 10] columns=~[all-columns]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query ~ scalars=~ ~ group-by=~ having=~ [%select top=~ bottom=[~ 10] columns=~[[%all %all]]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  select top, bottom, simple columns
@@ -3173,21 +2625,19 @@
 ++  upd-col1  [%qualified-column foo-table column='col1' alias=~]
 ++  upd-col2  [%qualified-column foo-table column='col2' alias=~]
 ++  upd-col3  [%qualified-column foo-table column='col3' alias=~]
+++  upd-col4  [%qualified-column foo-table column='col4' alias=~]
 ++  unqlf-2   [%unqualified-column column=%col2 alias=~]
 ::
 :: update one column, no predicate
 ++  test-update-00
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3195,17 +2645,14 @@
 ::
 :: update one column, no predicate as of now
 ++  test-update-01
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3213,17 +2660,14 @@
 ::
 :: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-02
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3231,17 +2675,14 @@
 ::
 :: update one column, no predicate as of 4 seconds ago
 ++  test-update-03
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col1]
-                                values=~[[value-type=%t value='hello']]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3249,35 +2690,49 @@
 ::
 :: update two columns, no predicate
 ++  test-update-04
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
             "update foo set col1=col2, col3 = 'hello'"
 ::
+:: update three columns, no predicate, end of command marker
+++  test-update-04a
+  =/  expected  :*  %update
+                    ctes=~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col4 upd-col3 upd-col1]
+                        :~  %default
+                            [value-type=%ud value=44]
+                            [value-type=%t value='hello']
+                            ==
+                    predicate=~
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "update foo set col1='hello', ".
+                  "                    col3=44, ".
+                  "                    col4=DEFAULT; "
+::
 :: update two columns, no predicate as of now
 ++  test-update-05
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3285,17 +2740,14 @@
 ::
 :: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-06
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3304,17 +2756,14 @@
 ::
 :: update two columns, no predicate as of 4 seconds ago
 ++  test-update-07
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=~
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=~
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3322,17 +2771,14 @@
 ::
 :: update two columns, with predicate
 ++  test-update-08
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3340,17 +2786,14 @@
 ::
 :: update two columns, with predicate as of now
 ++  test-update-09
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3359,17 +2802,14 @@
 ::
 :: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-10
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3378,17 +2818,14 @@
 ::
 :: update two columns, with predicate as of 4 seconds ago
 ++  test-update-11
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3397,17 +2834,14 @@
 ::
 :: update with one cte and predicate
 ++  test-update-12
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3416,17 +2850,14 @@
 ::
 :: update with one cte and predicate as of now
 ++  test-update-13
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3435,17 +2866,14 @@
 ::
 :: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-14
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3455,17 +2883,14 @@
 ::
 :: update with one cte and predicate as of 4 seconds ago
 ++  test-update-15
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3475,17 +2900,14 @@
 ::
 :: update with three ctes and predicate
 ++  test-update-16
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3496,17 +2918,14 @@
 ::
 :: update with three ctes and predicate as of now
 ++  test-update-17
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=~
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3518,17 +2937,14 @@
 ::
 :: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-18
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -3540,17 +2956,14 @@
 ::
 :: update with three ctes and predicate as of 4 seconds ago
 ++  test-update-19
-  =/  expected  :+  %selection
+  =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    :+  :*  %update
-                            table=foo-table
-                            as-of=[~ [%as-of-offset 4 %seconds]]
-                            :-  columns=~[upd-col3 upd-col1]
-                                values=~[[value-type=%t value='hello'] unqlf-2]
-                            predicate=`update-pred
-                            ==
-                        ~
-                        ~
+                    table=foo-table
+                    as-of=[~ [%as-of-offset 4 %seconds]]
+                    :-  columns=~[upd-col3 upd-col1]
+                        values=~[[value-type=%t value='hello'] unqlf-2]
+                    predicate=`update-pred
+                    ==
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')

@@ -49,6 +49,7 @@
     create-namespace
     create-table
     create-view
+    delete
     drop-database
     drop-index
     drop-namespace
@@ -58,6 +59,7 @@
     revoke
     selection
     truncate-table
+    update
   ==
 ::
 ::  simple union types
@@ -75,7 +77,7 @@
 +$  value-literals
   $:
     %value-literals
-    dime
+    dime               :: false dime [<aura of type> <crip of literal list>]
   ==
 +$  ordered-column
   $:
@@ -127,7 +129,7 @@
 +$  inequality-op        ?(%neq %gt %gte %lt %lte)
 +$  all-any-op           ?(%all %any)
 +$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
-+$  unary-op             ?(%exists %not-exists)
++$  unary-op             ?(%exists %not-exists %not)
 +$  conjunction          ?(%and %or)
 +$  ops-and-conjs
       ?(ternary-op binary-op unary-op all-any-op conjunction)
@@ -313,7 +315,7 @@
   $:
     %cte
     name=@tas
-    set-cmd
+    query
   ==
 +$  set-op
   $?
@@ -323,12 +325,8 @@
     %divided-by
     %divide-with-remainder
     %into
-    %pass-thru
-    %nop
-    %tee
-    %multee
   ==
-+$  set-cmd       $%(delete insert update query merge)
++$  set-cmd       $%(insert merge query)
 +$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
@@ -338,10 +336,26 @@
 +$  delete
   $:
     %delete
+    ctes=(list cte)
     table=qualified-object
     as-of=(unit as-of)
     predicate=predicate
   ==
+::
+::  $update:
++$  update
+  $:
+    %update
+    ctes=(list cte)
+    table=qualified-object
+    as-of=(unit as-of)
+    $:  columns=(list qualified-column)
+        values=(list value-or-default)
+        ==
+    predicate=(unit predicate)
+  ==
+::
+::
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
 ::  $insert:
@@ -354,18 +368,6 @@
     values=insert-values
   ==
 +$  value-or-default     ?(%default datum)
-::
-::  $update:
-+$  update
-  $:
-    %update
-    table=qualified-object
-    as-of=(unit as-of)
-    $:  columns=(list qualified-column)
-        values=(list value-or-default)
-        ==
-    predicate=(unit predicate)
-  ==
 ::
 ::  $merge: merge from source table-set into target table-set
 +$  merge

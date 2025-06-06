@@ -74,7 +74,6 @@
 ++  idx-comp-2
   |_  index=(list [@tas ?])
   ++  order
-    ::|=  [p=(list @) q=(list @)]
     |=  [a=[(list @) *] b=[(list @) *]]
     =/  p  -.a
     =/  q  -.b
@@ -88,7 +87,7 @@
 ::
 ++  pri-key
   |=  key=(list key-column)
-        ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
+  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
@@ -119,7 +118,7 @@
   nxt-schema
 ::
 ::  gets the data with matching or highest timestamp prior to
-++  data-key    ((on @da data) gth)
+++  data-key  ((on @da data) gth)
 ++  get-data
   |=  [sys=((mop @da data) gth) time=@da]
   ^-  data
@@ -349,10 +348,25 @@
 ++  mk-templ-cell
   |=  a=qual-col-type
   ^-  templ-cell
-  (templ-cell %templ-cell `-.a `vector-cell`[column.-.a [+.a 0]])
+  (templ-cell %templ-cell `-.a 0 `vector-cell`[column.-.a [+.a 0]])
+++  addr-join
+  |=  [j=joined-row cs=(list templ-cell)]
+  ^-  (list templ-cell)
+  =/  cs2=(list templ-cell)  ~
+  |-
+  ?~  cs  (flop cs2)
+  ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
+  =/  qual-col  (need object.i.cs)
+  =/  xx=(map @tas @)  (~(got by +.j) qualifier.qual-col)
+  =/  addr  (~(dig by xx) column:(need object.i.cs))
+  %=  $
+    cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
+    cs  t.cs
+  ==
 ++  mk-vect-templ
   |=  $:  cols=(list qual-col-type)
           selected=(list selected-column:ast)
+          j=joined-row
           ==
   ^-  (list templ-cell)
   =/  i  0
@@ -364,7 +378,7 @@
   =/  cells=(list templ-cell)  ~
   ::
   |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
+  ?~  selected  ?~  cells  ~|("no cells" !!)  (addr-join j cells)
   ?:  =([%all %all] i.selected)
     %=  $
       i         +(i)
@@ -380,6 +394,7 @@
                %:  templ-cell
                      %templ-cell
                      [~ i.selected]
+                     0  :: addr
                      :-  (heading i.selected column.i.selected)
                          :-  %-  ~(got by col-lookup)
                                  [qualifier.i.selected column.i.selected]
@@ -408,6 +423,7 @@
       cells
         :-  %:  templ-cell  %templ-cell
                             ~
+                            0  :: addr
                             :-  (heading i.selected (crip "literal-{<i>}"))
                                 [p=+<-.i.selected q=+<+.i.selected]
                             ==
@@ -441,23 +457,6 @@
                                                 alias.sel
                                                 ==
                       selected-out
-  ==
-::
-++  mk-object-lookup
-  |=  cols=(list qual-col-type)
-  ^-  (map @tas (list qualified-object:ast))
-  =/  object-lookup=(map @tas (list qualified-object:ast))  ~
-  |-
-  ?~  cols  object-lookup
-  =/  column=qualified-column:ast  -<.cols
-  %=  $
-    cols  +.cols
-    object-lookup  ?.  (~(has by object-lookup) column.column)
-                     (~(put by object-lookup) column.column ~[qualifier.column])
-                   =/  objects=(list qualified-object:ast)
-                        (~(got by object-lookup) column.column)
-                   %+  ~(put by object-lookup)  column.column
-                                                [qualifier.column objects]
   ==
 ::
 ::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
@@ -608,7 +607,11 @@
                                                     ==
                                       (need sys-vws)
     %update
-      ~|("%update not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %data-log]
+                                    ==
     %delete
       %^  next-view-cache-keys  db
                                 sys-time
@@ -654,6 +657,111 @@
                                      (limo ~[object.source])
     ==
 ::
+::  +common-txn
+::    [tape server @da qualified-object:ast (unit as-of:ast) (map @tas @da)]
+::    -> txn-meta
+::
+::  source-content-time is the data state time against which to apply the
+::  change. It is the closest available table state = or < than requested
+::  as-of time.
+::  The resulting data state time will always be NOW.
+++  common-txn
+  |=  $:  txn=tape
+          state=server
+          now=@da
+          t=qualified-object:ast
+          as-of=(unit as-of:ast)
+          next-schemas=(map @tas @da)
+          ==
+  ^-  txn-meta
+  =/  db  ~|  %+  weld  txn  ": database {<database.t>} does not exist"
+          (~(got by state) database.t)
+  =/  content-time  (set-tmsp as-of now)
+  =/  nxt-schema=schema  ~|  %+  weld  txn  ": table {<name.t>} ".
+                             "as-of schema time out of order"
+                              %:  get-next-schema  sys.db
+                                                    next-schemas
+                                                    now
+                                                    database.t
+                                                    ==
+  =/  nxt-data=data  ~|  %+  weld  txn  ": table {<name.t>} ".
+                         "as-of data time out of order"
+                         (get-data-next content.db now)
+  =/  tbl-key  [namespace.t name.t]
+  =/  =table  ~|  %+  weld  txn  ": table {<tbl-key>} does not exist"
+                  (~(got by tables:nxt-schema) tbl-key)
+  =/  f=file  (get-content content.db content-time tbl-key)
+  :*  %txn-meta
+      db
+      tbl-key
+      nxt-data
+      table
+      f
+      tmsp.f
+      ==
+::
+::  +update-cat:  (list indexed-row) -> [@ud column-addrs column-catalog]
+::
+++  update-cat
+  |=  rs=(list indexed-row)
+  ^-  [@ud column-addrs column-catalog]
+  ?:  =(rs ~)  [0 ~ ~]
+  =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
+  =/  ord  0
+  =/  p  -.pq
+  =/  q  +.pq
+  =/  idx  ((on @ value-idx) lth)
+  =/  flop-domains
+        |=  [k=@tas v=column-mta]
+        ^-  column-mta
+        =/  idx  ((on @ value-idx) lth)
+        :^  %column-mta
+            addr.v
+            distinct.v
+            (run:idx values.v |=(a=value-idx [first.a last.a (flop domain.a)]))
+  |-
+  ?~  rs  [ord p (~(urn by q) flop-domains)]
+  %=  $
+    ord  +(ord)
+    rs   +.rs
+    q    (~(urn by q) |=([k=@tas v=column-mta] (record-values ord v i.rs)))
+  ==
+++  record-values
+  |=  [ord=@ud mta=column-mta r=indexed-row]
+  ^-  column-mta
+  =/  col-val  ;;(@ +:.*(+.r [0 addr.mta]))
+  =/  idx  ((on @ value-idx) lth)
+  =/  val-log  (get:idx values.mta col-val)
+  ?~  val-log
+    %:  column-mta  %column-mta
+                    addr.mta
+                    +(distinct.mta)
+                    (put:idx values.mta col-val [ord ord ~[ord]])
+                    ==
+  =/  log  (need val-log)
+  %:  column-mta  %column-mta
+                  addr.mta
+                  distinct.mta
+                  (put:idx values.mta col-val [first.log ord [ord domain.log]])
+                  ==
+::
+::  +init-cat:  indexed-row -> [column-addrs column-catalog]
+::
+++  init-cat
+  |=  r=indexed-row
+  ^-  [column-addrs column-catalog]
+  =/  addrs=column-addrs      ~
+  =/  cat       ~(tap by +.r)
+  =/  catalog=column-catalog  ~
+  |-   
+  ?~  cat  [addrs catalog]
+  =/  addr  (need (~(dig by +.r) -.i.cat))
+  %=  $
+    cat      t.cat
+    addrs    (~(put by addrs) -.i.cat addr)
+    catalog  (~(put by catalog) -.i.cat (column-mta %column-mta addr 0 ~))
+  ==
+::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
 ::  Applies a function to each element of the list, threading an
@@ -680,7 +788,13 @@
 ::
 ++  update-file
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
-  =.  indexed-rows.file  (tap:(pri-key primary-key) pri-idx.file)
+  ~+  :: keeper
+  =/  new-indexed-rows  (tap:(pri-key primary-key) pri-idx.file)
+  =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
+  =.  column-addrs.file    +<.rpq
+  =.  column-catalog.file  +>.rpq
+  =.  indexed-rows.file    new-indexed-rows
+  =.  rowcount.file        -.rpq
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
@@ -700,13 +814,13 @@
   |=  [p=value-or-default:ast q=column:ast]
   ^-  [@tas @]
   ?:  ?=(dime p)
-    ?:  =(%default p.p)
-      ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
-      [name.q 0]
     ?:  =(p.p type.q)  [name.q q.p]
     ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
         "does not match input value type {<p.p>}"
         !!
+  ?:  =(%default p)
+    ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
+    [name.q 0]
   ~|("row cell {<p>} not supported" !!)
 ::
 ++  make-key-pick
@@ -750,6 +864,7 @@
 ::  alphabetic order cords
 ++  alpha 
   |=  [a=@ b=@]
+  ~+  :: keep, makes big difference inserting large @t
   ^-  ?
   ?:  =(a b)  %.y
   =/  e=(list ?)  ~
@@ -810,6 +925,7 @@
 ::
 ++  name-set
   |*  a=(set)
+  ~+   :: keep, seems to make small difference
   ^-  (set @tas)
   (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 ::
@@ -833,6 +949,18 @@
 +$  templ-cell
   $:  %templ-cell
       object=(unit qualified-column:ast)
+      addr=@
       vc=vector-cell
   ==
+::
+::  common metadata for DELETE, INSERT, UPDATE
++$  txn-meta
+  $:  %txn-meta
+      db=database
+      tbl-key=[@tas @tas]
+      nxt-data=data
+      =table
+      =file
+      source-content-time=@da
+      ==
 --

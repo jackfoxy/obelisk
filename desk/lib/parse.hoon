@@ -36,24 +36,6 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-
-::
-::  parsed list is a predicate leaf
-++  pred-leaf
-  |=  parsed=(list raw-pred-cmpnt)
-  ^-  predicate:ast
-  ?.  ?=(predicate-component:ast -.parsed)
-    ~|("unknown predicate node {<-.parsed>}" !!)
-  ?+  -.parsed  ~|("unknown predicate leaf {<-.parsed>}" !!)
-    qualified-column:ast
-      [-.parsed ~ ~]
-    dime
-      [-.parsed ~ ~]
-    aggregate:ast
-      [-.parsed ~ ~]
-    value-literals:ast
-      [-.parsed ~ ~]
-  ==
 ::
 ::  +parse: parse urQL script, emitting list of high level AST structures
 ++  parse
@@ -173,6 +155,7 @@
   ?:  =(0 (lent q.q:check-empty))                  :: after last end-command (;)
     (flop commands)
   =/  command-nail  u.+3:q.+3:(parse-command [[1 1] script])
+  ~|  "PARSER: "
   ?-  `urql-command`p.command-nail
     %alter-index
       ~|  "alter index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -840,11 +823,7 @@
       =/  parsed  (wonk delete-nail)
       %=  $
         script    q.q.u.+3.q:delete-nail
-        commands  :-  %:  selection:ast  %selection
-                                        ~
-                                        [(produce-delete parsed) ~ ~]
-                                        ==
-                      commands
+        commands  [(produce-delete ~ parsed) commands]
       ==
     %drop-database
       ~|  "drop database error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1205,9 +1184,8 @@
       =/  update-nail  (parse-update [[1 1] q.q.command-nail])
       =/  parsed  (wonk update-nail)
       %=  $
-        script           q.q.u.+3.q:update-nail
-        commands
-          [(selection:ast %selection ~ [(produce-update parsed) ~ ~]) commands]
+        script    q.q.u.+3.q:update-nail
+        commands  [(produce-update ~ parsed) commands]
       ==
     %with
       ~|  "with error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -1216,19 +1194,16 @@
       ?:  =(+<.parsed %delete)
         %=  $
           script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-delete +>.parsed) ~ ~]
-                                          ==
+          commands  :-  (produce-delete (produce-ctes -.parsed) +>.parsed)
                         commands
         ==
       ?:  =(+<.parsed %insert)
         %=  $
           script    q.q.u.+3.q:with-nail
           commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-insert +>.parsed) ~ ~]
-                                          ==
+                                           (produce-ctes -.parsed)
+                                           [(produce-insert +>.parsed) ~ ~]
+                                           ==        
                         commands
         ==
       ?:  =(+<.parsed %merge)
@@ -1252,38 +1227,10 @@
       ?:  =(+<.parsed %update)
         %=  $
           script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-update +>.parsed) ~ ~]
-                                          ==
+          commands  :-  (produce-update (produce-ctes -.parsed) +>.parsed)
                         commands
         ==
       !!
-  ==
-+$  urql-command
-  $%
-    %alter-index
-    %alter-namespace
-    %alter-table
-    %create-database
-    %create-index
-    %create-namespace
-    %create-table
-    %create-view
-    %delete
-    %drop-database
-    %drop-index
-    %drop-namespace
-    %drop-table
-    %drop-view
-    %grant
-    %insert
-    %merge
-    %query
-    %revoke
-    %truncate-table
-    %update
-    %with
   ==
 ::
 ::  parse urQL commands
@@ -1566,7 +1513,7 @@
             ;~(plug (stag ~.p parse-ship) (stag ~ ;~(pfix whitespace stap)))
             ;~(plug (stag ~.p parse-ship) (easy ~))
             ==
-++  parse-ship  ;~(pfix sig fed:ag)
+++  parse-ship  ~+  ;~(pfix sig fed:ag)
 ++  parse-grant-objects
   ;~  pfix
     whitespace
@@ -1922,18 +1869,22 @@
     ;~(plug (jester 'when') whitespace)
   ==
 ++  update-column-inner  ~+
-  ;~  pose
   ;~  plug
     sym
     ;~  pfix
       whitespace
       ;~  pfix
         (jest '=')
-        ;~(pfix whitespace ;~(pose parse-qualified-column parse-value-literal))
+        ;~  pfix
+            whitespace
+            ;~  pose  parse-qualified-column
+                      parse-value-literal
+                      (cold %default (jester 'default'))
+                      ==
+            ==
         ==
       ==
     ==
-  ==
 ++  update-column  ~+
   ;~  pose
     ;~(pfix whitespace ;~(sfix update-column-inner whitespace))
@@ -1942,26 +1893,29 @@
     update-column-inner
   ==
 ++  parse-update  ~+
-  ;~  pose
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-object)
-      parse-as-of
-      (cold %set ;~(plug whitespace (jester 'set')))
-      (more com update-column)
+  ;~  sfix
       ;~  pose
-        ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
-        (easy ~)
+        ;~  plug
+          ;~(pfix whitespace parse-qualified-object)
+          parse-as-of
+          (cold %set ;~(plug whitespace (jester 'set')))
+          (more com update-column)
+          ;~  pose
+            ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
+            (easy ~)
+            ==
         ==
-    ==
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-object)
-      (cold %set ;~(plug whitespace (jester 'set')))
-      (more com update-column)
-      ;~  pose
-        ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
-        (easy ~)
+        ;~  plug
+          ;~(pfix whitespace parse-qualified-object)
+          (cold %set ;~(plug whitespace (jester 'set')))
+          (more com update-column)
+          ;~  pose
+            ;~(pfix ;~(plug whitespace (jester 'where')) parse-predicate)
+            (easy ~)
+            ==
         ==
-    ==
+      ==
+      end-or-next-command
   ==
 ++  parse-with  ~+
   ;~  plug
@@ -2103,12 +2057,13 @@
     ==
   ~|('cannot produce ctes from parsed:  {<a>}' !!)
 ++  produce-delete
-  |=  a=*
+  |=  [ctes=(list cte:ast) a=*]
    ~+
   ^-  delete:ast
   ?>  ?=(qualified-object:ast -.a)
   ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     ~
                     %+  qualify-predicate
@@ -2117,6 +2072,7 @@
                     ==
   ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     ~
                     %+  qualify-predicate
@@ -2125,6 +2081,7 @@
                     ==
   ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     [~ +<+.a]
                     %+  qualify-predicate
@@ -2133,6 +2090,7 @@
                     ==
   ?:  ?=([* [%as-of *] %where * %end-command ~] a)
     %:  delete:ast  %delete
+                    ctes
                     -.a
                     [~ (as-of-offset:ast %as-of-offset +<+<.a +<+>-.a)]
                     %+  qualify-predicate
@@ -2143,6 +2101,7 @@
 ::
 ++  qualify-predicate
   |=  [p=predicate:ast obj=qualified-object:ast]
+  ~+
   ^-  predicate:ast
   ::
   |-
@@ -2151,6 +2110,7 @@
 ::
 ++  qualify-pred-leaf
   |=  [a=predicate-component:ast obj=qualified-object:ast]
+  ~+
   ^-  predicate-component:ast
   ?.  ?&  ?=(qualified-column:ast a)
           =('UNKNOWN' database.qualifier.a)
@@ -2172,13 +2132,15 @@
   ::
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
     %:  insert:ast  %insert
-                     table
-                     ~
-                     ~
-                     (insert-values:ast %data +>.c)
-                     ==
+
+                    table
+                    ~
+                    ~
+                    (insert-values:ast %data +>.c)
+                    ==
   ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
     %:  insert:ast  %insert
+
                     table
                     [~ ->.c]
                     ~
@@ -2186,6 +2148,7 @@
                     ==
   ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
     %:  insert:ast  %insert
+
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
                     ~
@@ -2193,20 +2156,23 @@
                     ==
   ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
     %:  insert:ast  %insert
+
                     table
                     ~
                     `+<-.c
                     (insert-values:ast %data +>.c)
                     ==
   ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
-     %:  insert:ast  %insert
+    %:  insert:ast  %insert
+
                     table
                     [~ ->.c]
                     `+<-.c
                     (insert-values:ast %data +>.c)
                     ==
   ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
-     %:  insert:ast  %insert
+    %:  insert:ast  %insert
+
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
                     `+<-.c
@@ -2214,6 +2180,7 @@
                     ==
   ?:  ?=([%values *] c)            :: insert rows
     %:  insert:ast  %insert
+
                     table
                     ~
                     ~
@@ -2221,6 +2188,7 @@
                     ==
   ?:  ?=([[* %values] *] c)        :: insert column names rows
     %:  insert:ast  %insert
+
                     table
                     ~
                     `-<.c
@@ -2455,10 +2423,12 @@
   ?:  =(-.a %end-command)    %:  query:ast
                                 %query
                                 ?~  from  ~
-                                  `(fix-from-predicates (need from) alias-map)
+                                  `(finalize-predicates (need from) alias-map)
                                 scalars
                                 ?~  predicate  ~
-                                  `(fix-predicate (need predicate) alias-map)
+                                  :-  ~
+                                      %+  finalize-predicate  (need predicate)
+                                                              alias-map
                                 group-by
                                 having
                                 (need select)
@@ -2481,6 +2451,7 @@
 ::
 ++  produce-from
   |=  a=*
+  ~+
   ^-  from:ast
   =/  from-object=table-set:ast
         ?:  ?=([%table-set %qualified-object (unit @p) @ @ @ (unit @t)] -<.a)
@@ -2682,8 +2653,9 @@
     ~|("join not supported: {<raw-join>}" !!)
   ~|("join type not supported: {<-.raw-join>}" !!)
 ::
-++  fix-from-predicates
+++  finalize-predicates
   |=  [f=from:ast alias-map=(map @t qualified-object:ast)]
+  ~+
   ^-  from:ast
   =/  jss  joins.f
   =/  js=(list joined-object:ast)  ~
@@ -2698,22 +2670,24 @@
                    join.j
                    object.j
                    as-of.j
-                   `(fix-predicate (need predicate.j) alias-map)
+                   `(finalize-predicate (need predicate.j) alias-map)
                    ==
              js
     jss  +.jss
   ==
 ::
-++  fix-predicate
+++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
+  ~+
   ^-  predicate:ast
   ::
   |-
   ?~  p  ~
-  p(n (fix-leaf n.p alias-map), l $(p l.p), r $(p r.p))
+  p(n (finalize-leaf n.p alias-map), l $(p l.p), r $(p r.p))
 ::
-++  fix-leaf
+++  finalize-leaf
   |=  [a=predicate-component:ast alias-map=(map @t qualified-object:ast)]
+  ~+
   ^-  predicate-component:ast
   ?-  a
     ops-and-conjs:ast
@@ -2748,6 +2722,7 @@
 ::
 ++  mk-all-object
   |=  [=qualified-column:ast alias-map=(map @t qualified-object:ast)]
+  ~+
   ^-  selected-all-object:ast
   =/  object  %-  ~(get by alias-map)
                   (crip (cass (trip name.qualifier.qualified-column)))
@@ -2764,6 +2739,7 @@
 ::
 ++  mk-qualified-object
   |=  [sel-col=qualified-column:ast alias-map=(map @t qualified-object:ast)]
+  ~+
   ^-  qualified-column:ast
   =/  object  %-  ~(get by alias-map)
                   (crip (cass (trip name.qualifier.sel-col)))
@@ -2787,8 +2763,9 @@
       alias.sel-col
       ==
 ::
-++  fix-select
+++  finalize-select
   |=  [s=(list selected-column:ast) alias-map=(map @t qualified-object:ast)]
+  ~+
   ^-  (list selected-column:ast)
   =/  s-out=(list selected-column:ast)  ~
   ::
@@ -2833,6 +2810,7 @@
 ::
 ++  mk-alias-map
   |=  f=from:ast
+  ~+
   ^-  (map @t qualified-object:ast)
   =/  n  (mk-alias-map-joins ~ joins.f)
   ?.  ?=(qualified-object:ast object.object.f)
@@ -2844,6 +2822,7 @@
 ::
 ++  mk-alias-map-joins
   |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
+  ~+
   ^-  (map @t qualified-object:ast)
   |-
   ?~  js  m
@@ -2865,6 +2844,7 @@
 ::
 ++  mk-obj-name-map
   |=  f=from:ast
+  ~+
   ^-  (map @t qualified-object:ast)
   =/  n  (mk-obj-name-map-joins ~ joins.f)
   ?.  ?=(qualified-object:ast object.object.f)
@@ -2874,6 +2854,7 @@
 ::
 ++  mk-obj-name-map-joins
   |=  [m=(map @t qualified-object:ast) js=(list joined-object:ast)]
+  ~+
   ^-  (map @t qualified-object:ast)
   |-
   ?~  js  m
@@ -2884,28 +2865,6 @@
     m   %+  ~(put by m)  (crip (cass (trip name.object.object.j)))
                          object.object.j
     js  +.js
-  ==
-+$  select-mold-1
-  $:
-    $:  %selected-aggregate
-        @
-        %qualified-column
-        [%qualified-object (unit @p) @ @ @ (unit @t)]
-        @
-        @
-        ==
-    %as
-    @
-  ==
-+$  select-mold-2
-  $:
-    $:  %selected-aggregate
-        @
-        %qualified-column
-        [%qualified-object (unit @p) @ @ @ (unit @t)]
-        @
-        @
-        ==
   ==
 ++  produce-select
   |=  [a=* f=(unit from:ast) alias-map=(map @t qualified-object:ast)]
@@ -2919,7 +2878,7 @@
       ?~  columns  ~|('no columns selected' !!)
       ?~  f
         (select:ast %select top bottom (flop columns))
-      (select:ast %select top bottom (fix-select (flop columns) alias-map))
+      (select:ast %select top bottom (finalize-select (flop columns) alias-map))
     ?@  -.a
       ?+  -.a  ~|('some other select atom' !!)
       %top       ?>  ?=(@ud +<.a)  $(top `+<.a, a +>.a)
@@ -3035,13 +2994,14 @@
       ==
     ?>  ?=(qualified-column:ast -.a)  $(columns [-.a columns], a +.a)
 ++  produce-update
-  |=  a=*
+  |=  [ctes=(list cte:ast) a=*]
   ~+
   ^-  update:ast
   =/  table=qualified-object:ast  ?>(?=(qualified-object:ast -.a) -.a)
   =/  b  +.a
   ?:  ?=([%set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     ~
                     (produce-column-sets table +<.b)
@@ -3049,6 +3009,7 @@
                     ==
   ?:  ?=([[%as-of %now] %set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     ~
                     (produce-column-sets table +>-.b)
@@ -3056,6 +3017,7 @@
                     ==
   ?:  ?=([[%as-of @ @] %set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
@@ -3063,6 +3025,7 @@
                     ==
   ?:  ?=([[%as-of *] %set * ~] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
                     (produce-column-sets table +>-.b)
@@ -3070,6 +3033,7 @@
                     ==                    
   ?:  ?=([[%as-of %now] %set * *] b)
     %:  update:ast  %update
+                    ctes
                     table
                     ~
                     (produce-column-sets table +>-.b)
@@ -3080,6 +3044,7 @@
                     ==
   ?:  ?=([[%as-of @ @] %set * *] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
@@ -3090,6 +3055,7 @@
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
     %:  update:ast  %update
+                    ctes
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
                     (produce-column-sets table +>-.b)
@@ -3099,6 +3065,7 @@
                             table
                     ==
   %:  update:ast  %update
+                  ctes
                   table
                   ~
                   (produce-column-sets table +<.b)
@@ -3111,48 +3078,30 @@
 ++  produce-column-sets
   |=  [table=qualified-object:ast a=*]
   ~+
-  ^-  [(list qualified-column:ast) (list datum:ast)]
+  ^-  [(list qualified-column:ast) (list value-or-default:ast)]
   =/  columns=(list qualified-column:ast)  ~
-  =/  values=(list datum:ast)  ~
+  =/  values=(list value-or-default:ast)  ~
   |-
   ?:  =(a ~)
     [columns values]
   =/  b  -.a
-  ?:  ?&  |(?=(qualified-column:ast -.b) ?=(@tas -.b))
-          ?=(datum:ast +.b)
-          ==
-    %=  $
-      columns  ?:  ?=(qualified-column:ast -.b)
-                 [-.b columns]
-               :-  %:  qualified-column:ast  %qualified-column
+  %=  $
+      columns  :-  %:  qualified-column:ast  %qualified-column
                                              table
                                              -.b
                                              ~
                                              ==
                    columns
       values   ?.  ?=(qualified-column:ast +.b)
-                 [+.b values]
+                 [;;(value-or-default:ast +.b) values]
                ?:  ?&  =('UNKNOWN' database.qualifier.+.b)
                       =('COLUMN-OR-CTE' namespace.qualifier.+.b)
                       ==
                  :-  (unqualified-column:ast %unqualified-column column.+.b ~)
                      values
-               [+.b values]
+               [;;(value-or-default:ast +.b) values]
       a        +.a
-    ==
-  ~|("cannot parse column setting {<a>}" !!)
-::
-::  helper types
-::
-+$  interim-key
-  $:
-    %interim-key
-    columns=(list ordered-column:ast)
   ==
-+$  parens        ?(%pal %par)
-+$  raw-pred-cmpnt  ?(parens predicate-component:ast)
-+$  group-by-list  (list grouping-column:ast)
-+$  order-by-list  (list ordering-column:ast)
 ::
 ::  parser rules and helpers
 ::
@@ -3427,7 +3376,7 @@
             ==
 ++  insert-value  ~+
   ;~  pose
-    (cold [%default %default] (jester 'default'))  :: \/ to do: inside-out
+    (cold %default (jester 'default'))  :: \/ to do: inside-out
     ;~(pose non-numeric-parser (cook cook-numbers numeric-characters))
   ==
 ++  get-value-literal  ~+
@@ -3447,15 +3396,14 @@
   |=  a=(list dime)
   ~+
   =/  literal-type=@tas  -<.a
-  =/  b  a
   =/  literal-list=tape  ~
   |-
-  ?:  =(b ~)
+  ?:  =(a ~)
     (value-literals:ast %value-literals literal-type (crip literal-list))
-  ?:  =(-<.b literal-type)
+  ?:  =(-<.a literal-type)
     ?:  =(literal-list ~)
-      $(b +.b, literal-list (a-co:co ->.b))
-    $(b +.b, literal-list (weld (weld (a-co:co ->.b) ";") literal-list))
+      $(a +.a, literal-list (a-co:co ->.a))
+    $(a +.a, literal-list (weld (weld (a-co:co ->.a) ";") literal-list))
   ~|("cannot parse literal-list  {<a>}" !!)
 ++  value-literal-list  ~+
   %:  cook  cook-literal-list
@@ -3983,7 +3931,7 @@
   ==
 ++  parse-cross-join-obj  ~+
   ;~(plug parse-cross-join-type parse-query-object)
-++  parse-natural-join
+++  parse-natural-join  ~+
   ;~  plug
     ;~  pfix  whitespace
       (cold %join (jester 'join'))
@@ -4003,6 +3951,7 @@
   ==
 ++  make-query-object
   |=  a=*
+  ~+
   ^-  table-set:ast
   ?:  ?=(qualified-object:ast a)
     (table-set:ast %table-set a)
@@ -4144,6 +4093,7 @@
     %:  cold  %not-exists
               ;~(plug (jester 'not') whitespace (jester 'exists') whitespace)
               ==
+    (cold %not ;~(plug (jester 'not') whitespace))
     (cold %exists ;~(plug (jester 'exists') whitespace))
     (cold %any ;~(plug (jester 'any') whitespace))
     (cold %all ;~(plug (jester 'all') whitespace))
@@ -4265,9 +4215,17 @@
   =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
         (split-at parsed cmpnt-displ.state)
   ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
-    unary-op:ast     :: ?(%not-exists %exists)
-      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+    unary-op:ast     :: ?(%not %not-exists %exists)
+      ?~  p.r
+        [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+      ?:  ?=(unary-op:ast -.p.r)
+        [-.p.r (produce-predicate q.r) ~]
+      ~|("unknown predicate node {<-.p.r>}" !!)
     binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
+      ?:  ?=(unary-op:ast -.p.r)
+        ?:  ?=(%not -.p.r)
+          [-.p.r (produce-predicate +.parsed) ~]
+        ~|("malformed predicate {<-.p.r>}" !!)
       [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
     ternary-op:ast   :: %between, %not-between
       ?:  =(%and +>-.q.r)
@@ -4283,9 +4241,28 @@
       [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
   ==
 ::
+::  parsed list is a predicate leaf
+++  pred-leaf
+  |=  parsed=(list raw-pred-cmpnt)
+  ~+
+  ^-  predicate:ast
+  ?.  ?=(predicate-component:ast -.parsed)
+    ~|("unknown predicate node {<-.parsed>}" !!)
+  ?+  -.parsed  ~|("unknown predicate leaf {<-.parsed>}" !!)
+    qualified-column:ast
+      [-.parsed ~ ~]
+    dime
+      [-.parsed ~ ~]
+    aggregate:ast
+      [-.parsed ~ ~]
+    value-literals:ast
+      [-.parsed ~ ~]
+  ==
+::
 ::    +pred-folder  [raw-pred-cmpnt pred-folder-state] -> pred-folder-state
 ++  pred-folder
   |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
+  ~+
   ^-  pred-folder-state
   ?+  pred-comp  (advance-pred-folder-state state)
     ::
@@ -4306,7 +4283,7 @@
           ==
     ::
     :: these operators have equivalent precendence, choose first in lowest level
-    unary-op:ast     :: ?(%not %exists)
+    unary-op:ast     :: ?(%not %exists %not-exists)
       ?:  &(=(level.state 0) =(cmpnt.state ~))
         (update-pred-folder-state pred-comp state)
       (advance-pred-folder-state state)
@@ -4359,28 +4336,23 @@
         (update-pred-folder-state pred-comp state)
       (advance-pred-folder-state state)
   ==
-+$  pred-folder-state
-  $:
-    displ=@
-    level=@
-    cmpnt=(unit raw-pred-cmpnt)
-    cmpnt-displ=@
-    the-list=(list raw-pred-cmpnt)
-  ==
 ::
 ::    +split-at: [(list T) index:@] -> [(list T) (list T)]
 ++  split-at
   |*  [p=(list) i=@]
+  ~+
   [(scag i p) (slag i p)]
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ++  fold
   |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
+  ~+
   |-  ^+  b
   ?~  a  b
   $(a t.a, b (c i.a b))
 ++  update-pred-folder-state
   |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
+  ~+
   ^-  pred-folder-state
   :*  (dec displ.state)
       level.state
@@ -4390,6 +4362,7 @@
       ==
 ++  advance-pred-folder-state
   |=  state=pred-folder-state
+  ~+
   ^-  pred-folder-state
   :*  (dec displ.state)
       level.state
@@ -4523,8 +4496,9 @@
 ::
 ::  select
 ::
-++  parse-alias-all  (stag %all-columns ;~(sfix parse-alias ;~(plug dot tar)))
-++  parse-object-all
+++  parse-alias-all  ~+
+  (stag %all-columns ;~(sfix parse-alias ;~(plug dot tar)))
+++  parse-object-all  ~+
   (stag %all-columns ;~(sfix parse-qualified-object ;~(plug dot tar)))
 ++  parse-selection  ~+
   ;~  pose
@@ -4544,18 +4518,18 @@
     ;~(pose parse-qualified-column parse-value-literal)
     (cold %all tar)
   ==
-++  select-column
+++  select-column  ~+
   ;~  pose
     (ifix [whitespace whitespace] parse-selection)
     ;~(plug whitespace parse-selection)
     parse-selection
   ==
-++  select-columns
+++  select-columns  ~+
   ;~  pose
     (more com select-column)
     select-column
   ==
-++  select-top-bottom
+++  select-top-bottom  ~+
   ;~  plug
     (cold %top ;~(plug whitespace (jester 'top')))
     ;~(pfix whitespace dem)
@@ -4563,19 +4537,19 @@
     ;~(pfix whitespace dem)
     select-columns
   ==
-++  select-top
+++  select-top  ~+
   ;~  plug
     (cold %top ;~(plug whitespace (jester 'top')))
     ;~(pfix whitespace dem)
     ;~(less ;~(plug whitespace (jester 'bottom')) select-columns)
   ==
-++  select-bottom
+++  select-bottom  ~+
   ;~  plug
     (cold %bottom ;~(plug whitespace (jester 'bottom')))
     ;~(pfix whitespace dem)
     select-columns
   ==
-++  parse-select
+++  parse-select  ~+
   ;~  plug
     (cold %select ;~(plug whitespace (jester 'select')))
     ;~  pose
@@ -4629,5 +4603,72 @@
               ;~(plug whitespace (jester 'order') whitespace (jester 'by'))
               ==
     (more com parse-ordering-column)
+  ==
+::
+::  helper types
+::
++$  urql-command
+  $%
+    %alter-index
+    %alter-namespace
+    %alter-table
+    %create-database
+    %create-index
+    %create-namespace
+    %create-table
+    %create-view
+    %delete
+    %drop-database
+    %drop-index
+    %drop-namespace
+    %drop-table
+    %drop-view
+    %grant
+    %insert
+    %merge
+    %query
+    %revoke
+    %truncate-table
+    %update
+    %with
+  ==
++$  interim-key
+  $:
+    %interim-key
+    columns=(list ordered-column:ast)
+  ==
++$  parens        ?(%pal %par)
++$  raw-pred-cmpnt  ?(parens predicate-component:ast)
++$  group-by-list  (list grouping-column:ast)
++$  order-by-list  (list ordering-column:ast)
++$  pred-folder-state
+  $:
+    displ=@
+    level=@
+    cmpnt=(unit raw-pred-cmpnt)
+    cmpnt-displ=@
+    the-list=(list raw-pred-cmpnt)
+  ==
++$  select-mold-1
+  $:
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
+    %as
+    @
+  ==
++$  select-mold-2
+  $:
+    $:  %selected-aggregate
+        @
+        %qualified-column
+        [%qualified-object (unit @p) @ @ @ (unit @t)]
+        @
+        @
+        ==
   ==
 --

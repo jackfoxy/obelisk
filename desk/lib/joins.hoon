@@ -212,9 +212,6 @@
   :+
     %:  from-obj  %from-obj
                   query-obj
-                  ?~  alias
-                      ~
-                  `(crip (cass (trip (need alias))))
                   tmsp.tbl
                   tmsp.file
                   columns.tbl
@@ -227,7 +224,7 @@
                   ==
     %+  ~(put by type-lookup)  
           query-obj
-          (malt (turn columns.tbl |=(a=column:ast [name.a type.a])))
+          column-types.tbl
     (mk-qualified-columns query-obj qualified-columns columns.tbl)
 ::
 ++  mk-qualified-columns
@@ -275,9 +272,6 @@
   :+
     %:  from-obj  %from-obj
                   query-obj
-                  ?~  alias
-                      ~
-                  `(crip (cass (trip (need alias))))
                   tmsp.schema
                   tmsp.+.r
                   columns.view
@@ -291,7 +285,7 @@
                   ==
     %+  ~(put by type-lookup)  
           query-obj
-          (malt (turn columns.view |=(a=column:ast [name.a type.a])))
+          column-types.view
     (mk-qualified-columns query-obj qualified-columns columns.view)
 ::
 ::  +got-view-cache:
