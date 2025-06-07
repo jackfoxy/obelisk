@@ -1400,45 +1400,42 @@
           %obelisk-action
           !>  :-  %commands
                   :~
-                    :+  %selection
+                    :*  %update
                         ctes=~
-                        :+  :*  %update
-                                :*  %qualified-object
-                                    ship=~
-                                    database=%db1
-                                    namespace=%dbo
-                                    name=%my-table
+                        :*  %qualified-object
+                            ship=~
+                            database=%db1
+                            namespace=%dbo
+                            name=%my-table
+                            alias=~
+                            ==
+                        as-of=~
+                        :-  :~  :^  %qualified-column
+                                    :*  %qualified-object
+                                        ship=~
+                                        database=%db1
+                                        namespace=%dbo
+                                        name=%my-table-1
+                                        alias=~
+                                        ==
+                                    column=%col2
                                     alias=~
-                                    ==
-                                as-of=~
-                                :-  :~  :^  %qualified-column
-                                            :*  %qualified-object
-                                                ship=~
-                                                database=%db1
-                                                namespace=%dbo
-                                                name=%my-table-1
-                                                alias=~
-                                                ==
-                                            column=%col2
-                                            alias=~
-                                        :^  %qualified-column
-                                            :*  %qualified-object
-                                                ship=~
-                                                database=%db1
-                                                namespace=%dbo
-                                                name=%my-table
-                                                alias=~
-                                                ==
-                                            column=%col0
-                                            alias=~
+                                :^  %qualified-column
+                                    :*  %qualified-object
+                                        ship=~
+                                        database=%db1
+                                        namespace=%dbo
+                                        name=%my-table
+                                        alias=~
                                         ==
-                                    :~  [p=~.p q=44]
-                                        [p=~.da q=~1980.1.1]
-                                        ==
-                                predicate=~
+                                    column=%col0
+                                    alias=~
                                 ==
-                            ~
-                            ~
+                            :~  [p=~.p q=44]
+                                [p=~.da q=~1980.1.1]
+                                ==
+                        predicate=~
+                        ==
                     ==
 ::
 ::  fail on length of columns and values mismatch
@@ -1460,46 +1457,43 @@
           %obelisk-action
           !>  :-  %commands
                   :~
-                    :+  %selection
+                    :*  %update
                         ctes=~
-                        :+  :*  %update
-                                :*  %qualified-object
-                                    ship=~
-                                    database=%db1
-                                    namespace=%dbo
-                                    name=%my-table
+                        :*  %qualified-object
+                            ship=~
+                            database=%db1
+                            namespace=%dbo
+                            name=%my-table
+                            alias=~
+                            ==
+                        as-of=~
+                        :-  :~  :^  %qualified-column
+                                    :*  %qualified-object
+                                        ship=~
+                                        database=%db1
+                                        namespace=%dbo
+                                        name=%my-table
+                                        alias=~
+                                        ==
+                                    column=%col2
                                     alias=~
-                                    ==
-                                as-of=~
-                                :-  :~  :^  %qualified-column
-                                            :*  %qualified-object
-                                                ship=~
-                                                database=%db1
-                                                namespace=%dbo
-                                                name=%my-table
-                                                alias=~
-                                                ==
-                                            column=%col2
-                                            alias=~
-                                        :^  %qualified-column
-                                            :*  %qualified-object
-                                                ship=~
-                                                database=%db1
-                                                namespace=%dbo
-                                                name=%my-table
-                                                alias=~
-                                                ==
-                                            column=%col0
-                                            alias=~
+                                :^  %qualified-column
+                                    :*  %qualified-object
+                                        ship=~
+                                        database=%db1
+                                        namespace=%dbo
+                                        name=%my-table
+                                        alias=~
                                         ==
-                                    :~  [p=~.p q=44]
-                                        [p=~.da q=~1980.1.1]
-                                        [p=~.ud q=44]
-                                        ==
-                                predicate=~
+                                    column=%col0
+                                    alias=~
                                 ==
-                            ~
-                            ~
+                            :~  [p=~.p q=44]
+                                [p=~.da q=~1980.1.1]
+                                [p=~.ud q=44]
+                                ==
+                        predicate=~
+                        ==
                     ==
 ::
 ::  fail on changing state after select in script
