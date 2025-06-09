@@ -8,8 +8,6 @@ Prioritization depends on user feedback and bribery.
 
 ## Candidates for beta release
 
-* __UPDATE__ -- Operates on user-defined tables, not on views; optional predicate
-
 * __JOIN ON__ -- JOIN ON `<predicate>`
 
 * __Set operators__ -- UNION, INTERSECT, EXCEPT, DIVIDED BY, DIVIDED BY WITH REMAINDER
@@ -20,7 +18,10 @@ Prioritization depends on user feedback and bribery.
 
 * __Common Table Expressions (CTE)__ -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
-* __Issue #1__ (completed) -- NOT predicate operator not fully functional
+* __UPDATE__ (complete in beta) -- Operates on user-defined tables, not on views; optional predicate
+
+* __Issue #1__ (complete
+ in beta) -- NOT predicate operator not fully functional
 
 ## other functionality
 

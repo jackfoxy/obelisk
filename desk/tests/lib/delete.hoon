@@ -696,7 +696,7 @@
                               ==
   ::
   %+  expect-fail-message
-        'delete error'
+        'PARSER:'
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
           %obelisk-action
           !>  :+  %test

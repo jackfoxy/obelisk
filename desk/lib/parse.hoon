@@ -158,14 +158,20 @@
   ~|  "PARSER: "
   ?-  `urql-command`p.command-nail
     %alter-index
-      ~|  "alter index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  index-nail  (parse-alter-index [[1 1] q.q.command-nail])
-      =/  parsed  (wonk index-nail)
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "alter index parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-alter-index
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
       %=  $
-        script    q.q.u.+3.q:index-nail
-        commands 
-                          :: qualifier w/o ship or alias
-          :-  ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
+        script    q.q.u.+3.q:nail
+        commands  :-  ~|  "alter index parse produce phase:  ".
+                          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+              :: qualifier w/o ship or alias
+              ?:  ?=  $:  [%qualified-object ~ @ @ @ ~]
                           [%qualified-object ~ @ @ @ ~]
                           @
                           ==
@@ -221,13 +227,20 @@
               commands
       ==
     %alter-namespace
-      ~|  "alter namespace error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  namespace-nail  (parse-alter-namespace [[1 1] q.q.command-nail])
-      =/  parsed  (wonk namespace-nail)
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "alter namespace parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-alter-namespace
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
       %=  $
-        script    q.q.u.+3.q:namespace-nail
+        script    q.q.u.+3.q:nail
         commands
-          :-  ?:  =(%as-of +>+<.parsed)
+          :-  ~|  "alter namespace parse produce phase:  ".
+                          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+              ?:  =(%as-of +>+<.parsed)
                 ?:  =(%now +>+>.parsed)
                   %:  alter-namespace:ast  %alter-namespace
                                           -<.parsed
@@ -270,621 +283,872 @@
         commands
       ==
     %alter-table
-      ~|  "alter table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  table-nail  (parse-alter-table [[1 1] q.q.command-nail])
-      =/  parsed  (wonk table-nail)
-      ?:  =(+<.parsed %alter-column)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  alter-table:ast  %alter-table
-                                            -.parsed
-                                            +>.parsed
-                                            ~
-                                            ~
-                                            ~
-                                            ~
-                                            ~
-                                            ==
-                        commands
-        ==
-      ?:  =(+<.parsed %add-column)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  alter-table:ast  %alter-table
-                                            -.parsed
-                                            ~
-                                            +>.parsed
-                                            ~
-                                            ~
-                                            ~
-                                            ~
-                                            ==
-                        commands
-        ==
-      ?:  =(+<.parsed %drop-column)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  alter-table:ast  %alter-table
-                                            -.parsed
-                                            ~
-                                            ~
-                                            +>.parsed
-                                            ~
-                                            ~
-                                            ~
-                                            ==
-                        commands
-        ==
-      ?:  =(+<.parsed %add-fk)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  alter-table:ast  %alter-table
-                                            -.parsed
-                                            ~
-                                            ~
-                                            ~
-                                            %-  build-foreign-keys
-                                                [-.parsed +>.parsed]
-                                            ~
-                                            ~
-                                            ==
-                        commands
-        ==
-      ?:  =(+<.parsed %drop-fk)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  alter-table:ast  %alter-table
-                                            -.parsed
-                                            ~
-                                            ~
-                                            ~
-                                            ~
-                                            +>.parsed
-                                            ~
-                                            ==
-                        commands
-        ==
-      ?:  ?&(=(+<-.parsed %alter-column) ?=([* [* %as-of *]] parsed))
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands
-            ?:  =(%now +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      +<+.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      ~
-                                      ~
-                                      ==
-                  commands
-            ?:  ?=([@ @] +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      +<+.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      ~
-                                      [~ +>+.parsed]
-                                      ==
-                  commands
-            :-  %:  alter-table:ast  %alter-table
-                                    -.parsed
-                                    +<+.parsed
-                                    ~
-                                    ~
-                                    ~
-                                    ~
-                                    :-  ~
-                                       %:  as-of-offset:ast  %as-of-offset
-                                                            +>+<.parsed
-                                                            +>+>-.parsed
-                                                            ==
-                                    ==
-                commands
-        ==
-      ?:  ?&(=(+<-.parsed %add-column) ?=([* [* %as-of *]] parsed))
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands
-            ?:  =(%now +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      +<+.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      ~
-                                      ==
-                  commands
-            ?:  ?=([@ @] +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      +<+.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      [~ +>+.parsed]
-                                      ==
-                  commands
-            :-  %:  alter-table:ast  %alter-table
-                                    -.parsed
-                                    ~
-                                    +<+.parsed
-                                    ~
-                                    ~
-                                    ~
-                                    :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              +>+<.parsed
-                                                              +>+>-.parsed
-                                                              ==
-                                    ==
-                commands
-        ==
-      ?:  ?&(=(+<-.parsed %drop-column) ?=([* [* %as-of *]] parsed))
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands
-            ?:  =(%now +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      ~
-                                      +<+.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      ==
-                  commands
-            ?:  ?=([@ @] +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      ~
-                                      +<+.parsed
-                                      ~
-                                      ~
-                                      [~ +>+.parsed]
-                                      ==
-                  commands
-            :-  %:  alter-table:ast  %alter-table
-                                    -.parsed
-                                    ~
-                                    ~
-                                    +<+.parsed
-                                    ~
-                                    ~
-                                    :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              +>+<.parsed
-                                                              +>+>-.parsed
-                                                              ==
-                                    ==
-                commands
-        ==
-      ?:  ?&(=(+<-.parsed %add-fk) ?=([* [* %as-of *]] parsed))
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands
-            ?:  =(%now +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      (build-foreign-keys [-.parsed +<+.parsed])
-                                      ~
-                                      ~
-                                      ==
-                  commands
-            ?:  ?=([@ @] +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      (build-foreign-keys [-.parsed +<+.parsed])
-                                      ~
-                                      [~ +>+.parsed]
-                                      ==
-                  commands
-            :-  %:  alter-table:ast  %alter-table
-                                    -.parsed
-                                    ~
-                                    ~
-                                    ~
-                                    (build-foreign-keys [-.parsed +<+.parsed])
-                                    ~
-                                    :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              +>+<.parsed
-                                                              +>+>-.parsed
-                                                              ==
-                                    ==
-                commands
-        ==
-      ?:  ?&(=(+<-.parsed %drop-fk) ?=([* [* %as-of *]] parsed))
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands
-            ?:  =(%now +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      ~
-                                      +<+.parsed
-                                      ~
-                                      ==
-                  commands
-            ?:  ?=([@ @] +>+.parsed)
-              :-  %:  alter-table:ast  %alter-table
-                                      -.parsed
-                                      ~
-                                      ~
-                                      ~
-                                      ~
-                                      +<+.parsed
-                                      [~ +>+.parsed]
-                                      ==
-                  commands
-            :-  %:  alter-table:ast  %alter-table
-                                    -.parsed
-                                    ~
-                                    ~
-                                    ~
-                                    ~
-                                    +<+.parsed
-                                    :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              +>+<.parsed
-                                                              +>+>-.parsed
-                                                              ==
-                                    ==
-                commands
-        ==
-      !!
-    %create-database
-      ~|  "Create database error:  {<(scag 40 q.q.command-nail)>} ..."
-      =/  nail  (parse-create-database [[1 1] q.q.command-nail])
-      =/  parsed  (wonk nail)
-      ?:  ?=([[@ %as-of %now] %end-command ~] parsed)
-        %=  $
-          script    q.q.u.+3.q:nail
-          commands
-            [(create-database:ast %create-database -<.parsed ~) commands]
-        ==
-
-      ?:  ?=([@ %end-command ~] parsed)
-        %=  $
-          script    q.q.u.+3.q:nail
-          commands  :-  %:  create-database:ast  %create-database
-                                                -.parsed
-                                                ~
-                                                ==
-                        commands
-        ==
-      ?:  ?=([[@ %as-of [%da @]] %end-command ~] parsed)
-        %=  $
-          script    q.q.u.+3.q:nail
-          commands  :-  %:  create-database:ast  %create-database
-                                                -<.parsed
-                                                [~ ->+.parsed]
-                                                ==
-                        commands
-        ==
-      ?:  ?=([[@ %as-of [@ @ %ago]] %end-command ~] parsed)
-        %=  $
-          script    q.q.u.+3.q:nail
-          commands
-            :-  %:  create-database:ast  %create-database
-                                        -<.parsed
-                                        :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              ->+<.parsed
-                                                              ->+>-.parsed
-                                                              ==
-                                        ==
-                commands
-        ==
-      !!
-    %create-index
-      ~|  "create index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  index-nail  (parse-create-index [[1 1] q.q.command-nail])
-      =/  parsed  (wonk index-nail)
-      ?:  ?=([@ [* *]] [parsed])                    ::"create index ..."
-        %=  $
-          script    q.q.u.+3.q:index-nail
-          commands  :-  %:  create-index:ast  %create-index
-                                      -.parsed
-                                      +<.parsed
-                                      %.n
-                                      +>.parsed
-                                      ~
-                                      ==
-                        commands
-        ==
-      ?:  ?=([[@ @] [* *]] [parsed])
-        ?:  =(-<.parsed %unique)                    ::"create unique index ..."
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "alter table parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-alter-table
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "alter table parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  =(+<.parsed %alter-column)
             %=  $
-              script    q.q.u.+3.q:index-nail
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  alter-table:ast  %alter-table
+                                                 -.parsed
+                                                 +>.parsed
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ==
+                            commands
+            ==
+          ?:  =(+<.parsed %add-column)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  alter-table:ast  %alter-table
+                                                 -.parsed
+                                                 ~
+                                                 +>.parsed
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ==
+                            commands
+            ==
+          ?:  =(+<.parsed %drop-column)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  alter-table:ast  %alter-table
+                                                 -.parsed
+                                                 ~
+                                                 ~
+                                                 +>.parsed
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ==
+                            commands
+            ==
+          ?:  =(+<.parsed %add-fk)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  alter-table:ast  %alter-table
+                                                 -.parsed
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 %-  build-foreign-keys
+                                                      [-.parsed +>.parsed]
+                                                 ~
+                                                 ~
+                                                 ==
+                            commands
+            ==
+          ?:  =(+<.parsed %drop-fk)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  alter-table:ast  %alter-table
+                                                 -.parsed
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 ~
+                                                 +>.parsed
+                                                 ~
+                                                 ==
+                            commands
+            ==
+          ?:  ?&(=(+<-.parsed %alter-column) ?=([* [* %as-of *]] parsed))
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           +<+.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           ~
+                                           ~
+                                           ==
+                      commands
+                ?:  ?=([@ @] +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           +<+.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           ~
+                                           [~ +>+.parsed]
+                                           ==
+                      commands
+                :-  %:  alter-table:ast  %alter-table
+                                         -.parsed
+                                         +<+.parsed
+                                         ~
+                                         ~
+                                         ~
+                                         ~
+                                         :-  ~
+                                             %:  as-of-offset:ast  %as-of-offset
+                                                                 +>+<.parsed
+                                                                 +>+>-.parsed
+                                                                 ==
+                                         ==
+                    commands
+            ==
+          ?:  ?&(=(+<-.parsed %add-column) ?=([* [* %as-of *]] parsed))
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           +<+.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           ~
+                                           ==
+                      commands
+                ?:  ?=([@ @] +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           +<+.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           [~ +>+.parsed]
+                                           ==
+                      commands
+                :-  %:  alter-table:ast  %alter-table
+                                         -.parsed
+                                         ~
+                                         +<+.parsed
+                                         ~
+                                         ~
+                                         ~
+                                         :-  ~
+                                             %:  as-of-offset:ast  %as-of-offset
+                                                                   +>+<.parsed
+                                                                   +>+>-.parsed
+                                                                   ==
+                                         ==
+                    commands
+            ==
+          ?:  ?&(=(+<-.parsed %drop-column) ?=([* [* %as-of *]] parsed))
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           ~
+                                           +<+.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           ==
+                      commands
+                ?:  ?=([@ @] +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           ~
+                                           +<+.parsed
+                                           ~
+                                           ~
+                                           [~ +>+.parsed]
+                                           ==
+                      commands
+                :-  %:  alter-table:ast  %alter-table
+                                         -.parsed
+                                         ~
+                                         ~
+                                         +<+.parsed
+                                         ~
+                                         ~
+                                         :-  ~
+                                             %:  as-of-offset:ast  %as-of-offset
+                                                                   +>+<.parsed
+                                                                   +>+>-.parsed
+                                                                   ==
+                                         ==
+                    commands
+            ==
+          ?:  ?&(=(+<-.parsed %add-fk) ?=([* [* %as-of *]] parsed))
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           %-  build-foreign-keys
+                                                 [-.parsed +<+.parsed]
+                                           ~
+                                           ~
+                                           ==
+                      commands
+                ?:  ?=([@ @] +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           ~
+                                           ~
+                                          %-  build-foreign-keys
+                                                [-.parsed +<+.parsed]
+                                           ~
+                                           [~ +>+.parsed]
+                                           ==
+                      commands
+                :-  %:  alter-table:ast  %alter-table
+                                         -.parsed
+                                         ~
+                                         ~
+                                         ~
+                                        %-  build-foreign-keys
+                                              [-.parsed +<+.parsed]
+                                         ~
+                                         :-  ~
+                                             %:  as-of-offset:ast  %as-of-offset
+                                                                   +>+<.parsed
+                                                                   +>+>-.parsed
+                                                                   ==
+                                         ==
+                    commands
+            ==
+          ?:  ?&(=(+<-.parsed %drop-fk) ?=([* [* %as-of *]] parsed))
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           ~
+                                           +<+.parsed
+                                           ~
+                                           ==
+                      commands
+                ?:  ?=([@ @] +>+.parsed)
+                  :-  %:  alter-table:ast  %alter-table
+                                           -.parsed
+                                           ~
+                                           ~
+                                           ~
+                                           ~
+                                           +<+.parsed
+                                           [~ +>+.parsed]
+                                           ==
+                      commands
+                :-  %:  alter-table:ast  %alter-table
+                                         -.parsed
+                                         ~
+                                         ~
+                                         ~
+                                         ~
+                                         +<+.parsed
+                                         :-  ~
+                                             %:  as-of-offset:ast  %as-of-offset
+                                                                   +>+<.parsed
+                                                                   +>+>-.parsed
+                                                                   ==
+                                         ==
+                    commands
+            ==
+          !!
+    %create-database
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "create database parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-create-database
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "create database parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  ?=([[@ %as-of %now] %end-command ~] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                [(create-database:ast %create-database -<.parsed ~) commands]
+            ==
+
+          ?:  ?=([@ %end-command ~] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-database:ast  %create-database
+                                                    -.parsed
+                                                    ~
+                                                    ==
+                            commands
+            ==
+          ?:  ?=([[@ %as-of [%da @]] %end-command ~] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-database:ast  %create-database
+                                                    -<.parsed
+                                                    [~ ->+.parsed]
+                                                    ==
+                            commands
+            ==
+          ?:  ?=([[@ %as-of [@ @ %ago]] %end-command ~] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                :-  %:  create-database:ast  %create-database
+                                            -<.parsed
+                                            :-  ~
+                                            %:  as-of-offset:ast  %as-of-offset
+                                                                  ->+<.parsed
+                                                                  ->+>-.parsed
+                                                                  ==
+                                            ==
+                    commands
+            ==
+          !!
+    %create-index
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "create index parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-create-index
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "create index parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  ?=([@ [* *]] [parsed])                 ::"create index ..."
+            %=  $
+              script    q.q.u.+3.q:nail
               commands  :-  %:  create-index:ast  %create-index
-                                                  ->.parsed
+                                          -.parsed
+                                          +<.parsed
+                                          %.n
+                                          +>.parsed
+                                          ~
+                                          ==
+                            commands
+            ==
+          ?:  ?=([[@ @] [* *]] [parsed])
+            ?:  =(-<.parsed %unique)                 ::"create unique index ..."
+                %=  $
+                  script    q.q.u.+3.q:nail
+                  commands  :-  %:  create-index:ast  %create-index
+                                                      ->.parsed
+                                                      +<.parsed
+                                                      %.y
+                                                      +>.parsed
+                                                      ~
+                                                      ==
+                                commands
+                ==
+            !!
+          !!
+    %create-namespace
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "create namespace parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-create-namespace
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "create namespace parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?@  parsed
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-namespace:ast  %create-namespace
+                                                      default-database
+                                                      parsed
+                                                      ~
+                                                      ==
+                            commands
+            ==
+          ?:  ?=([@ @] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-namespace:ast  %create-namespace
+                                                      -.parsed
+                                                      +.parsed
+                                                      ~
+                                                      ==
+                            commands
+            ==
+          =/  id  -.parsed
+          ?:  =(%now +>.parsed)
+            %=  $
+              script        q.q.u.+3.q:nail
+              commands  ?@  id
+                :-  %:  create-namespace:ast  %create-namespace
+                                              default-database
+                                              id
+                                              ~
+                                              ==
+                    commands
+              :-  (create-namespace:ast %create-namespace -.id +.id ~)
+                  commands
+            ==
+          =/  asof  +>.parsed
+          ?:  ?=([@ @] asof)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  ?@  id
+                :-  %:  create-namespace:ast  %create-namespace
+                                              default-database
+                                              id
+                                              [~ asof]
+                                              ==
+                    commands
+              :-  %:  create-namespace:ast  %create-namespace
+                                            -.id
+                                            +.id
+                                            [~ asof]
+                                            ==
+                  commands
+            ==
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  ?@  id
+              :-  %:  create-namespace:ast  %create-namespace
+                                            default-database
+                                            id
+                                            :-  ~
+                                                %:  as-of-offset:ast
+                                                      %as-of-offset
+                                                      -.asof
+                                                      +<.asof
+                                                      ==
+                                            ==
+                  commands
+            :-  %:  create-namespace:ast  %create-namespace
+                                          -.id
+                                          +.id
+                                          :-  ~
+                                              %:  as-of-offset:ast
+                                                    %as-of-offset
+                                                    -.asof
+                                                    +<.asof
+                                                    ==
+                                          ==
+                commands
+          ==
+    %create-table
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "create table parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-create-table
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "create table parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  ?=([* * [@ *]] parsed)
+            %=  $                                       :: no foreign keys
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-table:ast  %create-table
+                                                  -.parsed
                                                   +<.parsed
-                                                  %.y
-                                                  +>.parsed
+                                                  +>+.parsed
+                                                  ~
                                                   ~
                                                   ==
                             commands
             ==
-        !!
-      !!
-    %create-namespace
-      ~|  "create namespace error:  {<(scag 40 q.q.command-nail)>} ..."
-      =/  create-ns-nail  (parse-create-namespace [[1 1] q.q.command-nail])
-      =/  parsed  (wonk create-ns-nail)
-      ?@  parsed
-        %=  $
-          script    q.q.u.+3.q:create-ns-nail
-          commands  :-  %:  create-namespace:ast  %create-namespace
-                                                  default-database
-                                                  parsed
-                                                  ~
-                                                  ==
-                        commands
-        ==
-      ?:  ?=([@ @] parsed)
-        %=  $
-          script    q.q.u.+3.q:create-ns-nail
-          commands  :-  %:  create-namespace:ast  %create-namespace
+          ?:  ?=([* * [@ *] %as-of %now] parsed)
+            %=  $                                       :: no foreign keys
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-table:ast  %create-table
                                                   -.parsed
-                                                  +.parsed
+                                                  +<.parsed
+                                                  +>->.parsed
+                                                  ~
                                                   ~
                                                   ==
-                        commands
-        ==
-      =/  id  -.parsed
-      ?:  =(%now +>.parsed)
-        %=  $
-          script        q.q.u.+3.q:create-ns-nail
-          commands  ?@  id
-            :-  (create-namespace:ast %create-namespace default-database id ~)
-                commands
-          :-  (create-namespace:ast %create-namespace -.id +.id ~)
+                            commands
+            ==
+          ?:  ?=([* * [@ *] %as-of [@ @]] parsed)
+            %=  $                                       :: no foreign keys
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-table:ast  %create-table
+                                                  -.parsed
+                                                  +<.parsed
+                                                  +>->.parsed
+                                                  ~
+                                                  [~ +>+>.parsed]
+                                                  ==
+                            commands
+            ==
+          ?:  ?=([* * [@ *] %as-of [@ @ @]] parsed)
+            %=  $                                       :: no foreign keys
+              script    q.q.u.+3.q:nail
               commands
-        ==
-      =/  asof  +>.parsed
-      ?:  ?=([@ @] asof)
-        %=  $
-          script    q.q.u.+3.q:create-ns-nail
-          commands  ?@  id
-            :-  %:  create-namespace:ast  %create-namespace
-                                          default-database
-                                          id
-                                          [~ asof]
+                :-  %:  create-table:ast  %create-table
+                                          -.parsed
+                                          +<.parsed
+                                          +>->.parsed
+                                          ~
+                                          :-  ~
+                                              %:  as-of-offset:ast
+                                                    %as-of-offset
+                                                    +>+>-.parsed
+                                                    +>+>+<.parsed
+                                                    ==
                                           ==
-                commands
-          :-  %:  create-namespace:ast  %create-namespace
-                                        -.id
-                                        +.id
-                                        [~ asof]
-                                        ==
-              commands
-        ==
-      %=  $
-        script    q.q.u.+3.q:create-ns-nail
-        commands  ?@  id
-          :-  %:  create-namespace:ast  %create-namespace
-                                        default-database
-                                        id
-                                        :-  ~
-                                            %:  as-of-offset:ast  %as-of-offset
-                                                                  -.asof
-                                                                  +<.asof
-                                                                  ==
-                                        ==
-              commands
-        :-  %:  create-namespace:ast  %create-namespace
-                                      -.id
-                                      +.id
-                                      :-  ~
-                                          %:  as-of-offset:ast  %as-of-offset
-                                                                -.asof
-                                                                +<.asof
-                                                                ==
-                                      ==
-            commands
-      ==
-    %create-table
-      ~|  "create table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  table-nail  (parse-create-table [[1 1] q.q.command-nail])
-      =/  parsed  (wonk table-nail)
-      ?:  ?=([* * [@ *]] parsed)
-        %=  $                                       :: no foreign keys
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  create-table:ast  %create-table
-                                              -.parsed
-                                              +<.parsed
-                                              +>+.parsed
-                                              ~
-                                              ~
-                                              ==
-                        commands
-        ==
-      ?:  ?=([* * [@ *] %as-of %now] parsed)
-        %=  $                                       :: no foreign keys
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  create-table:ast  %create-table
-                                              -.parsed
-                                              +<.parsed
-                                              +>->.parsed
-                                              ~
-                                              ~
-                                              ==
-                        commands
-        ==
-      ?:  ?=([* * [@ *] %as-of [@ @]] parsed)
-        %=  $                                       :: no foreign keys
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  create-table:ast  %create-table
-                                              -.parsed
-                                              +<.parsed
-                                              +>->.parsed
-                                              ~
-                                              [~ +>+>.parsed]
-                                              ==
-                        commands
-        ==
-      ?:  ?=([* * [@ *] %as-of [@ @ @]] parsed)
-        %=  $                                       :: no foreign keys
-          script    q.q.u.+3.q:table-nail
-          commands
-            :-  %:  create-table:ast  %create-table
-                                      -.parsed
-                                      +<.parsed
-                                      +>->.parsed
-                                      ~
-                                      :-  ~
-                                          %:  as-of-offset:ast  %as-of-offset
-                                                                +>+>-.parsed
-                                                                +>+>+<.parsed
-                                                                ==
-                                      ==
-                commands
-        ==
-      ?:  ?=([* * * %as-of %now] parsed)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  create-table:ast  %create-table
-                                              -.parsed
-                                              +<.parsed
-                                              +>-<+.parsed
-                                              %-  build-foreign-keys
-                                                  [-.parsed +>->.parsed]
-                                              ~
-                                              ==
-                        commands
-        ==
-      ?:  ?=([* * * %as-of [@ @]] parsed)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  create-table:ast  %create-table
-                                              -.parsed
-                                              +<.parsed
-                                              +>-<+.parsed
-                                              %-  build-foreign-keys
-                                                  [-.parsed +>->.parsed]
-                                              [~ +>+>+.parsed]
-                                              ==
-                        commands
-        ==
-      ?:  ?=([* * * %as-of [@ @ @]] parsed)
-        %=  $
-          script    q.q.u.+3.q:table-nail
-          commands  :-  %:  create-table:ast  %create-table
-                                              -.parsed
-                                              +<.parsed
-                                              +>-<+.parsed
-                                              %-  build-foreign-keys
-                                                  [-.parsed +>->.parsed]
-                                              :-  ~
-                                                  %:  as-of-offset:ast
-                                                        %as-of-offset
-                                                        +>+>-.parsed
-                                                        +>+>+<.parsed
-                                                        ==
-                                              ==
-                        commands
-        ==
-      %=  $
-        script    q.q.u.+3.q:table-nail
-        commands  :-  %:  create-table:ast  %create-table
-                                            -.parsed
-                                            +<.parsed
-                                            +>->.parsed
-                                            %-  build-foreign-keys
-                                                [-.parsed +>+.parsed]
-                                            ~
-                                            ==
-                      commands
-      ==
+                    commands
+            ==
+          ?:  ?=([* * * %as-of %now] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-table:ast  %create-table
+                                                  -.parsed
+                                                  +<.parsed
+                                                  +>-<+.parsed
+                                                  %-  build-foreign-keys
+                                                      [-.parsed +>->.parsed]
+                                                  ~
+                                                  ==
+                            commands
+            ==
+          ?:  ?=([* * * %as-of [@ @]] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-table:ast  %create-table
+                                                  -.parsed
+                                                  +<.parsed
+                                                  +>-<+.parsed
+                                                  %-  build-foreign-keys
+                                                      [-.parsed +>->.parsed]
+                                                  [~ +>+>+.parsed]
+                                                  ==
+                            commands
+            ==
+          ?:  ?=([* * * %as-of [@ @ @]] parsed)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  create-table:ast  %create-table
+                                                  -.parsed
+                                                  +<.parsed
+                                                  +>-<+.parsed
+                                                  %-  build-foreign-keys
+                                                      [-.parsed +>->.parsed]
+                                                  :-  ~
+                                                      %:  as-of-offset:ast
+                                                            %as-of-offset
+                                                            +>+>-.parsed
+                                                            +>+>+<.parsed
+                                                            ==
+                                                  ==
+                            commands
+            ==
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  :-  %:  create-table:ast  %create-table
+                                                -.parsed
+                                                +<.parsed
+                                                +>->.parsed
+                                                %-  build-foreign-keys
+                                                    [-.parsed +>+.parsed]
+                                                ~
+                                                ==
+                          commands
+          ==
     %create-view
       ~|  "create view error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
       !!
     %delete
-      ~|  "delete error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  delete-nail  (parse-delete [[1 1] q.q.command-nail])
-      =/  parsed  (wonk delete-nail)
-      %=  $
-        script    q.q.u.+3.q:delete-nail
-        commands  [(produce-delete ~ parsed) commands]
-      ==
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "delete parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-delete
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "delete parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  [(produce-delete ~ parsed) commands]
+          ==
     %drop-database
-      ~|  "drop database error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  drop-database-nail  (parse-drop-database [[1 1] q.q.command-nail])
-      =/  parsed  (wonk drop-database-nail)
-      ?@  parsed                                    :: name
-        %=  $
-          script    q.q.u.+3.q:drop-database-nail
-          commands  [(drop-database:ast %drop-database parsed %.n) commands]
-        ==
-      ?:  ?=([@ @] parsed)                          :: force name
-        %=  $
-          script    q.q.u.+3.q:drop-database-nail
-          commands  [(drop-database:ast %drop-database +.parsed %.y) commands]
-        ==
-      !!
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "drop database parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-drop-database
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "drop database parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?@  parsed                                    :: name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  [(drop-database:ast %drop-database parsed %.n) commands]
+            ==
+          ?:  ?=([@ @] parsed)                          :: force name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  (drop-database:ast %drop-database +.parsed %.y)
+                            commands
+            ==
+          !!
     %drop-index
-      ~|  "drop index error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  drop-index-nail  (parse-drop-index [[1 1] q.q.command-nail])
-      =/  parsed  (wonk drop-index-nail)
-      %=  $
-        script    q.q.u.+3.q:drop-index-nail
-        commands  [(drop-index:ast %drop-index -.parsed +.parsed ~) commands]
-      ==
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "drop index parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-drop-index
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "drop index parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  :-  (drop-index:ast %drop-index -.parsed +.parsed ~)
+                          commands
+          ==
     %drop-namespace
-      ~|  "drop namespace error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  drop-namespace-nail  (parse-drop-namespace [[1 1] q.q.command-nail])
-      =/  parsed  (wonk drop-namespace-nail)
-      ?@  parsed                                    :: name
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands  :-  %:  drop-namespace:ast  %drop-namespace
-                                                default-database
-                                                parsed
-                                                %.n
-                                                ~
-                                                ==
-                        commands
-        ==
-      ?:  ?=([@ %as-of *] parsed)                   :: name as of
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands
-            ?:  =(%now +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          default-database
-                                          -.parsed
-                                          %.n
-                                          ~
-                                          ==
-                  commands
-            ?:  ?=([@ @] +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          default-database
-                                          -.parsed
-                                          %.n
-                                          [~ +>.parsed]
-                                          ==
-                  commands
-            :-  %:  drop-namespace:ast  %drop-namespace
-                                        default-database
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "drop namespace parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-drop-namespace
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "drop namespace parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?@  parsed                                    :: name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  drop-namespace:ast  %drop-namespace
+                                                    default-database
+                                                    parsed
+                                                    %.n
+                                                    ~
+                                                    ==
+                            commands
+            ==
+          ?:  ?=([@ %as-of *] parsed)                   :: name as of
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              default-database
+                                              -.parsed
+                                              %.n
+                                              ~
+                                              ==
+                      commands
+                ?:  ?=([@ @] +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              default-database
+                                              -.parsed
+                                              %.n
+                                              [~ +>.parsed]
+                                              ==
+                      commands
+                :-  %:  drop-namespace:ast  %drop-namespace
+                                            default-database
+                                            -.parsed
+                                            %.n
+                                            :-  ~
+                                                %:  as-of-offset:ast  %as-of-offset
+                                                                      +>-.parsed
+                                                                      +>+<.parsed
+                                                                      ==
+                                            ==
+                    commands
+            ==
+          ?:  ?=([[%force @] %as-of *] parsed)          :: force name as of
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              default-database
+                                              ->.parsed
+                                              %.y
+                                              ~
+                                              ==
+                      commands
+                ?:  ?=([@ @] +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              default-database
+                                              ->.parsed
+                                              %.y
+                                              [~ +>.parsed]
+                                              ==
+                      commands
+                :-  %:  drop-namespace:ast  %drop-namespace
+                                            default-database
+                                            ->.parsed
+                                            %.y
+                                            :-  ~
+                                                %:  as-of-offset:ast  %as-of-offset
+                                                                      +>-.parsed
+                                                                      +>+<.parsed
+                                                                      ==
+                                            ==
+                    commands
+            ==
+          ?:  ?=([[@ @] %as-of *] parsed)                   :: name as of
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>.parsed)
+                  :-  (drop-namespace:ast %drop-namespace -<.parsed ->.parsed %.n ~)
+                      commands
+                ?:  ?=([@ @] +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              -<.parsed
+                                              ->.parsed
+                                              %.n
+                                              [~ +>.parsed]
+                                              ==
+                      commands
+                :-  %:  drop-namespace:ast  %drop-namespace
+                                            -<.parsed
+                                            ->.parsed
+                                            %.n
+                                            :-  ~
+                                                %:  as-of-offset:ast  %as-of-offset
+                                                                      +>-.parsed
+                                                                      +>+<.parsed
+                                                                      ==
+                                            ==
+                    commands
+            ==
+          ?:  ?=([[%force [@ @]] %as-of *] parsed)            :: force db.name as of
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              ->-.parsed
+                                              ->+.parsed
+                                              %.y
+                                              ~
+                                              ==
+                      commands
+                ?:  ?=([@ @] +>.parsed)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              ->-.parsed
+                                              ->+.parsed
+                                              %.y
+                                              [~ +>.parsed]
+                                              ==
+                      commands
+                :-  %:  drop-namespace:ast  %drop-namespace
+                                            ->-.parsed
+                                            ->+.parsed
+                                            %.y
+                                            :-  ~
+                                                %:  as-of-offset:ast  %as-of-offset
+                                                                      +>-.parsed
+                                                                      +>+<.parsed
+                                                                      ==
+                                            ==
+                    commands
+            ==
+          ?:  ?=([%force @] parsed)                     :: force name
+              %=  $
+                script    q.q.u.+3.q:nail
+                commands  :-  %:  drop-namespace:ast  %drop-namespace
+                                                      default-database
+                                                      +.parsed
+                                                      %.y
+                                                      ~
+                                                      ==
+                              commands
+              ==
+          ?:  ?=([@ @] parsed)                          :: db.name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  drop-namespace:ast  %drop-namespace
+                                                    -.parsed
+                                                    +.parsed
+                                                    %.n
+                                                    ~
+                                                    ==
+                            commands
+            ==
+          ?:  ?=([%force [@ @]] parsed)                      :: force db.name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  drop-namespace:ast  %drop-namespace
+                                                    +<.parsed
+                                                    +>.parsed
+                                                    %.y
+                                                    ~
+                                                    ==
+                            commands
+            ==
+          !!
+    %drop-table
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "drop intabledex parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-drop-table-view
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "drop table parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  ?=([[%force *] %as-of *] parsed) :: force table name as of
+            %=  $
+              script           q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>.parsed)
+                  [(drop-table:ast %drop-table ->.parsed %.y ~) commands]
+                ?:  ?=([@ @] +>.parsed)
+                  :-  (drop-table:ast %drop-table ->.parsed %.y [~ +>.parsed])
+                      commands
+                :-  %:  drop-table:ast  %drop-table
+                                        ->.parsed
+                                        %.y
+                                        :-  ~
+                                            %:  as-of-offset:ast  %as-of-offset
+                                                                  +>-.parsed
+                                                                  +>+<.parsed
+                                                                  ==
+                                        ==
+                    commands
+            ==
+          ?:  ?=([* %as-of *] parsed)    :: qualified table name as of
+            %=  $
+              script           q.q.u.+3.q:nail
+              commands
+                ?:  =(%now +>.parsed)
+                  [(drop-table:ast %drop-table -.parsed %.n ~) commands]
+                ?:  ?=([@ @] +>.parsed)
+                  :-  (drop-table:ast %drop-table -.parsed %.n [~ +>.parsed])
+                      commands
+                :-  %:  drop-table:ast  %drop-table
                                         -.parsed
                                         %.n
                                         :-  ~
@@ -893,344 +1157,241 @@
                                                                   +>+<.parsed
                                                                   ==
                                         ==
-                commands
-        ==
-      ?:  ?=([[%force @] %as-of *] parsed)          :: force name as of
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands
-            ?:  =(%now +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          default-database
-                                          ->.parsed
-                                          %.y
-                                          ~
-                                          ==
-                  commands
-            ?:  ?=([@ @] +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          default-database
-                                          ->.parsed
-                                          %.y
-                                          [~ +>.parsed]
-                                          ==
-                  commands
-            :-  %:  drop-namespace:ast  %drop-namespace
-                                        default-database
-                                        ->.parsed
-                                        %.y
-                                        :-  ~
-                                            %:  as-of-offset:ast  %as-of-offset
-                                                                  +>-.parsed
-                                                                  +>+<.parsed
-                                                                  ==
-                                        ==
-                commands
-        ==
-      ?:  ?=([[@ @] %as-of *] parsed)                   :: name as of
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands
-            ?:  =(%now +>.parsed)
-              :-  (drop-namespace:ast %drop-namespace -<.parsed ->.parsed %.n ~)
-                  commands
-            ?:  ?=([@ @] +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          -<.parsed
-                                          ->.parsed
-                                          %.n
-                                          [~ +>.parsed]
-                                          ==
-                  commands
-            :-  %:  drop-namespace:ast  %drop-namespace
-                                        -<.parsed
-                                        ->.parsed
-                                        %.n
-                                        :-  ~
-                                            %:  as-of-offset:ast  %as-of-offset
-                                                                  +>-.parsed
-                                                                  +>+<.parsed
-                                                                  ==
-                                        ==
-                commands
-        ==
-      ?:  ?=([[%force [@ @]] %as-of *] parsed)            :: force db.name as of
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands
-            ?:  =(%now +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          ->-.parsed
-                                          ->+.parsed
-                                          %.y
-                                          ~
-                                          ==
-                  commands
-            ?:  ?=([@ @] +>.parsed)
-              :-  %:  drop-namespace:ast  %drop-namespace
-                                          ->-.parsed
-                                          ->+.parsed
-                                          %.y
-                                          [~ +>.parsed]
-                                          ==
-                  commands
-            :-  %:  drop-namespace:ast  %drop-namespace
-                                        ->-.parsed
-                                        ->+.parsed
-                                        %.y
-                                        :-  ~
-                                            %:  as-of-offset:ast  %as-of-offset
-                                                                  +>-.parsed
-                                                                  +>+<.parsed
-                                                                  ==
-                                        ==
-                commands
-        ==
-      ?:  ?=([%force @] parsed)                     :: force name
+                    commands
+            ==
+          ?:  ?=([@ @ @ @ @ @ @] parsed)           :: force qualified table name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  [(drop-table:ast %drop-table +.parsed %.y ~) commands]
+            ==
+          ?:  ?=([@ @ @ @ @ @] parsed)             :: qualified table name
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  [(drop-table:ast %drop-table parsed %.n ~) commands]
+            ==
+          !!
+    %drop-view
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "drop view parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-drop-table-view
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "drop view parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  ?=([@ @ @ @ @ @ @] parsed)                :: force qualified view
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  [(drop-view:ast %drop-view +.parsed %.y) commands]
+            ==
+          ?:  ?=([@ @ @ @ @ @] parsed)                  :: qualified view
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  [(drop-view:ast %drop-view parsed %.n) commands]
+            ==
+          !!
+    %grant
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "grant parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-grant
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "grant parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
           %=  $
-            script    q.q.u.+3.q:drop-namespace-nail
-            commands  :-  %:  drop-namespace:ast  %drop-namespace
-                                                  default-database
-                                                  +.parsed
-                                                  %.y
-                                                  ~
-                                                  ==
+            script    q.q.u.+3.q:nail
+            commands  :-  %:  grant:ast  %grant
+                                        -.parsed
+                                        +<.parsed
+                                        +>-.parsed
+                                        +>+.parsed
+                                        ==
                           commands
           ==
-      ?:  ?=([@ @] parsed)                          :: db.name
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands  :-  %:  drop-namespace:ast  %drop-namespace
-                                                -.parsed
-                                                +.parsed
-                                                %.n
-                                                ~
-                                                ==
-                        commands
-        ==
-      ?:  ?=([%force [@ @]] parsed)                      :: force db.name
-        %=  $
-          script    q.q.u.+3.q:drop-namespace-nail
-          commands  :-  %:  drop-namespace:ast  %drop-namespace
-                                                +<.parsed
-                                                +>.parsed
-                                                %.y
-                                                ~
-                                                ==
-                        commands
-        ==
-      !!
-    %drop-table
-      ~|  "drop table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  drop-table-nail  (parse-drop-table-view [[1 1] q.q.command-nail])
-      =/  parsed  (wonk drop-table-nail)
-      ?:  ?=([[%force *] %as-of *] parsed)   :: force qualified table name as of
-        %=  $
-          script           q.q.u.+3.q:drop-table-nail
-          commands
-            ?:  =(%now +>.parsed)
-              [(drop-table:ast %drop-table ->.parsed %.y ~) commands]
-            ?:  ?=([@ @] +>.parsed)
-              :-  (drop-table:ast %drop-table ->.parsed %.y [~ +>.parsed])
-                  commands
-            :-  %:  drop-table:ast  %drop-table
-                                    ->.parsed
-                                    %.y
-                                    :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              +>-.parsed
-                                                              +>+<.parsed
-                                                              ==
-                                    ==
-                commands
-        ==
-      ?:  ?=([* %as-of *] parsed)    :: qualified table name as of
-        %=  $
-          script           q.q.u.+3.q:drop-table-nail
-          commands
-            ?:  =(%now +>.parsed)
-              [(drop-table:ast %drop-table -.parsed %.n ~) commands]
-            ?:  ?=([@ @] +>.parsed)
-              :-  (drop-table:ast %drop-table -.parsed %.n [~ +>.parsed])
-                  commands
-            :-  %:  drop-table:ast  %drop-table
-                                    -.parsed
-                                    %.n
-                                    :-  ~
-                                        %:  as-of-offset:ast  %as-of-offset
-                                                              +>-.parsed
-                                                              +>+<.parsed
-                                                              ==
-                                    ==
-                commands
-        ==
-      ?:  ?=([@ @ @ @ @ @ @] parsed)               :: force qualified table name
-        %=  $
-          script    q.q.u.+3.q:drop-table-nail
-          commands  [(drop-table:ast %drop-table +.parsed %.y ~) commands]
-        ==
-      ?:  ?=([@ @ @ @ @ @] parsed)                    :: qualified table name
-        %=  $
-          script    q.q.u.+3.q:drop-table-nail
-          commands  [(drop-table:ast %drop-table parsed %.n ~) commands]
-        ==
-      !!
-    %drop-view
-      ~|  "drop view error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  drop-view-nail  (parse-drop-table-view [[1 1] q.q.command-nail])
-      =/  parsed  (wonk drop-view-nail)
-      ?:  ?=([@ @ @ @ @ @ @] parsed)                  :: force qualified view
-        %=  $
-          script    q.q.u.+3.q:drop-view-nail
-          commands  [(drop-view:ast %drop-view +.parsed %.y) commands]
-        ==
-      ?:  ?=([@ @ @ @ @ @] parsed)                    :: qualified view
-        %=  $
-          script    q.q.u.+3.q:drop-view-nail
-          commands  [(drop-view:ast %drop-view parsed %.n) commands]
-        ==
-      !!
-    %grant
-      ~|  "grant error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  grant-nail  (parse-grant [[1 1] q.q.command-nail])
-      =/  parsed  (wonk grant-nail)
-      %=  $
-        script    q.q.u.+3.q:grant-nail
-        commands  :-  %:  grant:ast  %grant
-                                     -.parsed
-                                     +<.parsed
-                                     +>-.parsed
-                                     +>+.parsed
-                                     ==
-                      commands
-      ==
     %insert
-      ~|  "insert error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  insert-nail
-            ::~>  %bout.[0 %parse-insert]  
-            (parse-insert [[1 1] q.q.command-nail])
-      =/  parsed  (wonk insert-nail)
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "insert parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        ::~>  %bout.[0 %parse-insert]  
+                                        %-  parse-insert
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "insert parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
       =/  ins
             ::~>  %bout.[0 %parse-produce-insert]  
             (produce-insert parsed)
       %=  $
-        script    q.q.u.+3.q:insert-nail
+        script    q.q.u.+3.q:nail
         commands  :-  (selection:ast %selection ~ [ins ~ ~])
                       commands
       ==
     %merge
-      ~|  "merge error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  merge-nail  (parse-merge [[1 1] q.q.command-nail])
-      =/  parsed  (wonk merge-nail)
-      %=  $
-        script    q.q.u.+3.q:merge-nail
-        commands  :-  (selection:ast %selection ~ [(produce-merge parsed) ~ ~])
-                      commands
-      ==
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "merge parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-merge
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "merge parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail 
+            commands  :-  %^  selection:ast  %selection
+                                             ~
+                                             [(produce-merge parsed) ~ ~]
+                          commands
+          ==
     %query
-      ~|  "query error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  query-nail  (parse-query [[1 1] q.q.command-nail])
-      =/  parsed  (wonk query-nail)
-      %=  $
-        script    q.q.u.+3.q:query-nail
-        commands  :-  (selection:ast %selection ~ [(produce-query parsed) ~ ~])
-                      commands
-      ==
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "query parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-query
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "query parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  :-  %^  selection:ast  %selection
+                                             ~
+                                             [(produce-query parsed) ~ ~]
+                          commands
+          ==
     %revoke
-      ~|  "revoke error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  revoke-nail  (parse-revoke [[1 1] q.q.command-nail])
-      =/  parsed  (wonk revoke-nail)
-      %=  $
-        script    q.q.u.+3.q:revoke-nail
-        commands  :-  %:  revoke:ast  %revoke
-                                      -.parsed
-                                      +<.parsed
-                                      +>-.parsed
-                                      +>+.parsed
-                                      ==
-                      commands
-      ==
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "revoke parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-revoke
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "revoke parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  :-  %:  revoke:ast  %revoke
+                                          -.parsed
+                                          +<.parsed
+                                          +>-.parsed
+                                          +>+.parsed
+                                          ==
+                          commands
+          ==
     %truncate-table
-      ~|  "truncate table error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  truncate-table-nail  (parse-truncate-table [[1 1] q.q.command-nail])
-      =/  parsed  (wonk truncate-table-nail)
-      %=  $
-        script    q.q.u.+3.q:truncate-table-nail
-        commands
-          :-  ?:  ?=(qualified-object:ast parsed)
-                %^  truncate-table:ast  %truncate-table
-                                        parsed
-                                        ~
-              ?:  ?=([qualified-object:ast %as-of [@ @ @]] parsed)
-                %^  truncate-table:ast  %truncate-table
-                                        -.parsed
-                                        :-  ~
-                                            %^  as-of-offset:ast  %as-of-offset
-                                                                  +>-.parsed
-                                                                  +>+<.parsed
-              ?:  ?=([qualified-object:ast %as-of %now] parsed)
-                %^  truncate-table:ast  %truncate-table
-                                        -.parsed
-                                        ~
-              ?:  ?=([qualified-object:ast %as-of [@ @]] parsed)
-                %^  truncate-table:ast  %truncate-table
-                                        -.parsed  
-                                        [~ +>.parsed]
-              !!
-              commands
-      ==
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "truncate table parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-truncate-table
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "truncate table parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands
+              :-  ?:  ?=(qualified-object:ast parsed)
+                    %^  truncate-table:ast  %truncate-table
+                                            parsed
+                                            ~
+                  ?:  ?=([qualified-object:ast %as-of [@ @ @]] parsed)
+                    %^  truncate-table:ast  %truncate-table
+                                            -.parsed
+                                            :-  ~
+                                                %^  as-of-offset:ast
+                                                      %as-of-offset
+                                                      +>-.parsed
+                                                      +>+<.parsed
+                  ?:  ?=([qualified-object:ast %as-of %now] parsed)
+                    %^  truncate-table:ast  %truncate-table
+                                            -.parsed
+                                            ~
+                  ?:  ?=([qualified-object:ast %as-of [@ @]] parsed)
+                    %^  truncate-table:ast  %truncate-table
+                                            -.parsed  
+                                            [~ +>.parsed]
+                  !!
+                  commands
+          ==
     %update
-      ~|  "update error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  update-nail  (parse-update [[1 1] q.q.command-nail])
-      =/  parsed  (wonk update-nail)
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "update parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        (parse-update [[1 1] q.q.command-nail])
+                                [(wonk nail) nail]
       %=  $
-        script    q.q.u.+3.q:update-nail
-        commands  [(produce-update ~ parsed) commands]
+        script    q.q.u.+3.q:nail
+        commands  :-  ~|  "update parse produce phase:  ".
+                          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+                          (produce-update ~ parsed)
+                      commands
       ==
     %with
-      ~|  "with error:  {<`tape`(scag 100 q.q.command-nail)>} ..."
-      =/  with-nail  (parse-with [[1 1] q.q.command-nail])
-      =/  parsed  (wonk with-nail)
-      ?:  =(+<.parsed %delete)
-        %=  $
-          script    q.q.u.+3.q:with-nail
-          commands  :-  (produce-delete (produce-ctes -.parsed) +>.parsed)
-                        commands
-        ==
-      ?:  =(+<.parsed %insert)
-        %=  $
-          script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                           (produce-ctes -.parsed)
-                                           [(produce-insert +>.parsed) ~ ~]
-                                           ==        
-                        commands
-        ==
-      ?:  =(+<.parsed %merge)
-        %=  $
-          script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-merge +>.parsed) ~ ~]
-                                          ==
-                        commands
-        ==
-      ?:  =(+<.parsed %query)
-        %=  $
-          script    q.q.u.+3.q:with-nail
-          commands  :-  %:  selection:ast  %selection
-                                          (produce-ctes -.parsed)
-                                          [(produce-query +>.parsed) ~ ~]
-                                          ==
-                        commands
-        ==
-      ?:  =(+<.parsed %update)
-        %=  $
-          script    q.q.u.+3.q:with-nail
-          commands  :-  (produce-update (produce-ctes -.parsed) +>.parsed)
-                        commands
-        ==
-      !!
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail  
+                                    ~|  "with parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        (parse-with [[1 1] q.q.command-nail])
+                                [(wonk nail) nail]
+      ~|  "with parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          ?:  =(+<.parsed %delete)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  (produce-delete (produce-ctes -.parsed) +>.parsed)
+                            commands
+            ==
+          ?:  =(+<.parsed %insert)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  selection:ast  %selection
+                                              (produce-ctes -.parsed)
+                                              [(produce-insert +>.parsed) ~ ~]
+                                              ==        
+                            commands
+            ==
+          ?:  =(+<.parsed %merge)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  selection:ast  %selection
+                                              (produce-ctes -.parsed)
+                                              [(produce-merge +>.parsed) ~ ~]
+                                              ==
+                            commands
+            ==
+          ?:  =(+<.parsed %query)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  %:  selection:ast  %selection
+                                              (produce-ctes -.parsed)
+                                              [(produce-query +>.parsed) ~ ~]
+                                              ==
+                            commands
+            ==
+          ?:  =(+<.parsed %update)
+            %=  $
+              script    q.q.u.+3.q:nail
+              commands  :-  (produce-update (produce-ctes -.parsed) +>.parsed)
+                            commands
+            ==
+          !!
   ==
 ::
 ::  parse urQL commands
@@ -3687,7 +3848,7 @@
     (foreign-key:ast %foreign-key -<.a ->-.a ->+<-.a 'dbo' ->+.a +.a)
   ~|("cannot parse foreign-key  {<a>}" !!)
 ++  build-foreign-keys
-  |=  a=[table=qualified-object:ast f-keys=*]
+  |=  a=*  ::a=[table=qualified-object:ast f-keys=*]
   =/  f-keys  +.a
   =/  foreign-keys  `(list foreign-key:ast)`~
   |-
