@@ -1,4 +1,4 @@
-/-  *ast
+/-  *ast, *server-state
 ^?
 |%
 ::
@@ -34,122 +34,11 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-
-+$  server  (map @tas database)
-+$  database
-  $:  %database
-      name=@tas
-      created-provenance=path
-      created-tmsp=@da
-      sys=((mop @da schema) gth)
-      content=((mop @da data) gth)
-      =view-cache
-  ==
-+$  view-cache  ((mop data-obj-key cache) ns-obj-comp)
-+$  cache
-  $:  %cache
-      tmsp=@da
-      content=(unit cache-content)
-  ==
-+$  cache-content
-  $:  rowcount=@
-      rows=(list (map @tas @))
-  ==
-+$  schema
-  $:  %schema
-      provenance=path
-      tmsp=@da
-      =namespaces
-      =tables
-  :: indices  ::  indices other than primary key, indexed by? 
-      =views
-  :: permissions   :: maybe at server or database level?
-  ==
-+$  data
-  $:  %data
-      ship=@p
-      provenance=path
-      tmsp=@da
-      files=(map [@tas @tas] file)
-  ==
-+$  file
-  $:  %file
-      ship=@p
-      provenance=path
-      tmsp=@da
-      =column-addrs
-      rowcount=@
-      pri-idx=(tree indexed-row)   :: generically tree, reified as mop
-      indexed-rows=(list indexed-row)
-      =column-catalog
-      ::    =indices
-  ==
-+$  column-addrs    (map @tas @)
-+$  column-catalog  (map @tas column-mta)                 
-+$  column-mta
-  $:  %column-mta
-      addr=@
-      distinct=@ud              :: (~(wyt by values))
-      values=((mop @ value-idx) lth)
-  ==
-+$  value-idx
-  $:  first=file-ord
-      last=file-ord
-      domain=(list file-ord)    :: ordered
-  ==
-+$  file-ord   @ud              :: ordinal position in indexed-row sorted file
-::
-+$  data-obj-key
-  $:  ns=@tas
-      obj=@tas
-      time=@da
-  ==
-+$  namespaces  (map @tas @da)
-+$  tables  (map [@tas @tas] table)
-+$  table
-  $+  table
-  $:  %table
-      provenance=path
-      tmsp=@da
-      =column-lookup
-      column-types=(map @tas @ta)
-      pri-indx=index
-      columns=(list column)      ::  canonical column list
-      indices=(list index)      :: to do: indices indexed by (list column)
-  ==
-+$  views  ((mop data-obj-key view) ns-obj-comp)
-+$  view
-  $+  view
-  $:  %view
-      provenance=path
-      tmsp=@da
-      =selection
-      =column-lookup
-      column-types=(map @tas @ta)
-      columns=(list column)      ::  canonical column list
-      ordering=(list column-order)
-      :: indices  -  to do
-  ==
-+$  column-lookup  (map @tas [aura @])  :: name [type index]
-+$  index
-  $:  %index
-      unique=?
-      key=(list key-column)
-  ==
-+$  key-column
-  $:
-    %key-column
-    name=@tas
-    =aura
-    ascending=?
-  ==
 +$  vector-cell  [p=@tas q=dime]
 +$  vector
     $:  %vector
         (lest vector-cell)
     ==
-+$  column-order  [aor=? ascending=? offset=@ud]
-  :: $| validator mold for adding rows with FKs
 ::
 +$  action
   $%  [%tape default-database=@tas urql=tape]
@@ -185,9 +74,6 @@
 +$  qual-col-type  [qualified-column @ta]
 +$  lookup-type    (map qualified-object (map @tas @ta))
 ::
-+$  indexed-row  [(list @) (map @tas @)]
-+$  joined-row   [(list @) (map qualified-object (map @tas @))]
-::
 +$  joined
   $:  %joined
       key=(list key-column)
@@ -221,15 +107,4 @@
       changed-data=(map @tas @da)
       state=server
   ==
-::
-::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
-::
-::  view and table comparer
-++  ns-obj-comp
-  |=  [p=data-obj-key q=data-obj-key]
-  ^-  ?
-  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
-  (gth time.p time.q)
-  
 --

@@ -1,6 +1,6 @@
 ::  unit tests on statistics
 ::
-/-  ast, *obelisk
+/-  ast, *obelisk, *server-state
 /+  *test, parse, utils
 /=  agent  /app/obelisk
 |%

@@ -1,6 +1,6 @@
 ::  unit tests on %obelisk library simulating pokes
 ::
-/-  ast, *obelisk
+/-  ast, *obelisk, *server-state
 /+  *test, parse, utils
 /=  agent  /app/obelisk
 |%

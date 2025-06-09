@@ -1,4 +1,4 @@
-/-  *obelisk, obelisk, ast
+/-  *server-state, server-state, *obelisk, obelisk, ast
 /+  default-agent, dbug, *server, *print
 |%
 +$  versioned-state
@@ -40,14 +40,17 @@
   ?-    -.act
   ::
   %tape
+    =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-      ^-  (each (pair (list cmd-result:obelisk) server:obelisk) tang)
-      %-  mule
-      |.
-      %:  state-server
-      ::~>  %bout.[0 %parse-cmds]
-      (parse-urql +<.act +>.act)
-      ==
+        ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+        %-  mule
+          |.
+          %:  state-server
+          ::::~>  %bout.[0 %parse-cmds]
+          (parse-urql +<.act +>.act)
+          ::(parse-urql(state server, bowl bowl) +<.act +>.act)
+          ::::(parse:parse(default-database +<.act) +>.act)
+          ==
     ?-  -.virtualized
       %.n
         :_  this
@@ -66,7 +69,7 @@
   ::  for testing without printing results
   %tape2
     =/  virtualized
-      ^-  (each (pair (list cmd-result:obelisk) server:obelisk) tang)
+      ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
       %-  mule
       |.
       %:  state-server
@@ -89,8 +92,8 @@
   ::
   %parse  !!
     ::=/  virtualized
-    ::  ::^-  (each (pair (list command:ast) server:obelisk) tang)
-    ::  ^-  (each (pair tape server:obelisk) tang)
+    ::  ::^-  (each (pair (list command:ast) server) tang)
+    ::  ^-  (each (pair tape server) tang)
     ::  %-  mule
     ::  |.
     ::  ::~>  %bout.[0 %parse-cmds]
