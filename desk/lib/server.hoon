@@ -1,5 +1,5 @@
 /-  ast, *server-state, *obelisk
-/+  *sys-views, *ddl, *selection, parse
+/+  *sys-views, *ddl, *crud, parse
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
