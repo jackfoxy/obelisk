@@ -469,6 +469,7 @@
           [%message msg='table data:']
           [%vector-count rowcount.file.txn]
           ==
+::
 ::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
 ::              -> [server (list result)]
 ::
