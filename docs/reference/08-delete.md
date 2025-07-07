@@ -12,6 +12,7 @@ Deletes rows from a `<table-set>`.
 +$  delete
   $:
     %delete
+    ctes=(list cte)
     table=qualified-object
     as-of=(unit as-of)
     predicate=predicate

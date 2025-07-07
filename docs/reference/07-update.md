@@ -14,6 +14,7 @@ Changes content of selected columns in existing rows of a `<table-set>`.
 +$  update
   $:
     %update
+    ctes=(list cte)
     table=qualified-object
     as-of=(unit as-of)
     columns=(list @tas)

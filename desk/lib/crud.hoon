@@ -478,157 +478,101 @@
 ++  do-query
   |=  [q=query:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
   ^-  [server (list result)]
+  :: no from clause, it's a single row of literals
+  ?~  from.q  (select-literals columns.selection.q)
+  =/  =join-return  (join-all(state state, bowl bowl) q)
+  =/  selected  columns.selection.q
+  =/  qualifier-lookup  (mk-qualifier-lookup data-objs.join-return selected)
+  =.  selected  (qualify-unqualified selected qualifier-lookup)
+  =/  col-lookup
+    %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
+        %+  turn
+              qualified-columns.join-return
+              |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
+  =/  cells=(list templ-cell)
+    ?~  joined-rows.join-data.join-return  ~
+    %^  mk-vect-templ
+          qualified-columns.join-return
+          selected
+          -.joined-rows.join-data.join-return
+  =/  filter=(unit $-(joined-row ?))
+    ?~  predicate.q  ~
+    :-  ~
+        %^  pred-ops-and-conjs
+              %+  pred-qualify-unqualified
+                    (need predicate.q)
+                    qualifier-lookup
+              type-lookup.join-return
+              qualifier-lookup
+  =/  out-rows=(set vector)  ~
+  =/  rows=(list joined-row)  joined-rows.join-data.join-return
+  |-
+  ?~  rows
+    :-  server.join-return
+        %-  zing
+            :~  :~  [%message 'SELECT']
+                    [%result-set ~(tap in out-rows)]
+                    [%server-time now.bowl]
+                    ==
+                (from-obj-meta data-objs.join-return)
+                :~  [%vector-count ~(wyt in out-rows)]
+                    ==
+            ==
+  =/  include-row=?
+    ?~  filter
+      %.y
+    ((need filter) i.rows)
+  ?.  include-row
+    $(rows t.rows)
+  =/  row=(list vector-cell)  ~
+  =/  cols=(list templ-cell)  cells
+  |-
+  ?~  cols
+    %=  ^$
+      out-rows  (~(put in out-rows) (vector %vector row))
+      rows      t.rows
+    ==
+  ?~  object.i.cols
+    $(cols t.cols, row [vc.i.cols row])
+  =/  cell=templ-cell  i.cols
+  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
+  =/  value
+    %-  ~(got by (~(got by +.i.rows) qualifier))
+        column:(need object.cell)
+  =/  cell-type
+    %-  ~(got by col-lookup)
+        [qualifier column:(need object.cell)]
+  $(cols t.cols, row [[p.vc.cell [cell-type value]] row])
+::
+::  +select-literals:  (list selected-column:ast) -> (list vector)
+::
+::  selection of literals only, no from clause
+++  select-literals
+  |=  columns=(list selected-column:ast)
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
                   (~(got by state) %sys)
-  ?~  from.q
-       :-  state    :: no from? only literals
-           :~  [%message 'SELECT']
-               [%result-set (select-literals columns.selection.q)]
-               [%server-time now.bowl]
-               [%schema-time created-tmsp.sys-db]
-               [%data-time created-tmsp:(~(got by state) %sys)]
-               (result %vector-count 1)
-               ==
-  =/  =join-return        (join-all(state state, bowl bowl) q)
-  =/  output=[@ud (list vector)]  %:  vector-data  join-data.join-return
-                                                   q
-                                                   data-objs.join-return
-                                                   type-lookup.join-return
-                                                   qualified-columns.join-return
-                                                   ==
-  ::
-  :-  server.join-return  :: state
-      %-  zing  :~  :~  [%message 'SELECT']
-                        [%result-set +.output]
-                        [%server-time now.bowl]
-                        ==
-                        (from-obj-meta data-objs.join-return)
-                    :~  [%vector-count -.output]
-                        ==
-                    ==
-::
-::  +vector-data:  [(list from-obj) query:ast] -> [@ud (list vector)]
-++  vector-data
-  |=  $:  all-data=joined
-          q=query:ast
-          sources=(list from-obj)
-          type-lookup=lookup-type
-          qualified-columns=(list qual-col-type)
-          ==
-  ^-  [@ud (list vector)]
-  =/  selected  columns.selection.q
-  =/  qualifier-lookup  (mk-qualifier-lookup sources selected)
-  =.  selected  (qualify-unqualified selected qualifier-lookup)
-  =/  vectors
-      ?~  joined-rows.all-data  ~
-      ?~  predicate.q
-          %+  select-columns  joined-rows.all-data
-                              %^  mk-vect-templ  qualified-columns
-                                                 selected
-                                                 -.joined-rows.all-data
-      %^  select-columns-filtered  joined-rows.all-data
-                                   %^  mk-vect-templ
-                                         qualified-columns
-                                         selected
-                                         -.joined-rows.all-data
-                                   %^  pred-ops-and-conjs
-                                         %+  pred-qualify-unqualified
-                                              (need predicate.q)
-                                              qualifier-lookup
-                                         type-lookup
-                                         qualifier-lookup
-  ::
-  [(lent vectors) vectors]
-::
-::  +select-columns:
-::    [(list joined-row) (unit @t) (list templ-cell)]
-::    -> (list vector)
-::
-::  select columns from join
-++   select-columns
-  |=  $:  rows=(list joined-row)
-          cells=(list templ-cell)
-          ==
-  ~+  ^-  (list vector)
-  =/  out-rows=(list vector)  ~
-  |-
-  ?~  rows  ~(tap in (silt out-rows))
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell)  cells
-  |-
-  ?~  cols
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?~  object.i.cols                         :: case: is literal
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols            :: case: is table column
-  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
-  %=  $
-    cols  t.cols
-    row   :-
-            :-  p.vc.cell
-              :-  p.q.vc.cell
-                  ;;(@ +:.*((~(got by +.i.rows) qualifier) [0 addr.cell]))
-            row
-  ==
-::
-::  +select-columns-filtered:
-::    $:  (list joined-row)
-::        (list templ-cell)
-::        $-((map @tas @) ?)
-::        -> (list vector)
-::
-::  select columns from join
-::  rejects rows that do not pass filter
-++   select-columns-filtered
-  |=  $:  rows=(list joined-row)
-          cells=(list templ-cell)
-          filter=$-(joined-row ?)
-          ==
-  ~+  ^-  (list vector)  
-  =/  out-rows=(list vector)  ~
-  |-
-  ?~  rows  ~(tap in (silt out-rows))
-  ::
-  ?.  (filter i.rows)  $(rows t.rows)
-  ::
-  =/  row=(list vector-cell)  ~
-  =/  cols=(list templ-cell)  cells
-  |-
-  ?~  cols
-      %=  ^$
-        out-rows  [(vector %vector row) out-rows]
-        rows      t.rows
-      ==
-  ::
-  ?~  object.i.cols                   :: case: is literal
-    $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols              :: case: is table column
-  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
-  %=  $
-    cols  t.cols
-    row   :-
-            :-  p.vc.cell
-              :-  p.q.vc.cell
-                  %-  ~(got by (~(got by +.i.rows) qualifier))
-                      column:(need object.cell)
-            row
-  ==
-::
-::  +select-literals:  (list selected-column:ast) -> (list vector)
-++  select-literals
-  |=  columns=(list selected-column:ast)
-  ^-  (list vector)
   =/  i  0
   =/  vals=(list vector-cell)  ~
   |-
-  ?~  columns  ?:  =(~ vals)  ~|("no literal values" !!)
-               (limo ~[(vector %vector (flop vals))])
+  ?~  columns
+    ?~  vals
+      :-  state
+          :~  [%message 'SELECT']
+              [%message 'no literal values']
+              [%server-time now.bowl]
+              [%schema-time created-tmsp.sys-db]
+              [%data-time created-tmsp.sys-db]
+              [%vector-count 0]
+              ==
+    :-  state
+        :~  [%message 'SELECT']
+            [%result-set (limo ~[(vector %vector (flop vals))])]
+            [%server-time now.bowl]
+            [%schema-time created-tmsp.sys-db]
+            [%data-time created-tmsp.sys-db]
+            [%vector-count 1]
+            ==
   ?.  ?=(selected-value:ast -.columns)
     ~|("selected value {<-.columns>} not a literal" !!)
   =/  column=selected-value:ast  -.columns
@@ -678,8 +622,7 @@
 ++  mk-updates
   |=  $:  table=qualified-object:ast
           columns=(list qualified-column:ast)
-          ::values=(list value-or-default:ast)
-          values=(list *)
+          values=(list *)   ::(list value-or-default:ast)
           type-lookup=lookup-type
           ==
   ^-  (list [@tas @])
@@ -727,20 +670,31 @@
     ctes  +.ctes
   ==
 ::
-::  +named-query:  (list cte:ast) -> (map @tas from-obj)
+::  +named-query:  (list query:ast) -> [@ud (list indexed-row)]
 ::  resolve CTEs
 ++  named-query
   |=  q=query:ast
   ^-  [@ud (list indexed-row)]
-  =/  vs=(list vector)  (select-literals columns.selection.q)
-  ?~  vs  ~|("can't get here" !!)
-  =/  xx=(list [p=@tas q=dime])  +.i.vs
-  =/  yy  %^  spin
-              xx
-              *(map @tas @)
-              |=([a=[p=@tas q=dime] s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
-  ?~  from.q  [1 ~[[`(list @)`~ +.yy]]]
-  =/  =join-return        (join-all(state state, bowl bowl) q)
-  ?~  data-objs.join-return  ~|("can't get here" !!)
-  [rowcount.i.data-objs.join-return indexed-rows.i.data-objs.join-return]
+  =/  i  0
+  =/  vals=(list vector-cell)  ~
+  =/  columns=(list selected-column:ast)  columns.selection.q
+  |-
+  ?~  columns
+    ?~  vals  ~|("can't get here" !!)
+    =/  xx=(list [p=@tas q=dime])  vals
+    =/  yy  %^  spin
+                xx
+                *(map @tas @)
+                |=([a=[p=@tas q=dime] s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
+    =/  indexed-row  [`(list @)`~ +.yy]
+    [1 ~[indexed-row]]
+  ?.  ?=(selected-value:ast -.columns)
+    ~|("selected value {<-.columns>} not a literal" !!)
+  =/  column=selected-value:ast  -.columns
+  %=  $
+    i        +(i)
+    columns  +.columns
+    vals
+      [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
+  ==
 --
