@@ -143,6 +143,8 @@
           ==
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column unqualified-column dime)
+
+    :: NOTE: see +$  iota in hoon.hoon for tricky type union
 +$  datum-or-scalar      $@(datum scalar-function)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)

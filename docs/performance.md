@@ -39,6 +39,7 @@ The insert performance of city-zip-codes is noteworthy, possibly explained by a 
 parse: ms/13.604
 query: s/10.539
 
+```
 %obelisk-result:
   %results
     [ %message 'SELECT' ]
@@ -60,12 +61,14 @@ query: s/10.539
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 21.916 ]
+```
 
 ### FROM reference.calendar SELECT day-name
 
 parse: ms/14.621
 query: s/8.603
 
+```
 %obelisk-result:
   %results
     [ %message 'SELECT' ]
@@ -83,12 +86,16 @@ query: s/8.603
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 7 ]
+```
 
 ### JOIN
+
+FROM reference.calendar T1 JOIN reference.calendar-us-fed-holiday T2 SELECT T1.date, day-name, us-federal-holiday
 
 parse: ms/34.649
 query: s/7.272
 
+```
 %obelisk-result:
   %results
     [ %message 'SELECT' ]
@@ -112,3 +119,4 @@ query: s/7.272
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 10 ]
+```
