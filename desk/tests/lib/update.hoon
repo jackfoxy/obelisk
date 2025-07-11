@@ -90,26 +90,8 @@
       %obelisk-action
       !>  [%tape2 %db1 resolve-2]                   :: <==
   ::
-  
-        ::~&  "mov2:  {<->+>+>+<.mov2>}"
-        ::~&  " "
-        ::~&  "mov3:  {<->+>+>+<.mov3>}"
-
   %+  weld  (eval-results expect1 ;;(cmd-result ->+>+>+<.mov4))
             (eval-results expect2 ;;(cmd-result ->+>+>+<.mov5))
-
-        ::(eval-results expect1 ->+>+>+<.mov4)
-        ::  (eval-results expect2 ->+>+>+<.mov5)
-
-        ::%+  expect-eq
-        ::      !>  expect1 
-        ::      !>  ->+>+>+<.mov2
-
-  ::%+  expect-fail-message
-  ::  'dummy'
-  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
-  ::        %obelisk-action
-  ::        !>  [%test %db1 action-1]
 ::
 ::
 ++  failon
@@ -118,14 +100,7 @@
   %+  ~(on-poke agent (bowl [run ~2012.4.30]))
       %obelisk-action
       !>  [%tape2 %db1 init]                        :: <==
-  
-  ::=^  mov2  agent
-  ::%+  ~(on-poke agent (bowl [run ~2012.5.1]))
-  ::    %obelisk-action
-  ::    !>  [%tape2 %db1 action]                      :: <==
-  
-      ::  ~&  "mov2:  {<->+>+>+<.mov2>}"
-
+  ::
   %+  expect-fail-message
       expect1
       |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
