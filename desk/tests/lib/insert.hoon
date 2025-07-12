@@ -1,7 +1,7 @@
 ::  Demonstrate unit testing queries on a Gall agent with %obelisk.
 ::
 /-  ast, *obelisk, *server-state
-/+  *test, *sys-views
+/+  *test
 /=  agent  /app/obelisk
 |%
 ::
@@ -415,8 +415,6 @@
       %+  expect-eq
         !>  expected-2
         !>  ;;(cmd-result ->+>+>+<.mov5)
-
-
 ::
 ::  insert followed by insert in same script, same time
 ++  test-insert-07
@@ -682,7 +680,6 @@
         !>  :+  %tape2
                 %db1
                 "TRUNCATE TABLE my-table;  "
-
   =.  run  +(run)
   =^  mov6  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.4..15.01.02]))
@@ -694,9 +691,7 @@
                 "  ('today', ~2024.9.26)".
                 "  ('tomorrow', ~2024.9.27)"
   ::
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov6)
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  truncate followed by insert in same script, different time
 ++  test-insert-11
@@ -938,9 +933,7 @@
                 "FROM db2..my-table-1 AS OF ~2000.1.1 ".
                 "SELECT *"
   ::
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov2)
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  create db, create tbl, 2X insert with AS OF on second
 ++  test-insert-15
@@ -1162,9 +1155,7 @@
                  "(col1, col2, col3) ".
                  "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) "
   ::
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 :: INSERT error messages
 ::
@@ -1419,7 +1410,6 @@
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action
           !>([%test %db1 my-insert])
-
 ::
 ::  fail on changing state after select in script
 ++  test-fail-insert-10

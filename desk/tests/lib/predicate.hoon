@@ -74,9 +74,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 = 'tuxedo' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> = <column>
 ++  test-eq-01
@@ -128,9 +127,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE 'tuxedo' = col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> = <column>
 ++  test-eq-02
@@ -182,9 +180,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 = col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> = <literal>
 ++  test-eq-03
@@ -226,9 +223,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE col-name = 'col3' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <column> = <literal>
 ++  test-eq-04
@@ -270,9 +266,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 'col3' = col-name SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> = <literal>
 ++  test-eq-05
@@ -335,9 +330,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 1 = 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> = <literal> types differ
 ++  test-fail-eq-00
@@ -568,9 +562,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 <> 'tuxedo' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> <> <column>
 ++  test-neq-01
@@ -628,9 +621,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE 'tuxedo' <> col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> != <column>
 ++  test-neq-02
@@ -688,9 +680,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 != col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> <> <literal>
 ++  test-neq-03
@@ -746,9 +737,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE col-name <> 'col3' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> <> <column>
 ++  test-neq-04
@@ -804,9 +794,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 'col3' <> col-name SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> != <literal>
 ++  test-neq-05
@@ -838,9 +827,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 1 != 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> <> <literal> types differ
 ++  test-fail-neq-00
@@ -1072,9 +1060,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 > 'toledo' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> > <literal> (@da)
 ++  test-gt-01
@@ -1132,9 +1119,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col2 > ~1999.2.19 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> > <column>  (cord)
 ++  test-gt-02
@@ -1186,9 +1172,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE 'tricolor' > col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 
 ::
 ::  WHERE <column> > <column>  (cord)
@@ -1247,9 +1232,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 > col1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> > <literal> (cord)
 ++  test-gt-04
@@ -1307,9 +1291,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 > 'Abbz' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> > <literal>
 ++  test-gt-05
@@ -1358,9 +1341,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 'col3' > col-name SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> > <literal>
 ++  test-gt-06
@@ -1423,9 +1405,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 2 > 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> > <literal> types differ
 ++  test-fail-gt-00
@@ -1650,9 +1631,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 < 'toledo' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> < <literal> (@da)
 ++  test-lt-01
@@ -1704,9 +1684,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col2 < ~2001.9.19 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> < <column>  (cord)
 ++  test-lt-02
@@ -1758,9 +1737,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE 'tricolor' < col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> < <column>  (cord)
 ++  test-lt-03
@@ -1818,9 +1796,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 < col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> < <literal> (cord)
 ++  test-lt-04
@@ -1878,9 +1855,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 < 'Angel' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> < <literal>
 ++  test-lt-05
@@ -1929,9 +1905,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 'col2' < col-name SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> < <literal>
 ++  test-lt-06
@@ -1963,9 +1938,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 2 < 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> < <literal> types differ
 ++  test-fail-lt-00
@@ -2196,9 +2170,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 >= 'tricolor' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> >= <literal> (@da)
 ++  test-gte-01
@@ -2262,9 +2235,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col2 >= ~1999.2.19 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> >= <column>  (cord)
 ++  test-gte-02
@@ -2322,9 +2294,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE 'tricolor' >= col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> >= <column>  (cord)
 ++  test-gte-03
@@ -2388,9 +2359,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 >= col1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> >= <literal> (cord)
 ++  test-gte-04
@@ -2448,9 +2418,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 >= 'Ace' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> >= <literal>
 ++  test-gte-05
@@ -2506,9 +2475,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 'col3' >= col-name SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> >= <literal>
 ++  test-gte-06
@@ -2571,9 +2539,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 2 >= 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> >= <literal> types differ
 ++  test-fail-gte-00
@@ -2798,9 +2765,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col3 <= 'ticolor' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> <= <literal> (@da)
 ++  test-lte-01
@@ -2858,9 +2824,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col2 <= ~2001.9.19 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> <= <column>  (cord)
 ++  test-lte-02
@@ -2918,9 +2883,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE 'tricolor' <= col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> <= <column>  (cord)
 ++  test-lte-03
@@ -2984,9 +2948,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 <= col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> <= <literal> (cord)
 ++  test-lte-04
@@ -3044,9 +3007,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 <= 'Ace' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> <= <literal>
 ++  test-lte-05
@@ -3102,9 +3064,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 'col2' <= col-name SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  view WHERE <literal> <= <literal>
 ++  test-lte-06
@@ -3167,9 +3128,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE 1 <= 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> <= <literal> types differ
 ++  test-fail-lte-00
@@ -3402,9 +3362,8 @@
         !>  :+  %tape2
                 %db1
                 "FROM my-table WHERE col3 IN ('ticolor', 'tricolor') SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> IN (list @da) (@da)
 ++  test-in-01
@@ -3464,9 +3423,8 @@
         !>  :+  %tape2
                 %db1
                 "FROM my-table WHERE col2 in(~2001.9.19, ~1999.2.19) SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> IN (list @t)
 ++  test-in-02
@@ -3533,9 +3491,8 @@
                 %db1
                 "FROM my-table WHERE 'tricolor' ".
                 "IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> IN (list @)  (no matches)
 ++  test-in-03
@@ -3580,9 +3537,8 @@
         !>  :+  %tape2
                 %db1
                 "FROM my-table WHERE col1 IN ('widget', 'bam') SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 
 ::
 ::  fail WHERE <column> IN (list @t) types differ
@@ -3754,9 +3710,8 @@
                 %db1
                 "FROM my-table WHERE col3 NOT IN ('ticolor', 'tricolor') ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> NOT IN (list @da) (@da)
 ++  test-not-in-01
@@ -3811,9 +3766,8 @@
                 %db1
                 "FROM my-table WHERE col2 NOT IN (~2001.9.19, ~1999.2.19) ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> NOT IN (list @t)  (no matches)
 ++  test-not-in-02
@@ -3880,9 +3834,8 @@
                 %db1
                 "FROM my-table WHERE 'boo' ".
                 "NOT IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> NOT IN (list @)
 ++  test-not-in-03
@@ -3928,9 +3881,8 @@
                 %db1
                 "FROM my-table WHERE col1 NOT IN ('Abby', 'Ace', 'Angel') ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  fail WHERE <column> NOT IN (list @t) types differ
 ++  test-fail-not-in-00
@@ -4107,9 +4059,8 @@
                 %db1
                 "FROM my-table WHERE col3 BETWEEN 'ticolor' AND 'tummy' ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> BETWEEN <column> AND <literal>
 ++  test-between-01
@@ -4176,9 +4127,8 @@
                 %db1
                 "FROM my-table WHERE 'tuxedo' BETWEEN col3 AND 'tuxedos' ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> BETWEEN <column> <column> (no optional AND)
 ++  test-between-02
@@ -4230,9 +4180,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 BETWEEN col3 col4 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> BETWEEN <literal> AND <literal>
 ++  test-between-03
@@ -4284,9 +4233,8 @@
                 %db1
                 "FROM sys.columns WHERE col-name BETWEEN 'col2' AND 'col3' ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> BETWEEN <literal> AND <literal> types differ
 ++  test-fail-between-00
@@ -4511,9 +4459,8 @@
                 %db1
                 "FROM my-table WHERE col3 NOT BETWEEN 'ticolor' ".
                 "AND 'tummy' SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> NOT BETWEEN <column> AND <literal>
 ++  test-not-between-01
@@ -4559,9 +4506,8 @@
                 %db1
                 "FROM my-table WHERE 'tuxedo' NOT BETWEEN col3 ".
                 "AND 'tuxedos' SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> NOT BETWEEN <column> <column> (no optional AND)
 ++  test-not-between-02
@@ -4621,9 +4567,8 @@
         !>  :+  %tape2
                 %db1
                 "FROM my-table WHERE col1 NOT BETWEEN col3 col4 SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE <column> NOT BETWEEN <literal> AND <literal>
 ++  test-not-between-03
@@ -4675,9 +4620,8 @@
                 %db1
                 "FROM sys.columns WHERE col-name NOT BETWEEN 'col2' ".
                 "AND 'col3' SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  fail WHERE <column> NOT BETWEEN <literal> AND <literal> types differ
 ++  test-fail-not-between-00
@@ -4907,9 +4851,8 @@
                 %db1
                 "FROM my-table WHERE col3 = 'ticolor' OR col3='tricolor' ".
                 "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> = <column> OR <column> = <column>
 ++  test-or-01
@@ -4961,9 +4904,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE col1 = col3 OR col3=col4 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> = ... AND ... OR ... AND ...
 ++  test-or-02
@@ -5024,9 +4966,8 @@
                 %db1
                 "FROM my-table WHERE (col3 = 'ticolor' AND col4='row2') ".
                 "OR (col3='tricolor' AND col4='row1') SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  AND
 ::
@@ -5082,9 +5023,8 @@
         !>  :+  %tape2
                 %db1
                 "FROM my-table WHERE col3 = 'ticolor' AND col4='row2' SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <column> = <column> AND <column> = <literal>
 ++  test-and-01
@@ -5138,9 +5078,8 @@
          !>  :+  %tape2
                  %db1
                  "FROM my-table WHERE col1 = col3 AND col4='row3' SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  NOT
 ::
@@ -5200,9 +5139,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE NOT col3 = 'tuxedo' SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE NOT <literal> = <column>
 ++  test-not-01
@@ -5260,9 +5198,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE NOT 'tuxedo' = col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE NOT <column> = <column>
 ++  test-not-02
@@ -5320,9 +5257,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM my-table WHERE NOT col1 = col3 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  view WHERE NOT <literal> = <literal>
 ++  test-not-03
@@ -5354,9 +5290,8 @@
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.columns WHERE NOT 1 = 1 SELECT *"])
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov3)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
 ::  WHERE NOT <column> = <column> AND NOT <column> = <literal>
 ++  test-not-04
@@ -5411,9 +5346,8 @@
                  %db1
                  "FROM my-table WHERE NOT col1 = col3 AND NOT col4='row2' ".
                  "SELECT *"
-  %+  expect-eq
-    !>  expected
-    !>  ;;(cmd-result ->+>+>+<.mov4)
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  fail WHERE NOT <literal> = <column> types differ
 ++  test-fail-not-00

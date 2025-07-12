@@ -345,9 +345,7 @@
                           [%schema-time ~2000.1.1]
                           ==
               !>  ;;(cmd-result ->+>+>-.move)
-            %+  expect-eq
-              !>  expected-db
-              !>  ;;(cmd-result ->+>+>-.move2)
+            (eval-results expected-db ;;(cmd-result ->+>+>-.move2))
 ::
 ::  create database command
 ++  test-create-db-02
@@ -371,9 +369,7 @@
                           [%schema-time ~2000.1.1]
                           ==
               !>  ->+>+>-.move
-            %+  expect-eq
-              !>  expected-db
-              !>  ;;(cmd-result ->+>+>-.move2)
+            (eval-results expected-db ;;(cmd-result ->+>+>-.move2))
 ::
 ::  fail duplicate database
 ++  test-fail-create-database-01
@@ -462,9 +458,7 @@
                           [%message 'database %db1 dropped']
                           ==
               !>  ;;(cmd-result ->+>+>-.move2)
-            %+  expect-eq
-              !>  expected
-              !>  ;;(cmd-result ->+>+>-.move3)
+            (eval-results expected ;;(cmd-result ->+>+>-.move3))
 ::
 ::  drop database from 2 user dbs, no data
 ++  test-drop-db-02
@@ -528,9 +522,7 @@
                           [%message 'database %db1 dropped']
                           ==
               !>  ;;(cmd-result ->+>+>-.move3)
-            %+  expect-eq
-              !>  expected
-              !>  ;;(cmd-result ->+>+>-.move4)
+            (eval-results expected ;;(cmd-result ->+>+>-.move4))
 ::
 ::  drop database from 2 user dbs, FORCE, not default DB
 ++  test-drop-db-03
@@ -607,9 +599,7 @@
                           [%message 'database %db1 dropped']
                           ==
               !>  ;;(cmd-result ->+>+>-.move6)
-            %+  expect-eq
-              !>  expected
-              !>  ;;(cmd-result ->+>+>-.move7)
+            (eval-results expected ;;(cmd-result ->+>+>-.move7))
 ::
 ::  drop database from 2 user dbs, table no data
 ++  test-drop-db-04
@@ -679,9 +669,7 @@
                           [%message 'database %db1 dropped']
                           ==
               !>  ;;(cmd-result ->+>+>-.move5)
-            %+  expect-eq
-              !>  expected
-              !>  ;;(cmd-result ->+>+>-.move6)
+            (eval-results expected ;;(cmd-result ->+>+>-.move6))
 ::
 ::  drop database from 2 user dbs, table with data no FORCE
 ++  test-fail-drop-db-01
