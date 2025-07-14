@@ -21,6 +21,7 @@ NOTE: scalar and aggregate functions are currently under development and not ava
   | <bitwise>
   | <predicate>
   | <boolean>
+  | <loobean>
   | <scalar>
 ```
 If a `CASE` expression uses `<predicate>`, the expected boolean (or loobean) logic applies. If it uses `<expression>` `@`0 is treated as false and any other value as true (not loobean). (NOTE: This is preliminary design subject to change.)

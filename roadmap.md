@@ -20,8 +20,7 @@ Prioritization depends on user feedback and bribery.
 
 * __UPDATE__ (complete in beta) -- Operates on user-defined tables, not on views; optional predicate
 
-* __Issue #1__ (complete
- in beta) -- NOT predicate operator not fully functional
+* __Issue #1__ (complete in beta) -- NOT predicate operator not fully functional
 
 ## other functionality
 

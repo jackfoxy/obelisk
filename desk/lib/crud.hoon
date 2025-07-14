@@ -659,10 +659,10 @@
 ::
 ::  +named-queries:  (list cte:ast) -> (map @tas [@ud (list indexed-row)])
 ::  resolve CTEs
-++  named-queries
+++  named-queries  ::To Do: resolve data tmsps in CTEs
   |=  ctes=(list cte:ast)
   ^-  (map @tas [@ud (list indexed-row)])
-  =/  cte-rows=(map @tas [@ud (list indexed-row)])  ~
+  =/  cte-rows  *(map @tas [@ud (list indexed-row)])
   |-
   ?~  ctes  cte-rows
   %=  $
