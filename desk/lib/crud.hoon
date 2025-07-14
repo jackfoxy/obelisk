@@ -131,23 +131,8 @@
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result)]]
+  =/  tree=(tree set-function:ast)              set-functions.selection
   =/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
-  %:  do-set-functions  set-functions.selection
-                        query-has-run
-                        next-data
-                        next-schemas
-                        ==
-::
-::  +do-set-functions:
-:: [(tree set-function:ast) ? (map @tas @da) (map @tas @da)]
-:: -> [? [(map @tas @da) server (list result)]]
-++  do-set-functions
-  |=  $:  =(tree set-function:ast)
-          query-has-run=?
-          next-data=(map @tas @da)
-          next-schemas=(map @tas @da)
-      ==
-  ^-  [? [(map @tas @da) server (list result)]]
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %insert
@@ -504,7 +489,7 @@
                     qualifier-lookup
               type-lookup.join-return
               qualifier-lookup
-  =/  out-rows=(set vector)  ~
+  =/  out-rows   *(set vector)
   =/  rows=(list joined-row)  joined-rows.join-data.join-return
   |-
   ?~  rows
@@ -553,18 +538,10 @@
                   "can be accessed"
                   (~(got by state) %sys)
   =/  i  0
-  =/  vals=(list vector-cell)  ~
+  =/  vals  *(list vector-cell)
   |-
   ?~  columns
-    ?~  vals
-      :-  state
-          :~  [%message 'SELECT']
-              [%message 'no literal values']
-              [%server-time now.bowl]
-              [%schema-time created-tmsp.sys-db]
-              [%data-time created-tmsp.sys-db]
-              [%vector-count 0]
-              ==
+    ?~  vals  ~|("no literal values" !!)
     :-  state
         :~  [%message 'SELECT']
             [%result-set (limo ~[(vector %vector (flop vals))])]
