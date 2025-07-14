@@ -129,7 +129,7 @@
                     key:(need pri-indx.prior-obj)
                     rowcount.prior-obj
                     %+  turn  indexed-rows.prior-obj
-              |=(a=indexed-row [-.a (~(put by init-map) object.prior-obj +.a)])
+              |=(a=indexed-row [-.a (~(put by init-map) (need object.prior-obj) +.a)])
                     ==
   =/  type-lookup=lookup-type                 +<.yy
   =/  qualified-columns=(list qual-col-type)  +>.yy
@@ -211,7 +211,7 @@
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   :+
     %:  from-obj  %from-obj
-                  query-obj
+                  [~ query-obj]
                   tmsp.tbl
                   tmsp.file
                   columns.tbl
@@ -271,7 +271,7 @@
              state
   :+
     %:  from-obj  %from-obj
-                  query-obj
+                  [~ query-obj]
                   tmsp.schema
                   tmsp.+.r
                   columns.view
@@ -341,7 +341,7 @@
   =/  data-row  -.a
   %=  $ 
     out-rows  :-  :-  ~
-                      (~(put by +.data-row) object.this ->.b)
+                      (~(put by +.data-row) (need object.this) ->.b)
                   out-rows
     b  +.b
     i  +(i)
@@ -367,14 +367,14 @@
                   this-key
                   %:  join-pri-key  joined-rows.prior
                                     indexed-rows.this
-                                    object.this
+                                    (need object.this)
                                     this-key
                                     ==
   ::  key is same column sequence, but different ordering
   ?:  ?!  .=  (turn key.prior |=(a=key-column [name.a aura.a]))
               (turn this-key |=(a=key-column [name.a aura.a]))
     ~|  "no natural join or foreign key join, columns do not match: ".
-        "{<object.this>}"
+        "{<(need object.this)>}"
         !!
   ::  sort the little one
   =/  the-key  ?:  (gth rowcount.this rowcount.prior)
@@ -385,13 +385,13 @@
           %:  join-pri-key  %+  sort  joined-rows.prior
                                       ~(order idx-comp-2 (reduce-key the-key))
                             indexed-rows.this
-                            object.this
+                            (need object.this)
                             this-key
                             ==
         %:  join-pri-key  joined-rows.prior
                           %+  sort  indexed-rows.this
                                     ~(order idx-comp-2 (reduce-key the-key))
-                          object.this
+                          (need object.this)
                           key.prior
                           ==
  (joined %joined the-key -.count-and-rows +.count-and-rows)

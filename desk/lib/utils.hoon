@@ -312,7 +312,7 @@
   %=  $
     a  t.a
     m  :-
-        :~  `result`[%message (qualified-object-to-cord object.obj)]
+        :~  `result`[%message (qualified-object-to-cord (need object.obj))]
             `result`[%schema-time schema-tmsp.obj]
             `result`[%data-time data-tmsp.obj]
             ==
@@ -651,10 +651,10 @@
       lookup   ?:  (~(has by lookup) name.col)
                  %+  ~(put by lookup)
                         name.col
-                        :-  object.source
+                        :-  (need object.source)
                             (~(got by lookup) name.col)
                %+  ~(put by lookup)  name.col
-                                     (limo ~[object.source])
+                                     (limo ~[(need object.source)])
     ==
 ::
 ::  +common-txn

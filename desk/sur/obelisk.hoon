@@ -60,7 +60,7 @@
 ::
 +$  from-obj
   $:  %from-obj
-      object=qualified-object
+      object=(unit qualified-object)
       schema-tmsp=@da
       data-tmsp=@da
       columns=(list column)
