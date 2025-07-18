@@ -93,7 +93,7 @@
   =/  db=database  ~|  "SELECT: database {<database.query-obj>} does not exist"
                   (~(got by state) database.query-obj)
   =/  =schema  ~|  "SELECT: database {<database.query-obj>} ".
-                    "doesn't exist at time {<sys-time>}"
+                   "doesn't exist at time {<sys-time>}"
                (get-schema [sys.db sys-time])
   =/  vw  (get-view [namespace.query-obj name.query-obj sys-time] views.schema)
   =/  alias  ?:  ?=(qualified-object:ast object.table-set.relat)

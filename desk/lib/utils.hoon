@@ -304,7 +304,7 @@
 ++  from-obj-meta
   |=  a=(list from-obj)
   ^-  (list result)
-  =/  m=(list (list result))  ~
+  =/  m  *(list (list result))
   ::
   |-
   ?~  a  (zing (flop m))
@@ -638,10 +638,11 @@
 ++  mk-qualifier-lookup
     |=  [sources=(list from-obj) selected-columns=(list selected-column:ast)]
     ^-  (map @tas (list qualified-object:ast))
-    =/  lookup=(map @tas (list qualified-object:ast))  ~
+    =/  lookup  *(map @tas (list qualified-object:ast))
     |-
-    ?~  sources  lookup
+    ?~  sources          lookup
     =/  source=from-obj  -.sources
+    ?~  object.source    lookup
     =/  columns=(list column:ast)  columns.source
     |-
     ?~  columns  ^$(sources +.sources)
