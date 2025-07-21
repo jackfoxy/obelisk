@@ -262,14 +262,24 @@
                 "   OR day-name = 'Friday' ".
                 "   OR (day-name = 'Saturday' ".
                 "       AND day-of-year = 357) "
-  =.  run  +(run)
-  =^  mov4  agent
-    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
-        %obelisk-action
-        !>([%tape2 %db1 "FROM calendar SELECT *"])
+  ::=.  run  +(run)
+  ::=^  mov4  agent
+  ::  %+  ~(on-poke agent (bowl [run ~2012.5.4]))
+  ::      %obelisk-action
+  ::      !>([%tape2 %db1 "FROM calendar SELECT *"])
+  ::::
+  ::%+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
+  ::          (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
+
   ::
-  %+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
-            (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
+  %+  expect-fail-message
+        'DELETE: state change after query in script'
+  |.  %+  ~(on-poke agent (bowl [run ~2000.1.2]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  "FROM calendar SELECT *"
+
 ::
 ::  delete all but 1 FROM AS OF = data time
 ++  test-delete-05

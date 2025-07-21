@@ -61,18 +61,21 @@
 +$  from-obj
   $:  %from-obj
       object=(unit qualified-object)
-      schema-tmsp=@da
-      data-tmsp=@da
+      schema-tmsp=(unit @da)
+      data-tmsp=(unit @da)
       columns=(list column)
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
       rowcount=@
+      key=(list key-column)
       pri-indexed=(tree indexed-row)
       indexed-rows=(list indexed-row)
+      joined-rows=(list joined-row)
   ==
 +$  qual-col-type  [qualified-column @ta]
 +$  lookup-type    (map qualified-object (map @tas @ta))
++$  joined-row     [(list @) (map qualified-object (map @tas @))]
 ::
 +$  joined
   $:  %joined
@@ -85,7 +88,7 @@
   $:  %join-return
       =server
       data-objs=(list from-obj)
-      join-data=joined
+      ::join-data=joined
       type-lookup=lookup-type
       qualified-columns=(list qual-col-type)
       ==

@@ -313,8 +313,8 @@
     a  t.a
     m  :-
         :~  `result`[%message (qualified-object-to-cord (need object.obj))]
-            `result`[%schema-time schema-tmsp.obj]
-            `result`[%data-time data-tmsp.obj]
+            `result`[%schema-time (need schema-tmsp.obj)]
+            `result`[%data-time (need data-tmsp.obj)]
             ==
         m
   ==

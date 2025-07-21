@@ -145,7 +145,6 @@
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
 +$  indexed-row  [(list @) (map @tas @)]
-+$  joined-row   [(list @) (map qualified-object (map @tas @))]
 ::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
 ::
 ::  view and table comparer

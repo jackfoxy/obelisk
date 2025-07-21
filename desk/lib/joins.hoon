@@ -69,9 +69,8 @@
   ==
 ::
 ::  +join-all  query:ast -> join-return
-::
-::  when no joins: returns from-obj
-::  otherwise:     returns joined
+:: 
+::  server state returned because we may have updated the view cache
 ++  join-all
   |=  q=query:ast
   ^-  join-return
@@ -138,8 +137,8 @@
   ?~  relations
         %:  join-return  %join-return
                          state
-                         (flop from-objects)
-                         prior-join
+                         ::(flop from-objects)
+                         [(foo prior-join) from-objects]
                          type-lookup
                          qualified-columns
                          ==
@@ -190,6 +189,27 @@
     type-lookup        +<.xx
     qualified-columns  +>.xx
   ==
+
+::
+++  foo
+  |=  =joined
+  ^-  from-obj
+  :*  %from-obj
+      object=~
+      schema-tmsp=~
+      data-tmsp=~
+      columns=*(list column:ast)     ::for now
+      pri-indx=~
+      join=~
+      predicate=~
+      rowcount.joined
+      key.joined
+      pri-indexed=*(tree indexed-row)
+      indexed-rows=*(list indexed-row)
+      joined-rows.joined
+      ==
+::
+
 ::
 ++  from-table
   |=  $:  query-obj=qualified-object:ast
@@ -212,15 +232,17 @@
   :+
     %:  from-obj  %from-obj
                   [~ query-obj]
-                  tmsp.tbl
-                  tmsp.file
+                  [~ tmsp.tbl]
+                  [~ tmsp.file]
                   columns.tbl
                   [~ pri-indx.tbl]
                   join
                   predicate
                   rowcount.file
+                  *(list key-column)
                   pri-idx.file
                   indexed-rows.file
+                  *(list joined-row)
                   ==
     %+  ~(put by type-lookup)  
           query-obj
@@ -272,16 +294,18 @@
   :+
     %:  from-obj  %from-obj
                   [~ query-obj]
-                  tmsp.schema
-                  tmsp.+.r
+                  [~ tmsp.schema]
+                  [~ tmsp.+.r]
                   columns.view
                   ~
                   join.relat
                   predicate.relat
                   rowcount.view-content
+                  *(list key-column)
                   ~
                   %+  turn  rows.view-content
                             |=(a=(map @tas @) [~ a])
+                  *(list joined-row)
                   ==
     %+  ~(put by type-lookup)  
           query-obj

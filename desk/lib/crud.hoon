@@ -466,8 +466,10 @@
   =/  =join-return  :: no from clause, it's a single row of literals
                     ?~  from.q  (select-literals columns.selection.q)
                     (join-all(state state, bowl bowl) q)
+  =/  data-objs  data-objs.join-return
+  ?~  data-objs  ~|("can't get here" !!)  :: to do: eventual lest
   =/  selected  columns.selection.q
-  =/  qualifier-lookup  (mk-qualifier-lookup data-objs.join-return selected)
+  =/  qualifier-lookup  (mk-qualifier-lookup data-objs selected)
   =.  selected  (qualify-unqualified selected qualifier-lookup)
   =/  col-lookup
     %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
@@ -475,11 +477,11 @@
               qualified-columns.join-return
               |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
   =/  cells=(list templ-cell)
-    ?~  joined-rows.join-data.join-return  ~
+    ?~  joined-rows.i.data-objs  ~
     %^  mk-vect-templ
           qualified-columns.join-return
           selected
-          -.joined-rows.join-data.join-return
+          -.joined-rows.i.data-objs
   =/  filter=(unit $-(joined-row ?))
     ?~  predicate.q  ~
     :-  ~
@@ -490,28 +492,27 @@
               type-lookup.join-return
               qualifier-lookup
   =/  out-rows   *(set vector)
-  =/  rows=(list joined-row)  joined-rows.join-data.join-return
+  =/  rows=(list joined-row)  joined-rows.i.data-objs
 
   :: hack, hack, hack
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
                   (~(got by state) %sys)
-  ?~  data-objs.join-return  ~|("can't get here" !!)
-  ?:  ?&  =(~ joined-rows.join-data.join-return)
-          =(~ object.i.data-objs.join-return)
+  ?:  ?&  =(~ joined-rows.i.data-objs)
+          =(~ object.i.data-objs)
           ==
     :-  server.join-return
         :~  [%message 'SELECT']
             :-  %result-set
-                ?~  indexed-rows.i.data-objs.join-return  ~
+                ?~  indexed-rows.i.data-objs  ~
                 :~  %+  mk-vect
-                        columns.i.data-objs.join-return
-                        ->.indexed-rows.i.data-objs.join-return
+                        columns.i.data-objs
+                        ->.indexed-rows.i.data-objs
                     ==
             [%server-time now.bowl]
             [%schema-time created-tmsp.sys-db]
             [%data-time created-tmsp.sys-db]
-            [%vector-count (lent indexed-rows.i.data-objs.join-return)]
+            [%vector-count (lent indexed-rows.i.data-objs)]
             ==
   
   |-
@@ -522,7 +523,7 @@
                     [%result-set ~(tap in out-rows)]
                     [%server-time now.bowl]
                     ==
-                (from-obj-meta data-objs.join-return)
+                (from-obj-meta data-objs)
                 :~  [%vector-count ~(wyt in out-rows)]
                     ==
             ==
@@ -588,22 +589,23 @@
         :~                ::data-objs=(list from-obj)
           :*  %from-obj
               ~
-              created-tmsp.sys-db
-              created-tmsp.sys-db
+              [~ created-tmsp.sys-db]
+              [~ created-tmsp.sys-db]
               columns-out
               ~
               ~
               ~
               1
+              *(list key-column)
               *(tree indexed-row)
-              ::*(list indexed-row)
               ~[[~ indexed-cols]]
+              *(list joined-row)
               ==
           ==
-          :^  %joined
-              *(list key-column)
-              0
-              *(list joined-row)
+          :::^  %joined
+          ::    *(list key-column)
+          ::    0
+          ::    *(list joined-row)
           *(map qualified-object (map @tas @ta))
           *(list qual-col-type)
         ==
