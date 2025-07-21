@@ -21,6 +21,7 @@ The `<query>` command provides a means to create `<table-set>`s derived from per
                | <column-ordinal> } [ ,...n ]
     [ HAVING <predicate> ]
   ]
+  [ SCALARS {<alias> <scalar-function>} ]
   SELECT [ TOP <n> ] [ BOTTOM <n> ]
     { * | { [<ship-qualifier>]<table-view> | <alias> }.*
         | <expression> [ AS <column-alias> ]
