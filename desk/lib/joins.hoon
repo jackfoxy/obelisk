@@ -133,11 +133,17 @@
   =/  type-lookup=lookup-type                 +<.yy
   =/  qualified-columns=(list qual-col-type)  +>.yy
   ::
+  ?:  =((lent relations) 0)  %:  join-return  %join-return
+                                              state
+                                              from-objects
+                                              type-lookup
+                                              qualified-columns
+                                              ==
+  ::
   |-
   ?~  relations
         %:  join-return  %join-return
                          state
-                         ::(flop from-objects)
                          [(foo prior-join) from-objects]
                          type-lookup
                          qualified-columns

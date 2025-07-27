@@ -88,7 +88,6 @@
   $:  %join-return
       =server
       data-objs=(list from-obj)
-      ::join-data=joined
       type-lookup=lookup-type
       qualified-columns=(list qual-col-type)
       ==

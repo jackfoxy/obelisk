@@ -300,25 +300,6 @@
   ?~  b  ~|('column lists of unequal length' !!)
   $(a +.a, b +.b, c [[name.i.b -.a] c])
 ::
-::  +from-obj-meta: (list from-obj) -> (list result)
-++  from-obj-meta
-  |=  a=(list from-obj)
-  ^-  (list result)
-  =/  m  *(list (list result))
-  ::
-  |-
-  ?~  a  (zing (flop m))
-  =/  obj=from-obj  -.a
-  %=  $
-    a  t.a
-    m  :-
-        :~  `result`[%message (qualified-object-to-cord (need object.obj))]
-            `result`[%schema-time (need schema-tmsp.obj)]
-            `result`[%data-time (need data-tmsp.obj)]
-            ==
-        m
-  ==
-::
 ++  qualified-object-to-cord
   |=  a=qualified-object:ast
   ^-  @t
