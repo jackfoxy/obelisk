@@ -61,6 +61,11 @@
 +$  from-obj
   $:  %from-obj
       object=(unit qualified-object)
+      
+      ::to do
+      ::=table
+      ::=file
+
       schema-tmsp=(unit @da)
       data-tmsp=(unit @da)
       columns=(list column)
@@ -73,6 +78,7 @@
       indexed-rows=(list indexed-row)
       joined-rows=(list joined-row)
   ==
++$  set-table      $%(table view)
 +$  qual-col-type  [qualified-column @ta]
 +$  lookup-type    (map qualified-object (map @tas @ta))
 +$  joined-row     [(list @) (map qualified-object (map @tas @))]
@@ -99,14 +105,5 @@
     as-of=(unit as-of)
     join=(unit join-type)
     predicate=(unit predicate)
-  ==
-::
-::  helper types
-::
-+$  table-return
-  $:  [@da ? @ud]
-      changed-schemas=(map @tas @da)
-      changed-data=(map @tas @da)
-      state=server
   ==
 --

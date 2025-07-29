@@ -78,7 +78,7 @@
       tmsp=@da
       =column-addrs
       rowcount=@
-      pri-idx=(tree indexed-row)   :: generically tree, reified as mop
+      pri-idx=(tree indexed-row)  ::generic, reify as mop
       indexed-rows=(list indexed-row)
       =column-catalog
       ::    =indices
@@ -126,8 +126,10 @@
       =column-lookup
       column-types=(map @tas @ta)
       columns=(list column)      ::  canonical column list
+
+      :: replace ordering with index
       ordering=(list column-order)
-      :: indices  -  to do
+      :: indices
   ==
 +$  column-lookup  (map @tas [aura @])  :: name [type index]
 +$  index
@@ -144,7 +146,7 @@
   ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
-+$  indexed-row  [(list @) (map @tas @)]
++$  indexed-row  [(list @) [(map @tas @) (list @)]]
 ::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
 ::
 ::  view and table comparer

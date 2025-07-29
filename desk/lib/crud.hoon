@@ -174,6 +174,7 @@
         %+  turn
             `(list @t)`(need columns.ins)
             |=(a=@t (to-column a column-lookup.table.txn))
+  =/  rev-cols  (flop columns.table.txn)
   ::
   ?.  ?=([%data *] values.ins)  ~|("INSERT: not implemented: {<values.ins>}" !!)
   =/  value-table  `(list (list value-or-default:ast))`+.values.ins
@@ -227,7 +228,7 @@
           ==
   ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  file-row=(map @tas @)  (row-cells row cols)
+  =/  file-row=(map @tas @)  (row-cells row cols rev-cols)
   =/  row-key=(list @)
         %+  turn
             key-pick

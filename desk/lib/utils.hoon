@@ -729,15 +729,15 @@
 ::
 ::  +init-cat:  indexed-row -> [column-addrs column-catalog]
 ::
-++  init-cat
+++  init-cat        ::to do: probably more efficient to use ~(tap by +>.r)
   |=  r=indexed-row
   ^-  [column-addrs column-catalog]
   =/  addrs=column-addrs      ~
-  =/  cat       ~(tap by +.r)
+  =/  cat       ~(tap by +<.r)
   =/  catalog=column-catalog  ~
   |-   
   ?~  cat  [addrs catalog]
-  =/  addr  (need (~(dig by +.r) -.i.cat))
+  =/  addr  (need -:(~(dig by +<.r) -.i.cat))
   %=  $
     cat      t.cat
     addrs    (~(put by addrs) -.i.cat addr)
@@ -780,9 +780,15 @@
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
-++  row-cells
-  |=  [p=(list value-or-default:ast) q=(list column:ast)]
-  ^-  (map @tas @)
+::  +row-cells:
+::    [(list value-or-default:ast) (list column:ast) (list column:ast)]
+::    -> [(map @tas @) (list @)]
+::
+::  Create the saved row-wise file data.
+::  r is the reversed canonical column order
+++  row-cells  ::to do: faster way to do this when already canonical order
+  |=  [p=(list value-or-default:ast) q=(list column:ast) r=(list column:ast)]
+  ^-  [(map @tas @) (list @)]
   =/  cells=(list [@tas @])  ~
   |-
   ?~  p  (malt cells)
@@ -804,6 +810,14 @@
     ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
     [name.q 0]
   ~|("row cell {<p>} not supported" !!)
+::
+++  row-wise-data
+  |=  [p=(map @tas @) q=(list column:ast)]
+  ^-  [(map @tas @) (list @)]
+  =/  row  *(list @)
+  |-
+  ?~  q  [p row]
+  $(q t.q, row [(~(got by p) name.i.q) row])
 ::
 ++  make-key-pick
   |=  [key=@tas column-lookup=(map @tas [aura @])]
@@ -945,4 +959,11 @@
       =file
       source-content-time=@da
       ==
+::
++$  table-return
+  $:  [@da ? @ud]
+      changed-schemas=(map @tas @da)
+      changed-data=(map @tas @da)
+      state=server
+  ==
 --
