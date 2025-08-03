@@ -81,7 +81,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.b)
   =(a (~(got by x) +.b))
 ::
 ++  eq-col-lit
@@ -91,7 +91,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   =((~(got by x) +.a) b)
 ::
 ++  eq-col-col
@@ -101,8 +101,8 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
-  =/  y=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
+  =/  y=(map @tas @)  -:(~(got by +.c) -.b)
   =((~(got by x) +.a) (~(got by y) +.b))
 ::
 ++  eq-lit-lit
@@ -119,7 +119,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.b)
   ?!(=(a (~(got by x) +.b)))
 ::
 ++  neq-col-lit
@@ -129,7 +129,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   ?!(=((~(got by x) +.a) b))
 ::
 ++  neq-col-col
@@ -139,8 +139,8 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
-  =/  y=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
+  =/  y=(map @tas @)  -:(~(got by +.c) -.b)
   ?!(=((~(got by x) +.a) (~(got by y) +.b)))
 ::
 ++  neq-lit-lit
@@ -157,7 +157,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a (~(got by x) +.b))  %.n
     (alpha (~(got by x) +.b) a)
@@ -170,7 +170,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by x) +.a) b)  %.n
     (alpha b (~(got by x) +.a))
@@ -183,8 +183,8 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
-  =/  y=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
+  =/  y=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by x) +.a) (~(got by y) +.b))  %.n
     (alpha (~(got by y) +.b) (~(got by x) +.a))
@@ -207,7 +207,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by x) +.b) a)
   (gte a (~(got by x) +.b))
@@ -219,7 +219,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b (~(got by x) +.a))
   (gte (~(got by x) +.a) b)
@@ -231,8 +231,8 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
-  =/  y=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
+  =/  y=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by y) +.b) (~(got by x) +.a))
   (gte (~(got by x) +.a) (~(got by y) +.b))
@@ -253,7 +253,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a (~(got by x) +.b))  %.n
     (alpha a (~(got by x) +.b))
@@ -266,7 +266,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by x) +.a) b)  %.n
     (alpha (~(got by x) +.a) b)
@@ -279,8 +279,8 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
-  =/  y=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
+  =/  y=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by x) +.a) (~(got by y) +.b))  %.n
     (alpha (~(got by x) +.a) (~(got by y) +.b))
@@ -303,7 +303,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha a (~(got by x) +.b))
   (lte a (~(got by x) +.b))
@@ -315,7 +315,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by x) +.a) b)
   (lte (~(got by x) +.a) b)
@@ -327,8 +327,8 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
-  =/  y=(map @tas @)  (~(got by +.c) -.b)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
+  =/  y=(map @tas @)  -:(~(got by +.c) -.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by x) +.a) (~(got by y) +.b))
   (lte (~(got by x) +.a) (~(got by y) +.b))
@@ -356,7 +356,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   =/  val  (~(got by x) +.a)
   |-
   ?~  b  %.n
@@ -379,7 +379,7 @@
           c=joined-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by +.c) -.a)
+  =/  x=(map @tas @)  -:(~(got by +.c) -.a)
   =/  val  (~(got by x) +.a)
   |-
   ?~  b  %.y

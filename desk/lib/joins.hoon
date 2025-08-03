@@ -119,7 +119,7 @@
                           ~
                           ~
                           ==
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
+  =/  init-map  *(map qualified-object:ast [(map @tas @) (list @)])
   =/  prior-obj=from-obj                                -.yy
   =/  from-objects=(list from-obj)                      (limo ~[prior-obj])
   =/  prior-join   
@@ -128,7 +128,7 @@
                     key:(need pri-indx.prior-obj)
                     rowcount.prior-obj
                     %+  turn  indexed-rows.prior-obj
-              |=(a=indexed-row [-.a (~(put by init-map) (need object.prior-obj) +.a)])
+        |=(a=indexed-row [-.a (~(put by init-map) (need object.prior-obj) +.a)])
                     ==
   =/  type-lookup=lookup-type                 +<.yy
   =/  qualified-columns=(list qual-col-type)  +>.yy

@@ -87,7 +87,8 @@
 ::
 ++  pri-key
   |=  key=(list key-column)
-  ((on (list [@tas ?]) (map @tas @)) ~(order idx-comp (reduce-key key)))
+  =/  comparator  ~(order idx-comp (reduce-key key))
+  ((on (list [@tas ?]) ,[(map @tas @) (list @)]) comparator)
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
@@ -338,7 +339,7 @@
   ?~  cs  (flop cs2)
   ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need object.i.cs)
-  =/  xx=(map @tas @)  (~(got by +.j) qualifier.qual-col)
+  =/  xx=(map @tas @)  -:(~(got by +.j) qualifier.qual-col)
   =/  addr  (~(dig by xx) column:(need object.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
@@ -729,7 +730,7 @@
 ::
 ::  +init-cat:  indexed-row -> [column-addrs column-catalog]
 ::
-++  init-cat        ::to do: probably more efficient to use ~(tap by +>.r)
+++  init-cat
   |=  r=indexed-row
   ^-  [column-addrs column-catalog]
   =/  addrs=column-addrs      ~
@@ -737,7 +738,7 @@
   =/  catalog=column-catalog  ~
   |-   
   ?~  cat  [addrs catalog]
-  =/  addr  (need -:(~(dig by +<.r) -.i.cat))
+  =/  addr  (need (~(dig by +<.r) -.i.cat))
   %=  $
     cat      t.cat
     addrs    (~(put by addrs) -.i.cat addr)
@@ -791,7 +792,7 @@
   ^-  [(map @tas @) (list @)]
   =/  cells=(list [@tas @])  ~
   |-
-  ?~  p  (malt cells)
+  ?~  p  (row-wise-data (malt cells) r)
   %=  $
     cells  [(row-cell -.p -.q) cells]
     p  +.p

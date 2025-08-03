@@ -60,7 +60,6 @@
       tmsp=@da
       =namespaces
       =tables
-  :: indices  ::  indices other than primary key, indexed by? 
       =views
   :: permissions   :: maybe at server or database level?
   ==
@@ -78,7 +77,7 @@
       tmsp=@da
       =column-addrs
       rowcount=@
-      pri-idx=(tree indexed-row)  ::generic, reify as mop
+      pri-idx=(tree [(list @) [(map @tas @) (list @)]])  ::generic, reify as mop
       indexed-rows=(list indexed-row)
       =column-catalog
       ::    =indices
@@ -127,7 +126,7 @@
       column-types=(map @tas @ta)
       columns=(list column)      ::  canonical column list
 
-      :: replace ordering with index
+      :: to do: replace ordering with index (requires non-unique mop type)
       ordering=(list column-order)
       :: indices
   ==

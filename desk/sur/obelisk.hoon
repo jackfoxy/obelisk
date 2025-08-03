@@ -81,7 +81,7 @@
 +$  set-table      $%(table view)
 +$  qual-col-type  [qualified-column @ta]
 +$  lookup-type    (map qualified-object (map @tas @ta))
-+$  joined-row     [(list @) (map qualified-object (map @tas @))]
++$  joined-row     [(list @) (map qualified-object [(map @tas @) (list @)])]
 ::
 +$  joined
   $:  %joined
