@@ -612,18 +612,18 @@
               sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
-::  +mk-qualifier-lookup:  [(list from-obj) (list selected-column:ast)]
+::  +mk-qualifier-lookup:  [(list set-table) (list selected-column:ast)]
 ::                         -> (map @tas (list qualified-object:ast))
 ::
 ::  Make lookup qualifier by column name for predicate processing when a column
 ::  is unqualified.
 ++  mk-qualifier-lookup
-    |=  [sources=(list from-obj) selected-columns=(list selected-column:ast)]
+    |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
     ^-  (map @tas (list qualified-object:ast))
     =/  lookup  *(map @tas (list qualified-object:ast))
     |-
     ?~  sources          lookup
-    =/  source=from-obj  -.sources
+    =/  source=set-table  -.sources
     ?~  object.source    lookup
     =/  columns=(list column:ast)  columns.source
     |-

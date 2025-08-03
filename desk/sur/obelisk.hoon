@@ -58,14 +58,9 @@
       [%result-set (list vector)]
       ==
 ::
-+$  from-obj
-  $:  %from-obj
++$  set-table
+  $:  %set-table
       object=(unit qualified-object)
-      
-      ::to do
-      ::=table
-      ::=file
-
       schema-tmsp=(unit @da)
       data-tmsp=(unit @da)
       columns=(list column)
@@ -78,22 +73,15 @@
       indexed-rows=(list indexed-row)
       joined-rows=(list joined-row)
   ==
-+$  set-table      $%(table view)
+::
 +$  qual-col-type  [qualified-column @ta]
 +$  lookup-type    (map qualified-object (map @tas @ta))
 +$  joined-row     [(list @) (map qualified-object [(map @tas @) (list @)])]
 ::
-+$  joined
-  $:  %joined
-      key=(list key-column)
-      rowcount=@ud
-      joined-rows=(list joined-row)
-      ==
-::
 +$  join-return
   $:  %join-return
       =server
-      data-objs=(list from-obj)
+      data-objs=(list set-table)
       type-lookup=lookup-type
       qualified-columns=(list qual-col-type)
       ==

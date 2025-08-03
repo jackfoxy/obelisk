@@ -464,12 +464,12 @@
 ::  any other part of the state
 ++  do-query
   |=  [q=query:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-  ^-  [server (list from-obj) (list vector)]
+  ^-  [server (list set-table) (list vector)]
   :: no from clause, it's a single row of literals
   ?~  from.q  [state (select-literals columns.selection.q)]
   =/  =join-return  (join-all(state state, bowl bowl) q)
-  =/  data-objs  data-objs.join-return
-  ?~  data-objs  ~|("can't get here" !!)
+  =/  data-objs  data-objs.join-return                                                        ::~&  "data-objs:  {<data-objs.join-return>}"
+  ?~  data-objs  ~|("can't get here" !!)                                                      :: debugging queries/test-simple-query-05
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup data-objs selected)
   =.  selected  (qualify-unqualified selected qualifier-lookup)
@@ -537,9 +537,9 @@
         [qualifier column:(need object.cell)]
   $(cols t.cols, row [[p.vc.cell [cell-type value]] row])
 ::
-::  +select-results:  [server (list from-obj) (list vector)] -> (list result)
+::  +select-results:  [server (list set-table) (list vector)] -> (list result)
 ++  select-results
-  |=  [state=server data-objs=(list from-obj) result-set=(list vector)]
+  |=  [state=server data-objs=(list set-table) result-set=(list vector)]
   ^-  (list result)
   =/  out  *(list (list result))
   =/  raw  %+  sort  %~  tap  in
@@ -587,7 +587,7 @@
   %.n
 ::
 ++  pick-from-object
-  |=  [a=from-obj state=(set [@tas @da @da])]
+  |=  [a=set-table state=(set [@tas @da @da])]
   ^-  (set [@tas @da @da])
   ?~  object.a  state
   %-  ~(put in state)  :+  (qualified-object-to-cord (need object.a))
@@ -599,7 +599,7 @@
 ::  selection of literals only, no from clause
 ++  select-literals
   |=  columns=(list selected-column:ast)
-  ^-  [(list from-obj) (list vector)]
+  ^-  [(list set-table) (list vector)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
                   (~(got by state) %sys)
@@ -608,7 +608,7 @@
   =/  i             0
   |-
   ?~  columns
-    :-  :~  :*  %from-obj
+    :-  :~  :*  %set-table
                 ~
                 [~ created-tmsp.sys-db]
                 [~ created-tmsp.sys-db]

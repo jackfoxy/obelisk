@@ -120,16 +120,25 @@
                           ~
                           ==
   =/  init-map  *(map qualified-object:ast [(map @tas @) (list @)])
-  =/  prior-obj=from-obj                                -.yy
-  =/  from-objects=(list from-obj)                      (limo ~[prior-obj])
-  =/  prior-join   
-        %:  joined  %joined
-                    ?~  pri-indx.prior-obj  ~
-                    key:(need pri-indx.prior-obj)
-                    rowcount.prior-obj
-                    %+  turn  indexed-rows.prior-obj
+  =/  prior-obj=set-table                                -.yy
+  =/  from-objects=(list set-table)                      (limo ~[prior-obj])
+  =/  prior-join
+        %:  set-table  %set-table
+                      object=~
+                      schema-tmsp=~
+                      data-tmsp=~
+                      columns=*(list column:ast)     ::for now, to do: for CTEs
+                      pri-indx=~
+                      join=~
+                      predicate=~
+                      rowcount.prior-obj
+                      ?~  pri-indx.prior-obj  ~
+                                              key:(need pri-indx.prior-obj)
+                      pri-indexed=*(tree indexed-row)
+                      indexed-rows=*(list indexed-row)
+                      %+  turn  indexed-rows.prior-obj
         |=(a=indexed-row [-.a (~(put by init-map) (need object.prior-obj) +.a)])
-                    ==
+                       ==
   =/  type-lookup=lookup-type                 +<.yy
   =/  qualified-columns=(list qual-col-type)  +>.yy
   ::
@@ -144,7 +153,7 @@
   ?~  relations
         %:  join-return  %join-return
                          state
-                         [(foo prior-join) from-objects]
+                         [prior-join from-objects]
                          type-lookup
                          qualified-columns
                          ==
@@ -195,27 +204,6 @@
     type-lookup        +<.xx
     qualified-columns  +>.xx
   ==
-
-::
-++  foo
-  |=  =joined
-  ^-  from-obj
-  :*  %from-obj
-      object=~
-      schema-tmsp=~
-      data-tmsp=~
-      columns=*(list column:ast)     ::for now
-      pri-indx=~
-      join=~
-      predicate=~
-      rowcount.joined
-      key.joined
-      pri-indexed=*(tree indexed-row)
-      indexed-rows=*(list indexed-row)
-      joined-rows.joined
-      ==
-::
-
 ::
 ++  from-table
   |=  $:  query-obj=qualified-object:ast
@@ -228,7 +216,7 @@
           type-lookup=lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [from-obj lookup-type (list qual-col-type)]
+  ^-  [set-table lookup-type (list qual-col-type)]
   =/  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
                ".{<name.query-obj>} does not exist at schema time ".
                "{<tmsp.schema>}"
@@ -236,7 +224,7 @@
   =/  file
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   :+
-    %:  from-obj  %from-obj
+    %:  set-table  %set-table
                   [~ query-obj]
                   [~ tmsp.tbl]
                   [~ tmsp.file]
@@ -283,7 +271,7 @@
           type-lookup=lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [from-obj lookup-type (list qual-col-type)]
+  ^-  [set-table lookup-type (list qual-col-type)]
   =/  r=[database cache]  %:  got-view-cache  db
                                               schema
                                               view
@@ -297,26 +285,25 @@
   =.  state  ?.  =(db -.r)
                 (~(put by state) database.query-obj -.r)
              state
-  :+
-    %:  from-obj  %from-obj
-                  [~ query-obj]
-                  [~ tmsp.schema]
-                  [~ tmsp.+.r]
-                  columns.view
-                  ~
-                  join.relat
-                  predicate.relat
-                  rowcount.view-content
-                  *(list key-column)
-                  ~
-                  %+  turn  rows.view-content
-                            |=(a=(map @tas @) [~ a])
-                  *(list joined-row)
-                  ==
-    %+  ~(put by type-lookup)  
-          query-obj
-          column-types.view
-    (mk-qualified-columns query-obj qualified-columns columns.view)
+  :+  %:  set-table  %set-table
+                    [~ query-obj]
+                    [~ tmsp.schema]
+                    [~ tmsp.+.r]
+                    columns.view
+                    ~
+                    join.relat
+                    predicate.relat
+                    rowcount.view-content
+                    *(list key-column)
+                    ~
+                    %+  turn  rows.view-content
+                              |=(a=(map @tas @) [~ a])
+                    *(list joined-row)
+                    ==
+      %+  ~(put by type-lookup)  
+            query-obj
+            column-types.view
+      (mk-qualified-columns query-obj qualified-columns columns.view)
 ::
 ::  +got-view-cache:
 ::    [database schema view data-obj-key (list selected-column:ast)]
@@ -339,8 +326,8 @@
   [(put-view-cache db vw-cache key) vw-cache]
 ::
 ++  join-up
-  |=  [prior=joined this=from-obj]
-  ^-  joined
+  |=  [prior=set-table this=set-table]
+  ^-  set-table
   ?-  (need join.this)
     %join
       ?:  =(~ predicate.this)  (join-natural prior this)
@@ -355,16 +342,29 @@
       (cross-join prior this)
   ==
 ::
-::  +cross-join:  [joined from-obj] -> joined
+::  +cross-join:  [set-table set-table] -> set-table
 ++  cross-join
-  |=  [prior=joined this=from-obj]
-  ^-  joined
+  |=  [prior=set-table this=set-table]
+  ^-  set-table
   =/  a=(list joined-row)  joined-rows.prior
   =/  out-rows=(list joined-row)  ~
   =/  i  0
   ::
   |-
-  ?~  a  (joined %joined ~ i out-rows)
+  ?~  a  %:  set-table    %set-table
+                         object=~
+                         schema-tmsp=~
+                         data-tmsp=~
+                         columns=*(list column:ast)   ::for now, to do: for CTEs
+                         pri-indx=~
+                         join=~
+                         predicate=~
+                         rowcount=i
+                         key=~
+                         pri-indexed=*(tree indexed-row)
+                         indexed-rows=~
+                         joined-rows=out-rows
+                         ==
   =/  b  indexed-rows.this
   |-
   ?~  b  ^$(a +.a)
@@ -381,10 +381,10 @@
   |=  a=ordered-column:ast
   name.a
 ::
-::  +join-natural:  [joined from-obj] -> joined
+::  +join-natural:  [set-table set-table] -> set-table
 ++  join-natural
-  |=  [prior=joined this=from-obj]
-  ^-  joined
+  |=  [prior=set-table this=set-table]
+  ^-  set-table
   ::join on foreign keys (to do)
   ::
   ::join on primary key
@@ -392,14 +392,27 @@
     ~|("no natural join, missing index: {<prior>} {<this>}" !!)
   =/  this-key  key:(need pri-indx.this)
   :: perfect natural join
+  =/  count-and-rows  ?.  =(key.prior this-key)  [0 ~]
+                      %:  join-pri-key  joined-rows.prior
+                                        indexed-rows.this
+                                        (need object.this)
+                                        this-key
+                                        ==
   ?:  =(key.prior this-key)
-      %^  joined  %joined
-                  this-key
-                  %:  join-pri-key  joined-rows.prior
-                                    indexed-rows.this
-                                    (need object.this)
-                                    this-key
-                                    ==
+      %:  set-table  %set-table
+                    object=~
+                    schema-tmsp=~
+                    data-tmsp=~
+                    columns=*(list column:ast)     ::for now, to do: for CTEs
+                    pri-indx=~
+                    join=~
+                    predicate=~
+                    rowcount=-.count-and-rows
+                    key=this-key
+                    pri-indexed=*(tree indexed-row)
+                    indexed-rows=~
+                    joined-rows=+.count-and-rows
+                    ==
   ::  key is same column sequence, but different ordering
   ?:  ?!  .=  (turn key.prior |=(a=key-column [name.a aura.a]))
               (turn this-key |=(a=key-column [name.a aura.a]))
@@ -410,7 +423,7 @@
   =/  the-key  ?:  (gth rowcount.this rowcount.prior)
                  this-key
                key.prior
-  =/  count-and-rows
+  =.  count-and-rows
         ?:  (gth rowcount.this rowcount.prior)
           %:  join-pri-key  %+  sort  joined-rows.prior
                                       ~(order idx-comp-2 (reduce-key the-key))
@@ -424,7 +437,21 @@
                           (need object.this)
                           key.prior
                           ==
- (joined %joined the-key -.count-and-rows +.count-and-rows)
+  ::
+  %:  set-table  %set-table
+                object=~
+                schema-tmsp=~
+                data-tmsp=~
+                columns=*(list column:ast)     ::for now, to do: for CTEs
+                pri-indx=~
+                join=~
+                predicate=~
+                rowcount=-.count-and-rows
+                key=the-key
+                pri-indexed=*(tree indexed-row)
+                indexed-rows=~
+                joined-rows=+.count-and-rows
+                ==
 ::
 ::  +join-pri-key
 ::
@@ -436,21 +463,21 @@
           key=(list key-column)
           ==
   ^-  [@ud (list joined-row)]
-  =/  c=(list joined-row)  ~
+  =/  c  *(list joined-row)
   =/  i  0
   ::
   |-
   ?~  a  [i (flop c)]
   ?~  b  [i (flop c)]
-  =/  data-row  -.a
-  ?:  =(-<.a -<.b)              :: keys =
+  =/  data-row  i.a
+  ?:  =(-.i.a -.i.b)              :: keys =
     %=  $ 
-      c  [[-.data-row (~(put by +.data-row) b-qual ->.b)] c]
-      a  +.a
-      b  +.b
+      c  [[-.data-row (~(put by +.data-row) b-qual +.i.b)] c]
+      a  t.a
+      b  t.b
       i  +(i)
     ==
-  ?:  (~(order idx-comp (reduce-key key)) -<.a -<.b)
-    $(a +.a)
-  $(b +.b)
+  ?:  (~(order idx-comp (reduce-key key)) -.i.a -.i.b)
+    $(a t.a)
+  $(b t.b)
 --
