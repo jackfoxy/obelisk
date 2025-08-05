@@ -468,10 +468,10 @@
   :: no from clause, it's a single row of literals
   ?~  from.q  [state (select-literals columns.selection.q)]
   =/  =join-return  (join-all(state state, bowl bowl) q)
-  =/  data-objs  data-objs.join-return                                                        ::~&  "data-objs:  {<data-objs.join-return>}"
-  ?~  data-objs  ~|("can't get here" !!)                                                      :: debugging queries/test-simple-query-05
+  =/  set-tables  set-tables.join-return                             ~&  "set-tables:  {<set-tables.join-return>}"
+  ?~  set-tables  ~|("can't get here" !!)                                                      :: debugging queries/test-simple-query-05
   =/  selected  columns.selection.q
-  =/  qualifier-lookup  (mk-qualifier-lookup data-objs selected)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
   =.  selected  (qualify-unqualified selected qualifier-lookup)
   =/  filter=(unit $-(joined-row ?))
     ?~  predicate.q  ~
@@ -483,10 +483,10 @@
               type-lookup.join-return
               qualifier-lookup
   :+  server.join-return
-      data-objs
+      set-tables
       %:  joined-result  filter
                         qualified-columns.join-return
-                        joined-rows.i.data-objs
+                        joined-rows.i.set-tables
                         selected
                         ==
 ::
@@ -539,28 +539,28 @@
 ::
 ::  +select-results:  [server (list set-table) (list vector)] -> (list result)
 ++  select-results
-  |=  [state=server data-objs=(list set-table) result-set=(list vector)]
+  |=  [state=server set-tables=(list set-table) result-set=(list vector)]
   ^-  (list result)
   =/  out  *(list (list result))
   =/  raw  %+  sort  %~  tap  in
-                              %^  fold  data-objs
+                              %^  fold  set-tables
                                         *(set [@tas @da @da])
                                         pick-from-object
                      order-results
-  ?~  data-objs  ~|("can't get here" !!)
+  ?~  set-tables  ~|("can't get here" !!)
   |-
   ?~  raw  ?~  out
              :~  [%message 'SELECT']
                  :-  %result-set
-                     ?~  indexed-rows.i.data-objs  ~
+                     ?~  indexed-rows.i.set-tables  ~
                      :~  %+  mk-vect
-                             columns.i.data-objs
-                             ->-.indexed-rows.i.data-objs
+                             columns.i.set-tables
+                             ->-.indexed-rows.i.set-tables
                          ==
                  [%server-time now.bowl]
                  [%schema-time created-tmsp:(~(got by state) %sys)]
                  [%data-time created-tmsp:(~(got by state) %sys)]
-                 [%vector-count (lent indexed-rows.i.data-objs)]
+                 [%vector-count (lent indexed-rows.i.set-tables)]
                  ==
     %-  zing  :~  :~  [%message 'SELECT']
                       [%result-set result-set]

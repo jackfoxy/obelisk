@@ -3981,28 +3981,42 @@
                     [%data-time ~2012.4.30]
                     [%vector-count 2]
                 ==
-  =^  mov1  agent
-    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-        %obelisk-action
-        !>  :+  %tape2
-                %db1
-                %-  zing  :~  "CREATE DATABASE db1;"
+  ::=^  mov1  agent
+  ::  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+  ::      %obelisk-action
+  ::      !>  :+  %tape2
+  ::              %db1
+  ::              %-  zing  :~  "CREATE DATABASE db1;"
+  ::                            create-calendar
+  ::                            insert-calendar
+  ::                            create-holiday-calendar
+  ::                            insert-holiday-calendar
+  ::                            ==
+  ::=.  run  +(run)
+  :: =^  mov2  agent
+  ::  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+  ::      %obelisk-action
+  ::      !>  :+  %tape2
+  ::              %db1
+  ::              "FROM calendar T1 ".
+  ::              "JOIN holiday-calendar T2 ".
+  ::              "SELECT T1.day-name, T2.*"
+  ::::
+  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+
+  %+  expect-fail-message
+    'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+          %obelisk-action
+          !>  :+  %test
+                  %db1
+                  %-  zing  :~  "CREATE DATABASE db1;"
                               create-calendar
                               insert-calendar
                               create-holiday-calendar
                               insert-holiday-calendar
                               ==
-  =.  run  +(run)
-   =^  mov2  agent
-    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-        %obelisk-action
-        !>  :+  %tape2
-                %db1
-                "FROM calendar T1 ".
-                "JOIN holiday-calendar T2 ".
-                "SELECT T1.day-name, T2.*"
-  ::
-  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
+
 ::
 ::  test T1.* in select
 ++  test-join-01

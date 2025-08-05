@@ -81,7 +81,7 @@
 +$  join-return
   $:  %join-return
       =server
-      data-objs=(list set-table)
+      set-tables=(list set-table)
       type-lookup=lookup-type
       qualified-columns=(list qual-col-type)
       ==
