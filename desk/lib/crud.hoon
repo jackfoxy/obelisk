@@ -468,8 +468,8 @@
   :: no from clause, it's a single row of literals
   ?~  from.q  [state (select-literals columns.selection.q)]
   =/  =join-return  (join-all(state state, bowl bowl) q)
-  =/  set-tables  set-tables.join-return                             ~&  "set-tables:  {<set-tables.join-return>}"
-  ?~  set-tables  ~|("can't get here" !!)                                                      :: debugging queries/test-simple-query-05
+  =/  set-tables  set-tables.join-return                             ::~&  "set-tables:  {<set-tables.join-return>}"
+  ?~  set-tables  ~|("can't get here" !!)                            :: debugging queries/test-simple-query-05
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
   =.  selected  (qualify-unqualified selected qualifier-lookup)
@@ -547,8 +547,14 @@
                                         *(set [@tas @da @da])
                                         pick-from-object
                      order-results
+
+    ~&  " "
+
   ?~  set-tables  ~|("can't get here" !!)
   |-
+
+    ~&  "out:  {<out>}"
+
   ?~  raw  ?~  out
              :~  [%message 'SELECT']
                  :-  %result-set
@@ -589,7 +595,7 @@
 ++  pick-from-object
   |=  [a=set-table state=(set [@tas @da @da])]
   ^-  (set [@tas @da @da])
-  ?~  object.a  state
+  ?~  object.a    state
   %-  ~(put in state)  :+  (qualified-object-to-cord (need object.a))
                            (need schema-tmsp.a)
                            (need data-tmsp.a)

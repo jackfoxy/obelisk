@@ -622,12 +622,12 @@
     ^-  (map @tas (list qualified-object:ast))
     =/  lookup  *(map @tas (list qualified-object:ast))
     |-
-    ?~  sources          lookup
-    =/  source=set-table  -.sources
-    ?~  object.source    lookup
+    ?~  sources           lookup
+    =/  source=set-table  i.sources
+    ?~  object.source     $(sources t.sources)
     =/  columns=(list column:ast)  columns.source
     |-
-    ?~  columns  ^$(sources +.sources)
+    ?~  columns  ^$(sources t.sources)
     =/  col=column:ast  -.columns
     %=  $
       columns  +.columns
@@ -712,7 +712,7 @@
 ++  record-values
   |=  [ord=@ud mta=column-mta r=indexed-row]
   ^-  column-mta
-  =/  col-val  ;;(@ +:.*(+.r [0 addr.mta]))
+  =/  col-val  ;;(@ +:.*(+<.r [0 addr.mta]))
   =/  idx  ((on @ value-idx) lth)
   =/  val-log  (get:idx values.mta col-val)
   ?~  val-log
