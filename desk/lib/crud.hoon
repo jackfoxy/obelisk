@@ -544,17 +544,11 @@
   =/  out  *(list (list result))
   =/  raw  %+  sort  %~  tap  in
                               %^  fold  set-tables
-                                        *(set [@tas @da @da])
+                                        *(set [qualified-object:ast @da @da])
                                         pick-from-object
                      order-results
-
-    ~&  " "
-
   ?~  set-tables  ~|("can't get here" !!)
   |-
-
-    ~&  "out:  {<out>}"
-
   ?~  raw  ?~  out
              :~  [%message 'SELECT']
                  :-  %result-set
@@ -578,25 +572,45 @@
                   ==
   %=  $
     raw  t.raw
-    out  :-  :~  [%message -.i.raw]
+    out  :-  :~  [%message (qualified-object-to-cord -.i.raw)]
                  [%schema-time +<.i.raw]
                  [%data-time +>.i.raw]
                  ==
              out
   ==
 ::
+::  +order-results
 ++  order-results
-  |=  [p=[p=@tas q=@da r=@da] q=[p=@tas q=@da r=@da]]
-  ?:  (gth p.p p.q)  %.y
-  ?:  &(=(p.p p.q) (gth q.p q.q))  %.y
-  ?:  &(&(=(p.p p.q) =(q.p q.q)) (gte r.p r.q))  %.y
+  |=  $:  p=[=qualified-object:ast schema-tmsp=@da data-tmsp=@da]
+          q=[=qualified-object:ast schema-tmsp=@da data-tmsp=@da]
+          ==
+  ?:  ?!  %+  aor  (biff ship.qualified-object.p same)
+                   (biff ship.qualified-object.q same)                 %.y
+  ?:  ?&  .=  (biff ship.qualified-object.p same)
+              (biff ship.qualified-object.q same)
+              ?!  %+  aor  database.qualified-object.p
+                           database.qualified-object.q
+          ==                                                           %.y
+  ?:  ?&  .=  (biff ship.qualified-object.p same)
+              (biff ship.qualified-object.q same)
+          =(database.qualified-object.p database.qualified-object.q)
+          !(aor namespace.qualified-object.p namespace.qualified-object.q)
+          ==                                                           %.y
+  ?:  ?&  .=  (biff ship.qualified-object.p same) 
+              (biff ship.qualified-object.q same)
+          =(database.qualified-object.p database.qualified-object.q)
+          =(namespace.qualified-object.p namespace.qualified-object.q)
+          !(aor name.qualified-object.p name.qualified-object.q)
+          ==                                                           %.y
+  ?:  (gth schema-tmsp.p schema-tmsp.q)                                %.y
+  ?:  &(=(schema-tmsp.p schema-tmsp.q) (gth data-tmsp.p data-tmsp.q))  %.y
   %.n
 ::
 ++  pick-from-object
-  |=  [a=set-table state=(set [@tas @da @da])]
-  ^-  (set [@tas @da @da])
+  |=  [a=set-table state=(set [qualified-object:ast @da @da])]
+  ^-  (set [qualified-object:ast @da @da])
   ?~  object.a    state
-  %-  ~(put in state)  :+  (qualified-object-to-cord (need object.a))
+  %-  ~(put in state)  :+  (need object.a)
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
 ::
