@@ -467,12 +467,21 @@
   ^-  [server (list set-table) (list vector)]
   :: no from clause, it's a single row of literals
   ?~  from.q  [state (select-literals columns.selection.q)]
+  
+  :: no joins, it's a single table
+
+  =/  f  (need from.q)
+
+  ::?~  joins:(need from.q)  (select-table(state state, bowl bowl) q)
+  ?~  joins.f  (select-table(state state, bowl bowl) q)
+
+  ::
   =/  =join-return  (join-all(state state, bowl bowl) q)
-  =/  set-tables  set-tables.join-return                             ::~&  "set-tables:  {<set-tables.join-return>}"
-  ?~  set-tables  ~|("can't get here" !!)                            :: debugging queries/test-simple-query-05
+  =/  set-tables  set-tables.join-return
+  ?~  set-tables  ~|("can't get here" !!)
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
-  =.  selected  (qualify-unqualified selected qualifier-lookup)
+  =.  selected  (qualify-unqualified columns.selection.q qualifier-lookup)
   =/  filter=(unit $-(joined-row ?))
     ?~  predicate.q  ~
     :-  ~

@@ -92,6 +92,6 @@
     =table-set
     as-of=(unit as-of)
     join=(unit join-type)
-    predicate=(unit predicate)
+    predicate=(unit predicate)  ::to do: why is this unit?
   ==
 --
