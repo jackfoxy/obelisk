@@ -6109,12 +6109,11 @@
         %obelisk-action
         !>  :+  %tape2
                 %db1
-                "INSERT INTO my-table".
+                "INSERT INTO my-table AS OF ~2012.5.4".
                 " VALUES".
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
-                "AS OF ~2012.5.4"
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -6126,9 +6125,6 @@
 ::  fail on bad column name   to do: fix and uncomment
 ++  test-fail-select-02
   =|  run=@ud
-  =/  my-select  "FROM my-table SELECT ".
-                 "col4, foo"
-  ::
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
@@ -6145,23 +6141,23 @@
                 "AS OF ~2012.5.3"
   =.  run  +(run)
   =^  mov3  agent
-    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
         !>  :+  %tape2
                 %db1
-                "INSERT INTO my-table".
+                "INSERT INTO my-table AS OF ~2012.5.5".
                 " VALUES".
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
-                "AS OF ~2012.5.4"
-  =.  run  +(run)
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"   
   ::
   %+  expect-fail-message
         'SELECT: column %foo not found'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.6]))
           %obelisk-action
-          !>([%test %db1 my-select])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table SELECT col4, foo"
 ::
 :: unresolved alias select all object
 ++  test-fail-select-03

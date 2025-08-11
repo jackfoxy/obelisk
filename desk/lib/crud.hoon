@@ -145,8 +145,8 @@
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects
           ::~>  %bout.[0 %select]
-          =/  foo  (do-query -.rtree next-data next-schemas)
-          [next-data -.foo (select-results foo)]
+          =/  rt  (do-query -.rtree next-data next-schemas)
+          [next-data -.rt (select-results rt)]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
@@ -494,10 +494,10 @@
   :+  server.join-return
       set-tables
       %:  joined-result  filter
-                        qualified-columns.join-return
-                        joined-rows.i.set-tables
-                        selected
-                        ==
+                         qualified-columns.join-return
+                         joined-rows.i.set-tables
+                         selected
+                         ==
 ::
 ++  joined-result
   |=  $:  filter=(unit $-(joined-row ?))
@@ -508,13 +508,8 @@
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
-  =/  col-lookup
-    %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
-        %+  turn
-              qualified-columns
-              |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
   =/  cells=(list templ-cell)
-    %^  mk-vect-templ
+    %^  mk-joined-vect-templ
           qualified-columns
           selected
           -.rows
@@ -541,10 +536,7 @@
   =/  value
     %-  ~(got by -:(~(got by +.i.rows) qualifier))
         column:(need object.cell)
-  =/  cell-type
-    %-  ~(got by col-lookup)
-        [qualifier column:(need object.cell)]
-  $(cols t.cols, row [[p.vc.cell [cell-type value]] row])
+  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +select-results:  [server (list set-table) (list vector)] -> (list result)
 ++  select-results

@@ -35,6 +35,9 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
+::  +select-table:  query:ast -> [server (list set-table) (list vector)]
+::
+::  selection from a single table without joins
 ++  select-table
   |=  q=query:ast
   ^-  [server (list set-table) (list vector)]
@@ -42,7 +45,51 @@
   =/  triple      (prep-table-set object.+.object.from as-of.from ~ ~ ~ ~)
   =/  init-map    *(map qualified-object:ast [(map @tas @) (list @)])
   =/  =set-table  -.triple
-  !!
+  =/  selected    columns.selection.q
+  ::
+  :+  state
+      ~[set-table]
+      %:  table-result  ~  ::filter
+                        +>.triple
+                        indexed-rows.set-table
+                        selected
+                        ==
+::
+++  table-result
+  |=  $:  filter=(unit $-(joined-row ?))
+          qualified-columns=(list qual-col-type)
+          rows=(list indexed-row)
+          selected=(list selected-column:ast)
+          ==
+  ^-  (list vector)
+  ?:  =((lent rows) 0)  ~
+  =/  out-rows   *(set vector)
+  =/  cells=(list templ-cell)
+    %^  mk-indexed-vect-templ
+          qualified-columns
+          selected
+          -.rows
+  |-
+  ?~  rows  ~(tap in out-rows)
+  ::=/  include-row=?
+  ::  ?~  filter
+  ::    %.y
+  ::  ((need filter) i.rows)
+  ::?.  include-row
+  ::  $(rows t.rows)
+  =/  row                     *(list vector-cell)
+  =/  cols=(list templ-cell)  cells
+  |-
+  ?~  cols
+    %=  ^$
+      out-rows  (~(put in out-rows) (vector %vector row))
+      rows      t.rows
+    ==
+  ?~  object.i.cols
+    $(cols t.cols, row [vc.i.cols row])
+  =/  cell=templ-cell  i.cols
+  =/  value  (~(got by +<.i.rows) column:(need object.cell)) 
+  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +join-all  query:ast -> join-return
 :: 
@@ -268,20 +315,20 @@
                 (~(put by state) database.query-obj -.r)
              state
   :+  %:  set-table  %set-table
-                    [~ query-obj]
-                    [~ tmsp.schema]
-                    [~ tmsp.+.r]
-                    columns.view
-                    ~
-                    join
-                    predicate
-                    rowcount.view-content
-                    *(list key-column)
-                    ~
-                    %+  turn  rows.view-content
-                              |=(a=(map @tas @) [~ a])
-                    *(list joined-row)
-                    ==
+                     [~ query-obj]
+                     [~ tmsp.schema]
+                     [~ tmsp.+.r]
+                     columns.view
+                     ~
+                     join
+                     predicate
+                     rowcount.view-content
+                     *(list key-column)
+                     ~
+                     %+  turn  rows.view-content
+                               |=(a=(map @tas @) [~ a ~]) ::to do: missing 
+                     *(list joined-row)                   :: sequential col vals
+                     ==
       %+  ~(put by type-lookup)  
             query-obj
             column-types.view
