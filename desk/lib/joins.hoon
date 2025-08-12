@@ -88,7 +88,7 @@
   ?~  object.i.cols
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
-  =/  value  (~(got by +<.i.rows) column:(need object.cell)) 
+  =/  value  (~(got by data.i.rows) column:(need object.cell)) 
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +join-all  query:ast -> join-return
@@ -104,7 +104,6 @@
   =/  relat=relation  -.relations
   =.  relations       +.relations
   =/  triple         (prep-table-set object.table-set.relat as-of.relat ~ ~ ~ ~)
-  =/  init-map        *(map qualified-object:ast [(map @tas @) (list @)])
   =/  prior-obj       -.triple
   =/  from-objects    (limo ~[prior-obj])
   =/  prior-join
@@ -122,7 +121,8 @@
                       pri-indexed=*(tree indexed-row)
                       indexed-rows=*(list indexed-row)
                       %+  turn  indexed-rows.prior-obj
-        |=(a=indexed-row [-.a (~(put by init-map) (need object.prior-obj) +.a)])
+                                %+  cury  joined-row-from-indexed
+                                          (need object.prior-obj)
                        ==
   =/  type-lookup=lookup-type                 +<.triple
   =/  qualified-columns=(list qual-col-type)  +>.triple
@@ -293,7 +293,6 @@
           db=database
           =schema
           =view
-          ::relat=relation
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
           sys-time=@da
@@ -326,7 +325,7 @@
                      *(list key-column)
                      ~
                      %+  turn  rows.view-content
-                               |=(a=(map @tas @) [~ a ~]) ::to do: missing 
+                               |=(a=(map @tas @) [~ a]) ::to do: missing 
                      *(list joined-row)                   :: sequential col vals
                      ==
       %+  ~(put by type-lookup)  
@@ -375,34 +374,34 @@
 ++  cross-join
   |=  [prior=set-table this=set-table]
   ^-  set-table
-  =/  a=(list joined-row)  joined-rows.prior
-  =/  out-rows=(list joined-row)  ~
+  =/  a         joined-rows.prior
+  =/  out-rows  *(list joined-row)
   =/  i  0
   ::
   |-
   ?~  a  %:  set-table    %set-table
-                         object=~
-                         schema-tmsp=~
-                         data-tmsp=~
-                         columns=*(list column:ast)   ::for now, to do: for CTEs
-                         pri-indx=~
-                         join=~
-                         predicate=~
-                         rowcount=i
-                         key=~
-                         pri-indexed=*(tree indexed-row)
-                         indexed-rows=~
-                         joined-rows=out-rows
-                         ==
+                          object=~
+                          schema-tmsp=~
+                          data-tmsp=~
+                          columns=*(list column:ast)  ::for now, to do: for CTEs
+                          pri-indx=~
+                          join=~
+                          predicate=~
+                          rowcount=i
+                          key=~
+                          pri-indexed=*(tree indexed-row)
+                          indexed-rows=~
+                          joined-rows=out-rows
+                          ==
   =/  b  indexed-rows.this
   |-
-  ?~  b  ^$(a +.a)
-  =/  data-row  -.a
+  ?~  b  ^$(a t.a)
   %=  $ 
-    out-rows  :-  :-  ~
-                      (~(put by +.data-row) (need object.this) ->.b)
+    out-rows  :-  :+  %joined-row
+                      ~
+                      (~(put by data.i.a) (need object.this) data.i.b)
                   out-rows
-    b  +.b
+    b  t.b
     i  +(i)
   ==
 ::
@@ -455,14 +454,14 @@
   =.  count-and-rows
         ?:  (gth rowcount.this rowcount.prior)
           %:  join-pri-key  %+  sort  joined-rows.prior
-                                      ~(order idx-comp-2 (reduce-key the-key))
+                                   ~(order joined-row-comp (reduce-key the-key))
                             indexed-rows.this
                             (need object.this)
                             this-key
                             ==
         %:  join-pri-key  joined-rows.prior
                           %+  sort  indexed-rows.this
-                                    ~(order idx-comp-2 (reduce-key the-key))
+                                  ~(order indexed-row-comp (reduce-key the-key))
                           (need object.this)
                           key.prior
                           ==
@@ -498,15 +497,14 @@
   |-
   ?~  a  [i (flop c)]
   ?~  b  [i (flop c)]
-  =/  data-row  i.a
-  ?:  =(-.i.a -.i.b)              :: keys =
+  ?:  =(key.i.a key.i.b)
     %=  $ 
-      c  [[-.data-row (~(put by +.data-row) b-qual +.i.b)] c]
+      c  [[%joined-row key.i.a (~(put by data.i.a) b-qual +.i.b)] c]
       a  t.a
       b  t.b
       i  +(i)
     ==
-  ?:  (~(order idx-comp (reduce-key key)) -.i.a -.i.b)
+  ?:  (~(order idx-comp (reduce-key key)) key.i.a key.i.b)
     $(a t.a)
   $(b t.b)
 --

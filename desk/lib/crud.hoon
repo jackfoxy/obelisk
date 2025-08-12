@@ -132,7 +132,7 @@
       ==
   ^-  [? [(map @tas @da) server (list result)]]
   =/  tree=(tree set-function:ast)              set-functions.selection
-  =/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
+  ::=/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %insert
@@ -174,7 +174,6 @@
         %+  turn
             `(list @t)`(need columns.ins)
             |=(a=@t (to-column a column-lookup.table.txn))
-  =/  rev-cols  (flop columns.table.txn)
   ::
   ?.  ?=([%data *] values.ins)  ~|("INSERT: not implemented: {<values.ins>}" !!)
   =/  value-table  `(list (list value-or-default:ast))`+.values.ins
@@ -228,11 +227,11 @@
           ==
   ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  file-row  (row-cells row cols rev-cols)
+  =/  file-row  (row-cells row cols)
   =/  row-key=(list @)
         %+  turn
             key-pick
-            |=(a=[p=@tas q=@ud] (key-atom [p.a -.file-row]))
+            |=(a=[p=@tas q=@ud] (key-atom [p.a file-row]))
   =.  pri-idx.file.txn  ?:  (has:primary-key pri-idx.file.txn row-key)
                           ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
                         (put:primary-key pri-idx.file.txn row-key file-row)
@@ -275,17 +274,17 @@
                                           qualifier-lookup
                                       type-lookup
                                       qualifier-lookup
-  =/  init-map  *(map qualified-object:ast [(map @tas @) (list @)])
+  =/  init-map  *(map qualified-object:ast (map @tas @))
   =.  indexed-rows.file.txn
         %+  skim
               indexed-rows.file.txn
-              |=(a=indexed-row !(filter [-.a (~(put by init-map) table.d +.a)]))
+              |=(a=indexed-row !(filter [%joined-row key.a (~(put by init-map) table.d data.a)]))  ::to do: temp until predicate takes indexed row
   :: 
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
   =.  pri-idx.file.txn
-      %+  gas:primary-key  *((mop (list @) ,[(map @tas @) (list @)]) comparator)
+      %+  gas:primary-key  *((mop (list @) ,(map @tas @)) comparator)
                            indexed-rows.file.txn
   ::
   =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
@@ -415,7 +414,7 @@
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
   =.  pri-idx.file.txn
-      %+  gas:primary-key  *((mop (list @) ,[(map @tas @) (list @)]) comparator)
+      %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                             -.rows-count
   ::
   =/  idx  ~(wyt by pri-idx.file.txn)
@@ -534,8 +533,7 @@
   =/  cell=templ-cell  i.cols
   =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
   =/  value
-    %-  ~(got by -:(~(got by +.i.rows) qualifier))
-        column:(need object.cell)
+        (~(got by (~(got by data.i.rows) qualifier)) column:(need object.cell))
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +select-results:  [server (list set-table) (list vector)] -> (list result)
@@ -556,7 +554,7 @@
                      ?~  indexed-rows.i.set-tables  ~
                      :~  %+  mk-vect
                              columns.i.set-tables
-                             ->-.indexed-rows.i.set-tables
+                             data.i.indexed-rows.i.set-tables
                          ==
                  [%server-time now.bowl]
                  [%schema-time created-tmsp:(~(got by state) %sys)]
@@ -624,7 +622,7 @@
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
                   (~(got by state) %sys)
-  =/  indexed-cols  *[(map @tas @) (list @)]
+  =/  indexed-cols  *(map @tas @)
   =/  columns-out   *(list column:ast)
   =/  i             0
   |-
@@ -646,7 +644,7 @@
             ==
         :~  %+  mk-vect
                 columns-out
-                -.indexed-cols
+                indexed-cols
             ==
   ?.  ?=(selected-value:ast -.columns)
     ~|("selected value {<-.columns>} not a literal" !!)
@@ -657,7 +655,7 @@
     columns       +.columns
     columns-out   :-  (column:ast %column column-name p.value.i.columns)
                       columns-out
-    indexed-cols  [(~(put by -.indexed-cols) column-name q.value.i.columns) ~]
+    indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
   ==
 ::
 ++  mk-vect
@@ -675,7 +673,7 @@
   ==
 ::
 ++  plan-upd
-  |=  $:  r=indexed-row
+  |=  $:  row=indexed-row
           count=@ud
           f=(unit $-(joined-row ?))
           obj=qualified-object:ast
@@ -685,12 +683,12 @@
           ==
   ^-  [indexed-row @ud]
   ?~  f
-    ?~  key-columns  [[-.r (produce-update r updates cols)] +(count)]
-    [(update-key r updates key-columns cols) +(count)]
+    ?~  key-columns  [[key.row (produce-update row updates cols)] +(count)]
+    [(update-key row updates key-columns cols) +(count)]
 
-  ?.  ((need f) [-.r [[obj +.r] ~ ~]])  [r count]
-  ?~  key-columns  [[-.r (produce-update r updates cols)] +(count)]
-  [(update-key r updates key-columns cols) +(count)]
+  ?.  ((need f) [%joined-row key.row [[obj data.row] ~ ~]])  [row count]
+  ?~  key-columns  [[key.row (produce-update row updates cols)] +(count)]
+  [(update-key row updates key-columns cols) +(count)]
 ++  update-key
   |=  $:  r=indexed-row
           updates=(list [@tas @])
@@ -703,18 +701,17 @@
   |-
   ?~  key-columns  [(flop new-key) upd-row]
   %=  $
-    new-key      [(~(got by -.upd-row) name.i.key-columns) new-key]
+    new-key      [(~(got by upd-row) name.i.key-columns) new-key]
     key-columns  t.key-columns
   ==
 ++  produce-update
   |=  [r=indexed-row updates=(list [@tas @]) cols=(list column:ast)]
-  ^-  [(map @tas @) (list @)]
-  =/  x  +.r
+  ^-  (map @tas @)
+  =/  x  data.r
   |-
   ?~  updates  x
-  =/  mapped  (~(put by -.x) -.i.updates +.i.updates)
   %=  $
-    x        (row-wise-data mapped cols)
+    x        (~(put by x) -.i.updates +.i.updates)
     updates  +.updates
   ==
 ++  mk-updates
@@ -760,38 +757,41 @@
 ++  named-queries  ::To Do: resolve data tmsps in CTEs
   |=  ctes=(list cte:ast)
   ^-  (map @tas [@ud (list indexed-row)])
-  =/  cte-rows  *(map @tas [@ud (list indexed-row)])
-  |-
-  ?~  ctes  cte-rows
-  %=  $
-    cte-rows  (~(put by cte-rows) +<.i.ctes (named-query +>.i.ctes))
-    ctes  +.ctes
-  ==
-::
-::  +named-query:  (list query:ast) -> [@ud (list indexed-row)]
-::  resolve CTEs
-++  named-query
-  |=  q=query:ast
-  ^-  [@ud (list indexed-row)]
-  =/  i  0
-  =/  vals  *(list vector-cell)
-  =/  columns=(list selected-column:ast)  columns.selection.q
-  |-
-  ?~  columns
-    ?~  vals  ~|("can't get here" !!)
-    =/  xx=(list vector-cell)  vals
-    =/  yy  %^  spin
-                xx
-                *(map @tas @)
-                |=([a=vector-cell s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
-    [1 ~[[*(list @) [+.yy *(list @)]]]]
-  ?.  ?=(selected-value:ast -.columns)
-    ~|("selected value {<-.columns>} not a literal" !!)
-  =/  column=selected-value:ast  -.columns
-  %=  $
-    i        +(i)
-    columns  +.columns
-    vals
-      [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
-  ==
+
+    !!
+  
+::  =/  cte-rows  *(map @tas [@ud (list indexed-row)])
+::  |-
+::  ?~  ctes  cte-rows
+::  %=  $
+::    cte-rows  (~(put by cte-rows) +<.i.ctes (named-query +>.i.ctes))
+::    ctes  +.ctes
+::  ==
+::::
+::::  +named-query:  (list query:ast) -> [@ud (list indexed-row)]
+::::  resolve CTEs
+::++  named-query
+::  |=  q=query:ast
+::  ^-  [@ud (list indexed-row)]
+::  =/  i  0
+::  =/  vals  *(list vector-cell)
+::  =/  columns=(list selected-column:ast)  columns.selection.q
+::  |-
+::  ?~  columns
+::    ?~  vals  ~|("can't get here" !!)
+::    =/  xx=(list vector-cell)  vals
+::    =/  yy  %^  spin
+::                xx
+::                *(map @tas @)
+::                |=([a=vector-cell s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
+::    [1 ~[[*(list @) [+.yy *(list @)]]]]
+::  ?.  ?=(selected-value:ast -.columns)
+::    ~|("selected value {<-.columns>} not a literal" !!)
+::  =/  column=selected-value:ast  -.columns
+::  %=  $
+::    i        +(i)
+::    columns  +.columns
+::    vals
+::      [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
+::  ==
 --

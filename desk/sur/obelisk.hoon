@@ -76,7 +76,12 @@
 ::
 +$  qual-col-type  [qualified-column @ta]
 +$  lookup-type    (map qualified-object (map @tas @ta))
-+$  joined-row     [(list @) (map qualified-object [(map @tas @) (list @)])]
++$  joined-row
+  $:  %joined-row
+      key=(list @)
+      data=(map qualified-object (map @tas @))
+      ==
++$  data-row       $@(joined-row indexed-row)
 ::
 +$  join-return
   $:  %join-return

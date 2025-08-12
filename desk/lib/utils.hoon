@@ -68,10 +68,10 @@
     (lth -.p -.q)
   --
 ::
-::  +idx-comp-2
+::  +indexed-row-comp
 ::
 ::  comparator for index mops
-++  idx-comp-2
+++  indexed-row-comp
   |_  index=(list [@tas ?])
   ++  order
     |=  [a=[(list @) *] b=[(list @) *]]
@@ -85,10 +85,27 @@
     (lth -.p -.q)
   --
 ::
+::  +joined-row-comp
+::
+::  comparator for index mops
+++  joined-row-comp
+  |_  index=(list [@tas ?])
+  ++  order
+    |=  [a=[@ (list @) *] b=[@ (list @) *]]
+    =/  p  +<.a
+    =/  q  +<.b
+    =/  k=(list [@tas ?])  index
+    |-  ^-  ?
+    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
+    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  ->.k  (gth -.p -.q)
+    (lth -.p -.q)
+  --
+::
 ++  pri-key
   |=  key=(list key-column)
   =/  comparator  ~(order idx-comp (reduce-key key))
-  ((on (list [@tas ?]) ,[(map @tas @) (list @)]) comparator)
+  ((on (list [@tas ?]) (map @tas @)) comparator)
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
@@ -411,7 +428,7 @@
   ?~  cs  (flop cs2)
   ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need object.i.cs)
-  =/  xx=(map @tas @)  -:(~(got by +.j) qualifier.qual-col)
+  =/  xx=(map @tas @)  (~(got by data.j) qualifier.qual-col)
   =/  addr  (~(dig by xx) column:(need object.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
@@ -522,8 +539,8 @@
   ?~  cs  (flop cs2)
   ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need object.i.cs)
-  ::=/  xx=(map @tas @)  -:(~(got by +.row) qualifier.qual-col)
-  =/  addr  (~(dig by +<.row) column:(need object.i.cs))
+  ::=/  xx=(map @tas @)  -:(~(got by data.row) qualifier.qual-col)
+  =/  addr  (~(dig by data.row) column:(need object.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
     cs  t.cs
@@ -828,7 +845,7 @@
 ++  record-values
   |=  [ord=@ud mta=column-mta r=indexed-row]
   ^-  column-mta
-  =/  col-val  ;;(@ +:.*(+<.r [0 addr.mta]))
+  =/  col-val  ;;(@ +:.*(data.r [0 addr.mta]))
   =/  idx  ((on @ value-idx) lth)
   =/  val-log  (get:idx values.mta col-val)
   ?~  val-log
@@ -850,11 +867,11 @@
   |=  r=indexed-row
   ^-  [column-addrs column-catalog]
   =/  addrs=column-addrs      ~
-  =/  cat       ~(tap by +<.r)
+  =/  cat       ~(tap by data.r)
   =/  catalog=column-catalog  ~
   |-   
   ?~  cat  [addrs catalog]
-  =/  addr  (need (~(dig by +<.r) -.i.cat))
+  =/  addr  (need (~(dig by data.r) -.i.cat))
   %=  $
     cat      t.cat
     addrs    (~(put by addrs) -.i.cat addr)
@@ -898,17 +915,15 @@
   data
 ::
 ::  +row-cells:
-::    [(list value-or-default:ast) (list column:ast) (list column:ast)]
-::    -> [(map @tas @) (list @)]
+::    [(list value-or-default:ast) (list column:ast)] -> (map @tas @)
 ::
 ::  Create the saved row-wise file data.
-::  r is the reversed canonical column order
-++  row-cells  ::to do: faster way to do this when already canonical order
-  |=  [p=(list value-or-default:ast) q=(list column:ast) r=(list column:ast)]
-  ^-  [(map @tas @) (list @)]
+++  row-cells
+  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  ^-  (map @tas @)
   =/  cells=(list [@tas @])  ~
   |-
-  ?~  p  (row-wise-data (malt cells) r)
+  ?~  p  (malt cells)
   %=  $
     cells  [(row-cell -.p -.q) cells]
     p  +.p
@@ -928,13 +943,14 @@
     [name.q 0]
   ~|("row cell {<p>} not supported" !!)
 ::
-++  row-wise-data
-  |=  [p=(map @tas @) q=(list column:ast)]
-  ^-  [(map @tas @) (list @)]
-  =/  row  *(list @)
-  |-
-  ?~  q  [p row]
-  $(q t.q, row [(~(got by p) name.i.q) row])
+++  joined-row-from-indexed
+  |=  [qo=qualified-object:ast =indexed-row]
+  ^-  joined-row      
+  :+  %joined-row
+      key.indexed-row
+      %+  ~(put by *(map qualified-object:ast (map @tas @)))
+          qo
+          data.indexed-row
 ::
 ++  make-key-pick
   |=  [key=@tas column-lookup=(map @tas [aura @])]

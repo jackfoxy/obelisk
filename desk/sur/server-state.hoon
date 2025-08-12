@@ -77,11 +77,16 @@
       tmsp=@da
       =column-addrs
       rowcount=@
-      pri-idx=(tree [(list @) [(map @tas @) (list @)]])  ::generic, reify as mop
+      pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
       indexed-rows=(list indexed-row)
       =column-catalog
       ::    =indices
   ==
++$  indexed-row
+  $:  
+    key=(list @)
+    data=(map @tas @)
+    ==
 +$  column-addrs    (map @tas @)
 +$  column-catalog  (map @tas column-mta)                 
 +$  column-mta
@@ -145,7 +150,6 @@
   ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
-+$  indexed-row  [(list @) [(map @tas @) (list @)]]
 ::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
 ::
 ::  view and table comparer
