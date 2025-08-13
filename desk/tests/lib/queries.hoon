@@ -1808,12 +1808,12 @@
         %obelisk-action
         !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
-  =^  mov4  agent
+  =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.sys.databases V1 select v1.*"])
   ::
-  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  time travel
 ::

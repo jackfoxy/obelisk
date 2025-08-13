@@ -283,9 +283,11 @@
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+
+  :: to do: here and in do-update this can probably be more efficient
   =.  pri-idx.file.txn
       %+  gas:primary-key  *((mop (list @) ,(map @tas @)) comparator)
-                           indexed-rows.file.txn
+                           (turn indexed-rows.file.txn |=(a=indexed-row +.a))
   ::
   =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
   =.  column-addrs.file.txn    +<.rpq
@@ -413,16 +415,18 @@
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+:: to do: here and in do-delete this can probably be more efficient
   =.  pri-idx.file.txn
       %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                            -.rows-count
+                           (turn -.rows-count |=(a=indexed-row +.a))
   ::
   =/  idx  ~(wyt by pri-idx.file.txn)
   =/  fil  (lent indexed-rows.file.txn)
   ?.  =(idx fil)
     ~|("{<(sub fil idx)>} duplicate row key(s)" !!)
   ::
-  =/  new-indexed-rows  (tap:primary-key pri-idx.file.txn)
+  =/  new-indexed-rows  %+  turn  (tap:primary-key pri-idx.file.txn)
+                                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
   =.  column-addrs.file.txn    +<.rpq
   =.  column-catalog.file.txn  +>.rpq
@@ -637,8 +641,8 @@
                 ~
                 1
                 *(list key-column)
-                *(tree indexed-row)
-                ~[[~ indexed-cols]]
+                *(tree [(list @) (map @tas @)])
+                ~[[%indexed-row ~ indexed-cols]]
                 *(list joined-row)
                 ==
             ==
@@ -683,11 +687,15 @@
           ==
   ^-  [indexed-row @ud]
   ?~  f
-    ?~  key-columns  [[key.row (produce-update row updates cols)] +(count)]
+    ?~  key-columns  :-  :+  %indexed-row
+                             key.row
+                             (produce-update row updates cols)
+                         +(count)
     [(update-key row updates key-columns cols) +(count)]
 
   ?.  ((need f) [%joined-row key.row [[obj data.row] ~ ~]])  [row count]
-  ?~  key-columns  [[key.row (produce-update row updates cols)] +(count)]
+  ?~  key-columns  :-  [%indexed-row key.row (produce-update row updates cols)]
+                       +(count)
   [(update-key row updates key-columns cols) +(count)]
 ++  update-key
   |=  $:  r=indexed-row
@@ -696,10 +704,10 @@
           cols=(list column:ast)
           ==
   ^-  indexed-row
-  =/  new-key=(list @)  ~
+  =/  new-key  *(list @)
   =/  upd-row  (produce-update r updates cols)
   |-
-  ?~  key-columns  [(flop new-key) upd-row]
+  ?~  key-columns  [%indexed-row (flop new-key) upd-row]
   %=  $
     new-key      [(~(got by upd-row) name.i.key-columns) new-key]
     key-columns  t.key-columns

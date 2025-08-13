@@ -118,7 +118,7 @@
                       rowcount.prior-obj
                       ?~  pri-indx.prior-obj  ~
                                               key:(need pri-indx.prior-obj)
-                      pri-indexed=*(tree indexed-row)
+                      pri-indexed=*(tree [(list @) (map @tas @)])
                       indexed-rows=*(list indexed-row)
                       %+  turn  indexed-rows.prior-obj
                                 %+  cury  joined-row-from-indexed
@@ -325,8 +325,8 @@
                      *(list key-column)
                      ~
                      %+  turn  rows.view-content
-                               |=(a=(map @tas @) [~ a]) ::to do: missing 
-                     *(list joined-row)                   :: sequential col vals
+                               |=(a=(map @tas @) [%indexed-row ~ a])
+                     *(list joined-row)
                      ==
       %+  ~(put by type-lookup)  
             query-obj
@@ -389,7 +389,7 @@
                           predicate=~
                           rowcount=i
                           key=~
-                          pri-indexed=*(tree indexed-row)
+                          pri-indexed=*(tree [(list @) (map @tas @)])
                           indexed-rows=~
                           joined-rows=out-rows
                           ==
@@ -437,7 +437,7 @@
                     predicate=~
                     rowcount=-.count-and-rows
                     key=this-key
-                    pri-indexed=*(tree indexed-row)
+                    pri-indexed=*(tree [(list @) (map @tas @)])
                     indexed-rows=~
                     joined-rows=+.count-and-rows
                     ==
@@ -454,14 +454,14 @@
   =.  count-and-rows
         ?:  (gth rowcount.this rowcount.prior)
           %:  join-pri-key  %+  sort  joined-rows.prior
-                                   ~(order joined-row-comp (reduce-key the-key))
+                                   ~(order data-row-comp (reduce-key the-key))
                             indexed-rows.this
                             (need object.this)
                             this-key
                             ==
         %:  join-pri-key  joined-rows.prior
                           %+  sort  indexed-rows.this
-                                  ~(order indexed-row-comp (reduce-key the-key))
+                                  ~(order data-row-comp (reduce-key the-key))
                           (need object.this)
                           key.prior
                           ==
@@ -476,7 +476,7 @@
                 predicate=~
                 rowcount=-.count-and-rows
                 key=the-key
-                pri-indexed=*(tree indexed-row)
+                pri-indexed=*(tree [(list @) (map @tas @)])
                 indexed-rows=~
                 joined-rows=+.count-and-rows
                 ==
@@ -499,7 +499,7 @@
   ?~  b  [i (flop c)]
   ?:  =(key.i.a key.i.b)
     %=  $ 
-      c  [[%joined-row key.i.a (~(put by data.i.a) b-qual +.i.b)] c]
+      c  [[%joined-row key.i.a (~(put by data.i.a) b-qual data.i.b)] c]
       a  t.a
       b  t.b
       i  +(i)

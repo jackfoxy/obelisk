@@ -83,10 +83,10 @@
       ::    =indices
   ==
 +$  indexed-row
-  $:  
-    key=(list @)
-    data=(map @tas @)
-    ==
+  $:  %indexed-row
+      key=(list @)
+      data=(map @tas @)
+      ==
 +$  column-addrs    (map @tas @)
 +$  column-catalog  (map @tas column-mta)                 
 +$  column-mta

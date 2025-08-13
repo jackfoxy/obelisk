@@ -68,32 +68,15 @@
     (lth -.p -.q)
   --
 ::
-::  +indexed-row-comp
+::  +data-row-comp
 ::
 ::  comparator for index mops
-++  indexed-row-comp
+++  data-row-comp
   |_  index=(list [@tas ?])
   ++  order
-    |=  [a=[(list @) *] b=[(list @) *]]
-    =/  p  -.a
-    =/  q  -.b
-    =/  k=(list [@tas ?])  index
-    |-  ^-  ?
-    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (alpha -.q -.p)
-    ?:  ->.k  (gth -.p -.q)
-    (lth -.p -.q)
-  --
-::
-::  +joined-row-comp
-::
-::  comparator for index mops
-++  joined-row-comp
-  |_  index=(list [@tas ?])
-  ++  order
-    |=  [a=[@ (list @) *] b=[@ (list @) *]]
-    =/  p  +<.a
-    =/  q  +<.b
+    |=  [a=[data-row] b=[data-row]]
+    =/  p  key.a
+    =/  q  key.b
     =/  k=(list [@tas ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
@@ -905,7 +888,8 @@
 ++  update-file
   |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
   ~+  :: keeper
-  =/  new-indexed-rows  (tap:(pri-key primary-key) pri-idx.file)
+  =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
+                                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
   =.  column-addrs.file    +<.rpq
   =.  column-catalog.file  +>.rpq
@@ -1057,46 +1041,4 @@
   ~+   :: keep, seems to make small difference
   ^-  (set @tas)
   (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
-::
-::  helper types
-::
-+$  db-cmd  $?  %create-database
-                %drop-database
-                %create-namespace
-                %alter-namespace
-                %drop-namespace
-                %create-table
-                %alter-table
-                %drop-table
-                %truncate-table
-                %insert
-                %update
-                %delete
-                ==
-::
-::  template for selected column from qualified objects
-+$  templ-cell
-  $:  %templ-cell
-      object=(unit qualified-column:ast)
-      addr=@
-      vc=vector-cell
-  ==
-::
-::  common metadata for DELETE, INSERT, UPDATE
-+$  txn-meta
-  $:  %txn-meta
-      db=database
-      tbl-key=[@tas @tas]
-      nxt-data=data
-      =table
-      =file
-      source-content-time=@da
-      ==
-::
-+$  table-return
-  $:  [@da ? @ud]
-      changed-schemas=(map @tas @da)
-      changed-data=(map @tas @da)
-      state=server
-  ==
 --

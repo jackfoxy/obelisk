@@ -36,16 +36,16 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ::  +mk-filter:  [predicate txn-meta lookup-type (list qualified-object)] 
-::               -> (unit $-(joined-row ?))
+::               -> (unit $-(data-row ?))
 ++  mk-filter
   |=  $:  =predicate
           txn=txn-meta
           type-lookup=lookup-type
           qs=(list qualified-object:ast)
           ==
-  ^-  (unit $-(joined-row ?))
+  ^-  (unit $-(data-row ?))
   =/  qualifier-lookup
-        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
+        %-  ~(gas by *(map @tas (list qualified-object:ast)))
             (turn columns.table.txn |=(a=column:ast [name.a qs]))
   :-  ~
       %:  pred-ops-and-conjs
@@ -78,35 +78,35 @@
   |=  $:  a=@
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.b)
-  =(a (~(got by x) +.b))
+  ?:  ?=(%joined-row -.c)  =(a (~(got by (~(got by data.c) -.b)) +.b))
+  =(a (~(got by data.c) +.b))
 ::
 ++  eq-col-lit
   |=  $:  a=[qualified-object:ast @tas]
           b=@
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =((~(got by x) +.a) b)
+  ?:  ?=(%joined-row -.c)  =((~(got by (~(got by data.c) -.a)) +.a) b)
+  =((~(got by data.c) +.a) b)
 ::
 ++  eq-col-col
   |=  $:  a=[qualified-object:ast @tas]
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  y=(map @tas @)  (~(got by data.c) -.b)
-  =((~(got by x) +.a) (~(got by y) +.b))
+  ?:  ?=(%joined-row -.c)  .=  (~(got by (~(got by data.c) -.a)) +.a)
+                            (~(got by (~(got by data.c) -.b)) +.b)
+  =((~(got by data.c) +.a) (~(got by data.c) +.b))
 ::
 ++  eq-lit-lit
-  |=  [a=@ b=@ typ=@ta c=joined-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =(a b)
 ::
@@ -116,35 +116,35 @@
   |=  $:  a=@
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.b)
-  ?!(=(a (~(got by x) +.b)))
+  ?:  ?=(%joined-row -.c)  ?!(=(a (~(got by (~(got by data.c) -.b)) +.b)))
+  ?!(=(a (~(got by data.c) +.b)))
 ::
 ++  neq-col-lit
   |=  $:  a=[qualified-object:ast @tas]
           b=@
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  ?!(=((~(got by x) +.a) b))
+  ?:  ?=(%joined-row -.c)  ?!(=((~(got by (~(got by data.c) -.a)) +.a) b))
+  ?!(=((~(got by data.c) +.a) b))
 ::
 ++  neq-col-col
   |=  $:  a=[qualified-object:ast @tas]
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  y=(map @tas @)  (~(got by data.c) -.b)
-  ?!(=((~(got by x) +.a) (~(got by y) +.b)))
+  ?:  ?=(%joined-row -.c)   ?!  .=  (~(got by (~(got by data.c) -.a)) +.a)
+                                 (~(got by (~(got by data.c) -.b)) +.b)
+  ?!(=((~(got by data.c) +.a) (~(got by data.c) +.b)))
 ::
 ++  neq-lit-lit
-  |=  [a=@ b=@ typ=@ta c=joined-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   ?!(=(a b))
 ::
@@ -154,44 +154,59 @@
   |=  $:  a=@
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)  
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      ?:  =(a (~(got by (~(got by data.c) -.b)) +.b))  %.n
+      (alpha (~(got by (~(got by data.c) -.b)) +.b) a)
+    (gth a (~(got by (~(got by data.c) -.b)) +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    ?:  =(a (~(got by x) +.b))  %.n
-    (alpha (~(got by x) +.b) a)
-  (gth a (~(got by x) +.b))
+    ?:  =(a (~(got by data.c) +.b))  %.n
+    (alpha (~(got by data.c) +.b) a)
+  (gth a (~(got by data.c) +.b))
 ::
 ++  gt-col-lit
   |=  $:  a=[qualified-object:ast @tas]
           b=@
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      ?:  =((~(got by (~(got by data.c) -.a)) +.a) b)  %.n
+      (alpha b (~(got by (~(got by data.c) -.a)) +.a))
+    (gth (~(got by (~(got by data.c) -.a)) +.a) b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    ?:  =((~(got by x) +.a) b)  %.n
-    (alpha b (~(got by x) +.a))
-  (gth (~(got by x) +.a) b)
+    ?:  =((~(got by data.c) +.a) b)  %.n
+    (alpha b (~(got by data.c) +.a))
+  (gth (~(got by data.c) +.a) b)
 ::
 ++  gt-col-col
   |=  $:  a=[qualified-object:ast @tas]
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  y=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      ?:  .=  (~(got by (~(got by data.c) -.a)) +.a)
+              (~(got by (~(got by data.c) -.b)) +.b)
+        %.n
+      %+  alpha  (~(got by (~(got by data.c) -.b)) +.b)
+                 (~(got by (~(got by data.c) -.a)) +.a)
+     %+  gth  (~(got by (~(got by data.c) -.a)) +.a)
+              (~(got by (~(got by data.c) -.b)) +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    ?:  =((~(got by x) +.a) (~(got by y) +.b))  %.n
-    (alpha (~(got by y) +.b) (~(got by x) +.a))
-  (gth (~(got by x) +.a) (~(got by y) +.b))
+    ?:  =((~(got by data.c) +.a) (~(got by data.c) +.b))  %.n
+    (alpha (~(got by data.c) +.b) (~(got by data.c) +.a))
+  (gth (~(got by data.c) +.a) (~(got by data.c) +.b))
 ::
 ++  gt-lit-lit
-  |=  [a=@ b=@ typ=@ta c=joined-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
@@ -204,41 +219,49 @@
   |=  $:  a=@
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)  
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      (alpha (~(got by (~(got by data.c) -.b)) +.b) a)
+    (gte a (~(got by (~(got by data.c) -.b)) +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    (alpha (~(got by x) +.b) a)
-  (gte a (~(got by x) +.b))
+    (alpha (~(got by data.c) +.b) a)
+  (gte a (~(got by data.c) +.b))
 ::
 ++  gte-col-lit
   |=  $:  a=[qualified-object:ast @tas]
           b=@
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    (alpha b (~(got by x) +.a))
-  (gte (~(got by x) +.a) b)
+  ?:  ?=(%joined-row -.c)  
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      (alpha b (~(got by (~(got by data.c) -.a)) +.a))
+    (gte (~(got by (~(got by data.c) -.a)) +.a) b)
+  !!
 ::
 ++  gte-col-col
   |=  $:  a=[qualified-object:ast @tas]
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  y=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)  
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      %+  alpha  (~(got by (~(got by data.c) -.b)) +.b)
+                 (~(got by (~(got by data.c) -.a)) +.a)
+    %+  gte  (~(got by (~(got by data.c) -.a)) +.a)
+             (~(got by (~(got by data.c) -.b)) +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    (alpha (~(got by y) +.b) (~(got by x) +.a))
-  (gte (~(got by x) +.a) (~(got by y) +.b))
+    (alpha (~(got by data.c) +.b) (~(got by data.c) +.a))
+  (gte (~(got by data.c) +.a) (~(got by data.c) +.b))
 ::
 ++  gte-lit-lit
-  |=  [a=@ b=@ typ=@ta c=joined-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b a)
@@ -250,44 +273,55 @@
   |=  $:  a=@
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      ?:  =(a (~(got by (~(got by data.c) -.b)) +.b))  %.n
+      (alpha a (~(got by (~(got by data.c) -.b)) +.b))
+    (lth a (~(got by (~(got by data.c) -.b)) +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    ?:  =(a (~(got by x) +.b))  %.n
-    (alpha a (~(got by x) +.b))
-  (lth a (~(got by x) +.b))
+    ?:  =(a (~(got by data.c) +.b))  %.n
+    (alpha a (~(got by data.c) +.b))
+  (lth a (~(got by data.c) +.b))
 ::
 ++  lt-col-lit
   |=  $:  a=[qualified-object:ast @tas]
           b=@
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    ?:  =((~(got by x) +.a) b)  %.n
-    (alpha (~(got by x) +.a) b)
-  (lth (~(got by x) +.a) b)
+  ?:  ?=(%joined-row -.c)  
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      ?:  =((~(got by (~(got by data.c) -.a)) +.a) b)  %.n
+      (alpha (~(got by (~(got by data.c) -.a)) +.a) b)
+    (lth (~(got by (~(got by data.c) -.a)) +.a) b)
+  !!
 ::
 ++  lt-col-col
   |=  $:  a=[qualified-object:ast @tas]
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  y=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      ?:  .=  (~(got by (~(got by data.c) -.a)) +.a)
+              (~(got by (~(got by data.c) -.b)) +.b)  %.n
+      %+  alpha  (~(got by (~(got by data.c) -.a)) +.a)
+                 (~(got by (~(got by data.c) -.b)) +.b)
+    %+  lth  (~(got by (~(got by data.c) -.a)) +.a)
+             (~(got by (~(got by data.c) -.b)) +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    ?:  =((~(got by x) +.a) (~(got by y) +.b))  %.n
-    (alpha (~(got by x) +.a) (~(got by y) +.b))
-  (lth (~(got by x) +.a) (~(got by y) +.b))
+    ?:  =((~(got by data.c) +.a) (~(got by data.c) +.b))  %.n
+    (alpha (~(got by data.c) +.a) (~(got by data.c) +.b))
+  (lth (~(got by data.c) +.a) (~(got by data.c) +.b))
 ::
 ++  lt-lit-lit
-  |=  [a=@ b=@ typ=@ta c=joined-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
@@ -300,41 +334,51 @@
   |=  $:  a=@
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      (alpha a (~(got by (~(got by data.c) -.b)) +.b))
+    (lte a (~(got by (~(got by data.c) -.b)) +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    (alpha a (~(got by x) +.b))
-  (lte a (~(got by x) +.b))
+    (alpha a (~(got by data.c) +.b))
+  (lte a (~(got by data.c) +.b))
 ::
 ++  lte-col-lit
   |=  $:  a=[qualified-object:ast @tas]
           b=@
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      (alpha (~(got by (~(got by data.c) -.a)) +.a) b)
+    (lte (~(got by (~(got by data.c) -.a)) +.a) b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    (alpha (~(got by x) +.a) b)
-  (lte (~(got by x) +.a) b)
+    (alpha (~(got by data.c) +.a) b)
+  (lte (~(got by data.c) +.a) b)
 ::
 ++  lte-col-col
   |=  $:  a=[qualified-object:ast @tas]
           b=[qualified-object:ast @tas]
           typ=@ta
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  y=(map @tas @)  (~(got by data.c) -.b)
+  ?:  ?=(%joined-row -.c)
+    ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+      %+  alpha  (~(got by (~(got by data.c) -.a)) +.a)
+                 (~(got by (~(got by data.c) -.b)) +.b)
+    %+  lte  (~(got by (~(got by data.c) -.a)) +.a)
+             (~(got by (~(got by data.c) -.b)) +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-    (alpha (~(got by x) +.a) (~(got by y) +.b))
-  (lte (~(got by x) +.a) (~(got by y) +.b))
+    (alpha (~(got by data.c) +.a) (~(got by data.c) +.b))
+  (lte (~(got by data.c) +.a) (~(got by data.c) +.b))
 ::
 ++  lte-lit-lit
-  |=  [a=@ b=@ typ=@ta c=joined-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha a b)
@@ -343,7 +387,7 @@
 ::  in
 ::
 ++  in-lit-list
-  |=  [a=@ b=(list @) c=joined-row]
+  |=  [a=@ b=(list @) c=data-row]
   ^-  ?
   |-
   ?~  b  %.n
@@ -353,11 +397,11 @@
 ++  in-col-list
   |=  $:  a=[qualified-object:ast @tas]
           b=(list @)
-          c=joined-row
+          c=data-row
           ==
-  ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  val  (~(got by x) +.a)
+  ^-  ? 
+  =/  val  ?:  ?=(%joined-row -.c)  (~(got by (~(got by data.c) -.a)) +.a)
+           (~(got by data.c) +.a)
   |-
   ?~  b  %.n
   ?:  =(val -.b)  %.y
@@ -366,7 +410,7 @@
 ::  not in
 ::
 ++  not-in-lit-list
-  |=  [a=@ b=(list @) c=joined-row]
+  |=  [a=@ b=(list @) c=data-row]
   ^-  ?
   |-
   ?~  b  %.y
@@ -376,11 +420,11 @@
 ++  not-in-col-list
   |=  $:  a=[qualified-object:ast @tas]
           b=(list @)
-          c=joined-row
+          c=data-row
           ==
   ^-  ?
-  =/  x=(map @tas @)  (~(got by data.c) -.a)
-  =/  val  (~(got by x) +.a)
+  =/  val  ?:  ?=(%joined-row -.c)  (~(got by (~(got by data.c) -.a)) +.a)
+               (~(got by data.c) +.a)
   |-
   ?~  b  %.y
   ?:  =(val -.b)  %.n
@@ -389,32 +433,32 @@
 ::  not
 ::
 ++  not
-  |=  $:  l=$-(joined-row ?)
-          c=joined-row
+  |=  $:  l=$-(data-row ?)
+          c=data-row
           ==
   ^-  ?
   !(l c)
 ::
 ++  and
-  |=  $:  l=$-(joined-row ?)
-          r=$-(joined-row ?)
-          c=joined-row
+  |=  $:  l=$-(data-row ?)
+          r=$-(data-row ?)
+          c=data-row
           ==
   ^-  ?
   &((l c) (r c))
 ::
 ++  and-not
-  |=  $:  l=$-(joined-row ?)
-          r=$-(joined-row ?)
-          c=joined-row
+  |=  $:  l=$-(data-row ?)
+          r=$-(data-row ?)
+          c=data-row
           ==
   ^-  ?
   ?!(&((l c) (r c)))
 ::
 ++  or
-  |=  $:  l=$-(joined-row ?)
-          r=$-(joined-row ?)
-          c=joined-row
+  |=  $:  l=$-(data-row ?)
+          r=$-(data-row ?)
+          c=data-row
           ==
   ^-  ?
   |((l c) (r c))
@@ -457,33 +501,33 @@
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
-  ^-  $-(joined-row ?)
+  ^-  $-(data-row ?)
   ?~  p  ~|("can't get here" !!) 
   ?.  ?=(ops-and-conjs n.p)  ~|("can't get here" !!)
   ?-  n.p
     ternary-op
       ?~  l.p  ~|("can't get here" !!)
       ?~  r.p  ~|("can't get here" !!)
-      =/  ll=$-(joined-row ?)
+      =/  ll=$-(data-row ?)
             (pred-binary-op l.p type-lookup qualifier-lookup)
-      =/  rr=$-(joined-row ?)
+      =/  rr=$-(data-row ?)
             (pred-binary-op r.p type-lookup qualifier-lookup)
       ?:  =(%between n.p)
-        (bake (cury (cury and ll) rr) joined-row)
-      (bake (cury (cury and-not ll) rr) joined-row)
+        (bake (cury (cury and ll) rr) data-row)
+      (bake (cury (cury and-not ll) rr) data-row)
     binary-op   (pred-binary-op p type-lookup qualifier-lookup)
     unary-op    (pred-unary-op p type-lookup qualifier-lookup)
     all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
       ?~  l.p  ~|("can't get here" !!)
       ?~  r.p  ~|("can't get here" !!)
-      =/  ll=$-(joined-row ?)
+      =/  ll=$-(data-row ?)
             (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
-      =/  rr=$-(joined-row ?)
+      =/  rr=$-(data-row ?)
             (pred-ops-and-conjs r.p type-lookup qualifier-lookup)
       ?:  =(%and n.p)
-        (bake (cury (cury and ll) rr) joined-row)
-      (bake (cury (cury or ll) rr) joined-row)
+        (bake (cury (cury and ll) rr) data-row)
+      (bake (cury (cury or ll) rr) data-row)
     ==
 :: 
 ++  pred-unary-op
@@ -491,16 +535,16 @@
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
-  ^-  $-(joined-row ?)
+  ^-  $-(data-row ?)
   ?~  p  ~|("can't get here" !!)
   ?~  l.p  ~|("can't get here" !!)
   ?.  ?=(unary-op n.p)  ~|("can't get here" !!)
   ::
   ?-  n.p
     %not
-        =/  ll=$-(joined-row ?)
+        =/  ll=$-(data-row ?)
             (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
-        (bake (cury not ll) joined-row)
+        (bake (cury not ll) data-row)
     %exists
       ~|("%exists not implemented" !!)
     %not-exists
@@ -512,7 +556,7 @@
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
-  ^-  $-(joined-row ?)
+  ^-  $-(data-row ?)
   ?~  p  ~|("can't get here" !!)
   ?.  ?=(binary-op n.p)  ~|("can't get here" !!)
   ?~  l.p  ~|("can't get here" !!)
@@ -567,7 +611,7 @@
       ::                  %+  cury  (cury eq-col-col [qualifier.l column.l])
       ::                            [qualifier.r column.r]
       ::                  (~(got by type-lookup) [qualifier.l column.l])
-      ::              joined-row
+      ::              data-row
       ::  ~|  "comparing columns of different auras: ".
       ::      "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
       ::      !!
@@ -577,7 +621,7 @@
       ::  ?:  (types-match (~(got by type-lookup) [qualifier.l column.l]) -.r)
       ::    %+  bake
       ::          (cury (cury (cury eq-lit-col +.r) [qualifier.l column.l]) -.r)
-      ::          joined-row
+      ::          data-row
       ::  ~|  "comparing column and literal of different auras: ".
       ::      "{<l>} {<r>}"
       ::      !!
@@ -587,7 +631,7 @@
       ::  ?:  (types-match -.l (~(got by type-lookup) [qualifier.r column.r]))
       ::    %+  bake
       ::          (cury (cury (cury eq-lit-col +.l) [qualifier.r column.r]) -.l)
-      ::          joined-row
+      ::          data-row
       ::  ~|  "comparing column and literal of different auras: ".
       ::      "{<l>} {<r>}"
       ::      !!
@@ -595,7 +639,7 @@
       ::?:  &(?=(dime l) ?=(dime r))
       ::  ?:  (types-match -.l -.r)
       ::    %+  bake  (cury (cury (cury eq-lit-lit +.l) +.r) -.l)
-      ::              joined-row
+      ::              data-row
       ::  ~|  "comparing column literals of different auras: ".
       ::      "{<l>} {<r>}"
       ::      !!
@@ -625,14 +669,14 @@
       ?:  ?=(qualified-column:ast l)
         ?:  (~(has by type-lookup) qualifier.l)
           %+  bake  (cury (cury in-col-list [qualifier.l column.l]) in-list)
-                    joined-row
+                    data-row
         %+  bake  %+  cury
                         %+  cury  in-col-list
                                   [(get-qualifier l qualifier-lookup) column.l]
                         in-list
-                  joined-row
+                  data-row
       ?:  ?=(dime l)
-        (bake (cury (cury in-lit-list +.l) in-list) joined-row)
+        (bake (cury (cury in-lit-list +.l) in-list) data-row)
       ~|("to do: handle unqualified-column in predicate" !!)
     %not-in
       =/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
@@ -656,14 +700,14 @@
       ?:  ?=(qualified-column:ast l)
         ?:  (~(has by type-lookup) qualifier.l)
           %+  bake  (cury (cury not-in-col-list [qualifier.l column.l]) in-list)
-                    joined-row
+                    data-row
         %+  bake  %+  cury
                         %+  cury  not-in-col-list
                                   [(get-qualifier l qualifier-lookup) column.l]
                         in-list
-                  joined-row
+                  data-row
       ?:  ?=(dime l)
-        (bake (cury (cury not-in-lit-list +.l) in-list) joined-row)
+        (bake (cury (cury not-in-lit-list +.l) in-list) data-row)
       ~|("to do: handle unqualified-column in predicate" !!)
     ==
 ::
@@ -683,23 +727,23 @@
   -.quals
 ::
 +$  column-column
-  $-([[qualified-object:ast @tas] [qualified-object:ast @tas] @ta joined-row] ?)
+  $-([[qualified-object:ast @tas] [qualified-object:ast @tas] @ta data-row] ?)
 ::
 ++  datum-ops
   |=  $:  l=datum:ast
           r=datum:ast
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
-          lit-lit=$-([@ @ @ta joined-row] ?)
+          lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
-          col-lit=$-([[qualified-object:ast @tas] @ @ta joined-row] ?)
-          lit-col=$-([@ [qualified-object:ast @tas] @ta joined-row] ?)
+          col-lit=$-([[qualified-object:ast @tas] @ @ta data-row] ?)
+          lit-col=$-([@ [qualified-object:ast @tas] @ta data-row] ?)
           ==
-  ^-  $-(joined-row ?)
+  ^-  $-(data-row ?)
                                                           ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
     ?:  (types-match -.l -.r)
-      %+  bake  (cury (cury (cury lit-lit +.l) +.r) -.l)  joined-row
+      %+  bake  (cury (cury (cury lit-lit +.l) +.r) -.l)  data-row
     ~|  "comparing column literals of different auras: ".
         "{<l>} {<r>}"
         !!
@@ -718,7 +762,7 @@
                     %+  cury  (cury col-col [qualifier.l column.l])
                               [qualifier.r column.r]
                     (~(got by (~(got by type-lookup) qualifier.l)) column.l)
-                joined-row
+                data-row
     ~|  "comparing columns of different auras: ".
         "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
         !!
@@ -731,7 +775,7 @@
               -.l
               (~(got by (~(got by type-lookup) qualifier.r)) column.r)
       %+  bake  (cury (cury (cury lit-col +.l) [qualifier.r column.r]) -.l)
-                joined-row
+                data-row
     ~|  "comparing literal to column of different aura: ".
         "{<l>} {<[qualifier.r column.r]>}"
         !!
@@ -744,7 +788,7 @@
               (~(got by (~(got by type-lookup) qualifier.l)) column.l)
               -.r
       %+  bake  (cury (cury (cury col-lit [qualifier.l column.l]) +.r) -.r)
-                joined-row
+                data-row
     ~|  "comparing column to literal of different aura: ".
         "{<[qualifier.l column.l]>} {<r>}"
         !!
@@ -789,7 +833,7 @@
                 %+  cury  (cury col-col [qual-l column.l])
                           [qual-r column.r]
                 (~(got by (~(got by type-lookup) qual-l)) column.l)
-            joined-row
+            data-row
   ~|  "comparing columns of different aura: ".
       "{<[qual-l column.l]>} {<[qual-r column.r]>}"
       !!
@@ -810,7 +854,7 @@
                   %+  cury  (cury col-col [qual column.l])
                             [qualifier.r column.r]
                   (~(got by (~(got by type-lookup) qual)) column.l)
-              joined-row
+              data-row
   ~|  "comparing columns of different aura: ".
       "{<[qual column.l]>} {<r>}"
       !!
@@ -831,7 +875,7 @@
                   %+  cury  (cury col-col [qualifier.l column.l])
                             [qual column.r]
                   (~(got by (~(got by type-lookup) qualifier.l)) column.l)
-              joined-row
+              data-row
   ~|  "comparing columns of different aura: ".
       "{<l>} {<[qual column.r]>}"
       !!
@@ -841,14 +885,14 @@
           r=datum:ast
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
-          lit-col=$-([@ [qualified-object:ast @tas] @ta joined-row] ?)
+          lit-col=$-([@ [qualified-object:ast @tas] @ta data-row] ?)
           ==
   ?.  &(?=(dime l) ?=(qualified-column:ast r))
     ~|("datum-unqualified-column can't get here" !!)
   =/  qual  (get-qualifier r qualifier-lookup)
   ?:  (types-match -.l (~(got by (~(got by type-lookup) qual)) column.r))
         %+  bake  (cury (cury (cury lit-col +.l) [qual column.r]) -.l)
-                  joined-row
+                  data-row
   ~|  "comparing literal to column of different aura: ".
       "{<l>} {<[qual column.r]>}"
       !!
@@ -858,14 +902,14 @@
           r=datum:ast
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
-          col-lit=$-([[qualified-object:ast @tas] @ @ta joined-row] ?)
+          col-lit=$-([[qualified-object:ast @tas] @ @ta data-row] ?)
           ==
   ?.  &(?=(qualified-column:ast l) ?=(dime r))
     ~|("unqualified-column-datum can't get here" !!)
   =/  qual  (get-qualifier l qualifier-lookup)
   ?:  (types-match (~(got by (~(got by type-lookup) qual)) column.l) -.r)
     %+  bake  (cury (cury (cury col-lit [qual column.l]) +.r) -.r)
-              joined-row
+              data-row
   ~|  "comparing column to literal of different aura: ".
       "{<[qual column.l]>} {<r>}"
       !!
@@ -877,7 +921,7 @@
           type-lookup=lookup-type
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
-  ^-  $-(joined-row ?)
+  ^-  $-(data-row ?)
   ?-  p
     %neq
       %:  datum-ops  l

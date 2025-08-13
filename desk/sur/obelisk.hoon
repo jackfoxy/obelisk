@@ -69,7 +69,7 @@
       predicate=(unit predicate)
       rowcount=@
       key=(list key-column)
-      pri-indexed=(tree indexed-row)
+      pri-indexed=(tree [(list @) (map @tas @)])
       indexed-rows=(list indexed-row)
       joined-rows=(list joined-row)
   ==
@@ -81,7 +81,7 @@
       key=(list @)
       data=(map qualified-object (map @tas @))
       ==
-+$  data-row       $@(joined-row indexed-row)
++$  data-row  $%(joined-row indexed-row)
 ::
 +$  join-return
   $:  %join-return
@@ -98,5 +98,45 @@
     as-of=(unit as-of)
     join=(unit join-type)
     predicate=(unit predicate)  ::to do: why is this unit?
+  ==
+::
++$  db-cmd  $?  %create-database
+                %drop-database
+                %create-namespace
+                %alter-namespace
+                %drop-namespace
+                %create-table
+                %alter-table
+                %drop-table
+                %truncate-table
+                %insert
+                %update
+                %delete
+                ==
+::
+::  template for selected column from qualified objects
++$  templ-cell
+  $:  %templ-cell
+      object=(unit qualified-column)
+      addr=@
+      vc=vector-cell
+  ==
+::
+::  common metadata for DELETE, INSERT, UPDATE
++$  txn-meta
+  $:  %txn-meta
+      db=database
+      tbl-key=[@tas @tas]
+      nxt-data=data
+      =table
+      =file
+      source-content-time=@da
+      ==
+::
++$  table-return
+  $:  [@da ? @ud]
+      changed-schemas=(map @tas @da)
+      changed-data=(map @tas @da)
+      state=server
   ==
 --
