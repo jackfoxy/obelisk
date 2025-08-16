@@ -261,24 +261,13 @@
             [%message 'no rows deleted']
             ==
   ::
-  =/  type-lookup=lookup-type
-        %+  ~(put by `lookup-type`~)  
-          table.d
-          (malt (turn columns.table.txn |=(a=column:ast [name.a type.a])))
-  =/  qualifier-lookup
-        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
-            (turn columns.table.txn |=(a=column:ast [name.a (limo ~[table.d])]))
-  =/  filter=$-(joined-row ?)  %^  pred-ops-and-conjs
-                                      %+  pred-qualify-unqualified
-                                          predicate.d
-                                          qualifier-lookup
-                                      type-lookup
-                                      qualifier-lookup
-  =/  init-map  *(map qualified-object:ast (map @tas @))
-  =.  indexed-rows.file.txn
-        %+  skim
-              indexed-rows.file.txn
-              |=(a=indexed-row !(filter [%joined-row key.a (~(put by init-map) table.d data.a)]))  ::to do: temp until predicate takes indexed row
+  =/  filter=$-(data-row ?)  %^  pred-ops-and-conjs
+                                 (pred-unqualify-qualified predicate.d)
+                                 :-  %unqualified-lookup-type
+                                     type-lookup.table.txn
+                                 ~
+  =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
+                                       |=(a=indexed-row !(filter a))
   :: 
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
@@ -361,26 +350,18 @@
   ::
   ?.  =((lent columns.u) (lent values.u))
     ~|("UPDATE: columns and values mismatch" !!)
-  =/  type-lookup=lookup-type
-        %+  ~(put by `lookup-type`~)  
-          table.u
-          (malt (turn columns.table.txn |=(a=column:ast [name.a type.a])))
-  =/  qualifier-lookup
-        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
-            (turn columns.table.txn |=(a=column:ast [name.a (limo ~[table.u])]))
-  =/  filter=(unit $-(joined-row ?))
-        ?~  predicate.u  ~
-        :-  ~
-            %^  pred-ops-and-conjs  %+  pred-qualify-unqualified
-                                          (need predicate.u)
-                                          qualifier-lookup
-                                    type-lookup
-                                    qualifier-lookup
-  =/  updates=(list [@tas @])  %:  mk-updates  table.u
-                                               columns.u
-                                               values.u
-                                               type-lookup
-                                               ==
+  =/  filter  ?~  predicate.u  ~
+              :-  ~
+                  %^  pred-ops-and-conjs  %-  pred-unqualify-qualified
+                                              (need predicate.u)
+                                          :-  %unqualified-lookup-type
+                                              type-lookup.table.txn
+                                          ~
+  =/  updates  %:  mk-updates  table.u
+                               columns.u
+                               values.u
+                               [%unqualified-lookup-type type-lookup.table.txn]
+                               ==
   ::  updating key column requires re-indexing
   =/  aa  %-  silt
               %+  turn
@@ -391,8 +372,8 @@
                   updates
                   |=(a=[@tas @] -.a)
   =/  xx  ?:  (gth ~(wyt in (~(int in aa) bb)) 0)  :: update key column?
-            [filter table.u updates key.pri-indx.table.txn columns.table.txn]
-          [filter table.u updates ~ columns.table.txn]
+            [filter updates key.pri-indx.table.txn columns.table.txn]
+          [filter updates ~ columns.table.txn]
   =/  rows-count=[(list indexed-row) @ud]
         %^  spin
               indexed-rows.file.txn
@@ -415,7 +396,7 @@
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
-:: to do: here and in do-delete this can probably be more efficient
+  :: to do: here and in do-delete this can probably be more efficient
   =.  pri-idx.file.txn
       %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                            (turn -.rows-count |=(a=indexed-row +.a))
@@ -474,9 +455,9 @@
   :: no joins, it's a single table
 
   =/  f  (need from.q)
+  ?~  joins.f  (select-table(state state, bowl bowl) q)
 
   ::?~  joins:(need from.q)  (select-table(state state, bowl bowl) q)
-  ?~  joins.f  (select-table(state state, bowl bowl) q)
 
   ::
   =/  =join-return  (join-all(state state, bowl bowl) q)
@@ -485,7 +466,7 @@
   =/  selected  columns.selection.q
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
   =.  selected  (qualify-unqualified columns.selection.q qualifier-lookup)
-  =/  filter=(unit $-(joined-row ?))
+  =/  filter=(unit $-(data-row ?))
     ?~  predicate.q  ~
     :-  ~
         %^  pred-ops-and-conjs
@@ -503,7 +484,7 @@
                          ==
 ::
 ++  joined-result
-  |=  $:  filter=(unit $-(joined-row ?))
+  |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list qual-col-type)
           rows=(list joined-row)
           selected=(list selected-column:ast)
@@ -679,8 +660,7 @@
 ++  plan-upd
   |=  $:  row=indexed-row
           count=@ud
-          f=(unit $-(joined-row ?))
-          obj=qualified-object:ast
+          f=(unit $-(data-row ?))
           updates=(list [@tas @])
           key-columns=(list key-column)
           cols=(list column:ast)
@@ -692,8 +672,7 @@
                              (produce-update row updates cols)
                          +(count)
     [(update-key row updates key-columns cols) +(count)]
-
-  ?.  ((need f) [%joined-row key.row [[obj data.row] ~ ~]])  [row count]
+  ?.  ((need f) [%indexed-row key.row data.row])  [row count]
   ?~  key-columns  :-  [%indexed-row key.row (produce-update row updates cols)]
                        +(count)
   [(update-key row updates key-columns cols) +(count)]
@@ -726,7 +705,7 @@
   |=  $:  table=qualified-object:ast
           columns=(list qualified-column:ast)
           values=(list *)   ::(list value-or-default:ast)
-          type-lookup=lookup-type
+          type-lookup=unqualified-lookup-type
           ==
   ^-  (list [@tas @])
   =/  updates=(list [@tas @])  ~
@@ -737,9 +716,7 @@
     %=  $
       columns   t.columns
       values    t.values
-      updates   ?:  .=  ~.da
-                        %-  ~(got by (~(got by type-lookup) table))
-                            column.i.columns
+      updates   ?:  =(~.da (~(got by +.type-lookup) column.i.columns))
                   [[column.i.columns *@da] updates]
                 [[column.i.columns 0] updates]
     ==
@@ -752,11 +729,9 @@
           ~|  "UPDATE: {<table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ~|  "value type: {<-.i.values>} does not match column: {<i.columns>}"
-            ?.  .=  p.i.values
-                    (~(got by (~(got by type-lookup) table)) column.i.columns)
-              !!
-            [[column.i.columns +.i.values] updates]
+        ?:  =(p.i.values (~(got by +.type-lookup) column.i.columns))
+          [[column.i.columns +.i.values] updates]
+        ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
   ~|("value type not supported: {<i.values>}" !!)
 ::
@@ -800,6 +775,7 @@
 ::    i        +(i)
 ::    columns  +.columns
 ::    vals
-::      [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
+::     [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
 ::  ==
 --
+ 

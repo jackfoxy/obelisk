@@ -241,7 +241,9 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha b (~(got by (~(got by data.c) -.a)) +.a))
     (gte (~(got by (~(got by data.c) -.a)) +.a) b)
-  !!
+  ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+    (alpha b (~(got by data.c) +.a))
+  (gte (~(got by data.c) +.a) b)
 ::
 ++  gte-col-col
   |=  $:  a=[qualified-object:ast @tas]
@@ -298,7 +300,10 @@
       ?:  =((~(got by (~(got by data.c) -.a)) +.a) b)  %.n
       (alpha (~(got by (~(got by data.c) -.a)) +.a) b)
     (lth (~(got by (~(got by data.c) -.a)) +.a) b)
-  !!
+  ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
+    ?:  =((~(got by data.c) +.a) b)  %.n
+    (alpha (~(got by data.c) +.a) b)
+  (lth (~(got by data.c) +.a) b)
 ::
 ++  lt-col-col
   |=  $:  a=[qualified-object:ast @tas]
@@ -465,6 +470,8 @@
 ::
 ::  +pred-qualify-unqualified:
 ::    [predicate:ast (map @tas (list qualified-object:ast))] -> predicate:ast
+::
+::  fail if column name available for multiple qualifiers
 ++  pred-qualify-unqualified
   |=  $:  p=predicate:ast
           qualifier-lookup=(map @tas (list qualified-object:ast))
@@ -482,8 +489,9 @@
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
   ^-  predicate-component:ast
-  ?.  ?=(unqualified-column:ast a)
-    a
+  ::?~  qualifier-lookup              a
+  ?:  =(~(wyt by qualifier-lookup) 0)              a
+  ?.  ?=(unqualified-column:ast a)  a
   ::
   =/  qualifiers   ~|  "undetermined qualifier for {<column.a>} in predicate"
                        (~(got by qualifier-lookup) column.a)
@@ -491,6 +499,27 @@
     ~|("qualifier for {<column.a>} in predicate must be specified" !!)
   %:  qualified-column:ast  %qualified-column
                             -.qualifiers
+                            column.a
+                            alias.a
+                            ==
+::
+::  +pred-unqualify-qualified:  predicate:ast -> predicate:ast
+::
+::  single table predicate must have unqualified-column
+++  pred-unqualify-qualified
+  |=  p=predicate:ast
+  ^-  predicate:ast
+  |-
+  ?~  p  ~
+  p(n (unqualify-leaf n.p), l $(p l.p), r $(p r.p))
+::
+::  +unqualify-leaf:  predicate-component:ast -> predicate-component:ast
+++  unqualify-leaf
+  |=  a=predicate-component:ast
+  ^-  predicate-component:ast
+  ?.  ?=(qualified-column:ast a)  a
+  ::
+  %:  unqualified-column:ast  %unqualified-column
                             column.a
                             alias.a
                             ==
@@ -557,45 +586,60 @@
           qualifier-lookup=(map @tas (list qualified-object:ast))
           ==
   ^-  $-(data-row ?)
-  ?~  p  ~|("can't get here" !!)
+  ?~  p                  ~|("can't get here" !!)
   ?.  ?=(binary-op n.p)  ~|("can't get here" !!)
-  ?~  l.p  ~|("can't get here" !!)
-  ?~  r.p  ~|("can't get here" !!)
+  ?~  l.p                ~|("can't get here" !!)
+  ?~  r.p                ~|("can't get here" !!)
   ::
   ?-  n.p
     %eq
-      =/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
-                   ?:  ?=(dime -.l.p)  -.l.p
-                   ~|("can't get here" !!)
-      =/  r=datum:ast  ?:  ?=(qualified-column:ast -.r.p)  -.r.p
-                   ?:  ?=(dime -.r.p)  -.r.p
-                   ~|("can't get here" !!)
-      %:  datum-ops  l
-                     r
-                     type-lookup
-                     qualifier-lookup
-                     eq-lit-lit
-                     eq-col-col
-                     eq-col-lit
-                     eq-lit-col
-                     ==
+      =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
+                       ?:  ?=(qualified-column:ast n.l.p)  n.l.p
+                       ?:  ?=(dime n.l.p)  n.l.p
+                       ~|("can't get here" !!)
+      =/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
+                       ?:  ?=(qualified-column:ast n.r.p)   n.r.p
+                       ?:  ?=(dime n.r.p)  n.r.p
+                       ~|("can't get here" !!)
+      ?:  ?=(%qualified-lookup-type -.type-lookup)
+        %:  datum-ops-qualified  l
+                                 r
+                                 +.type-lookup
+                                 qualifier-lookup
+                                 eq-lit-lit
+                                 eq-col-col
+                                 eq-col-lit
+                                 eq-lit-col
+                                 ==
+      %:  datum-ops-unqualified  l
+                                 r
+                                 +.type-lookup
+                                 eq-lit-lit
+                                 eq-col-col
+                                 eq-col-lit
+                                 eq-lit-col
+                                 ==
     inequality-op
-      =/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
-                   ?:  ?=(dime -.l.p)  -.l.p
-                   ~|("can't get here" !!)
-      =/  r=datum:ast  ?:  ?=(qualified-column:ast -.r.p)  -.r.p
-                   ?:  ?=(dime -.r.p)  -.r.p
-                   ~|("can't get here" !!)
+      =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
+                       ?:  ?=(qualified-column:ast n.l.p)  n.l.p
+                       ?:  ?=(dime n.l.p)  n.l.p
+                       ~|("can't get here" !!)
+      =/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
+                       ?:  ?=(qualified-column:ast n.r.p)   n.r.p
+                       ?:  ?=(dime n.r.p)  n.r.p
+                       ~|("can't get here" !!)
       (pred-inequality-op n.p l r type-lookup qualifier-lookup)
     %equiv
       :: to do: the commented code tests for existence in the wrong place
       ::        it needs to take place at run time and row-by-row
       ::    fix when outer joins implemented 
-      ::=/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
-      ::             ?:  ?=(dime -.l.p)  -.l.p
+      ::=/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
+      ::             ?:  ?=(qualified-column:ast n.l.p)  n.l.p
+      ::             ?:  ?=(dime n.l.p)  n.l.p
       ::             ~|("can't get here" !!)
-      ::=/  r=datum:ast  ?:  ?=(qualified-column:ast -.r.p)  -.r.p
-      ::             ?:  ?=(dime -.r.p)  -.r.p
+      ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
+      ::             ?:  ?=(qualified-column:ast  n.r.p)   n.r.p
+      ::             ?:  ?=(dime  n.r.p)   n.r.p
       ::             ~|("can't get here" !!::)
       ::=/  l-exists=?  ?:  ?=(dime l)  %.y
       ::                (~(has by type-lookup) column.l)
@@ -649,66 +693,66 @@
     %not-equiv
       ~|("%not-equiv not implemented" !!)
     %in
-      =/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
-                   ?:  ?=(dime -.l.p)  -.l.p
-                   ~|("can't get here" !!)
-      =/  r=value-literals    ?:  ?=(value-literals -.r.p)  -.r.p
-                                  ~|("can't get here" !!)
+      =/  r=value-literals    ?:  ?=(value-literals n.r.p)  n.r.p
+                              ~|("can't get here" !!)
       =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";") 
                              |=(a=tape (rash (crip a) dem))
       =/  typ
-        ?.  ?=(qualified-column:ast l)
-          -.l
-        ?:  (~(has by type-lookup) qualifier.l)
-          (~(got by (~(got by type-lookup) qualifier.l)) column.l)
-      %-  ~(got by (~(got by type-lookup) (get-qualifier l qualifier-lookup)))
-            column.l
-      =/  sane-typ
-            (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
-      ?.  sane-typ  ~|("type of IN list incorrect, should be {<typ>}" !!)
-      ?:  ?=(qualified-column:ast l)
-        ?:  (~(has by type-lookup) qualifier.l)
-          %+  bake  (cury (cury in-col-list [qualifier.l column.l]) in-list)
-                    data-row
-        %+  bake  %+  cury
-                        %+  cury  in-col-list
-                                  [(get-qualifier l qualifier-lookup) column.l]
-                        in-list
+        ?:  ?=(dime:ast n.l.p)  -.n.l.p
+        ?:  ?&  ?=(qualified-column:ast n.l.p)
+                ?=(%qualified-lookup-type -.type-lookup)
+                ==
+          (~(got by (~(got by +.type-lookup) qualifier.n.l.p)) column.n.l.p)
+        ?:  ?&  ?=(unqualified-column:ast n.l.p)
+                ?=(%unqualified-lookup-type -.type-lookup)
+                ==
+          (~(got by +.type-lookup) column.n.l.p)
+        ~|("can't get here" !!)
+      ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
+        ~|("type of IN list incorrect, should be {<typ>}" !!)
+      ?:  ?=(unqualified-column:ast n.l.p)
+        %+  bake  %+  cury  %+  cury  in-col-list
+                                      [*qualified-object:ast column.n.l.p]
+                            in-list
                   data-row
-      ?:  ?=(dime l)
-        (bake (cury (cury in-lit-list +.l) in-list) data-row)
-      ~|("to do: handle unqualified-column in predicate" !!)
+      ?:  ?=(qualified-column:ast n.l.p)
+        %+  bake   %+  cury  (cury in-col-list [qualifier.n.l.p column.n.l.p])
+                             in-list
+                  data-row
+      ?:  ?=(dime n.l.p)
+        (bake (cury (cury in-lit-list +.n.l.p) in-list) data-row)
+      ~|("can't get here" !!)  :: to do: ?-
     %not-in
-      =/  l=datum:ast  ?:  ?=(qualified-column:ast -.l.p)  -.l.p
-                   ?:  ?=(dime -.l.p)  -.l.p
-                   ~|("can't get here" !!)
-      =/  r=value-literals    ?:  ?=(value-literals -.r.p)  -.r.p
-                                  ~|("can't get here" !!)
+      =/  r=value-literals    ?:  ?=(value-literals n.r.p)  n.r.p
+                              ~|("can't get here" !!)
       =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";") 
                              |=(a=tape (rash (crip a) dem))
-      =/  typ  ?.  ?=(qualified-column:ast l)
-                 -.l
-               ?:  (~(has by type-lookup) qualifier.l)
-                 (~(got by (~(got by type-lookup) qualifier.l)) column.l)
-               %-  %~  got  by
-                            %-  ~(got by type-lookup)
-                                (get-qualifier l qualifier-lookup)
-                   column.l
-      =/  sane-typ
-            (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
-      ?.  sane-typ  ~|("type of IN list incorrect, should be {<typ>}" !!)
-      ?:  ?=(qualified-column:ast l)
-        ?:  (~(has by type-lookup) qualifier.l)
-          %+  bake  (cury (cury not-in-col-list [qualifier.l column.l]) in-list)
-                    data-row
-        %+  bake  %+  cury
-                        %+  cury  not-in-col-list
-                                  [(get-qualifier l qualifier-lookup) column.l]
-                        in-list
+      =/  typ
+        ?:  ?=(dime:ast n.l.p)  -.n.l.p
+        ?:  ?&  ?=(qualified-column:ast n.l.p)
+                ?=(%qualified-lookup-type -.type-lookup)
+                ==
+          (~(got by (~(got by +.type-lookup) qualifier.n.l.p)) column.n.l.p)
+        ?:  ?&  ?=(unqualified-column:ast n.l.p)
+                ?=(%unqualified-lookup-type -.type-lookup)
+                ==
+          (~(got by +.type-lookup) column.n.l.p)
+        ~|("can't get here" !!)
+      ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
+        ~|("type of IN list incorrect, should be {<typ>}" !!)
+      ?:  ?=(unqualified-column:ast n.l.p)
+        %+  bake  %+  cury  %+  cury  not-in-col-list
+                                      [*qualified-object:ast column.n.l.p]
+                            in-list
                   data-row
-      ?:  ?=(dime l)
-        (bake (cury (cury not-in-lit-list +.l) in-list) data-row)
-      ~|("to do: handle unqualified-column in predicate" !!)
+      ?:  ?=(qualified-column:ast n.l.p)
+        %+  bake  %+  cury  %+  cury  not-in-col-list
+                                      [qualifier.n.l.p column.n.l.p]
+                            in-list
+                  data-row
+      ?:  ?=(dime n.l.p)
+        (bake (cury (cury not-in-lit-list +.n.l.p) in-list) data-row)
+      ~|("can't get here" !!)  :: to do: ?-, %in & %not-in in common arm
     ==
 ::
 ++  get-qualifier
@@ -729,10 +773,10 @@
 +$  column-column
   $-([[qualified-object:ast @tas] [qualified-object:ast @tas] @ta data-row] ?)
 ::
-++  datum-ops
+++  datum-ops-qualified
   |=  $:  l=datum:ast
           r=datum:ast
-          type-lookup=lookup-type
+          type-lookup=(map qualified-object (map @tas @ta))
           qualifier-lookup=(map @tas (list qualified-object:ast))
           lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
@@ -740,21 +784,13 @@
           lit-col=$-([@ [qualified-object:ast @tas] @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
-                                                          ::  literal = literal
+  ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
     ?:  (types-match -.l -.r)
       %+  bake  (cury (cury (cury lit-lit +.l) +.r) -.l)  data-row
-    ~|  "comparing column literals of different auras: ".
-        "{<l>} {<r>}"
-        !!
-  ::
-  :: necessary column qualifiers are present
-                                                      ::  column = column
-  ?:  ?&  ?=(qualified-column:ast l)
-          ?=(qualified-column:ast r)
-          (~(has by type-lookup) qualifier.l)
-          (~(has by type-lookup) qualifier.r)
-          ==
+    ~|("comparing column literals of different auras:  {<l>} {<r>}" !!)
+  ::  column = column
+  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
               (~(got by (~(got by type-lookup) qualifier.l)) column.l)
               (~(got by (~(got by type-lookup) qualifier.r)) column.r)
@@ -766,11 +802,8 @@
     ~|  "comparing columns of different auras: ".
         "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
         !!
-                                                      ::  literal = column
-  ?:  ?&  ?=(dime l)
-          ?=(qualified-column:ast r)
-          (~(has by type-lookup) qualifier.r)
-          ==
+  ::  literal = column
+  ?:  &(?=(dime l) ?=(qualified-column:ast r))
     ?:  %+  types-match
               -.l
               (~(got by (~(got by type-lookup) qualifier.r)) column.r)
@@ -779,11 +812,8 @@
     ~|  "comparing literal to column of different aura: ".
         "{<l>} {<[qualifier.r column.r]>}"
         !!
-                                                      ::  column = literal
-  ?:  ?&  ?=(qualified-column:ast l)
-          ?=(dime r)
-          (~(has by type-lookup) qualifier.l)
-          ==
+  ::  column = literal
+  ?:  &(?=(qualified-column:ast l) ?=(dime r))
     ?:  %+  types-match  
               (~(got by (~(got by type-lookup) qualifier.l)) column.l)
               -.r
@@ -792,127 +822,59 @@
     ~|  "comparing column to literal of different aura: ".
         "{<[qualifier.l column.l]>} {<r>}"
         !!
-  ::
-  :: one or more column qualifiers missing
-                                                        ::  column = column
-  ?:  ?&  ?=(qualified-column:ast l)
-          ?=(qualified-column:ast r)
-          (~(has by type-lookup) qualifier.l)
-          ==
-    (l-unqualified-r l r type-lookup qualifier-lookup col-col)
-  ?:  ?&  ?=(qualified-column:ast l)
-          ?=(qualified-column:ast r)
-          (~(has by type-lookup) qualifier.r)
-          ==
-    (unqualified-l-r l r type-lookup qualifier-lookup col-col)
-  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    (unqualified-l-unqualified-r l r type-lookup qualifier-lookup col-col)
-                                                      ::  literal = column
-  ?:  &(?=(dime l) ?=(qualified-column:ast r))
-    (datum-unqualified-column l r type-lookup qualifier-lookup lit-col)
-                                                      ::  column = literal
-  ?:  &(?=(qualified-column:ast l) ?=(dime r))
-    (unqualified-column-datum l r type-lookup qualifier-lookup col-lit)
   ~|("datum-ops can't get here" !!)
 ::
-++  unqualified-l-unqualified-r
+++  datum-ops-unqualified
   |=  $:  l=datum:ast
           r=datum:ast
-          type-lookup=lookup-type
-          qualifier-lookup=(map @tas (list qualified-object:ast))
+          type-lookup=(map @tas @ta)
+          lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
-          ==
-  ?.  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    ~|("unqualified-l-unqualified-r can't get here" !!)
-  ::
-  =/  qual-l  (get-qualifier l qualifier-lookup)
-  =/  qual-r  (get-qualifier r qualifier-lookup)
-  ?:  %+  types-match  (~(got by (~(got by type-lookup) qual-l)) column.l)
-                        (~(got by (~(got by type-lookup) qual-r)) column.r)
-  %+  bake  %+  cury
-                %+  cury  (cury col-col [qual-l column.l])
-                          [qual-r column.r]
-                (~(got by (~(got by type-lookup) qual-l)) column.l)
-            data-row
-  ~|  "comparing columns of different aura: ".
-      "{<[qual-l column.l]>} {<[qual-r column.r]>}"
-      !!
-::
-++  unqualified-l-r
-  |=  $:  l=datum:ast
-          r=datum:ast
-          type-lookup=lookup-type
-          qualifier-lookup=(map @tas (list qualified-object:ast))
-          col-col=column-column
-          ==
-  ?.  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    ~|("unqualified-l-r can't get here" !!)
-  =/  qual  (get-qualifier l qualifier-lookup)
-  ?:  %+  types-match  (~(got by (~(got by type-lookup) qual)) column.l)
-                       (~(got by (~(got by type-lookup) qualifier.r)) column.r)
-    %+  bake  %+  cury
-                  %+  cury  (cury col-col [qual column.l])
-                            [qualifier.r column.r]
-                  (~(got by (~(got by type-lookup) qual)) column.l)
-              data-row
-  ~|  "comparing columns of different aura: ".
-      "{<[qual column.l]>} {<r>}"
-      !!
-::
-++  l-unqualified-r
-  |=  $:  l=datum:ast
-          r=datum:ast
-          type-lookup=lookup-type
-          qualifier-lookup=(map @tas (list qualified-object:ast))
-          col-col=column-column
-          ==
-  ?.  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    ~|("l-unqualified-r can't get here" !!)
-  =/  qual  (get-qualifier r qualifier-lookup)
-  ?:  %+  types-match  (~(got by (~(got by type-lookup) qualifier.l)) column.l)
-                          (~(got by (~(got by type-lookup) qual)) column.r)
-    %+  bake  %+  cury
-                  %+  cury  (cury col-col [qualifier.l column.l])
-                            [qual column.r]
-                  (~(got by (~(got by type-lookup) qualifier.l)) column.l)
-              data-row
-  ~|  "comparing columns of different aura: ".
-      "{<l>} {<[qual column.r]>}"
-      !!
-::
-++  datum-unqualified-column
-  |=  $:  l=datum:ast
-          r=datum:ast
-          type-lookup=lookup-type
-          qualifier-lookup=(map @tas (list qualified-object:ast))
+          col-lit=$-([[qualified-object:ast @tas] @ @ta data-row] ?)
           lit-col=$-([@ [qualified-object:ast @tas] @ta data-row] ?)
           ==
-  ?.  &(?=(dime l) ?=(qualified-column:ast r))
-    ~|("datum-unqualified-column can't get here" !!)
-  =/  qual  (get-qualifier r qualifier-lookup)
-  ?:  (types-match -.l (~(got by (~(got by type-lookup) qual)) column.r))
-        %+  bake  (cury (cury (cury lit-col +.l) [qual column.r]) -.l)
-                  data-row
-  ~|  "comparing literal to column of different aura: ".
-      "{<l>} {<[qual column.r]>}"
-      !!
-::
-++  unqualified-column-datum
-  |=  $:  l=datum:ast
-          r=datum:ast
-          type-lookup=lookup-type
-          qualifier-lookup=(map @tas (list qualified-object:ast))
-          col-lit=$-([[qualified-object:ast @tas] @ @ta data-row] ?)
-          ==
-  ?.  &(?=(qualified-column:ast l) ?=(dime r))
-    ~|("unqualified-column-datum can't get here" !!)
-  =/  qual  (get-qualifier l qualifier-lookup)
-  ?:  (types-match (~(got by (~(got by type-lookup) qual)) column.l) -.r)
-    %+  bake  (cury (cury (cury col-lit [qual column.l]) +.r) -.r)
-              data-row
-  ~|  "comparing column to literal of different aura: ".
-      "{<[qual column.l]>} {<r>}"
-      !!
+  ^-  $-(data-row ?)
+::  literal = literal
+  ?:  &(?=(dime l) ?=(dime r))
+    ?:  (types-match -.l -.r)
+      %+  bake  (cury (cury (cury lit-lit +.l) +.r) -.l)  data-row
+    ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
+  ::  column = column
+  ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
+    ?:  %+  types-match  (~(got by type-lookup) column.l)
+                         (~(got by type-lookup) column.r)
+      %+  bake  %+  cury
+                    %+  cury  (cury col-col [*qualified-object:ast column.l])
+                              [*qualified-object:ast column.r]
+                    (~(got by type-lookup) column.l)
+                data-row
+    ~|  "comparing columns of different auras: {<column.l>} ".
+        "{<(~(got by type-lookup) column.l)>} {<column.r>} ".
+        "{<(~(got by type-lookup) column.r)>}"
+        !!
+  ::  literal = column
+  ?:  &(?=(dime l) ?=(unqualified-column:ast r))
+    ?:  (types-match -.l (~(got by type-lookup) column.r))
+      %+  bake  %+  cury
+                    (cury (cury lit-col +.l) [*qualified-object:ast column.r])
+                    -.l
+                data-row
+    ~|  "comparing literal to column of different aura: {<l>} {<column.r>} ".
+        "{<(~(got by type-lookup) column.r)>}"
+        !!
+  ::  column = literal
+  ?:  &(?=(unqualified-column:ast l) ?=(dime r))
+    ?:  (types-match (~(got by type-lookup) column.l) -.r)
+      %+  bake  %+  cury  %+  cury
+                              (cury col-lit [*qualified-object:ast column.l])
+                               +.r
+                          -.r
+                data-row
+    ~|  "comparing column to literal of different aura: {<column.l>} ".
+        "{<(~(got by type-lookup) column.l)>} {<r>}"
+        !!
+  ::
+  ~|("datum-ops can't get here" !!)
 ::
 ++  pred-inequality-op
   |=  $:  p=inequality-op
@@ -924,54 +886,99 @@
   ^-  $-(data-row ?)
   ?-  p
     %neq
-      %:  datum-ops  l
-                     r
-                     type-lookup
-                     qualifier-lookup
-                     neq-lit-lit
-                     neq-col-col
-                     neq-col-lit
-                     neq-lit-col
-                     ==
+      ?:  ?=(%qualified-lookup-type -.type-lookup)
+        %:  datum-ops-qualified  l
+                                 r
+                                 +.type-lookup
+                                 qualifier-lookup
+                                 neq-lit-lit
+                                 neq-col-col
+                                 neq-col-lit
+                                 neq-lit-col
+                                 ==
+      %:  datum-ops-unqualified  l
+                                 r
+                                 +.type-lookup
+                                 neq-lit-lit
+                                 neq-col-col
+                                 neq-col-lit
+                                 neq-lit-col
+                                 ==
     %gt
-      %:  datum-ops  l
-                     r
-                     type-lookup
-                     qualifier-lookup
-                     gt-lit-lit
-                     gt-col-col
-                     gt-col-lit
-                     gt-lit-col
-                     ==
+      ?:  ?=(%qualified-lookup-type -.type-lookup)
+        %:  datum-ops-qualified  l
+                                 r
+                                 +.type-lookup
+                                 qualifier-lookup
+                                 gt-lit-lit
+                                 gt-col-col
+                                 gt-col-lit
+                                 gt-lit-col
+                                 ==
+      %:  datum-ops-unqualified  l
+                                 r
+                                 +.type-lookup
+                                 gt-lit-lit
+                                 gt-col-col
+                                 gt-col-lit
+                                 gt-lit-col
+                                 ==
     %gte
-      %:  datum-ops  l
-                     r
-                     type-lookup
-                     qualifier-lookup
-                     gte-lit-lit
-                     gte-col-col
-                     gte-col-lit
-                     gte-lit-col
-                     ==
+      ?:  ?=(%qualified-lookup-type -.type-lookup)
+        %:  datum-ops-qualified  l
+                                 r
+                                 +.type-lookup
+                                 qualifier-lookup
+                                 gte-lit-lit
+                                 gte-col-col
+                                 gte-col-lit
+                                 gte-lit-col
+                                 ==
+      %:  datum-ops-unqualified  l
+                                 r
+                                 +.type-lookup
+                                 gte-lit-lit
+                                 gte-col-col
+                                 gte-col-lit
+                                 gte-lit-col
+                                 ==
     %lt
-      %:  datum-ops  l
-                     r
-                     type-lookup
-                     qualifier-lookup
-                     lt-lit-lit
-                     lt-col-col
-                     lt-col-lit
-                     lt-lit-col
-                     ==
+      ?:  ?=(%qualified-lookup-type -.type-lookup)
+        %:  datum-ops-qualified  l
+                                 r
+                                 +.type-lookup
+                                 qualifier-lookup
+                                 lt-lit-lit
+                                 lt-col-col
+                                 lt-col-lit
+                                 lt-lit-col
+                                 ==
+      %:  datum-ops-unqualified  l
+                                 r
+                                 +.type-lookup
+                                 lt-lit-lit
+                                 lt-col-col
+                                 lt-col-lit
+                                 lt-lit-col
+                                 ==
     %lte
-      %:  datum-ops  l
-                     r
-                     type-lookup
-                     qualifier-lookup
-                     lte-lit-lit
-                     lte-col-col
-                     lte-col-lit
-                     lte-lit-col
-                     ==
+      ?:  ?=(%qualified-lookup-type -.type-lookup)
+        %:  datum-ops-qualified  l
+                                 r
+                                 +.type-lookup
+                                 qualifier-lookup
+                                 lte-lit-lit
+                                 lte-col-col
+                                 lte-col-lit
+                                 lte-lit-col
+                                 ==
+      %:  datum-ops-unqualified  l
+                                 r
+                                 +.type-lookup
+                                 lte-lit-lit
+                                 lte-col-col
+                                 lte-col-lit
+                                 lte-lit-col
+                                 ==
     ==
 --

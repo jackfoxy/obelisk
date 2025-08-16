@@ -149,7 +149,11 @@
   %+  expect-eq
       !>  [1 column-addrs column-catalog]
       !>  %-  update-cat:utils
-              ~[[~[`@`1] (malt (turn (limo -.aa) |=(a=[@tas @] a)))]]
+              :~  :*  %indexed-row
+                      ~[`@`1]
+                      (malt (turn (limo -.aa) |=(a=[@tas @] a)))
+                      ==
+                  ==
 ::
 ::  three indexed rows
 ++  test-metadata-02
@@ -211,8 +215,17 @@
   %+  expect-eq
       !>  [3 column-addrs column-catalog]
       !>  %-  update-cat:utils
-              :~  [~[`@`1] (malt (turn (limo -.aa) |=(a=[@tas @] a)))]
-                  [~[`@`2] (malt (turn (limo +<.aa) |=(a=[@tas @] a)))]
-                  [~[`@`3] (malt (turn (limo +>-.aa) |=(a=[@tas @] a)))]
+              :~  :*  %indexed-row
+                      ~[`@`1]
+                      (malt (turn (limo -.aa) |=(a=[@tas @] a)))
+                      ==
+                  :*  %indexed-row
+                      ~[`@`2]
+                      (malt (turn (limo +<.aa) |=(a=[@tas @] a)))
+                      ==
+                  :*  %indexed-row
+                      ~[`@`3]
+                      (malt (turn (limo +>-.aa) |=(a=[@tas @] a)))
+                      ==
                   ==
 --

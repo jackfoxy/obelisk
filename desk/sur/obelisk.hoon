@@ -75,7 +75,16 @@
   ==
 ::
 +$  qual-col-type  [qualified-column @ta]
-+$  lookup-type    (map qualified-object (map @tas @ta))
++$  qualified-lookup-type
+  $:  %qualified-lookup-type
+      (map qualified-object (map @tas @ta))
+      ==
++$  unqualified-lookup-type
+  $:  %unqualified-lookup-type
+      (map @tas @ta)
+      ==
++$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
+::
 +$  joined-row
   $:  %joined-row
       key=(list @)

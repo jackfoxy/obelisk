@@ -1,6 +1,6 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
-/-  ast, *obelisk
+/-  ast, *server-state
 /+  *test, *sys-views
 /=  agent  /app/obelisk
 |%
@@ -472,8 +472,12 @@
               column-addrs=[n=[p=%col1 q=2] l=~ r=~]
               rowcount=1
               pri-idx=file-4-pri-idx
-              ^-  (list [(list @) (map @tas @)])
-                  ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
+              ^-  (list indexed-row)
+                  :~  :*  %indexed-row
+                          ~[1.685.221.219]
+                          [n=[p=%col1 q=1.685.221.219] l=~ r=~]
+                          ==
+                      ==
               :+  :-  %col1
                       [%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
                   ~
@@ -505,8 +509,12 @@
               column-addrs=[[p=%col1 q=2] ~ ~]
               rowcount=1
               pri-idx=file-4-pri-idx
-              ^-  (list [(list @) (map @tas @)])
-                  ~[[~[1.685.221.219] [n=[p=%col1 q=1.685.221.219] l=~ r=~]]]
+              ^-  (list indexed-row)
+                  :~  :*  %indexed-row
+                          ~[1.685.221.219]
+                          [n=[p=%col1 q=1.685.221.219] l=~ r=~]
+                          ==
+                      ==
               :+  :-  %col1
                       [%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
                   ~

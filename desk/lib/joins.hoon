@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *sys-views, *utils
+/+  *sys-views, *utils, *predicate
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
@@ -41,22 +41,38 @@
 ++  select-table
   |=  q=query:ast
   ^-  [server (list set-table) (list vector)]
-  =/  from        (need from.q)
-  =/  triple      (prep-table-set object.+.object.from as-of.from ~ ~ ~ ~)
-  =/  init-map    *(map qualified-object:ast [(map @tas @) (list @)])
-  =/  =set-table  -.triple
-  =/  selected    columns.selection.q
+  =/  from          (need from.q)
+  =/  query-source  ?:  ?=(qualified-object:ast object.+.object.from)
+                      object.+.object.from
+                    ~|("SELECT: not supported on %query-row" !!)
+  =/  triple=[set-table qualified-lookup-type (list qual-col-type)]
+    %:  prep-table-set  query-source
+                        as-of.from
+                        ~
+                        ~
+                        *qualified-lookup-type
+                        ~
+                        ==
+  =/  =set-table    -.triple
+  =/  selected      columns.selection.q
+  =/  filter  ?~  predicate.q  ~
+              :-  ~
+                  %^  pred-ops-and-conjs
+                      (pred-unqualify-qualified (need predicate.q))
+                      :-  %unqualified-lookup-type
+                          (~(got by +<+.triple) query-source)
+                      ~
   ::
   :+  state
       ~[set-table]
-      %:  table-result  ~  ::filter
+      %:  table-result  filter
                         +>.triple
                         indexed-rows.set-table
                         selected
                         ==
 ::
 ++  table-result
-  |=  $:  filter=(unit $-(joined-row ?))
+  |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list qual-col-type)
           rows=(list indexed-row)
           selected=(list selected-column:ast)
@@ -71,12 +87,12 @@
           -.rows
   |-
   ?~  rows  ~(tap in out-rows)
-  ::=/  include-row=?
-  ::  ?~  filter
-  ::    %.y
-  ::  ((need filter) i.rows)
-  ::?.  include-row
-  ::  $(rows t.rows)
+  =/  include-row=?
+    ?~  filter
+      %.y
+    ((need filter) i.rows)
+  ?.  include-row
+    $(rows t.rows)
   =/  row                     *(list vector-cell)
   =/  cols=(list templ-cell)  cells
   |-
@@ -102,8 +118,17 @@
         %+  mk-relations  (relation %relation object.from as-of.from ~ ~)
                           joins.from
   =/  relat=relation  -.relations
+  =/  query-source  ?:  ?=(qualified-object:ast object.table-set.relat)
+                      object.table-set.relat
+                    ~|("SELECT: not supported on %query-row" !!)
   =.  relations       +.relations
-  =/  triple         (prep-table-set object.table-set.relat as-of.relat ~ ~ ~ ~)
+  =/  triple          %:  prep-table-set  query-source
+                                          as-of.relat
+                                          ~
+                                          ~
+                                          *qualified-lookup-type
+                                          ~
+                                          ==
   =/  prior-obj       -.triple
   =/  from-objects    (limo ~[prior-obj])
   =/  prior-join
@@ -124,7 +149,7 @@
                                 %+  cury  joined-row-from-indexed
                                           (need object.prior-obj)
                        ==
-  =/  type-lookup=lookup-type                 +<.triple
+  =/  type-lookup                             +<.triple
   =/  qualified-columns=(list qual-col-type)  +>.triple
   ::
   ?:  =((lent relations) 0)  %:  join-return  %join-return
@@ -142,7 +167,10 @@
                          type-lookup
                          qualified-columns
                          ==
-  =.  triple  %:  prep-table-set  object.table-set.i.relations
+  =.  query-source  ?:  ?=(qualified-object:ast object.table-set.i.relations)
+                      object.table-set.i.relations
+                    ~|("SELECT: not supported on %query-row" !!)
+  =.  triple  %:  prep-table-set  query-source
                                   as-of.i.relations
                                   join.i.relations
                                   predicate.i.relations
@@ -158,19 +186,17 @@
   ==
 ::
 ++  prep-table-set
-  |=  $:  ts=query-source:ast
+  |=  $:  ts=qualified-object:ast
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
-          type-lookup=lookup-type
+          type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [set-table lookup-type (list qual-col-type)]
-  =/  obj-alias  ?:  ?=(qualified-object:ast ts)
-                   :-  ts
-                       ?~  alias.ts  ~
-                       `(crip (cass (trip (need alias.ts))))
-                 ~|("SELECT: not supported on %query-row" !!)
+  ^-  [set-table qualified-lookup-type (list qual-col-type)]
+  =/  obj-alias  :-  ts
+                     ?~  alias.ts  ~
+                     `(crip (cass (trip (need alias.ts))))
   =/  sys-time   (set-tmsp as-of now.bowl)
   =/  db         ~|  "SELECT: database {<database.-.obj-alias>} does not exist"
                      (~(got by state) database.-.obj-alias)
@@ -209,10 +235,10 @@
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
           sys-time=@da
-          type-lookup=lookup-type
+          type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [set-table lookup-type (list qual-col-type)]
+  ^-  [set-table qualified-lookup-type (list qual-col-type)]
   =/  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
                ".{<name.query-obj>} does not exist at schema time ".
                "{<tmsp.schema>}"
@@ -233,9 +259,8 @@
                      indexed-rows.file
                      *(list joined-row)
                      ==
-      %+  ~(put by type-lookup)  
-            query-obj
-            column-types.tbl
+      :-  %qualified-lookup-type
+          (~(put by +.type-lookup) query-obj type-lookup.tbl)
       (mk-qualified-columns query-obj qualified-columns columns.tbl)
 ::
 ::  +mk-relations:  [relation (list joined-object:ast)] ->  (list relation)
@@ -296,10 +321,10 @@
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
           sys-time=@da
-          type-lookup=lookup-type
+          type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [set-table lookup-type (list qual-col-type)]
+  ^-  [set-table qualified-lookup-type (list qual-col-type)]
   =/  r=[database cache]  %:  got-view-cache  db
                                               schema
                                               view
@@ -328,9 +353,8 @@
                                |=(a=(map @tas @) [%indexed-row ~ a])
                      *(list joined-row)
                      ==
-      %+  ~(put by type-lookup)  
-            query-obj
-            column-types.view
+      :-  %qualified-lookup-type
+          (~(put by +.type-lookup) query-obj type-lookup.view)
       (mk-qualified-columns query-obj qualified-columns columns.view)
 ::
 ::  +got-view-cache:

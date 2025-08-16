@@ -382,9 +382,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -441,8 +439,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 = col1 SELECT *"])
@@ -496,10 +493,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 = col2 SELECT *"])
@@ -879,9 +873,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -938,8 +930,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <> col1 SELECT *"])
@@ -993,11 +984,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <> col2 SELECT *"])
@@ -1457,9 +1444,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -1516,8 +1501,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 > col1 SELECT *"])
@@ -1571,10 +1555,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 > col2 SELECT *"])
@@ -1990,9 +1971,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -2049,8 +2028,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 < col1 SELECT *"])
@@ -2104,10 +2082,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 < col2 SELECT *"])
@@ -2591,9 +2566,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -2650,8 +2623,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 >= col1 SELECT *"])
@@ -2705,10 +2677,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 >= col2 SELECT *"])
@@ -3180,9 +3149,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -3239,8 +3206,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE ~1999.2.19 <= col1 SELECT *"])
@@ -3294,10 +3260,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE col1 <= col2 SELECT *"])
@@ -4267,9 +4230,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 ".
-          "namespace=%dbo name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -4311,8 +4272,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4351,11 +4311,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4393,9 +4349,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -4654,9 +4608,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -4698,8 +4650,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4738,10 +4689,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] [[%qualified-object ship=~ ".
-          "database=%db1 namespace=%dbo name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>  :+  %test
@@ -4779,9 +4727,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing column to literal of different aura: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
+          "comparing column to literal of different aura: %col1 ~.t ".
           "[p=~.da q=170.141.184.496.088.307.522.657.354.235.930.214.400]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
@@ -5400,8 +5346,7 @@
       %-  crip
           "comparing literal to column of different aura: ".
           "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1]"
+          "%col1 ~.t"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE NOT ~1999.2.19 = col1 SELECT *"])
@@ -5455,11 +5400,7 @@
   ::
   %+  expect-fail-message
       %-  crip
-          "comparing columns of different auras: ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col1] ".
-          "[[%qualified-object ship=~ database=%db1 namespace=%dbo ".
-          "name=%my-table alias=~] %col2]"
+          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 "FROM my-table WHERE NOT col1 = col2 SELECT *"])
