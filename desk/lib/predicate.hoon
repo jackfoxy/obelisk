@@ -657,7 +657,7 @@
       ::                  (~(got by type-lookup) [qualifier.l column.l])
       ::              data-row
       ::  ~|  "comparing columns of different auras: ".
-      ::      "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
+      ::      "{<column.l>} {<column.r>}"
       ::      !!
       ::::
       ::?:  &(?=(qualified-column:ast l) ?=(dime r))
@@ -799,8 +799,10 @@
                               [qualifier.r column.r]
                     (~(got by (~(got by type-lookup) qualifier.l)) column.l)
                 data-row
-    ~|  "comparing columns of different auras: ".
-        "{<[qualifier.l column.l]>} {<[qualifier.r column.r]>}"
+    ~|  "comparing columns of different auras: {<column.l>} ".
+        "{<(~(got by (~(got by type-lookup) qualifier.l)) column.l)>} ".
+        "{<column.r>} ".
+        "{<(~(got by (~(got by type-lookup) qualifier.r)) column.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
@@ -810,7 +812,8 @@
       %+  bake  (cury (cury (cury lit-col +.l) [qualifier.r column.r]) -.l)
                 data-row
     ~|  "comparing literal to column of different aura: ".
-        "{<l>} {<[qualifier.r column.r]>}"
+        "{<l>} {<column.r>} ".
+        "{<(~(got by (~(got by type-lookup) qualifier.r)) column.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
@@ -819,8 +822,8 @@
               -.r
       %+  bake  (cury (cury (cury col-lit [qualifier.l column.l]) +.r) -.r)
                 data-row
-    ~|  "comparing column to literal of different aura: ".
-        "{<[qualifier.l column.l]>} {<r>}"
+    ~|  "comparing column to literal of different aura: {<column.l>} ".
+        "{<(~(got by (~(got by type-lookup) qualifier.l)) column.l)>} {<r>}"
         !!
   ~|("datum-ops can't get here" !!)
 ::

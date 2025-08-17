@@ -26,6 +26,8 @@ Prioritization depends on user feedback and bribery.
 
 * __Temporary tables__ -- similar to INSERT format.
 
+* __Partial Natural key JOIN__ -- e.g. (co11, col2, col3) JOIN (col1, col2)
+
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
 * __Views__ -- views are cached queries and can shadow user-defined tables.
