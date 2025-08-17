@@ -479,7 +479,8 @@
                           ==
                       ==
               :+  :-  %col1
-                      [%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
+                      ::[%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
+                      [%column-mta 2 0 ~]
                   ~
                   ~
               ==
@@ -516,7 +517,8 @@
                           ==
                       ==
               :+  :-  %col1
-                      [%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
+                      ::[%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
+                      [%column-mta 2 0 ~]
                   ~
                   ~
               ==

@@ -693,67 +693,50 @@
     %not-equiv
       ~|("%not-equiv not implemented" !!)
     %in
-      =/  r=value-literals    ?:  ?=(value-literals n.r.p)  n.r.p
-                              ~|("can't get here" !!)
-      =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";") 
-                             |=(a=tape (rash (crip a) dem))
-      =/  typ
-        ?:  ?=(dime:ast n.l.p)  -.n.l.p
-        ?:  ?&  ?=(qualified-column:ast n.l.p)
-                ?=(%qualified-lookup-type -.type-lookup)
-                ==
-          (~(got by (~(got by +.type-lookup) qualifier.n.l.p)) column.n.l.p)
-        ?:  ?&  ?=(unqualified-column:ast n.l.p)
-                ?=(%unqualified-lookup-type -.type-lookup)
-                ==
-          (~(got by +.type-lookup) column.n.l.p)
-        ~|("can't get here" !!)
-      ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
-        ~|("type of IN list incorrect, should be {<typ>}" !!)
-      ?:  ?=(unqualified-column:ast n.l.p)
-        %+  bake  %+  cury  %+  cury  in-col-list
-                                      [*qualified-object:ast column.n.l.p]
-                            in-list
-                  data-row
-      ?:  ?=(qualified-column:ast n.l.p)
-        %+  bake   %+  cury  (cury in-col-list [qualifier.n.l.p column.n.l.p])
-                             in-list
-                  data-row
-      ?:  ?=(dime n.l.p)
-        (bake (cury (cury in-lit-list +.n.l.p) in-list) data-row)
-      ~|("can't get here" !!)  :: to do: ?-
+      (common-list-pred p type-lookup in-col-list in-lit-list)
     %not-in
-      =/  r=value-literals    ?:  ?=(value-literals n.r.p)  n.r.p
-                              ~|("can't get here" !!)
-      =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";") 
-                             |=(a=tape (rash (crip a) dem))
-      =/  typ
-        ?:  ?=(dime:ast n.l.p)  -.n.l.p
-        ?:  ?&  ?=(qualified-column:ast n.l.p)
-                ?=(%qualified-lookup-type -.type-lookup)
-                ==
-          (~(got by (~(got by +.type-lookup) qualifier.n.l.p)) column.n.l.p)
-        ?:  ?&  ?=(unqualified-column:ast n.l.p)
-                ?=(%unqualified-lookup-type -.type-lookup)
-                ==
-          (~(got by +.type-lookup) column.n.l.p)
-        ~|("can't get here" !!)
-      ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
-        ~|("type of IN list incorrect, should be {<typ>}" !!)
-      ?:  ?=(unqualified-column:ast n.l.p)
-        %+  bake  %+  cury  %+  cury  not-in-col-list
-                                      [*qualified-object:ast column.n.l.p]
-                            in-list
-                  data-row
-      ?:  ?=(qualified-column:ast n.l.p)
-        %+  bake  %+  cury  %+  cury  not-in-col-list
-                                      [qualifier.n.l.p column.n.l.p]
-                            in-list
-                  data-row
-      ?:  ?=(dime n.l.p)
-        (bake (cury (cury not-in-lit-list +.n.l.p) in-list) data-row)
-      ~|("can't get here" !!)  :: to do: ?-, %in & %not-in in common arm
+      (common-list-pred p type-lookup not-in-col-list not-in-lit-list)
     ==
+::
+::
+++  common-list-pred
+  |=  $:  p=predicate:ast
+          type-lookup=lookup-type
+          list-pred=$-([[qualified-object:ast @tas] (list @) =data-row] ?)
+          lit-list-pred=$-([@ (list @) =data-row] ?)
+          ==
+  ^-  $-(data-row ?)
+  ?~  p                  ~|("can't get here" !!)
+  ?~  l.p                ~|("can't get here" !!)
+  ?~  r.p                ~|("can't get here" !!)
+  =/  r=value-literals  ?:  ?=(value-literals n.r.p)  n.r.p
+                        ~|("can't get here" !!)
+  =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";") 
+                          |=(a=tape (rash (crip a) dem))
+  =/  typ
+    ?:  ?=(dime:ast n.l.p)  -.n.l.p
+    ?:  ?&  ?=(qualified-column:ast n.l.p)
+            ?=(%qualified-lookup-type -.type-lookup)
+            ==
+      (~(got by (~(got by +.type-lookup) qualifier.n.l.p)) column.n.l.p)
+    ?:  ?&  ?=(unqualified-column:ast n.l.p)
+            ?=(%unqualified-lookup-type -.type-lookup)
+            ==
+      (~(got by +.type-lookup) column.n.l.p)
+    ~|("can't get here" !!)
+  ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
+    ~|("type of IN list incorrect, should be {<typ>}" !!)
+  ?:  ?=(unqualified-column:ast n.l.p)
+    %+  bake  %+  cury  (cury list-pred [*qualified-object:ast column.n.l.p])
+                        in-list
+              data-row
+  ?:  ?=(qualified-column:ast n.l.p)
+    %+  bake  %+  cury  (cury list-pred [qualifier.n.l.p column.n.l.p])
+                        in-list
+              data-row
+  ?:  ?=(dime n.l.p)
+    (bake (cury (cury lit-list-pred +.n.l.p) in-list) data-row)
+  ~|("can't get here" !!)
 ::
 ++  get-qualifier
   |=  $:  col=qualified-column:ast

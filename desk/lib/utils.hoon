@@ -809,6 +809,10 @@
   =/  ord  0
   =/  p  -.pq
   =/  q  +.pq
+
+  ?:  =(1 1)  [(lent rs) p q]
+  :: to do: experimental, takes too long for big inserts
+
   =/  idx  ((on @ value-idx) lth)
   =/  flop-domains
         |=  [k=@tas v=column-mta]
