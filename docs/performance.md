@@ -34,10 +34,13 @@ The insert performance of city-zip-codes is noteworthy, possibly explained by a 
 
 ## Parse and SELECT performance on sample database
 
-### FROM reference.calendar SELECT *
+### SELECT * from large table
+
+FROM reference.calendar
+SELECT *
 
 parse: ms/13.604
-query: s/10.539
+query: s/3.362
 
 ```
 %obelisk-result:
@@ -63,10 +66,13 @@ query: s/10.539
     [ %vector-count 21.916 ]
 ```
 
-### FROM reference.calendar SELECT day-name
+### SELECT column from large table
+
+FROM reference.calendar
+SELECT day-name
 
 parse: ms/14.621
-query: s/8.603
+query: s/2.178
 
 ```
 %obelisk-result:
@@ -90,10 +96,13 @@ query: s/8.603
 
 ### JOIN
 
-FROM reference.calendar T1 JOIN reference.calendar-us-fed-holiday T2 SELECT T1.date, day-name, us-federal-holiday
+FROM reference.calendar T1
+JOIN reference.calendar-us-fed-holiday T2
+WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
+SELECT T1.date, day-name, us-federal-holiday
 
 parse: ms/34.649
-query: s/7.272
+query: s/8.266
 
 ```
 %obelisk-result:
