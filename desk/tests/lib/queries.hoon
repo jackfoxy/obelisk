@@ -1808,12 +1808,12 @@
         %obelisk-action
         !>([%tape2 %sys "CREATE DATABASE db1"])
   =.  run  +(run)
-  =^  mov4  agent
+  =^  mov2  agent
     %+  ~(on-poke agent (bowl [run ~2012.5.3]))
         %obelisk-action
         !>([%tape2 %db1 "FROM sys.sys.databases V1 select v1.*"])
   ::
-  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  time travel
 ::
@@ -3906,10 +3906,10 @@
           [%message 'SELECT']
           [%result-set expected-cross-rows]
           [%server-time ~2012.5.3]
-          [%message 'db1.dbo.tbl1']
+          [%message 'db1.dbo.cross']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
-          [%message 'db1.dbo.cross']
+          [%message 'db1.dbo.tbl1']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 33]
@@ -3919,12 +3919,12 @@
           [%message 'SELECT']
           [%result-set expected-cross-aliased-rows]
           [%server-time ~2012.5.3]
-          [%message 'db1.dbo.tbl1']
-          [%schema-time ~2012.4.30]
-          [%data-time ~2012.4.30]
           [%message 'db1.dbo.cross']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.5.2]
+          [%message 'db1.dbo.tbl1']
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
           [%vector-count 20]
           ==
 ++  expected-cross-as-of
@@ -3932,26 +3932,13 @@
           [%message 'SELECT']
           [%result-set expected-cross-as-of-rows]
           [%server-time ~2012.5.4]
-          [%message 'db1.dbo.tbl1']
+          [%message 'db1.dbo.cross']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
-          [%message 'db1.dbo.cross']
+          [%message 'db1.dbo.tbl1']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 15]
-          ==
-++  expected-cross-inverted
-      :~  %results
-          [%message 'SELECT']
-          [%result-set expected-cross-rows]
-          [%server-time ~2012.5.3]
-          [%message 'db1.dbo.cross']
-          [%schema-time ~2012.4.30]
-          [%data-time ~2012.4.30]
-          [%message 'db1.dbo.tbl1']
-          [%schema-time ~2012.4.30]
-          [%data-time ~2012.4.30]
-          [%vector-count 33]
           ==
 ::
 ::  test T1.* in select, all rows join
@@ -4073,10 +4060,10 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.holiday-calendar']
+                    [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.calendar']
+                    [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 2]
@@ -4176,10 +4163,10 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.holiday-calendar']
+                    [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.calendar']
+                    [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 2]
@@ -4270,10 +4257,10 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.holiday-calendar']
+                    [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.calendar']
+                    [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 1]
@@ -4362,10 +4349,10 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.holiday-calendar']
+                    [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.calendar']
+                    [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 1]
@@ -4534,10 +4521,10 @@
                       [%message 'SELECT']
                       [%result-set expect-rows-1-a]
                       [%server-time ~2012.5.3]
-                      [%message 'db1.dbo.tbl2']
+                      [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%message 'db1.dbo.tbl1']
+                      [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
                       [%vector-count 25]
@@ -4546,10 +4533,10 @@
                       [%message 'SELECT']
                       [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
-                      [%message 'db1.dbo.tbl2']
+                      [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%message 'db1.dbo.tbl1']
+                      [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
                       [%vector-count 6]
@@ -4930,10 +4917,10 @@
                       [%message 'SELECT']
                       [%result-set expect-rows-1-a]
                       [%server-time ~2012.5.3]
-                      [%message 'db1.dbo.tbl2']
+                      [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%message 'db1.dbo.tbl1']
+                      [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
                       [%vector-count 25]
@@ -4942,10 +4929,10 @@
                       [%message 'SELECT']
                       [%result-set expect-rows-2]
                       [%server-time ~2012.5.3]
-                      [%message 'db1.dbo.tbl2']
+                      [%message 'db1.dbo.tbl1']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
-                      [%message 'db1.dbo.tbl1']
+                      [%message 'db1.dbo.tbl2']
                       [%schema-time ~2012.4.30]
                       [%data-time ~2012.4.30]
                       [%vector-count 6]
@@ -5052,10 +5039,10 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.tbl2']
+                    [%message 'db1.dbo.tbl1']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.tbl1']
+                    [%message 'db1.dbo.tbl2']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 6]
@@ -5256,10 +5243,10 @@
                     [%server-time ~2012.6.3]
                     [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
-                    [%data-time ~2012.5.30]
+                    [%data-time ~2012.4.30]
                     [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
-                    [%data-time ~2012.4.30]
+                    [%data-time ~2012.5.30]
                     [%vector-count 13]
                 ==
   =^  mov1  agent
@@ -5345,7 +5332,7 @@
                 "SELECT year, month, day, month-name, cross-key, cross-2, ".
                 "cross-3"
   ::
-  (eval-results expected-cross-inverted ;;(cmd-result ->+>+>+<.mov2))
+  (eval-results expected-cross ;;(cmd-result ->+>+>+<.mov2))
 ::
 ::  cross join, as of, aliased, literals
 ++  test-join-22
@@ -5471,13 +5458,13 @@
                     [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
                     [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%message 'db1.dbo.tbl3']
-                    [%schema-time ~2012.4.30]
-                    [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.cross']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 6]
@@ -5521,13 +5508,13 @@
                     [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
                     [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%message 'db1.dbo.tbl3']
-                    [%schema-time ~2012.4.30]
-                    [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.cross']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 6]
@@ -5568,16 +5555,16 @@
                     [%message 'SELECT']
                     [%result-set expected-natural-cross-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.tbl3']
+                    [%message 'db1.dbo.calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.cross']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%message 'db1.dbo.holiday-calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.calendar']
-                    [%schema-time ~2012.4.30]
-                    [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.cross']
+                    [%message 'db1.dbo.tbl3']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 6]
@@ -5801,12 +5788,6 @@
                     [%message 'SELECT']
                     [%result-set expected-rows]
                     [%server-time ~2012.5.3]
-                    [%message 'db1.dbo.tbl3']
-                    [%schema-time ~2012.4.30]
-                    [%data-time ~2012.4.30]
-                    [%message 'db1.dbo.holiday-calendar']
-                    [%schema-time ~2012.4.30]
-                    [%data-time ~2012.4.30]
                     [%message 'db1.dbo.calendar']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
@@ -5814,6 +5795,12 @@
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%message 'db1.dbo.cross2']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.holiday-calendar']
+                    [%schema-time ~2012.4.30]
+                    [%data-time ~2012.4.30]
+                    [%message 'db1.dbo.tbl3']
                     [%schema-time ~2012.4.30]
                     [%data-time ~2012.4.30]
                     [%vector-count 12]
@@ -6122,12 +6109,11 @@
         %obelisk-action
         !>  :+  %tape2
                 %db1
-                "INSERT INTO my-table".
+                "INSERT INTO my-table AS OF ~2012.5.4".
                 " VALUES".
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
-                "AS OF ~2012.5.4"
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
   =.  run  +(run)
   ::
   %+  expect-fail-message
@@ -6139,9 +6125,6 @@
 ::  fail on bad column name   to do: fix and uncomment
 ++  test-fail-select-02
   =|  run=@ud
-  =/  my-select  "FROM my-table SELECT ".
-                 "col4, foo"
-  ::
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2012.4.30]))
         %obelisk-action
@@ -6158,23 +6141,23 @@
                 "AS OF ~2012.5.3"
   =.  run  +(run)
   =^  mov3  agent
-    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+    %+  ~(on-poke agent (bowl [run ~2012.5.4]))
         %obelisk-action
         !>  :+  %tape2
                 %db1
-                "INSERT INTO my-table".
+                "INSERT INTO my-table AS OF ~2012.5.5".
                 " VALUES".
                 " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
                 " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-                " ('Angel', ~2001.9.19, 'tuxedo', 'row3') ".
-                "AS OF ~2012.5.4"
-  =.  run  +(run)
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"   
   ::
   %+  expect-fail-message
         'SELECT: column %foo not found'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+  |.  %+  ~(on-poke agent (bowl [run ~2012.5.6]))
           %obelisk-action
-          !>([%test %db1 my-select])
+          !>  :+  %test
+                  %db1
+                  "FROM my-table SELECT col4, foo"
 ::
 :: unresolved alias select all object
 ++  test-fail-select-03

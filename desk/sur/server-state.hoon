@@ -60,7 +60,6 @@
       tmsp=@da
       =namespaces
       =tables
-  :: indices  ::  indices other than primary key, indexed by? 
       =views
   :: permissions   :: maybe at server or database level?
   ==
@@ -78,11 +77,16 @@
       tmsp=@da
       =column-addrs
       rowcount=@
-      pri-idx=(tree indexed-row)   :: generically tree, reified as mop
+      pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
       indexed-rows=(list indexed-row)
       =column-catalog
       ::    =indices
   ==
++$  indexed-row
+  $:  %indexed-row
+      key=(list @)
+      data=(map @tas @)
+      ==
 +$  column-addrs    (map @tas @)
 +$  column-catalog  (map @tas column-mta)                 
 +$  column-mta
@@ -111,7 +115,7 @@
       provenance=path
       tmsp=@da
       =column-lookup
-      column-types=(map @tas @ta)
+      type-lookup=(map @tas @ta)
       pri-indx=index
       columns=(list column)      ::  canonical column list
       indices=(list index)      :: to do: indices indexed by (list column)
@@ -124,10 +128,12 @@
       tmsp=@da
       =selection
       =column-lookup
-      column-types=(map @tas @ta)
+      type-lookup=(map @tas @ta)
       columns=(list column)      ::  canonical column list
+
+      :: to do: replace ordering with index (requires non-unique mop type)
       ordering=(list column-order)
-      :: indices  -  to do
+      :: indices
   ==
 +$  column-lookup  (map @tas [aura @])  :: name [type index]
 +$  index
@@ -144,8 +150,6 @@
   ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
-+$  indexed-row  [(list @) (map @tas @)]
-+$  joined-row   [(list @) (map qualified-object (map @tas @))]
 ::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
 ::
 ::  view and table comparer

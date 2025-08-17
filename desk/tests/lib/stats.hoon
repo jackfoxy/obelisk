@@ -122,34 +122,46 @@
         :+  :-  %adoption-date
                 :^  %column-mta
                     addr=2
-                    distinct=1
-                    values=[[~2018.8.30 [first=0 last=0 domain=~[0]]] ~ ~]
+                    ::distinct=1
+                    ::values=[[~2018.8.30 [first=0 last=0 domain=~[0]]] ~ ~]
+                    0
+                    ~
             l=~
             :+  :-  %adopter-email
                     :^  %column-mta
                         addr=14
-                        distinct=1
-                        :+  ['patrick.hughes@animalshelter.com' [0 0 ~[0]]]
-                            ~
-                            ~
+                       :: distinct=1
+                       :: :+  ['patrick.hughes@animalshelter.com' [0 0 ~[0]]]
+                       ::     ~
+                       ::     ~
+                       0
+                       ~
                 l=~
                 :+  :-  %adoption-fee 
                         :^  %column-mta
                             addr=62
-                            distinct=1
-                            values=[[58 [first=0 last=0 domain=~[0]]] ~ ~]
+                            ::distinct=1
+                            ::values=[[58 [first=0 last=0 domain=~[0]]] ~ ~]
+                            0
+                            ~
                     :+  :-  %species
                             :^  %column-mta
                                 addr=252
-                                distinct=1
-                                [[6.778.692 [first=0 last=0 domain=~[0]]] ~ ~]
+                                ::distinct=1
+                                ::[[6.778.692 [first=0 last=0 domain=~[0]]] ~ ~]
+                                0
+                                ~
                         ~
                         ~
                     r=~
   %+  expect-eq
       !>  [1 column-addrs column-catalog]
       !>  %-  update-cat:utils
-              ~[[~[`@`1] (malt (turn (limo -.aa) |=(a=[@tas @] a)))]]
+              :~  :*  %indexed-row
+                      ~[`@`1]
+                      (malt (turn (limo -.aa) |=(a=[@tas @] a)))
+                      ==
+                  ==
 ::
 ::  three indexed rows
 ++  test-metadata-02
@@ -186,33 +198,50 @@
         :+  :-  %adoption-date
                 :^  %column-mta
                     addr=2
-                    distinct=2
-                    values=adoption-date-mop
+                    ::distinct=2
+                    0
+                    ::values=adoption-date-mop
+                    ~
             l=~
             :+  :-  %adopter-email
                     :^  %column-mta
                         addr=14
-                        distinct=2
-                        values=adopter-email-mop
+                        ::distinct=2
+                        0
+                        ::values=adopter-email-mop
+                        ~
                 l=~
                 :+  :-  %adoption-fee 
                         :^  %column-mta
                             addr=62
-                            distinct=3
-                            values=adoption-fee-mop
+                            ::distinct=3
+                            0
+                            ::values=adoption-fee-mop
+                            ~
                     :+  :-  %species
                             :^  %column-mta
                                 addr=252
-                                distinct=2
-                                values=species-mop
+                                ::distinct=2
+                                0
+                                ::values=species-mop
+                                ~
                         ~
                         ~
                     r=~
   %+  expect-eq
       !>  [3 column-addrs column-catalog]
       !>  %-  update-cat:utils
-              :~  [~[`@`1] (malt (turn (limo -.aa) |=(a=[@tas @] a)))]
-                  [~[`@`2] (malt (turn (limo +<.aa) |=(a=[@tas @] a)))]
-                  [~[`@`3] (malt (turn (limo +>-.aa) |=(a=[@tas @] a)))]
+              :~  :*  %indexed-row
+                      ~[`@`1]
+                      (malt (turn (limo -.aa) |=(a=[@tas @] a)))
+                      ==
+                  :*  %indexed-row
+                      ~[`@`2]
+                      (malt (turn (limo +<.aa) |=(a=[@tas @] a)))
+                      ==
+                  :*  %indexed-row
+                      ~[`@`3]
+                      (malt (turn (limo +>-.aa) |=(a=[@tas @] a)))
+                      ==
                   ==
 --

@@ -58,34 +58,44 @@
       [%result-set (list vector)]
       ==
 ::
-+$  from-obj
-  $:  %from-obj
++$  set-table
+  $:  %set-table
       object=(unit qualified-object)
-      schema-tmsp=@da
-      data-tmsp=@da
+      schema-tmsp=(unit @da)
+      data-tmsp=(unit @da)
       columns=(list column)
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
       rowcount=@
-      pri-indexed=(tree indexed-row)
-      indexed-rows=(list indexed-row)
-  ==
-+$  qual-col-type  [qualified-column @ta]
-+$  lookup-type    (map qualified-object (map @tas @ta))
-::
-+$  joined
-  $:  %joined
       key=(list key-column)
-      rowcount=@ud
+      pri-indexed=(tree [(list @) (map @tas @)])
+      indexed-rows=(list indexed-row)
       joined-rows=(list joined-row)
+  ==
+::
++$  qual-col-type  [qualified-column @ta]
++$  qualified-lookup-type
+  $:  %qualified-lookup-type
+      (map qualified-object (map @tas @ta))
       ==
++$  unqualified-lookup-type
+  $:  %unqualified-lookup-type
+      (map @tas @ta)
+      ==
++$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
+::
++$  joined-row
+  $:  %joined-row
+      key=(list @)
+      data=(map qualified-object (map @tas @))
+      ==
++$  data-row  $%(joined-row indexed-row)
 ::
 +$  join-return
   $:  %join-return
       =server
-      data-objs=(list from-obj)
-      join-data=joined
+      set-tables=(list set-table)
       type-lookup=lookup-type
       qualified-columns=(list qual-col-type)
       ==
@@ -96,10 +106,41 @@
     =table-set
     as-of=(unit as-of)
     join=(unit join-type)
-    predicate=(unit predicate)
+    predicate=(unit predicate)  ::to do: why is this unit?
   ==
 ::
-::  helper types
++$  db-cmd  $?  %create-database
+                %drop-database
+                %create-namespace
+                %alter-namespace
+                %drop-namespace
+                %create-table
+                %alter-table
+                %drop-table
+                %truncate-table
+                %insert
+                %update
+                %delete
+                ==
+::
+::  template for selected column from qualified objects
++$  templ-cell
+  $:  %templ-cell
+      object=(unit qualified-column)
+      addr=@
+      vc=vector-cell
+  ==
+::
+::  common metadata for DELETE, INSERT, UPDATE
++$  txn-meta
+  $:  %txn-meta
+      db=database
+      tbl-key=[@tas @tas]
+      nxt-data=data
+      =table
+      =file
+      source-content-time=@da
+      ==
 ::
 +$  table-return
   $:  [@da ? @ud]

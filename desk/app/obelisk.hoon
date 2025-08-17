@@ -39,7 +39,9 @@
   ::
   ?-    -.act
   ::
+  ::  prints results
   %tape
+    :: required in order to stop on parse error
     =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
         ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
@@ -68,6 +70,9 @@
   ::
   ::  for testing without printing results
   %tape2
+    :: required in order to stop on parse error
+    :: comment out for benchmarking
+    =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
       ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
       %-  mule

@@ -1451,16 +1451,6 @@
 ::  fail on incorrect columns when columns not specified
 ++  test-fail-insert-12
   =|  run=@ud
-  =/  expected  :-  %results
-                    :~  [%message 'INSERT INTO db1.dbo.my-table']
-                        [%server-time ~2000.1.4..15.01.02]
-                        [%schema-time ~2000.1.2]
-                        [%data-time ~2000.1.4..15.01.02]
-                        [%message 'inserted:']
-                        [%vector-count 2]
-                        [%message 'table data:']
-                        [%vector-count 2]
-                    ==
   ::
   =^  move  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
@@ -1505,16 +1495,6 @@
 ::  cannot insert data in the future, insert time = schema time
 ++  test-fail-insert-13
   =|  run=@ud
-  =/  expected  :-  %results
-                    :~  [%message 'INSERT INTO db1.dbo.my-table']
-                        [%server-time ~2012.5.2]
-                        [%schema-time ~2023.7.9..22.35.35..7e90]
-                        [%data-time ~2023.7.9..22.35.35..7e90]
-                        [%message 'inserted:']
-                        [%vector-count 1]
-                        [%message 'table data:']
-                        [%vector-count 1]
-                    ==
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action

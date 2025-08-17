@@ -132,7 +132,7 @@
       ==
   ^-  [? [(map @tas @da) server (list result)]]
   =/  tree=(tree set-function:ast)              set-functions.selection
-  =/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
+  ::=/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
   =/  rtree  (~(rdc of tree) rdc-set-func)
   ?-  -<.rtree
     %insert
@@ -145,7 +145,8 @@
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects
           ::~>  %bout.[0 %select]
-          [next-data (do-query -.rtree next-data next-schemas)]
+          =/  rt  (do-query -.rtree next-data next-schemas)
+          [next-data -.rt (select-results rt)]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
@@ -226,7 +227,7 @@
           ==
   ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  file-row=(map @tas @)  (row-cells row cols)
+  =/  file-row  (row-cells row cols)
   =/  row-key=(list @)
         %+  turn
             key-pick
@@ -260,31 +261,22 @@
             [%message 'no rows deleted']
             ==
   ::
-  =/  type-lookup=lookup-type
-        %+  ~(put by `lookup-type`~)  
-          table.d
-          (malt (turn columns.table.txn |=(a=column:ast [name.a type.a])))
-  =/  qualifier-lookup
-        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
-            (turn columns.table.txn |=(a=column:ast [name.a (limo ~[table.d])]))
-  =/  filter=$-(joined-row ?)  %^  pred-ops-and-conjs
-                                      %+  pred-qualify-unqualified
-                                          predicate.d
-                                          qualifier-lookup
-                                      type-lookup
-                                      qualifier-lookup
-  =/  init-map=(map qualified-object:ast (map @tas @))  ~
-  =.  indexed-rows.file.txn
-        %+  skim
-              indexed-rows.file.txn
-              |=(a=indexed-row !(filter [-.a (~(put by init-map) table.d +.a)]))
+  =/  filter=$-(data-row ?)  %^  pred-ops-and-conjs
+                                 (pred-unqualify-qualified predicate.d)
+                                 :-  %unqualified-lookup-type
+                                     type-lookup.table.txn
+                                 ~
+  =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
+                                       |=(a=indexed-row !(filter a))
   :: 
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+
+  :: to do: here and in do-update this can probably be more efficient
   =.  pri-idx.file.txn
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             indexed-rows.file.txn
+      %+  gas:primary-key  *((mop (list @) ,(map @tas @)) comparator)
+                           (turn indexed-rows.file.txn |=(a=indexed-row +.a))
   ::
   =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
   =.  column-addrs.file.txn    +<.rpq
@@ -358,26 +350,18 @@
   ::
   ?.  =((lent columns.u) (lent values.u))
     ~|("UPDATE: columns and values mismatch" !!)
-  =/  type-lookup=lookup-type
-        %+  ~(put by `lookup-type`~)  
-          table.u
-          (malt (turn columns.table.txn |=(a=column:ast [name.a type.a])))
-  =/  qualifier-lookup
-        %-  ~(gas by `(map @tas (list qualified-object:ast))`~)
-            (turn columns.table.txn |=(a=column:ast [name.a (limo ~[table.u])]))
-  =/  filter=(unit $-(joined-row ?))
-        ?~  predicate.u  ~
-        :-  ~
-            %^  pred-ops-and-conjs  %+  pred-qualify-unqualified
-                                          (need predicate.u)
-                                          qualifier-lookup
-                                    type-lookup
-                                    qualifier-lookup
-  =/  updates=(list [@tas @])  %:  mk-updates  table.u
-                                               columns.u
-                                               values.u
-                                               type-lookup
-                                               ==
+  =/  filter  ?~  predicate.u  ~
+              :-  ~
+                  %^  pred-ops-and-conjs  %-  pred-unqualify-qualified
+                                              (need predicate.u)
+                                          :-  %unqualified-lookup-type
+                                              type-lookup.table.txn
+                                          ~
+  =/  updates  %:  mk-updates  table.u
+                               columns.u
+                               values.u
+                               [%unqualified-lookup-type type-lookup.table.txn]
+                               ==
   ::  updating key column requires re-indexing
   =/  aa  %-  silt
               %+  turn
@@ -388,8 +372,8 @@
                   updates
                   |=(a=[@tas @] -.a)
   =/  xx  ?:  (gth ~(wyt in (~(int in aa) bb)) 0)  :: update key column?
-            [filter table.u updates key.pri-indx.table.txn]
-          [filter table.u updates ~]
+            [filter updates key.pri-indx.table.txn columns.table.txn]
+          [filter updates ~ columns.table.txn]
   =/  rows-count=[(list indexed-row) @ud]
         %^  spin
               indexed-rows.file.txn
@@ -408,20 +392,22 @@
             [%data-time tmsp.file.txn]
             [%message 'no rows updated']
             ==
-
+  ::
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
+  :: to do: here and in do-delete this can probably be more efficient
   =.  pri-idx.file.txn
-        %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
-                             -.rows-count
+      %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
+                           (turn -.rows-count |=(a=indexed-row +.a))
   ::
   =/  idx  ~(wyt by pri-idx.file.txn)
   =/  fil  (lent indexed-rows.file.txn)
   ?.  =(idx fil)
     ~|("{<(sub fil idx)>} duplicate row key(s)" !!)
   ::
-  =/  new-indexed-rows  (tap:primary-key pri-idx.file.txn)
+  =/  new-indexed-rows  %+  turn  (tap:primary-key pri-idx.file.txn)
+                                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
   =.  column-addrs.file.txn    +<.rpq
   =.  column-catalog.file.txn  +>.rpq
@@ -462,25 +448,25 @@
 ::  any other part of the state
 ++  do-query
   |=  [q=query:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-  ^-  [server (list result)]
-  =/  =join-return  :: no from clause, it's a single row of literals
-                    ?~  from.q  (select-literals columns.selection.q)
-                    (join-all(state state, bowl bowl) q)
+  ^-  [server (list set-table) (list vector)]
+  :: no from clause, it's a single row of literals
+  ?~  from.q  [state (select-literals columns.selection.q)]
+  
+  :: no joins, it's a single table
+
+  =/  f  (need from.q)
+  ?~  joins.f  (select-table(state state, bowl bowl) q)
+
+  ::?~  joins:(need from.q)  (select-table(state state, bowl bowl) q)
+
+  ::
+  =/  =join-return  (join-all(state state, bowl bowl) q)
+  =/  set-tables  set-tables.join-return
+  ?~  set-tables  ~|("can't get here" !!)
   =/  selected  columns.selection.q
-  =/  qualifier-lookup  (mk-qualifier-lookup data-objs.join-return selected)
-  =.  selected  (qualify-unqualified selected qualifier-lookup)
-  =/  col-lookup
-    %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
-        %+  turn
-              qualified-columns.join-return
-              |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
-  =/  cells=(list templ-cell)
-    ?~  joined-rows.join-data.join-return  ~
-    %^  mk-vect-templ
-          qualified-columns.join-return
-          selected
-          -.joined-rows.join-data.join-return
-  =/  filter=(unit $-(joined-row ?))
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
+  =.  selected  (qualify-unqualified columns.selection.q qualifier-lookup)
+  =/  filter=(unit $-(data-row ?))
     ?~  predicate.q  ~
     :-  ~
         %^  pred-ops-and-conjs
@@ -489,50 +475,37 @@
                     qualifier-lookup
               type-lookup.join-return
               qualifier-lookup
-  =/  out-rows   *(set vector)
-  =/  rows=(list joined-row)  joined-rows.join-data.join-return
-
-  :: hack, hack, hack
-  =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
-                  "can be accessed"
-                  (~(got by state) %sys)
-  ?~  data-objs.join-return  ~|("can't get here" !!)
-  ?:  ?&  =(~ joined-rows.join-data.join-return)
-          =(~ object.i.data-objs.join-return)
+  :+  server.join-return
+      set-tables
+      %:  joined-result  filter
+                         qualified-columns.join-return
+                         joined-rows.i.set-tables
+                         selected
+                         ==
+::
+++  joined-result
+  |=  $:  filter=(unit $-(data-row ?))
+          qualified-columns=(list qual-col-type)
+          rows=(list joined-row)
+          selected=(list selected-column:ast)
           ==
-    :-  server.join-return
-        :~  [%message 'SELECT']
-            :-  %result-set
-                ?~  indexed-rows.i.data-objs.join-return  ~
-                :~  %+  mk-vect
-                        columns.i.data-objs.join-return
-                        ->.indexed-rows.i.data-objs.join-return
-                    ==
-            [%server-time now.bowl]
-            [%schema-time created-tmsp.sys-db]
-            [%data-time created-tmsp.sys-db]
-            [%vector-count (lent indexed-rows.i.data-objs.join-return)]
-            ==
-  
+  ^-  (list vector)
+  ?:  =((lent rows) 0)  ~
+  =/  out-rows   *(set vector)
+  =/  cells=(list templ-cell)
+    %^  mk-joined-vect-templ
+          qualified-columns
+          selected
+          -.rows
   |-
-  ?~  rows
-    :-  server.join-return
-        %-  zing
-            :~  :~  [%message 'SELECT']
-                    [%result-set ~(tap in out-rows)]
-                    [%server-time now.bowl]
-                    ==
-                (from-obj-meta data-objs.join-return)
-                :~  [%vector-count ~(wyt in out-rows)]
-                    ==
-            ==
+  ?~  rows  ~(tap in out-rows)
   =/  include-row=?
     ?~  filter
       %.y
     ((need filter) i.rows)
   ?.  include-row
     $(rows t.rows)
-  =/  row=(list vector-cell)  ~
+  =/  row                     *(list vector-cell)
   =/  cols=(list templ-cell)  cells
   |-
   ?~  cols
@@ -545,13 +518,130 @@
   =/  cell=templ-cell  i.cols
   =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
   =/  value
-    %-  ~(got by (~(got by +.i.rows) qualifier))
-        column:(need object.cell)
-  =/  cell-type
-    %-  ~(got by col-lookup)
-        [qualifier column:(need object.cell)]
-  $(cols t.cols, row [[p.vc.cell [cell-type value]] row])
-
+        (~(got by (~(got by data.i.rows) qualifier)) column:(need object.cell))
+  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
+::
+::  +select-results:  [server (list set-table) (list vector)] -> (list result)
+++  select-results
+  |=  [state=server set-tables=(list set-table) result-set=(list vector)]
+  ^-  (list result)
+  =/  out  *(list (list result))
+  =/  raw  %+  sort  %~  tap  in
+                              %^  fold  set-tables
+                                        *(set [qualified-object:ast @da @da])
+                                        pick-from-object
+                     order-results
+  ?~  set-tables  ~|("can't get here" !!)
+  |-
+  ?~  raw  ?~  out
+             :~  [%message 'SELECT']
+                 :-  %result-set
+                     ?~  indexed-rows.i.set-tables  ~
+                     :~  %+  mk-vect
+                             columns.i.set-tables
+                             data.i.indexed-rows.i.set-tables
+                         ==
+                 [%server-time now.bowl]
+                 [%schema-time created-tmsp:(~(got by state) %sys)]
+                 [%data-time created-tmsp:(~(got by state) %sys)]
+                 [%vector-count (lent indexed-rows.i.set-tables)]
+                 ==
+    %-  zing  :~  :~  [%message 'SELECT']
+                      [%result-set result-set]
+                      [%server-time now.bowl]
+                      ==
+                  `(list result)`(zing out)
+                  :~  [%vector-count (lent result-set)]
+                      ==
+                  ==
+  %=  $
+    raw  t.raw
+    out  :-  :~  [%message (qualified-object-to-cord -.i.raw)]
+                 [%schema-time +<.i.raw]
+                 [%data-time +>.i.raw]
+                 ==
+             out
+  ==
+::
+::  +order-results
+++  order-results
+  |=  $:  p=[=qualified-object:ast schema-tmsp=@da data-tmsp=@da]
+          q=[=qualified-object:ast schema-tmsp=@da data-tmsp=@da]
+          ==
+  ?:  ?!  %+  aor  (biff ship.qualified-object.p same)
+                   (biff ship.qualified-object.q same)                 %.y
+  ?:  ?&  .=  (biff ship.qualified-object.p same)
+              (biff ship.qualified-object.q same)
+              ?!  %+  aor  database.qualified-object.p
+                           database.qualified-object.q
+          ==                                                           %.y
+  ?:  ?&  .=  (biff ship.qualified-object.p same)
+              (biff ship.qualified-object.q same)
+          =(database.qualified-object.p database.qualified-object.q)
+          !(aor namespace.qualified-object.p namespace.qualified-object.q)
+          ==                                                           %.y
+  ?:  ?&  .=  (biff ship.qualified-object.p same) 
+              (biff ship.qualified-object.q same)
+          =(database.qualified-object.p database.qualified-object.q)
+          =(namespace.qualified-object.p namespace.qualified-object.q)
+          !(aor name.qualified-object.p name.qualified-object.q)
+          ==                                                           %.y
+  ?:  (gth schema-tmsp.p schema-tmsp.q)                                %.y
+  ?:  &(=(schema-tmsp.p schema-tmsp.q) (gth data-tmsp.p data-tmsp.q))  %.y
+  %.n
+::
+++  pick-from-object
+  |=  [a=set-table state=(set [qualified-object:ast @da @da])]
+  ^-  (set [qualified-object:ast @da @da])
+  ?~  object.a    state
+  %-  ~(put in state)  :+  (need object.a)
+                           (need schema-tmsp.a)
+                           (need data-tmsp.a)
+::
+::  +select-literals:  (list selected-column:ast) -> (list vector)
+::
+::  selection of literals only, no from clause
+++  select-literals
+  |=  columns=(list selected-column:ast)
+  ^-  [(list set-table) (list vector)]
+  =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
+                  "can be accessed"
+                  (~(got by state) %sys)
+  =/  indexed-cols  *(map @tas @)
+  =/  columns-out   *(list column:ast)
+  =/  i             0
+  |-
+  ?~  columns
+    :-  :~  :*  %set-table
+                ~
+                [~ created-tmsp.sys-db]
+                [~ created-tmsp.sys-db]
+                columns-out
+                ~
+                ~
+                ~
+                1
+                *(list key-column)
+                *(tree [(list @) (map @tas @)])
+                ~[[%indexed-row ~ indexed-cols]]
+                *(list joined-row)
+                ==
+            ==
+        :~  %+  mk-vect
+                columns-out
+                indexed-cols
+            ==
+  ?.  ?=(selected-value:ast -.columns)
+    ~|("selected value {<-.columns>} not a literal" !!)
+  =/  column-name  ?~  alias.i.columns  (crip "literal-{<i>}")
+                                        (need alias.i.columns)
+  %=  $
+    i             +(i)
+    columns       +.columns
+    columns-out   :-  (column:ast %column column-name p.value.i.columns)
+                      columns-out
+    indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
+  ==
 ::
 ++  mk-vect
   |=  [columns=(list column:ast) values=(map @tas @)]
@@ -566,89 +656,45 @@
                           [type.i.columns (~(got by values) name.i.columns)]
                       vector-cells
   ==
-
-
 ::
-::  +select-literals:  (list selected-column:ast) -> (list vector)
-::
-::  selection of literals only, no from clause
-++  select-literals
-  |=  columns=(list selected-column:ast)
-  ^-  join-return
-  =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
-                  "can be accessed"
-                  (~(got by state) %sys)
-  =/  indexed-cols  *(map @tas @)
-  =/  columns-out   *(list column:ast)
-  =/  i             0
-  |-
-  ?~  columns
-    :*  %join-return
-        state
-        :~                ::data-objs=(list from-obj)
-          :*  %from-obj
-              ~
-              created-tmsp.sys-db
-              created-tmsp.sys-db
-              columns-out
-              ~
-              ~
-              ~
-              1
-              *(tree indexed-row)
-              ::*(list indexed-row)
-              ~[[~ indexed-cols]]
-              ==
-          ==
-          :^  %joined
-              *(list key-column)
-              0
-              *(list joined-row)
-          *(map qualified-object (map @tas @ta))
-          *(list qual-col-type)
-        ==
-  ?.  ?=(selected-value:ast -.columns)
-    ~|("selected value {<-.columns>} not a literal" !!)
-  =/  column-name  ?~  alias.i.columns  (crip "literal-{<i>}")
-                                        (need alias.i.columns)
-  %=  $
-    i             +(i)
-    columns       +.columns
-    columns-out   :-  (column:ast %column column-name p.value.i.columns)
-                      columns-out
-    indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
-  ==
 ++  plan-upd
-  |=  $:  r=indexed-row
+  |=  $:  row=indexed-row
           count=@ud
-          f=(unit $-(joined-row ?))
-          obj=qualified-object:ast
+          f=(unit $-(data-row ?))
           updates=(list [@tas @])
           key-columns=(list key-column)
+          cols=(list column:ast)
           ==
   ^-  [indexed-row @ud]
   ?~  f
-    ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
-    [(update-key r updates key-columns) +(count)]
-
-  ?.  ((need f) [-.r [[obj +.r] ~ ~]])  [r count]
-  ?~  key-columns  [[-.r (produce-update r updates)] +(count)]
-  [(update-key r updates key-columns) +(count)]
+    ?~  key-columns  :-  :+  %indexed-row
+                             key.row
+                             (produce-update row updates cols)
+                         +(count)
+    [(update-key row updates key-columns cols) +(count)]
+  ?.  ((need f) [%indexed-row key.row data.row])  [row count]
+  ?~  key-columns  :-  [%indexed-row key.row (produce-update row updates cols)]
+                       +(count)
+  [(update-key row updates key-columns cols) +(count)]
 ++  update-key
-  |=  [r=indexed-row updates=(list [@tas @]) key-columns=(list key-column)]
+  |=  $:  r=indexed-row
+          updates=(list [@tas @])
+          key-columns=(list key-column)
+          cols=(list column:ast)
+          ==
   ^-  indexed-row
-  =/  new-key=(list @)  ~
-  =/  upd-row  (produce-update r updates)
+  =/  new-key  *(list @)
+  =/  upd-row  (produce-update r updates cols)
   |-
-  ?~  key-columns  [(flop new-key) upd-row]
+  ?~  key-columns  [%indexed-row (flop new-key) upd-row]
   %=  $
     new-key      [(~(got by upd-row) name.i.key-columns) new-key]
     key-columns  t.key-columns
   ==
 ++  produce-update
-  |=  [r=indexed-row updates=(list [@tas @])]
+  |=  [r=indexed-row updates=(list [@tas @]) cols=(list column:ast)]
   ^-  (map @tas @)
-  =/  x  +.r
+  =/  x  data.r
   |-
   ?~  updates  x
   %=  $
@@ -659,7 +705,7 @@
   |=  $:  table=qualified-object:ast
           columns=(list qualified-column:ast)
           values=(list *)   ::(list value-or-default:ast)
-          type-lookup=lookup-type
+          type-lookup=unqualified-lookup-type
           ==
   ^-  (list [@tas @])
   =/  updates=(list [@tas @])  ~
@@ -670,9 +716,7 @@
     %=  $
       columns   t.columns
       values    t.values
-      updates   ?:  .=  ~.da
-                        %-  ~(got by (~(got by type-lookup) table))
-                            column.i.columns
+      updates   ?:  =(~.da (~(got by +.type-lookup) column.i.columns))
                   [[column.i.columns *@da] updates]
                 [[column.i.columns 0] updates]
     ==
@@ -685,11 +729,9 @@
           ~|  "UPDATE: {<table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ~|  "value type: {<-.i.values>} does not match column: {<i.columns>}"
-            ?.  .=  p.i.values
-                    (~(got by (~(got by type-lookup) table)) column.i.columns)
-              !!
-            [[column.i.columns +.i.values] updates]
+        ?:  =(p.i.values (~(got by +.type-lookup) column.i.columns))
+          [[column.i.columns +.i.values] updates]
+        ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
   ~|("value type not supported: {<i.values>}" !!)
 ::
@@ -698,39 +740,42 @@
 ++  named-queries  ::To Do: resolve data tmsps in CTEs
   |=  ctes=(list cte:ast)
   ^-  (map @tas [@ud (list indexed-row)])
-  =/  cte-rows  *(map @tas [@ud (list indexed-row)])
-  |-
-  ?~  ctes  cte-rows
-  %=  $
-    cte-rows  (~(put by cte-rows) +<.i.ctes (named-query +>.i.ctes))
-    ctes  +.ctes
-  ==
-::
-::  +named-query:  (list query:ast) -> [@ud (list indexed-row)]
-::  resolve CTEs
-++  named-query
-  |=  q=query:ast
-  ^-  [@ud (list indexed-row)]
-  =/  i  0
-  =/  vals=(list vector-cell)  ~
-  =/  columns=(list selected-column:ast)  columns.selection.q
-  |-
-  ?~  columns
-    ?~  vals  ~|("can't get here" !!)
-    =/  xx=(list vector-cell)  vals
-    =/  yy  %^  spin
-                xx
-                *(map @tas @)
-                |=([a=vector-cell s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
-    =/  indexed-row  [`(list @)`~ +.yy]
-    [1 ~[indexed-row]]
-  ?.  ?=(selected-value:ast -.columns)
-    ~|("selected value {<-.columns>} not a literal" !!)
-  =/  column=selected-value:ast  -.columns
-  %=  $
-    i        +(i)
-    columns  +.columns
-    vals
-      [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
-  ==
+
+    !!
+  
+::  =/  cte-rows  *(map @tas [@ud (list indexed-row)])
+::  |-
+::  ?~  ctes  cte-rows
+::  %=  $
+::    cte-rows  (~(put by cte-rows) +<.i.ctes (named-query +>.i.ctes))
+::    ctes  +.ctes
+::  ==
+::::
+::::  +named-query:  (list query:ast) -> [@ud (list indexed-row)]
+::::  resolve CTEs
+::++  named-query
+::  |=  q=query:ast
+::  ^-  [@ud (list indexed-row)]
+::  =/  i  0
+::  =/  vals  *(list vector-cell)
+::  =/  columns=(list selected-column:ast)  columns.selection.q
+::  |-
+::  ?~  columns
+::    ?~  vals  ~|("can't get here" !!)
+::    =/  xx=(list vector-cell)  vals
+::    =/  yy  %^  spin
+::                xx
+::                *(map @tas @)
+::                |=([a=vector-cell s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
+::    [1 ~[[*(list @) [+.yy *(list @)]]]]
+::  ?.  ?=(selected-value:ast -.columns)
+::    ~|("selected value {<-.columns>} not a literal" !!)
+::  =/  column=selected-value:ast  -.columns
+::  %=  $
+::    i        +(i)
+::    columns  +.columns
+::    vals
+::     [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
+::  ==
 --
+ 
