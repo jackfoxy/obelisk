@@ -2933,6 +2933,8 @@
             "where 1 = 1 and col2 = 4"
 ::
 :: update with three ctes and predicate
+:: if we remove the from statements after the with the test passes
+:: with the parse-scalar rule present
 ++  test-update-16
   =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]

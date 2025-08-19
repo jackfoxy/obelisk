@@ -1767,18 +1767,21 @@
     parse-order-by
     end-or-next-command
   ==
+:: FIXME: uncommenting the parse-scalar makes some of the parse-update- and
+::        parse-delete- tests fail
 ++  parse-query04  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ::parse-scalars
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-select
     end-or-next-command
   ==
+:: FIXME: uncommenting the parse-scalar makes some of the order by tests fail
 ++  parse-query05  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ::parse-scalars
     parse-select
     parse-order-by
     end-or-next-command
@@ -1799,10 +1802,11 @@
     parse-order-by
     end-or-next-command
   ==
+:: FIXME: uncommenting the parse-scalar makes group-by tests fail
 ++  parse-query08  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ::parse-scalars
     parse-group-by
     parse-select
     end-or-next-command
