@@ -1767,21 +1767,18 @@
     parse-order-by
     end-or-next-command
   ==
-:: FIXME: uncommenting the parse-scalar makes some of the parse-update- and
-::        parse-delete- tests fail
 ++  parse-query04  ~+
   ;~  plug
     parse-object-and-joins
-    ::parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-select
     end-or-next-command
   ==
-:: FIXME: uncommenting the parse-scalar makes some of the order by tests fail
 ++  parse-query05  ~+
   ;~  plug
     parse-object-and-joins
-    ::parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-select
     parse-order-by
     end-or-next-command
@@ -1802,11 +1799,10 @@
     parse-order-by
     end-or-next-command
   ==
-:: FIXME: uncommenting the parse-scalar makes group-by tests fail
 ++  parse-query08  ~+
   ;~  plug
     parse-object-and-joins
-    ::parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-group-by
     parse-select
     end-or-next-command
@@ -2584,6 +2580,7 @@
                    (mk-alias-map (need from))
                  alias-map 
 
+  ?~  -.a                     $(a +.a) :: discard nulls left from optional parsers
   ?:  =(-.a %query)           $(a +.a)
   ?:  =(-.a %end-command)    %:  query:ast
                                 %query
