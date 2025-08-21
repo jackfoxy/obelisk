@@ -2855,7 +2855,6 @@
   =/  scalar-alias  (@tas -.parsed-scalar)
   =/  scalar-fn-name  (@tas +<.parsed-scalar)
   =/  raw-scalar-body  +>.parsed-scalar 
-  ~&  "scalar: {<scalar-alias>} {<scalar-fn-name>}"
   ?:  =(%coalesce scalar-fn-name)
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
     =/  finalized-coalesce
@@ -4610,7 +4609,6 @@
 ::  parse scalar
 ::
 ++  get-datum  ~+
-  ~&   "get-datum called"
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
     ;~(sfix parse-value-literal whitespace)
@@ -4762,7 +4760,6 @@
       scalar-body       :: scalar function invocation
   ==
 ++  parse-scalars
-  ~&   "parse-scalars called"
   ;~  plug
       (cold %scalars ;~(pfix whitespace (jester 'scalars')))
       (star parse-scalar)
