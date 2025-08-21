@@ -2884,6 +2884,32 @@
     ==
     =/  finalized  [%scalar scalar=finalized-if alias=scalar-alias]
     (weld ~[finalized] $(scalars +.scalars))
+  ?:  =(%case scalar-fn-name)
+    =/  cooked-case  (cook-case-body raw-scalar-body)
+    =/  finalized-case
+    %=  cooked-case
+      target  ?:  ?=(qualified-column:ast target.cooked-case)
+              (mk-qualified-object target.cooked-case alias-map)
+            target.cooked-case
+      cases  |-
+             ^-  (list case-when-then:ast)
+             ?~  cases.cooked-case
+               ~
+             ?:  ?=(qualified-column:ast then.i.cases.cooked-case)
+                %+  weld
+                  ~[[when=when.i.cases.cooked-case then=(mk-qualified-object then.i.cases.cooked-case alias-map)]]
+                $(cases.cooked-case t.cases.cooked-case)
+             (weld ~[-.cases.cooked-case] $(cases.cooked-case t.cases.cooked-case))
+
+      else  ?~  else.cooked-case
+              ~
+            =/  unwrapped-else  (need else.cooked-case)
+            ?:  ?=(qualified-column:ast unwrapped-else)
+                    (some (mk-qualified-object unwrapped-else alias-map)) 
+                else.cooked-case
+    ==
+    =/  finalized  [%scalar scalar=finalized-case alias=scalar-alias]
+    (weld ~[finalized] $(scalars +.scalars))
   ~|  "produce-scalars: scalar {<scalar-fn-name>} not implemented"  !!
 ++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
@@ -4622,24 +4648,31 @@
     ;~(pfix whitespace ;~(pose parse-aggregate scalar-body parse-datum))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
-++  cook-case
+++  cook-case-body
   |=  parsed=*
   ~+
-  =/  raw-cases   +<.parsed
-  =/  cases=(list case-when-then:ast)  ~
-  |-
-  ?.  =(raw-cases ~)
-    %=  $
-      cases      [(case-when-then:ast ->-.raw-cases ->+>.raw-cases) cases]
-      raw-cases  +.raw-cases
+  =/  target  -.parsed
+  =/  case-when-then-list   +<.parsed
+  =/  cases  |-
+  ^-  (list case-when-then:ast)
+  ?~  case-when-then-list
+    ~
+  %+  weld
+    :~
+    %+  case-when-then:ast
+      (produce-predicate (predicate-list ->-.case-when-then-list))
+    ->+>.case-when-then-list
     ==
-  ?:  ?=(qualified-column:ast -.parsed)
-    ?:  =('else' +>-.parsed)  (case:ast %case -.parsed (flop cases) +>+<.parsed)
-      (case:ast %case -.parsed (flop cases) ~)
-  ?:  ?=(dime -.parsed)
-    ?:  =('else' +>-.parsed)  (case:ast %case -.parsed (flop cases) +>+<.parsed)
-      (case:ast %case -.parsed (flop cases) ~)
-  ~|("cannot parse case  {<parsed>}" !!)
+  $(case-when-then-list +.case-when-then-list)
+  ?@  +>.parsed
+    ?:  =(+>.parsed %end)
+      (case:ast %case target (flop cases) ~)
+    ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
+  ?:  ?&  ?=(qualified-column:ast target)
+          =(%else +>-.parsed)
+      ==
+    (case:ast %case target (flop cases) (some +>+<.parsed))
+  ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
   ;~  plug
     parse-datum

@@ -166,15 +166,15 @@
   ==
 +$  case-when-then
   $:
-    when=*                         :: predicate | datum
-    then=*                         :: datum-or-scalar
+    when=predicate                         :: predicate | datum
+    then=datum                         :: datum-or-scalar
   ==
 +$  case
   $:
     %case
     target=datum
     cases=(list case-when-then)
-    else=*                         :: datum-or-scalar
+    else=(unit datum)                         :: datum-or-scalar
   ==
 +$  coalesce
   $+  coalesce

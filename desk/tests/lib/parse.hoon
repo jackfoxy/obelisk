@@ -2082,12 +2082,13 @@
 ++  case-predicate         [%when [%eq [literal-1 0 0] literal-1 0 0] %then column-foo]
 ++  case-datum             [%when column-foo2 %then column-foo]
 ++  case-coalesce          [%when column-foo3 %then naked-coalesce]
-++  case-1                 [%scalar [%case column-foo3 ~[simple-true-pred] %else column-bar %end] 'foobar']
-++  case-2                 [%scalar [%case column-foo3 ~[case-datum] %else column-bar %end]]
-++  case-3                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else column-bar %end]]
-++  case-4                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else simple-if-naked-true %end]]
-++  case-5                 [%scalar [%case column-foo3 ~[case-datum case-predicate case-coalesce] %else simple-if-naked-true %end]]
-++  case-aggregate         [%scalar [%case [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3 alias=~] %foo3 0] [[%when [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2 alias=~] %foo2 0] %then %aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] %end]]
+++  case-1                 [%scalar [%case column-foo ~[[simple-true-pred column-foo]] (some column-baz)] 'foobar']
+++  case-2                 [%scalar [%case column-foo ~[[simple-true-pred column-foo]] ~] 'foobaz']
+::++  case-2                 [%scalar [%case column-foo3 ~[case-datum] %else column-bar %end]]
+::++  case-3                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else column-bar %end]]
+::++  case-4                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else simple-if-naked-true %end]]
+::++  case-5                 [%scalar [%case column-foo3 ~[case-datum case-predicate case-coalesce] %else simple-if-naked-true %end]]
+::++  case-aggregate         [%scalar [%case [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3 alias=~] %foo3 0] [[%when [%qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2 alias=~] %foo2 0] %then %aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-object 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] %end]]
 ::  coalesce
 ::  todo: add test cases for when arg is a scalar, currently only testing datums
 ::  todo: error message when scalars are defined without a select statement after?
@@ -2116,7 +2117,7 @@
 ++  test-scalar-03
   =/  select  "FROM foo SCALARS foo IF 1 = 1 THEN foo ELSE baz ENDIF baz IF 1 = 0 THEN foo ELSE baz ENDIF SELECT foo2,foo3"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[if-foo if-baz] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[if-foo if-baz] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  simple if as
@@ -2127,12 +2128,26 @@
 ::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
 ::
 ::  simple case with predicate
-::++  test-scalar-05
-::  =/  select  "FROM foo SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo ELSE bar END SELECT foo2,foo3"
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-1] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') select)
-::
+++  test-scalar-05
+  =/  select  "FROM foo SCALARS foobar CASE foo WHEN 1 = 1 THEN foo ELSE baz END SELECT foo2,foo3"
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-1] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') select)
+
+::  simple case with predicate, no else
+++  test-scalar-051
+  =/  select  "FROM foo SCALARS foobaz CASE foo WHEN 1 = 1 THEN foo END SELECT foo2,foo3"
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') select)
+
+::  simple case with predicate, two cases, one with else, the other with no else
+++  test-scalar-052
+  =/  select  "FROM foo SCALARS foobaz CASE foo WHEN 1 = 1 THEN foo END foobar CASE foo WHEN 1 = 1 THEN foo ELSE baz END SELECT foo2,foo3"
+  %+  expect-eq
+    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2 case-1] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  (parse:parse(default-database 'db1') select)
+
 ::  simple case AS with datum
 ::++  test-scalar-06
 ::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN foo ELSE bar END"
