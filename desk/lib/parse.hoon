@@ -1742,7 +1742,7 @@
 ++  parse-query01  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-group-by
     parse-select
@@ -1752,7 +1752,7 @@
 ++  parse-query02  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-group-by
     parse-select
@@ -1761,7 +1761,7 @@
 ++  parse-query03  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-select
     parse-order-by
@@ -1786,14 +1786,14 @@
 ++  parse-query06  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-select
     end-or-next-command
   ==
 ++  parse-query07  ~+
   ;~  plug
     parse-object-and-joins
-    parse-scalars
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-group-by
     parse-select
     parse-order-by
