@@ -131,9 +131,8 @@
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result)]]
-  =/  tree=(tree set-function:ast)              set-functions.selection
-  ::=/  ctes=(map @tas [@ud (list indexed-row)])  (named-queries ctes.selection)
-  =/  rtree  (~(rdc of tree) rdc-set-func)
+  =/  named-ctes   (named-queries ctes.selection *named-ctes)
+  =/  rtree        (~(rdc of set-functions.selection) rdc-set-func)
   ?-  -<.rtree
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
@@ -145,8 +144,8 @@
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects
           ::~>  %bout.[0 %select]
-          =/  rt  (do-query -.rtree next-data next-schemas)
-          [next-data -.rt (select-results rt)]
+          =/  rt  (do-query -.rtree named-ctes %.n)
+          [next-data -.rt (select-results named-ctes rt)]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
@@ -441,24 +440,18 @@
           [%vector-count rowcount.file.txn]
           ==
 ::
-::  +do-query:  [query:ast (map @tas @da) (map @tas @da)]
-::              -> [server (list result)]
+::  +do-query:  [query:ast ?] -> [server (list set-table) (list result)]
 ::
 ::  state may be updated by insertion into view-cache, which does not effect
 ::  any other part of the state
 ++  do-query
-  |=  [q=query:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
+  |=  [q=query:ast =named-ctes is-cte=?]
   ^-  [server (list set-table) (list vector)]
-  :: no from clause, it's a single row of literals
-  ?~  from.q  [state (select-literals columns.selection.q)]
-  
+  :: literal only
+  ?~  from.q  [state (select-literals columns.selection.q is-cte)]
   :: no joins, it's a single table
-
   =/  f  (need from.q)
-  ?~  joins.f  (select-table(state state, bowl bowl) q)
-
-  ::?~  joins:(need from.q)  (select-table(state state, bowl bowl) q)
-
+  ?~  joins.f  (select-table(state state, bowl bowl) q is-cte)
   ::
   =/  =join-return  (join-all(state state, bowl bowl) q)
   =/  set-tables  set-tables.join-return
@@ -475,13 +468,14 @@
                     qualifier-lookup
               type-lookup.join-return
               qualifier-lookup
+  ?:  is-cte  [server.join-return set-tables ~]
   :+  server.join-return
       set-tables
       %:  joined-result  filter
-                         qualified-columns.join-return
-                         joined-rows.i.set-tables
-                         selected
-                         ==
+                          qualified-columns.join-return
+                          joined-rows.i.set-tables
+                          selected
+                          ==
 ::
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
@@ -521,13 +515,19 @@
         (~(got by (~(got by data.i.rows) qualifier)) column:(need object.cell))
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
-::  +select-results:  [server (list set-table) (list vector)] -> (list result)
+::  +select-results:  [named-ctes server (list set-table) (list vector)]
+::                    -> (list result)
 ++  select-results
-  |=  [state=server set-tables=(list set-table) result-set=(list vector)]
+  |=  $:  =named-ctes
+          state=server
+          set-tables=(list set-table)
+          vectors=(list vector)
+          ==
   ^-  (list result)
   =/  out  *(list (list result))
+  =/  ctes=(list set-table)  (zing ~(val by named-ctes))
   =/  raw  %+  sort  %~  tap  in
-                              %^  fold  set-tables
+                              %^  fold  (weld set-tables ctes)
                                         *(set [qualified-object:ast @da @da])
                                         pick-from-object
                      order-results
@@ -547,11 +547,11 @@
                  [%vector-count (lent indexed-rows.i.set-tables)]
                  ==
     %-  zing  :~  :~  [%message 'SELECT']
-                      [%result-set result-set]
+                      [%result-set vectors]
                       [%server-time now.bowl]
                       ==
                   `(list result)`(zing out)
-                  :~  [%vector-count (lent result-set)]
+                  :~  [%vector-count (lent vectors)]
                       ==
                   ==
   %=  $
@@ -598,11 +598,11 @@
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
 ::
-::  +select-literals:  (list selected-column:ast) -> (list vector)
+::  +select-literals:  [(list selected-column:ast) ?] -> (list vector)
 ::
 ::  selection of literals only, no from clause
 ++  select-literals
-  |=  columns=(list selected-column:ast)
+  |=  [columns=(list selected-column:ast) is-cte=?]
   ^-  [(list set-table) (list vector)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
@@ -612,11 +612,29 @@
   =/  i             0
   |-
   ?~  columns
+    ?:  is-cte  :-  :~  :*  %set-table
+                            ~
+                            [~ created-tmsp.sys-db]
+                            [~ created-tmsp.sys-db]
+                            columns-out
+                            *unqualified-lookup-type
+                            ~
+                            ~
+                            ~
+                            1
+                            *(list key-column)
+                            *(tree [(list @) (map @tas @)])
+                            ~[[%indexed-row ~ indexed-cols]]
+                            *(list joined-row)
+                            ==
+                        ==
+                    ~
     :-  :~  :*  %set-table
                 ~
                 [~ created-tmsp.sys-db]
                 [~ created-tmsp.sys-db]
                 columns-out
+                *unqualified-lookup-type
                 ~
                 ~
                 ~
@@ -628,9 +646,9 @@
                 ==
             ==
         :~  %+  mk-vect
-                columns-out
-                indexed-cols
-            ==
+              columns-out
+              indexed-cols
+          ==
   ?.  ?=(selected-value:ast -.columns)
     ~|("selected value {<-.columns>} not a literal" !!)
   =/  column-name  ?~  alias.i.columns  (crip "literal-{<i>}")
@@ -737,45 +755,17 @@
 ::
 ::  +named-queries:  (list cte:ast) -> (map @tas [@ud (list indexed-row)])
 ::  resolve CTEs
+::  state is recycled because view cache could have been updated
 ++  named-queries  ::To Do: resolve data tmsps in CTEs
-  |=  ctes=(list cte:ast)
-  ^-  (map @tas [@ud (list indexed-row)])
-
-    !!
-  
-::  =/  cte-rows  *(map @tas [@ud (list indexed-row)])
-::  |-
-::  ?~  ctes  cte-rows
-::  %=  $
-::    cte-rows  (~(put by cte-rows) +<.i.ctes (named-query +>.i.ctes))
-::    ctes  +.ctes
-::  ==
-::::
-::::  +named-query:  (list query:ast) -> [@ud (list indexed-row)]
-::::  resolve CTEs
-::++  named-query
-::  |=  q=query:ast
-::  ^-  [@ud (list indexed-row)]
-::  =/  i  0
-::  =/  vals  *(list vector-cell)
-::  =/  columns=(list selected-column:ast)  columns.selection.q
-::  |-
-::  ?~  columns
-::    ?~  vals  ~|("can't get here" !!)
-::    =/  xx=(list vector-cell)  vals
-::    =/  yy  %^  spin
-::                xx
-::                *(map @tas @)
-::                |=([a=vector-cell s=(map @tas @)] [a (~(put by s) p.a q.q.a)])
-::    [1 ~[[*(list @) [+.yy *(list @)]]]]
-::  ?.  ?=(selected-value:ast -.columns)
-::    ~|("selected value {<-.columns>} not a literal" !!)
-::  =/  column=selected-value:ast  -.columns
-::  %=  $
-::    i        +(i)
-::    columns  +.columns
-::    vals
-::     [(vector-cell (heading column (crip "literal-{<i>}")) value.column) vals]
-::  ==
+  |=  [ctes=(list cte:ast) nctes=named-ctes]
+  ^-  named-ctes
+  |-
+  ?~  ctes  nctes
+  =/  state-table-unit  (do-query query.i.ctes nctes %.y)
+  =.  state             -.state-table-unit
+  %=  $
+    nctes  (~(put by nctes) name.i.ctes +<.state-table-unit)
+    ctes   +.ctes
+  ==
 --
  

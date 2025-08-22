@@ -106,7 +106,7 @@
   $:
     %qualified-column
     qualifier=qualified-object
-    column=@tas
+    column=@tas                ::to do: rename name
     alias=(unit @t)
   ==
 +$  foreign-key
@@ -197,7 +197,7 @@
     predicate=(unit predicate)
     group-by=(list grouping-column)
     having=(unit predicate)
-    selection=select
+    selection=select      ::to do: rename =select
     order-by=(list ordering-column)
   ==
 ::
@@ -255,7 +255,7 @@
 +$  unqualified-column
   $:
     %unqualified-column
-    column=@tas
+    column=@tas          ::to do:rename name
     alias=(unit @t)
     ==
 +$  selected-all
@@ -317,7 +317,7 @@
   $:
     %cte
     name=@tas
-    query
+    =query
   ==
 +$  set-op
   $?

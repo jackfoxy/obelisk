@@ -64,6 +64,7 @@
       schema-tmsp=(unit @da)
       data-tmsp=(unit @da)
       columns=(list column)
+      =lookup-type
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
@@ -108,6 +109,8 @@
     join=(unit join-type)
     predicate=(unit predicate)  ::to do: why is this unit?
   ==
+::
++$  named-ctes  (map @tas (list set-table))
 ::
 +$  db-cmd  $?  %create-database
                 %drop-database

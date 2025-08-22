@@ -35,11 +35,11 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +select-table:  query:ast -> [server (list set-table) (list vector)]
+::  +select-table:  [query:ast ?] -> [server (list set-table) (list vector)]
 ::
 ::  selection from a single table without joins
 ++  select-table
-  |=  q=query:ast
+  |=  [q=query:ast is-cte=?]
   ^-  [server (list set-table) (list vector)]
   =/  from          (need from.q)
   =/  query-source  ?:  ?=(qualified-object:ast object.+.object.from)
@@ -63,13 +63,55 @@
                           (~(got by +<+.triple) query-source)
                       ~
   ::
+  ?:  is-cte  [state (select-table-cte q set-table filter) ~]
   :+  state
       ~[set-table]
-      %:  table-result  filter
-                        +>.triple
-                        indexed-rows.set-table
-                        selected
-                        ==
+      :::-  ~
+          %:  table-result  filter
+                            +>.triple
+                            indexed-rows.set-table
+                            selected
+                            ==
+::
+::  +select-table-cte:  [query:ast (unit $-(data-row ?))]
+::                  -> (list set-table) 
+::
+::  cons a set-table of the selection
+::  1) object=~
+::  2) new list of columns
+::  3) (list key-column) preserved or not
+::  4) indexed-rows index preserved or not
+::  5) row count
+++  select-table-cte
+  |=  [q=query:ast st=set-table f=(unit $-(data-row ?))]
+  ^-  (list set-table)
+  =/  st2  st
+  =.  object.st2  ~
+  =/  foo=(list column:ast)
+        %-  zing  %+  turn  columns.selection.q
+                            (cury selected-column-to-column columns.st)
+  =.  columns.st2  %-  flop    foo
+  ~[st2 st]
+::
+++  selected-column-to-column
+  |=  [columns=(list column:ast) =selected-column:ast]
+  ^-  (list column:ast)
+  ?-  selected-column
+    qualified-column:ast
+      ~|("not supported" !!)
+    unqualified-column:ast
+      ~|("not supported" !!)
+    qualified-object:ast
+      ~|("not supported" !!)
+    selected-aggregate:ast
+      ~|("not supported" !!)
+    selected-value:ast
+      ~[[%column `@tas`(need alias.selected-column) p.value.selected-column]]
+    selected-all:ast
+      (flop columns)
+    selected-all-object:ast
+      (flop columns)
+    ==
 ::
 ++  table-result
   |=  $:  filter=(unit $-(data-row ?))
@@ -133,22 +175,23 @@
   =/  from-objects    (limo ~[prior-obj])
   =/  prior-join
         %:  set-table  %set-table
-                      object=~
-                      schema-tmsp=~
-                      data-tmsp=~
-                      columns=*(list column:ast)     ::for now, to do: for CTEs
-                      pri-indx=~
-                      join=~
-                      predicate=~
-                      rowcount.prior-obj
-                      ?~  pri-indx.prior-obj  ~
-                                              key:(need pri-indx.prior-obj)
-                      pri-indexed=*(tree [(list @) (map @tas @)])
-                      indexed-rows=*(list indexed-row)
-                      %+  turn  indexed-rows.prior-obj
-                                %+  cury  joined-row-from-indexed
-                                          (need object.prior-obj)
-                       ==
+                       object=~
+                       schema-tmsp=~
+                       data-tmsp=~
+                       columns=*(list column:ast)     ::for now, to do: for CTEs
+                       lookup-type=*qualified-lookup-type
+                       pri-indx=~
+                       join=~
+                       predicate=~
+                       rowcount.prior-obj
+                       ?~  pri-indx.prior-obj  ~
+                                               key:(need pri-indx.prior-obj)
+                       pri-indexed=*(tree [(list @) (map @tas @)])
+                       indexed-rows=*(list indexed-row)
+                       %+  turn  indexed-rows.prior-obj
+                                 %+  cury  joined-row-from-indexed
+                                           (need object.prior-obj)
+                        ==
   =/  type-lookup                             +<.triple
   =/  qualified-columns=(list qual-col-type)  +>.triple
   ::
@@ -250,6 +293,7 @@
                      [~ tmsp.tbl]
                      [~ tmsp.file]
                      columns.tbl
+                     [%unqualified-lookup-type type-lookup.tbl]
                      [~ pri-indx.tbl]
                      join
                      predicate
@@ -343,6 +387,7 @@
                      [~ tmsp.schema]
                      [~ tmsp.+.r]
                      columns.view
+                     *unqualified-lookup-type
                      ~
                      join
                      predicate
@@ -408,6 +453,7 @@
                           schema-tmsp=~
                           data-tmsp=~
                           columns=*(list column:ast)  ::for now, to do: for CTEs
+                          lookup-type=*qualified-lookup-type
                           pri-indx=~
                           join=~
                           predicate=~
@@ -456,6 +502,7 @@
                     schema-tmsp=~
                     data-tmsp=~
                     columns=*(list column:ast)     ::for now, to do: for CTEs
+                    lookup-type=*qualified-lookup-type
                     pri-indx=~
                     join=~
                     predicate=~
@@ -495,6 +542,7 @@
                 schema-tmsp=~
                 data-tmsp=~
                 columns=*(list column:ast)     ::for now, to do: for CTEs
+                lookup-type=*qualified-lookup-type
                 pri-indx=~
                 join=~
                 predicate=~
