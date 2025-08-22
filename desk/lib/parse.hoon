@@ -2867,7 +2867,7 @@
             param
     ==
     =/  finalized  [%scalar scalar=finalized-coalesce alias=scalar-alias]
-    (weld ~[finalized] $(scalars +.scalars))
+    [finalized $(scalars +.scalars)]
   ?:  =(%if scalar-fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
     =/  finalized-if
@@ -2882,7 +2882,7 @@
             else.cooked-if
     ==
     =/  finalized  [%scalar scalar=finalized-if alias=scalar-alias]
-    (weld ~[finalized] $(scalars +.scalars))
+    [finalized $(scalars +.scalars)]
   ?:  =(%case scalar-fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
     =/  finalized-case
@@ -2895,11 +2895,10 @@
              ?~  cases.cooked-case
                ~
              ?:  ?=(qualified-column:ast then.i.cases.cooked-case)
-                %+  weld
-                  ~[[when=when.i.cases.cooked-case then=(mk-qualified-object then.i.cases.cooked-case alias-map)]]
-                $(cases.cooked-case t.cases.cooked-case)
-             (weld ~[-.cases.cooked-case] $(cases.cooked-case t.cases.cooked-case))
-
+               :-  :-  when.i.cases.cooked-case
+                   (mk-qualified-object then.i.cases.cooked-case alias-map)
+               $(cases.cooked-case t.cases.cooked-case)
+             [-.cases.cooked-case $(cases.cooked-case t.cases.cooked-case)]
       else  ?~  else.cooked-case
               ~
             =/  unwrapped-else  (need else.cooked-case)
@@ -2908,7 +2907,7 @@
                 else.cooked-case
     ==
     =/  finalized  [%scalar scalar=finalized-case alias=scalar-alias]
-    (weld ~[finalized] $(scalars +.scalars))
+    [finalized $(scalars +.scalars)]
   ~|  "produce-scalars: scalar {<scalar-fn-name>} not implemented"  !!
 ++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
@@ -4651,16 +4650,14 @@
   ~+
   =/  target  -.parsed
   =/  case-when-then-list   +<.parsed
-  =/  cases  |-
+  =/  cases
+  |-
   ^-  (list case-when-then:ast)
   ?~  case-when-then-list
     ~
-  %+  weld
-    :~
-    %+  case-when-then:ast
-      (produce-predicate (predicate-list ->-.case-when-then-list))
-    ->+>.case-when-then-list
-    ==
+  :-  %+  case-when-then:ast
+        (produce-predicate (predicate-list ->-.case-when-then-list))
+      ->+>.case-when-then-list
   $(case-when-then-list +.case-when-then-list)
   ?@  +>.parsed
     ?:  =(+>.parsed %end)
@@ -4723,15 +4720,15 @@
           (unit @t)
         ==
       current-param
-  (weld ~[(qualified-column:ast current-param)] $(parsed +.parsed))
+  [(qualified-column:ast current-param) $(parsed +.parsed)]
 ?:  ?=  $:
           %unqualified-column
           @tas
           (unit @t)
         ==
       current-param
-  (weld ~[(unqualified-column:ast current-param)] $(parsed +.parsed))
-(weld ~[(dime current-param)] $(parsed +.parsed))
+  [(unqualified-column:ast current-param) $(parsed +.parsed)]
+[(dime current-param) $(parsed +.parsed)]
 ++  parse-coalesce  ~+  (more com ;~(pose parse-aggregate get-datum))
 ++  parse-math
   ;~  plug
