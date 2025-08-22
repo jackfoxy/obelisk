@@ -2838,11 +2838,12 @@
     jss  +.jss
   ==
 :: todo:
-:: - implement case
 :: - implement arithmetic
 ::   - add arithmetic to scalar fn
 :: - change all scalar-fn param types to datum-or-scalar
 :: - add loop to check for scalar definitions with the same name; if found, crash
+::   - modify scalar fn type so that it has a name and an alias, to allow for
+::     mixed case scalar names
 ++  produce-scalars
   |=  [raw-scalars=* alias-map=(map @t qualified-object:ast)]
   ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
