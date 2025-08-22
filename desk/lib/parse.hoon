@@ -1742,7 +1742,7 @@
 ++  parse-query01  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-group-by
     parse-select
@@ -1752,7 +1752,7 @@
 ++  parse-query02  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-group-by
     parse-select
@@ -1761,7 +1761,7 @@
 ++  parse-query03  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-select
     parse-order-by
@@ -1770,7 +1770,7 @@
 ++  parse-query04  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
     parse-select
     end-or-next-command
@@ -1778,7 +1778,7 @@
 ++  parse-query05  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-select
     parse-order-by
     end-or-next-command
@@ -1786,14 +1786,14 @@
 ++  parse-query06  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-select
     end-or-next-command
   ==
 ++  parse-query07  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-group-by
     parse-select
     parse-order-by
@@ -1802,7 +1802,7 @@
 ++  parse-query08  ~+
   ;~  plug
     parse-object-and-joins
-    ::  (stag %scalars (star parse-scalar))
+    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
     parse-group-by
     parse-select
     end-or-next-command
@@ -2565,7 +2565,7 @@
   ~+
   ^-  query:ast     
   =/  from=(unit from:ast)  ~
-  =/  scalars=(list scalar-function:ast)  ~
+  =/  scalars=(list scalar:ast)  ~
   =/  predicate=(unit predicate:ast)  ~
   =/  group-by=(list grouping-column:ast)  ~
   =/  having=(unit predicate:ast)  ~
@@ -2580,6 +2580,7 @@
                    (mk-alias-map (need from))
                  alias-map 
 
+  ?~  -.a                     $(a +.a) :: discard nulls left from optional parsers
   ?:  =(-.a %query)           $(a +.a)
   ?:  =(-.a %end-command)    %:  query:ast
                                 %query
@@ -2595,7 +2596,7 @@
                                 (need select)
                                 order-by
                                 ==
-  ?:  =(-<.a %scalars)        $(a +.a, scalars ~)
+  ?:  =(-<.a %scalars)        $(a +.a, scalars (produce-scalars -.a alias-map))
   ?:  =(-<.a %where)          %=  $
                                 a          +.a
                                 predicate  :-  ~
@@ -2607,7 +2608,7 @@
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a)) :: this comparison is unused, maybe remove
   ~|("cannot parse query  {<a>}" !!)
 ::
 ++  produce-from
@@ -2836,7 +2837,79 @@
              js
     jss  +.jss
   ==
-::
+:: todo:
+:: - implement arithmetic
+::   - add arithmetic to scalar fn
+:: - change all scalar-fn param types to datum-or-scalar
+:: - add loop to check for scalar definitions with the same name; if found, crash
+::   - modify scalar fn type so that it has a name and an alias, to allow for
+::     mixed case scalar names
+++  produce-scalars
+  |=  [raw-scalars=* alias-map=(map @t qualified-object:ast)]
+  ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
+  =/  scalars  +.raw-scalars
+  |-
+  ^-  (list scalar:ast)
+  ?~  scalars
+    ~
+  =/  parsed-scalar  -.scalars
+  =/  scalar-alias  (@tas -.parsed-scalar)
+  =/  scalar-fn-name  (@tas +<.parsed-scalar)
+  =/  raw-scalar-body  +>.parsed-scalar 
+  ?:  =(%coalesce scalar-fn-name)
+    =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
+    =/  finalized-coalesce
+    %=  cooked-coalesce
+      data  %+  turn
+              data.cooked-coalesce
+            |=  param=datum:ast
+            ?:  ?=(qualified-column:ast param)
+              (mk-qualified-object param alias-map)
+            param
+    ==
+    =/  finalized  [%scalar scalar=finalized-coalesce alias=scalar-alias]
+    [finalized $(scalars +.scalars)]
+  ?:  =(%if scalar-fn-name)
+    =/  cooked-if  (cook-if raw-scalar-body)
+    =/  finalized-if
+    %=  cooked-if
+      then  ?:  ?=  qualified-column:ast
+                  then.cooked-if
+              (mk-qualified-object then.cooked-if alias-map)
+            then.cooked-if
+      else  ?:  ?=  qualified-column:ast
+                  else.cooked-if
+              (mk-qualified-object else.cooked-if alias-map)
+            else.cooked-if
+    ==
+    =/  finalized  [%scalar scalar=finalized-if alias=scalar-alias]
+    [finalized $(scalars +.scalars)]
+  ?:  =(%case scalar-fn-name)
+    =/  cooked-case  (cook-case-body raw-scalar-body)
+    =/  finalized-case
+    %=  cooked-case
+      target  ?:  ?=(qualified-column:ast target.cooked-case)
+              (mk-qualified-object target.cooked-case alias-map)
+            target.cooked-case
+      cases  |-
+             ^-  (list case-when-then:ast)
+             ?~  cases.cooked-case
+               ~
+             ?:  ?=(qualified-column:ast then.i.cases.cooked-case)
+               :-  :-  when.i.cases.cooked-case
+                   (mk-qualified-object then.i.cases.cooked-case alias-map)
+               $(cases.cooked-case t.cases.cooked-case)
+             [-.cases.cooked-case $(cases.cooked-case t.cases.cooked-case)]
+      else  ?~  else.cooked-case
+              ~
+            =/  unwrapped-else  (need else.cooked-case)
+            ?:  ?=(qualified-column:ast unwrapped-else)
+                    (some (mk-qualified-object unwrapped-else alias-map)) 
+                else.cooked-case
+    ==
+    =/  finalized  [%scalar scalar=finalized-case alias=scalar-alias]
+    [finalized $(scalars +.scalars)]
+  ~|  "produce-scalars: scalar {<scalar-fn-name>} not implemented"  !!
 ++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-object:ast)]
   ~+
@@ -3801,6 +3874,7 @@
   ==
 ++  cook-aggregate
   |=  parsed=*
+  ~&   "parsed: {<parsed>}"
   [%aggregate -.parsed +.parsed]
 ++  parse-aggregate
   ;~  pose
@@ -4541,10 +4615,15 @@
     ;~(sfix parse-datum whitespace)
     parse-datum
   ==
-::++  cook-if
-::  |=  parsed=*
-::  ^-  if-then-else:ast
-::  (if-then-else:ast %if-then-else -.parsed +>-.parsed +>+>-.parsed)
+++  cook-if
+  |=  parsed=*
+  ^-  if-then-else:ast
+  %:  if-then-else:ast
+    %if-then-else
+    (produce-predicate (predicate-list -.parsed))
+    +>-.parsed
+    +>+>-.parsed 
+  ==
 ++  parse-if
   ;~  plug
     parse-predicate
@@ -4567,24 +4646,29 @@
     ;~(pfix whitespace ;~(pose parse-aggregate scalar-body parse-datum))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
-++  cook-case
+++  cook-case-body
   |=  parsed=*
   ~+
-  =/  raw-cases   +<.parsed
-  =/  cases=(list case-when-then:ast)  ~
+  =/  target  -.parsed
+  =/  case-when-then-list   +<.parsed
+  =/  cases
   |-
-  ?.  =(raw-cases ~)
-    %=  $
-      cases      [(case-when-then:ast ->-.raw-cases ->+>.raw-cases) cases]
-      raw-cases  +.raw-cases
-    ==
-  ?:  ?=(qualified-column:ast -.parsed)
-    ?:  =('else' +>-.parsed)  (case:ast %case -.parsed (flop cases) +>+<.parsed)
-      (case:ast %case -.parsed (flop cases) ~)
-  ?:  ?=(dime -.parsed)
-    ?:  =('else' +>-.parsed)  (case:ast %case -.parsed (flop cases) +>+<.parsed)
-      (case:ast %case -.parsed (flop cases) ~)
-  ~|("cannot parse case  {<parsed>}" !!)
+  ^-  (list case-when-then:ast)
+  ?~  case-when-then-list
+    ~
+  :-  %+  case-when-then:ast
+        (produce-predicate (predicate-list ->-.case-when-then-list))
+      ->+>.case-when-then-list
+  $(case-when-then-list +.case-when-then-list)
+  ?@  +>.parsed
+    ?:  =(+>.parsed %end)
+      (case:ast %case target (flop cases) ~)
+    ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
+  ?:  ?&  ?=(qualified-column:ast target)
+          =(%else +>-.parsed)
+      ==
+    (case:ast %case target (flop cases) (some +>+<.parsed))
+  ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
   ;~  plug
     parse-datum
@@ -4599,9 +4683,10 @@
     ;~(plug (cold %if (jester 'if')) parse-if)
     ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
     ;~(plug (cold %case (jester 'case')) parse-case)
-    ;~  pfix  whitespace
-              ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-              ==
+    ;~  pfix
+      whitespace
+      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    ==
     ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
     (cold %pal ;~(plug whitespace pal))
     (cold %pal pal)
@@ -4619,6 +4704,32 @@
     (cold %ket ket)
     parse-datum
   ==
+++  cook-coalesce
+|=  parsed=*
+^-  coalesce:ast
+:-  %coalesce
+|-
+^-  (list datum:ast)
+?~  parsed
+  ~
+=/  current-param  -.parsed 
+::    ~&  "scalar item: {<current-param>}"
+?:  ?=  $:
+          %qualified-column
+          qualified-object:ast                  ::qualified-object
+          @tas
+          (unit @t)
+        ==
+      current-param
+  [(qualified-column:ast current-param) $(parsed +.parsed)]
+?:  ?=  $:
+          %unqualified-column
+          @tas
+          (unit @t)
+        ==
+      current-param
+  [(unqualified-column:ast current-param) $(parsed +.parsed)]
+[(dime current-param) $(parsed +.parsed)]
 ++  parse-coalesce  ~+  (more com ;~(pose parse-aggregate get-datum))
 ++  parse-math
   ;~  plug
@@ -4638,22 +4749,19 @@
 ++  scalar-stop  ;~
   pose
     ;~(plug whitespace (jester 'where'))
-    ;~(plug whitespace (jester 'scalar'))
     ;~(plug whitespace (jester 'select'))
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
-++  parse-scalar-part  ~+
-  ;~  plug
-    (cold %scalar ;~(pfix whitespace (jester 'scalar')))
-    parse-face
-  ==
 ++  parse-scalar
-  ;~  pose
-    ;~  plug  parse-scalar-part
-              ;~(pfix ;~(plug whitespace (jester 'as')) scalar-body)
-              ==
-    ;~(plug parse-scalar-part scalar-body)
+  ;~  plug
+      parse-face        :: scalar alias
+      scalar-body       :: scalar function invocation
   ==
+++  parse-scalars
+  ;~  plug
+      (cold %scalars ;~(pfix whitespace (jester 'scalars')))
+      (star parse-scalar)
+    ==
 ::
 ::  select
 ::

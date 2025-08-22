@@ -148,42 +148,47 @@
 +$  datum-or-scalar      $@(datum scalar-function)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
-+$  arithmatic
++$  arithmetic
   $:
     %arithmetic
     operator=scalar-op
-    left=*                         :: datum-or-scalar
-    right=*                        :: datum-or-scalar
+    left=datum                         :: datum-or-scalar
+    ::left=datum-or-scalar                         :: datum-or-scalar
+    right=datum                        :: datum-or-scalar
+    ::right=datum-or-scalar                        :: datum-or-scalar
   ==
 +$  if-then-else
   $:
     %if-then-else
-    if=*                           :: predicate
-    then=*                         :: datum-or-scalar
-    else=*                         :: datum-or-scalar
+    if=predicate                           :: predicate
+    then=datum                         :: datum-or-scalar
+    else=datum                         :: datum-or-scalar
   ==
 +$  case-when-then
   $:
-    when=*                         :: predicate | datum
-    then=*                         :: datum-or-scalar
+    when=predicate                         :: predicate | datum
+    then=datum                         :: datum-or-scalar
   ==
 +$  case
   $:
     %case
     target=datum
     cases=(list case-when-then)
-    else=*                         :: datum-or-scalar
+    else=(unit datum)                         :: datum-or-scalar
   ==
 +$  coalesce
+  $+  coalesce
   $:
     %coalesce
     data=(list datum)
+    ::data=(list datum-or-scalar)
   ==
 +$  scalar-function
   $%
     if-then-else
     case
     coalesce
+    :: arithmetic
   ==
 ::
 ::  query
@@ -193,7 +198,7 @@
   $:
     %query
     from=(unit from)
-    scalars=(list scalar-function)
+    scalars=(list scalar)
     predicate=(unit predicate)
     group-by=(list grouping-column)
     having=(unit predicate)
@@ -272,11 +277,11 @@
     aggregate=aggregate
     alias=(unit @t)
   ==
-+$  selected-scalar
++$  scalar
   $:
-    %selected-scalar
+    %scalar
     scalar=scalar-function
-    alias=(unit @t)
+    alias=@t
   ==
 +$  selected-value
   $:

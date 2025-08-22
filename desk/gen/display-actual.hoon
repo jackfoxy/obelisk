@@ -183,6 +183,7 @@
             (cold '%holiday' (jest '34.165.556.075.327.336'))
             (cold '%results' (jest '32.497.631.497.512.306'))
             (cold '%address' (jest '32.496.501.869.798.497'))
+            (cold '%scalars' (jest '32.495.385.077.441.395'))
             (cold '%persons' (jest '32.491.047.279.027.568'))
             (cold '%animals' (jest '32.488.788.024.979.041'))
             (cold '%minutes' (jest '32.481.173.182.507.373'))
