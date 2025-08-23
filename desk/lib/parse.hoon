@@ -976,10 +976,11 @@
                                             -.parsed
                                             %.n
                                             :-  ~
-                                                %:  as-of-offset:ast  %as-of-offset
-                                                                      +>-.parsed
-                                                                      +>+<.parsed
-                                                                      ==
+                                                %:  as-of-offset:ast
+                                                      %as-of-offset
+                                                      +>-.parsed
+                                                      +>+<.parsed
+                                                      ==
                                             ==
                     commands
             ==
@@ -1008,10 +1009,11 @@
                                             ->.parsed
                                             %.y
                                             :-  ~
-                                                %:  as-of-offset:ast  %as-of-offset
-                                                                      +>-.parsed
-                                                                      +>+<.parsed
-                                                                      ==
+                                                %:  as-of-offset:ast
+                                                      %as-of-offset
+                                                      +>-.parsed
+                                                      +>+<.parsed
+                                                      ==
                                             ==
                     commands
             ==
@@ -1020,7 +1022,12 @@
               script    q.q.u.+3.q:nail
               commands
                 ?:  =(%now +>.parsed)
-                  :-  (drop-namespace:ast %drop-namespace -<.parsed ->.parsed %.n ~)
+                  :-  %:  drop-namespace:ast  %drop-namespace
+                                              -<.parsed
+                                              ->.parsed
+                                              %.n
+                                              ~
+                                              ==
                       commands
                 ?:  ?=([@ @] +>.parsed)
                   :-  %:  drop-namespace:ast  %drop-namespace
@@ -1035,14 +1042,15 @@
                                             ->.parsed
                                             %.n
                                             :-  ~
-                                                %:  as-of-offset:ast  %as-of-offset
-                                                                      +>-.parsed
-                                                                      +>+<.parsed
-                                                                      ==
+                                                %:  as-of-offset:ast  
+                                                      %as-of-offset
+                                                      +>-.parsed
+                                                      +>+<.parsed
+                                                      ==
                                             ==
                     commands
             ==
-          ?:  ?=([[%force [@ @]] %as-of *] parsed)            :: force db.name as of
+          ?:  ?=([[%force [@ @]] %as-of *] parsed)        :: force db.name as of
             %=  $
               script    q.q.u.+3.q:nail
               commands
@@ -1067,10 +1075,11 @@
                                             ->+.parsed
                                             %.y
                                             :-  ~
-                                                %:  as-of-offset:ast  %as-of-offset
-                                                                      +>-.parsed
-                                                                      +>+<.parsed
-                                                                      ==
+                                                %:  as-of-offset:ast
+                                                      %as-of-offset
+                                                      +>-.parsed
+                                                      +>+<.parsed
+                                                      ==
                                             ==
                     commands
             ==
@@ -4742,8 +4751,12 @@
   ==
 ++  scalar-stop  ;~
   pose
+    ;~(plug whitespace (jest ')'))
     ;~(plug whitespace (jester 'where'))
     ;~(plug whitespace (jester 'select'))
+    ;~(plug whitespace (jester 'else'))
+    ;~(plug whitespace (jester 'endif'))
+    ;~(plug whitespace (jester 'end'))
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  parse-scalar
