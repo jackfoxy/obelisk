@@ -1347,9 +1347,9 @@
                   "       col2=44; "
                   ::
                   %-  crip  "value type: p=~.ud does not match column: ".
-                            "[%qualified-column qualifier=[%qualified-object ".
+                            "[%qualified-column qualifier=[%qualified-table ".
                             "ship=~ database=%db1 namespace=%dbo ".
-                            "name=%my-table alias=~] column=%col2 alias=~]"
+                            "name=%my-table alias=~] name=%col2 alias=~]"
                   ==
 ::
 ::  fail on table not matching by column qualifier
@@ -1367,9 +1367,9 @@
   ::
   %+  expect-fail-message
         %-  crip
-            "UPDATE: [%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "UPDATE: [%qualified-table ship=~ database=%db1 namespace=%dbo ".
             "name=%my-table alias=~] not matched by column qualifier ".
-            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "[%qualified-table ship=~ database=%db1 namespace=%dbo ".
             "name=%my-table-1 alias=~]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
           %obelisk-action
@@ -1377,7 +1377,7 @@
                   :~
                     :*  %update
                         ctes=~
-                        :*  %qualified-object
+                        :*  %qualified-table
                             ship=~
                             database=%db1
                             namespace=%dbo
@@ -1386,24 +1386,24 @@
                             ==
                         as-of=~
                         :-  :~  :^  %qualified-column
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database=%db1
                                         namespace=%dbo
                                         name=%my-table-1
                                         alias=~
                                         ==
-                                    column=%col2
+                                    name=%col2
                                     alias=~
                                 :^  %qualified-column
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database=%db1
                                         namespace=%dbo
                                         name=%my-table
                                         alias=~
                                         ==
-                                    column=%col0
+                                    name=%col0
                                     alias=~
                                 ==
                             :~  [p=~.p q=44]
@@ -1434,7 +1434,7 @@
                   :~
                     :*  %update
                         ctes=~
-                        :*  %qualified-object
+                        :*  %qualified-table
                             ship=~
                             database=%db1
                             namespace=%dbo
@@ -1443,24 +1443,24 @@
                             ==
                         as-of=~
                         :-  :~  :^  %qualified-column
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database=%db1
                                         namespace=%dbo
                                         name=%my-table
                                         alias=~
                                         ==
-                                    column=%col2
+                                    name=%col2
                                     alias=~
                                 :^  %qualified-column
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database=%db1
                                         namespace=%dbo
                                         name=%my-table
                                         alias=~
                                         ==
-                                    column=%col0
+                                    name=%col0
                                     alias=~
                                 ==
                             :~  [p=~.p q=44]

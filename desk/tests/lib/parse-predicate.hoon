@@ -25,14 +25,14 @@
   [[%unqualified-column 'foo' ~] ~ ~]
 ++  t1-foo
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'T1']]
           'foo'
           ~
       ~
       ~
 ++  a1-foo
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
           'foo'
           ~
       ~
@@ -41,7 +41,7 @@
   [[%unqualified-column 'foo2' ~] ~ ~]
 ++  t1-foo2
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'T1']]
           'foo2'
           ~
       ~
@@ -50,7 +50,7 @@
   [[%unqualified-column 'foo3' ~] ~ ~]
 ++  t1-foo3
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'T1']]
           'foo3'
           ~
       ~
@@ -67,14 +67,14 @@
   [[%unqualified-column 'bar' ~] ~ ~]
 ++  t2-bar
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'T2']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'T2']]
           'bar'
           ~
       ~
       ~
 ++  a2-bar
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A2']]
           'bar'
           ~
       ~
@@ -83,56 +83,56 @@
   [[%unqualified-column 'foobar' ~] ~ ~]
 ++  a1-adoption-email
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
           'adoption-email'
           alias=~
       ~
       ~
 ++  a2-adoption-email
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A2']]
           'adoption-email'
           alias=~
       ~
       ~
 ++  a1-adoption-date
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
           'adoption-date'
           alias=~
       ~
       ~
 ++  a2-adoption-date
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A2']]
           'adoption-date'
           alias=~
       ~
       ~
 ++  a1-name
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
           'name'
           alias=~
       ~
       ~
 ++  a2-name
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A2']]
           'name'
           alias=~
       ~
       ~
 ++  a1-species
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A1']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
           'species'
           alias=~
       ~
       ~
 ++  a2-species
   :+  :^  %qualified-column
-          [%qualified-object ~ %db1 %dbo %adoptions alias=[~ 'A2']]
+          [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A2']]
           'species'
           alias=~
       ~
@@ -142,7 +142,7 @@
   :+  %aggregate
       function='count'
       :^  %qualified-column
-          :*  %qualified-object
+          :*  %qualified-table
               ship=~
               database='UNKNOWN'
               namespace='COLUMN-OR-CTE'
@@ -191,9 +191,9 @@
 ::
 ++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
 ++  foo-table
-  [%qualified-object ship=~ database='db1' namespace='dbo' name='foo' alias=~]
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]
 ++  foo-table-f1
-  :*  %qualified-object
+  :*  %qualified-table
       ship=~
       database='db1'
       namespace='dbo'
@@ -211,7 +211,7 @@
 ++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
 ++  foo-alias-y
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -220,7 +220,7 @@
           ==
 ++  bar-alias-x
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -229,7 +229,7 @@
           ==
 ++  foo-unaliased
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -238,7 +238,7 @@
           ==
 ++  bar-unaliased
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -247,7 +247,7 @@
           ==
 ++  adoptions
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -256,7 +256,7 @@
           ==
 ++  adoptions-t2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -1446,7 +1446,7 @@
                     :-  ~
                         :^  %from
                             :-  %table-set
-                                :*  %qualified-object
+                                :*  %qualified-table
                                     ship=~
                                     database='db1'
                                     namespace='dbo'
@@ -1457,7 +1457,7 @@
                             :~  :*  %joined-object
                                     join=%join
                                     :-  %table-set
-                                        :*  %qualified-object
+                                        :*  %qualified-table
                                             ship=~
                                             database='db1'
                                             namespace='dbo'
@@ -1523,10 +1523,10 @@
   =/  pred=(tree predicate-component:ast)
         :+  %not
             :+  %eq
-                :+  [%unqualified-column column=%foo alias=~]
+                :+  [%unqualified-column name=%foo alias=~]
                     ~
                     ~
-                :+  [%unqualified-column column=%bar alias=~]
+                :+  [%unqualified-column name=%bar alias=~]
                     ~
                     ~
             ~
@@ -1557,10 +1557,10 @@
   =/  pred=(tree predicate-component:ast)
         :+  %not
             :+  %eq
-                :+  [%unqualified-column column=%foo alias=~]
+                :+  [%unqualified-column name=%foo alias=~]
                     ~
                     ~
-                :+  [%unqualified-column column=%bar alias=~]
+                :+  [%unqualified-column name=%bar alias=~]
                     ~
                     ~
             ~
@@ -1593,10 +1593,10 @@
         :+  %not
             :+  %not
                 :+  %eq
-                    :+  [%unqualified-column column=%foo alias=~]
+                    :+  [%unqualified-column name=%foo alias=~]
                         ~
                         ~
-                    :+  [%unqualified-column column=%bar alias=~]
+                    :+  [%unqualified-column name=%bar alias=~]
                         ~
                         ~
                 ~
@@ -1630,10 +1630,10 @@
         :+  %not
             :+  %not
                 :+  %eq
-                    :+  [%unqualified-column column=%foo alias=~]
+                    :+  [%unqualified-column name=%foo alias=~]
                         ~
                         ~
-                    :+  [%unqualified-column column=%bar alias=~]
+                    :+  [%unqualified-column name=%bar alias=~]
                         ~
                         ~
                 ~
@@ -1727,7 +1727,7 @@
                     :-  ~
                         :^  %from
                             :-  %table-set
-                                :*  %qualified-object
+                                :*  %qualified-table
                                     ship=~
                                     database='db1'
                                     namespace='dbo'
@@ -1738,7 +1738,7 @@
                             :~  :*  %joined-object
                                     join=%join
                                     :-  %table-set
-                                        :*  %qualified-object
+                                        :*  %qualified-table
                                             ship=~
                                             database='db1'
                                             namespace='dbo'

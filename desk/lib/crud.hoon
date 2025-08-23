@@ -83,7 +83,7 @@
             :~  :-  %message
                     %-  crip
                         %+  weld  "TRUNCATE TABLE "
-                            (trip (qualified-object-to-cord table.d))
+                            (trip (qualified-table-to-cord table.d))
                 [%message 'no data in table to truncate']
                 ==
         next-schemas
@@ -112,7 +112,7 @@
           :~  :-  %message
                   %-  crip
                       %+  weld  "TRUNCATE TABLE "
-                          (trip (qualified-object-to-cord table.d))
+                          (trip (qualified-table-to-cord table.d))
               [%server-time now.bowl]
               [%data-time sys-time]
               [%vector-count dropped-rows]
@@ -215,7 +215,7 @@
       :~  :-  %message
               %-  crip
                   %+  weld  "INSERT INTO "
-                            (trip (qualified-object-to-cord table.ins))
+                            (trip (qualified-table-to-cord table.ins))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
@@ -288,7 +288,7 @@
         :~  :-  %message
                 %-  crip
                     %+  weld  "DELETE FROM "
-                              (trip (qualified-object-to-cord table.d))
+                              (trip (qualified-table-to-cord table.d))
             [%server-time now.bowl]
             [%schema-time tmsp.table.txn]
             [%data-time tmsp.file.txn]
@@ -313,7 +313,7 @@
       :~  :-  %message
               %-  crip
                   %+  weld  "DELETE FROM "
-                            (trip (qualified-object-to-cord table.d))
+                            (trip (qualified-table-to-cord table.d))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
@@ -385,7 +385,7 @@
         :~  :-  %message
                 %-  crip
                     %+  weld  "UPDATE "
-                              (trip (qualified-object-to-cord table.u))
+                              (trip (qualified-table-to-cord table.u))
             [%server-time now.bowl]
             [%schema-time tmsp.table.txn]
             [%data-time tmsp.file.txn]
@@ -430,7 +430,7 @@
       :~  :-  %message
               %-  crip
                   %+  weld  "UPDATE "
-                            (trip (qualified-object-to-cord table.u))
+                            (trip (qualified-table-to-cord table.u))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
@@ -448,7 +448,7 @@
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  [server (list set-table) (list vector)]
   :: literal only
-  ?~  from.q  [state (select-literals columns.selection.q is-cte)]
+  ?~  from.q  [state (select-literals columns.select.q is-cte)]
   :: no joins, it's a single table
   =/  f  (need from.q)
   ?~  joins.f  (select-table(state state, bowl bowl) q is-cte)
@@ -456,9 +456,9 @@
   =/  =join-return  (join-all(state state, bowl bowl) q)
   =/  set-tables  set-tables.join-return
   ?~  set-tables  ~|("can't get here" !!)
-  =/  selected  columns.selection.q
+  =/  selected  columns.select.q
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
-  =.  selected  (qualify-unqualified columns.selection.q qualifier-lookup)
+  =.  selected  (qualify-unqualified columns.select.q qualifier-lookup)
   =/  filter=(unit $-(data-row ?))
     ?~  predicate.q  ~
     :-  ~
@@ -510,9 +510,9 @@
   ?~  object.i.cols
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
-  =/  qualifier=qualified-object:ast  qualifier:(need object.cell)
+  =/  qualifier=qualified-table:ast  qualifier:(need object.cell)
   =/  value
-        (~(got by (~(got by data.i.rows) qualifier)) column:(need object.cell))
+        (~(got by (~(got by data.i.rows) qualifier)) name:(need object.cell))
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +select-results:  [named-ctes server (list set-table) (list vector)]
@@ -528,7 +528,7 @@
   =/  ctes=(list set-table)  (zing ~(val by named-ctes))
   =/  raw  %+  sort  %~  tap  in
                               %^  fold  (weld set-tables ctes)
-                                        *(set [qualified-object:ast @da @da])
+                                        *(set [qualified-table:ast @da @da])
                                         pick-from-object
                      order-results
   ?~  set-tables  ~|("can't get here" !!)
@@ -556,7 +556,7 @@
                   ==
   %=  $
     raw  t.raw
-    out  :-  :~  [%message (qualified-object-to-cord -.i.raw)]
+    out  :-  :~  [%message (qualified-table-to-cord -.i.raw)]
                  [%schema-time +<.i.raw]
                  [%data-time +>.i.raw]
                  ==
@@ -565,34 +565,34 @@
 ::
 ::  +order-results
 ++  order-results
-  |=  $:  p=[=qualified-object:ast schema-tmsp=@da data-tmsp=@da]
-          q=[=qualified-object:ast schema-tmsp=@da data-tmsp=@da]
+  |=  $:  p=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
+          q=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
           ==
-  ?:  ?!  %+  aor  (biff ship.qualified-object.p same)
-                   (biff ship.qualified-object.q same)                 %.y
-  ?:  ?&  .=  (biff ship.qualified-object.p same)
-              (biff ship.qualified-object.q same)
-              ?!  %+  aor  database.qualified-object.p
-                           database.qualified-object.q
+  ?:  ?!  %+  aor  (biff ship.qualified-table.p same)
+                   (biff ship.qualified-table.q same)                 %.y
+  ?:  ?&  .=  (biff ship.qualified-table.p same)
+              (biff ship.qualified-table.q same)
+              ?!  %+  aor  database.qualified-table.p
+                           database.qualified-table.q
           ==                                                           %.y
-  ?:  ?&  .=  (biff ship.qualified-object.p same)
-              (biff ship.qualified-object.q same)
-          =(database.qualified-object.p database.qualified-object.q)
-          !(aor namespace.qualified-object.p namespace.qualified-object.q)
+  ?:  ?&  .=  (biff ship.qualified-table.p same)
+              (biff ship.qualified-table.q same)
+          =(database.qualified-table.p database.qualified-table.q)
+          !(aor namespace.qualified-table.p namespace.qualified-table.q)
           ==                                                           %.y
-  ?:  ?&  .=  (biff ship.qualified-object.p same) 
-              (biff ship.qualified-object.q same)
-          =(database.qualified-object.p database.qualified-object.q)
-          =(namespace.qualified-object.p namespace.qualified-object.q)
-          !(aor name.qualified-object.p name.qualified-object.q)
+  ?:  ?&  .=  (biff ship.qualified-table.p same) 
+              (biff ship.qualified-table.q same)
+          =(database.qualified-table.p database.qualified-table.q)
+          =(namespace.qualified-table.p namespace.qualified-table.q)
+          !(aor name.qualified-table.p name.qualified-table.q)
           ==                                                           %.y
   ?:  (gth schema-tmsp.p schema-tmsp.q)                                %.y
   ?:  &(=(schema-tmsp.p schema-tmsp.q) (gth data-tmsp.p data-tmsp.q))  %.y
   %.n
 ::
 ++  pick-from-object
-  |=  [a=set-table state=(set [qualified-object:ast @da @da])]
-  ^-  (set [qualified-object:ast @da @da])
+  |=  [a=set-table state=(set [qualified-table:ast @da @da])]
+  ^-  (set [qualified-table:ast @da @da])
   ?~  object.a    state
   %-  ~(put in state)  :+  (need object.a)
                            (need schema-tmsp.a)
@@ -720,13 +720,13 @@
     updates  +.updates
   ==
 ++  mk-updates
-  |=  $:  table=qualified-object:ast
+  |=  $:  table=qualified-table:ast
           columns=(list qualified-column:ast)
           values=(list *)   ::(list value-or-default:ast)
           type-lookup=unqualified-lookup-type
           ==
   ^-  (list [@tas @])
-  =/  updates=(list [@tas @])  ~
+  =/  updates  *(list [@tas @])
   |-
   ?~  columns  updates
   ?~  values  !!   :: can't get here
@@ -734,9 +734,9 @@
     %=  $
       columns   t.columns
       values    t.values
-      updates   ?:  =(~.da (~(got by +.type-lookup) column.i.columns))
-                  [[column.i.columns *@da] updates]
-                [[column.i.columns 0] updates]
+      updates   ?:  =(~.da (~(got by +.type-lookup) name.i.columns))
+                  [[name.i.columns *@da] updates]
+                [[name.i.columns 0] updates]
     ==
   ?:  ?=(dime i.values)
     %=  $
@@ -747,8 +747,8 @@
           ~|  "UPDATE: {<table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ?:  =(p.i.values (~(got by +.type-lookup) column.i.columns))
-          [[column.i.columns +.i.values] updates]
+        ?:  =(p.i.values (~(got by +.type-lookup) name.i.columns))
+          [[name.i.columns +.i.values] updates]
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
   ~|("value type not supported: {<i.values>}" !!)

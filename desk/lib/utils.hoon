@@ -253,7 +253,7 @@
 ++  make-ordering
   |=  [columns=(list column:ast) order=*]
   ^-  (list column-order)
-  =/  out=(list column-order)  ~
+  =/  out  *(list column-order)
   |-
   ?~  order  (flop out)
   ~|  "bad order column:  {<-.order>} ..."
@@ -262,7 +262,7 @@
   =/  order-column  column.ordering
   =/  col-i=(unit [@ @ta])
         ?:  ?=(qualified-column:ast order-column)
-          (try-find-col-index columns column.order-column)
+          (try-find-col-index columns name.order-column)
         ~|("order column error:  {<order-column>}" !!)
   ?~  col-i  $(order +.order)
   =/  offset-type  (need col-i)
@@ -288,7 +288,7 @@
 ++  atoms-2-mapped-row
   |=  [p=(list (list @)) q=(list column:ast)]
   ^-  [@ (list (map @tas @))]
-  =/  rows=(list (map @tas @))  ~
+  =/  rows  *(list (map @tas @))
   =/  i  0
   |-
   ?~  p  [i (flop rows)]
@@ -298,14 +298,14 @@
 ++  zip-columns
   |*  [a=(list @) b=(list column:ast)]
   ^-  (list [@tas @])
-  =/  c=(list [@tas @])  ~
+  =/  c  *(list [@tas @])
   |-
   ?~  a  ?~  b  c  ~|('column lists of unequal length' !!)
   ?~  b  ~|('column lists of unequal length' !!)
   $(a +.a, b +.b, c [[name.i.b -.a] c])
 ::
-++  qualified-object-to-cord
-  |=  a=qualified-object:ast
+++  qualified-table-to-cord
+  |=  a=qualified-table:ast
   ^-  @t
   =/  b  %-  zing  :~  (trip database.a)
                        "."
@@ -338,11 +338,11 @@
   ^-  (list templ-cell)
   =/  i  0
   =/  col-lookup
-    %-  ~(gas by `(map [qualified-object:ast @tas] @ta)`~)
+    %-  ~(gas by `(map [qualified-table:ast @tas] @ta)`~)
         %+  turn
               cols
-              |=(a=qual-col-type [[qualifier:-.a column:-.a] +.a])
-  =/  cells=(list templ-cell)  ~
+              |=(a=qual-col-type [[qualifier:-.a name:-.a] +.a])
+  =/  cells  *(list templ-cell)
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  (addr-join j cells)
@@ -356,15 +356,15 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells  ~|  "SELECT: column {<column.i.selected>} not found"  
+      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
              :-
                %:  templ-cell
                      %templ-cell
                      [~ i.selected]
                      0  :: addr
-                     :-  (heading i.selected column.i.selected)
+                     :-  (heading i.selected name.i.selected)
                          :-  %-  ~(got by col-lookup)
-                                 [qualifier.i.selected column.i.selected]
+                                 [qualifier.i.selected name.i.selected]
                               0
                      ==
                cells
@@ -401,18 +401,18 @@
 ++  mk-templ-cell
   |=  a=qual-col-type
   ^-  templ-cell
-  (templ-cell %templ-cell `-.a 0 `vector-cell`[column.-.a [+.a 0]])
+  (templ-cell %templ-cell `-.a 0 `vector-cell`[name.-.a [+.a 0]])
 ::
 ++  addr-join
   |=  [j=joined-row cs=(list templ-cell)]
   ^-  (list templ-cell)
-  =/  cs2=(list templ-cell)  ~
+  =/  cs2  *(list templ-cell)
   |-
   ?~  cs  (flop cs2)
   ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need object.i.cs)
   =/  xx=(map @tas @)  (~(got by data.j) qualifier.qual-col)
-  =/  addr  (~(dig by xx) column:(need object.i.cs))
+  =/  addr  (~(dig by xx) name:(need object.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
     cs  t.cs
@@ -434,8 +434,8 @@
     %-  ~(gas by *(map @tas @ta))
         %+  turn
               cols
-              |=(a=qual-col-type [column:-.a +.a])
-  =/  cells=(list templ-cell)  ~
+              |=(a=qual-col-type [name:-.a +.a])
+  =/  cells  *(list templ-cell)
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  (addr-indexed row cells)
@@ -449,21 +449,21 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells  ~|  "SELECT: column {<column.i.selected>} not found"  
+      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
              :-
                %:  templ-cell
                      %templ-cell
                      ::~  ::[~ i.selected]
                      :-  ~
                          :^  %qualified-column
-                             *qualified-object:ast
-                             column.i.selected 
+                             *qualified-table:ast
+                             name.i.selected 
                              alias.i.selected
 
                      0  :: addr
-                     :-  (heading i.selected column.i.selected)
+                     :-  (heading i.selected name.i.selected)
                          :-  %-  ~(got by col-lookup)
-                                 column.i.selected
+                                 name.i.selected
                               0
                      ==
                cells
@@ -472,15 +472,15 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells  ~|  "SELECT: column {<column.i.selected>} not found"  
+      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
              :-
                %:  templ-cell
                      %templ-cell
                      [~ i.selected]
                      0  :: addr
-                     :-  (heading i.selected column.i.selected)
+                     :-  (heading i.selected name.i.selected)
                          :-  %-  ~(got by col-lookup)
-                                 column.i.selected
+                                 name.i.selected
                               0
                      ==
                cells
@@ -517,13 +517,13 @@
 ++  addr-indexed
   |=  [row=indexed-row cs=(list templ-cell)]
   ^-  (list templ-cell)
-  =/  cs2=(list templ-cell)  ~
+  =/  cs2  *(list templ-cell)
   |-
   ?~  cs  (flop cs2)
   ?~  object.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need object.i.cs)
   ::=/  xx=(map @tas @)  -:(~(got by data.row) qualifier.qual-col)
-  =/  addr  (~(dig by data.row) column:(need object.i.cs))
+  =/  addr  (~(dig by data.row) name:(need object.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell object.i.cs (need addr) vc.i.cs) cs2]
     cs  t.cs
@@ -531,28 +531,27 @@
 ::
 ++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)
-          qualifier-lookup=(map @tas (list qualified-object:ast))
+          qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
-  =/  selected-out=(list selected-column:ast)  ~
+  =/  selected-out  *(list selected-column:ast)
   |-
   ?~  selected  (flop selected-out)
   ?.  ?=(unqualified-column:ast -.selected)
     %=  $
-      selected      +.selected
-      selected-out  [-.selected selected-out]
+      selected      t.selected
+      selected-out  [i.selected selected-out]
     ==
-  =/  sel=unqualified-column:ast  -.selected
-  =/  qualifiers   ~|  "SELECT: column {<column.sel>} not found"
-                       (~(got by qualifier-lookup) column.sel)
+  =/  qualifiers   ~|  "SELECT: column {<name.i.selected>} not found"
+                       (~(got by qualifier-lookup) name.i.selected)
   ?:  (gth (lent qualifiers) 1)
-    ~|("SELECT: column {<column.sel>} must be qualified" !!)
+    ~|("SELECT: column {<name.i.selected>} must be qualified" !!)
   %=  $
-    selected      +.selected
+    selected      t.selected
     selected-out  :-  ^-  selected-column:ast
                       %:  qualified-column:ast  %qualified-column
                                                 -.qualifiers
-                                                column.sel
-                                                alias.sel
+                                                name.i.selected
+                                                alias.i.selected
                                                 ==
                       selected-out
   ==
@@ -562,7 +561,7 @@
 ++  mk-key-column
   |=  [=column-lookup pri-indx=(list ordered-column:ast)]
   ^-  (list key-column)
-  =/  key=(list key-column)  ~
+  =/  key  *(list key-column)
   |-
   ?~  pri-indx  (flop key)
   %=  $
@@ -623,7 +622,7 @@
   ~|  "INSERT: invalid column: {<p>}"
   (column:ast %column p -:(~(got by q) p))
 ::
-::  +upd-indices-views:  [server qualified-object @da =views] -> server
+::  +upd-indices-views:  [server qualified-table @da =views] -> server
 ::
 ::  post- insert, update, delete, truncate procedure to create new view
 ::  and index instances for effected tables
@@ -631,7 +630,7 @@
 ++  upd-indices-views    :: to do: revisit when there are views & indices
   |=  $:  state=server
           sys-time=@da
-          objs=(list qualified-object:ast)
+          objs=(list qualified-table:ast)
           sys-vws=(list [@tas @tas])
           ==
   ^-  server
@@ -729,14 +728,14 @@
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
 ::  +mk-qualifier-lookup:  [(list set-table) (list selected-column:ast)]
-::                         -> (map @tas (list qualified-object:ast))
+::                         -> (map @tas (list qualified-table:ast))
 ::
 ::  Make lookup qualifier by column name for predicate processing when a column
 ::  is unqualified.
 ++  mk-qualifier-lookup
     |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
-    ^-  (map @tas (list qualified-object:ast))
-    =/  lookup  *(map @tas (list qualified-object:ast))
+    ^-  (map @tas (list qualified-table:ast))
+    =/  lookup  *(map @tas (list qualified-table:ast))
     |-
     ?~  sources           lookup
     =/  source=set-table  i.sources
@@ -757,7 +756,7 @@
     ==
 ::
 ::  +common-txn
-::    [tape server @da qualified-object:ast (unit as-of:ast) (map @tas @da)]
+::    [tape server @da qualified-table:ast (unit as-of:ast) (map @tas @da)]
 ::    -> txn-meta
 ::
 ::  source-content-time is the data state time against which to apply the
@@ -768,7 +767,7 @@
   |=  $:  txn=tape
           state=server
           now=@da
-          t=qualified-object:ast
+          t=qualified-table:ast
           as-of=(unit as-of:ast)
           next-schemas=(map @tas @da)
           ==
@@ -909,7 +908,7 @@
 ++  row-cells
   |=  [p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (map @tas @)
-  =/  cells=(list [@tas @])  ~
+  =/  cells  *(list [@tas @])
   |-
   ?~  p  (malt cells)
   %=  $
@@ -932,11 +931,11 @@
   ~|("row cell {<p>} not supported" !!)
 ::
 ++  joined-row-from-indexed
-  |=  [qo=qualified-object:ast =indexed-row]
+  |=  [qo=qualified-table:ast =indexed-row]
   ^-  joined-row      
   :+  %joined-row
       key.indexed-row
-      %+  ~(put by *(map qualified-object:ast (map @tas @)))
+      %+  ~(put by *(map qualified-table:ast (map @tas @)))
           qo
           data.indexed-row
 ::
@@ -984,7 +983,7 @@
   ~+  :: keep, makes big difference inserting large @t
   ^-  ?
   ?:  =(a b)  %.y
-  =/  e=(list ?)  ~
+  =/  e  *(list ?)
   |-
   =+  [c=(end 3 a) d=(end 3 b)]
   ?:  =(c 0)

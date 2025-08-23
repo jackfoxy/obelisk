@@ -597,7 +597,7 @@
 ::  commands
 ++  cmd-two-col
   :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table-2' ~]
+      [%qualified-table ~ 'db1' 'dbo' 'my-table-2' ~]
       ~[[%column 'col1' %t] [%column 'col2' %p]]
       ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
       ~
@@ -605,7 +605,7 @@
   ==
 ++  cmd-one-col
   :*  %create-table
-      [%qualified-object ~ 'db1' 'dbo' 'my-table' ~]
+      [%qualified-table ~ 'db1' 'dbo' 'my-table' ~]
       ~[[%column 'col1' %t]]
       ~[[%ordered-column 'col1' %.y]]
       ~
@@ -956,7 +956,7 @@
   =|  run=@ud
   =/  cmd
     :^  %drop-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1018,7 +1018,7 @@
   =|  run=@ud
   =/  cmd
     :^  %drop-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1096,7 +1096,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1150,7 +1150,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'

@@ -87,7 +87,7 @@
                              permission=%readwrite
                              grantees=~[[[~.p ~sampel-palnet] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ~
                                                                'db'
                                                                'ns'
@@ -108,7 +108,7 @@
                              permission=%adminread
                              grantees=~[[[~.tas %parent] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
                                                                namespace='ns'
@@ -129,7 +129,7 @@
                              permission=%readwrite
                              grantees=~[[[~.p ~sampel-palnet] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
                                                                namespace='dbo'
@@ -150,7 +150,7 @@
                              permission=%adminread
                              grantees=~[[[~.tas %parent] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
                                                                namespace='dbo'
@@ -171,7 +171,7 @@
                              permission=%readwrite
                              grantees=~[[[~.p ~sampel-palnet] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -196,7 +196,7 @@
                                  [[~.p ~sampel-palnet] ~]
                                  ==
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -221,7 +221,7 @@
                                  [[~.p ~sampel-palnet] ~]
                                  ==
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
                                                                namespace='dbo'
@@ -246,7 +246,7 @@
                                  [[~.p ~sampel-palnet] ~]
                                  ==
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -271,7 +271,7 @@
                                  [[~.p ~sampel-palnet] ~]
                                  ==
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
                                                                namespace='dbo'
@@ -292,7 +292,7 @@
                              permission=%adminread
                              grantees=~[[[~.tas %parent] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -313,7 +313,7 @@
                              permission=%adminread
                              grantees=~[[[~.tas %our] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -339,7 +339,7 @@
                                  [[~.tas %moons] [~ /foo/moons]]
                                  ==
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -369,7 +369,7 @@
                            [[~.tas %moons] [~ /foo/moons]]
                            ==
                        :~  :-  %table-set
-                               %:  qualified-object:ast  %qualified-object
+                               %:  qualified-table:ast  %qualified-table
                                                          ship=~
                                                          database='db2'
                                                          namespace='dbo'
@@ -553,7 +553,7 @@
                             %readwrite
                             ~[[[~.p ~sampel-palnet] ~]]
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                           ship=~
                                           database='db'
                                           namespace='ns'
@@ -574,7 +574,7 @@
                             %all
                             ~[[[~.tas %all] ~]]
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db'
                                         namespace='ns'
@@ -595,7 +595,7 @@
                             %readwrite
                             ~[[[~.p ~sampel-palnet] ~]]
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db'
                                         namespace='dbo'
@@ -616,7 +616,7 @@
                             %adminread
                             ~[[[~.tas %parent] ~]]
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db'
                                         namespace='dbo'
@@ -637,7 +637,7 @@
                             %readwrite
                             ~[[[~.p ~sampel-palnet] ~]]
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db2'
                                         namespace='dbo'
@@ -662,7 +662,7 @@
                                 [[~.p ~sampel-palnet] ~]
                                 ==
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db2'
                                         namespace='dbo'
@@ -689,7 +689,7 @@
                                 [[~.p ~sampel-palnet] ~]
                                 ==
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db'
                                         namespace='dbo'
@@ -714,7 +714,7 @@
                                 [[~.p ~sampel-palnet] ~]
                                 ==
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db2'
                                         namespace='dbo'
@@ -740,7 +740,7 @@
                                 [[~.p ~sampel-palnet] ~]
                                 ==
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db'
                                         namespace='dbo'
@@ -762,7 +762,7 @@
                             %adminread
                             ~[[[~.tas %parent] ~]]
                             :~  :-  %table-set
-                                    :*  %qualified-object
+                                    :*  %qualified-table
                                         ship=~
                                         database='db2'
                                         namespace='dbo'
@@ -783,7 +783,7 @@
                              permission=%adminread
                              revokees=~[[[~.tas %our] ~]]
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -809,7 +809,7 @@
                                  [[~.tas %moons] [~ /foo/moons]]
                                  ==
                              :~  :-  %table-set
-                                     %:  qualified-object:ast  %qualified-object
+                                     %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
                                                                namespace='dbo'
@@ -839,7 +839,7 @@
                            [[~.tas %moons] [~ /foo/moons]]
                            ==
                        :~  :-  %table-set
-                               %:  qualified-object:ast  %qualified-object
+                               %:  qualified-table:ast  %qualified-table
                                                          ship=~
                                                          database='db2'
                                                          namespace='dbo'

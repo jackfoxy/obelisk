@@ -91,10 +91,10 @@
     name=@tas
     type=@ta
   ==
-+$  qualified-object
-  $+  qualified-object
++$  qualified-table
+  $+  qualified-table
   $:
-    %qualified-object
+    %qualified-table
     ship=(unit @p)
     database=@tas
     namespace=@tas
@@ -105,17 +105,17 @@
   $+  qualified-column
   $:
     %qualified-column
-    qualifier=qualified-object
-    column=@tas                ::to do: rename name
+    qualifier=qualified-table
+    name=@tas
     alias=(unit @t)
   ==
 +$  foreign-key
   $:
     %foreign-key
     name=@tas
-    table=qualified-object
+    =qualified-table
     columns=(list ordered-column)                    :: the source columns
-    reference-table=qualified-object                 :: reference (target) table
+    reference-table=qualified-table                 :: reference (target) table
     reference-columns=(list @t)                      :: and columns
                   :: what to do when referenced item deletes or updates
     referential-integrity=(list referential-integrity-action)
@@ -202,7 +202,7 @@
     predicate=(unit predicate)
     group-by=(list grouping-column)
     having=(unit predicate)
-    selection=select      ::to do: rename =select
+    =select
     order-by=(list ordering-column)
   ==
 ::
@@ -230,7 +230,7 @@
     object=query-source
   ==
 ::
-+$  query-source  $%(qualified-object query-row)
++$  query-source  $%(qualified-table query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row
@@ -250,17 +250,16 @@
   $%
     qualified-column
     unqualified-column
-    qualified-object
+    qualified-table
     selected-aggregate
     selected-value
     selected-all
     selected-all-object
   ==
-  :: scalar-function or selected-scalar) fish-loop
 +$  unqualified-column
   $:
     %unqualified-column
-    column=@tas          ::to do:rename name
+    name=@tas
     alias=(unit @t)
     ==
 +$  selected-all
@@ -269,7 +268,7 @@
     %all
   ==
 
-+$  selected-all-object  [%all-object qualified-object]
++$  selected-all-object  [%all-object qualified-table]
 
 +$  selected-aggregate
   $:
@@ -344,7 +343,7 @@
   $:
     %delete
     ctes=(list cte)
-    table=qualified-object
+    table=qualified-table
     as-of=(unit as-of)
     predicate=predicate
   ==
@@ -354,7 +353,7 @@
   $:
     %update
     ctes=(list cte)
-    table=qualified-object
+    table=qualified-table
     as-of=(unit as-of)
     $:  columns=(list qualified-column)
         values=(list value-or-default)
@@ -369,7 +368,7 @@
 +$  insert
   $:
     %insert
-    table=qualified-object
+    table=qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
     values=insert-values
@@ -408,7 +407,7 @@
 +$  truncate-table
   $:
     %truncate-table
-    table=qualified-object
+    table=qualified-table
     as-of=(unit as-of)
   ==
 ::
@@ -430,7 +429,7 @@
   $:
     %create-index
     name=@tas
-    object-name=qualified-object
+    =qualified-table
     unique=?
     columns=(list ordered-column)
     as-of=(unit as-of)
@@ -447,7 +446,7 @@
 ::  $create-table
 +$  create-table
   $:  %create-table
-    table=qualified-object
+    table=qualified-table
     columns=(list column)
     pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
@@ -459,7 +458,7 @@
   $:
     %create-trigger
     name=@tas
-    object=qualified-object
+    =qualified-table
     enabled=?
   ==
 ::
@@ -470,7 +469,7 @@
 +$  create-view
   $:
     %create-view
-    view=qualified-object
+    view=qualified-table
     selection
   ==
 ::
@@ -479,12 +478,12 @@
 ::  $drop-database: name=@tas force=?
 +$  drop-database        $:([%drop-database name=@tas force=?])
 ::
-::  $drop-index: name=@tas object=qualified-object
+::  $drop-index: name=@tas object=qualified-table
 +$  drop-index
   $:
     %drop-index
     name=@tas
-    object=qualified-object
+    =qualified-table
     as-of=(unit as-of)
   ==
 ::
@@ -492,10 +491,10 @@
 +$  drop-namespace
   $:([%drop-namespace database-name=@tas name=@tas force=? as-of=(unit as-of)])
 ::
-::  $drop-table: table=qualified-object force=?
+::  $drop-table: table=qualified-table force=?
 +$  drop-table
   $:  %drop-table
-    table=qualified-object
+    table=qualified-table
     force=?
     as-of=(unit as-of)
   ==
@@ -505,17 +504,17 @@
   $:
     %drop-trigger
     name=@tas
-    object=qualified-object
+    =qualified-table
   ==
 ::
 ::  $drop-type: TBD
 +$  drop-type            $:([%drop-type name=@tas])
 ::
-::  $drop-view: view=qualified-object force=?
+::  $drop-view: view=qualified-table force=?
 +$  drop-view
   $:
     %drop-view
-    view=qualified-object
+    view=qualified-table
     force=?
   ==
 ::
@@ -526,8 +525,8 @@
 +$  alter-index
   $:
     %alter-index
-    name=qualified-object
-    object=qualified-object
+    name=qualified-table
+    object=qualified-table
     columns=(list ordered-column)
     action=index-action
     as-of=(unit as-of)
@@ -548,7 +547,7 @@
 +$  alter-table
   $:
     %alter-table
-    table=qualified-object
+    table=qualified-table
     alter-columns=(list column)
     add-columns=(list column)
     drop-columns=(list @tas)
@@ -562,16 +561,16 @@
   $:
     %alter-trigger
     name=@tas
-    object=qualified-object
+    =qualified-table
     enabled=?
   ==
 ::
-::  $alter-view: view=qualified-object selection
+::  $alter-view: view=qualified-table selection
 +$  alter-view
   $:
     %alter-view
-    view=qualified-object
-    selection
+    view=qualified-table
+    =selection
   ==
 ::
 ::  permissions
@@ -598,7 +597,7 @@
   $%  [%server %server]
       [%database @tas]
       [%namespace [@tas @tas]]
-      [%table-set qualified-object]
+      [%table-set qualified-table]
       [%table-column path]
       ==
 ::
@@ -630,13 +629,13 @@
 ::  $revoke-permission: ?(%adminread %readonly %readwrite %all)
 +$  revoke-permission    ?(%adminread %readonly %readwrite %all)
 ::
-::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-object)
+::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-table)
 +$  revoke-object
   $%  [%all %all]
       [%server %server]
       [%database @tas]
       [%namespace [@tas @tas]]
-      [%table-set qualified-object]
+      [%table-set qualified-table]
       [%table-column path]
       ==
 ::

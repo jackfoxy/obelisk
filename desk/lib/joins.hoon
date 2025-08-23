@@ -42,7 +42,7 @@
   |=  [q=query:ast is-cte=?]
   ^-  [server (list set-table) (list vector)]
   =/  from          (need from.q)
-  =/  query-source  ?:  ?=(qualified-object:ast object.+.object.from)
+  =/  query-source  ?:  ?=(qualified-table:ast object.+.object.from)
                       object.+.object.from
                     ~|("SELECT: not supported on %query-row" !!)
   =/  triple=[set-table qualified-lookup-type (list qual-col-type)]
@@ -54,7 +54,7 @@
                         ~
                         ==
   =/  =set-table    -.triple
-  =/  selected      columns.selection.q
+  =/  selected      columns.select.q
   =/  filter  ?~  predicate.q  ~
               :-  ~
                   %^  pred-ops-and-conjs
@@ -88,7 +88,7 @@
   =/  st2  st
   =.  object.st2  ~
   =/  foo=(list column:ast)
-        %-  zing  %+  turn  columns.selection.q
+        %-  zing  %+  turn  columns.select.q
                             (cury selected-column-to-column columns.st)
   =.  columns.st2  %-  flop    foo
   ~[st2 st]
@@ -101,7 +101,7 @@
       ~|("not supported" !!)
     unqualified-column:ast
       ~|("not supported" !!)
-    qualified-object:ast
+    qualified-table:ast
       ~|("not supported" !!)
     selected-aggregate:ast
       ~|("not supported" !!)
@@ -146,7 +146,7 @@
   ?~  object.i.cols
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
-  =/  value  (~(got by data.i.rows) column:(need object.cell)) 
+  =/  value  (~(got by data.i.rows) name:(need object.cell)) 
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +join-all  query:ast -> join-return
@@ -160,7 +160,7 @@
         %+  mk-relations  (relation %relation object.from as-of.from ~ ~)
                           joins.from
   =/  relat=relation  -.relations
-  =/  query-source  ?:  ?=(qualified-object:ast object.table-set.relat)
+  =/  query-source  ?:  ?=(qualified-table:ast object.table-set.relat)
                       object.table-set.relat
                     ~|("SELECT: not supported on %query-row" !!)
   =.  relations       +.relations
@@ -210,7 +210,7 @@
                          type-lookup
                          qualified-columns
                          ==
-  =.  query-source  ?:  ?=(qualified-object:ast object.table-set.i.relations)
+  =.  query-source  ?:  ?=(qualified-table:ast object.table-set.i.relations)
                       object.table-set.i.relations
                     ~|("SELECT: not supported on %query-row" !!)
   =.  triple  %:  prep-table-set  query-source
@@ -229,7 +229,7 @@
   ==
 ::
 ++  prep-table-set
-  |=  $:  ts=qualified-object:ast
+  |=  $:  ts=qualified-table:ast
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
           predicate=(unit predicate:ast)
@@ -271,7 +271,7 @@
                   ==
 ::
 ++  from-table
-  |=  $:  query-obj=qualified-object:ast
+  |=  $:  query-obj=qualified-table:ast
           alias=(unit @t)
           db=database
           =schema
@@ -314,7 +314,7 @@
   |=  [relat=relation joins=(list joined-object:ast)]
   ^-  (list relation)
   =/  relations=(list relation)    ~[relat]
-  =/  cross-joins=(list relation)  ~
+  =/  cross-joins  *(list relation)
   |-
   ?~  joins  (flop (weld cross-joins relations))
   ?:  ?=(%cross-join join.i.joins)
@@ -340,7 +340,7 @@
   ==
 ::
 ++  mk-qualified-columns
-  |=  $:  query-obj=qualified-object:ast
+  |=  $:  query-obj=qualified-table:ast
           qualified-columns=(list qual-col-type)
           columns=(list column:ast)
           ==
@@ -352,12 +352,12 @@
                 |=(a=column:ast (mk-qualified-column query-obj a))
 ::
 ++  mk-qualified-column
-  |=  [query-obj=qualified-object:ast a=column:ast]
+  |=  [query-obj=qualified-table:ast a=column:ast]
   ^-  qual-col-type
   [(qualified-column:ast %qualified-column query-obj name.a ~) type.a]
 ::
 ++  from-view
-  |=  $:  query-obj=qualified-object:ast
+  |=  $:  query-obj=qualified-table:ast
           alias=(unit @t)
           db=database
           =schema
@@ -559,7 +559,7 @@
 ++  join-pri-key
   |=  $:  a=(list joined-row)
           b=(list indexed-row)
-          b-qual=qualified-object:ast
+          b-qual=qualified-table:ast
           key=(list key-column)
           ==
   ^-  [@ud (list joined-row)]

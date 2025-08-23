@@ -19,7 +19,7 @@
 ::
 ++  foo-table
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -28,7 +28,7 @@
           ==
 ++  foo-table-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='ns1'
@@ -37,7 +37,7 @@
           ==
 ++  foo-table-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='dbo'
@@ -46,7 +46,7 @@
           ==
 ++  foo-table-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='ns1'
@@ -55,7 +55,7 @@
           ==
 ++  foo-table-nec-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='dbo'
@@ -64,7 +64,7 @@
           ==
 ++  foo-table-nec-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='ns1'
@@ -73,7 +73,7 @@
           ==
 ++  foo-table-f1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -82,7 +82,7 @@
           ==
 ++  foo-table-f1-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='ns1'
@@ -91,7 +91,7 @@
           ==
 ++  foo-table-f1-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='dbo'
@@ -100,7 +100,7 @@
           ==
 ++  foo-table-f1-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='ns1'
@@ -109,7 +109,7 @@
           ==
 ++  foo-table-f1-nec-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='dbo'
@@ -118,7 +118,7 @@
           ==
 ++  foo-table-f1-nec-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='ns1'
@@ -127,7 +127,7 @@
           ==
 ++  foo-table-f1-low
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -136,7 +136,7 @@
           ==
 ++  bar-unaliased
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -145,7 +145,7 @@
           ==
 ++  bar-unaliased-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='ns1'
@@ -154,7 +154,7 @@
           ==
 ++  bar-unaliased-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='dbo'
@@ -163,7 +163,7 @@
           ==
 ++  bar-unaliased-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='ns1'
@@ -172,7 +172,7 @@
           ==
 ++  bar-unaliased-nec-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='dbo'
@@ -181,7 +181,7 @@
           ==
 ++  bar-unaliased-nec-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='ns1'
@@ -190,7 +190,7 @@
           ==
 ++  foo-alias-y
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -199,7 +199,7 @@
           ==
 ++  bar-alias-x
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -208,7 +208,7 @@
           ==
 ++  foo-aliased
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -217,7 +217,7 @@
           ==
 ++  foo-aliased-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='ns1'
@@ -226,7 +226,7 @@
           ==
 ++  foo-aliased-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='dbo'
@@ -235,7 +235,7 @@
           ==
 ++  foo-aliased-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='ns1'
@@ -244,7 +244,7 @@
           ==
 ++  foo-aliased-nec-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='dbo'
@@ -253,7 +253,7 @@
           ==
 ++  foo-aliased-nec-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='ns1'
@@ -262,7 +262,7 @@
           ==
 ++  bar-aliased
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -271,7 +271,7 @@
           ==
 ++  bar-aliased-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db1'
           namespace='ns1'
@@ -280,7 +280,7 @@
           ==
 ++  bar-aliased-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='dbo'
@@ -289,7 +289,7 @@
           ==
 ++  bar-aliased-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=~
           database='db2'
           namespace='ns1'
@@ -298,7 +298,7 @@
           ==
 ++  bar-aliased-nec-db2
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='dbo'
@@ -307,7 +307,7 @@
           ==
 ++  bar-aliased-nec-db2-ns1
   :-  %table-set
-      :*  %qualified-object
+      :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
           namespace='ns1'
@@ -631,7 +631,7 @@
   :~  :*  %joined-object
           join=%join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=~
                   database='db1'
                   namespace='dbo'
@@ -646,7 +646,7 @@
   :~  :*  %joined-object
           join=%join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=~
                   database='db1'
                   namespace='ns1'
@@ -661,7 +661,7 @@
   :~  :*  %joined-object
           join=%join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=~
                   database='db2'
                   namespace='dbo'
@@ -676,7 +676,7 @@
   :~  :*  %joined-object
           join=%join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=~
                   database='db2'
                   namespace='ns1'
@@ -691,7 +691,7 @@
   :~  :*  %joined-object
           join=%join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=[~ ~nec]
                   database='db2'
                   namespace='dbo'
@@ -706,7 +706,7 @@
   :~  :*  %joined-object
           join=%join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=[~ ~nec]
                   database='db2'
                   namespace='ns1'
@@ -858,7 +858,7 @@
       :*  %joined-object
           %join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
                   'dbo'  ::namespace
@@ -880,7 +880,7 @@
       :*  %joined-object
           %join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
                   'ns1'  ::namespace
@@ -902,7 +902,7 @@
       :*  %joined-object
           %join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
                   'dbo'  ::namespace
@@ -924,7 +924,7 @@
       :*  %joined-object
           %join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
                   'ns1'  ::namespace
@@ -946,7 +946,7 @@
       :*  %joined-object
           %join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
                   'dbo'     ::namespace
@@ -968,7 +968,7 @@
       :*  %joined-object
           %join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
                   'ns1'     ::namespace
@@ -990,7 +990,7 @@
       :*  %joined-object
           %left-join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
                   'dbo'  ::namespace
@@ -1012,7 +1012,7 @@
       :*  %joined-object
           %left-join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
                   'ns1'  ::namespace
@@ -1034,7 +1034,7 @@
       :*  %joined-object
           %left-join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
                   'dbo'  ::namespace
@@ -1056,7 +1056,7 @@
       :*  %joined-object
           %left-join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
                   'ns1'  ::namespace
@@ -1078,7 +1078,7 @@
       :*  %joined-object
           %left-join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
                   'dbo'     ::namespace
@@ -1100,7 +1100,7 @@
       :*  %joined-object
           %left-join
           :-  %table-set
-              :*  %qualified-object
+              :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
                   'ns1'     ::namespace
@@ -1650,7 +1650,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having 
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-cross-bar
@@ -1665,7 +1665,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-cross-bar-ns1
@@ -1680,7 +1680,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-cross-bar-db2
@@ -1695,7 +1695,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-cross-bar-db2-ns1
@@ -1710,7 +1710,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-cross-bar-nec-db2
@@ -1725,7 +1725,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  simple-from-aliased-cross-bar-nec-db2-ns1
@@ -1740,7 +1740,7 @@
       ~      ::predicate
       ~      ::group-by
       ~      ::having
-      selection=select-all-columns
+      select=select-all-columns
       ~      ::order-by
       ==
 ++  natural-from-join-bar
@@ -1793,13 +1793,13 @@
               :-
                 ~
                 :^  %from
-                    [%table-set [%qualified-object ~ %db1 %dbo %foo [~ 'F1']]]
+                    [%table-set [%qualified-table ~ %db1 %dbo %foo [~ 'F1']]]
                     [~ [%dr ~h5.m30.s12]]
                     :~
                       :*  %joined-object
                           %join
                           :-  %table-set
-                              [%qualified-object ~ %db1 %dbo %bar [~ 'B2']]
+                              [%qualified-table ~ %db1 %dbo %bar [~ 'B2']]
                               
                           as-of=[~ [%da ~2000.1.1]]
                           predicate=~
@@ -1807,7 +1807,7 @@
                       :*  %joined-object
                           %left-join
                           :-  %table-set
-                              [%qualified-object ~ %db1 %dbo %baz [~ 'B3']]
+                              [%qualified-table ~ %db1 %dbo %baz [~ 'B3']]
                           as-of=[~ [%da ~2000.1.1]]
                           :-  ~
                               :+  %eq
@@ -1817,14 +1817,14 @@
                       :*  %joined-object
                           %join
                           :-  %table-set
-                              [%qualified-object ~ %db1 %dbo %bar [~ 'B4']]
+                              [%qualified-table ~ %db1 %dbo %bar [~ 'B4']]
                           as-of=~
                           predicate=~
                           ==
                       :*  %joined-object
                           %left-join
                           :-  %table-set
-                              [%qualified-object ~ %db1 %dbo %bar ~]
+                              [%qualified-table ~ %db1 %dbo %bar ~]
                           as-of=~
                           :-  ~
                               :+  %eq
@@ -1834,7 +1834,7 @@
                       :*  %joined-object
                           %join
                           :-  %table-set
-                              [%qualified-object ~ %db1 %dbo %foo ~]
+                              [%qualified-table ~ %db1 %dbo %foo ~]
                           [~ [%as-of-offset offset=2 units=%minutes]]
                           :-  ~
                               :+  %eq
@@ -2163,7 +2163,7 @@
                                         :*  %joined-object
                                             join=%left-join
                                             :-  %table-set
-                                                :*  %qualified-object
+                                                :*  %qualified-table
                                                     ship=~
                                                     database='db1'
                                                     namespace='dbo'
@@ -2200,7 +2200,7 @@
                                     :~  :*  %joined-object
                                             join=%join
                                             :-  %table-set
-                                                :*  %qualified-object
+                                                :*  %qualified-table
                                                           ship=~
                                                           database='db1'
                                                           namespace='dbo'
@@ -2213,7 +2213,7 @@
                                         :*  %joined-object
                                             join=%left-join
                                             :-  %table-set
-                                                :*  %qualified-object
+                                                :*  %qualified-table
                                                           ship=~
                                                           database='db1'
                                                           namespace='dbo'
@@ -2328,7 +2328,7 @@
                             predicate=~
                             group-by=~
                             having=~
-                            selection=select-all-columns
+                            select=select-all-columns
                             order-by=~
                             ==
                     ~
@@ -2358,7 +2358,7 @@
                             predicate=~
                             group-by=~
                             having=~
-                            selection=select-all-columns
+                            select=select-all-columns
                             order-by=~
                             ==
                     ~
@@ -2388,7 +2388,7 @@
                             predicate=~
                             group-by=~
                             having=~
-                            selection=select-all-columns
+                            select=select-all-columns
                             order-by=~
                             ==
                       ~
@@ -2419,7 +2419,7 @@
 ::                            predicate=~
 ::                            group-by=~
 ::                            having=~
-::                            selection=select-all-columns
+::                            select=select-all-columns
 ::                            order-by=~
 ::                            ==
 ::                    ~
@@ -2449,7 +2449,7 @@
 ::                            predicate=~
 ::                            group-by=~
 ::                            having=~
-::                            selection=select-all-columns
+::                            select=select-all-columns
 ::                            order-by=~
 ::                            ==
 ::                    ~
@@ -2478,7 +2478,7 @@
 ::                            predicate=~
 ::                            group-by=~
 ::                            having=~
-::                            selection=select-all-columns
+::                            select=select-all-columns
 ::                            order-by=~
 ::                            ==
 ::                    ~
@@ -2508,7 +2508,7 @@
 ::                            predicate=~
 ::                            group-by=~
 ::                            having=~
-::                            selection=select-all-columns
+::                            select=select-all-columns
 ::                            order-by=~
 ::                            ==
 ::                    ~
@@ -2538,7 +2538,7 @@
 ::                            predicate=~
 ::                            group-by=~
 ::                            having=~
-::                            selection=select-all-columns
+::                            select=select-all-columns
 ::                            order-by=~
 ::                            ==
 ::                    ~
@@ -2568,7 +2568,7 @@
 ::                            predicate=~
 ::                            group-by=~
 ::                            having=~
-::                            selection=select-all-columns
+::                            select=select-all-columns
 ::                            order-by=~
 ::                            ==
 ::                    ~
@@ -2599,7 +2599,7 @@
                             predicate=~
                             group-by=~
                             having=~
-                            selection=select-all-columns
+                            select=select-all-columns
                             order-by=~
                             ==
                     ~
@@ -2628,7 +2628,7 @@
                             predicate=~
                             group-by=~
                             having=~
-                            selection=select-all-columns
+                            select=select-all-columns
                             order-by=~
                             ==
                     ~
