@@ -287,7 +287,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -317,7 +317,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -347,7 +347,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -377,7 +377,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -407,7 +407,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -437,7 +437,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -467,7 +467,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -497,7 +497,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -527,7 +527,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -551,7 +551,7 @@
             :+  :*  %query
                     from-foo
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     [%select top=~ bottom=~ columns=~[[%all %all]]]
@@ -571,7 +571,7 @@
             :+  :*  %query
                     from-foo
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -603,11 +603,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -637,11 +637,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -671,11 +671,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -705,11 +705,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -738,11 +738,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -771,11 +771,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -804,11 +804,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -837,11 +837,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -870,11 +870,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -903,11 +903,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -936,11 +936,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -969,11 +969,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1002,11 +1002,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1037,11 +1037,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1080,11 +1080,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1117,11 +1117,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1156,11 +1156,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1198,11 +1198,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1249,11 +1249,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1290,11 +1290,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1328,11 +1328,11 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1355,7 +1355,7 @@
             :+  :*  %query
                     from-foo
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1378,7 +1378,7 @@
             :+  :*  %query
                     from-foo
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1401,7 +1401,7 @@
             :+  :*  %query
                     from-foo
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1465,11 +1465,11 @@
                                             alias=[~ 'A2']
                                             ==
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1499,7 +1499,7 @@
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
-                                    predicate=`pred
+                                    predicate=pred
                                     ==
                                 ==
                     scalars=~
@@ -1540,7 +1540,7 @@
                             as-of=~
                             ~
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1574,7 +1574,7 @@
                             as-of=~
                             ~
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1611,7 +1611,7 @@
                             as-of=~
                             ~
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1648,7 +1648,7 @@
                             as-of=~
                             ~
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1674,7 +1674,7 @@
                             as-of=~
                             ~
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns
@@ -1746,11 +1746,11 @@
                                             alias=[~ 'A2']
                                             ==
                                     as-of=~
-                                    predicate=`joinpred
+                                    predicate=joinpred
                                     ==
                                 ==
                     scalars=~
-                    `pred
+                    pred
                     group-by=~
                     having=~
                     select-all-columns

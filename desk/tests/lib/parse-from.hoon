@@ -584,7 +584,7 @@
           join=%join
           object=bar-unaliased
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-ns1
@@ -592,7 +592,7 @@
           join=%join
           object=bar-unaliased-ns1
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-db2
@@ -600,7 +600,7 @@
           join=%join
           object=bar-unaliased-db2
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-db2-ns1
@@ -608,7 +608,7 @@
           join=%join
           object=bar-unaliased-db2-ns1
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-nec-db2
@@ -616,7 +616,7 @@
           join=%join
           object=bar-unaliased-nec-db2
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-nec-db2-ns1
@@ -624,7 +624,7 @@
           join=%join
           object=bar-unaliased-nec-db2-ns1
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased
@@ -639,7 +639,7 @@
                   alias=[~ 'b1']
                   ==
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-ns1
@@ -654,7 +654,7 @@
                   alias=[~ 'b1']
                   ==
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-db2
@@ -669,7 +669,7 @@
                   alias=[~ 'b1']
                   ==
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-db2-ns1
@@ -684,7 +684,7 @@
                   alias=[~ 'b1']
                   ==
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-nec-db2
@@ -699,7 +699,7 @@
                   alias=[~ 'b1']
                   ==
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-nec-db2-ns1
@@ -714,7 +714,7 @@
                   alias=[~ 'b1']
                   ==
           as-of=~
-          predicate=`one-eq-1
+          predicate=one-eq-1
           ==
       ==
 ::
@@ -726,7 +726,7 @@
           %join
           bar-unaliased
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-as-of-ns1
@@ -735,7 +735,7 @@
           %join
           bar-unaliased-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-as-of-db2
@@ -744,7 +744,7 @@
           %join
           bar-unaliased-db2
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-as-of-db2-ns1
@@ -753,7 +753,7 @@
           %join
           bar-unaliased-db2-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-as-of-nec-db2
@@ -762,7 +762,7 @@
           %join
           bar-unaliased-nec-db2
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-as-of-nec-db2-ns1
@@ -771,7 +771,7 @@
           %join
           bar-unaliased-nec-db2-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  natural-join-bar
@@ -789,7 +789,7 @@
           %join
           bar-aliased 
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-aliased-as-of-ns1
@@ -798,7 +798,7 @@
           %join
           bar-aliased-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-aliased-as-of-db2
@@ -807,7 +807,7 @@
           %join
           bar-aliased-db2
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-aliased-as-of-db2-ns1
@@ -816,7 +816,7 @@
           %join
           bar-aliased-db2-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-aliased-as-of-nec-db2
@@ -825,7 +825,7 @@
           %join
           bar-aliased-nec-db2
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-aliased-as-of-nec-db2-ns1
@@ -834,7 +834,7 @@
           %join
           bar-aliased-nec-db2-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 
@@ -853,7 +853,7 @@
           %left-join
           bar-unaliased
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %join
@@ -866,7 +866,7 @@
                   ~      ::alias
                   ==
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-baz-ns1
@@ -875,7 +875,7 @@
           %left-join
           bar-unaliased-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %join
@@ -888,7 +888,7 @@
                   ~      ::alias
                   ==
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-baz-db2
@@ -897,7 +897,7 @@
           %left-join
           bar-unaliased-db2
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %join
@@ -910,7 +910,7 @@
                   ~      ::alias
                   ==
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-baz-db2-ns1
@@ -919,7 +919,7 @@
           %left-join
           bar-unaliased-db2-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %join
@@ -932,7 +932,7 @@
                   ~      ::alias
                   ==
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-baz-nec-db2
@@ -941,7 +941,7 @@
           %left-join
           bar-unaliased-nec-db2
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %join
@@ -954,7 +954,7 @@
                   ~         ::alias
                   ==
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  join-bar-baz-nec-db2-ns1
@@ -963,7 +963,7 @@
           %left-join
           bar-unaliased-nec-db2-ns1
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %join
@@ -976,7 +976,7 @@
                   ~         ::alias
                   ==
           [~ time]  ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz
@@ -985,7 +985,7 @@
           %join
           bar-aliased
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %left-join
@@ -998,7 +998,7 @@
                   [~ 'b2']      ::alias
                   ==
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-ns1
@@ -1007,7 +1007,7 @@
           %join
           bar-aliased-ns1
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %left-join
@@ -1020,7 +1020,7 @@
                   [~ 'b2']      ::alias
                   ==
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-db2
@@ -1029,7 +1029,7 @@
           %join
           bar-aliased-db2
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %left-join
@@ -1042,7 +1042,7 @@
                   [~ 'b2']      ::alias
                   ==
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-db2-ns1
@@ -1051,7 +1051,7 @@
           %join
           bar-aliased-db2-ns1
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %left-join
@@ -1064,7 +1064,7 @@
                   [~ 'b2']      ::alias
                   ==
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-nec-db2
@@ -1073,7 +1073,7 @@
           %join
           bar-aliased-nec-db2
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %left-join
@@ -1086,7 +1086,7 @@
                   [~ 'b2']  ::alias
                   ==
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-nec-db2-ns1
@@ -1095,7 +1095,7 @@
           %join
           bar-aliased-nec-db2-ns1
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       :*  %joined-object
           %left-join
@@ -1108,7 +1108,7 @@
                   [~ 'b2']  ::alias
                   ==
           [~ time]         ::as-of
-          `one-eq-1
+          one-eq-1
           ==
       ==
 ++  cross-join-bar
@@ -1809,10 +1809,9 @@
                           :-  %table-set
                               [%qualified-table ~ %db1 %dbo %baz [~ 'B3']]
                           as-of=[~ [%da ~2000.1.1]]
-                          :-  ~
-                              :+  %eq
-                                  [[value-type=%ud value=1] ~ ~]
-                                  [[value-type=%ud value=1] ~ ~]
+                          :+  %eq
+                              [[value-type=%ud value=1] ~ ~]
+                              [[value-type=%ud value=1] ~ ~]
                           ==
                       :*  %joined-object
                           %join
@@ -1826,20 +1825,18 @@
                           :-  %table-set
                               [%qualified-table ~ %db1 %dbo %bar ~]
                           as-of=~
-                          :-  ~
-                              :+  %eq
-                                  [[value-type=%ud value=1] ~ ~]
-                                  [[value-type=%ud value=1] ~ ~]
+                          :+  %eq
+                              [[value-type=%ud value=1] ~ ~]
+                              [[value-type=%ud value=1] ~ ~]
                           ==
                       :*  %joined-object
                           %join
                           :-  %table-set
                               [%qualified-table ~ %db1 %dbo %foo ~]
                           [~ [%as-of-offset offset=2 units=%minutes]]
-                          :-  ~
-                              :+  %eq
-                                  [[value-type=%ud value=1] ~ ~]
-                                  [[value-type=%ud value=1] ~ ~]
+                          :+  %eq
+                              [[value-type=%ud value=1] ~ ~]
+                              [[value-type=%ud value=1] ~ ~]
                           ==
                       ==
               scalars=~
@@ -2158,7 +2155,7 @@
                                             join=%join
                                             object=bar-unaliased
                                             as-of=~
-                                            predicate=`one-eq-1
+                                            predicate=one-eq-1
                                             ==
                                         :*  %joined-object
                                             join=%left-join
@@ -2171,7 +2168,7 @@
                                                     alias=~
                                                     ==
                                             as-of=~
-                                            predicate=`one-eq-1
+                                            predicate=one-eq-1
                                             ==
                                         ==
                             scalars=~
@@ -2208,7 +2205,7 @@
                                                           alias=[~ 'B1']
                                                           ==
                                             as-of=~
-                                            predicate=`one-eq-1
+                                            predicate=one-eq-1
                                             ==
                                         :*  %joined-object
                                             join=%left-join
@@ -2221,7 +2218,7 @@
                                                           alias=[~ 'b2']
                                                           ==
                                             as-of=~
-                                            predicate=`one-eq-1
+                                            predicate=one-eq-1
                                             ==
                                         ==
                             scalars=~

@@ -58,7 +58,7 @@
   =/  filter  ?~  predicate.q  ~
               :-  ~
                   %^  pred-ops-and-conjs
-                      (pred-unqualify-qualified (need predicate.q))
+                      (pred-unqualify-qualified predicate.q)
                       :-  %unqualified-lookup-type
                           (~(got by +<+.triple) query-source)
                       ~

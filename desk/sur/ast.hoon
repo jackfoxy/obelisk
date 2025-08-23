@@ -160,7 +160,7 @@
 +$  if-then-else
   $:
     %if-then-else
-    if=predicate                           :: predicate
+    if=predicate
     then=datum                         :: datum-or-scalar
     else=datum                         :: datum-or-scalar
   ==
@@ -199,9 +199,9 @@
     %query
     from=(unit from)
     scalars=(list scalar)
-    predicate=(unit predicate)
+    =predicate
     group-by=(list grouping-column)
-    having=(unit predicate)
+    having=predicate
     =select
     order-by=(list ordering-column)
   ==
@@ -220,7 +220,7 @@
     join=join-type
     object=table-set
     as-of=(unit as-of)
-    predicate=(unit predicate)
+    =predicate
   ==
 ::
 ::  $table-set:
@@ -345,7 +345,7 @@
     ctes=(list cte)
     table=qualified-table
     as-of=(unit as-of)
-    predicate=predicate
+    =predicate
   ==
 ::
 ::  $update:
@@ -358,7 +358,7 @@
     $:  columns=(list qualified-column)
         values=(list value-or-default)
         ==
-    predicate=(unit predicate)
+    =predicate
   ==
 ::
 ::
@@ -382,7 +382,7 @@
     target-table=table-set
     new-table=(unit table-set)
     source-table=table-set
-    predicate=predicate
+    =predicate
     matched=(list matching)
     unmatched-by-target=(list matching)
     unmatched-by-source=(list matching)
@@ -391,7 +391,7 @@
 +$  matching
   $:
     %matching
-    predicate=(unit predicate)
+    =predicate
     matching-profile=matching-profile
   ==
 +$  matching-action  ?(%insert %update %delete)

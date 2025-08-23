@@ -352,7 +352,7 @@
   =/  filter  ?~  predicate.u  ~
               :-  ~
                   %^  pred-ops-and-conjs  %-  pred-unqualify-qualified
-                                              (need predicate.u)
+                                              predicate.u
                                           :-  %unqualified-lookup-type
                                               type-lookup.table.txn
                                           ~
@@ -464,7 +464,7 @@
     :-  ~
         %^  pred-ops-and-conjs
               %+  pred-qualify-unqualified
-                    (need predicate.q)
+                    predicate.q
                     qualifier-lookup
               type-lookup.join-return
               qualifier-lookup

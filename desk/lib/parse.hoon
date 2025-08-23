@@ -2422,7 +2422,7 @@
         %=  $
           matched
             :-  %:  matching:ast  %matching
-                      predicate=`(produce-predicate (predicate-list -<+>.a))
+                      predicate=(produce-predicate (predicate-list -<+>.a))
                       matching-profile=[->-.a (produce-matching-profile ->+.a)]
                                   ==
                 matched
@@ -2444,7 +2444,7 @@
         %=  $
           matched
             :-  %:  matching:ast  %matching
-                      predicate=`(produce-predicate (predicate-list -<+>.a))
+                      predicate=(produce-predicate (predicate-list -<+>.a))
                       matching-profile=[->-.a (produce-matching-profile ->+.a)]
                                   ==
                       matched
@@ -2476,7 +2476,7 @@
         %=  $
           matched
             :-  %:  matching:ast  %matching
-                                  `(produce-predicate (predicate-list -<+>.a))
+                                  (produce-predicate (predicate-list -<+>.a))
                                   matching-profile=%delete
                                   ==
                 matched
@@ -2491,7 +2491,7 @@
   =/  target-table  *(unit table-set:ast)
   =/  new-table     *(unit table-set:ast)
   =/  source-table  *(unit table-set:ast)
-  =/  predicate     *(unit predicate:ast)
+  =/  predicate     *predicate:ast
   =/  matching      *matching-lists:ast
   |-
   ?~  a  ?:  ?&(=(target-table ~) =(source-table ~))
@@ -2500,7 +2500,7 @@
                 (need target-table)
                 new-table
                 (need source-table)
-                (need predicate)
+                predicate
                 matched=matched.matching
                 unmatched-by-target=not-target.matching
                 unmatched-by-source=not-source.matching
@@ -2538,7 +2538,7 @@
   ?:  =(%on -<.a)
     %=  $
       a  +.a
-      predicate  `(produce-predicate (predicate-list ->.a))
+      predicate  (produce-predicate (predicate-list ->.a))
     ==
   ?:  =(%query-row -<.a)
     %=  $
@@ -2566,9 +2566,9 @@
   ^-  query:ast     
   =/  from       *(unit from:ast)
   =/  scalars    *(list scalar:ast)
-  =/  predicate  *(unit predicate:ast)
+  =/  predicate  *predicate:ast
   =/  group-by   *(list grouping-column:ast)
-  =/  having     *(unit predicate:ast)
+  =/  having     *predicate:ast
   =/  select     *(unit select:ast)
   =/  order-by   *(list ordering-column:ast)
   =/  alias-map  *(map @t qualified-table:ast)
@@ -2580,7 +2580,7 @@
                    (mk-alias-map (need from))
                  alias-map 
 
-  ?~  -.a                     $(a +.a) :: discard nulls left from optional parsers
+  ?~  -.a                     $(a +.a) :: discard nulls from optional parsers
   ?:  =(-.a %query)           $(a +.a)
   ?:  =(-.a %end-command)    %:  query:ast
                                 %query
@@ -2588,9 +2588,7 @@
                                   `(finalize-predicates (need from) alias-map)
                                 scalars
                                 ?~  predicate  ~
-                                  :-  ~
-                                      %+  finalize-predicate  (need predicate)
-                                                              alias-map
+                                  (finalize-predicate predicate alias-map)
                                 group-by
                                 having
                                 (need select)
@@ -2599,16 +2597,18 @@
   ?:  =(-<.a %scalars)        $(a +.a, scalars (produce-scalars -.a alias-map))
   ?:  =(-<.a %where)          %=  $
                                 a          +.a
-                                predicate  :-  ~
-                                               %-  produce-predicate
-                                                   (predicate-list ->.a)
+                                predicate  %-  produce-predicate
+                                               (predicate-list ->.a)
                               ==
   ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a)) :: this comparison is unused, maybe remove
+  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
+
+    ~&  "-.a:  {<-.a>}"
+
   ~|("cannot parse query  {<a>}" !!)
 ::
 ++  produce-from
@@ -2788,7 +2788,7 @@
                 [~ ;;(as-of:ast +<+.raw-join)]
               ~
               :: predicate
-            `(produce-predicate (predicate-list +>.raw-join))
+            (produce-predicate (predicate-list +>.raw-join))
             ==
             joined-objects
         raw-joined-objects    +.raw-joined-objects
@@ -2807,7 +2807,7 @@
               :: as-of
               ~
               :: predicate
-            `(produce-predicate (predicate-list +>.raw-join))
+            (produce-predicate (predicate-list +>.raw-join))
             ==
             joined-objects
         raw-joined-objects    +.raw-joined-objects
@@ -2832,7 +2832,7 @@
                    join.j
                    object.j
                    as-of.j
-                   `(finalize-predicate (need predicate.j) alias-map)
+                   (finalize-predicate predicate.j alias-map)
                    ==
              js
     jss  +.jss
@@ -3270,10 +3270,9 @@
                     table
                     ~
                     (produce-column-sets table +>-.b)
-                    :-  ~
-                        %+  qualify-predicate
-                            (produce-predicate (predicate-list +>+.b))
-                            table
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>+.b))
+                        table
                     ==
   ?:  ?=([[%as-of @ @] %set * *] b)
     %:  update:ast  %update
@@ -3281,10 +3280,9 @@
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
-                    :-  ~
-                        %+  qualify-predicate
-                            (produce-predicate (predicate-list +>+.b))
-                            table
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>+.b))
+                        table
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
     %:  update:ast  %update
@@ -3292,20 +3290,18 @@
                     table
                     [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
                     (produce-column-sets table +>-.b)
-                    :-  ~
-                        %+  qualify-predicate
-                            (produce-predicate (predicate-list +>+.b))
-                            table
+                    %+  qualify-predicate
+                        (produce-predicate (predicate-list +>+.b))
+                        table
                     ==
   %:  update:ast  %update
                   ctes
                   table
                   ~
                   (produce-column-sets table +<.b)
-                  :-  ~
-                      %+  qualify-predicate
-                          (produce-predicate (predicate-list +>.b))
-                          table
+                  %+  qualify-predicate
+                      (produce-predicate (predicate-list +>.b))
+                      table
                   ==
 ::
 ++  produce-column-sets
@@ -3873,7 +3869,6 @@
   ==
 ++  cook-aggregate
   |=  parsed=*
-  ~&   "parsed: {<parsed>}"
   [%aggregate -.parsed +.parsed]
 ++  parse-aggregate
   ;~  pose

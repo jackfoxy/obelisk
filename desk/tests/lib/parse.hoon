@@ -756,11 +756,11 @@
 ++  delete-pred2
   [%eq [column-bar2 ~ ~] [column-foo4 ~ ~]]
 ++  cte-t1
-  [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns ~]]
+  [%cte name='t1' [%query ~ scalars=~ predicate=~ group-by=~ having=~ select=select-all-columns ~]]
 ++  cte-foobar
-  [%cte name='foobar' [%query [~ [%from object=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foobar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [[value-type=%ud value=2] ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col3 col4]] ~]]
+  [%cte name='foobar' [%query [~ [%from object=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foobar' alias=~]] as-of=~ joins=~]] scalars=~ [%eq [col1 ~ ~] [[value-type=%ud value=2] ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col3 col4]] ~]]
 ++  cte-bar
-  [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='bar' alias=~]] as-of=~ joins=~]] scalars=~ `[%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
+  [%cte name='bar' [%query [~ [%from object=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='bar' alias=~]] as-of=~ joins=~]] scalars=~ [%eq [col1 ~ ~] [col2 ~ ~]] group-by=~ having=~ [%select top=~ bottom=~ columns=~[col2]] ~]]
 ++  foo-table
   [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]
 ++  foobar-table
@@ -2102,7 +2102,7 @@
 ::    !>  (parse:parse(default-database 'db1') scalar)
   =/  select  "FROM foo SCALARS foo COALESCE baz,~zod,1,foo baz COALESCE baz,~zod,1,foo SELECT foo2,foo3"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[coalesce-foo coalesce-baz] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[coalesce-foo coalesce-baz] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  coalesce as
@@ -2117,7 +2117,7 @@
 ++  test-scalar-03
   =/  select  "FROM foo SCALARS foo IF 1 = 1 THEN foo ELSE baz ENDIF baz IF 1 = 0 THEN foo ELSE baz ENDIF SELECT foo2,foo3"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[if-foo if-baz] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[if-foo if-baz] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  simple if as
@@ -2131,21 +2131,21 @@
 ++  test-scalar-05
   =/  select  "FROM foo SCALARS foobar CASE foo WHEN 1 = 1 THEN foo ELSE baz END SELECT foo2,foo3"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-1] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-1] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  simple case with predicate, no else
 ++  test-scalar-051
   =/  select  "FROM foo SCALARS foobaz CASE foo WHEN 1 = 1 THEN foo END SELECT foo2,foo3"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  simple case with predicate, two cases, one with else, the other with no else
 ++  test-scalar-052
   =/  select  "FROM foo SCALARS foobaz CASE foo WHEN 1 = 1 THEN foo END foobar CASE foo WHEN 1 = 1 THEN foo ELSE baz END SELECT foo2,foo3"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2 case-1] ~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
+    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2 case-1] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  simple case AS with datum
@@ -2638,7 +2638,7 @@
 ++  test-group-by-01
   =/  select  "from foo group by  db.ns.table.col , T1.foo , 3 , 4 select *"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=group-by having=~ selection=select-all-columns order-by=~] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=group-by having=~ select=select-all-columns order-by=~] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  group by, no whitespace, with predicate
@@ -2647,21 +2647,21 @@
 ::  =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
 ::  =/  select  "from foo where T1.foo = T2.bar group by db.ns.table.col,T1.foo,3,4 select *"
 ::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=`pred group-by=group-by having=~ selection=select-all-columns order-by=~] ~ ~]]]
+::    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=pred group-by=group-by having=~ select=select-all-columns order-by=~] ~ ~]]]
 ::    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  order by
 ++  test-order-by-01
   =/  select  "from foo select * order by  db.ns.table.col  asc , T1.foo desc , 3 , 4  desc "
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ select=select-all-columns order-by] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  order by, no whitespace
 ++  test-order-by-02
   =/  select  "from foo select * order by db.ns.table.col aSc,T1.foo desc,3,4 Desc"
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ selection=select-all-columns order-by] ~ ~]]]
+    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ select=select-all-columns order-by] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::  to do: fix when update implemented
@@ -2826,7 +2826,7 @@
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2841,7 +2841,7 @@
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2857,7 +2857,7 @@
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2873,7 +2873,7 @@
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2889,7 +2889,7 @@
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2905,7 +2905,7 @@
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2921,7 +2921,7 @@
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2938,7 +2938,7 @@
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2957,7 +2957,7 @@
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2975,7 +2975,7 @@
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2994,7 +2994,7 @@
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -3013,7 +3013,7 @@
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
                         values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=`update-pred
+                    predicate=update-pred
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -3029,9 +3029,9 @@
 ++  predicate-bar-eq-bar
   [%eq [[%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN' name='tgt' alias=~] column='bar' alias=~] ~ ~] [[%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN' name='src' alias=~] column='bar' alias=~] ~ ~]]
 ++  cte-bar-foobar
-  [%cte name='T1' %query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~] [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]] order-by=~]
+  [%cte name='T1' %query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~] [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]] order-by=~]
 ++  cte-bar-foobar-src
-  [%cte name='src' %query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~] [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]] order-by=~]
+  [%cte name='src' %query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[[%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='bar' alias=~] column='bar' alias=~] [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='foobar' alias=~] column='foobar' alias=~]]] order-by=~]
 ++  column-src-foo
   [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN' name='src' alias=~] column='foo' alias=~]
 ++  column-src-bar
@@ -3084,7 +3084,7 @@
 ::"    INSERT (bar, foobar) ".
 ::"    VALUES (src.bar, 99)"
 ::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='src' alias=~]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='src' alias=~]] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
@@ -3144,7 +3144,7 @@
 ::"    INSERT (bar, foobar) ".
 ::"    VALUES (src.bar, 99)"
 ::  =/  expected
-::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
@@ -3160,7 +3160,7 @@
 ::"    INSERT (bar, foobar) ".
 ::"    VALUES (src.bar, 99)"
 ::  =/  expected
-::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
@@ -3176,7 +3176,7 @@
 ::"    INSERT (bar, foobar) ".
 ::"    VALUES (src.bar, 99)"
 ::  =/  expected
-::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=`one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%selection ctes=~ [[%merge target-table=[%table-set object=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
@@ -3300,9 +3300,9 @@
 ++  s2  ~[va-col-col-a vfas-tar vtar-fas vcol-col va-fas-tar-a va-tar-fas-a]
 ++  s3  ~[va-tar-fas-a va-col-col-a vfas-tar vtar-fas vcol-col va-fas-tar-a]
 ::
-++  q1  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s1] order-by=~]
-++  q2  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s2] order-by=~]
-++  q3  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s3] order-by=~]
+++  q1  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s1] order-by=~]
+++  q2  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s2] order-by=~]
+++  q3  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s3] order-by=~]
 ::
 ++  t1  [%selection ctes=~ set-functions=[q1 ~ ~]]
 ++  t2  [%selection ctes=~ set-functions=[q2 ~ ~]]
@@ -3328,10 +3328,10 @@
 ++  s3a  ~[va-tar-fas-a va-col-col-a vfas-tar vtar-fas]
 ++  s3b  ~[va-tar-fas-a]
 ::
-++  q1a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s1a] order-by=~]
-++  q2a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s2a] order-by=~]
-++  q3a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s3a] order-by=~]
-++  q3b  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ selection=[%select top=~ bottom=~ columns=s3b] order-by=~]
+++  q1a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s1a] order-by=~]
+++  q2a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s2a] order-by=~]
+++  q3a  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s3a] order-by=~]
+++  q3b  [%query from=~ scalars=~ predicate=~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=s3b] order-by=~]
 ::
 ++  t1a  [%selection ctes=~ set-functions=[q1a ~ ~]]
 ++  t2a  [%selection ctes=~ set-functions=[q2a ~ ~]]
