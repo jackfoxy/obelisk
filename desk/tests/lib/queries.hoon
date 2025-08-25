@@ -5969,7 +5969,7 @@
   %+  expect-fail-message
         %-  crip
             "no natural join or foreign key join, columns do not match: ".
-            "[%qualified-object ship=~ database=%db1 namespace=%dbo ".
+            "[%qualified-table ship=~ database=%db1 namespace=%dbo ".
             "name=%calendar alias=~]"
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
           %obelisk-action

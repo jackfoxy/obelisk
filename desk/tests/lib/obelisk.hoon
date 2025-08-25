@@ -1104,7 +1104,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~]
+        [%qualified-table ship=~ database='db' namespace='dbo' name='my-table' alias=~]
         :~  [%column name='col1' column-type=%t]
             [%column name='col2' column-type=%p]
             [%column name='col3' column-type=%ud]
@@ -1130,7 +1130,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='ns1'
@@ -1162,7 +1162,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1199,7 +1199,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1341,7 +1341,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1378,7 +1378,7 @@
   =|  run=@ud
   =/  cmd
     :*  %create-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1473,7 +1473,7 @@
 ::  =|  run=@ud
 ::  =/  cmd
 ::    :*  %create-table
-::        :*  %qualified-object
+::        :*  %qualified-table
 ::            ship=~
 ::            database='db1'
 ::            namespace='dbo'
@@ -1715,7 +1715,7 @@
   =|  run=@ud
   =/  cmd
     :^  %drop-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1753,7 +1753,7 @@
   =|  run=@ud
   =/  cmd
     :^  %drop-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db'
             namespace='dbo'
@@ -1779,7 +1779,7 @@
   =|  run=@ud
   =/  cmd
     :^  %drop-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='ns1'
@@ -1805,7 +1805,7 @@
   =|  run=@ud
   =/  cmd
     :^  %drop-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'
@@ -1973,7 +1973,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-        [%qualified-object ship=~ database='db' namespace='dbo' name='my-table' alias=~]
+        [%qualified-table ship=~ database='db' namespace='dbo' name='my-table' alias=~]
         ~
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
@@ -1991,7 +1991,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-       [%qualified-object ship=~ database='db1' namespace='ns1' name='my-table' alias=~]
+       [%qualified-table ship=~ database='db1' namespace='ns1' name='my-table' alias=~]
         ~
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~ ~2000.1.1]))
@@ -2009,7 +2009,7 @@
   =|  run=@ud
   =/  cmd
     :+  %truncate-table
-        :*  %qualified-object
+        :*  %qualified-table
             ship=~
             database='db1'
             namespace='dbo'

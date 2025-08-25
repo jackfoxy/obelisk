@@ -2069,7 +2069,7 @@
                       ==
   ::
   =/  cmd  :^  %drop-table
-              :*  %qualified-object
+              :*  %qualified-table
                   ship=~
                   database='db1'
                   namespace='ref'

@@ -70,6 +70,17 @@
       tmsp=@da
       files=(map [@tas @tas] file)
   ==
++$  table
+  $+  table
+  $:  %table
+      provenance=path
+      tmsp=@da
+      =column-lookup
+      type-lookup=(map @tas @ta)
+      pri-indx=index
+      columns=(list column)      ::  canonical column list
+      indices=(list index)      :: to do: indices indexed by (list column)
+  ==
 +$  file
   $:  %file
       ship=@p
@@ -109,17 +120,6 @@
   ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
-+$  table
-  $+  table
-  $:  %table
-      provenance=path
-      tmsp=@da
-      =column-lookup
-      type-lookup=(map @tas @ta)
-      pri-indx=index
-      columns=(list column)      ::  canonical column list
-      indices=(list index)      :: to do: indices indexed by (list column)
-  ==
 +$  views  ((mop data-obj-key view) ns-obj-comp)
 +$  view
   $+  view

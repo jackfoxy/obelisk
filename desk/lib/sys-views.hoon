@@ -41,7 +41,7 @@
             :-  ~           ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             %sys
                             %sys
@@ -54,11 +54,11 @@
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
             ~  ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             %sys                 ::database=@tas
                             %sys                 ::namespace=@tas
@@ -68,7 +68,7 @@
                         %database              ::column=@tas
                         `%database             ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             %sys                 ::database=@tas
                             %sys                 ::namespace=@tas
@@ -78,7 +78,7 @@
                         %sys-agent             ::column=@tas
                         `%sys-agent            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                  ::ship=(unit @p)
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
@@ -88,7 +88,7 @@
                         %sys-tmsp            ::column=@tas
                         `%sys-tmsp           ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                  ::ship=(unit @p)
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
@@ -98,7 +98,7 @@
                         %data-ship           ::column=@tas
                         `%data-ship          ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                  ::ship=(unit @p)
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
@@ -108,7 +108,7 @@
                         %data-agent          ::column=@tas
                         `%data-agent         ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                  ::ship=(unit @p)
                             %sys               ::database=@tas
                             %sys               ::namespace=@tas
@@ -121,7 +121,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         %sys        ::database=@tas
                         %sys        ::namespace=@tas
@@ -133,7 +133,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         %sys        ::database=@tas
                         %sys        ::namespace=@tas
@@ -145,7 +145,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         %sys        ::database=@tas
                         %sys        ::namespace=@tas
@@ -194,7 +194,7 @@
             :-  ~           ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             database
                             %sys
@@ -207,11 +207,11 @@
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
             ~  ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -221,7 +221,7 @@
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -234,7 +234,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~            ::ship=(unit @p)
                         database     ::database=@tas
                         %sys         ::namespace=@tas
@@ -246,7 +246,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~            ::ship=(unit @p)
                         database     ::database=@tas
                         %sys         ::namespace=@tas
@@ -296,7 +296,7 @@
             :-  ~            ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             database
                             %sys
@@ -309,11 +309,11 @@
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
             ~  ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -323,7 +323,7 @@
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -333,7 +333,7 @@
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -343,7 +343,7 @@
                         %agent                 ::column=@tas
                         `%agent                ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -353,7 +353,7 @@
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                  ::ship=(unit @p)
                             database           ::database=@tas
                             %sys               ::namespace=@tas
@@ -366,7 +366,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -378,7 +378,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -424,7 +424,7 @@
             :-  ~            ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             database
                             %sys
@@ -437,11 +437,11 @@
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
             ~  ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -451,7 +451,7 @@
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -461,7 +461,7 @@
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -471,7 +471,7 @@
                         %key-ordinal           ::column=@tas
                         `%key-ordinal          ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -481,7 +481,7 @@
                         %key                   ::column=@tas
                         `%key                  ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -494,7 +494,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -506,7 +506,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -518,7 +518,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -561,7 +561,7 @@
             :-  ~          ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             database
                             %sys
@@ -574,11 +574,11 @@
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
             ~  ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -588,7 +588,7 @@
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -598,7 +598,7 @@
                         %name                  ::column=@tas
                         `%name                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -608,7 +608,7 @@
                         %col-ordinal           ::column=@tas
                         `%col-ordinal          ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -618,7 +618,7 @@
                         %col-name              ::column=@tas
                         `%col-name             ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -631,7 +631,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -643,7 +643,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -655,7 +655,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -697,7 +697,7 @@
             :-  ~            ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             database
                             %sys
@@ -710,11 +710,11 @@
             ~  ::predicate=(unit predicate)
             ~  ::group-by=(list grouping-column)
             ~  ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -724,7 +724,7 @@
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -734,7 +734,7 @@
                         %agent                 ::column=@tas
                         `%agent                ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -744,7 +744,7 @@
                         %component             ::column=@tas
                         `%component            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -757,7 +757,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -769,7 +769,7 @@
                     %.n  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -781,7 +781,7 @@
                     %.y  ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~           ::ship=(unit @p)
                         database    ::database=@tas
                         %sys        ::namespace=@tas
@@ -825,7 +825,7 @@
             :-  ~           ::from=(unit from)
                 :^  %from
                     :-  %table-set  ::object=table-set
-                        :*  %qualified-object  ::object=query-source
+                        :*  %qualified-table  ::object=query-source
                             ~
                             database
                             %sys
@@ -838,11 +838,11 @@
             ~            ::predicate=(unit predicate)
             ~            ::group-by=(list grouping-column)
             ~            ::having=(unit predicate)
-            :^  %select  ::selection=select
+            :^  %select  ::=select
                 ~               ::top=(unit @ud)
                 ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -852,7 +852,7 @@
                         %tmsp                  ::column=@tas
                         `%tmsp                 ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -862,7 +862,7 @@
                         %ship                ::column=@tas
                         `%ship               ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                  ::ship=(unit @p)
                             database           ::database=@tas
                             %sys               ::namespace=@tas
@@ -872,7 +872,7 @@
                         %agent               ::column=@tas
                         `%agent              ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -882,7 +882,7 @@
                         %namespace             ::column=@tas
                         `%namespace            ::alias=(unit @t)
                     :^  %qualified-column    ::qualified-column
-                        :*  %qualified-object  ::qualifier
+                        :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
                             database             ::database=@tas
                             %sys                 ::namespace=@tas
@@ -895,7 +895,7 @@
             :~      ::order-by=(list ordering-column)
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~                    ::ship=(unit @p)
                         database             ::database=@tas
                         %sys                 ::namespace=@tas
@@ -907,7 +907,7 @@
                     %.n                    ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~                    ::ship=(unit @p)
                         database             ::database=@tas
                         %sys                 ::namespace=@tas
@@ -919,7 +919,7 @@
                     %.y                    ::ascending=?
                 :+  %ordering-column
                     :^  %qualified-column    ::qualified-column
-                    :*  %qualified-object  ::qualifier
+                    :*  %qualified-table  ::qualifier
                         ~                    ::ship=(unit @p)
                         database             ::database=@tas
                         %sys                 ::namespace=@tas
@@ -1036,7 +1036,7 @@
         (flop (turn (tap:schema-key sys.a) |=(b=[@da schema] +.b)))
   =/  udata=(list data)
         (flop (turn (tap:data-key content.a) |=(b=[@da data] +.b)))
-  =/  rslt=(list (list @))  ~
+  =/  rslt  *(list (list @))
       |-
       ?:  ?&(=(~ sys) =(~ udata))  (flop rslt)
       ?~  sys

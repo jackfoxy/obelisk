@@ -9,12 +9,12 @@ NOTE: scalar and aggregate functions are currently under development and not ava
 
 ```
 <scalar-function> ::=
-  IF <predicate> THEN { <expression> | <scalar-function> }
-                 ELSE { <expression> | <scalar-function> } ENDIF
+  IF <predicate> THEN { <expression> | <scalar-function> | <named-scalar> }
+                 ELSE { <expression> | <scalar-function> | <named-scalar> } ENDIF
   | CASE <expression>
     WHEN { <expression> | <predicate> }
-	  THEN { <expression> | <scalar-function> } [ ...n ]
-    [ ELSE { <expression> | <scalar-function> } ]
+	  THEN { <expression> | <scalar-function> | <named-scalar> }
+    [ [ ELSE { <expression> | <scalar-function> | <named-scalar> } ] [ ...n ] ]
     END
   | COALESCE ( <expression> [ ,...n ] )
   | <arithmetic>

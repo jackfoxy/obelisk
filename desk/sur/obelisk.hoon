@@ -60,10 +60,11 @@
 ::
 +$  set-table
   $:  %set-table
-      object=(unit qualified-object)
+      object=(unit qualified-table)
       schema-tmsp=(unit @da)
       data-tmsp=(unit @da)
       columns=(list column)
+      =lookup-type
       pri-indx=(unit index)
       join=(unit join-type)
       predicate=(unit predicate)
@@ -77,7 +78,7 @@
 +$  qual-col-type  [qualified-column @ta]
 +$  qualified-lookup-type
   $:  %qualified-lookup-type
-      (map qualified-object (map @tas @ta))
+      (map qualified-table (map @tas @ta))
       ==
 +$  unqualified-lookup-type
   $:  %unqualified-lookup-type
@@ -88,7 +89,7 @@
 +$  joined-row
   $:  %joined-row
       key=(list @)
-      data=(map qualified-object (map @tas @))
+      data=(map qualified-table (map @tas @))
       ==
 +$  data-row  $%(joined-row indexed-row)
 ::
@@ -108,6 +109,8 @@
     join=(unit join-type)
     predicate=(unit predicate)  ::to do: why is this unit?
   ==
+::
++$  named-ctes  (map @tas (list set-table))
 ::
 +$  db-cmd  $?  %create-database
                 %drop-database
