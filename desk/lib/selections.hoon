@@ -272,10 +272,12 @@
                                   type-lookup
                                   qualified-columns
                                   ==
+  =.  prior-join       (join-up prior-join -.triple)
   %=  $
     relations          +.relations
-    from-objects       [-.triple from-objects]
-    prior-join         (join-up prior-join -.triple)
+    from-objects       [prior-join from-objects]
+    ::from-objects       [-.triple from-objects]
+    ::prior-join         (join-up prior-join -.triple)
     type-lookup        +<.triple
     qualified-columns  +>.triple
   ==
@@ -613,7 +615,7 @@
   ^-  [@ud (list joined-row)]
   =/  c  *(list joined-row)
   =/  i  0
-  ::
+::
   |-
   ?~  a  [i (flop c)]
   ?~  b  [i (flop c)]
