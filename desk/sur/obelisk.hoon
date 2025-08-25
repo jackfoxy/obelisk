@@ -69,7 +69,7 @@
       join=(unit join-type)
       predicate=(unit predicate)
       rowcount=@
-      key=(list key-column)
+    ::  key=(list key-column)
       pri-indexed=(tree [(list @) (map @tas @)])
       indexed-rows=(list indexed-row)
       joined-rows=(list joined-row)

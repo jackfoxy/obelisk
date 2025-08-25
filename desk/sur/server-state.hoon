@@ -81,6 +81,7 @@
       columns=(list column)      ::  canonical column list
       indices=(list index)      :: to do: indices indexed by (list column)
   ==
++$  column-lookup  (map @tas [aura @])  :: name [type index]
 +$  file
   $:  %file
       ship=@p
@@ -135,7 +136,7 @@
       ordering=(list column-order)
       :: indices
   ==
-+$  column-lookup  (map @tas [aura @])  :: name [type index]
+::
 +$  index
   $:  %index
       unique=?
@@ -159,5 +160,4 @@
   ?.  =(ns.p ns.q)  (gth ns.p ns.q)
   ?.  =(obj.p obj.q)  (gth obj.p obj.q)
   (gth time.p time.q)
-  
 --

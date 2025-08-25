@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *utils, *joins, *predicate
+/+  *utils, *selections, *predicate
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
@@ -622,7 +622,6 @@
                             ~
                             ~
                             1
-                            *(list key-column)
                             *(tree [(list @) (map @tas @)])
                             ~[[%indexed-row ~ indexed-cols]]
                             *(list joined-row)
@@ -639,7 +638,6 @@
                 ~
                 ~
                 1
-                *(list key-column)
                 *(tree [(list @) (map @tas @)])
                 ~[[%indexed-row ~ indexed-cols]]
                 *(list joined-row)
