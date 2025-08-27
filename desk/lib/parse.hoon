@@ -3871,14 +3871,21 @@
               ==
     face-list
   ==
+:: this version of parse-datum attempts to fix qualifier parsing to avoid
+:: the hack (unknown column/cte)
 ++  parse-datum  ~+
+  ;~  pose
+    ;~(pose ;~(pfix whitespace parse-unqualified-column) parse-unqualified-column)
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
+  ==
+++  parse-datum-for-predicate  ~+
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
   ==
 ++  cook-aggregate
   |=  parsed=*
-  ~&   "parsed: {<parsed>}"
   [%aggregate -.parsed +.parsed]
 ++  parse-aggregate
   ;~  pose
@@ -4291,15 +4298,37 @@
   ~|("cannot parse qualified-column  {<a>}" !!)
 ++  parse-column  ~+
   ;~  pose
+    ::  @p.<database>.<namespace>.<table-or-view-alias>.<column-name>
     ;~((glue dot) parse-ship sym sym sym sym)
+    ::  @p.<database>..<table-or-view-alias>.<column-name>
     ;~(plug parse-ship ;~(pfix dot sym) dot dot sym ;~(pfix dot sym))
+    ::  <database>.<namespace>.<table-or-view-alias>.<column-name>
     ;~((glue dot) sym sym sym sym)
+    ::  <database>..<table-or-view-alias>.<column-name>
     ;~(plug sym dot ;~(pfix dot sym) ;~(pfix dot sym))
+    ::  <namespace>.<table-or-view-alias>.<column-name>
     ;~((glue dot) sym sym sym)
+    ::  (<table-or-view-alias>.<column-name>
+    ::  why mixed case symbol here? if aliases can be mixed case shouldn't
+    ::  all the other parsers have this also?
     ;~(plug mixed-case-symbol ;~(pfix dot sym))
+    ::  <column-name>
     sym
   ==
 ++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
+++  cook-unqualified-column
+  |=  a=*
+  ~+
+  ?@  a
+    ?:  ((sane %tas) a)
+      [%unqualified-column `@tas`a ~]
+    :: do another sane to check if lowercase alias fits as cord
+    :: otherwise crash
+    [%unqualified-column %helloworld `@t`a]
+  ~|("cannot cook unqualified-column, a is not an atom: {<a>}" !!)
+
+++  parse-unqualified-column
+  ~+  (cook cook-unqualified-column ~+(;~(pose sym mixed-case-symbol)))
 ::
 ::  predicate
 ::
@@ -4387,7 +4416,7 @@
     parse-aggregate
     value-literal-list
     ;~(pose ;~(pfix whitespace parse-operator) parse-operator)
-    parse-datum
+    parse-datum-for-predicate
   ==
 ++  parse-predicate  ~+
   (star ;~(less predicate-stop predicate-part))
@@ -4614,6 +4643,7 @@
 ::
 ++  get-datum  ~+
   ;~  pose
+    ;~(sfix parse-unqualified-column whitespace)
     ;~(sfix parse-qualified-column whitespace)
     ;~(sfix parse-value-literal whitespace)
     ;~(sfix parse-datum whitespace)
@@ -4669,6 +4699,10 @@
       (case:ast %case target (flop cases) ~)
     ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
   ?:  ?&  ?=(qualified-column:ast target)
+          =(%else +>-.parsed)
+      ==
+    (case:ast %case target (flop cases) (some +>+<.parsed))
+  ?:  ?&  ?=(unqualified-column:ast target)
           =(%else +>-.parsed)
       ==
     (case:ast %case target (flop cases) (some +>+<.parsed))
