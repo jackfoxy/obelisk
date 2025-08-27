@@ -458,12 +458,6 @@
   ?~  set-tables  ~|("can't get here" !!)
   =/  selected  columns.select.q
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
-
-    ~&  "type-lookup.join-return:  {<type-lookup.join-return>}"
-    ~&  ""
-    ~&  "qualifier-lookup:  {<qualifier-lookup>}"
-    ~&  ""
-
   =.  selected  (qualify-unqualified columns.select.q qualifier-lookup)
   =/  filter=(unit $-(data-row ?))
     ?~  predicate.q  ~

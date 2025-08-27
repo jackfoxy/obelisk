@@ -16,6 +16,10 @@
 9. If two nested permissions are for the same @p, or the outer *grantee* is more generally the case for the inner @p, and the grant object nests, the inner permission must be more or equally permissive. ADMINREAD < READONLY < INSERT <= UPDATE <= DELETE < READWRITE
 10. Security permissions are outside the scope of time indexing and apply in real time.
 
+NOTE:  agent is a path (sup in bowl)  sup=bitt:gall  (map duct (pair ship path))
+       agent is lost by thread?
+       preventing SQL injection attacks ultimately requires stored procedures (not currently in sec model)
+
 Permission updating takes place through GRANT and REVOKE commands. GRANT adds permissions to foreign ships, possibly restricted by path, and to previously restricted local paths. REVOKE removes permissions from previously allowed foreign ships, possibly restricted by path, and from local paths.
 
 Permissions may grant access to foreign ships based on their relation to the host ship (parent, moons, siblings -- applies to moon host only) or as ship @p, optionally qualified by an agent or shrubbery path.

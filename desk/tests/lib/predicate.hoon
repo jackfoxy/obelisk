@@ -501,27 +501,16 @@
                 " ('Abby', 'tricolor', 'row1')".
                 " ('Ace', 'ticolor', 'row2')".
                 " ('Angel', 'tuxedo', 'row3')"
-  ::=.  run  +(run)
-  ::=^  mov4  agent
-  ::  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::      %obelisk-action
-  ::      !>  :+  %tape2
-  ::              %db1
-  ::              "FROM my-table T1 JOIN my-table-2 T2 ".
-  ::              "WHERE col3 = 'tuxedo' SELECT T1.*, T2.col3, T2.col4"
-  ::::
-  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov4))
-
-  %+  expect-fail-message
-      %-  crip
-          "comparing columns of different auras: %col1 ~.t %col2 ~.da"
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
-          %obelisk-action
-          !>  :+  %test
-                  %db1
-                  "FROM my-table T1 JOIN my-table-2 T2 ".
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "FROM my-table T1 JOIN my-table-2 T2 ".
                 "WHERE col3 = 'tuxedo' SELECT T1.*, T2.col3, T2.col4"
-
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
 ::
 ::  WHERE <literal> = <column> joined
 ++  test-eq-joined-01

@@ -739,12 +739,7 @@
     |-
     ?~  sources           lookup
     =/  source=set-table  i.sources
-
-      ~&  "object.source:  {<object.source>}"
-      ~&  ""
-
-    ?~  object.source     ~&  "source:  {<source>}"
-                          ~&  ""  $(sources t.sources)
+    ?~  object.source     $(sources t.sources)
     =/  columns=(list column:ast)  columns.source
     |-
     ?~  columns  ^$(sources t.sources)
