@@ -72,10 +72,17 @@
 ::  todo: the parsers produce qualified columns where the qualified object's
 ::        name is always the same as the column's name
 ++  test-scalar-01
-  =/  select  "FROM foo SCALARS foo COALESCE foo2,~zod,1,foo3 baz COALESCE foo2,~zod,1,foo3 SELECT foo2,foo3"
+  ::
+  =/  query-string  "FROM foo SCALARS foo COALESCE foo2,~zod,1,foo3 baz COALESCE foo2,~zod,1,foo3 SELECT foo2,foo3"
+  ::
+  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
+  =/  scalars  ~[coalesce-foo coalesce-baz]
+  =/  from  [%from object=table-set-foo as-of=~ joins=~]
+  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
+  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[coalesce-foo coalesce-baz] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
+    !>  expected
+    !>  (parse:parse(default-database 'db1') query-string)
 
 ::++  test-scalar-02
 ::  =/  select  "FROM foo SCALARS foo COALESCE baz,~zod,1,foo baz COALESCE baz,~zod,1,foo SELECT foo2,foo3"
@@ -86,10 +93,17 @@
 ::  simple if
 ::  todo: add test cases for when arg is a scalar, currently only testing datums
 ++  test-scalar-03
-  =/  select  "FROM foo SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF baz IF 1 = 0 THEN foo3 ELSE foo2 ENDIF SELECT foo2,foo3"
+  ::
+  =/  query-string  "FROM foo SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF baz IF 1 = 0 THEN foo3 ELSE foo2 ENDIF SELECT foo2,foo3"
+  ::
+  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
+  =/  scalars  ~[if-foo if-baz]
+  =/  from  [%from object=table-set-foo as-of=~ joins=~]
+  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
+  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[if-foo if-baz] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
+    !>  expected
+    !>  (parse:parse(default-database 'db1') query-string)
 
 ::  simple if as
 ::++  test-scalar-04
@@ -100,24 +114,45 @@
 ::
 ::  simple case with predicate
 ++  test-scalar-05
-  =/  select  "FROM foo SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  query-string  "FROM foo SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
+  =/  scalars  ~[case-1]
+  =/  from  [%from object=table-set-foo as-of=~ joins=~]
+  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
+  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-1] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
+    !>  expected
+    !>  (parse:parse(default-database 'db1') query-string)
 
 ::  simple case with predicate, no else
 ++  test-scalar-051
-  =/  select  "FROM foo SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END SELECT foo2,foo3"
+  ::
+  =/  query-string  "FROM foo SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END SELECT foo2,foo3"
+  ::
+  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
+  =/  scalars  ~[case-2]
+  =/  from  [%from object=table-set-foo as-of=~ joins=~]
+  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
+  =/  expected  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[query ~ ~]]]
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
+    !>  expected
+    !>  (parse:parse(default-database 'db1') query-string)
 
 ::  simple case with predicate, two cases, one with else, the other with no else
 ++  test-scalar-052
-  =/  select  "FROM foo SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  query-string  "FROM foo SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
+  =/  scalars  ~[case-2 case-1]
+  =/  from  [%from object=table-set-foo as-of=~ joins=~]
+  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
+  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
   %+  expect-eq
-    !>  ~[[%selection ctes=~ set-functions=[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[case-2 case-1] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') select)
+    !>  expected
+    !>  (parse:parse(default-database 'db1') query-string)
 
 ::  simple case AS with datum
 ::++  test-scalar-06
