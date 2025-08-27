@@ -46,9 +46,7 @@
                                    ==
 ++  literal-zod            [p=%p q=0]
 ++  literal-1              [p=%ud q=1]
-++  naked-coalesce         ~[%coalesce column-foo2 literal-zod literal-1 column-foo3]
-++  coalesce-foo           [%scalar naked-coalesce 'foo']
-++  coalesce-baz           [%scalar naked-coalesce 'baz']
+++  naked-coalesce-1       ~[%coalesce column-foo2 literal-zod literal-1 column-foo3]
 :: [%eq [literal-1 0 0] [literal-1 0 0]]
 ++  simple-true-pred       [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=1] ~ ~]]
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
@@ -58,7 +56,7 @@
 ++  if-baz                 [%scalar simple-if-naked-false 'baz']
 ++  case-predicate         [%when [%eq [literal-1 0 0] literal-1 0 0] %then column-foo]
 ++  case-datum             [%when column-foo2 %then column-foo]
-++  case-coalesce          [%when column-foo3 %then naked-coalesce]
+::++  case-coalesce          [%when column-foo3 %then naked-coalesce]
 ++  case-1                 [%scalar [%case column-foo3 ~[[simple-true-pred column-foo3]] (some column-foo2)] 'foobar']
 ++  case-2                 [%scalar [%case column-foo3 ~[[simple-true-pred column-foo3]] ~] 'foobaz']
 ::++  case-2                 [%scalar [%case column-foo3 ~[case-datum] %else column-bar %end]]
@@ -71,24 +69,23 @@
 ::  todo: error message when scalars are defined without a select statement after?
 ::  todo: the parsers produce qualified columns where the qualified object's
 ::        name is always the same as the column's name
+::
+::  probably need for each scalar to test for every possible kind of qualifier
+::
+:: simple coalesce
 ++  test-scalar-01
   ::
   =/  query-string  "FROM foo SCALARS foo COALESCE foo2,~zod,1,foo3 baz COALESCE foo2,~zod,1,foo3 SELECT foo2,foo3"
   ::
   =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
-  =/  scalars  ~[coalesce-foo coalesce-baz]
+  =/  scalars  ~[[%scalar naked-coalesce-1 'foo'] [%scalar naked-coalesce-1 'baz']]
   =/  from  [%from object=table-set-foo as-of=~ joins=~]
   =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
   =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
-
-::++  test-scalar-02
-::  =/  select  "FROM foo SCALARS foo COALESCE baz,~zod,1,foo baz COALESCE baz,~zod,1,foo SELECT foo2,foo3"
-::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[[%query from=[~ [%from object=table-set-foo as-of=~ joins=~]] scalars=~[coalesce-foo coalesce-baz] ~ group-by=~ having=~ select=[%select top=~ bottom=~ columns=~[column-foo2 column-foo3]] ~] ~ ~]]]
-::    !>  (parse:parse(default-database 'db1') select)
+::
 ::
 ::  simple if
 ::  todo: add test cases for when arg is a scalar, currently only testing datums
@@ -153,7 +150,7 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
-
+::
 ::  simple case AS with datum
 ::++  test-scalar-06
 ::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN foo ELSE bar END"

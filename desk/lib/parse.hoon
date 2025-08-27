@@ -4316,19 +4316,8 @@
     sym
   ==
 ++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
-++  cook-unqualified-column
-  |=  a=*
-  ~+
-  ?@  a
-    ?:  ((sane %tas) a)
-      [%unqualified-column `@tas`a ~]
-    :: do another sane to check if lowercase alias fits as cord
-    :: otherwise crash
-    [%unqualified-column %helloworld `@t`a]
-  ~|("cannot cook unqualified-column, a is not an atom: {<a>}" !!)
-
-++  parse-unqualified-column
-  ~+  (cook cook-unqualified-column ~+(;~(pose sym mixed-case-symbol)))
+++  parse-unqualified-column  ~+
+  (cook |=(a=* [%unqualified-column a ~]) parse-column) :: sym rule == @tas
 ::
 ::  predicate
 ::
