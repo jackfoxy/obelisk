@@ -3875,9 +3875,9 @@
 :: the hack (unknown column/cte)
 ++  parse-datum  ~+
   ;~  pose
-    ;~(pose ;~(pfix whitespace parse-unqualified-column) parse-unqualified-column)
+    ;~(pose ;~(pfix whitespace parse-one-item-qualifier) parse-one-item-qualifier)
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
-    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
+    ;~(pose ;~(pfix whitespace parse-value-literal) (stag %dime parse-value-literal))
   ==
 ++  parse-datum-for-predicate  ~+
   ;~  pose
@@ -4316,8 +4316,10 @@
     sym
   ==
 ++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
-++  parse-unqualified-column  ~+
-  (cook |=(a=* [%unqualified-column a ~]) parse-column) :: sym rule == @tas
+++  parse-one-item-qualifier  ~+
+  (cook |=(a=* [%one-item-qualifier a]) sym) :: sym rule == @tas
+++  parse-two-item-qualifier  ~+
+  (cook |=(a=* [%unqualified-column a ~]) sym) :: sym rule == @tas
 ::
 ::  predicate
 ::
@@ -4632,17 +4634,17 @@
 ::
 ++  get-datum  ~+
   ;~  pose
-    ;~(sfix parse-unqualified-column whitespace)
+    ;~(sfix parse-one-item-qualifier whitespace)
     ;~(sfix parse-qualified-column whitespace)
-    ;~(sfix parse-value-literal whitespace)
+    ;~(sfix (stag %dime parse-value-literal) whitespace)
     ;~(sfix parse-datum whitespace)
     parse-datum
   ==
 ++  cook-if
   |=  parsed=*
-  ^-  if-then-else:ast
-  %:  if-then-else:ast
-    %if-then-else
+  ^-  if-then-else-helper
+  %:  if-then-else-helper
+    %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
     +>-.parsed
     +>+>-.parsed 
@@ -4691,10 +4693,11 @@
           =(%else +>-.parsed)
       ==
     (case:ast %case target (flop cases) (some +>+<.parsed))
-  ?:  ?&  ?=(unqualified-column:ast target)
+  ?:  ?&  ?=(one-item-qualifier target)
           =(%else +>-.parsed)
       ==
-    (case:ast %case target (flop cases) (some +>+<.parsed))
+    =/  unqualified-column  [%unqualified-column column.target ~]
+    (case:ast %case unqualified-column (flop cases) (some +>+<.parsed))
   ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
   ;~  plug
@@ -4970,5 +4973,28 @@
         @
         @
         ==
+  ==
++$   qualifier-or-dime
+  $%  one-item-qualifier
+      two-item-qualifier
+      $:(%dime dime)
+  ==
++$  one-item-qualifier
+  $:
+     %one-item-qualifier
+     column=@tas
+  ==
++$  two-item-qualifier
+  $:
+     %two-item-qualifier
+     table-or-view-alias=@t
+     column=@tas
+  ==
++$  if-then-else-helper
+  $:
+    %if-then-else-helper
+    if=predicate:ast
+    then=qualifier-or-dime
+    else=qualifier-or-dime
   ==
 --
