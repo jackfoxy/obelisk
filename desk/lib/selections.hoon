@@ -238,9 +238,12 @@
                                           ~
                                           ==
   =/  prior-join      -.triple
-  =.  joined-rows.prior-join  %+  turn  indexed-rows.prior-join
-                                        %+  cury  joined-row-from-indexed
-                                                  (need object.prior-join)
+
+    ~&  "hello"
+
+  ::=.  joined-rows.prior-join  %+  turn  indexed-rows.prior-join
+  ::                                      %+  cury  joined-row-from-indexed
+  ::                                                (need object.prior-join)
   =/  from-objects    (limo ~[prior-join])
   =/  type-lookup     +<.triple
   =/  qualified-columns=(list qual-col-type)  +>.triple
@@ -261,6 +264,9 @@
                                   type-lookup
                                   qualified-columns
                                   ==
+  
+    ~&  "hello2"
+
   =.  prior-join       (join-up prior-join -.triple)
   %=  $
     relations          +.relations
@@ -464,6 +470,14 @@
 ++  join-up
   |=  [prior=set-table this=set-table]
   ^-  set-table
+
+
+    ~&  "prior:  {<prior>}"
+    ~&  ""
+    ~&  "this:  {<this>}"
+    ~&  ""
+
+
   ?-  (need join.this)
     %join
       ?:  =(~ predicate.this)  (join-natural prior this)
@@ -517,7 +531,15 @@
   =/  prior-key  key:(need pri-indx.prior)
   :: perfect natural join
   =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
+                      ?~  joined-rows.prior
+                        %:  join-pri-key  indexed-rows.prior
+                                          (need object.prior)
+                                          indexed-rows.this
+                                          (need object.this)
+                                          this-key
+                                        ==
                       %:  join-pri-key  joined-rows.prior
+                                        (need object.prior)
                                         indexed-rows.this
                                         (need object.this)
                                         this-key
@@ -536,13 +558,31 @@
                prior-key
   =.  count-and-rows
         ?:  (gth rowcount.this rowcount.prior)
+          ?~  joined-rows.prior
+            %:  join-pri-key  %+  sort  indexed-rows.prior
+                                   ~(order data-row-comp (reduce-key the-key))
+                              (need object.prior)
+                              indexed-rows.this
+                              (need object.this)
+                              this-key
+                              ==
           %:  join-pri-key  %+  sort  joined-rows.prior
                                    ~(order data-row-comp (reduce-key the-key))
+                            (need object.prior)
                             indexed-rows.this
                             (need object.this)
                             this-key
                             ==
+        ?~  joined-rows.prior
+          %:  join-pri-key  indexed-rows.prior
+                            (need object.prior)
+                            %+  sort  indexed-rows.this
+                                    ~(order data-row-comp (reduce-key the-key))
+                            (need object.this)
+                            prior-key
+                            ==
         %:  join-pri-key  joined-rows.prior
+                          (need object.prior)
                           %+  sort  indexed-rows.this
                                   ~(order data-row-comp (reduce-key the-key))
                           (need object.this)
@@ -559,11 +599,17 @@
   =.  joined-rows.st  joined-rows
   st
 ::
-::  +join-pri-key
+::  +join-pri-key:  $:  (list joined-row)
+::                      (list indexed-row)
+::                      qualified-table:ast
+::                      (list key-column)
+::                      ==
+::                  ->  [@ud (list joined-row)]
 ::
 ::  joins the data of two tables having the same key
 ++  join-pri-key
-  |=  $:  a=(list joined-row)
+  |=  $:  a=(list data-row)
+          a-qual=qualified-table:ast
           b=(list indexed-row)
           b-qual=qualified-table:ast
           key=(list key-column)
@@ -571,13 +617,15 @@
   ^-  [@ud (list joined-row)]
   =/  c  *(list joined-row)
   =/  i  0
-::
+  ::
   |-
   ?~  a  [i (flop c)]
   ?~  b  [i (flop c)]
   ?:  =(key.i.a key.i.b)
     %=  $ 
-      c  [[%joined-row key.i.a (~(put by data.i.a) b-qual data.i.b)] c]
+      c  ?:  ?=(%joined-row -.i.a) 
+        [[%joined-row key.i.a (~(put by data.i.a) b-qual data.i.b)] c]
+      [(joined-from-indexed i.a a-qual i.b b-qual) c]
       a  t.a
       b  t.b
       i  +(i)
@@ -585,4 +633,19 @@
   ?:  (~(order idx-comp (reduce-key key)) key.i.a key.i.b)
     $(a t.a)
   $(b t.b)
+::
+++  joined-from-indexed
+  |=  $:  a=indexed-row
+          a-qual=qualified-table:ast
+          b=indexed-row
+          b-qual=qualified-table:ast
+          ==
+  ^-  joined-row
+  :+  %joined-row
+      key.a
+      %+  %~  put  by  %+  %~  put  by  *(map qualified-table:ast (map @tas @))
+                           a-qual
+                           data.a
+          b-qual
+          data.b
 --
