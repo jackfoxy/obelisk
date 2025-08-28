@@ -4312,9 +4312,11 @@
   ==
 ++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
 ++  parse-one-item-qualifier  ~+
-  (cook |=(a=* [%one-item-qualifier a]) sym) :: sym rule == @tas
+  (cook |=(a=* [%one-item-qualifier column=a]) sym)
 ++  parse-two-item-qualifier  ~+
-  (cook |=(a=* [%unqualified-column a ~]) sym) :: sym rule == @tas
+  %+  cook
+    |=(a=* [%two-item-qualifier table-or-view-alias=-.a column=+.a])
+  ;~(plug mixed-case-symbol ;~(pfix dot sym))
 ::
 ::  predicate
 ::

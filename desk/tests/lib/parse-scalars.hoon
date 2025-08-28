@@ -72,16 +72,133 @@
 ::
 ::  probably need for each scalar to test for every possible kind of qualifier
 ::
-:: simple coalesce
-++  test-scalar-01
-  ::
-  =/  query-string  "FROM foo SCALARS foo COALESCE foo2,~zod,1,foo3 baz COALESCE foo2,~zod,1,foo3 SELECT foo2,foo3"
-  ::
+::
+::  helper gates
+::
+::  mk-selection
+::  returns a constant selection with scalars set to arg
+++  mk-selection
+  |=  scalars=(list scalar:ast)
+  ^-  (list command:ast)
   =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
-  =/  scalars  ~[[%scalar naked-coalesce-1 'foo'] [%scalar naked-coalesce-1 'baz']]
   =/  from  [%from object=table-set-foo as-of=~ joins=~]
-  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
-  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+  =/  query
+    :*
+      %query
+      from=[~ from]
+      scalars=scalars
+      ~
+      group-by=~
+      having=~
+      select=select
+      ~
+    ==
+  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+::
+::  helper-objects
+++  default-db           'db1'
+++  default-namespace    %dbo
+::
+::  @p.<database>.<namespace>.<table-or-view-alias>.<column-name>
+::  ~sampel-palnet.db2.dba.my-table.bar
+++  qualified-col-1  :^  %qualified-column
+                       :*  %qualified-table
+                           ship=~sampel-palnet
+                           database=%db2
+                           namespace=%dba
+                           name=%foo
+                           alias='my-table'
+                           ==
+                       name=%bar
+                       alias=~
+::  @p.<database>..<table-or-view-alias>.<column-name>
+::  ~sampel-palnet.db2..my-table.bar
+++  qualified-col-2  :^  %qualified-column
+                       :*  %qualified-table
+                           ship=~sampel-palnet
+                           database=%db2
+                           namespace=default-namespace
+                           name=%foo
+                           alias='my-table'
+                           ==
+                       name=%bar
+                       alias=~
+::  <database>.<namespace>.<table-or-view-alias>.<column-name>
+::  db2.dba.my-table.bar
+++  qualified-col-3  :^  %qualified-column
+                       :*  %qualified-table
+                           ship=~
+                           database=%db2
+                           namespace=%dba
+                           name=%foo
+                           alias='my-table'
+                           ==
+                       name=%bar
+                       alias=~
+::  <database>..<table-or-view-alias>.<column-name>
+::  db2.dba.my-table.bar
+++  qualified-col-4  :^  %qualified-column
+                       :*  %qualified-table
+                           ship=~
+                           database=%db2
+                           namespace=default-namespace
+                           name=%foo
+                           alias='my-table'
+                           ==
+                       name=%bar
+                       alias=~
+::  <namespace>.<table-or-view-alias>.<column-name>
+::  dba.'my-table'.bar
+++  qualified-col-5  :^  %qualified-column
+                       :*  %qualified-table
+                           ship=~
+                           database=default-database
+                           namespace=%dba
+                           name=%foo
+                           alias='my-table'
+                           ==
+                       name=%bar
+                       alias=~
+::  <table-or-view-alias>.<column-name>
+::  <column-name>
+::  helper objects
+::
+:: simple coalesce
+++  test-coalesce-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE foo2,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce column-foo2 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database 'db1') query-string)
+::
+:: coalesce, 2 scalars
+++  test-coalesce-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE foo2,~zod,1,foo3 ".
+    "        baz COALESCE foo2,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce column-foo2 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+      [%scalar coalesce-1 'baz']
+    ==
+  =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
@@ -89,15 +206,16 @@
 ::
 ::  simple if
 ::  todo: add test cases for when arg is a scalar, currently only testing datums
-++  test-scalar-03
+++  test-if-03
   ::
-  =/  query-string  "FROM foo SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF baz IF 1 = 0 THEN foo3 ELSE foo2 ENDIF SELECT foo2,foo3"
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        baz IF 1 = 0 THEN foo3 ELSE foo2 ENDIF ".
+    "SELECT foo2,foo3"
   ::
-  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
   =/  scalars  ~[if-foo if-baz]
-  =/  from  [%from object=table-set-foo as-of=~ joins=~]
-  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
-  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+  =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
@@ -110,43 +228,44 @@
 ::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
 ::
 ::  simple case with predicate
-++  test-scalar-05
+++  test-case-05
   ::
-  =/  query-string  "FROM foo SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END SELECT foo2,foo3"
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "SELECT foo2,foo3"
   ::
-  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
   =/  scalars  ~[case-1]
-  =/  from  [%from object=table-set-foo as-of=~ joins=~]
-  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
-  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+  =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
 
 ::  simple case with predicate, no else
-++  test-scalar-051
+++  test-case-051
   ::
-  =/  query-string  "FROM foo SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END SELECT foo2,foo3"
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SELECT foo2,foo3"
   ::
-  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
   =/  scalars  ~[case-2]
-  =/  from  [%from object=table-set-foo as-of=~ joins=~]
-  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
-  =/  expected  ~[[%selection ctes=~ set-functions=`(tree set-function:ast)`[query ~ ~]]]
+  =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
 
 ::  simple case with predicate, two cases, one with else, the other with no else
-++  test-scalar-052
+++  test-case-052
   ::
-  =/  query-string  "FROM foo SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END SELECT foo2,foo3"
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "        foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "SELECT foo2,foo3"
   ::
-  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
   =/  scalars  ~[case-2 case-1]
-  =/  from  [%from object=table-set-foo as-of=~ joins=~]
-  =/  query  [%query from=[~ from] scalars=scalars ~ group-by=~ having=~ select=select ~]
-  =/  expected  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+  =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database 'db1') query-string)
