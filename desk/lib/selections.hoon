@@ -238,9 +238,6 @@
                                           ~
                                           ==
   =/  prior-join      -.triple
-
-    ~&  "hello"
-
   ::=.  joined-rows.prior-join  %+  turn  indexed-rows.prior-join
   ::                                      %+  cury  joined-row-from-indexed
   ::                                                (need object.prior-join)
@@ -264,9 +261,6 @@
                                   type-lookup
                                   qualified-columns
                                   ==
-  
-    ~&  "hello2"
-
   =.  prior-join       (join-up prior-join -.triple)
   %=  $
     relations          +.relations
@@ -470,14 +464,6 @@
 ++  join-up
   |=  [prior=set-table this=set-table]
   ^-  set-table
-
-
-    ~&  "prior:  {<prior>}"
-    ~&  ""
-    ~&  "this:  {<this>}"
-    ~&  ""
-
-
   ?-  (need join.this)
     %join
       ?:  =(~ predicate.this)  (join-natural prior this)
@@ -496,8 +482,10 @@
 ++  cross-join
   |=  [prior=set-table this=set-table]
   ^-  set-table
-  =/  a         joined-rows.prior
-  =/  out-rows  *(list joined-row)
+  =/  a=(list data-row)  ?~  joined-rows.prior
+                           indexed-rows.prior
+                         joined-rows.prior
+  =/  out-rows           *(list joined-row)
   =/  i  0
   ::
   |-
@@ -506,9 +494,15 @@
   |-
   ?~  b  ^$(a t.a)
   %=  $ 
-    out-rows  :-  :+  %joined-row
-                      ~
-                      (~(put by data.i.a) (need object.this) data.i.b)
+    out-rows  :-  ?:  ?=(%joined-row -.i.a)
+                    :+  %joined-row
+                        ~
+                        (~(put by data.i.a) (need object.this) data.i.b)
+                  %:  joined-from-indexed  i.a
+                                           (need object.prior)
+                                           i.b
+                                           (need object.this)
+                                           ==
                   out-rows
     b  t.b
     i  +(i)
@@ -599,7 +593,8 @@
   =.  joined-rows.st  joined-rows
   st
 ::
-::  +join-pri-key:  $:  (list joined-row)
+::  +join-pri-key:  $:  (list data-row)
+::                      qualified-table:ast
 ::                      (list indexed-row)
 ::                      qualified-table:ast
 ::                      (list key-column)
