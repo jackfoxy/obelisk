@@ -96,72 +96,86 @@
   ~[[%selection ctes=~ set-functions=[query ~ ~]]]
 ::
 ::  helper-objects
+::
 ++  default-db           'db1'
 ++  default-namespace    %dbo
 ::
-::  @p.<database>.<namespace>.<table-or-view-alias>.<column-name>
-::  ~sampel-palnet.db2.dba.my-table.bar
+::  @p.<database>.<namespace>.<table-or-view>.<column-name>
+::  ~sampel-palnet.db2.dba.table1.bar
 ++  qualified-col-1  :^  %qualified-column
                        :*  %qualified-table
-                           ship=~sampel-palnet
+                           ship=(some ~sampel-palnet)
                            database=%db2
                            namespace=%dba
-                           name=%foo
-                           alias='my-table'
+                           name=%table1
+                           alias=~
                            ==
                        name=%bar
                        alias=~
-::  @p.<database>..<table-or-view-alias>.<column-name>
-::  ~sampel-palnet.db2..my-table.bar
+::  @p.<database>..<table-or-view>.<column-name>
+::  ~sampel-palnet.db2..table1.bar
 ++  qualified-col-2  :^  %qualified-column
                        :*  %qualified-table
-                           ship=~sampel-palnet
+                           ship=(some ~sampel-palnet)
                            database=%db2
                            namespace=default-namespace
-                           name=%foo
-                           alias='my-table'
+                           name=%table1
+                           alias=~
                            ==
                        name=%bar
                        alias=~
-::  <database>.<namespace>.<table-or-view-alias>.<column-name>
-::  db2.dba.my-table.bar
+::  <database>.<namespace>.<table-or-view>.<column-name>
+::  db2.dba.table1.bar
 ++  qualified-col-3  :^  %qualified-column
                        :*  %qualified-table
                            ship=~
                            database=%db2
                            namespace=%dba
-                           name=%foo
-                           alias='my-table'
+                           name=%table1
+                           alias=~
                            ==
                        name=%bar
                        alias=~
-::  <database>..<table-or-view-alias>.<column-name>
-::  db2.dba.my-table.bar
+::  <database>..<table-or-view>.<column-name>
+::  db2..table1.bar
 ++  qualified-col-4  :^  %qualified-column
                        :*  %qualified-table
                            ship=~
                            database=%db2
                            namespace=default-namespace
-                           name=%foo
-                           alias='my-table'
+                           name=%table1
+                           alias=~
                            ==
                        name=%bar
                        alias=~
-::  <namespace>.<table-or-view-alias>.<column-name>
-::  dba.'my-table'.bar
+::  <namespace>.<table-or-view>.<column-name>
+::  dba.table1.bar
 ++  qualified-col-5  :^  %qualified-column
                        :*  %qualified-table
                            ship=~
-                           database=default-database
+                           database=default-db
                            namespace=%dba
-                           name=%foo
-                           alias='my-table'
+                           name=%table1
+                           alias=~
                            ==
                        name=%bar
                        alias=~
-::  <table-or-view-alias>.<column-name>
+::  TODO: to do this we also need to have a query that defines a table alias
+::  <alias>.<column-name>
+::  MyTable.bar
+++  qualified-col-6  :^  %qualified-column
+                       :*  %qualified-table
+                           ship=~
+                           database=default-db
+                           namespace=%dba
+                           name=%table1
+                           alias=(some 'MyTable')
+                           ==
+                       name=%bar
+                       alias=~
 ::  <column-name>
-::  helper objects
+::  bar
+++  unqualified-col-1   [%unqualified-column column=%foo3 alias=~]
 ::
 :: simple coalesce
 ++  test-coalesce-01
@@ -180,7 +194,7 @@
   =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database 'db1') query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce, 2 scalars
 ++  test-coalesce-02
@@ -201,9 +215,143 @@
   =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database 'db1') query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 ::
+:: qualified column coalesce with ship.database.namespace.table.column
+++  test-coalesce-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE ~sampel-palnet.db2.dba.table1.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    [%coalesce data=~[qualified-col-1 literal-zod literal-1 column-foo3]]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected=(list command:ast)  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::
+:: qualified column coalesce with ship.database..table.column (default namespace)
+++  test-coalesce-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE ~sampel-palnet.db2..table1.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-2 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with database.namespace.table.column
+++  test-coalesce-05
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE db2.dba.table1.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-3 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with database..table.column (default namespace)
+++  test-coalesce-06
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE db2..table1.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-4 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with namespace.table.column (default database)
+++  test-coalesce-07
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE dba.table1.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-5 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with alias.column (default database)
+++  test-coalesce-08
+  ::
+  =/  query-string
+    "WITH (SELECT bar,foo) AS MyTable ".
+    "FROM foo ".
+    "SCALARS foo COALESCE MyTable.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with alias.column (default database)
+:: should fail, column alias is not defined
+++  test-coalesce-09
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE MyTable.bar,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 column-foo3]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
 ::  simple if
 ::  todo: add test cases for when arg is a scalar, currently only testing datums
 ++  test-if-03
@@ -218,7 +366,7 @@
   =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database 'db1') query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 
 ::  simple if as
 ::++  test-scalar-04
@@ -239,7 +387,7 @@
   =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database 'db1') query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 
 ::  simple case with predicate, no else
 ++  test-case-051
@@ -253,7 +401,7 @@
   =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database 'db1') query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 
 ::  simple case with predicate, two cases, one with else, the other with no else
 ++  test-case-052
@@ -268,8 +416,9 @@
   =/  expected  (mk-selection scalars)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database 'db1') query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 ::
+
 ::  simple case AS with datum
 ::++  test-scalar-06
 ::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN foo ELSE bar END"

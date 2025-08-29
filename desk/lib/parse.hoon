@@ -3870,7 +3870,7 @@
 :: the hack (unknown column/cte)
 ++  parse-datum  ~+
   ;~  pose
-    ;~(pose ;~(pfix whitespace parse-one-item-qualifier) parse-one-item-qualifier)
+    ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) (stag %dime parse-value-literal))
   ==
@@ -4293,30 +4293,46 @@
   ~|("cannot parse qualified-column  {<a>}" !!)
 ++  parse-column  ~+
   ;~  pose
-    ::  @p.<database>.<namespace>.<table-or-view-alias>.<column-name>
     ;~((glue dot) parse-ship sym sym sym sym)
-    ::  @p.<database>..<table-or-view-alias>.<column-name>
     ;~(plug parse-ship ;~(pfix dot sym) dot dot sym ;~(pfix dot sym))
-    ::  <database>.<namespace>.<table-or-view-alias>.<column-name>
     ;~((glue dot) sym sym sym sym)
-    ::  <database>..<table-or-view-alias>.<column-name>
     ;~(plug sym dot ;~(pfix dot sym) ;~(pfix dot sym))
-    ::  <namespace>.<table-or-view-alias>.<column-name>
     ;~((glue dot) sym sym sym)
-    ::  (<table-or-view-alias>.<column-name>
-    ::  why mixed case symbol here? if aliases can be mixed case shouldn't
-    ::  all the other parsers have this also?
     ;~(plug mixed-case-symbol ;~(pfix dot sym))
-    ::  <column-name>
     sym
   ==
 ++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
-++  parse-one-item-qualifier  ~+
-  (cook |=(a=* [%one-item-qualifier column=a]) sym)
-++  parse-two-item-qualifier  ~+
-  %+  cook
-    |=(a=* [%two-item-qualifier table-or-view-alias=-.a column=+.a])
-  ;~(plug mixed-case-symbol ;~(pfix dot sym))
+++  parse-qualifier  ~+
+  ;~  pose
+    ::
+    ::  five-item-qualifiers
+    ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
+    ;~((glue dot) parse-ship sym sym sym sym)
+    ::  @p.<database>..<table-or-view>.<column-name>
+    ;~  plug
+      parse-ship 
+      ;~(pfix dot sym)
+      (cold ~ dot)
+      ;~(pfix dot sym)
+      ;~(pfix dot sym)
+    ==
+    ::  four-item-qualifiers
+    ::  <database>.<namespace>.<table-or-view>.<column-name>
+    ;~((glue dot) sym sym sym sym)
+    ::  <database>..<table-or-view>.<column-name>
+    ;~(plug sym (cold ~ dot) ;~(pfix dot sym) ;~(pfix dot sym))
+    ::  <namespace>.<table-or-view>.<column-name>
+    (stag ~ ;~((glue dot) sym sym sym))
+    ::
+    ::  two-item-qualifier
+    ::  <alias>.<column-name>
+    ;~(plug mixed-case-symbol ;~(pfix dot sym))
+    ::
+    ::  one-item-qualifier
+    ::  <column-name>
+    sym
+    ::
+  ==
 ::
 ::  predicate
 ::
@@ -4631,7 +4647,7 @@
 ::
 ++  get-datum  ~+
   ;~  pose
-    ;~(sfix parse-one-item-qualifier whitespace)
+    ;~(sfix parse-qualifier whitespace)
     ;~(sfix parse-qualified-column whitespace)
     ;~(sfix (stag %dime parse-value-literal) whitespace)
     ;~(sfix parse-datum whitespace)
@@ -4893,7 +4909,58 @@
   ?:  ?=([%one-item-qualifier *] a)
     [%unqualified-column name=column.a ~]
   ?:  ?=([%two-item-qualifier *] a)
-    !!
+  =/  object
+    (~(get by alias-map) (crip (cass (trip alias.a))))
+  ?~  object
+    ~&  "{<alias-map>}"
+    ~|("object is null" !!)
+  ~|("object is not null" !!)
+    ::%:  qualified-column:ast  %qualified-column
+    ::                          %:  qualified-table:ast
+    ::                              %qualified-table
+    ::                              ship.qualifier.a
+    ::                              default-database
+    ::                              %dbo
+    ::                              name.qualifier.a
+    ::                              alias.qualifier.a
+    ::                              ==
+    ::                          name.a
+    ::                          alias.a
+    ::                          ==
+  ::%:  qualified-column:ast
+  ::    %qualified-column
+  ::    (need object)
+  ::    name.a
+  ::    alias.a
+  ::    ==
+  ?:  ?=([%four-item-qualifier *] a)
+    %:  qualified-column:ast
+      %qualified-column
+      %:  qualified-table:ast
+        %qualified-table
+        ~
+        ?~(database.a database.a default-database)
+        ?~(namespace.a namespace.a 'dbo')
+        table.a
+        ~
+      ==
+      column.a
+      ~
+    ==
+  ?:  ?=([%five-item-qualifier *] a)
+    %:  qualified-column:ast
+      %qualified-column
+      %:  qualified-table:ast
+        %qualified-table
+        (some ship.a)
+        ?~(database.a database.a default-database)
+        ?~(namespace.a namespace.a 'dbo')
+        table.a
+        ~
+      ==
+      column.a
+      ~
+    ==
   !!  :: this should never be reached
 ++  cook-qualifier-or-dime
   |=  a=*
@@ -4901,13 +4968,83 @@
   ?:  ?=([%dime [@ @]] a)
     [%dime `dime`+.a]
   (cook-qualifier a)
+
+::  ?:  ?=([@ @ @ @ @] a) :: @p.db.ns.object.column
+::    %:  qualified-column:ast
+::      %qualified-column
+::      (qualified-table:ast %qualified-table `-.a +<.a +>-.a +>+<.a ~)
+::      +>+>.a
+::      ~
+::    ==
+::  ?:  ?=([@ @ @ @ @ @] a) :: @p.db..object.column
+::    %:  qualified-column:ast
+::      %qualified-column
+::      (qualified-table:ast %qualified-table `-.a +<.a 'dbo' +>+>-.a ~)
+::      +>+>+.a
+::      ~
+::    ==
+::  ?:  ?=([@ @ @ @] a)   :: db..object.column; db.ns.object.column
+::    ?:  =(+<.a '.')
+::      %:  qualified-column:ast
+::        %qualified-column
+::        (qualified-table:ast %qualified-table ~ -.a 'dbo' +>-.a ~)
+::        +>+.a
+::        ~
+::      ==
+::    %:  qualified-column:ast
+::      %qualified-column
+::      (qualified-table:ast %qualified-table ~ -.a +<.a +>-.a ~)
+::      +>+.a
+::      ~
+::    ==
+::  ?:  ?=([@ @ @] a)     :: ns.object.column
+::    %:  qualified-column:ast
+::      %qualified-column
+::      (qualified-table:ast %qualified-table ~ default-database -.a +<.a ~)
+::      +>.a
+::      ~
+::    ==
+::  ?:  ?=([@ @] a)       :: something.column (could be table, table alias or cte)
+::    %:  qualified-column:ast
+::      %qualified-column
+::      (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN' -.a ~)
+::      +.a
+::      ~
+::    ==
+::  ?@  a                 :: column, column alias, or cte
+::    %:  qualified-column:ast
+::      %qualified-column
+::      (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN-OR-CTE' a ~)
+::      a
+::      ~
+::    ==
 ++  cook-qualifier
   |=  a=*
   ^-  qualifier
+  ?:  ?=(@ a)
+    :*  %one-item-qualifier
+      column=a
+    ==
   ?:  ?=([@ @] a)
-    [%one-item-qualifier name=+.a]
-  ?:  ?=([@ @ @] a)
-    [%two-item-qualifier table-or-view-alias=+<.a name=+>.a]
+    :*  %two-item-qualifier
+      alias=-.a
+      column=+.a
+    ==
+  ?:  ?=([@ @ @ @] a)
+    :*  %four-item-qualifier
+      database=(some -.a)
+      namespace=(some +<.a)
+      table=+>-.a
+      column=+>+.a
+    ==
+  ?:  ?=([@ @ @ @ @] a)
+    :*  %five-item-qualifier
+      ship=-.a
+      database=(some +<.a)
+      namespace=(some +>-.a)
+      table=+>+<.a
+      column=+>+>.a
+    ==
   !!  :: this should never be reached
 ::
 ::  helper types
@@ -4983,6 +5120,8 @@
 +$   qualifier
   $%  one-item-qualifier
       two-item-qualifier
+      four-item-qualifier
+      five-item-qualifier
   ==
 +$  one-item-qualifier
   $:
@@ -4992,7 +5131,24 @@
 +$  two-item-qualifier
   $:
      %two-item-qualifier
-     table-or-view-alias=@t
+     alias=@t               :: table or view alias
+     column=@tas
+  ==
++$  four-item-qualifier
+  $:
+     %four-item-qualifier
+     database=(unit @tas)
+     namespace=(unit @tas)
+     table=@tas
+     column=@tas
+  ==
++$  five-item-qualifier
+  $:
+     %five-item-qualifier
+     ship=@p
+     database=(unit @tas)
+     namespace=(unit @tas)
+     table=@tas
      column=@tas
   ==
 +$  if-then-else-helper
