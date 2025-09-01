@@ -219,7 +219,7 @@
 :: 
 ::  server state returned because we may have updated the view cache
 ++  join-all
-  |=  q=query:ast
+  |=  [q=query:ast =named-ctes]
   ^-  join-return
   =/  from  (need from.q)
   =/  relations=(list relation)
@@ -238,9 +238,6 @@
                                           ~
                                           ==
   =/  prior-join      -.triple
-  ::=.  joined-rows.prior-join  %+  turn  indexed-rows.prior-join
-  ::                                      %+  cury  joined-row-from-indexed
-  ::                                                (need object.prior-join)
   =/  from-objects    (limo ~[prior-join])
   =/  type-lookup     +<.triple
   =/  qualified-columns=(list qual-col-type)  +>.triple

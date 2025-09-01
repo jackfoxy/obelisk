@@ -453,7 +453,7 @@
   =/  f  (need from.q)
   ?~  joins.f  (select-table(state state, bowl bowl) q is-cte)
   ::
-  =/  =join-return  (join-all(state state, bowl bowl) q)
+  =/  =join-return  (join-all(state state, bowl bowl) q named-ctes)
   =/  set-tables  set-tables.join-return
   ?~  set-tables  ~|("can't get here" !!)
   =/  selected  columns.select.q
