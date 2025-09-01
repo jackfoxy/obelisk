@@ -4659,16 +4659,16 @@
   %:  if-then-else-helper
     %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
-    +>-.parsed
-    +>+>-.parsed 
+    (cook-qualifier-or-dime +>-.parsed)
+    (cook-qualifier-or-dime +>+>-.parsed)
   ==
 ++  parse-if
   ;~  plug
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose scalar-body parse-datum)
+    ;~(pose parse-datum)
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pose scalar-body parse-datum)
+    ;~(pose parse-datum)
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
 ++  parse-when-then
@@ -4687,7 +4687,7 @@
 ++  cook-case-body
   |=  parsed=*
   ~+
-  =/  target  -.parsed
+  =/  cooked-target  (cook-qualifier-or-dime -.parsed)
   =/  case-when-then-list  +<.parsed
   =/  cases
     |-
@@ -4700,10 +4700,11 @@
     $(case-when-then-list +.case-when-then-list)
   ?@  +>.parsed
     ?:  =(+>.parsed %end)
-      (case-helper %case-helper target (flop cases) ~)
+      (case-helper %case-helper cooked-target (flop cases) ~)
     ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
   ?:  =(%else +>-.parsed)
-    (case-helper %case-helper target (flop cases) (some +>+<.parsed))
+    =/  cooked-else  (cook-qualifier-or-dime -.parsed)
+    (case-helper %case-helper cooked-target (flop cases) (some cooked-else))
   ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
   ;~  plug
@@ -4909,38 +4910,24 @@
   ?:  ?=([%one-item-qualifier *] a)
     [%unqualified-column name=column.a ~]
   ?:  ?=([%two-item-qualifier *] a)
-  =/  object
-    (~(get by alias-map) (crip (cass (trip alias.a))))
-  ?~  object
-    ~&  "{<alias-map>}"
-    ~|("object is null" !!)
-  ~|("object is not null" !!)
-    ::%:  qualified-column:ast  %qualified-column
-    ::                          %:  qualified-table:ast
-    ::                              %qualified-table
-    ::                              ship.qualifier.a
-    ::                              default-database
-    ::                              %dbo
-    ::                              name.qualifier.a
-    ::                              alias.qualifier.a
-    ::                              ==
-    ::                          name.a
-    ::                          alias.a
-    ::                          ==
-  ::%:  qualified-column:ast
-  ::    %qualified-column
-  ::    (need object)
-  ::    name.a
-  ::    alias.a
-  ::    ==
+    =/  aliased-object
+      (~(get by alias-map) (crip (cass (trip alias.a))))
+    ?~  aliased-object
+      ~|("couldn't find object matching provided alias: {<alias.a>}" !!)
+    %:  qualified-column:ast
+      %qualified-column
+      (need aliased-object)
+      column.a
+      ~
+    ==
   ?:  ?=([%four-item-qualifier *] a)
     %:  qualified-column:ast
       %qualified-column
       %:  qualified-table:ast
         %qualified-table
         ~
-        ?~(database.a database.a default-database)
-        ?~(namespace.a namespace.a 'dbo')
+        ?~(database.a default-database (need database.a))
+        ?~(namespace.a %dbo (need namespace.a))
         table.a
         ~
       ==
@@ -4953,8 +4940,8 @@
       %:  qualified-table:ast
         %qualified-table
         (some ship.a)
-        ?~(database.a database.a default-database)
-        ?~(namespace.a namespace.a 'dbo')
+        ?~(database.a default-database (need database.a))
+        ?~(namespace.a %dbo (need namespace.a))
         table.a
         ~
       ==
@@ -4968,56 +4955,6 @@
   ?:  ?=([%dime [@ @]] a)
     [%dime `dime`+.a]
   (cook-qualifier a)
-
-::  ?:  ?=([@ @ @ @ @] a) :: @p.db.ns.object.column
-::    %:  qualified-column:ast
-::      %qualified-column
-::      (qualified-table:ast %qualified-table `-.a +<.a +>-.a +>+<.a ~)
-::      +>+>.a
-::      ~
-::    ==
-::  ?:  ?=([@ @ @ @ @ @] a) :: @p.db..object.column
-::    %:  qualified-column:ast
-::      %qualified-column
-::      (qualified-table:ast %qualified-table `-.a +<.a 'dbo' +>+>-.a ~)
-::      +>+>+.a
-::      ~
-::    ==
-::  ?:  ?=([@ @ @ @] a)   :: db..object.column; db.ns.object.column
-::    ?:  =(+<.a '.')
-::      %:  qualified-column:ast
-::        %qualified-column
-::        (qualified-table:ast %qualified-table ~ -.a 'dbo' +>-.a ~)
-::        +>+.a
-::        ~
-::      ==
-::    %:  qualified-column:ast
-::      %qualified-column
-::      (qualified-table:ast %qualified-table ~ -.a +<.a +>-.a ~)
-::      +>+.a
-::      ~
-::    ==
-::  ?:  ?=([@ @ @] a)     :: ns.object.column
-::    %:  qualified-column:ast
-::      %qualified-column
-::      (qualified-table:ast %qualified-table ~ default-database -.a +<.a ~)
-::      +>.a
-::      ~
-::    ==
-::  ?:  ?=([@ @] a)       :: something.column (could be table, table alias or cte)
-::    %:  qualified-column:ast
-::      %qualified-column
-::      (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN' -.a ~)
-::      +.a
-::      ~
-::    ==
-::  ?@  a                 :: column, column alias, or cte
-::    %:  qualified-column:ast
-::      %qualified-column
-::      (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN-OR-CTE' a ~)
-::      a
-::      ~
-::    ==
 ++  cook-qualifier
   |=  a=*
   ^-  qualifier
@@ -5032,16 +4969,16 @@
     ==
   ?:  ?=([@ @ @ @] a)
     :*  %four-item-qualifier
-      database=(some -.a)
-      namespace=(some +<.a)
+      database=?~(-.a ~ (some -.a))
+      namespace=?~(+<.a ~ (some +<.a))
       table=+>-.a
       column=+>+.a
     ==
   ?:  ?=([@ @ @ @ @] a)
     :*  %five-item-qualifier
       ship=-.a
-      database=(some +<.a)
-      namespace=(some +>-.a)
+      database=?~(+<.a ~ (some +<.a))
+      namespace=?~(+>-.a ~ (some +>-.a))
       table=+>+<.a
       column=+>+>.a
     ==
