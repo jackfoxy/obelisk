@@ -2853,18 +2853,12 @@
 :: - add loop to check for scalar definitions with the same name; if found, crash
 ::   - modify scalar fn type so that it has a name and an alias, to allow for
 ::     mixed case scalar names
-++  produce-scalars
-  |=  [raw-scalars=* alias-map=(map @t qualified-table:ast)]
-  ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
-  =/  scalars  +.raw-scalars
-  |-
-  ^-  (list scalar:ast)
-  ?~  scalars
-    ~
-  =/  parsed-scalar  -.scalars
-  =/  scalar-alias  (@tas -.parsed-scalar)
-  =/  scalar-fn-name  (@tas +<.parsed-scalar)
-  =/  raw-scalar-body  +>.parsed-scalar 
+++  produce-scalar
+  |=  [raw-scalar=* alias-map=(map @t qualified-table:ast)]
+  ^-  scalar:ast
+  =/  scalar-alias  (@tas -.raw-scalar)
+  =/  scalar-fn-name  (@tas +<.raw-scalar)
+  =/  raw-scalar-body  +>.raw-scalar 
   ?:  =(%coalesce scalar-fn-name)
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
     =/  finalized-data  %+  turn
@@ -2876,8 +2870,7 @@
         %coalesce
         data=finalized-data
       ==
-    =/  finalized  [%scalar scalar=finalized-coalesce alias=scalar-alias]
-    [finalized $(scalars +.scalars)]
+    [%scalar scalar=finalized-coalesce alias=scalar-alias]
   ?:  =(%if scalar-fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
     =/  finalized-if
@@ -2887,8 +2880,7 @@
         then=(finalize-qualifier-or-dime then.cooked-if alias-map)
         else=(finalize-qualifier-or-dime else.cooked-if alias-map)
       ==
-    =/  finalized-scalar  [%scalar scalar=finalized-if alias=scalar-alias]
-    [finalized-scalar $(scalars +.scalars)]
+    [%scalar scalar=finalized-if alias=scalar-alias]
   ?:  =(%case scalar-fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
     =/  finalized-cases 
@@ -2911,9 +2903,18 @@
         cases=finalized-cases
         else=finalized-else
       ==
-    =/  finalized  [%scalar scalar=finalized-case alias=scalar-alias]
-    [finalized $(scalars +.scalars)]
-  ~|  "produce-scalars: scalar {<scalar-fn-name>} not implemented"  !!
+    [%scalar scalar=finalized-case alias=scalar-alias]
+  ~|  "produce-scalar: scalar {<scalar-fn-name>} not implemented"  !!
+++  produce-scalars
+  |=  [raw-scalars=* alias-map=(map @t qualified-table:ast)]
+  ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
+  =/  scalars  +.raw-scalars
+  |-
+  ^-  (list scalar:ast)
+  ?~  scalars
+    ~
+  =/  parsed-scalar  -.scalars
+    [(produce-scalar parsed-scalar alias-map) $(scalars +.scalars)]
 ++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-table:ast)]
   ~+
