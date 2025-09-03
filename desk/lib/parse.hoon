@@ -4750,8 +4750,11 @@
   ?~  parsed
     ~
   [(cook-qualifier-or-dime -.parsed) $(parsed +.parsed)]
-
-++  parse-coalesce  ~+  (more com ;~(pose parse-aggregate get-datum))
+++  parse-coalesce  ~+
+  ;~  pfix
+    whitespace 
+    (ifix [pal par] (more com ;~(pose parse-aggregate get-datum)))
+  ==
 ++  parse-math
   ;~  plug
     (cold %begin (jester 'begin'))
