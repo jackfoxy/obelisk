@@ -2857,25 +2857,29 @@
   |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast)]
   ^-  if-then-else:ast
   =/  finalized-then
+    :: TODO: refactor, pull out to helper
     ?:  ?=([%scalar *] then.cooked-if)
       ?:  ?=([%if-then-else-helper *] +.then.cooked-if)
-        (finalize-if +>.then.cooked-if)
+        (finalize-if +.then.cooked-if alias-map)
       ?:  ?=([%case-helper *] +.then.cooked-if)
-        (finalize-case +>.then.cooked-if)
+        (finalize-case +.then.cooked-if alias-map) 
       ?:  ?=([%coalesce-helper *] +.then.cooked-if)
-        (finalize-coalesce +>.then.cooked-if)
+        (finalize-coalesce +.then.cooked-if alias-map)
       !!
-    (finalize-qualifier-or-dime then.cooked-if alias-map)
+    ?:  ?=([%datum *] then.cooked-if)
+      (finalize-qualifier-or-dime +.then.cooked-if alias-map)
+    !!
   =/  finalized-else
+    :: TODO: refactor, pull out to helper
     ?:  ?=([%scalar *] else.cooked-if)
-      ?:  ?=([%if-else-else-helper *] +.then.cooked-if)
-        (finalize-if +.else.cooked-if)
+::      ?:  ?=([%if-else-else-helper *] +.else.cooked-if)
+::        (finalize-if +.else.cooked-if alias-map)
       ?:  ?=([%case-helper *] +.else.cooked-if)
-        (finalize-case +.else.cooked-if)
+        (finalize-case +.else.cooked-if alias-map)
       ?:  ?=([%coalesce-helper *] +.else.cooked-if)
-        (finalize-coalesce +.else.cooked-if)
+        (finalize-coalesce +.else.cooked-if alias-map)
       !!
-    (finalize-qualifier-or-dime else.cooked-if alias-map)
+    (finalize-qualifier-or-dime +.else.cooked-if alias-map)
   %:  if-then-else:ast
     %if-then-else
     if=if.cooked-if
@@ -2892,6 +2896,7 @@
       ~
     =/  finalized-case-when-then
       :-  when.i.cases.cooked-case
+    :: TODO: refactor, pull out to helper
       ?:  ?=([%scalar *] then.i.cases.cooked-case)
         ?:  ?=([%if-then-else-helper *] +.then.i.cases.cooked-case)
           (finalize-if +.then.i.cases.cooked-case alias-map)
@@ -2919,6 +2924,7 @@
     %+  turn
       data.cooked-coalesce
     |=  param=scalar-param
+    :: TODO: refactor, pull out to helper
     ?:  ?=([%scalar *] param)
       ?:  ?=([%if-then-else-helper *] +.param)
         (finalize-if +.param alias-map)
@@ -4979,7 +4985,7 @@
   ==
 ++  finalize-qualifier-or-dime
   |=  [a=qualifier-or-dime alias-map=(map @t qualified-table:ast)]
-  ^-  datum:ast
+  ^-  datum-for-scalar:ast
   ?:  ?=([%literal *] a)
     %:(literal-value:ast %literal-value dime=+.a)
   (finalize-qualifier a alias-map)

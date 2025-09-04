@@ -177,10 +177,11 @@
     else=(unit (d-or-s [~]))                         :: datum-or-scalar
   ==
 +$  literal-value        $:(%literal-value dime=dime)
++$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
 ++  d-or-s
   |$  [a]
   $@  @t
-  $%  $%(qualified-column unqualified-column literal-value)
+  $%  datum-for-scalar
       scalar-function
   ==
 +$  coalesce
