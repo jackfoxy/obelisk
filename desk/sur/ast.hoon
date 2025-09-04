@@ -142,11 +142,10 @@
           aggregate
           ==
 +$  predicate            (tree predicate-component)
-+$  datum                $%(qualified-column unqualified-column [%dime dime])
++$  datum                $%(qualified-column unqualified-column dime)
 
     :: NOTE: see +$  iota in hoon.hoon for tricky type union
 +$  datum-or-scalar      $%(datum scalar-function @t)
-::+$  datum-or-scalar      $%(datum scalar-function)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
 +$  arithmetic
@@ -162,24 +161,28 @@
   $:
     %if-then-else
     if=predicate
-    then=datum                         :: datum-or-scalar
-    else=datum                         :: datum-or-scalar
+    then=(d-or-s [~])                         :: datum-or-scalar
+    else=(d-or-s [~])                         :: datum-or-scalar
   ==
 +$  case-when-then
   $:
     when=predicate                         :: predicate | datum
-    then=datum                         :: datum-or-scalar
+    then=(d-or-s [~])                        :: datum-or-scalar
   ==
 +$  case
   $:
     %case
-    target=datum
+    target=(d-or-s [~])
     cases=(list case-when-then)
-    else=(unit datum)                         :: datum-or-scalar
+    else=(unit (d-or-s [~]))                         :: datum-or-scalar
   ==
++$  literal-value        $:(%literal-value dime=dime)
 ++  d-or-s
   |$  [a]
-  $@(@t $%(datum scalar-function))
+  $@  @t
+  $%  $%(qualified-column unqualified-column literal-value)
+      scalar-function
+  ==
 +$  coalesce
   $+  coalesce
   $:

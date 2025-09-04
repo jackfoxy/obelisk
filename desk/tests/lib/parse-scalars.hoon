@@ -44,12 +44,10 @@
                                    name=%foo
                                    alias=~
                                    ==
-++  literal-zod            [p=%p q=0]
-++  literal-1              [p=%ud q=1]
-++  naked-coalesce-1       ~[%coalesce column-foo2 literal-zod literal-1 column-foo3]
+++  naked-coalesce-1       ~[%coalesce unqualified-col-2 literal-zod literal-1 column-foo3]
 :: [%eq [literal-1 0 0] [literal-1 0 0]]
 ++  case-predicate         [%when [%eq [literal-1 0 0] literal-1 0 0] %then column-foo]
-++  case-datum             [%when column-foo2 %then column-foo]
+++  case-datum             [%when unqualified-col-2 %then column-foo]
 ::++  case-coalesce          [%when column-foo3 %then naked-coalesce]
 ++  case-1                 [%scalar [%case column-foo3 ~[[simple-true-pred column-foo3]] (some column-foo3)] 'foobar']
 ++  case-2                 [%scalar [%case column-foo3 ~[[simple-true-pred column-foo3]] ~] 'foobaz']
@@ -74,7 +72,8 @@
 ++  mk-selection
   |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast)]
   ^-  (list command:ast)
-  =/  select  [%select top=~ bottom=~ columns=~[column-foo2 column-foo3]]
+  =/  columns  ~[unqualified-col-2 unqualified-col-1]
+  =/  select  [%select top=~ bottom=~ columns=columns]
   =/  table-set  ?~(table table-set-foo [%table-set object=(need table)])
   =/  from  [%from object=table-set as-of=~ joins=~]
   =/  query
@@ -170,233 +169,236 @@
                        alias=~
 ::  <column-name>
 ::  bar
-++  unqualified-col-1   [%unqualified-column column=%foo3 alias=~]
-++  unqualified-col-2   [%unqualified-column column=%foo2 alias=~]
+++  unqualified-col-1   [%unqualified-column name=%foo3 alias=~]
+++  unqualified-col-2   [%unqualified-column name=%foo2 alias=~]
 ::
 ++  simple-true-pred       [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=1] ~ ~]]
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
 ::
+++  literal-zod            [%literal-value dime=[p=%p q=0]]
+++  literal-1              [%literal-value dime=[p=%ud q=1]]
+::
 :: simple coalesce
 :: TODO: add test for mixed case, lower case COALESCE
-::++  test-coalesce-01
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce column-foo2 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: coalesce, 2 scalars
-::++  test-coalesce-02
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
-::    "        baz COALESCE(foo2,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce column-foo2 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::      [%scalar coalesce-1 'baz']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with ship.database.namespace.table.column
-::++  test-coalesce-03
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(~sampel-palnet.db2.dba.table1.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    [%coalesce data=~[qualified-col-1 literal-zod literal-1 unqualified-col-1]]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected=(list command:ast)  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with ship.database..table.column (default namespace)
-::++  test-coalesce-04
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(~sampel-palnet.db2..table1.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce qualified-col-2 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with database.namespace.table.column
-::++  test-coalesce-05
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(db2.dba.table1.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce qualified-col-3 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with database..table.column (default namespace)
-::++  test-coalesce-06
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(db2..table1.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce qualified-col-4 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with namespace.table.column (default database)
-::++  test-coalesce-07
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(dba.table1.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce qualified-col-5 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with alias.column (default database)
-::++  test-coalesce-08
-::  ::
-::  =/  query-string
-::    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
-::    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  table
-::    :*  %qualified-table
-::      ship=[~ ~sampel-palnet]
-::      database=%db2
-::      namespace=%dba
-::      name=%table1
-::      alias=[~ 'MyTable']
-::    ==
-::  =/  coalesce-1
-::    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars (some table))
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: qualified column coalesce with alias.column (default database)
-:::: should fail, column alias is not defined
-::++  test-coalesce-09
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %-  expect-fail
-::    |.  (parse:parse(default-database default-db) query-string)
-::::
-:::: coalesce with space between name and arguments
-::++  test-coalesce-10
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE (foo3,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: coalesce without parens - should fail
-::++  test-coalesce-11
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo COALESCE foo3,~zod,1,foo3 ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'foo']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %-  expect-fail
-::    |.  (parse:parse(default-database default-db) query-string)
+++  test-coalesce-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-2 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::
+:: coalesce, 2 scalars
+++  test-coalesce-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
+    "        baz COALESCE(foo2,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-2 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+      [%scalar coalesce-1 'baz']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::
-::  test coalesce with if scalar inline
+:: qualified column coalesce with ship.database.namespace.table.column
+++  test-coalesce-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(~sampel-palnet.db2.dba.table1.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    [%coalesce data=~[qualified-col-1 literal-zod literal-1 unqualified-col-1]]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected=(list command:ast)  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with ship.database..table.column (default namespace)
+++  test-coalesce-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(~sampel-palnet.db2..table1.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-2 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with database.namespace.table.column
+++  test-coalesce-05
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(db2.dba.table1.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-3 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with database..table.column (default namespace)
+++  test-coalesce-06
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(db2..table1.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-4 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with namespace.table.column (default database)
+++  test-coalesce-07
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(dba.table1.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-5 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with alias.column (default database)
+++  test-coalesce-08
+  ::
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column coalesce with alias.column (default database)
+:: should fail, column alias is not defined
+++  test-coalesce-09
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %-  expect-fail
+    |.  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce with space between name and arguments
+++  test-coalesce-10
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE (foo3,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce without parens - should fail
+++  test-coalesce-11
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE foo3,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %-  expect-fail
+    |.  (parse:parse(default-database default-db) query-string)
+
+
+:: test coalesce with if scalar inline
 ++  test-coalesce-12
   ::
   =/  query-string
@@ -405,7 +407,66 @@
   =/  naked-if 
     [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
   =/  coalesce-1
-    ~[%coalesce naked-if unqualified-col-2 [%dime [p=%ud q=1]] unqualified-col-1]
+    ~[%coalesce naked-if unqualified-col-2 literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test coalesce with case scalar inline
+++  test-coalesce-13
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo COALESCE(CASE foo3 WHEN 1 = 1 THEN foo3 END,foo2,1,foo3) SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+  =/  coalesce-1
+    ~[%coalesce naked-case unqualified-col-2 literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test coalesce with coalesce scalar inline
+++  test-coalesce-14
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3) SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    ~[%coalesce literal-zod unqualified-col-2 literal-1 unqualified-col-1]
+  =/  coalesce-1
+    ~[%coalesce naked-coalesce unqualified-col-2 literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test coalesce with a coalesce nested in a coalesce
+++  test-coalesce-15
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo COALESCE(COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3),foo2,1,foo3) SELECT foo2,foo3"
+  ::
+  =/  second-coalesce
+    ~[%coalesce literal-zod unqualified-col-2 literal-1 unqualified-col-1]
+  =/  first-coalesce
+    ~[%coalesce second-coalesce unqualified-col-2 literal-1 unqualified-col-1]
+  =/  coalesce-1
+    ~[%coalesce first-coalesce unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
     :~
       [%scalar coalesce-1 'foo']
@@ -424,7 +485,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-if 
-    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[column-foo2]]
+    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
   =/  scalars  ~[[%scalar naked-if 'foo']]
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -441,7 +502,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-if 
-    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[column-foo2]]
+    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
   =/  scalars
     :~
       [%scalar naked-if 'foo']
@@ -865,6 +926,162 @@
   =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
+:: test if with coalesce scalar inline
+++  test-if-10
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo IF 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 ENDIF SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
+  =/  if-1
+    [%if-then-else if=simple-true-pred then=[naked-coalesce] else=[unqualified-col-2]]
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test if with case scalar inline
+++  test-if-11
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo IF 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END ELSE foo2 ENDIF SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+  =/  if-1
+    [%if-then-else if=simple-true-pred then=[naked-case] else=[unqualified-col-2]]
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test if with if scalar inline
+++  test-if-12
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo IF 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 ENDIF SELECT foo2,foo3"
+  ::
+  =/  naked-if
+    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
+  =/  if-1
+    [%if-then-else if=simple-true-pred then=[naked-if] else=[unqualified-col-2]]
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test if with a if nested in a if
+++  test-if-13
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo IF 1 = 1 THEN IF 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 ENDIF ELSE foo2 ENDIF SELECT foo2,foo3"
+  ::
+  =/  second-if
+    [%if-then-else if=simple-true-pred then=[column-foo3] else=[unqualified-col-2]]
+  =/  first-if
+    [%if-then-else if=simple-true-pred then=[second-if] else=[unqualified-col-2]]
+  =/  if-1
+    [%if-then-else if=simple-true-pred then=[first-if] else=[unqualified-col-2]]
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test case with coalesce scalar inline
+++  test-case-11
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
+  =/  case-1
+    [%case column-foo3 ~[[simple-true-pred naked-coalesce]] (some unqualified-col-2)]
+  =/  scalars
+    :~
+      [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test case with if scalar inline
+++  test-case-12
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  naked-if
+    [%if-then-else if=simple-true-pred then=[column-foo3] else=[unqualified-col-2]]
+  =/  case-1
+    [%case column-foo3 ~[[simple-true-pred naked-if]] (some unqualified-col-2)]
+  =/  scalars
+    :~
+      [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test case with case scalar inline
+++  test-case-13
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+  =/  case-1
+    [%case column-foo3 ~[[simple-true-pred naked-case]] (some unqualified-col-2)]
+  =/  scalars
+    :~
+      [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: test case with a case nested in a case
+++  test-case-14
+  ::
+  =/  query-string
+    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END END ELSE foo2 END SELECT foo2,foo3"
+  ::
+  =/  second-case
+    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+  =/  first-case
+    [%case column-foo3 ~[[simple-true-pred second-case]] ~]
+  =/  case-1
+    [%case column-foo3 ~[[simple-true-pred first-case]] (some unqualified-col-2)]
+  =/  scalars
+    :~
+      [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
 ::
 
 ::  simple case AS with datum

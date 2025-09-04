@@ -2855,11 +2855,82 @@
 ::     mixed case scalar names
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast)]
+  ^-  if-then-else:ast
+  =/  finalized-then
+    ?:  ?=([%scalar *] then.cooked-if)
+      ?:  ?=([%if-then-else-helper *] +.then.cooked-if)
+        (finalize-if +>.then.cooked-if)
+      ?:  ?=([%case-helper *] +.then.cooked-if)
+        (finalize-case +>.then.cooked-if)
+      ?:  ?=([%coalesce-helper *] +.then.cooked-if)
+        (finalize-coalesce +>.then.cooked-if)
+      !!
+    (finalize-qualifier-or-dime then.cooked-if alias-map)
+  =/  finalized-else
+    ?:  ?=([%scalar *] else.cooked-if)
+      ?:  ?=([%if-else-else-helper *] +.then.cooked-if)
+        (finalize-if +.else.cooked-if)
+      ?:  ?=([%case-helper *] +.else.cooked-if)
+        (finalize-case +.else.cooked-if)
+      ?:  ?=([%coalesce-helper *] +.else.cooked-if)
+        (finalize-coalesce +.else.cooked-if)
+      !!
+    (finalize-qualifier-or-dime else.cooked-if alias-map)
   %:  if-then-else:ast
     %if-then-else
     if=if.cooked-if
-    then=(finalize-qualifier-or-dime then.cooked-if alias-map)
-    else=(finalize-qualifier-or-dime else.cooked-if alias-map)
+    then=finalized-then
+    else=finalized-else
+  ==
+++  finalize-case
+  |=  [cooked-case=case-helper alias-map=(map @t qualified-table:ast)]
+  ^-  case:ast
+  =/  finalized-cases 
+    |-
+    ^-  (list case-when-then:ast)
+    ?~  cases.cooked-case
+      ~
+    =/  finalized-case-when-then
+      :-  when.i.cases.cooked-case
+      ?:  ?=([%scalar *] then.i.cases.cooked-case)
+        ?:  ?=([%if-then-else-helper *] +.then.i.cases.cooked-case)
+          (finalize-if +.then.i.cases.cooked-case alias-map)
+        ?:  ?=([%case-helper *] +.then.i.cases.cooked-case)
+          (finalize-case +.then.i.cases.cooked-case alias-map)
+        ?:  ?=([%coalesce-helper *] +.then.i.cases.cooked-case)
+          (finalize-coalesce +.then.i.cases.cooked-case alias-map)
+        !!
+      (finalize-qualifier-or-dime then.i.cases.cooked-case alias-map)
+    [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
+  =/  finalized-else
+    %+  biff
+      else.cooked-case
+    |=(a=qualifier-or-dime (some (finalize-qualifier-or-dime a alias-map)))
+  %:  case:ast
+    %case
+    target=(finalize-qualifier-or-dime target.cooked-case alias-map)
+    cases=finalized-cases
+    else=finalized-else
+  ==
+++  finalize-coalesce
+  |=  [cooked-coalesce=coalesce-helper alias-map=(map @t qualified-table:ast)]
+  ^-  coalesce:ast
+  =/  finalized-data
+    %+  turn
+      data.cooked-coalesce
+    |=  param=scalar-param
+    ?:  ?=([%scalar *] param)
+      ?:  ?=([%if-then-else-helper *] +.param)
+        (finalize-if +.param alias-map)
+      ?:  ?=([%case-helper *] +.param)
+        (finalize-case +.param alias-map)
+      ?:  ?=([%coalesce-helper *] +.param)
+        (finalize-coalesce +.param alias-map)
+      !!
+    (finalize-qualifier-or-dime +.param alias-map)
+  %:  coalesce:ast
+    %coalesce
+    data=finalized-data
   ==
 ++  produce-scalar
   |=  [raw-scalar=* alias-map=(map @t qualified-table:ast)]
@@ -2869,20 +2940,7 @@
   =/  raw-scalar-body  +>.raw-scalar 
   ?:  =(%coalesce scalar-fn-name)
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
-    =/  finalized-data  %+  turn
-                          data.cooked-coalesce
-                        |=  param=scalar-param
-                        ?:  ?=([%scalar *] param)
-                          ?:  ?=([%if-then-else-helper *] +.param)
-                            (finalize-if +.param alias-map)
-                          !!
-                        (finalize-qualifier-or-dime +.param alias-map)
-    ~&  "finalized: {<finalized-data>}"
-    =/  finalized-coalesce
-      %:  coalesce:ast
-        %coalesce
-        data=finalized-data
-      ==
+    =/  finalized-coalesce  (finalize-coalesce cooked-coalesce alias-map)
     [%scalar scalar=finalized-coalesce alias=scalar-alias]
   ?:  =(%if scalar-fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
@@ -2890,26 +2948,7 @@
     [%scalar scalar=finalized-if alias=scalar-alias]
   ?:  =(%case scalar-fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
-    =/  finalized-cases 
-      |-
-      ^-  (list case-when-then:ast)
-      ?~  cases.cooked-case
-        ~
-      =/  finalized-case-when-then
-        :-  when.i.cases.cooked-case
-        (finalize-qualifier-or-dime then.i.cases.cooked-case alias-map)
-      [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
-    =/  finalized-else
-      %+  biff
-        else.cooked-case
-      |=(a=qualifier-or-dime (some (finalize-qualifier-or-dime a alias-map)))
-    =/  finalized-case
-      %:  case:ast
-        %case
-        target=(finalize-qualifier-or-dime target.cooked-case alias-map)
-        cases=finalized-cases
-        else=finalized-else
-      ==
+    =/  finalized-case  (finalize-case cooked-case alias-map)
     [%scalar scalar=finalized-case alias=scalar-alias]
   ~|  "produce-scalar: scalar {<scalar-fn-name>} not implemented"  !!
 ++  produce-scalars
@@ -3880,7 +3919,7 @@
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
     ::;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
-    ;~(pose ;~(pfix whitespace parse-value-literal) (stag %dime parse-value-literal))
+    ;~(pose ;~(pfix whitespace parse-value-literal) (stag %literal parse-value-literal))
   ==
 ++  parse-datum-for-predicate  ~+
   ;~  pose
@@ -4657,18 +4696,39 @@
   ;~  pose
     ;~(sfix parse-qualifier whitespace)
     ::;~(sfix parse-qualified-column whitespace)
-    ;~(sfix (stag %dime parse-value-literal) whitespace)
+    ;~(sfix (stag %literal parse-value-literal) whitespace)
     ;~(sfix parse-datum whitespace)
     parse-datum
   ==
+:: adjust like cook-coalesce
 ++  cook-if
   |=  parsed=*
   ^-  if-then-else-helper
+  =/  raw-then  +>-.parsed
+  =/  cooked-then
+    :: TODO: refactor, pull out to helper
+    ?:  ?=([%if *] -.raw-then)
+      [[%scalar (cook-if ->.raw-then)] $(raw-then +.raw-then)]
+    ?:  ?=([%coalesce *] -.raw-then)
+      [[%scalar (cook-coalesce ->.raw-then)] $(raw-then +.raw-then)]
+    ?:  ?=([%case *] -.raw-then)
+      [[%scalar (cook-case-body ->.raw-then)] $(raw-then +.raw-then)]
+    [[%datum (cook-qualifier-or-dime -.raw-then)] $(raw-then +.raw-then)]
+  =/  raw-else  +>+>-.parsed
+  =/  cooked-else
+    :: TODO: refactor, pull out to helper
+    ?:  ?=([%if *] -.raw-else)
+      [[%scalar (cook-if ->.raw-else)] $(raw-else +.raw-else)]
+    ?:  ?=([%coalesce *] -.raw-else)
+      [[%scalar (cook-coalesce ->.raw-else)] $(raw-else +.raw-else)]
+    ?:  ?=([%case *] -.raw-else)
+      [[%scalar (cook-case-body ->.raw-else)] $(raw-else +.raw-else)]
+    [[%datum (cook-qualifier-or-dime -.raw-else)] $(raw-else +.raw-else)]
   %:  if-then-else-helper
     %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
-    (cook-qualifier-or-dime +>-.parsed)
-    (cook-qualifier-or-dime +>+>-.parsed)
+    cooked-then
+    cooked-else
   ==
 ++  parse-if
   ;~  plug
@@ -4692,6 +4752,7 @@
     ;~(pfix whitespace ;~(pose parse-aggregate scalar-body parse-datum))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
+:: adjust like cook-coalesce
 ++  cook-case-body
   |=  parsed=*
   ~+
@@ -4757,11 +4818,13 @@
   ^-  (list scalar-param)
   ?~  parsed
     ~
-  ?:  ?|  ?=([%if *] -.parsed)
-          ?=([%coalesce *] -.parsed)
-          ?=([%case *] -.parsed)
-      ==
+  :: TODO: refactor, pull out to helper
+  ?:  ?=([%if *] -.parsed)
     [[%scalar (cook-if ->.parsed)] $(parsed +.parsed)]
+  ?:  ?=([%coalesce *] -.parsed)
+    [[%scalar (cook-coalesce ->.parsed)] $(parsed +.parsed)]
+  ?:  ?=([%case *] -.parsed)
+    [[%scalar (cook-case-body ->.parsed)] $(parsed +.parsed)]
   [[%datum (cook-qualifier-or-dime -.parsed)] $(parsed +.parsed)]
 ++  parse-coalesce  ~+
   ;~  pfix
@@ -4917,8 +4980,8 @@
 ++  finalize-qualifier-or-dime
   |=  [a=qualifier-or-dime alias-map=(map @t qualified-table:ast)]
   ^-  datum:ast
-  ?:  ?=([%dime *] a)
-    a
+  ?:  ?=([%literal *] a)
+    %:(literal-value:ast %literal-value dime=+.a)
   (finalize-qualifier a alias-map)
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
@@ -4968,8 +5031,8 @@
 ++  cook-qualifier-or-dime
   |=  a=*
   ^-  qualifier-or-dime
-  ?:  ?=([%dime [@ @]] a)
-    [%dime `dime`+.a]
+  ?:  ?=([%literal [@ @]] a)
+    [%literal `dime`+.a]
   (cook-qualifier a)
 ++  cook-qualifier
   |=  a=*
@@ -5072,7 +5135,7 @@
   ==
 +$   qualifier-or-dime
   $%  qualifier
-      $:(%dime dime)
+      $:(%literal dime)
   ==
 +$   qualifier
   $%  one-item-qualifier
@@ -5122,19 +5185,19 @@
   $:
     %if-then-else-helper
     if=predicate:ast
-    then=qualifier-or-dime
-    else=qualifier-or-dime
+    then=scalar-param
+    else=scalar-param
   ==
 +$  case-helper
   $:
     %case-helper
-    target=qualifier-or-dime
+    target=scalar-param
     cases=(list case-when-then-helper)
-    else=(unit qualifier-or-dime)
+    else=(unit scalar-param)
   ==
 +$  case-when-then-helper
   $:
     when=predicate:ast
-    then=qualifier-or-dime
+    then=scalar-param
   ==
 --
