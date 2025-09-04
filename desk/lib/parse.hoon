@@ -2853,6 +2853,14 @@
 :: - add loop to check for scalar definitions with the same name; if found, crash
 ::   - modify scalar fn type so that it has a name and an alias, to allow for
 ::     mixed case scalar names
+++  finalize-if
+  |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast)]
+  %:  if-then-else:ast
+    %if-then-else
+    if=if.cooked-if
+    then=(finalize-qualifier-or-dime then.cooked-if alias-map)
+    else=(finalize-qualifier-or-dime else.cooked-if alias-map)
+  ==
 ++  produce-scalar
   |=  [raw-scalar=* alias-map=(map @t qualified-table:ast)]
   ^-  scalar:ast
@@ -2863,8 +2871,13 @@
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
     =/  finalized-data  %+  turn
                           data.cooked-coalesce
-                        |=  param=qualifier-or-dime
-                        (finalize-qualifier-or-dime param alias-map)
+                        |=  param=scalar-param
+                        ?:  ?=([%scalar *] param)
+                          ?:  ?=([%if-then-else-helper *] +.param)
+                            (finalize-if +.param alias-map)
+                          !!
+                        (finalize-qualifier-or-dime +.param alias-map)
+    ~&  "finalized: {<finalized-data>}"
     =/  finalized-coalesce
       %:  coalesce:ast
         %coalesce
@@ -2873,13 +2886,7 @@
     [%scalar scalar=finalized-coalesce alias=scalar-alias]
   ?:  =(%if scalar-fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
-    =/  finalized-if
-      %:  if-then-else:ast
-        %if-then-else
-        if=if.cooked-if
-        then=(finalize-qualifier-or-dime then.cooked-if alias-map)
-        else=(finalize-qualifier-or-dime else.cooked-if alias-map)
-      ==
+    =/  finalized-if  (finalize-if cooked-if alias-map)
     [%scalar scalar=finalized-if alias=scalar-alias]
   ?:  =(%case scalar-fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
@@ -3872,7 +3879,7 @@
 ++  parse-datum  ~+
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
-    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ::;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) (stag %dime parse-value-literal))
   ==
 ++  parse-datum-for-predicate  ~+
@@ -4649,7 +4656,7 @@
 ++  get-datum  ~+
   ;~  pose
     ;~(sfix parse-qualifier whitespace)
-    ;~(sfix parse-qualified-column whitespace)
+    ::;~(sfix parse-qualified-column whitespace)
     ;~(sfix (stag %dime parse-value-literal) whitespace)
     ;~(sfix parse-datum whitespace)
     parse-datum
@@ -4747,14 +4754,19 @@
   ^-  coalesce-helper
   :-  %coalesce-helper
   |-
-  ^-  (list qualifier-or-dime)
+  ^-  (list scalar-param)
   ?~  parsed
     ~
-  [(cook-qualifier-or-dime -.parsed) $(parsed +.parsed)]
+  ?:  ?|  ?=([%if *] -.parsed)
+          ?=([%coalesce *] -.parsed)
+          ?=([%case *] -.parsed)
+      ==
+    [[%scalar (cook-if ->.parsed)] $(parsed +.parsed)]
+  [[%datum (cook-qualifier-or-dime -.parsed)] $(parsed +.parsed)]
 ++  parse-coalesce  ~+
   ;~  pfix
     whitespace 
-    (ifix [pal par] (more com ;~(pose parse-aggregate get-datum)))
+    (ifix [pal par] (more com ;~(pose scalar-body parse-aggregate get-datum)))
   ==
 ++  parse-math
   ;~  plug
@@ -4906,7 +4918,7 @@
   |=  [a=qualifier-or-dime alias-map=(map @t qualified-table:ast)]
   ^-  datum:ast
   ?:  ?=([%dime *] a)
-    +.a
+    a
   (finalize-qualifier a alias-map)
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
@@ -5054,6 +5066,10 @@
         @
         ==
   ==
++$   scalar-param
+  $%  $:(%scalar scalar-helper) 
+    $:(%datum qualifier-or-dime)
+  ==
 +$   qualifier-or-dime
   $%  qualifier
       $:(%dime dime)
@@ -5092,6 +5108,16 @@
      table=@tas
      column=@tas
   ==
++$  scalar-helper
+  $%  coalesce-helper
+     if-then-else-helper
+     case-helper
+  ==
++$  coalesce-helper
+  $:
+    %coalesce-helper
+    data=(list scalar-param)
+  ==
 +$  if-then-else-helper
   $:
     %if-then-else-helper
@@ -5099,12 +5125,7 @@
     then=qualifier-or-dime
     else=qualifier-or-dime
   ==
-+$  coalesce-helper
-  $:
-    %coalesce-helper
-    data=(list qualifier-or-dime)
-  ==
-  +$  case-helper
++$  case-helper
   $:
     %case-helper
     target=qualifier-or-dime
