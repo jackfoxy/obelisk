@@ -4718,6 +4718,16 @@
 ::
 ::  parse scalar
 ::
+++  cook-scalar-param
+  |=  parsed=*
+  ^-  scalar-param
+  ?:  ?=([%if *] parsed)
+    [%scalar (cook-if +.parsed)]
+  ?:  ?=([%coalesce *] parsed)
+    [%scalar (cook-coalesce +.parsed)]
+  ?:  ?=([%case *] parsed)
+    [%scalar (cook-case-body +.parsed)]
+  [%datum (cook-qualifier-or-dime parsed)]
 ++  get-datum  ~+
   ;~  pose
     ;~(sfix parse-qualifier whitespace)
@@ -4730,25 +4740,9 @@
   |=  parsed=*
   ^-  if-then-else-helper
   =/  raw-then  +>-.parsed
-  =/  cooked-then
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%if *] -.raw-then)
-      [%scalar (cook-if ->.raw-then)]
-    ?:  ?=([%coalesce *] -.raw-then)
-      [%scalar (cook-coalesce ->.raw-then)]
-    ?:  ?=([%case *] -.raw-then)
-      [%scalar (cook-case-body ->.raw-then)]
-    [%datum (cook-qualifier-or-dime -.raw-then)]
+  =/  cooked-then  (cook-scalar-param raw-then)
   =/  raw-else  +>+>-.parsed
-  =/  cooked-else
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%if *] -.raw-else)
-      [%scalar (cook-if ->.raw-else)]
-    ?:  ?=([%coalesce *] -.raw-else)
-      [%scalar (cook-coalesce ->.raw-else)]
-    ?:  ?=([%case *] -.raw-else)
-      [%scalar (cook-case-body ->.raw-else)]
-    [%datum (cook-qualifier-or-dime -.raw-else)]
+  =/  cooked-else  (cook-scalar-param raw-else)
   %:  if-then-else-helper
     %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
@@ -4781,23 +4775,25 @@
 ++  cook-case-body
   |=  parsed=*
   ~+
-  =/  cooked-target  (cook-qualifier-or-dime -.parsed)
+  =/  cooked-target  (cook-scalar-param -.parsed)
   =/  case-when-then-list  +<.parsed
   =/  cases
     |-
     ^-  (list case-when-then-helper)
     ?~  case-when-then-list
       ~
-    :-  %+  case-when-then-helper
-          (produce-predicate (predicate-list ->-.case-when-then-list))
-        (cook-qualifier-or-dime ->+>.case-when-then-list)
-    $(case-when-then-list +.case-when-then-list)
+    =/  raw-when  ->-.case-when-then-list
+    =/  raw-then  ->+>.case-when-then-list
+    =/  cooked-when  (produce-predicate (predicate-list raw-when))
+    =/  cooked-then  (cook-scalar-param raw-then)
+    =/  cooked-case-when-then  (case-when-then-helper cooked-when cooked-then)
+    [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
   ?@  +>.parsed
     ?:  =(+>.parsed %end)
       (case-helper %case-helper cooked-target (flop cases) ~)
     ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
   ?:  =(%else +>-.parsed)
-    =/  cooked-else  (cook-qualifier-or-dime -.parsed)
+    =/  cooked-else  (cook-scalar-param +>->.parsed)
     (case-helper %case-helper cooked-target (flop cases) (some cooked-else))
   ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
