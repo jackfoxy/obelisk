@@ -3895,8 +3895,8 @@
               ==
     face-list
   ==
-:: this version of parse-datum attempts to fix qualifier parsing to avoid
-:: the hack (unknown column/cte)
+:: this version of parse-datum sidesteps the unknown column/cte issue in
+:: qualified columns by parsing qualifiers into their own types
 ++  parse-datum  ~+
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
@@ -4727,7 +4727,6 @@
     ;~(pfix whitespace ;~(pose parse-aggregate scalar-body parse-datum))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
-:: adjust like cook-coalesce
 ++  cook-case-body
   |=  parsed=*
   ~+
@@ -4752,7 +4751,7 @@
     =/  raw-else  +>+<.parsed
     =/  cooked-else  (cook-scalar-param raw-else)
     (case-helper %case-helper cooked-target (flop cases) (some cooked-else))
-  ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
+  ~|("cannot cook case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
   ;~  plug
     parse-datum
