@@ -2854,33 +2854,24 @@
 :: - add loop to check for scalar definitions with the same name; if found, crash
 ::   - modify scalar fn type so that it has a name and an alias, to allow for
 ::     mixed case scalar names
+++  finalize-scalar-param
+  |=  [cooked-param=scalar-param alias-map=(map @t qualified-table:ast)]
+  ?:  ?=([%scalar *] cooked-param)
+    ?:  ?=([%if-then-else-helper *] +.cooked-param)
+      (finalize-if +.cooked-param alias-map)
+    ?:  ?=([%case-helper *] +.cooked-param)
+      (finalize-case +.cooked-param alias-map) 
+    ?:  ?=([%coalesce-helper *] +.cooked-param)
+      (finalize-coalesce +.cooked-param alias-map)
+    !!
+  ?:  ?=([%datum *] cooked-param)
+    (finalize-qualifier-or-dime +.cooked-param alias-map)
+  !!
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast)]
   ^-  if-then-else:ast
-  =/  finalized-then
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%scalar *] then.cooked-if)
-      ?:  ?=([%if-then-else-helper *] +.then.cooked-if)
-        (finalize-if +.then.cooked-if alias-map)
-      ?:  ?=([%case-helper *] +.then.cooked-if)
-        (finalize-case +.then.cooked-if alias-map) 
-      ?:  ?=([%coalesce-helper *] +.then.cooked-if)
-        (finalize-coalesce +.then.cooked-if alias-map)
-      !!
-    ?:  ?=([%datum *] then.cooked-if)
-      (finalize-qualifier-or-dime +.then.cooked-if alias-map)
-    !!
-  =/  finalized-else
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%scalar *] else.cooked-if)
-      ?:  ?=([%if-then-else-helper *] +.else.cooked-if)
-        (finalize-if +.else.cooked-if alias-map)
-      ?:  ?=([%case-helper *] +.else.cooked-if)
-        (finalize-case +.else.cooked-if alias-map)
-      ?:  ?=([%coalesce-helper *] +.else.cooked-if)
-        (finalize-coalesce +.else.cooked-if alias-map)
-      !!
-    (finalize-qualifier-or-dime +.else.cooked-if alias-map)
+  =/  finalized-then  (finalize-scalar-param then.cooked-if alias-map)
+  =/  finalized-else  (finalize-scalar-param else.cooked-if alias-map)
   %:  if-then-else:ast
     %if-then-else
     if=if.cooked-if
@@ -2890,16 +2881,7 @@
 ++  finalize-case
   |=  [cooked-case=case-helper alias-map=(map @t qualified-table:ast)]
   ^-  case:ast
-  =/  finalized-target
-    ?:  ?=([%scalar *] target.cooked-case)
-      ?:  ?=([%if-then-else-helper *] +.target.cooked-case)
-        (finalize-if +.target.cooked-case alias-map)
-      ?:  ?=([%case-helper *] +.target.cooked-case)
-        (finalize-case +.target.cooked-case alias-map)
-      ?:  ?=([%coalesce-helper *] +.target.cooked-case)
-        (finalize-coalesce +.target.cooked-case alias-map)
-      !!
-    (finalize-qualifier-or-dime +.target.cooked-case alias-map)
+  =/  finalized-target  (finalize-scalar-param target.cooked-case alias-map)
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
@@ -2907,31 +2889,13 @@
       ~
     =/  finalized-case-when-then
       :-  when.i.cases.cooked-case
-    :: TODO: refactor, pull out to helper
-      ?:  ?=([%scalar *] then.i.cases.cooked-case)
-        ?:  ?=([%if-then-else-helper *] +.then.i.cases.cooked-case)
-          (finalize-if +.then.i.cases.cooked-case alias-map)
-        ?:  ?=([%case-helper *] +.then.i.cases.cooked-case)
-          (finalize-case +.then.i.cases.cooked-case alias-map)
-        ?:  ?=([%coalesce-helper *] +.then.i.cases.cooked-case)
-          (finalize-coalesce +.then.i.cases.cooked-case alias-map)
-        !!
-      (finalize-qualifier-or-dime +.then.i.cases.cooked-case alias-map)
+        (finalize-scalar-param then.i.cases.cooked-case alias-map)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
     |=  else=scalar-param
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%scalar *] else)
-      ?:  ?=([%if-then-else-helper *] +.else)
-        (some (finalize-if +.else alias-map))
-      ?:  ?=([%case-helper *] +.else)
-        (some (finalize-case +.else alias-map))
-      ?:  ?=([%coalesce-helper *] +.else)
-        (some (finalize-coalesce +.else alias-map))
-      !!
-    (some (finalize-qualifier-or-dime +.else alias-map))
+    (some (finalize-scalar-param else alias-map))
   %:  case:ast
     %case
     target=finalized-target
@@ -2945,16 +2909,7 @@
     %+  turn
       data.cooked-coalesce
     |=  param=scalar-param
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%scalar *] param)
-      ?:  ?=([%if-then-else-helper *] +.param)
-        (finalize-if +.param alias-map)
-      ?:  ?=([%case-helper *] +.param)
-        (finalize-case +.param alias-map)
-      ?:  ?=([%coalesce-helper *] +.param)
-        (finalize-coalesce +.param alias-map)
-      !!
-    (finalize-qualifier-or-dime +.param alias-map)
+    (finalize-scalar-param param alias-map)
   %:  coalesce:ast
     %coalesce
     data=finalized-data
@@ -4841,14 +4796,7 @@
     ^-  (list scalar-param)
     ?~  parsed
       ~
-    :: TODO: refactor, pull out to helper
-    ?:  ?=([%if *] -.parsed)
-      [[%scalar (cook-if ->.parsed)] $(parsed +.parsed)]
-    ?:  ?=([%coalesce *] -.parsed)
-      [[%scalar (cook-coalesce ->.parsed)] $(parsed +.parsed)]
-    ?:  ?=([%case *] -.parsed)
-      [[%scalar (cook-case-body ->.parsed)] $(parsed +.parsed)]
-    [[%datum (cook-qualifier-or-dime -.parsed)] $(parsed +.parsed)]
+    [(cook-scalar-param -.parsed) $(parsed +.parsed)]
   %:  coalesce-helper
     %coalesce-helper
     data=coalesce-params

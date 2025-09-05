@@ -154,7 +154,6 @@
                            ==
                        name=%bar
                        alias=~
-::  TODO: to do this we also need to have a query that defines a table alias
 ::  <alias>.<column-name>
 ::  MyTable.bar
 ++  qualified-col-6  :^  %qualified-column
@@ -396,13 +395,13 @@
   =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
-
-
 :: test coalesce with if scalar inline
 ++  test-coalesce-12
   ::
   =/  query-string
-    "FROM foo SCALARS foo COALESCE(IF 1 = 1 THEN foo3 ELSE foo2 ENDIF,foo2,1,foo3) SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS foo COALESCE(IF 1 = 1 THEN foo3 ELSE foo2 ENDIF,foo2,1,foo3) ".
+    "SELECT foo2,foo3"
   ::
   =/  naked-if 
     [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
@@ -421,7 +420,9 @@
 ++  test-coalesce-13
   ::
   =/  query-string
-    "FROM foo SCALARS foo COALESCE(CASE foo3 WHEN 1 = 1 THEN foo3 END,foo2,1,foo3) SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS foo COALESCE(CASE foo3 WHEN 1 = 1 THEN foo3 END,foo2,1,foo3) ".
+    "SELECT foo2,foo3"
   ::
   =/  naked-case
     [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
@@ -440,7 +441,9 @@
 ++  test-coalesce-14
   ::
   =/  query-string
-    "FROM foo SCALARS foo COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3) SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS foo COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3) ".
+    "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
     ~[%coalesce literal-zod unqualified-col-2 literal-1 unqualified-col-1]
@@ -459,7 +462,10 @@
 ++  test-coalesce-15
   ::
   =/  query-string
-    "FROM foo SCALARS foo COALESCE(COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3),foo2,1,foo3) SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS foo ".
+    "COALESCE(COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3),foo2,1,foo3) ".
+    "SELECT foo2,foo3"
   ::
   =/  second-coalesce
     ~[%coalesce literal-zod unqualified-col-2 literal-1 unqualified-col-1]
