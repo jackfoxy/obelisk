@@ -737,7 +737,7 @@
     :*  %case
       unqualified-col-1
       ~[[simple-true-pred unqualified-col-1]]
-      (some unqualified-col-1)
+      (some unqualified-col-2)
     ==
   =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
   =/  expected  (mk-selection scalars ~)

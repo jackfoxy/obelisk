@@ -4794,7 +4794,8 @@
       (case-helper %case-helper cooked-target (flop cases) ~)
     ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
   ?:  =(%else +>-.parsed)
-    =/  cooked-else  (cook-scalar-param +>->.parsed)
+    =/  raw-else  +>+<.parsed
+    =/  cooked-else  (cook-scalar-param raw-else)
     (case-helper %case-helper cooked-target (flop cases) (some cooked-else))
   ~|("cannot parse case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
