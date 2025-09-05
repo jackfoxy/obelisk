@@ -1268,6 +1268,7 @@
                                         " ..."
                                         %-  parse-query
                                               [[1 1] q.q.command-nail]
+::                                ~&  "nail: {<nail>}"
                                 [(wonk nail) nail]
       ~|  "query parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -4753,9 +4754,9 @@
   ;~  plug
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-datum)
+    ;~(pose scalar-body parse-datum)
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pose parse-datum)
+    ;~(pose scalar-body parse-datum)
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
 ++  parse-when-then
