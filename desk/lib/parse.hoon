@@ -2872,8 +2872,8 @@
   =/  finalized-else
     :: TODO: refactor, pull out to helper
     ?:  ?=([%scalar *] else.cooked-if)
-::      ?:  ?=([%if-else-else-helper *] +.else.cooked-if)
-::        (finalize-if +.else.cooked-if alias-map)
+      ?:  ?=([%if-then-else-helper *] +.else.cooked-if)
+        (finalize-if +.else.cooked-if alias-map)
       ?:  ?=([%case-helper *] +.else.cooked-if)
         (finalize-case +.else.cooked-if alias-map)
       ?:  ?=([%coalesce-helper *] +.else.cooked-if)
@@ -2889,6 +2889,16 @@
 ++  finalize-case
   |=  [cooked-case=case-helper alias-map=(map @t qualified-table:ast)]
   ^-  case:ast
+  =/  finalized-target
+    ?:  ?=([%scalar *] target.cooked-case)
+      ?:  ?=([%if-then-else-helper *] +.target.cooked-case)
+        (finalize-if +.target.cooked-case alias-map)
+      ?:  ?=([%case-helper *] +.target.cooked-case)
+        (finalize-case +.target.cooked-case alias-map)
+      ?:  ?=([%coalesce-helper *] +.target.cooked-case)
+        (finalize-coalesce +.target.cooked-case alias-map)
+      !!
+    (finalize-qualifier-or-dime +.target.cooked-case alias-map)
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
@@ -2905,15 +2915,25 @@
         ?:  ?=([%coalesce-helper *] +.then.i.cases.cooked-case)
           (finalize-coalesce +.then.i.cases.cooked-case alias-map)
         !!
-      (finalize-qualifier-or-dime then.i.cases.cooked-case alias-map)
+      (finalize-qualifier-or-dime +.then.i.cases.cooked-case alias-map)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
-    |=(a=qualifier-or-dime (some (finalize-qualifier-or-dime a alias-map)))
+    |=  else=scalar-param
+    :: TODO: refactor, pull out to helper
+    ?:  ?=([%scalar *] else)
+      ?:  ?=([%if-then-else-helper *] +.else)
+        (some (finalize-if +.else alias-map))
+      ?:  ?=([%case-helper *] +.else)
+        (some (finalize-case +.else alias-map))
+      ?:  ?=([%coalesce-helper *] +.else)
+        (some (finalize-coalesce +.else alias-map))
+      !!
+    (some (finalize-qualifier-or-dime +.else alias-map))
   %:  case:ast
     %case
-    target=(finalize-qualifier-or-dime target.cooked-case alias-map)
+    target=finalized-target
     cases=finalized-cases
     else=finalized-else
   ==
@@ -4706,7 +4726,6 @@
     ;~(sfix parse-datum whitespace)
     parse-datum
   ==
-:: adjust like cook-coalesce
 ++  cook-if
   |=  parsed=*
   ^-  if-then-else-helper
@@ -4714,22 +4733,22 @@
   =/  cooked-then
     :: TODO: refactor, pull out to helper
     ?:  ?=([%if *] -.raw-then)
-      [[%scalar (cook-if ->.raw-then)] $(raw-then +.raw-then)]
+      [%scalar (cook-if ->.raw-then)]
     ?:  ?=([%coalesce *] -.raw-then)
-      [[%scalar (cook-coalesce ->.raw-then)] $(raw-then +.raw-then)]
+      [%scalar (cook-coalesce ->.raw-then)]
     ?:  ?=([%case *] -.raw-then)
-      [[%scalar (cook-case-body ->.raw-then)] $(raw-then +.raw-then)]
-    [[%datum (cook-qualifier-or-dime -.raw-then)] $(raw-then +.raw-then)]
+      [%scalar (cook-case-body ->.raw-then)]
+    [%datum (cook-qualifier-or-dime -.raw-then)]
   =/  raw-else  +>+>-.parsed
   =/  cooked-else
     :: TODO: refactor, pull out to helper
     ?:  ?=([%if *] -.raw-else)
-      [[%scalar (cook-if ->.raw-else)] $(raw-else +.raw-else)]
+      [%scalar (cook-if ->.raw-else)]
     ?:  ?=([%coalesce *] -.raw-else)
-      [[%scalar (cook-coalesce ->.raw-else)] $(raw-else +.raw-else)]
+      [%scalar (cook-coalesce ->.raw-else)]
     ?:  ?=([%case *] -.raw-else)
-      [[%scalar (cook-case-body ->.raw-else)] $(raw-else +.raw-else)]
-    [[%datum (cook-qualifier-or-dime -.raw-else)] $(raw-else +.raw-else)]
+      [%scalar (cook-case-body ->.raw-else)]
+    [%datum (cook-qualifier-or-dime -.raw-else)]
   %:  if-then-else-helper
     %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
@@ -4819,19 +4838,23 @@
 ++  cook-coalesce
   |=  parsed=*
   ^-  coalesce-helper
-  :-  %coalesce-helper
-  |-
-  ^-  (list scalar-param)
-  ?~  parsed
-    ~
-  :: TODO: refactor, pull out to helper
-  ?:  ?=([%if *] -.parsed)
-    [[%scalar (cook-if ->.parsed)] $(parsed +.parsed)]
-  ?:  ?=([%coalesce *] -.parsed)
-    [[%scalar (cook-coalesce ->.parsed)] $(parsed +.parsed)]
-  ?:  ?=([%case *] -.parsed)
-    [[%scalar (cook-case-body ->.parsed)] $(parsed +.parsed)]
-  [[%datum (cook-qualifier-or-dime -.parsed)] $(parsed +.parsed)]
+  =/  coalesce-params
+    |-
+    ^-  (list scalar-param)
+    ?~  parsed
+      ~
+    :: TODO: refactor, pull out to helper
+    ?:  ?=([%if *] -.parsed)
+      [[%scalar (cook-if ->.parsed)] $(parsed +.parsed)]
+    ?:  ?=([%coalesce *] -.parsed)
+      [[%scalar (cook-coalesce ->.parsed)] $(parsed +.parsed)]
+    ?:  ?=([%case *] -.parsed)
+      [[%scalar (cook-case-body ->.parsed)] $(parsed +.parsed)]
+    [[%datum (cook-qualifier-or-dime -.parsed)] $(parsed +.parsed)]
+  %:  coalesce-helper
+    %coalesce-helper
+    data=coalesce-params
+  ==
 ++  parse-coalesce  ~+
   ;~  pfix
     whitespace 
@@ -4991,7 +5014,7 @@
   (finalize-qualifier a alias-map)
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
-  ^-  datum:ast
+  ^-  datum-for-scalar:ast
   ?:  ?=([%one-item-qualifier *] a)
     [%unqualified-column name=column.a ~]
   ?:  ?=([%two-item-qualifier *] a)
