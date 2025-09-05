@@ -237,7 +237,7 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column coalesce with ship.database..table.column (default namespace)
+:: qualified column coalesce with ship.database..table.column (default ns)
 ++  test-coalesce-04
   ::
   =/  query-string
@@ -404,7 +404,12 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-if 
-    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
   =/  coalesce-1
     ~[%coalesce naked-if unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
@@ -491,7 +496,12 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-if 
-    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
   =/  scalars  ~[[%scalar naked-if 'foo']]
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -508,7 +518,12 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-if 
-    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
   =/  scalars
     :~
       [%scalar naked-if 'foo']
@@ -543,7 +558,7 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column if scalar with ship.database..table.column (default namespace)
+:: qualified column if scalar with ship.database..table.column (default ns)
 ++  test-if-04
   ::
   =/  query-string
@@ -694,6 +709,138 @@
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
 ::
+:: test if with coalesce scalar inline
+++  test-if-10
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo IF 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[naked-coalesce]
+      else=[unqualified-col-2]
+    ==
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test if with case scalar inline
+++  test-if-11
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS ".
+    "foo IF 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END ELSE foo2 ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[naked-case]
+      else=[unqualified-col-2]
+    ==
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test if with if scalar inline
+++  test-if-12
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS ".
+    "foo IF 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[naked-if]
+      else=[unqualified-col-2]
+    ==
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test if with a if nested in a if
+++  test-if-13
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS ".
+    "foo IF 1 = 1 ".
+    "      THEN ".
+    "        IF 1 = 1 ".
+    "          THEN ".
+    "            IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "          ELSE foo2 ".
+    "        ENDIF ".
+    "      ELSE foo2 ".
+    "    ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  second-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[column-foo3]
+      else=[unqualified-col-2]
+    ==
+  =/  first-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[second-if]
+      else=[unqualified-col-2]
+    ==
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[first-if]
+      else=[unqualified-col-2]
+    ==
+  =/  scalars
+    :~
+      [%scalar if-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ::  simple case with predicate
 ++  test-case-01
   ::
@@ -728,7 +875,7 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 
-::  simple case with predicate, two cases, one with else, the other with no else
+::  simple case with predicate, two cases, one with else, the other without
 ++  test-case-03
   ::
   =/  query-string
@@ -776,7 +923,7 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with ship.database..table.column (default namespace)
+:: qualified column case scalar with ship.database..table.column (default ns)
 ++  test-case-05
   ::
   =/  query-string
@@ -826,7 +973,7 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with database..table.column (default namespace)
+:: qualified column case scalar with database..table.column (default ns)
 ++  test-case-07
   ::
   =/  query-string
@@ -932,94 +1079,25 @@
   =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
-:: test if with coalesce scalar inline
-++  test-if-10
-  ::
-  =/  query-string
-    "FROM foo SCALARS foo IF 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 ENDIF SELECT foo2,foo3"
-  ::
-  =/  naked-coalesce
-    ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
-  =/  if-1
-    [%if-then-else if=simple-true-pred then=[naked-coalesce] else=[unqualified-col-2]]
-  =/  scalars
-    :~
-      [%scalar if-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-
-:: test if with case scalar inline
-++  test-if-11
-  ::
-  =/  query-string
-    "FROM foo SCALARS foo IF 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END ELSE foo2 ENDIF SELECT foo2,foo3"
-  ::
-  =/  naked-case
-    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
-  =/  if-1
-    [%if-then-else if=simple-true-pred then=[naked-case] else=[unqualified-col-2]]
-  =/  scalars
-    :~
-      [%scalar if-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-
-:: test if with if scalar inline
-++  test-if-12
-  ::
-  =/  query-string
-    "FROM foo SCALARS foo IF 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 ENDIF SELECT foo2,foo3"
-  ::
-  =/  naked-if
-    [%if-then-else if=simple-true-pred then=[unqualified-col-1] else=[unqualified-col-2]]
-  =/  if-1
-    [%if-then-else if=simple-true-pred then=[naked-if] else=[unqualified-col-2]]
-  =/  scalars
-    :~
-      [%scalar if-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-
-:: test if with a if nested in a if
-++  test-if-13
-  ::
-  =/  query-string
-    "FROM foo SCALARS foo IF 1 = 1 THEN IF 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 ENDIF ELSE foo2 ENDIF SELECT foo2,foo3"
-  ::
-  =/  second-if
-    [%if-then-else if=simple-true-pred then=[column-foo3] else=[unqualified-col-2]]
-  =/  first-if
-    [%if-then-else if=simple-true-pred then=[second-if] else=[unqualified-col-2]]
-  =/  if-1
-    [%if-then-else if=simple-true-pred then=[first-if] else=[unqualified-col-2]]
-  =/  scalars
-    :~
-      [%scalar if-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-
+::
 :: test case with coalesce scalar inline
 ++  test-case-11
   ::
   =/  query-string
-    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 END SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS ".
+    "foo CASE foo3 WHEN 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 END ".
+    "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
     ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
   =/  case-1
-    [%case column-foo3 ~[[simple-true-pred naked-coalesce]] (some unqualified-col-2)]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred naked-coalesce]]
+      else=(some unqualified-col-2)
+    ==
   =/  scalars
     :~
       [%scalar case-1 'foo']
@@ -1028,17 +1106,32 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-
+::
 :: test case with if scalar inline
 ++  test-case-12
   ::
   =/  query-string
-    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 END SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS ".
+    "foo CASE foo3 WHEN 1 = 1 ".
+    "    THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "ELSE foo2 END ".
+    "SELECT foo2,foo3"
   ::
   =/  naked-if
-    [%if-then-else if=simple-true-pred then=[column-foo3] else=[unqualified-col-2]]
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[column-foo3]
+      else=[unqualified-col-2]
+    ==
   =/  case-1
-    [%case column-foo3 ~[[simple-true-pred naked-if]] (some unqualified-col-2)]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred naked-if]]
+      else=(some unqualified-col-2)
+    ==
   =/  scalars
     :~
       [%scalar case-1 'foo']
@@ -1047,17 +1140,33 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-
+::
 :: test case with case scalar inline
 ++  test-case-13
   ::
   =/  query-string
-    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END ELSE foo2 END SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS ".
+    "foo CASE foo3 WHEN 1 = 1 THEN ".
+    "      CASE foo3 WHEN 1 = 1 THEN ".
+    "        foo3 END ".
+    "    ELSE foo2 END ".
+    "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred column-foo3]]
+      else=~
+    ==
   =/  case-1
-    [%case column-foo3 ~[[simple-true-pred naked-case]] (some unqualified-col-2)]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred naked-case]]
+      else=(some unqualified-col-2)
+    ==
   =/  scalars
     :~
       [%scalar case-1 'foo']
@@ -1066,19 +1175,42 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-
+::
 :: test case with a case nested in a case
 ++  test-case-14
   ::
   =/  query-string
-    "FROM foo SCALARS foo CASE foo3 WHEN 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END END ELSE foo2 END SELECT foo2,foo3"
+    "FROM foo ".
+    "SCALARS ".
+    "foo CASE foo3 WHEN 1 = 1 THEN ".
+    "      CASE foo3 WHEN 1 = 1 THEN ".
+    "        CASE foo3 WHEN 1 = 1 THEN ".
+    "          foo3 END ".
+    "        END ".
+    "      ELSE foo2 END ".
+    "SELECT foo2,foo3"
   ::
   =/  second-case
-    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred column-foo3]]
+      else=~
+    ==
   =/  first-case
-    [%case column-foo3 ~[[simple-true-pred second-case]] ~]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred second-case]]
+      else=~
+    ==
   =/  case-1
-    [%case column-foo3 ~[[simple-true-pred first-case]] (some unqualified-col-2)]
+    :*
+      %case
+      target=column-foo3
+      cases=~[[simple-true-pred first-case]]
+      else=(some unqualified-col-2)
+    ==
   =/  scalars
     :~
       [%scalar case-1 'foo']
