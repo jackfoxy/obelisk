@@ -144,8 +144,6 @@
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column unqualified-column dime)
 
-    :: NOTE: see +$  iota in hoon.hoon for tricky type union
-+$  datum-or-scalar      $%(datum scalar-function @t)
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
 +$  arithmetic
@@ -179,16 +177,14 @@
 +$  literal-value        $:(%literal-value dime=dime)
 +$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
 ++  d-or-s
-  |$  [a]
-  $@  @t
-  $%  datum-for-scalar
-      scalar-function
-  ==
+++  datum-or-scalar
+   =<  $
+   d-or-s
 +$  coalesce
   $+  coalesce
   $:
     %coalesce
-    data=(list (d-or-s [~]))
+    data=(list datum-or-scalar)
   ==
 +$  scalar-function
   $%

@@ -1268,7 +1268,6 @@
                                         " ..."
                                         %-  parse-query
                                               [[1 1] q.q.command-nail]
-::                                ~&  "nail: {<nail>}"
                                 [(wonk nail) nail]
       ~|  "query parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -3900,7 +3899,6 @@
 ++  parse-datum  ~+
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
-    ::;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) (stag %literal parse-value-literal))
   ==
 ++  parse-datum-for-predicate  ~+
