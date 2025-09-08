@@ -2913,35 +2913,40 @@
     %coalesce
     data=finalized-data
   ==
-++  produce-scalar
-  |=  [raw-scalar=* alias-map=(map @t qualified-table:ast)]
-  ^-  scalar:ast
-  =/  scalar-alias  (@tas -.raw-scalar)
-  =/  scalar-fn-name  (@tas +<.raw-scalar)
-  =/  raw-scalar-body  +>.raw-scalar 
-  ?:  =(%coalesce scalar-fn-name)
+++  produce-scalar-fn
+  |=  [fn-name=@tas raw-scalar-body=* alias-map=(map @t qualified-table:ast)]
+  ^-  scalar-function:ast
+  ?:  =(%coalesce fn-name)
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
     =/  finalized-coalesce  (finalize-coalesce cooked-coalesce alias-map)
-    [%scalar scalar=finalized-coalesce alias=scalar-alias]
-  ?:  =(%if scalar-fn-name)
+      finalized-coalesce
+  ?:  =(%if fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
     =/  finalized-if  (finalize-if cooked-if alias-map)
-    [%scalar scalar=finalized-if alias=scalar-alias]
-  ?:  =(%case scalar-fn-name)
+      finalized-if
+  ?:  =(%case fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
     =/  finalized-case  (finalize-case cooked-case alias-map)
-    [%scalar scalar=finalized-case alias=scalar-alias]
-  ~|  "produce-scalar: scalar {<scalar-fn-name>} not implemented"  !!
+      finalized-case
+  ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
   |=  [raw-scalars=* alias-map=(map @t qualified-table:ast)]
-  ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
   =/  scalars  +.raw-scalars
-  |-
-  ^-  (list scalar:ast)
-  ?~  scalars
-    ~
-  =/  parsed-scalar  -.scalars
-    [(produce-scalar parsed-scalar alias-map) $(scalars +.scalars)]
+  =/  finalized-scalars
+    ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
+    |-
+    ^-  (list scalar:ast)
+    ?~  scalars
+      ~
+    =/  parsed-scalar  -.scalars
+    =/  scalar-alias  (@tas -.parsed-scalar)
+    =/  scalar-fn-name  (@tas +<.parsed-scalar)
+    =/  raw-scalar-body  +>.parsed-scalar 
+    =/  scalar-function
+      (produce-scalar-fn scalar-fn-name raw-scalar-body alias-map)
+    =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
+      [scalar $(scalars +.scalars)]
+  finalized-scalars
 ++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-table:ast)]
   ~+
