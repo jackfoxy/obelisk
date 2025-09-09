@@ -176,24 +176,6 @@
   ==
 +$  literal-value        $:(%literal-value dime=dime)
 +$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
-::  TRY 1 - eager evaluation
-::++  datum-or-scalar
-::  $?(datum-for-scalar scalar-function)
-::  TRY 2 - lazy evaluation with wet gate mold builder
-::++  datum-or-scalar
-::   =<  $
-::  |$  [a]
-::  $@  @t
-::  $%  datum-for-scalar
-::      scalar-function
-::  ==
-::  TRY 3 - eager evaluation but enclosing the recursion within a bucpat
-::          i think this fixes it because the compiler figures out that it
-::          can eventually be an atom and stop recursing
-::++  datum-or-scalar
-::  $@  @t
-::  $?(datum-for-scalar scalar-function)
-::  TRY 4 - like try three but with buccen instead of bucwut
 ++  datum-or-scalar
   $@  @t
   $%(datum-for-scalar scalar-function)
