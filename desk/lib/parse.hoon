@@ -2854,23 +2854,28 @@
 ::   - modify scalar fn type so that it has a name and an alias, to allow for
 ::     mixed case scalar names
 ++  finalize-scalar-param
-  |=  [cooked-param=scalar-param alias-map=(map @t qualified-table:ast)]
-  ?:  ?=([%scalar *] cooked-param)
-    ?:  ?=([%if-then-else-helper *] +.cooked-param)
-      (finalize-if +.cooked-param alias-map)
-    ?:  ?=([%case-helper *] +.cooked-param)
-      (finalize-case +.cooked-param alias-map) 
-    ?:  ?=([%coalesce-helper *] +.cooked-param)
-      (finalize-coalesce +.cooked-param alias-map)
+  |=  [cooked-param=scalar-param alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
+  ^-  datum-for-scalar:ast
+  ~&  "map: {<scalar-map>}"
+  :: here we need to do the following
+  :: - if the cooked-param is a one-item-qualifier, but there is a
+  ::   scalar by the same name, then resolve the scalar
+  :: - if the cooked-param is a one-item-qualifier, and ther isn't a
+  ::   scalar by the same name, then pass it down to finalize qualifier
+  :: - if the cooked-param is an unknown alias and there is a
+  ::   scalar by the same name, then resolve the scalar
+  :: - if the cooked-param is an unknown alias and there isn't
+  ::   scalar by the same name, then cast to cte-alias
+  ?:  ?=([%literal *] cooked-param)
+    %:(literal-value:ast %literal-value dime=+.cooked-param)
+  ?:  ?=([%unknown-alias *] cooked-param)
     !!
-  ?:  ?=([%datum *] cooked-param)
-    (finalize-qualifier-or-dime +.cooked-param alias-map)
-  !!
+  (finalize-qualifier cooked-param alias-map)
 ++  finalize-if
-  |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast)]
+  |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
   ^-  if-then-else:ast
-  =/  finalized-then  (finalize-scalar-param then.cooked-if alias-map)
-  =/  finalized-else  (finalize-scalar-param else.cooked-if alias-map)
+  =/  finalized-then  (finalize-scalar-param then.cooked-if alias-map scalar-map)
+  =/  finalized-else  (finalize-scalar-param else.cooked-if alias-map scalar-map)
   %:  if-then-else:ast
     %if-then-else
     if=if.cooked-if
@@ -2878,9 +2883,9 @@
     else=finalized-else
   ==
 ++  finalize-case
-  |=  [cooked-case=case-helper alias-map=(map @t qualified-table:ast)]
+  |=  [cooked-case=case-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
   ^-  case:ast
-  =/  finalized-target  (finalize-scalar-param target.cooked-case alias-map)
+  =/  finalized-target  (finalize-scalar-param target.cooked-case alias-map scalar-map)
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
@@ -2888,13 +2893,13 @@
       ~
     =/  finalized-case-when-then
       :-  when.i.cases.cooked-case
-        (finalize-scalar-param then.i.cases.cooked-case alias-map)
+        (finalize-scalar-param then.i.cases.cooked-case alias-map scalar-map)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
     |=  else=scalar-param
-    (some (finalize-scalar-param else alias-map))
+    (some (finalize-scalar-param else alias-map scalar-map))
   %:  case:ast
     %case
     target=finalized-target
@@ -2902,36 +2907,38 @@
     else=finalized-else
   ==
 ++  finalize-coalesce
-  |=  [cooked-coalesce=coalesce-helper alias-map=(map @t qualified-table:ast)]
+  |=  [cooked-coalesce=coalesce-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
   ^-  coalesce:ast
   =/  finalized-data
     %+  turn
       data.cooked-coalesce
     |=  param=scalar-param
-    (finalize-scalar-param param alias-map)
+    (finalize-scalar-param param alias-map scalar-map)
   %:  coalesce:ast
     %coalesce
     data=finalized-data
   ==
 ++  produce-scalar-fn
-  |=  [fn-name=@tas raw-scalar-body=* alias-map=(map @t qualified-table:ast)]
+  |=  [fn-name=@tas raw-scalar-body=* alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
   ^-  scalar-function:ast
   ?:  =(%coalesce fn-name)
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
-    =/  finalized-coalesce  (finalize-coalesce cooked-coalesce alias-map)
+    =/  finalized-coalesce  (finalize-coalesce cooked-coalesce alias-map scalar-map)
       finalized-coalesce
   ?:  =(%if fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
-    =/  finalized-if  (finalize-if cooked-if alias-map)
+    =/  finalized-if  (finalize-if cooked-if alias-map scalar-map)
       finalized-if
   ?:  =(%case fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
-    =/  finalized-case  (finalize-case cooked-case alias-map)
+    =/  finalized-case  (finalize-case cooked-case alias-map scalar-map)
       finalized-case
   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
   |=  [raw-scalars=* alias-map=(map @t qualified-table:ast)]
+  ^-  (list scalar:ast)
   =/  scalars  +.raw-scalars
+  =/  scalar-map  *(map @t scalar-function:ast)
   =/  finalized-scalars
     ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
     |-
@@ -2943,9 +2950,13 @@
     =/  scalar-fn-name  (@tas +<.parsed-scalar)
     =/  raw-scalar-body  +>.parsed-scalar 
     =/  scalar-function
-      (produce-scalar-fn scalar-fn-name raw-scalar-body alias-map)
+      (produce-scalar-fn scalar-fn-name raw-scalar-body alias-map scalar-map)
     =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
-      [scalar $(scalars +.scalars)]
+      :-  scalar
+      %=  $
+        scalar-map  (~(put by scalar-map) scalar-alias scalar-function)
+        scalars     +.scalars
+      ==
   finalized-scalars
 ++  finalize-predicate
   |=  [p=predicate:ast alias-map=(map @t qualified-table:ast)]
@@ -3899,12 +3910,20 @@
               ==
     face-list
   ==
-:: this version of parse-datum sidesteps the unknown column/cte issue in
+:: this version of parse-scalar-param sidesteps the unknown column/cte issue in
 :: qualified columns by parsing qualifiers into their own types
-++  parse-datum  ~+
+:: <lowercase-name> unqualified-column
+:: <mixedcase-name> alias
+++  parse-scalar-param  ~+ 
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
-    ;~(pose ;~(pfix whitespace parse-value-literal) (stag %literal parse-value-literal))
+    mixed-case-symbol
+    %+  stag
+      %alias
+    ;~(pose ;~(pfix whitespace mixed-case-symbol) mixed-case-symbol)
+    %+  stag
+      %literal
+    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
   ==
 ++  parse-datum-for-predicate  ~+
   ;~  pose
@@ -3919,11 +3938,11 @@
     %:  cook  cook-aggregate
               ;~  pfix
                 whitespace
-                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-datum par))
+                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
                 ==
               ==
     %:  cook  cook-aggregate
-              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-datum par))
+              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
               ==
   ==
 ++  cook-selected-aggregate
@@ -3934,11 +3953,11 @@
     %:  cook  cook-selected-aggregate
               ;~  pfix
                 whitespace
-                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-datum par))
+                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
                 ==
               ==
     %:  cook  cook-selected-aggregate
-              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-datum par))
+              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
               ==
   ==
 ::
@@ -4680,20 +4699,19 @@
 ++  cook-scalar-param
   |=  parsed=*
   ^-  scalar-param
-  ?:  ?=([%if *] parsed)
-    [%scalar (cook-if +.parsed)]
-  ?:  ?=([%coalesce *] parsed)
-    [%scalar (cook-coalesce +.parsed)]
-  ?:  ?=([%case *] parsed)
-    [%scalar (cook-case-body +.parsed)]
-  [%datum (cook-qualifier-or-dime parsed)]
-++  get-datum  ~+
+  ?:  ?=([%alias @] parsed)
+    [%unknown-alias +.parsed]
+  ?:  ?=([%literal [@ @]] parsed)
+    [%literal `dime`+.parsed]
+  (cook-qualifier parsed)
+++  get-scalar-param  ~+
   ;~  pose
     ;~(sfix parse-qualifier whitespace)
     ::;~(sfix parse-qualified-column whitespace)
-    ;~(sfix (stag %literal parse-value-literal) whitespace)
-    ;~(sfix parse-datum whitespace)
-    parse-datum
+    (stag %literal ;~(sfix parse-value-literal whitespace))
+    (stag %alias ;~(sfix mixed-case-symbol whitespace))
+    ;~(sfix parse-scalar-param whitespace)
+    parse-scalar-param
   ==
 ++  cook-if
   |=  parsed=*
@@ -4712,22 +4730,22 @@
   ;~  plug
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose scalar-body parse-datum)
+    ;~(pose parse-scalar-param)
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pose scalar-body parse-datum)
+    ;~(pose parse-scalar-param)
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
 ++  parse-when-then
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
-    ;~(pose parse-predicate parse-datum)
+    ;~(pose parse-predicate parse-scalar-param)
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-aggregate scalar-body parse-datum)
+    ;~(pose parse-aggregate parse-scalar-param)
   ==
 ++  parse-case-else
   ;~  plug
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pfix whitespace ;~(pose parse-aggregate scalar-body parse-datum))
+    ;~(pfix whitespace ;~(pose parse-aggregate parse-scalar-param))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
 ++  cook-case-body
@@ -4757,7 +4775,7 @@
   ~|("cannot cook case: unexpected atom: {<+>-.parsed>}" !!)
 ++  parse-case
   ;~  plug
-    parse-datum
+    parse-scalar-param
     (star parse-when-then)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
@@ -4788,7 +4806,7 @@
     (cold %fas fas)
     (cold %ket ;~(plug whitespace ket))
     (cold %ket ket)
-    parse-datum
+    parse-scalar-param
   ==
 ++  cook-coalesce
   |=  parsed=*
@@ -4806,7 +4824,8 @@
 ++  parse-coalesce  ~+
   ;~  pfix
     whitespace 
-    (ifix [pal par] (more com ;~(pose scalar-body parse-aggregate get-datum)))
+    ::(ifix [pal par] (more com ;~(pose parse-aggregate get-scalar-param)))
+    (ifix [pal par] (more com ;~(pose parse-aggregate parse-scalar-param)))
   ==
 ++  parse-math
   ;~  plug
@@ -4814,14 +4833,11 @@
     (star scalar-token)
   ==
 ++  parse-scalar-body
-  %+
-    knee  *noun
-    |.  ~+
-    ;~  pose
-      ;~(plug (cold %if (jester 'if')) parse-if)
-      ;~(plug (cold %case (jester 'case')) parse-case)
-      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-      parse-math
+  ;~  pose
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-math
   ==
 ++  scalar-stop  ;~
   pose
@@ -4954,12 +4970,6 @@
               ==
     (more com parse-ordering-column)
   ==
-++  finalize-qualifier-or-dime
-  |=  [a=qualifier-or-dime alias-map=(map @t qualified-table:ast)]
-  ^-  datum-for-scalar:ast
-  ?:  ?=([%literal *] a)
-    %:(literal-value:ast %literal-value dime=+.a)
-  (finalize-qualifier a alias-map)
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
   ^-  datum-for-scalar:ast
@@ -5005,12 +5015,6 @@
       ~
     ==
   !!  :: this should never be reached
-++  cook-qualifier-or-dime
-  |=  a=*
-  ^-  qualifier-or-dime
-  ?:  ?=([%literal [@ @]] a)
-    [%literal `dime`+.a]
-  (cook-qualifier a)
 ++  cook-qualifier
   |=  a=*
   ^-  qualifier
@@ -5106,10 +5110,8 @@
         @
         ==
   ==
-+$   scalar-param
-  $%  $:(%scalar scalar-helper) 
-    $:(%datum qualifier-or-dime)
-  ==
++$   unknown-alias  $:(%unknown-alias @t)
++$   scalar-param  $%(qualifier-or-dime unknown-alias)
 +$   qualifier-or-dime
   $%  qualifier
       $:(%literal dime)
