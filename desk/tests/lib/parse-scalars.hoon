@@ -400,7 +400,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo COALESCE(IF 1 = 1 THEN foo3 ELSE foo2 ENDIF,foo2,1,foo3) ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar COALESCE(foo,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
   =/  naked-if 
@@ -414,7 +415,8 @@
     ~[%coalesce naked-if unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
     :~
-      [%scalar coalesce-1 'foo']
+      [%scalar naked-if 'foo']
+      [%scalar coalesce-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -426,7 +428,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo COALESCE(CASE foo3 WHEN 1 = 1 THEN foo3 END,foo2,1,foo3) ".
+    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "        bar COALESCE(foo,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
@@ -435,7 +438,8 @@
     ~[%coalesce naked-case unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
     :~
-      [%scalar coalesce-1 'foo']
+      [%scalar naked-case 'foo']
+      [%scalar coalesce-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -447,7 +451,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3) ".
+    "SCALARS foo COALESCE(~zod,foo2,1,foo3) ".
+    "        bar COALESCE(foo,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
@@ -456,7 +461,8 @@
     ~[%coalesce naked-coalesce unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
     :~
-      [%scalar coalesce-1 'foo']
+      [%scalar naked-coalesce 'foo']
+      [%scalar coalesce-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -468,8 +474,9 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo ".
-    "COALESCE(COALESCE(COALESCE(~zod,foo2,1,foo3),foo2,1,foo3),foo2,1,foo3) ".
+    "SCALARS baz COALESCE(~zod,foo2,1,foo3) ".
+    "        bar COALESCE(baz,foo2,1,foo3) ".
+    "        foo COALESCE(bar,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
   =/  second-coalesce
@@ -480,6 +487,8 @@
     ~[%coalesce first-coalesce unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
     :~
+      [%scalar second-coalesce 'baz']
+      [%scalar first-coalesce 'bar']
       [%scalar coalesce-1 'foo']
     ==
   =/  expected  (mk-selection scalars ~)
@@ -714,7 +723,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo IF 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 ENDIF ".
+    "SCALARS foo COALESCE(foo2,1,foo2) ".
+    "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
@@ -728,7 +738,8 @@
     ==
   =/  scalars
     :~
-      [%scalar if-1 'foo']
+      [%scalar naked-coalesce 'foo']
+      [%scalar if-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -740,8 +751,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo IF 1 = 1 THEN CASE foo3 WHEN 1 = 1 THEN foo3 END ELSE foo2 ENDIF ".
+    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
@@ -755,7 +766,8 @@
     ==
   =/  scalars
     :~
-      [%scalar if-1 'foo']
+      [%scalar naked-case 'foo']
+      [%scalar if-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -767,8 +779,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo IF 1 = 1 THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ELSE foo2 ENDIF ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
   ::
   =/  naked-if
@@ -787,7 +799,8 @@
     ==
   =/  scalars
     :~
-      [%scalar if-1 'foo']
+      [%scalar naked-if 'foo']
+      [%scalar if-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -799,16 +812,9 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo IF 1 = 1 ".
-    "      THEN ".
-    "        IF 1 = 1 ".
-    "          THEN ".
-    "            IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
-    "          ELSE foo2 ".
-    "        ENDIF ".
-    "      ELSE foo2 ".
-    "    ENDIF ".
+    "SCALARS baz IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar IF 1 = 1 THEN baz ELSE foo2 ENDIF ".
+    "        foo IF 1 = 1 THEN bar ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
   ::
   =/  second-if
@@ -834,6 +840,8 @@
     ==
   =/  scalars
     :~
+      [%scalar second-if 'baz']
+      [%scalar first-if 'bar']
       [%scalar if-1 'foo']
     ==
   =/  expected  (mk-selection scalars ~)
@@ -1085,8 +1093,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo CASE foo3 WHEN 1 = 1 THEN COALESCE(foo2,1,foo2) ELSE foo2 END ".
+    "SCALARS foo COALESCE(foo2,1,foo2) ".
+    "        bar CASE foo3 WHEN 1 = 1 THEN foo ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
@@ -1100,7 +1108,8 @@
     ==
   =/  scalars
     :~
-      [%scalar case-1 'foo']
+      [%scalar naked-coalesce 'foo']
+      [%scalar case-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -1112,10 +1121,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo CASE foo3 WHEN 1 = 1 ".
-    "    THEN IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
-    "ELSE foo2 END ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar CASE foo3 WHEN 1 = 1 THEN foo ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  naked-if
@@ -1134,7 +1141,8 @@
     ==
   =/  scalars
     :~
-      [%scalar case-1 'foo']
+      [%scalar naked-if 'foo']
+      [%scalar case-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -1146,11 +1154,8 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo CASE foo3 WHEN 1 = 1 THEN ".
-    "      CASE foo3 WHEN 1 = 1 THEN ".
-    "        foo3 END ".
-    "    ELSE foo2 END ".
+    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 = 1 THEN foo ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
@@ -1169,7 +1174,8 @@
     ==
   =/  scalars
     :~
-      [%scalar case-1 'foo']
+      [%scalar naked-case 'foo']
+      [%scalar case-1 'bar']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -1181,13 +1187,9 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS ".
-    "foo CASE foo3 WHEN 1 = 1 THEN ".
-    "      CASE foo3 WHEN 1 = 1 THEN ".
-    "        CASE foo3 WHEN 1 = 1 THEN ".
-    "          foo3 END ".
-    "        END ".
-    "      ELSE foo2 END ".
+    "SCALARS baz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 = 1 THEN baz END ".
+    "        foo CASE foo3 WHEN 1 = 1 THEN bar ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  second-case
@@ -1213,6 +1215,8 @@
     ==
   =/  scalars
     :~
+      [%scalar second-case 'baz']
+      [%scalar first-case 'bar']
       [%scalar case-1 'foo']
     ==
   =/  expected  (mk-selection scalars ~)
