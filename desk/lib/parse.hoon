@@ -2849,10 +2849,10 @@
 :: todo:
 :: - implement arithmetic
 ::   - add arithmetic to scalar fn
-:: - change all scalar-fn param types to datum-or-scalar
 :: - add loop to check for scalar definitions with the same name; if found, crash
 ::   - modify scalar fn type so that it has a name and an alias, to allow for
 ::     mixed case scalar names
+:: todo: refactor these gates
 ++  finalize-scalar-param
   |=  [cooked-param=scalar-param alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
   ^-  datum-or-scalar:ast
@@ -5116,8 +5116,8 @@
         ==
   ==
 +$   unknown-alias  $:(%unknown-alias name=@t)
-+$   scalar-param  $%(qualifier-or-dime unknown-alias)
-+$   qualifier-or-dime
++$   scalar-param  $%(qualifier-or-literal unknown-alias)
++$   qualifier-or-literal
   $%  qualifier
       $:(%literal dime)
   ==
