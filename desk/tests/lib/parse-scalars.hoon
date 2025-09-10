@@ -49,21 +49,12 @@
 ++  case-predicate         [%when [%eq [literal-1 0 0] literal-1 0 0] %then column-foo]
 ++  case-datum             [%when unqualified-col-2 %then column-foo]
 ::++  case-coalesce          [%when column-foo3 %then naked-coalesce]
-++  case-1                 [%scalar [%case column-foo3 ~[[simple-true-pred column-foo3]] (some column-foo3)] 'foobar']
-++  case-2                 [%scalar [%case column-foo3 ~[[simple-true-pred column-foo3]] ~] 'foobaz']
 ::++  case-2                 [%scalar [%case column-foo3 ~[case-datum] %else column-bar %end]]
 ::++  case-3                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else column-bar %end]]
 ::++  case-4                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else naked-if-true %end]]
 ::++  case-5                 [%scalar [%case column-foo3 ~[case-datum case-predicate case-coalesce] %else naked-if-true %end]]
 ::++  case-aggregate         [%scalar [%case [%qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3 alias=~] %foo3 0] [[%when [%qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2 alias=~] %foo2 0] %then %aggregate %count %qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] %end]]
-::  coalesce
-::  todo: add test cases for when arg is a scalar, currently only testing datums
 ::  todo: error message when scalars are defined without a select statement after?
-::  todo: the parsers produce qualified columns where the qualified object's
-::        name is always the same as the column's name
-::
-::  probably need for each scalar to test for every possible kind of qualifier
-::
 ::
 ::  helper gates
 ::
@@ -176,6 +167,8 @@
 ::
 ++  literal-zod            [%literal-value dime=[p=%p q=0]]
 ++  literal-1              [%literal-value dime=[p=%ud q=1]]
+::
+::  coalesce
 ::
 :: simple coalesce
 :: TODO: add test for mixed case, lower case COALESCE
@@ -395,6 +388,7 @@
   =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
+::
 :: test coalesce with if scalar inline
 ++  test-coalesce-12
   ::
@@ -433,7 +427,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+    [%case column-foo3 ~[[%case-when-then simple-true-pred column-foo3]] ~]
   =/  coalesce-1
     ~[%coalesce naked-case unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
@@ -756,7 +750,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case column-foo3 ~[[simple-true-pred column-foo3]] ~]
+    [%case column-foo3 ~[[%case-when-then simple-true-pred column-foo3]] ~]
   =/  if-1
     :*
       %if-then-else
@@ -860,7 +854,7 @@
   =/  case
     :*  %case
       unqualified-col-1
-      ~[[simple-true-pred unqualified-col-1]]
+      ~[[%case-when-then simple-true-pred unqualified-col-1]]
       (some unqualified-col-1)
     ==
   =/  scalars  ~[[%scalar case 'foobar']]
@@ -877,7 +871,12 @@
     "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
     "SELECT foo2,foo3"
   ::
-  =/  scalars  ~[case-2]
+  =/  case-when-then  [%case-when-then simple-true-pred unqualified-col-1] 
+  =/  case
+    :+  %scalar
+      [%case column-foo3 ~[case-when-then] ~]
+    'foobaz'
+  =/  scalars  ~[case]
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
@@ -893,11 +892,15 @@
     "SELECT foo2,foo3"
   ::
   =/  case-1
-    [%case unqualified-col-1 ~[[simple-true-pred unqualified-col-1]] ~]
+    :*  %case
+      unqualified-col-1
+      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      ~
+    ==
   =/  case-2
     :*  %case
       unqualified-col-1
-      ~[[simple-true-pred unqualified-col-1]]
+      ~[[%case-when-then simple-true-pred unqualified-col-1]]
       (some unqualified-col-2)
     ==
   =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
@@ -922,7 +925,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-1
-      ~[[simple-true-pred qualified-col-1]]
+      ~[[%case-when-then simple-true-pred qualified-col-1]]
       (some qualified-col-1)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -972,7 +975,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-2
-      ~[[simple-true-pred qualified-col-2]]
+      ~[[%case-when-then simple-true-pred qualified-col-2]]
       (some qualified-col-2)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -997,7 +1000,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-3
-      ~[[simple-true-pred qualified-col-3]]
+      ~[[%case-when-then simple-true-pred qualified-col-3]]
       (some qualified-col-3)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -1022,7 +1025,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-4
-      ~[[simple-true-pred qualified-col-4]]
+      ~[[%case-when-then simple-true-pred qualified-col-4]]
       (some qualified-col-4)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -1047,7 +1050,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-5
-      ~[[simple-true-pred qualified-col-5]]
+      ~[[%case-when-then simple-true-pred qualified-col-5]]
       (some qualified-col-5)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -1080,7 +1083,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-6
-      ~[[simple-true-pred qualified-col-6]]
+      ~[[%case-when-then simple-true-pred qualified-col-6]]
       (some qualified-col-6)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -1105,7 +1108,7 @@
   =/  case-qualified
     :*  %case
       qualified-col-6
-      ~[[simple-true-pred qualified-col-6]]
+      ~[[%case-when-then simple-true-pred qualified-col-6]]
       (some qualified-col-6)
     ==
   =/  scalars  ~[[%scalar case-qualified 'foo']]
@@ -1128,7 +1131,7 @@
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred naked-coalesce]]
+      cases=~[[%case-when-then simple-true-pred naked-coalesce]]
       else=(some unqualified-col-2)
     ==
   =/  scalars
@@ -1161,7 +1164,7 @@
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred naked-if]]
+      cases=~[[%case-when-then simple-true-pred naked-if]]
       else=(some unqualified-col-2)
     ==
   =/  scalars
@@ -1187,14 +1190,14 @@
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred column-foo3]]
+      cases=~[[%case-when-then simple-true-pred column-foo3]]
       else=~
     ==
   =/  case-1
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred naked-case]]
+      cases=~[[%case-when-then simple-true-pred naked-case]]
       else=(some unqualified-col-2)
     ==
   =/  scalars
@@ -1221,21 +1224,21 @@
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred column-foo3]]
+      cases=~[[%case-when-then simple-true-pred column-foo3]]
       else=~
     ==
   =/  first-case
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred second-case]]
+      cases=~[[%case-when-then simple-true-pred second-case]]
       else=~
     ==
   =/  case-1
     :*
       %case
       target=column-foo3
-      cases=~[[simple-true-pred first-case]]
+      cases=~[[%case-when-then simple-true-pred first-case]]
       else=(some unqualified-col-2)
     ==
   =/  scalars

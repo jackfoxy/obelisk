@@ -164,6 +164,7 @@
   ==
 +$  case-when-then
   $:
+    %case-when-then
     when=predicate                         :: predicate | datum
     then=datum-or-scalar                        :: datum-or-scalar
   ==

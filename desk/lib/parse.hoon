@@ -2896,8 +2896,9 @@
     ?~  cases.cooked-case
       ~
     =/  finalized-case-when-then
-      :-  when.i.cases.cooked-case
-        (finalize-scalar-param then.i.cases.cooked-case alias-map scalar-map)
+      :+  %case-when-then
+         when.i.cases.cooked-case
+      (finalize-scalar-param then.i.cases.cooked-case alias-map scalar-map)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
