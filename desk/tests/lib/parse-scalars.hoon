@@ -931,8 +931,33 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: qualified column case scalar with WHEN clause using a datum
+::++  test-case-05
+::  ::
+::  =/  query-string
+::    "FROM foo ".
+::    "SCALARS foo ".
+::    "CASE ~sampel-palnet.db2.dba.table1.bar ".
+::    "WHEN 1 ".
+::    "THEN ~sampel-palnet.db2.dba.table1.bar ".
+::    "ELSE ~sampel-palnet.db2.dba.table1.bar ".
+::    "END ".
+::    "SELECT foo2,foo3"
+::  ::
+::  =/  case-qualified
+::    :*  %case
+::      qualified-col-1
+::      ~[`case-when-then:ast`[literal-1 qualified-col-1]]
+::      (some qualified-col-1)
+::    ==
+::  =/  scalars  ~[[%scalar case-qualified 'foo']]
+::  =/  expected  (mk-selection scalars ~)
+::  %+  expect-eq
+::    !>  expected
+::    !>  (parse:parse(default-database default-db) query-string)
+::
 :: qualified column case scalar with ship.database..table.column (default ns)
-++  test-case-05
+++  test-case-06
   ::
   =/  query-string
     "FROM foo ".
@@ -957,7 +982,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with database.namespace.table.column
-++  test-case-06
+++  test-case-07
   ::
   =/  query-string
     "FROM foo ".
@@ -982,7 +1007,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with database..table.column (default ns)
-++  test-case-07
+++  test-case-08
   ::
   =/  query-string
     "FROM foo ".
@@ -1007,7 +1032,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with namespace.table.column (default database)
-++  test-case-08
+++  test-case-09
   ::
   =/  query-string
     "FROM foo ".
@@ -1032,7 +1057,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with alias.column (default database)
-++  test-case-09
+++  test-case-10
   ::
   =/  query-string
     "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
@@ -1065,7 +1090,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with alias.column (should fail - undefined alias)
-++  test-case-10
+++  test-case-11
   ::
   =/  query-string
     "FROM foo ".
@@ -1089,7 +1114,7 @@
     |.  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with coalesce scalar inline
-++  test-case-11
+++  test-case-12
   ::
   =/  query-string
     "FROM foo ".
@@ -1117,7 +1142,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with if scalar inline
-++  test-case-12
+++  test-case-13
   ::
   =/  query-string
     "FROM foo ".
@@ -1150,7 +1175,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with case scalar inline
-++  test-case-13
+++  test-case-14
   ::
   =/  query-string
     "FROM foo ".
@@ -1183,7 +1208,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with a case nested in a case
-++  test-case-14
+++  test-case-15
   ::
   =/  query-string
     "FROM foo ".
