@@ -2,58 +2,7 @@
 /+  parse,  *test
 ::
 |%
-::  scalar
 ::
-++  column-foo             :^  %qualified-column
-                               :*  %qualified-table
-                                   ship=~
-                                   database=%db1
-                                   namespace=%dbo
-                                   name=%foo
-                                   alias=~
-                                 ==
-                               name=%foo
-                               alias=~
-++  column-foo2            [%unqualified-column column='foo2' alias=~]
-++  column-foo3            [%unqualified-column column='foo3' alias=~]
-++  column-bar             :^  %qualified-column
-                               :*  %qualified-table
-                                   ship=~
-                                   database=%db1
-                                   namespace=%dbo
-                                   name=%foo
-                                   alias=~
-                                   ==
-                               name=%bar
-                               alias=~
-++  column-baz             :^  %qualified-column
-                               :*  %qualified-table
-                                   ship=~
-                                   database=%db1
-                                   namespace=%dbo
-                                   name=%baz
-                                   alias=~
-                                   ==
-                               name=%baz
-                               alias=~
-++  table-set-foo          :-  %table-set
-                               :*  %qualified-table
-                                   ship=~
-                                   database=%db1
-                                   namespace=%dbo
-                                   name=%foo
-                                   alias=~
-                                   ==
-++  naked-coalesce-1       ~[%coalesce unqualified-col-2 literal-zod literal-1 column-foo3]
-:: [%eq [literal-1 0 0] [literal-1 0 0]]
-++  case-predicate         [%when [%eq [literal-1 0 0] literal-1 0 0] %then column-foo]
-++  case-datum             [%when unqualified-col-2 %then column-foo]
-::++  case-coalesce          [%when column-foo3 %then naked-coalesce]
-::++  case-2                 [%scalar [%case column-foo3 ~[case-datum] %else column-bar %end]]
-::++  case-3                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else column-bar %end]]
-::++  case-4                 [%scalar [%case column-foo3 ~[case-datum case-predicate] %else naked-if-true %end]]
-::++  case-5                 [%scalar [%case column-foo3 ~[case-datum case-predicate case-coalesce] %else naked-if-true %end]]
-::++  case-aggregate         [%scalar [%case [%qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo3 alias=~] %foo3 0] [[%when [%qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo2 alias=~] %foo2 0] %then %aggregate %count %qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] 0] %else [%aggregate %count %qualified-column [%qualified-table 0 'UNKNOWN' 'COLUMN-OR-CTE' %foo alias=~] %foo 0] %end]]
 ::  todo: error message when scalars are defined without a select statement after?
 ::
 ::  helper gates
@@ -65,7 +14,7 @@
   ^-  (list command:ast)
   =/  columns  ~[unqualified-col-2 unqualified-col-1]
   =/  select  [%select top=~ bottom=~ columns=columns]
-  =/  table-set  ?~(table table-set-foo [%table-set object=(need table)])
+  =/  table-set  ?~(table table-set-1 [%table-set object=(need table)])
   =/  from  [%from object=table-set as-of=~ joins=~]
   =/  query
     :*
@@ -84,6 +33,15 @@
 ::
 ++  default-db           'db1'
 ++  default-namespace    %dbo
+::
+++  table-set-1          :-  %table-set
+                           :*  %qualified-table
+                               ship=~
+                               database=%db1
+                               namespace=%dbo
+                               name=%foo
+                               alias=~
+                               ==
 ::
 ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
 ::  ~sampel-palnet.db2.dba.table1.bar
@@ -390,7 +348,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case column-foo3 ~[[%case-when-then simple-true-pred column-foo3]] ~]
+    [%case unqualified-col-1 ~[[%case-when-then simple-true-pred unqualified-col-1]] ~]
   =/  coalesce-1
     ~[%coalesce naked-case unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
@@ -766,7 +724,11 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case column-foo3 ~[[%case-when-then simple-true-pred column-foo3]] ~]
+    :*  %case
+      unqualified-col-1
+      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      ~
+    ==
   =/  if-1
     :*
       %if-then-else
@@ -831,7 +793,7 @@
     :*
       %if-then-else
       if=simple-true-pred
-      then=[column-foo3]
+      then=[unqualified-col-1]
       else=[unqualified-col-2]
     ==
   =/  first-if
@@ -873,7 +835,7 @@
     :*
       %if-then-else
       if=simple-true-pred
-      then=[column-foo3]
+      then=[unqualified-col-1]
       else=[unqualified-col-2]
     ==
   =/  scalars  ~[[%scalar if 'baz'] [%scalar if 'bar'] [%scalar if 'foo']]
@@ -913,7 +875,7 @@
   =/  case-when-then  [%case-when-then simple-true-pred unqualified-col-1] 
   =/  case
     :+  %scalar
-      [%case column-foo3 ~[case-when-then] ~]
+      [%case unqualified-col-1 ~[case-when-then] ~]
     'foobaz'
   =/  scalars  ~[case]
   =/  expected  (mk-selection scalars ~)
@@ -1169,7 +1131,7 @@
   =/  case-1
     :*
       %case
-      target=column-foo3
+      target=unqualified-col-1
       cases=~[[%case-when-then simple-true-pred naked-coalesce]]
       else=(some unqualified-col-2)
     ==
@@ -1196,13 +1158,13 @@
     :*
       %if-then-else
       if=simple-true-pred
-      then=[column-foo3]
+      then=[unqualified-col-1]
       else=[unqualified-col-2]
     ==
   =/  case-1
     :*
       %case
-      target=column-foo3
+      target=unqualified-col-1
       cases=~[[%case-when-then simple-true-pred naked-if]]
       else=(some unqualified-col-2)
     ==
@@ -1228,14 +1190,14 @@
   =/  naked-case
     :*
       %case
-      target=column-foo3
-      cases=~[[%case-when-then simple-true-pred column-foo3]]
+      target=unqualified-col-1
+      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=~
     ==
   =/  case-1
     :*
       %case
-      target=column-foo3
+      target=unqualified-col-1
       cases=~[[%case-when-then simple-true-pred naked-case]]
       else=(some unqualified-col-2)
     ==
@@ -1262,21 +1224,21 @@
   =/  second-case
     :*
       %case
-      target=column-foo3
-      cases=~[[%case-when-then simple-true-pred column-foo3]]
+      target=unqualified-col-1
+      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=~
     ==
   =/  first-case
     :*
       %case
-      target=column-foo3
+      target=unqualified-col-1
       cases=~[[%case-when-then simple-true-pred second-case]]
       else=~
     ==
   =/  case-1
     :*
       %case
-      target=column-foo3
+      target=unqualified-col-1
       cases=~[[%case-when-then simple-true-pred first-case]]
       else=(some unqualified-col-2)
     ==
@@ -1304,8 +1266,8 @@
   =/  case
     :*
       %case
-      target=column-foo3
-      cases=~[[%case-when-then simple-true-pred column-foo3]]
+      target=unqualified-col-1
+      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=(some unqualified-col-2)
     ==
   =/  scalars
