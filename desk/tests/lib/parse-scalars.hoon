@@ -352,45 +352,8 @@
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
 ::
-:: coalesce with space between name and arguments
-++  test-coalesce-10
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE (foo3,~zod,1,foo3) ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-::
-:: coalesce without parens - should fail
-++  test-coalesce-11
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE foo3,~zod,1,foo3 ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
 :: test coalesce with if scalar inline
-++  test-coalesce-12
+++  test-coalesce-10
   ::
   =/  query-string
     "FROM foo ".
@@ -418,7 +381,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with case scalar inline
-++  test-coalesce-13
+++  test-coalesce-11
   ::
   =/  query-string
     "FROM foo ".
@@ -441,7 +404,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with coalesce scalar inline
-++  test-coalesce-14
+++  test-coalesce-12
   ::
   =/  query-string
     "FROM foo ".
@@ -464,7 +427,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with a coalesce nested in a coalesce
-++  test-coalesce-15
+++  test-coalesce-13
   ::
   =/  query-string
     "FROM foo ".
@@ -484,6 +447,59 @@
       [%scalar second-coalesce 'baz']
       [%scalar first-coalesce 'bar']
       [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce with space between name and arguments
+++  test-coalesce-14
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE (foo3,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce without parens - should fail
+++  test-coalesce-15
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE foo3,~zod,1,foo3 ".
+    "SELECT foo2,foo3"
+  ::
+  %-  expect-fail
+    |.  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce spelled in different cases
+++  test-coalesce-16
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo3,~zod,1,foo3)".
+    "        bar coalesce(foo3,~zod,1,foo3)".
+    "        baz CoaLeSce(foo3,~zod,1,foo3)".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'foo']
+      [%scalar coalesce-1 'bar']
+      [%scalar coalesce-1 'baz']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -838,6 +854,29 @@
       [%scalar first-if 'bar']
       [%scalar if-1 'foo']
     ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test if spelled in different cases
+++  test-if-14
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS baz IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar if 1 = 1 then foo3 else foo2 endif ".
+    "        foo If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[column-foo3]
+      else=[unqualified-col-2]
+    ==
+  =/  scalars  ~[[%scalar if 'baz'] [%scalar if 'bar'] [%scalar if 'foo']]
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
@@ -1246,6 +1285,34 @@
       [%scalar second-case 'baz']
       [%scalar first-case 'bar']
       [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test case spelled in different cases
+++  test-case-16
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS baz CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "        bar case foo3 when 1 = 1 then foo3 else foo2 end ".
+    "        foo CasE foo3 WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case
+    :*
+      %case
+      target=column-foo3
+      cases=~[[%case-when-then simple-true-pred column-foo3]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar case 'baz']
+      [%scalar case 'bar']
+      [%scalar case 'foo']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
