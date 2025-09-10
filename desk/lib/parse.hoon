@@ -2855,21 +2855,25 @@
 ::     mixed case scalar names
 ++  finalize-scalar-param
   |=  [cooked-param=scalar-param alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
-  ^-  datum-for-scalar:ast
-  ~&  "map: {<scalar-map>}"
-  :: here we need to do the following
-  :: - if the cooked-param is a one-item-qualifier, but there is a
-  ::   scalar by the same name, then resolve the scalar
-  :: - if the cooked-param is a one-item-qualifier, and ther isn't a
-  ::   scalar by the same name, then pass it down to finalize qualifier
+  ^-  datum-or-scalar:ast
+  ?:  ?=([%literal *] cooked-param)
+    %:(literal-value:ast %literal-value dime=+.cooked-param)
+    :: - if the cooked-param is a one-item-qualifier, but there is a
+    ::   scalar by the same name, then resolve the scalar
+    :: - if the cooked-param is a one-item-qualifier, and ther isn't a
+    ::   scalar by the same name, then pass it down to finalize qualifier
+  ?:  ?=(one-item-qualifier cooked-param)
+    =/  maybe-scalar  (~(get by scalar-map) column.cooked-param)
+    ?~  maybe-scalar
+      (finalize-qualifier cooked-param alias-map)
+    (need maybe-scalar)
   :: - if the cooked-param is an unknown alias and there is a
   ::   scalar by the same name, then resolve the scalar
   :: - if the cooked-param is an unknown alias and there isn't
   ::   scalar by the same name, then cast to cte-alias
-  ?:  ?=([%literal *] cooked-param)
-    %:(literal-value:ast %literal-value dime=+.cooked-param)
-  ?:  ?=([%unknown-alias *] cooked-param)
-    !!
+  ?:  ?=(unknown-alias cooked-param)
+    =/  maybe-scalar  (~(get by scalar-map) name.cooked-param)
+    ?~(maybe-scalar (cte-alias:ast name.cooked-param) (need maybe-scalar))
   (finalize-qualifier cooked-param alias-map)
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
@@ -5110,7 +5114,7 @@
         @
         ==
   ==
-+$   unknown-alias  $:(%unknown-alias @t)
++$   unknown-alias  $:(%unknown-alias name=@t)
 +$   scalar-param  $%(qualifier-or-dime unknown-alias)
 +$   qualifier-or-dime
   $%  qualifier

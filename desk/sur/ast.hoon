@@ -175,10 +175,11 @@
     else=(unit datum-or-scalar)                         :: datum-or-scalar
   ==
 +$  literal-value        $:(%literal-value dime=dime)
++$  cte-alias            $:(%cte-alias alias=@t)
 +$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
 ++  datum-or-scalar
-  $@  @t
-  $%(datum-for-scalar scalar-function)
+  $@  ~
+  $%($%(datum-for-scalar cte-alias) scalar-function)
 +$  coalesce
   $+  coalesce
   $:
