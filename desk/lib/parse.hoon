@@ -3948,12 +3948,18 @@
     %:  cook  cook-aggregate
               ;~  pfix
                 whitespace
-                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+                ;~  plug
+                  ;~(sfix parse-alias pal)
+                  ;~(sfix get-datum-for-predicate par)
                 ==
               ==
+    ==
     %:  cook  cook-aggregate
-              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+              ;~  plug
+                ;~(sfix parse-alias pal)
+                ;~(sfix get-datum-for-predicate par)
               ==
+    ==
   ==
 ++  cook-selected-aggregate
   |=  parsed=*
@@ -3963,12 +3969,18 @@
     %:  cook  cook-selected-aggregate
               ;~  pfix
                 whitespace
-                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+                ;~  plug
+                  ;~(sfix parse-alias pal)
+                  ;~(sfix get-scalar-param par)
                 ==
               ==
+    ==
     %:  cook  cook-selected-aggregate
-              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+              ;~  plug
+                ;~(sfix parse-alias pal)
+                ;~(sfix get-scalar-param par)
               ==
+    ==
   ==
 ::
 ::  indices
@@ -4714,6 +4726,13 @@
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
   (cook-qualifier parsed)
+++  get-datum-for-predicate
+  ;~  pose
+    ;~(sfix parse-qualified-column whitespace)
+    ;~(sfix parse-value-literal whitespace)
+    ;~(sfix parse-datum-for-predicate whitespace)
+    parse-datum-for-predicate
+  ==
 ++  get-scalar-param  ~+
   ;~  pose
     ;~(sfix parse-qualifier whitespace)
