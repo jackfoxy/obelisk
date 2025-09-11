@@ -2853,8 +2853,10 @@
 ::   - modify scalar fn type so that it has a name and an alias, to allow for
 ::     mixed case scalar names
 :: todo: refactor these gates
++$  alias-maps
+  [table=(map @t qualified-table:ast) scalar=(map @t scalar-function:ast)]
 ++  finalize-scalar-param
-  |=  [cooked-param=scalar-param alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
+  |=  [cooked-param=scalar-param aliases=alias-maps]
   ^-  datum-or-scalar:ast
   ?:  ?=([%literal *] cooked-param)
     %:(literal-value:ast %literal-value dime=+.cooked-param)
@@ -2863,23 +2865,25 @@
     :: - if the cooked-param is a one-item-qualifier, and ther isn't a
     ::   scalar by the same name, then pass it down to finalize qualifier
   ?:  ?=(one-item-qualifier cooked-param)
-    =/  maybe-scalar  (~(get by scalar-map) column.cooked-param)
+    =/  maybe-scalar  (~(get by scalar.aliases) column.cooked-param)
     ?~  maybe-scalar
-      (finalize-qualifier cooked-param alias-map)
+      (finalize-qualifier cooked-param table.aliases)
     (need maybe-scalar)
   :: - if the cooked-param is an unknown alias and there is a
   ::   scalar by the same name, then resolve the scalar
   :: - if the cooked-param is an unknown alias and there isn't
   ::   scalar by the same name, then cast to cte-alias
   ?:  ?=(unknown-alias cooked-param)
-    =/  maybe-scalar  (~(get by scalar-map) name.cooked-param)
+    =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
     ?~(maybe-scalar (cte-alias:ast name.cooked-param) (need maybe-scalar))
-  (finalize-qualifier cooked-param alias-map)
+  (finalize-qualifier cooked-param table.aliases)
 ++  finalize-if
-  |=  [cooked-if=if-then-else-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
+  |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
-  =/  finalized-then  (finalize-scalar-param then.cooked-if alias-map scalar-map)
-  =/  finalized-else  (finalize-scalar-param else.cooked-if alias-map scalar-map)
+  =/  finalized-then
+    (finalize-scalar-param then.cooked-if aliases)
+  =/  finalized-else
+    (finalize-scalar-param else.cooked-if aliases)
   %:  if-then-else:ast
     %if-then-else
     if=if.cooked-if
@@ -2887,9 +2891,10 @@
     else=finalized-else
   ==
 ++  finalize-case
-  |=  [cooked-case=case-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
+  |=  [cooked-case=case-helper aliases=alias-maps]
   ^-  case:ast
-  =/  finalized-target  (finalize-scalar-param target.cooked-case alias-map scalar-map)
+  =/  finalized-target
+    (finalize-scalar-param target.cooked-case aliases)
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
@@ -2898,13 +2903,13 @@
     =/  finalized-case-when-then
       :+  %case-when-then
          when.i.cases.cooked-case
-      (finalize-scalar-param then.i.cases.cooked-case alias-map scalar-map)
+      (finalize-scalar-param then.i.cases.cooked-case aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
     |=  else=scalar-param
-    (some (finalize-scalar-param else alias-map scalar-map))
+    (some (finalize-scalar-param else aliases))
   %:  case:ast
     %case
     target=finalized-target
@@ -2912,35 +2917,35 @@
     else=finalized-else
   ==
 ++  finalize-coalesce
-  |=  [cooked-coalesce=coalesce-helper alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
+  |=  [cooked-coalesce=coalesce-helper aliases=alias-maps]
   ^-  coalesce:ast
   =/  finalized-data
     %+  turn
       data.cooked-coalesce
     |=  param=scalar-param
-    (finalize-scalar-param param alias-map scalar-map)
+    (finalize-scalar-param param aliases)
   %:  coalesce:ast
     %coalesce
     data=finalized-data
   ==
 ++  produce-scalar-fn
-  |=  [fn-name=@tas raw-scalar-body=* alias-map=(map @t qualified-table:ast) scalar-map=(map @t scalar-function:ast)]
+  |=  [fn-name=@tas raw-scalar-body=* aliases=alias-maps]
   ^-  scalar-function:ast
   ?:  =(%coalesce fn-name)
     =/  cooked-coalesce  (cook-coalesce raw-scalar-body)
-    =/  finalized-coalesce  (finalize-coalesce cooked-coalesce alias-map scalar-map)
+    =/  finalized-coalesce  (finalize-coalesce cooked-coalesce aliases)
       finalized-coalesce
   ?:  =(%if fn-name)
     =/  cooked-if  (cook-if raw-scalar-body)
-    =/  finalized-if  (finalize-if cooked-if alias-map scalar-map)
+    =/  finalized-if  (finalize-if cooked-if aliases)
       finalized-if
   ?:  =(%case fn-name)
     =/  cooked-case  (cook-case-body raw-scalar-body)
-    =/  finalized-case  (finalize-case cooked-case alias-map scalar-map)
+    =/  finalized-case  (finalize-case cooked-case aliases)
       finalized-case
   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
-  |=  [raw-scalars=* alias-map=(map @t qualified-table:ast)]
+  |=  [raw-scalars=* table-aliases=(map @t qualified-table:ast)]
   ^-  (list scalar:ast)
   =/  scalars  +.raw-scalars
   =/  scalar-map  *(map @t scalar-function:ast)
@@ -2952,10 +2957,10 @@
       ~
     =/  parsed-scalar  -.scalars
     =/  scalar-alias  (@tas -.parsed-scalar)
-    =/  scalar-fn-name  (@tas +<.parsed-scalar)
-    =/  raw-scalar-body  +>.parsed-scalar 
+    =/  fn-name  (@tas +<.parsed-scalar)
+    =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
-      (produce-scalar-fn scalar-fn-name raw-scalar-body alias-map scalar-map)
+      (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
     =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
       :-  scalar
       %=  $
@@ -4767,7 +4772,8 @@
     =/  raw-then  ->+>.case-when-then-list
     =/  cooked-when  (produce-predicate (predicate-list raw-when))
     =/  cooked-then  (cook-scalar-param raw-then)
-    =/  cooked-case-when-then  (case-when-then-helper cooked-when cooked-then)
+    =/  cooked-case-when-then
+      (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
     [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
   ?@  +>.parsed
     ?:  =(+>.parsed %end)
@@ -5181,6 +5187,7 @@
   ==
 +$  case-when-then-helper
   $:
+    %case-when-then-helper
     when=predicate:ast
     then=scalar-param
   ==
