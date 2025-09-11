@@ -126,10 +126,57 @@
 ++  literal-zod            [%literal-value dime=[p=%p q=0]]
 ++  literal-1              [%literal-value dime=[p=%ud q=1]]
 ::
+::  generic scalar-agnostic tests
+::
+::  test defining scalars in lowercase, uppercase, mixed-case
+++  test-scalars-01
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo-co COALESCE(foo3,~zod,1,foo3)".
+    "        bar-co coalesce(foo3,~zod,1,foo3)".
+    "        baz-co CoaLeSce(foo3,~zod,1,foo3)".
+    "        baz-if IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar-if if 1 = 1 then foo3 else foo2 endif ".
+    "        foo-if If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
+    "        baz-ca CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "        bar-ca case foo3 when 1 = 1 then foo3 else foo2 end ".
+    "        foo-ca CasE foo3 WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  if
+    :*  %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
+  =/  case
+    :*
+      %case
+      target=unqualified-col-1
+      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar coalesce 'foo-co']
+      [%scalar coalesce 'bar-co']
+      [%scalar coalesce 'baz-co']
+      [%scalar if 'baz-if']
+      [%scalar if 'bar-if']
+      [%scalar if 'foo-if']
+      [%scalar case 'baz-ca']
+      [%scalar case 'bar-ca']
+      [%scalar case 'foo-ca']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::  coalesce
 ::
 :: simple coalesce
-:: TODO: add test for mixed case, lower case COALESCE
 ++  test-coalesce-01
   ::
   =/  query-string
@@ -440,29 +487,6 @@
   ::
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
-::
-:: coalesce spelled in different cases
-++  test-coalesce-16
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE(foo3,~zod,1,foo3)".
-    "        bar coalesce(foo3,~zod,1,foo3)".
-    "        baz CoaLeSce(foo3,~zod,1,foo3)".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-      [%scalar coalesce-1 'bar']
-      [%scalar coalesce-1 'baz']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  simple if
 ++  test-if-01
@@ -816,29 +840,6 @@
       [%scalar first-if 'bar']
       [%scalar if-1 'foo']
     ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-::
-:: test if spelled in different cases
-++  test-if-14
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS baz IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
-    "        bar if 1 = 1 then foo3 else foo2 endif ".
-    "        foo If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
-    "SELECT foo2,foo3"
-  ::
-  =/  if
-    :*
-      %if-then-else
-      if=simple-true-pred
-      then=[unqualified-col-1]
-      else=[unqualified-col-2]
-    ==
-  =/  scalars  ~[[%scalar if 'baz'] [%scalar if 'bar'] [%scalar if 'foo']]
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
@@ -1247,34 +1248,6 @@
       [%scalar second-case 'baz']
       [%scalar first-case 'bar']
       [%scalar case-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
-::
-:: test case spelled in different cases
-++  test-case-16
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS baz CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
-    "        bar case foo3 when 1 = 1 then foo3 else foo2 end ".
-    "        foo CasE foo3 WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
-    "SELECT foo2,foo3"
-  ::
-  =/  case
-    :*
-      %case
-      target=unqualified-col-1
-      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
-      else=(some unqualified-col-2)
-    ==
-  =/  scalars
-    :~
-      [%scalar case 'baz']
-      [%scalar case 'bar']
-      [%scalar case 'foo']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
