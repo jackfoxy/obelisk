@@ -2875,7 +2875,9 @@
   ::   scalar by the same name, then cast to cte-alias
   ?:  ?=(unknown-alias cooked-param)
     =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
-    ?~(maybe-scalar (cte-alias:ast name.cooked-param) (need maybe-scalar))
+    ?~  maybe-scalar
+      (cte-alias:ast %cte-alias name.cooked-param)
+    (need maybe-scalar)
   (finalize-qualifier cooked-param table.aliases)
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
@@ -2956,15 +2958,15 @@
     ?~  scalars
       ~
     =/  parsed-scalar  -.scalars
-    =/  scalar-alias  (@tas -.parsed-scalar)
+    =/  scalar-alias  (cook-scalar-alias -.parsed-scalar)
     =/  fn-name  (@tas +<.parsed-scalar)
     =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
       (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
-    =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
+    =/  scalar  [%scalar scalar=scalar-function alias=name.scalar-alias]
       :-  scalar
       %=  $
-        scalar-map  (~(put by scalar-map) scalar-alias scalar-function)
+        scalar-map  (~(put by scalar-map) name.scalar-alias scalar-function)
         scalars     +.scalars
       ==
   finalized-scalars
@@ -3927,7 +3929,6 @@
 ++  parse-scalar-param  ~+ 
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
-    mixed-case-symbol
     %+  stag
       %alias
     ;~(pose ;~(pfix whitespace mixed-case-symbol) mixed-case-symbol)
@@ -3948,12 +3949,18 @@
     %:  cook  cook-aggregate
               ;~  pfix
                 whitespace
-                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+                ;~  plug
+                  ;~(sfix parse-alias pal)
+                  ;~(sfix get-datum-for-predicate par)
                 ==
               ==
+    ==
     %:  cook  cook-aggregate
-              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+              ;~  plug
+                ;~(sfix parse-alias pal)
+                ;~(sfix get-datum-for-predicate par)
               ==
+    ==
   ==
 ++  cook-selected-aggregate
   |=  parsed=*
@@ -3963,12 +3970,18 @@
     %:  cook  cook-selected-aggregate
               ;~  pfix
                 whitespace
-                ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+                ;~  plug
+                  ;~(sfix parse-alias pal)
+                  ;~(sfix get-scalar-param par)
                 ==
               ==
+    ==
     %:  cook  cook-selected-aggregate
-              ;~(plug ;~(sfix parse-alias pal) ;~(sfix get-scalar-param par))
+              ;~  plug
+                ;~(sfix parse-alias pal)
+                ;~(sfix get-scalar-param par)
               ==
+    ==
   ==
 ::
 ::  indices
@@ -4714,6 +4727,13 @@
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
   (cook-qualifier parsed)
+++  get-datum-for-predicate
+  ;~  pose
+    ;~(sfix parse-qualified-column whitespace)
+    ;~(sfix parse-value-literal whitespace)
+    ;~(sfix parse-datum-for-predicate whitespace)
+    parse-datum-for-predicate
+  ==
 ++  get-scalar-param  ~+
   ;~  pose
     ;~(sfix parse-qualifier whitespace)
@@ -4860,10 +4880,29 @@
     ;~(plug whitespace (jester 'end'))
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
+++  cook-scalar-alias
+  |=  parsed=*
+  ?:  ?=([%lower-case @] parsed)
+     (scalar-alias %scalar-alias name=+.parsed alias=~)
+  ?:  ?=([%mixed-case @] parsed)
+    =/  sanitized  (crip (cass (trip +.parsed)))
+    ?:  ((sane %tas) sanitized)
+      %:  scalar-alias
+        %scalar-alias
+        name=`@tas`sanitized
+        alias=(some +.parsed)
+      ==
+    ~|("cook-scalar-alias: can't cast {<sanitized>} to @tas" !!)
+  !!
+++  parse-scalar-alias  ~+
+  ;~  pose
+    (stag %lower-case ;~(pfix whitespace sym))
+    (stag %mixed-case ;~(pfix whitespace mixed-case-symbol))
+  ==
 ++  parse-scalar
   ;~  plug
-      parse-face        :: scalar alias
-      scalar-body       :: scalar function invocation
+      parse-scalar-alias        :: scalar alias
+      scalar-body               :: scalar function invocation
   ==
 ++  parse-scalars
   ;~  plug
@@ -5121,8 +5160,9 @@
         @
         ==
   ==
++$   scalar-alias   $:(%scalar-alias name=@tas alias=(unit @t))
 +$   unknown-alias  $:(%unknown-alias name=@t)
-+$   scalar-param  $%(qualifier-or-literal unknown-alias)
++$   scalar-param   $%(qualifier-or-literal unknown-alias)
 +$   qualifier-or-literal
   $%  qualifier
       $:(%literal dime)

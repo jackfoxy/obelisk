@@ -174,6 +174,42 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+::  test defining scalars with aliases in one case and referencing in another
+++  test-scalars-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar2 COALESCE(BAR1,~zod,1,foo3) ".
+    "        BAR3 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar4 COALESCE(bar3,~zod,1,foo3) ".
+    "        bar5 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar6 COALESCE(BAr5,~zod,1,foo3) ".
+    "        Bar7 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar8 COALESCE(bar7,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  coalesce-2
+    ~[%coalesce coalesce-1 literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'bar1']
+      [%scalar coalesce-2 'bar2']
+      [%scalar coalesce-1 'BAR3']
+      [%scalar coalesce-2 'bar4']
+      [%scalar coalesce-1 'bar5']
+      [%scalar coalesce-2 'bar6']
+      [%scalar coalesce-1 'Bar7']
+      [%scalar coalesce-2 'bar8']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::  TODO:
+::  test-scalars-03 test cte-aliases (just that they are parsed correctly)
 ::  coalesce
 ::
 :: simple coalesce
