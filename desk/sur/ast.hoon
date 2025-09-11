@@ -284,6 +284,8 @@
   $:
     %scalar
     scalar=scalar-function
+    :: TODO: add this here
+    :: name=@tas
     alias=@t
   ==
 +$  selected-value
