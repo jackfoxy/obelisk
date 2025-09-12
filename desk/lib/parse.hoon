@@ -2865,8 +2865,6 @@
     :: - if the cooked-param is a one-item-qualifier, and ther isn't a
     ::   scalar by the same name, then pass it down to finalize qualifier
   ?:  ?=(one-item-qualifier cooked-param)
-    ::=/  sanitized-alias  (crip (cass (trip column.cooked-param)))
-    ::=/  maybe-scalar  (~(get by scalar.aliases) sanitized-alias)
     =/  maybe-scalar  (~(get by scalar.aliases) column.cooked-param)
     ?~  maybe-scalar
       (finalize-qualifier cooked-param table.aliases)
