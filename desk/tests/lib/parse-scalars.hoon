@@ -197,11 +197,11 @@
     :~
       [%scalar coalesce-1 'bar1']
       [%scalar coalesce-2 'bar2']
-      [%scalar coalesce-1 'BAR3']
+      [%scalar coalesce-1 'bar3']
       [%scalar coalesce-2 'bar4']
       [%scalar coalesce-1 'bar5']
       [%scalar coalesce-2 'bar6']
-      [%scalar coalesce-1 'Bar7']
+      [%scalar coalesce-1 'bar7']
       [%scalar coalesce-2 'bar8']
     ==
   =/  expected  (mk-selection scalars ~)

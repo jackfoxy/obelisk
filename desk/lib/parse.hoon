@@ -2865,6 +2865,8 @@
     :: - if the cooked-param is a one-item-qualifier, and ther isn't a
     ::   scalar by the same name, then pass it down to finalize qualifier
   ?:  ?=(one-item-qualifier cooked-param)
+    ::=/  sanitized-alias  (crip (cass (trip column.cooked-param)))
+    ::=/  maybe-scalar  (~(get by scalar.aliases) sanitized-alias)
     =/  maybe-scalar  (~(get by scalar.aliases) column.cooked-param)
     ?~  maybe-scalar
       (finalize-qualifier cooked-param table.aliases)
@@ -2963,10 +2965,10 @@
     =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
       (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
-    =/  scalar  [%scalar scalar=scalar-function alias=name.scalar-alias]
+    =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
       :-  scalar
       %=  $
-        scalar-map  (~(put by scalar-map) name.scalar-alias scalar-function)
+        scalar-map  (~(put by scalar-map) scalar-alias scalar-function)
         scalars     +.scalars
       ==
   finalized-scalars
@@ -3931,7 +3933,7 @@
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
     %+  stag
       %alias
-    ;~(pose ;~(pfix whitespace mixed-case-symbol) mixed-case-symbol)
+    ;~(pose ;~(pfix whitespace parse-scalar-alias) parse-scalar-alias)
     %+  stag
       %literal
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
@@ -4722,8 +4724,8 @@
 ++  cook-scalar-param
   |=  parsed=*
   ^-  scalar-param
-  ?:  ?=([%alias @] parsed)
-    [%unknown-alias +.parsed]
+  ?:  ?=([%alias *] parsed)
+    [%unknown-alias (cook-scalar-alias +.parsed)]
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
   (cook-qualifier parsed)
@@ -4883,16 +4885,12 @@
 ++  cook-scalar-alias
   |=  parsed=*
   ?:  ?=([%lower-case @] parsed)
-     (scalar-alias %scalar-alias name=+.parsed alias=~)
+    `@t`+.parsed
   ?:  ?=([%mixed-case @] parsed)
     =/  sanitized  (crip (cass (trip +.parsed)))
-    ?:  ((sane %tas) sanitized)
-      %:  scalar-alias
-        %scalar-alias
-        name=`@tas`sanitized
-        alias=(some +.parsed)
-      ==
-    ~|("cook-scalar-alias: can't cast {<sanitized>} to @tas" !!)
+    ?:  ((sane %t) sanitized)
+      `@t`sanitized
+    ~|("cook-scalar-alias: can't cast {<sanitized>} to @t" !!)
   !!
 ++  parse-scalar-alias  ~+
   ;~  pose
@@ -5160,7 +5158,6 @@
         @
         ==
   ==
-+$   scalar-alias   $:(%scalar-alias name=@tas alias=(unit @t))
 +$   unknown-alias  $:(%unknown-alias name=@t)
 +$   scalar-param   $%(qualifier-or-literal unknown-alias)
 +$   qualifier-or-literal
