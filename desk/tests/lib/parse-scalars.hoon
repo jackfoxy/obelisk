@@ -208,8 +208,31 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-::  TODO:
+::
 ::  test-scalars-03 test cte-aliases (just that they are parsed correctly)
+++  test-scalars-03
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar2 COALESCE(Foo1,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  cte-alias
+    [%cte-alias alias='foo1']
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  coalesce-2
+    ~[%coalesce cte-alias literal-zod literal-1 unqualified-col-1]
+  =/  scalars
+    :~
+      [%scalar coalesce-1 'bar1']
+      [%scalar coalesce-2 'bar2']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ::  coalesce
 ::
 :: simple coalesce
