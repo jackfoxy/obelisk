@@ -4891,8 +4891,6 @@
       (ifix [pal par] parse-params)
     ==
   ==
-++  parse-scalar-function-varargs
-  (more com ;~(pose parse-aggregate parse-scalar-param))
 ++  mk-scalar-param-rule-varargs
   |*  [parse-arg=rule]
   (more com parse-arg)
@@ -4922,7 +4920,6 @@
   ;~  pose
     ;~(plug (cold %if (jester 'if')) parse-if)
     ;~(plug (cold %case (jester 'case')) parse-case)
-::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
     parse-coalesce
     parse-math
   ==
