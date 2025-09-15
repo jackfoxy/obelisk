@@ -4882,6 +4882,20 @@
     (cold %ket ket)
     parse-scalar-param
   ==
+++  make-scalar-function-rule
+  |*  [fn-name=@tas parse-params=rule]
+  ;~  plug
+    (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
+      (ifix [pal par] parse-params)
+    ==
+  ==
+++  parse-scalar-function-varargs
+  (more com ;~(pose parse-aggregate parse-scalar-param))
+++  mk-scalar-param-rule-varargs
+  |*  [parse-arg=rule]
+  (more com parse-arg)
 ++  cook-coalesce
   |=  parsed=*
   ^-  coalesce-helper
@@ -4896,11 +4910,9 @@
     data=coalesce-params
   ==
 ++  parse-coalesce  ~+
-  ;~  pfix
-    whitespace 
-    ::(ifix [pal par] (more com ;~(pose parse-aggregate get-scalar-param)))
-    (ifix [pal par] (more com ;~(pose parse-aggregate parse-scalar-param)))
-  ==
+  =/  parse-params
+    (mk-scalar-param-rule-varargs ;~(pose parse-aggregate parse-scalar-param))
+  (make-scalar-function-rule %coalesce parse-params)
 ++  parse-math
   ;~  plug
     (cold %begin (jester 'begin'))
@@ -4910,7 +4922,8 @@
   ;~  pose
     ;~(plug (cold %if (jester 'if')) parse-if)
     ;~(plug (cold %case (jester 'case')) parse-case)
-    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
     parse-math
   ==
 ++  scalar-stop  ;~
