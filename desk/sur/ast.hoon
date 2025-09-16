@@ -150,37 +150,29 @@
   $:
     %arithmetic
     operator=scalar-op
-    left=datum                         :: datum-or-scalar
-    ::left=datum-or-scalar                         :: datum-or-scalar
-    right=datum                        :: datum-or-scalar
-    ::right=datum-or-scalar                        :: datum-or-scalar
+    left=datum-or-scalar
+    right=datum-or-scalar
   ==
 +$  if-then-else
   $:
     %if-then-else
-    if=predicate
-    then=datum-or-scalar                         :: datum-or-scalar
-    else=datum-or-scalar                         :: datum-or-scalar
+    if=predicate                         :: predicate | datum
+    then=datum-or-scalar
+    else=datum-or-scalar
   ==
 +$  case-when-then
   $:
     %case-when-then
     when=predicate                         :: predicate | datum
-    then=datum-or-scalar                        :: datum-or-scalar
+    then=datum-or-scalar
   ==
 +$  case
   $:
     %case
     target=datum-or-scalar
     cases=(list case-when-then)
-    else=(unit datum-or-scalar)                         :: datum-or-scalar
+    else=(unit datum-or-scalar)
   ==
-+$  literal-value        $:(%literal-value dime=dime)
-+$  cte-alias            $:(%cte-alias alias=@t)
-+$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
-++  datum-or-scalar
-  $@  ~
-  $%($%(datum-for-scalar cte-alias) scalar-function)
 +$  coalesce
   $+  coalesce
   $:
@@ -193,6 +185,18 @@
     case
     coalesce
     :: arithmetic
+    scalar-alias
+  ==
++$  literal-value  $:(%literal-value dime=dime)
++$  cte-alias      $:(%cte-alias alias=@t)
++$  scalar-alias   $:(%scalar-alias alias=@t)
+++  datum-or-scalar  
+  $%
+    qualified-column
+    unqualified-column
+    literal-value
+    cte-alias
+    scalar-function
   ==
 ::
 ::  query

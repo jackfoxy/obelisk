@@ -2864,7 +2864,7 @@
     ::   scalar by the same name, then resolve the scalar
     :: - if the cooked-param is a one-item-qualifier, and ther isn't a
     ::   scalar by the same name, then pass it down to finalize qualifier
-  ?:  ?=(one-item-qualifier cooked-param)
+  ?:  ?=(unqualified-column cooked-param)
     =/  maybe-scalar  (~(get by scalar.aliases) column.cooked-param)
     ?~  maybe-scalar
       (finalize-qualifier cooked-param table.aliases)
@@ -4726,7 +4726,46 @@
     [%unknown-alias (cook-scalar-alias +.parsed)]
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
-  (cook-qualifier parsed)
+  ?:  ?=(@ parsed)  [%unqualified-column name=parsed alias=~]
+    :::*  %one-item-qualifier
+    ::  column=parsed
+    ::==
+  ?:  ?=([@ @] parsed)
+    :*  %two-item-qualifier
+      alias=-.parsed
+      column=+.parsed
+    ==
+
+  ?:  ?=([@ @ @ @] parsed)
+      %:  qualified-column:ast
+          %qualified-column
+          %:  qualified-table:ast
+              %qualified-table
+              ship=~
+              database=?~(-.parsed default-database -.parsed)
+              namespace=?~(+<.parsed %dbo +<.parsed)
+              table=+>-.parsed
+              alias=~
+              ==
+          column=+>+.parsed
+          alias=~
+          ==
+
+  ?:  ?=([@ @ @ @ @] parsed)
+    %:  qualified-column:ast
+        %qualified-column
+        %:  qualified-table:ast
+            %qualified-table
+            ship=(some -.parsed)
+            database=?~(+<.parsed default-database +<.parsed)
+            namespace=?~(+>-.parsed %dbo +>-.parsed)
+            table=+>+<.parsed
+            alias=~
+            ==
+        column=+>+>.parsed
+        alias=~
+        ==
+  !!  :: this should never be reached
 ++  get-datum-for-predicate
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
@@ -5018,77 +5057,24 @@
   ==
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
-  ^-  datum-for-scalar:ast
-  ?:  ?=([%one-item-qualifier *] a)
-    [%unqualified-column name=column.a ~]
+  ^-  datum-or-scalar:ast
+  ?:  ?=(qualified-column:ast a)    a
+  ?:  ?=(unqualified-column:ast a)  a
+  ::?:  ?=([%one-item-qualifier *] a)
+  ::  [%unqualified-column name=column.a ~]
   ?:  ?=([%two-item-qualifier *] a)
-    =/  aliased-object
-      (~(get by alias-map) (crip (cass (trip alias.a))))
-    ?~  aliased-object
-      ~|("couldn't find object matching provided alias: {<alias.a>}" !!)
+    ::=/  aliased-object
+    ::  (~(get by alias-map) (crip (cass (trip alias.a))))
+    ::?~  aliased-object
+    ::  ~|("couldn't find object matching provided alias: {<alias.a>}" !!)
     %:  qualified-column:ast
       %qualified-column
-      (need aliased-object)
-      column.a
-      ~
+      ::(need aliased-object)
+      table=(~(got by alias-map) (crip (cass (trip alias.a))))
+      column=column.a
+      alias=~
     ==
-  ?:  ?=([%four-item-qualifier *] a)
-    %:  qualified-column:ast
-      %qualified-column
-      %:  qualified-table:ast
-        %qualified-table
-        ~
-        ?~(database.a default-database (need database.a))
-        ?~(namespace.a %dbo (need namespace.a))
-        table.a
-        ~
-      ==
-      column.a
-      ~
-    ==
-  ?:  ?=([%five-item-qualifier *] a)
-    %:  qualified-column:ast
-      %qualified-column
-      %:  qualified-table:ast
-        %qualified-table
-        (some ship.a)
-        ?~(database.a default-database (need database.a))
-        ?~(namespace.a %dbo (need namespace.a))
-        table.a
-        ~
-      ==
-      column.a
-      ~
-    ==
-  !!  :: this should never be reached
-++  cook-qualifier
-  |=  a=*
-  ^-  qualifier
-  ?:  ?=(@ a)
-    :*  %one-item-qualifier
-      column=a
-    ==
-  ?:  ?=([@ @] a)
-    :*  %two-item-qualifier
-      alias=-.a
-      column=+.a
-    ==
-  ?:  ?=([@ @ @ @] a)
-    :*  %four-item-qualifier
-      database=?~(-.a ~ (some -.a))
-      namespace=?~(+<.a ~ (some +<.a))
-      table=+>-.a
-      column=+>+.a
-    ==
-  ?:  ?=([@ @ @ @ @] a)
-    :*  %five-item-qualifier
-      ship=-.a
-      database=?~(+<.a ~ (some +<.a))
-      namespace=?~(+>-.a ~ (some +>-.a))
-      table=+>+<.a
-      column=+>+>.a
-    ==
-  !!  :: this should never be reached
+  !!
 ::
 ::  helper types
 ::
@@ -5156,23 +5142,25 @@
         @
         ==
   ==
-+$   unknown-alias  $:(%unknown-alias name=@t)
-+$   scalar-param   $%(qualifier-or-literal unknown-alias)
-+$   qualifier-or-literal
++$  unknown-alias  $:(%unknown-alias name=@t)
++$  scalar-param   $%(qualifier-or-literal qualifier unknown-alias)
++$  qualifier-or-literal
   $%  qualifier
       $:(%literal dime)
   ==
 +$   qualifier
-  $%  one-item-qualifier
+  $%  ::one-item-qualifier
       two-item-qualifier
-      four-item-qualifier
-      five-item-qualifier
+      ::four-item-qualifier
+      ::five-item-qualifier
+      qualified-column:ast
+      unqualified-column:ast
   ==
-+$  one-item-qualifier
-  $:
-     %one-item-qualifier
-     column=@tas
-  ==
+::+$  one-item-qualifier
+::  $:
+::     %one-item-qualifier
+::     column=@tas
+::  ==
 +$  two-item-qualifier
   $:
      %two-item-qualifier
@@ -5187,15 +5175,15 @@
      table=@tas
      column=@tas
   ==
-+$  five-item-qualifier
-  $:
-     %five-item-qualifier
-     ship=@p
-     database=(unit @tas)
-     namespace=(unit @tas)
-     table=@tas
-     column=@tas
-  ==
+::+$  five-item-qualifier
+::  $:
+::     %five-item-qualifier
+::     ship=@p
+::     database=(unit @tas)
+::     namespace=(unit @tas)
+::     table=@tas
+::     column=@tas
+::  ==
 +$  scalar-helper
   $%  coalesce-helper
      if-then-else-helper
