@@ -4723,6 +4723,54 @@
 ::
 ::  parse scalar
 ::
+::  helper wet gates for scalar functions
+::
+++  parse-nullary-scalar-fn
+  |*  [fn-name=@tas]
+  ;~  plug
+    (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
+      (ifix [pal par] (easy ~))
+    ==
+  ==
+++  parse-unary-scalar-fn
+  |*  [fn-name=@tas first-param=rule]
+  ;~  plug
+    (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
+      (ifix [pal par] first-param)
+    ==
+  ==
+++  parse-binary-scalar-fn
+  |*  [fn-name=@tas first-param=rule second-param=rule]
+  ;~  plug
+    (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
+      (ifix [pal par] ;~((glue com) first-param second-param))
+    ==
+  ==
+++  parse-binary-ternary-fn
+  |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
+  ;~  plug
+    (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
+      (ifix [pal par] ;~((glue com) first-param second-param third-param))
+    ==
+  ==
+++  parse-n-ary-scalar-fn
+  |*  [fn-name=@tas parse-params=rule]
+  ;~  plug
+    (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
+      (ifix [pal par] (more com parse-params))
+    ==
+  ==
+::
 ++  cook-scalar-param
   |=  parsed=*
   ^-  scalar-param
@@ -4882,18 +4930,6 @@
     (cold %ket ket)
     parse-scalar-param
   ==
-++  make-scalar-function-rule
-  |*  [fn-name=@tas parse-params=rule]
-  ;~  plug
-    (cold fn-name (jester fn-name))
-    ;~  pfix
-      whitespace 
-      (ifix [pal par] parse-params)
-    ==
-  ==
-++  mk-scalar-param-rule-varargs
-  |*  [parse-arg=rule]
-  (more com parse-arg)
 ++  cook-coalesce
   |=  parsed=*
   ^-  coalesce-helper
@@ -4908,9 +4944,7 @@
     data=coalesce-params
   ==
 ++  parse-coalesce  ~+
-  =/  parse-params
-    (mk-scalar-param-rule-varargs ;~(pose parse-aggregate parse-scalar-param))
-  (make-scalar-function-rule %coalesce parse-params)
+  (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
 ++  parse-math
   ;~  plug
     (cold %begin (jester 'begin'))
