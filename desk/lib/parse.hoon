@@ -2864,8 +2864,8 @@
     ::   scalar by the same name, then resolve the scalar
     :: - if the cooked-param is a one-item-qualifier, and ther isn't a
     ::   scalar by the same name, then pass it down to finalize qualifier
-  ?:  ?=(unqualified-column cooked-param)
-    =/  maybe-scalar  (~(get by scalar.aliases) column.cooked-param)
+  ?:  ?=(unqualified-column:ast cooked-param)
+    =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
     ?~  maybe-scalar
       (finalize-qualifier cooked-param table.aliases)
     (need maybe-scalar)
@@ -4104,7 +4104,7 @@
 ++  join-stop  ~+
   ;~  pose
     ;~(plug (jester 'where') whitespace)
-    ;~(plug (jester 'scalar') whitespace)
+    ;~(plug (jester 'scalars') whitespace)
     ;~(plug (jester 'group') whitespace)
     ;~(plug (jester 'select') whitespace)
     ;~(plug (jester 'join') whitespace)
@@ -4377,9 +4377,13 @@
   ==
 ++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
 ++  parse-qualifier  ~+
+  :: to do: (someday) parse 4 & 5 directly into qualified-column
+  ::        clean-up parse-qualifier, parse-qualified-column, parse-column,
+  ::        cook-qualified-column
+  ::        can probably be one ;~ pose
   ;~  pose
     ::
-    ::  five-item-qualifiers
+    ::  five-item qualified-column
     ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
     ;~((glue dot) parse-ship sym sym sym sym)
     ::  @p.<database>..<table-or-view>.<column-name>
@@ -4390,7 +4394,7 @@
       ;~(pfix dot sym)
       ;~(pfix dot sym)
     ==
-    ::  four-item-qualifiers
+    ::  four-item qualified-column
     ::  <database>.<namespace>.<table-or-view>.<column-name>
     ;~((glue dot) sym sym sym sym)
     ::  <database>..<table-or-view>.<column-name>
@@ -5058,23 +5062,16 @@
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
   ^-  datum-or-scalar:ast
-  ?:  ?=(qualified-column:ast a)    a
-  ?:  ?=(unqualified-column:ast a)  a
-  ::?:  ?=([%one-item-qualifier *] a)
-  ::  [%unqualified-column name=column.a ~]
+  ::?:  ?=(qualified-column:ast a)    a
+  ::?:  ?=(unqualified-column:ast a)  a
   ?:  ?=([%two-item-qualifier *] a)
-    ::=/  aliased-object
-    ::  (~(get by alias-map) (crip (cass (trip alias.a))))
-    ::?~  aliased-object
-    ::  ~|("couldn't find object matching provided alias: {<alias.a>}" !!)
     %:  qualified-column:ast
       %qualified-column
-      ::(need aliased-object)
       table=(~(got by alias-map) (crip (cass (trip alias.a))))
       column=column.a
       alias=~
     ==
-  !!
+  a
 ::
 ::  helper types
 ::
@@ -5149,41 +5146,16 @@
       $:(%literal dime)
   ==
 +$   qualifier
-  $%  ::one-item-qualifier
-      two-item-qualifier
-      ::four-item-qualifier
-      ::five-item-qualifier
+  $%  two-item-qualifier
       qualified-column:ast
       unqualified-column:ast
   ==
-::+$  one-item-qualifier
-::  $:
-::     %one-item-qualifier
-::     column=@tas
-::  ==
 +$  two-item-qualifier
   $:
      %two-item-qualifier
      alias=@t               :: table or view alias
      column=@tas
   ==
-+$  four-item-qualifier
-  $:
-     %four-item-qualifier
-     database=(unit @tas)
-     namespace=(unit @tas)
-     table=@tas
-     column=@tas
-  ==
-::+$  five-item-qualifier
-::  $:
-::     %five-item-qualifier
-::     ship=@p
-::     database=(unit @tas)
-::     namespace=(unit @tas)
-::     table=@tas
-::     column=@tas
-::  ==
 +$  scalar-helper
   $%  coalesce-helper
      if-then-else-helper

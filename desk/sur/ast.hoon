@@ -125,27 +125,27 @@
 ::
 :: { = | <> | != | > | >= | !> | < | <= | !< | BETWEEN...AND...
 ::       | IS DISTINCT FROM | IS NOT DISTINCT FROM }
-+$  ternary-op           ?(%between %not-between)
-+$  inequality-op        ?(%neq %gt %gte %lt %lte)
-+$  all-any-op           ?(%all %any)
-+$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
-+$  unary-op             ?(%exists %not-exists %not)
-+$  conjunction          ?(%and %or)
-+$  ops-and-conjs
-      ?(ternary-op binary-op unary-op all-any-op conjunction)
++$  ternary-op     ?(%between %not-between)
++$  inequality-op  ?(%neq %gt %gte %lt %lte)
++$  all-any-op     ?(%all %any)
++$  binary-op      ?(%eq inequality-op %equiv %not-equiv %in %not-in)
++$  unary-op       ?(%exists %not-exists %not)
++$  conjunction    ?(%and %or)
++$  ops-and-conjs  ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component
       $?  ops-and-conjs
           qualified-column
           unqualified-column
           dime
           value-literals
+          cte-alias
+          scalar-alias
           aggregate
           ==
-+$  predicate            (tree predicate-component)
-+$  datum                $%(qualified-column unqualified-column dime)
-
-+$  scalar-op            ?(%lus %tar %hep %fas %ket)
-+$  scalar-token         ?(%pal %par scalar-op)
++$  predicate     (tree predicate-component)
++$  datum         $%(qualified-column unqualified-column dime)
++$  scalar-op     ?(%lus %tar %hep %fas %ket)
++$  scalar-token  ?(%pal %par scalar-op)
 +$  arithmetic
   $:
     %arithmetic
@@ -163,7 +163,7 @@
 +$  case-when-then
   $:
     %case-when-then
-    when=predicate                         :: predicate | datum
+    when=predicate                       :: predicate | datum
     then=datum-or-scalar
   ==
 +$  case
