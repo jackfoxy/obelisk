@@ -142,10 +142,21 @@
           scalar-alias
           aggregate
           ==
+<<<<<<< HEAD
 +$  predicate     (tree predicate-component)
 +$  datum         $%(qualified-column unqualified-column dime)
 +$  scalar-op     ?(%lus %tar %hep %fas %ket)
 +$  scalar-token  ?(%pal %par scalar-op)
+=======
++$  predicate            (tree predicate-component)
++$  datum                $%(qualified-column unqualified-column dime)
++$  literal-value        $:(%literal-value dime=dime)
++$  cte-alias            $:(%cte-alias alias=@t)
++$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
++$  datum-or-scalar      $@(~ $%(datum-for-scalar cte-alias scalar-function))
++$  scalar-op            ?(%lus %tar %hep %fas %ket)
++$  scalar-token         ?(%pal %par scalar-op)
+>>>>>>> dd57831 (reorganize types;)
 +$  arithmetic
   $:
     %arithmetic
