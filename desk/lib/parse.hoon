@@ -4752,7 +4752,7 @@
       (ifix [pal par] ;~((glue com) first-param second-param))
     ==
   ==
-++  parse-binary-ternary-fn
+++  parse-ternary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
   ;~  plug
     (cold fn-name (jester fn-name))
@@ -4769,6 +4769,29 @@
       whitespace 
       (ifix [pal par] (more com parse-params))
     ==
+  ==
+::
+++  parse-builtin-scalar-fn
+  ;~  pose
+    (parse-nullary-scalar-fn %getdate)
+    (parse-nullary-scalar-fn %sysdatetimeoffset)
+    (parse-unary-scalar-fn %day (easy ~))
+    (parse-unary-scalar-fn %month (easy ~))
+    (parse-unary-scalar-fn %year (easy ~))
+    (parse-unary-scalar-fn %abs (easy ~))
+    (parse-unary-scalar-fn %floor (easy ~))
+    (parse-unary-scalar-fn %ceiling (easy ~))
+    (parse-unary-scalar-fn %sign (easy ~))
+    (parse-unary-scalar-fn %sqrt (easy ~))
+    (parse-unary-scalar-fn %len (easy ~))
+    (parse-binary-scalar-fn %log (easy ~) (easy ~))
+    (parse-binary-scalar-fn %power (easy ~) (easy ~))
+    (parse-binary-scalar-fn %left (easy ~) (easy ~))
+    (parse-binary-scalar-fn %right (easy ~) (easy ~))
+    (parse-binary-scalar-fn %trim (easy ~) (easy ~))
+    (parse-ternary-scalar-fn %round (easy ~) (easy ~) (easy ~))
+    (parse-ternary-scalar-fn %substring (easy ~) (easy ~) (easy ~))
+    (parse-n-ary-scalar-fn %concat (easy ~))
   ==
 ::
 ++  cook-scalar-param
