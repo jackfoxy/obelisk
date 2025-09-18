@@ -1,6 +1,6 @@
 # DELETE
 
-Deletes rows from a `<table-set>`.
+Deletes rows from a `<relation>`.
 
 ```
 <delete> ::=
@@ -12,6 +12,7 @@ Deletes rows from a `<table-set>`.
 +$  delete
   $:
     %delete
+    ctes=(list cte)
     table=qualified-object
     as-of=(unit as-of)
     predicate=predicate

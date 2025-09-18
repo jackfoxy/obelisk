@@ -1,5 +1,5 @@
-/-  *obelisk, obelisk, ast
-/+  default-agent, dbug, *obelisk, *print
+/-  *server-state, server-state, *obelisk, obelisk, ast
+/+  default-agent, dbug, *server, *print
 |%
 +$  versioned-state
   $%  state-0
@@ -39,15 +39,20 @@
   ::
   ?-    -.act
   ::
+  ::  prints results
   %tape
+    :: required in order to stop on parse error
+    =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-      ^-  (each (pair (list cmd-result:obelisk) server:obelisk) tang)
-      %-  mule
-      |.
-      %:  state-server
-      ::~>  %bout.[0 %parse-cmds]
-      (parse-urql +<.act +>.act)
-      ==
+        ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+        %-  mule
+          |.
+          %:  state-server
+          ::::~>  %bout.[0 %parse-cmds]
+          (parse-urql +<.act +>.act)
+          ::(parse-urql(state server, bowl bowl) +<.act +>.act)
+          ::::(parse:parse(default-database +<.act) +>.act)
+          ==
     ?-  -.virtualized
       %.n
         :_  this
@@ -63,6 +68,56 @@
         ==
     ==
   ::
+  ::  for testing without printing results
+  %tape2
+    :: required in order to stop on parse error
+    :: comment out for benchmarking
+    =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
+    =/  virtualized
+      ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+      %-  mule
+      |.
+      %:  state-server
+      ::~>  %bout.[0 %parse-cmds]
+      (parse-urql +<.act +>.act)
+      ==
+    ?-  -.virtualized
+      %.n
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+            [%give %kick ~[/server] ~]
+        ==
+      %.y
+        =/  res  p.virtualized
+        :_  this(server +.res)
+        :~  [%give %fact ~[/server] %noun !>([& -.res])]
+            [%give %kick ~[/server] ~]
+        ==
+    ==
+  ::
+  %parse  !!
+    ::=/  virtualized
+    ::  ::^-  (each (pair (list command:ast) server) tang)
+    ::  ^-  (each (pair tape server) tang)
+    ::  %-  mule
+    ::  |.
+    ::  ::~>  %bout.[0 %parse-cmds]
+    ::  (parse-urql +<.act +>.act)
+    ::?-  -.virtualized
+    ::  %.n
+    ::    :_  this
+    ::    :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
+    ::        [%give %kick ~[/server] ~]
+    ::    ==
+    ::  %.y
+    ::    =/  res  p.virtualized
+    ::    =/  x  (print -.res)
+    ::    :_  this(server +.res)
+    ::    :~  [%give %fact ~[/server] %noun !>([& -.res])]
+    ::        [%give %kick ~[/server] ~]
+    ::    ==
+    ::==
+  ::
   %commands
     =/  res  (state-server +.act)
     :_  this(server +.res)
@@ -70,6 +125,7 @@
         [%give %kick ~[/server] ~]
     ==
   ::
+  ::  for testing with expect-fail-message
   %test
     =/  res2  %:  state-server
                   ::~>  %bout.[0 %parse-cmds]

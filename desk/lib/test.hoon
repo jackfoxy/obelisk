@@ -9,8 +9,8 @@
 ++  parse-results-2
   |=  results=(list result)
   ^-  [cmd-result (set vector)]
-  =/  out-results=(list result)  ~
-  =/  out-vectors=(list vector)  ~
+  =/  out-results  *(list result)
+  =/  out-vectors  *(list vector)
   |-
   ?~  results
     [[%results (flop out-results)] (silt out-vectors)]

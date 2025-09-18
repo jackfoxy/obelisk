@@ -34,11 +34,15 @@ The insert performance of city-zip-codes is noteworthy, possibly explained by a 
 
 ## Parse and SELECT performance on sample database
 
-### FROM reference.calendar SELECT *
+### SELECT * from large table
+
+FROM reference.calendar
+SELECT *
 
 parse: ms/13.604
-query: s/10.539
+query: s/3.362
 
+```
 %obelisk-result:
   %results
     [ %message 'SELECT' ]
@@ -60,12 +64,17 @@ query: s/10.539
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 21.916 ]
+```
 
-### FROM reference.calendar SELECT day-name
+### SELECT column from large table
+
+FROM reference.calendar
+SELECT day-name
 
 parse: ms/14.621
-query: s/8.603
+query: s/2.178
 
+```
 %obelisk-result:
   %results
     [ %message 'SELECT' ]
@@ -83,12 +92,19 @@ query: s/8.603
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 7 ]
+```
 
 ### JOIN
 
-parse: ms/34.649
-query: s/7.272
+FROM reference.calendar T1
+JOIN reference.calendar-us-fed-holiday T2
+WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
+SELECT T1.date, day-name, us-federal-holiday
 
+parse: ms/34.649
+query: s/7.073
+
+```
 %obelisk-result:
   %results
     [ %message 'SELECT' ]
@@ -112,3 +128,4 @@ query: s/7.272
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 10 ]
+```

@@ -49,6 +49,7 @@
     create-namespace
     create-table
     create-view
+    delete
     drop-database
     drop-index
     drop-namespace
@@ -58,6 +59,7 @@
     revoke
     selection
     truncate-table
+    update
   ==
 ::
 ::  simple union types
@@ -75,7 +77,7 @@
 +$  value-literals
   $:
     %value-literals
-    dime
+    dime               :: false dime [<aura of type> <crip of literal list>]
   ==
 +$  ordered-column
   $:
@@ -89,10 +91,10 @@
     name=@tas
     type=@ta
   ==
-+$  qualified-object
-  $+  qualified-object
++$  qualified-table
+  $+  qualified-table
   $:
-    %qualified-object
+    %qualified-table
     ship=(unit @p)
     database=@tas
     namespace=@tas
@@ -103,17 +105,17 @@
   $+  qualified-column
   $:
     %qualified-column
-    qualifier=qualified-object
-    column=@tas
+    qualifier=qualified-table
+    name=@tas
     alias=(unit @t)
   ==
 +$  foreign-key
   $:
     %foreign-key
     name=@tas
-    table=qualified-object
+    =qualified-table
     columns=(list ordered-column)                    :: the source columns
-    reference-table=qualified-object                 :: reference (target) table
+    reference-table=qualified-table                 :: reference (target) table
     reference-columns=(list @t)                      :: and columns
                   :: what to do when referenced item deletes or updates
     referential-integrity=(list referential-integrity-action)
@@ -127,7 +129,7 @@
 +$  inequality-op        ?(%neq %gt %gte %lt %lte)
 +$  all-any-op           ?(%all %any)
 +$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
-+$  unary-op             ?(%exists %not-exists)
++$  unary-op             ?(%exists %not-exists %not)
 +$  conjunction          ?(%and %or)
 +$  ops-and-conjs
       ?(ternary-op binary-op unary-op all-any-op conjunction)
@@ -141,45 +143,56 @@
           ==
 +$  predicate            (tree predicate-component)
 +$  datum                $%(qualified-column unqualified-column dime)
-+$  datum-or-scalar      $@(datum scalar-function)
+
 +$  scalar-op            ?(%lus %tar %hep %fas %ket)
 +$  scalar-token         ?(%pal %par scalar-op)
-+$  arithmatic
++$  arithmetic
   $:
     %arithmetic
     operator=scalar-op
-    left=*                         :: datum-or-scalar
-    right=*                        :: datum-or-scalar
+    left=datum                         :: datum-or-scalar
+    ::left=datum-or-scalar                         :: datum-or-scalar
+    right=datum                        :: datum-or-scalar
+    ::right=datum-or-scalar                        :: datum-or-scalar
   ==
 +$  if-then-else
   $:
     %if-then-else
-    if=*                           :: predicate
-    then=*                         :: datum-or-scalar
-    else=*                         :: datum-or-scalar
+    if=predicate
+    then=datum-or-scalar                         :: datum-or-scalar
+    else=datum-or-scalar                         :: datum-or-scalar
   ==
 +$  case-when-then
   $:
-    when=*                         :: predicate | datum
-    then=*                         :: datum-or-scalar
+    %case-when-then
+    when=predicate                         :: predicate | datum
+    then=datum-or-scalar                        :: datum-or-scalar
   ==
 +$  case
   $:
     %case
-    target=datum
+    target=datum-or-scalar
     cases=(list case-when-then)
-    else=*                         :: datum-or-scalar
+    else=(unit datum-or-scalar)                         :: datum-or-scalar
   ==
++$  literal-value        $:(%literal-value dime=dime)
++$  cte-alias            $:(%cte-alias alias=@t)
++$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
+++  datum-or-scalar
+  $@  ~
+  $%($%(datum-for-scalar cte-alias) scalar-function)
 +$  coalesce
+  $+  coalesce
   $:
     %coalesce
-    data=(list datum)
+    data=(list datum-or-scalar)
   ==
 +$  scalar-function
   $%
     if-then-else
     case
     coalesce
+    :: arithmetic
   ==
 ::
 ::  query
@@ -189,11 +202,11 @@
   $:
     %query
     from=(unit from)
-    scalars=(list scalar-function)
-    predicate=(unit predicate)
+    scalars=(list scalar)
+    =predicate
     group-by=(list grouping-column)
-    having=(unit predicate)
-    selection=select
+    having=predicate
+    =select
     order-by=(list ordering-column)
   ==
 ::
@@ -201,7 +214,7 @@
 +$  from
   $:
     %from
-    object=table-set
+    object=relation
     as-of=(unit as-of)
     joins=(list joined-object)
   ==
@@ -209,19 +222,18 @@
   $:
     %joined-object
     join=join-type
-    object=table-set
+    object=relation
     as-of=(unit as-of)
-    predicate=(unit predicate)
+    =predicate
   ==
 ::
-::  $table-set:
-+$  table-set
+::  $relation:
++$  relation
   $:
-    %table-set
-    object=query-source
+    %relation
+    object=$%(qualified-table cte-alias query-row)
   ==
 ::
-+$  query-source  $%(qualified-object query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row
@@ -234,24 +246,22 @@
   $:
     %select
     top=(unit @ud)
-    bottom=(unit @ud)
     columns=(list selected-column)
   ==
 +$  selected-column
   $%
     qualified-column
     unqualified-column
-    qualified-object
+    qualified-table
     selected-aggregate
     selected-value
     selected-all
     selected-all-object
   ==
-  :: scalar-function or selected-scalar) fish-loop
 +$  unqualified-column
   $:
     %unqualified-column
-    column=@tas
+    name=@tas
     alias=(unit @t)
     ==
 +$  selected-all
@@ -260,7 +270,7 @@
     %all
   ==
 
-+$  selected-all-object  [%all-object qualified-object]
++$  selected-all-object  [%all-object qualified-table]
 
 +$  selected-aggregate
   $:
@@ -268,11 +278,11 @@
     aggregate=aggregate
     alias=(unit @t)
   ==
-+$  selected-scalar
++$  scalar
   $:
-    %selected-scalar
+    %scalar
     scalar=scalar-function
-    alias=(unit @t)
+    alias=@t
   ==
 +$  selected-value
   $:
@@ -313,7 +323,7 @@
   $:
     %cte
     name=@tas
-    set-cmd
+    =query
   ==
 +$  set-op
   $?
@@ -323,12 +333,8 @@
     %divided-by
     %divide-with-remainder
     %into
-    %pass-thru
-    %nop
-    %tee
-    %multee
   ==
-+$  set-cmd       $%(delete insert update query merge)
++$  set-cmd       $%(insert merge query)
 +$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
@@ -338,43 +344,47 @@
 +$  delete
   $:
     %delete
-    table=qualified-object
+    ctes=(list cte)
+    table=qualified-table
     as-of=(unit as-of)
-    predicate=predicate
+    =predicate
   ==
+::
+::  $update:
++$  update
+  $:
+    %update
+    ctes=(list cte)
+    table=qualified-table
+    as-of=(unit as-of)
+    $:  columns=(list qualified-column)
+        values=(list value-or-default)
+        ==
+    =predicate
+  ==
+::
+::
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
 ::  $insert:
 +$  insert
   $:
     %insert
-    table=qualified-object
+    table=qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
     values=insert-values
   ==
 +$  value-or-default     ?(%default datum)
 ::
-::  $update:
-+$  update
-  $:
-    %update
-    table=qualified-object
-    as-of=(unit as-of)
-    $:  columns=(list qualified-column)
-        values=(list value-or-default)
-        ==
-    predicate=(unit predicate)
-  ==
-::
-::  $merge: merge from source table-set into target table-set
+::  $merge: merge from source relation into target relation
 +$  merge
   $:
     %merge
-    target-table=table-set
-    new-table=(unit table-set)
-    source-table=table-set
-    predicate=predicate
+    target-table=relation
+    new-table=(unit relation)
+    source-table=relation
+    =predicate
     matched=(list matching)
     unmatched-by-target=(list matching)
     unmatched-by-source=(list matching)
@@ -383,7 +393,7 @@
 +$  matching
   $:
     %matching
-    predicate=(unit predicate)
+    =predicate
     matching-profile=matching-profile
   ==
 +$  matching-action  ?(%insert %update %delete)
@@ -399,7 +409,7 @@
 +$  truncate-table
   $:
     %truncate-table
-    table=qualified-object
+    table=qualified-table
     as-of=(unit as-of)
   ==
 ::
@@ -421,7 +431,7 @@
   $:
     %create-index
     name=@tas
-    object-name=qualified-object
+    =qualified-table
     unique=?
     columns=(list ordered-column)
     as-of=(unit as-of)
@@ -438,7 +448,7 @@
 ::  $create-table
 +$  create-table
   $:  %create-table
-    table=qualified-object
+    table=qualified-table
     columns=(list column)
     pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
@@ -450,7 +460,7 @@
   $:
     %create-trigger
     name=@tas
-    object=qualified-object
+    =qualified-table
     enabled=?
   ==
 ::
@@ -461,7 +471,7 @@
 +$  create-view
   $:
     %create-view
-    view=qualified-object
+    view=qualified-table
     selection
   ==
 ::
@@ -470,12 +480,12 @@
 ::  $drop-database: name=@tas force=?
 +$  drop-database        $:([%drop-database name=@tas force=?])
 ::
-::  $drop-index: name=@tas object=qualified-object
+::  $drop-index: name=@tas object=qualified-table
 +$  drop-index
   $:
     %drop-index
     name=@tas
-    object=qualified-object
+    =qualified-table
     as-of=(unit as-of)
   ==
 ::
@@ -483,10 +493,10 @@
 +$  drop-namespace
   $:([%drop-namespace database-name=@tas name=@tas force=? as-of=(unit as-of)])
 ::
-::  $drop-table: table=qualified-object force=?
+::  $drop-table: table=qualified-table force=?
 +$  drop-table
   $:  %drop-table
-    table=qualified-object
+    table=qualified-table
     force=?
     as-of=(unit as-of)
   ==
@@ -496,17 +506,17 @@
   $:
     %drop-trigger
     name=@tas
-    object=qualified-object
+    =qualified-table
   ==
 ::
 ::  $drop-type: TBD
 +$  drop-type            $:([%drop-type name=@tas])
 ::
-::  $drop-view: view=qualified-object force=?
+::  $drop-view: view=qualified-table force=?
 +$  drop-view
   $:
     %drop-view
-    view=qualified-object
+    view=qualified-table
     force=?
   ==
 ::
@@ -517,8 +527,8 @@
 +$  alter-index
   $:
     %alter-index
-    name=qualified-object
-    object=qualified-object
+    name=qualified-table
+    object=qualified-table
     columns=(list ordered-column)
     action=index-action
     as-of=(unit as-of)
@@ -539,7 +549,7 @@
 +$  alter-table
   $:
     %alter-table
-    table=qualified-object
+    table=qualified-table
     alter-columns=(list column)
     add-columns=(list column)
     drop-columns=(list @tas)
@@ -553,16 +563,16 @@
   $:
     %alter-trigger
     name=@tas
-    object=qualified-object
+    =qualified-table
     enabled=?
   ==
 ::
-::  $alter-view: view=qualified-object selection
+::  $alter-view: view=qualified-table selection
 +$  alter-view
   $:
     %alter-view
-    view=qualified-object
-    selection
+    view=qualified-table
+    =selection
   ==
 ::
 ::  permissions
@@ -584,12 +594,12 @@
 ::  $revoke-from: ?(%parent %siblings %moons %all)
 +$  revoke-from          ?(%parent %siblings %moons %all)
 ::
-::  $grant-object: ?(%server %database %namespace %table-set %table-column)
+::  $grant-object: ?(%server %database %namespace %table %table-column)
 +$  grant-object  
   $%  [%server %server]
       [%database @tas]
       [%namespace [@tas @tas]]
-      [%table-set qualified-object]
+      [%table qualified-table]
       [%table-column path]
       ==
 ::
@@ -621,16 +631,16 @@
 ::  $revoke-permission: ?(%adminread %readonly %readwrite %all)
 +$  revoke-permission    ?(%adminread %readonly %readwrite %all)
 ::
-::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-object)
+::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-table)
 +$  revoke-object
   $%  [%all %all]
       [%server %server]
       [%database @tas]
       [%namespace [@tas @tas]]
-      [%table-set qualified-object]
+      [%table qualified-table]
       [%table-column path]
       ==
-::
+::ela
 ::  $revoke:  permission=revoke-permission from=revoke-from 
 ::            revoke-target=revoke-object
 +$  revoke

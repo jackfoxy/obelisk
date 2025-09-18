@@ -1,4 +1,4 @@
-/-  *ast
+/-  *ast, *server-state
 ^?
 |%
 ::
@@ -34,108 +34,18 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-
-+$  server  (map @tas database)
-+$  database
-  $:  %database
-      name=@tas
-      created-provenance=path
-      created-tmsp=@da
-      sys=((mop @da schema) gth)
-      content=((mop @da data) gth)
-      =view-cache
-  ==
-+$  view-cache  ((mop data-obj-key cache) ns-obj-comp)
-+$  cache
-  $:  %cache
-      tmsp=@da
-      content=(unit cache-content)
-  ==
-+$  cache-content
-  $:  rowcount=@
-      rows=(list (map @tas @))
-  ==
-+$  schema
-  $:  %schema
-      provenance=path
-      tmsp=@da
-      =namespaces
-      =tables
-  :: indices  ::  indices other than primary key, indexed by? 
-      =views
-  :: permissions   :: maybe at server or database level?
-  ==
-+$  data
-  $:  %data
-      ship=@p
-      provenance=path
-      tmsp=@da
-      files=(map [@tas @tas] file)
-  ==
-+$  file
-  $:  %file
-      ship=@p
-      provenance=path
-      tmsp=@da
-      rowcount=@
-      pri-idx=(tree indexed-row)
-      indexed-rows=(list indexed-row)
-      ::    =indices
-  ==
-+$  data-obj-key
-  $:  ns=@tas
-      obj=@tas
-      time=@da
-  ==
-+$  namespaces  (map @tas @da)
-+$  tables  (map [@tas @tas] table)
-+$  table
-  $+  table
-  $:  %table
-      provenance=path
-      tmsp=@da
-      =column-lookup
-      pri-indx=index
-      columns=(list column)      ::  canonical column list
-      indices=(list index)      :: to do: indices indexed by (list column)
-  ==
-+$  views  ((mop data-obj-key view) ns-obj-comp)
-+$  view
-  $+  view
-  $:  %view
-      provenance=path
-      tmsp=@da
-      =selection
-      =column-lookup
-      columns=(list column)      ::  canonical column list
-      ordering=(list column-order)
-      :: indices  -  to do
-  ==
-+$  column-lookup  (map @tas [aura @])  :: name [type index]
-+$  index
-  $:  %index
-      unique=?
-      key=(list key-column)
-  ==
-+$  key-column
-  $:
-    %key-column
-    name=@tas
-    =aura
-    ascending=?
-  ==
 +$  vector-cell  [p=@tas q=dime]
 +$  vector
     $:  %vector
         (lest vector-cell)
     ==
-+$  column-order  [aor=? ascending=? offset=@ud]
-  :: $| validator mold for adding rows with FKs
 ::
 +$  action
   $%  [%tape default-database=@tas urql=tape]
+      [%tape2 default-database=@tas urql=tape]
       [%commands cmds=(list command)]
       [%test default-database=@tas urql=tape]
+      [%parse urql=tape]
   ==
 +$  cmd-result  [%results (list result)]
 +$  result
@@ -148,52 +58,91 @@
       [%result-set (list vector)]
       ==
 ::
-+$  from-obj
-  $:  %from-obj
-      object=qualified-object
-      alias=(unit @t)
-      schema-tmsp=@da
-      data-tmsp=@da
++$  set-table
+  $:  %set-table
+      object=(unit qualified-table)
+      schema-tmsp=(unit @da)
+      data-tmsp=(unit @da)
       columns=(list column)
+      =lookup-type
       pri-indx=(unit index)
       join=(unit join-type)
-      predicate=(unit predicate)
+      =predicate
       rowcount=@
-      pri-indexed=(tree indexed-row)
+      pri-indexed=(tree [(list @) (map @tas @)])
       indexed-rows=(list indexed-row)
-  ==
-+$  qual-col-type  [qualified-column @ta]
-+$  lookup-type    (map qualified-object (map @tas @ta))
-::
-+$  indexed-row  [(list @) (map @tas @)]
-+$  joined-row   [(list @) (map qualified-object (map @tas @))]
-::
-+$  joined
-  $:  %joined
-      key=(list key-column)
-      rowcount=@ud
       joined-rows=(list joined-row)
+  ==
+::
++$  qual-col-type  [qualified-column @ta]
++$  qualified-lookup-type
+  $:  %qualified-lookup-type
+      (map qualified-table (map @tas @ta))
       ==
++$  unqualified-lookup-type
+  $:  %unqualified-lookup-type
+      (map @tas @ta)
+      ==
++$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
+::
++$  joined-row
+  $:  %joined-row
+      key=(list @)
+      data=(map qualified-table (map @tas @))
+      ==
++$  data-row  $%(joined-row indexed-row)
 ::
 +$  join-return
   $:  %join-return
       =server
-      data-objs=(list from-obj)
-      join-data=joined
+      set-tables=(list set-table)
       type-lookup=lookup-type
       qualified-columns=(list qual-col-type)
       ==
 ::
-+$  relation
++$  joined-relation
   $:
-    %relation
-    =table-set
+    %joined-relation
+    =relation
     as-of=(unit as-of)
     join=(unit join-type)
-    predicate=(unit predicate)
+    =predicate
   ==
 ::
-::  helper types
++$  named-ctes  (map @tas (list set-table))
+::
++$  db-cmd  $?  %create-database
+                %drop-database
+                %create-namespace
+                %alter-namespace
+                %drop-namespace
+                %create-table
+                %alter-table
+                %drop-table
+                %truncate-table
+                %insert
+                %update
+                %delete
+                ==
+::
+::  template for selected column from qualified objects
++$  templ-cell
+  $:  %templ-cell
+      object=(unit qualified-column)
+      addr=@
+      vc=vector-cell
+  ==
+::
+::  common metadata for DELETE, INSERT, UPDATE
++$  txn-meta
+  $:  %txn-meta
+      db=database
+      tbl-key=[@tas @tas]
+      nxt-data=data
+      =table
+      =file
+      source-content-time=@da
+      ==
 ::
 +$  table-return
   $:  [@da ? @ud]
@@ -201,15 +150,4 @@
       changed-data=(map @tas @da)
       state=server
   ==
-::
-::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
-::
-::  view and table comparer
-++  ns-obj-comp
-  |=  [p=data-obj-key q=data-obj-key]
-  ^-  ?
-  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
-  (gth time.p time.q)
-  
 --

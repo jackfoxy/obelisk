@@ -1,6 +1,6 @@
 # Selection
 
-The `<selection>` statements provides a means of chaining commands on `<table-set>`s produced by any command, either by passing the resulting `<table-set>` to the next command -- similar to how CTEs work -- or by applying a set operation on two resulting `<table-set>`s. It also provides the framework for declaring `<common-table-expression>`s, which can be consumed by following commands.
+The `<selection>` statements provides a means of chaining commands on `<relation>`s produced by any command, either by passing the resulting `<relation>` to the next command -- similar to how CTEs work -- or by applying a set operation on two resulting `<relation>`s. It also provides the framework for declaring `<common-table-expression>`s, which can be consumed by following commands.
 
 
 ```
@@ -45,23 +45,23 @@ The `<query>` command by itself is never terminal. It is terminal when it is fol
   | DIVIDED BY [ WITH REMAINDER ]
 ```
 
-Set operations between two result `<table-sets>`. The left `<table-set>` represents the running result of the `<selection>` and the right `<table-set>` can be the result of nested `<cmd>`s.
+Set operations between two result `<relations>`. The left `<relation>` represents the running result of the `<selection>` and the right `<relation>` can be the result of nested `<cmd>`s.
 
 **UNION**
 
-`UNION` concatenates the left and right `<table-set>`s into one `<table-set>` of distinct rows.
+`UNION` concatenates the left and right `<relation>`s into one `<relation>` of distinct rows.
 
 **EXCEPT**
 
-`EXCEPT` returns distinct rows from the left `<table-set>` that are not in the right `<table-set>`. Rows that are not of the same `<row-type>` are considered not matching.
+`EXCEPT` returns distinct rows from the left `<relation>` that are not in the right `<relation>`. Rows that are not of the same `<row-type>` are considered not matching.
 
 **INTERSECT**
 
-`INTERSECT` returns distinct rows that are in both the left and right `<table-set>`s. Rows that are not of the same `<row-type>` are considered not matching.
+`INTERSECT` returns distinct rows that are in both the left and right `<relation>`s. Rows that are not of the same `<row-type>` are considered not matching.
 
 **DIVIDED BY [ WITH REMAINDER ]**
 
-This operator performs a relational division on the left `<table-set>` as the dividend and the right `<table-set>` as divisor.
+This operator performs a relational division on the left `<relation>` as the dividend and the right `<relation>` as divisor.
 
 NOTE: rule for dividing union `<row-type>`s TBD.
 
@@ -78,19 +78,19 @@ NOTE: rule for dividing union `<row-type>`s TBD.
   | MULTEE
 ```
 
-`<pass-thru-op>`s make the left resulting `<table-set>` available for consumption by the next `<cmd>` in the `<selection>`. The right side of the statement cannot be nested. The left `<table-set>` can be consumed by `*`, in which case column identifiers and `<row-type>` column alignments from the left `<cmd>` apply, or a list of column aliases, in which case all columns produced by the left `<cmd>` must be included in the order produced.  (See the definition of `<table-set>` in the Introduction.) In other words the `<row-type>` of the left `<table-set>` applies when consumed by the right `<cmd>`.
+`<pass-thru-op>`s make the left resulting `<relation>` available for consumption by the next `<cmd>` in the `<selection>`. The right side of the statement cannot be nested. The left `<relation>` can be consumed by `*`, in which case column identifiers and `<row-type>` column alignments from the left `<cmd>` apply, or a list of column aliases, in which case all columns produced by the left `<cmd>` must be included in the order produced.  (See the definition of `<relation>` in the Introduction.) In other words the `<row-type>` of the left `<relation>` applies when consumed by the right `<cmd>`.
 
 **PASS-THRU**
 
-The result `<table-set>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>`.
+The result `<relation>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>`.
 
 **TEE**
 
-The result `<table-set>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>` and the left `<table-set>` is placed in order in the list of `<table-set>`s resulting from the parent `<selection>`.
+The result `<relation>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>` and the left `<relation>` is placed in order in the list of `<relation>`s resulting from the parent `<selection>`.
 
 **MULTEE**
 
-The result `<table-set>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>` and the results of each `<row-type>` in the left `<table-set>` union type is placed in order in the list of `<table-set>`s resulting from the parent `<selection>`. The order of the resulting `<row-type>`s from the union type is arbitrary.
+The result `<relation>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>` and the results of each `<row-type>` in the left `<relation>` union type is placed in order in the list of `<relation>`s resulting from the parent `<selection>`. The order of the resulting `<row-type>`s from the union type is arbitrary.
 
 NOTE: deterministic ordering of union type results TBD.
 
@@ -113,7 +113,7 @@ API:
 
 **`WITH [ <common-table-expression> [ ,...n ] ]`**
 
-The `WITH` clause makes the result `<table-set>` of a `<selection>` statement available to the subsequent `<selection>` statements in the `WITH` clause and `<cmd>`s in the main `<selection>` by `<alias>`. `<selection>`s in the `WITH` clause cannot have their own `WITH` clause, rather preceding CTEs within the clause are available and function as a virtual `WITH` clause.
+The `WITH` clause makes the result `<relation>` of a `<selection>` statement available to the subsequent `<selection>` statements in the `WITH` clause and `<cmd>`s in the main `<selection>` by `<alias>`. `<selection>`s in the `WITH` clause cannot have their own `WITH` clause, rather preceding CTEs within the clause are available and function as a virtual `WITH` clause.
 
 When used as a `<common-table-expression>`, `<selection>` output must be a pass-thru virtual-table.
 
@@ -121,13 +121,13 @@ When used as a `<common-table-expression>`, `<selection>` cannot include `TEE` a
 
 **`INTO <table>`**
 
-This clause inserts the resulting `<table-set>` into `<table>`. The associated `<cmd>` is terminal. This is the only case in which `<query>` is terminal.
+This clause inserts the resulting `<relation>` into `<table>`. The associated `<cmd>` is terminal. This is the only case in which `<query>` is terminal.
 
 **`<selection-op> [ ( ] <cmd> [ ) ]`**
 
-If `<selection-op>` is a `<set-op>` the result `<table-set>` from the left side is applied to the next (right) result or result from next nested `<cmd>`s.
+If `<selection-op>` is a `<set-op>` the result `<relation>` from the left side is applied to the next (right) result or result from next nested `<cmd>`s.
 
-If `<selection-op>` is a `<pass-thru-op>` the result `<table-set>` from the left side is available to the next `<cmd>`.
+If `<selection-op>` is a `<pass-thru-op>` the result `<relation>` from the left side is available to the next `<cmd>`.
 
 Nesting left paren `(` can only exist singly, but right paren `)` may be stacked to any depth `...)))`, so long as left and right are matching. In other words nesting can only be applied on the right side.
 
@@ -159,7 +159,7 @@ If a `<cmd>` is terminal it must be the last `<cmd>` in the `<selection>`, canno
 
 ## Produced Metadata
 
-list of output `<table-set>`s in order produced (if the last `<cmd>` is terminal it produces no output)
+list of output `<relation>`s in order produced (if the last `<cmd>` is terminal it produces no output)
 metadata from last `<cmd>`, if it was not the right side of a `<set-op>`
 `@@ROWCOUNT` returns the total number of rows returned, if the last `<cmd>` is in the right side of a `<set-op>`
 
