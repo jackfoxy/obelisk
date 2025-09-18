@@ -231,10 +231,9 @@
 +$  relation
   $:
     %relation
-    object=query-source
+    object=$%(qualified-table cte-alias query-row)
   ==
 ::
-+$  query-source  $%(qualified-table query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row
@@ -641,7 +640,7 @@
       [%table qualified-table]
       [%table-column path]
       ==
-::
+::ela
 ::  $revoke:  permission=revoke-permission from=revoke-from 
 ::            revoke-target=revoke-object
 +$  revoke
