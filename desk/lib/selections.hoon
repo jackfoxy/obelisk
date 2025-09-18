@@ -35,11 +35,11 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +select-table:  [query:ast ?] -> [server (list set-table) (list vector)]
+::  +select-relation:  [query:ast ?] -> [server (list set-table) (list vector)]
 ::
 ::  selection from a single table without joins
-++  select-table
-  |=  [q=query:ast is-cte=?]
+++  select-relation
+  |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [server (list set-table) (list vector)]
   =/  from          (need from.q)
   =/  query-source  ?:  ?=(qualified-table:ast object.+.object.from)
@@ -63,7 +63,7 @@
                                 (~(got by +<+.triple) query-source)
                             ~
   ::
-  ?:  is-cte  [state (select-table-cte q set-table filter) ~]
+  ?:  is-cte  [state (select-for-cte q set-table filter) ~]
   :+  state
       ~[set-table]
       %:  table-result  filter
@@ -72,7 +72,7 @@
                         selected
                         ==
 ::
-::  +select-table-cte:  [query:ast (unit $-(data-row ?))]
+::  +select-for-cte:  [query:ast (unit $-(data-row ?))]
 ::                  -> (list set-table) 
 ::
 ::  cons a set-table of the selection
@@ -85,11 +85,11 @@
 ::      data-tmsp=(unit @da)
 ::      =lookup-type  delete those that do not exist
 ::      pri-indx=(unit index)
-::      predicate=(unit predicate)
+::      =predicate
 ::      pri-indexed=(tree [(list @) (map @tas @)])
 
 ::  5) row count
-++  select-table-cte
+++  select-for-cte
   |=  [q=query:ast st=set-table f=(unit $-(data-row ?))]
   ^-  (list set-table)
   =/  st2  st
@@ -218,49 +218,55 @@
 ::  +join-all  query:ast -> join-return
 :: 
 ::  server state returned because we may have updated the view cache
-++  join-all
+++  join-all  
   |=  [q=query:ast =named-ctes]
   ^-  join-return
   =/  from  (need from.q)
-  =/  relations=(list relation)
-        %+  mk-relations  (relation %relation object.from as-of.from ~ ~)
-                          joins.from
-  =/  relat=relation  -.relations
-  =/  query-source    ?:  ?=(qualified-table:ast object.table-set.relat)
-                        object.table-set.relat
-                      ~|("SELECT: not supported on %query-row" !!)
-  =.  relations       +.relations
-  =/  triple          %:  prep-table-set  query-source
+  =/  joined-relations=(list joined-relation)
+        %+  mk-joined-relations  %:  joined-relation  %joined-relation
+                                                      object.from
+                                                      as-of.from
+                                                      ~
+                                                      ~
+                                                      ==
+                                 joins.from
+  =/  relat=joined-relation  -.joined-relations
+  =/  query-source  ?:  ?=(qualified-table:ast object.table-set.relat)
+                      object.table-set.relat
+                    ~|("SELECT: not supported on %query-row" !!)
+  =.  joined-relations  +.joined-relations
+  =/  triple            %:  prep-table-set  query-source
                                           as-of.relat
                                           ~
                                           ~
                                           *qualified-lookup-type
                                           ~
                                           ==
-  =/  prior-join      -.triple
-  =/  from-objects    (limo ~[prior-join])
-  =/  type-lookup     +<.triple
+  =/  prior-join        -.triple
+  =/  from-objects      (limo ~[prior-join])
+  =/  type-lookup       +<.triple
   =/  qualified-columns=(list qual-col-type)  +>.triple
   |-
-  ?~  relations  %:  join-return  %join-return
+  ?~  joined-relations  %:  join-return  %join-return
                                   state
                                   from-objects
                                   type-lookup
                                   qualified-columns
                                   ==
-  =.  query-source  ?:  ?=(qualified-table:ast object.table-set.i.relations)
-                      object.table-set.i.relations
-                    ~|("SELECT: not supported on %query-row" !!)
+  =.  query-source
+        ?:  ?=(qualified-table:ast object.table-set.i.joined-relations)
+              object.table-set.i.joined-relations
+            ~|("SELECT: not supported on %query-row" !!)
   =.  triple  %:  prep-table-set  query-source
-                                  as-of.i.relations
-                                  join.i.relations
-                                  predicate.i.relations
+                                  as-of.i.joined-relations
+                                  join.i.joined-relations
+                                  predicate.i.joined-relations
                                   type-lookup
                                   qualified-columns
                                   ==
   =.  prior-join       (join-up prior-join -.triple)
   %=  $
-    relations          +.relations
+    joined-relations    +.joined-relations
     from-objects       [prior-join from-objects]
     type-lookup        +<.triple
     qualified-columns  +>.triple
@@ -270,7 +276,7 @@
   |=  $:  ts=qualified-table:ast
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
-          predicate=(unit predicate:ast)
+          =predicate
           type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
@@ -314,7 +320,7 @@
           db=database
           =schema
           join=(unit join-type:ast)
-          predicate=(unit predicate:ast)
+          =predicate
           sys-time=@da
           type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
@@ -344,36 +350,36 @@
           (~(put by +.type-lookup) query-obj type-lookup.tbl)
       (mk-qualified-columns query-obj qualified-columns columns.tbl)
 ::
-::  +mk-relations:  [relation (list joined-object:ast)] ->  (list relation)
+::  +mk-joined-relations:  [relation (list joined-object:ast)]
+::                         ->  (list joined-relation)
 ::
 ::  put all cross joins at the end of the list
-++  mk-relations
-  |=  [relat=relation joins=(list joined-object:ast)]
-  ^-  (list relation)
-  =/  relations=(list relation)    ~[relat]
-  =/  cross-joins  *(list relation)
+++  mk-joined-relations
+  |=  [relat=joined-relation joins=(list joined-object:ast)]
+  ^-  (list joined-relation)
+  =/  joined-relations=(list joined-relation)    ~[relat]
+  =/  cross-joins  *(list joined-relation)
   |-
-  ?~  joins  (flop (weld cross-joins relations))
+  ?~  joins  (flop (weld cross-joins joined-relations))
   ?:  ?=(%cross-join join.i.joins)
     %=  $
       joins  t.joins
-      cross-joins  :-  %:  relation  %relation
-                                  object.i.joins
-                                  as-of.i.joins
-                                  `join.i.joins
-                                  predicate.i.joins
-                                  ==
+      cross-joins  :-  %:  joined-relation  %joined-relation
+                                            object.i.joins
+                                            as-of.i.joins
+                                            `join.i.joins
+                                            predicate.i.joins
+                                            ==
                        cross-joins
-    ==
-  %=  $
+    ==  %=  $
     joins  t.joins
-    relations  :-  %:  relation  %relation
-                                 object.i.joins
-                                 as-of.i.joins
-                                 `join.i.joins
-                                 predicate.i.joins
-                                 ==
-                   relations
+    joined-relations  :-  %:  joined-relation  %joined-relation
+                                               object.i.joins
+                                               as-of.i.joins
+                                               `join.i.joins
+                                               predicate.i.joins
+                                                ==
+                   joined-relations
   ==
 ::
 ++  mk-qualified-columns
@@ -400,7 +406,7 @@
           =schema
           =view
           join=(unit join-type:ast)
-          predicate=(unit predicate:ast)
+          =predicate
           sys-time=@da
           type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)

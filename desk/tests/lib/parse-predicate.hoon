@@ -20,7 +20,7 @@
 ::  predicate
 ::
 ::  re-used components
-++  select-all-columns  [%select top=~ bottom=~ columns=~[[%all %all]]]
+++  select-all-columns  [%select top=~ columns=~[[%all %all]]]
 ++  foo
   [[%unqualified-column 'foo' ~] ~ ~]
 ++  t1-foo
@@ -189,7 +189,7 @@
 ++  second-and               [%and first-and t2-bar-in-list]
 ++  king-and                 [%and [second-and] last-or]
 ::
-++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+++  select-top-10-all  [%select top=[~ 10] columns=~[[%all %all]]]
 ++  foo-table
   [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]
 ++  foo-table-f1
@@ -554,7 +554,7 @@
                     pred
                     group-by=~
                     having=~
-                    [%select top=~ bottom=~ columns=~[[%all %all]]]
+                    [%select top=~ columns=~[[%all %all]]]
                     ~
                     ==
                 ~

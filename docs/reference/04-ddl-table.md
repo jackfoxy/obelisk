@@ -4,7 +4,7 @@
 
 Creates a new table within the specified or default database.
 
-`<table>`s are the source of indexed persistent `<table-sets>`s in Obelisk.
+`<table>`s are the source of indexed persistent `<relation>`s in Obelisk.
 
 ```
 <create-table> ::=

@@ -12,8 +12,8 @@
 ::
 ::  SELECT
 ::
-++  select-top-10-all   [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
-++  select-all-columns  [%select top=~ bottom=~ columns=~[[%all %all]]]
+++  select-top-10-all   [%select top=[~ 10] columns=~[[%all %all]]]
+++  select-all-columns  [%select top=~ columns=~[[%all %all]]]
 ::
 ::  TABLE SET
 ::
@@ -330,7 +330,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-ns1
@@ -340,7 +340,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-db2
@@ -350,7 +350,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-db2-ns1
@@ -360,7 +360,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-nec-db2
@@ -370,7 +370,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-nec-db2-ns1
@@ -380,7 +380,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo
@@ -390,7 +390,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-ns1
@@ -400,7 +400,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=[~ 9] columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-db2
@@ -410,7 +410,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-db2-ns1
@@ -420,7 +420,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-nec-db2
@@ -430,7 +430,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  aliased-from-foo-nec-db2-ns1
@@ -440,7 +440,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar
@@ -450,7 +450,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-ns1
@@ -460,7 +460,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-db2
@@ -470,7 +470,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-db2-ns1
@@ -480,7 +480,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-nec-db2
@@ -490,7 +490,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-nec-db2-ns1
@@ -501,7 +501,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased
@@ -511,7 +511,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-ns1
@@ -521,7 +521,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-db2
@@ -531,7 +531,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-db2-ns1
@@ -545,7 +545,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-nec-db2
@@ -559,7 +559,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ++  simple-from-foo-join-bar-aliased-nec-db2-ns1
@@ -573,7 +573,7 @@
       ~
       group-by=~
       having=~
-      [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+      [%select top=[~ 10] columns=~[[%all %all]]]
       order-by=~
       ==
 ::
@@ -1843,7 +1843,7 @@
               predicate=~
               group-by=~
               having=~
-              [%select top=~ bottom=~ columns=~[[%all %all]]]
+              [%select top=~ columns=~[[%all %all]]]
               order-by=~
               ==
           ~
@@ -1909,7 +1909,7 @@
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[aliased-from-foo-ns1] ~ ~]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ns1.foo F1 SELECT TOP 10 bottom 9 *"
+              "FROM ns1.foo F1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (aliased)
 ++  test-join-09
@@ -1950,7 +1950,7 @@
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[aliased-from-foo-ns1] ~ ~]]]
     !>    %-  parse:parse(default-database 'db1')
-              "FROM ns1.foo as F1 SELECT TOP 10 bottom 9 *"
+              "FROM ns1.foo as F1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (aliased as)
 ++  test-join-15
@@ -2132,7 +2132,7 @@
                             ~
                             group-by=~
                             having=~
-                            [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+                            [%select top=[~ 10] columns=~[[%all %all]]]
                             order-by=~
                             ==
                         ~
@@ -2175,7 +2175,7 @@
                             ~
                             group-by=~
                             having=~
-                            [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+                            [%select top=[~ 10] columns=~[[%all %all]]]
                             order-by=~
                             ==
                         ~
@@ -2225,7 +2225,7 @@
                             ~
                             group-by=~
                             having=~
-                            [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+                            [%select top=[~ 10] columns=~[[%all %all]]]
                             order-by=~
                             ==
                       ~

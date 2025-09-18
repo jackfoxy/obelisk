@@ -725,7 +725,7 @@ For instance the joined query we last ran produces the following pretty-printed 
         [ ~
           [ %from
               object
-            [ %table-set
+            [ %relation
                 object
               [ %qualified-object
                 ship=~
@@ -741,7 +741,7 @@ For instance the joined query we last ran produces the following pretty-printed 
               [ %joined-object
                 join=%join
                   object
-                [ %table-set
+                [ %relation
                     object
                   [ %qualified-object
                     ship=~
@@ -794,7 +794,6 @@ For instance the joined query we last ran produces the following pretty-printed 
           selection
         [ %select
           top=~
-          bottom=~
             columns
           ~[
             [ %qualified-column
@@ -843,7 +842,7 @@ For instance the joined query we last ran produces the following pretty-printed 
         [ ~
           [ %from
               object
-            [ %table-set
+            [ %relation
                 object
               [ %qualified-object
                 ship=~
@@ -859,7 +858,7 @@ For instance the joined query we last ran produces the following pretty-printed 
               [ %joined-object
                 join=%join
                   object
-                [ %table-set
+                [ %relation
                     object
                   [ %qualified-object
                     ship=~
@@ -914,7 +913,6 @@ For instance the joined query we last ran produces the following pretty-printed 
           selection
         [ %select
           top=~
-          bottom=~
             columns
           ~[
             [ %qualified-column

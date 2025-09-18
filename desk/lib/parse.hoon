@@ -3163,19 +3163,17 @@
   |=  [a=* f=(unit from:ast) alias-map=(map @t qualified-table:ast)]
   ^-  select:ast
   =/  top      *(unit @ud)
-  =/  bottom   *(unit @ud)
   =/  columns  *(list selected-column:ast)
   |-
     ~|  "cannot parse select -.a:  {<-.a>}"
     ?~  a
       ?~  columns  ~|('no columns selected' !!)
       ?~  f
-        (select:ast %select top bottom (flop columns))
-      (select:ast %select top bottom (finalize-select (flop columns) alias-map))
+        (select:ast %select top (flop columns))
+      (select:ast %select top (finalize-select (flop columns) alias-map))
     ?@  -.a
       ?+  -.a  ~|('some other select atom' !!)
       %top       ?>  ?=(@ud +<.a)  $(top `+<.a, a +>.a)
-      %bottom    ?>  ?=(@ud +<.a)  $(bottom `+<.a, a +>.a)
       %all
         %=  $
           columns
@@ -4941,23 +4939,9 @@
     (more com select-column)
     select-column
   ==
-++  select-top-bottom  ~+
-  ;~  plug
-    (cold %top ;~(plug whitespace (jester 'top')))
-    ;~(pfix whitespace dem)
-    (cold %bottom ;~(plug whitespace (jester 'bottom')))
-    ;~(pfix whitespace dem)
-    select-columns
-  ==
 ++  select-top  ~+
   ;~  plug
     (cold %top ;~(plug whitespace (jester 'top')))
-    ;~(pfix whitespace dem)
-    ;~(less ;~(plug whitespace (jester 'bottom')) select-columns)
-  ==
-++  select-bottom  ~+
-  ;~  plug
-    (cold %bottom ;~(plug whitespace (jester 'bottom')))
     ;~(pfix whitespace dem)
     select-columns
   ==
@@ -4965,9 +4949,7 @@
   ;~  plug
     (cold %select ;~(plug whitespace (jester 'select')))
     ;~  pose
-      select-top-bottom
       select-top
-      select-bottom
       select-columns
     ==
   ==

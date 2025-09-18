@@ -13,7 +13,7 @@
   |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast)]
   ^-  (list command:ast)
   =/  columns  ~[unqualified-col-2 unqualified-col-1]
-  =/  select  [%select top=~ bottom=~ columns=columns]
+  =/  select  [%select top=~ columns=columns]
   =/  table-set  ?~(table table-set-1 [%table-set object=(need table)])
   =/  from  [%from object=table-set as-of=~ joins=~]
   =/  query

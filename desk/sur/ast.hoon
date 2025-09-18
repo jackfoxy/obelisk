@@ -247,7 +247,6 @@
   $:
     %select
     top=(unit @ud)
-    bottom=(unit @ud)
     columns=(list selected-column)
   ==
 +$  selected-column

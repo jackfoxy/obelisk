@@ -449,9 +449,9 @@
   ^-  [server (list set-table) (list vector)]
   :: literal only
   ?~  from.q  [state (select-literals columns.select.q is-cte)]
-  :: no joins, it's a single table
+  :: no joins, it's a single relation
   =/  f  (need from.q)
-  ?~  joins.f  (select-table(state state, bowl bowl) q is-cte)
+  ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
   ::
   =/  =join-return  (join-all(state state, bowl bowl) q named-ctes)
   =/  set-tables  set-tables.join-return

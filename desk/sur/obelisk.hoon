@@ -67,9 +67,8 @@
       =lookup-type
       pri-indx=(unit index)
       join=(unit join-type)
-      predicate=(unit predicate)
+      =predicate
       rowcount=@
-    ::  key=(list key-column)
       pri-indexed=(tree [(list @) (map @tas @)])
       indexed-rows=(list indexed-row)
       joined-rows=(list joined-row)
@@ -101,13 +100,13 @@
       qualified-columns=(list qual-col-type)
       ==
 ::
-+$  relation
++$  joined-relation
   $:
-    %relation
+    %joined-relation
     =table-set
     as-of=(unit as-of)
     join=(unit join-type)
-    predicate=(unit predicate)  ::to do: why is this unit?
+    =predicate
   ==
 ::
 +$  named-ctes  (map @tas (list set-table))
