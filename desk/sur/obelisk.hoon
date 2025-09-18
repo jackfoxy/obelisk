@@ -103,7 +103,7 @@
 +$  joined-relation
   $:
     %joined-relation
-    =table-set
+    =relation
     as-of=(unit as-of)
     join=(unit join-type)
     =predicate

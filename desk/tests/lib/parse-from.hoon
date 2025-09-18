@@ -18,7 +18,7 @@
 ::  TABLE SET
 ::
 ++  foo-table
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -27,7 +27,7 @@
           alias=~
           ==
 ++  foo-table-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -36,7 +36,7 @@
           alias=~
           ==
 ++  foo-table-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -45,7 +45,7 @@
           alias=~
           ==
 ++  foo-table-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -54,7 +54,7 @@
           alias=~
           ==
 ++  foo-table-nec-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -63,7 +63,7 @@
           alias=~
           ==
 ++  foo-table-nec-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -72,7 +72,7 @@
           alias=~
           ==
 ++  foo-table-f1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -81,7 +81,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-table-f1-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -90,7 +90,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-table-f1-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -99,7 +99,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-table-f1-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -108,7 +108,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-table-f1-nec-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -117,7 +117,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-table-f1-nec-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -126,7 +126,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-table-f1-low
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -135,7 +135,7 @@
           alias=[~ 'f1']
           ==
 ++  bar-unaliased
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -144,7 +144,7 @@
           alias=~
           ==
 ++  bar-unaliased-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -153,7 +153,7 @@
           alias=~
           ==
 ++  bar-unaliased-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -162,7 +162,7 @@
           alias=~
           ==
 ++  bar-unaliased-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -171,7 +171,7 @@
           alias=~
           ==
 ++  bar-unaliased-nec-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -180,7 +180,7 @@
           alias=~
           ==
 ++  bar-unaliased-nec-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -189,7 +189,7 @@
           alias=~
           ==
 ++  foo-alias-y
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -198,7 +198,7 @@
           alias=[~ 'y']
           ==
 ++  bar-alias-x
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -207,7 +207,7 @@
           alias=[~ 'x']
           ==
 ++  foo-aliased
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -216,7 +216,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-aliased-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -225,7 +225,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-aliased-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -234,7 +234,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-aliased-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -243,7 +243,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-aliased-nec-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -252,7 +252,7 @@
           alias=[~ 'F1']
           ==
 ++  foo-aliased-nec-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -261,7 +261,7 @@
           alias=[~ 'F1']
           ==
 ++  bar-aliased
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -270,7 +270,7 @@
           alias=[~ 'B1']
           ==
 ++  bar-aliased-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -279,7 +279,7 @@
           alias=[~ 'B1']
           ==
 ++  bar-aliased-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -288,7 +288,7 @@
           alias=[~ 'B1']
           ==
 ++  bar-aliased-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db2'
@@ -297,7 +297,7 @@
           alias=[~ 'B1']
           ==
 ++  bar-aliased-nec-db2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -306,7 +306,7 @@
           alias=[~ 'B1']
           ==
 ++  bar-aliased-nec-db2-ns1
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=[~ ~nec]
           database='db2'
@@ -315,11 +315,11 @@
           alias=[~ 'B1']
           ==
 ++  passthru-row-y
-  [%table-set object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
+  [%relation object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
 ++  passthru-row-x
-  [%table-set object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
+  [%relation object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
 ++  passthru-unaliased
-  [%table-set object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
+  [%relation object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
 ::
 ::  QUERY
 ::
@@ -630,7 +630,7 @@
 ++  join-bar-aliased
   :~  :*  %joined-object
           join=%join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ship=~
                   database='db1'
@@ -645,7 +645,7 @@
 ++  join-bar-aliased-ns1
   :~  :*  %joined-object
           join=%join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ship=~
                   database='db1'
@@ -660,7 +660,7 @@
 ++  join-bar-aliased-db2
   :~  :*  %joined-object
           join=%join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ship=~
                   database='db2'
@@ -675,7 +675,7 @@
 ++  join-bar-aliased-db2-ns1
   :~  :*  %joined-object
           join=%join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ship=~
                   database='db2'
@@ -690,7 +690,7 @@
 ++  join-bar-aliased-nec-db2
   :~  :*  %joined-object
           join=%join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ship=[~ ~nec]
                   database='db2'
@@ -705,7 +705,7 @@
 ++  join-bar-aliased-nec-db2-ns1
   :~  :*  %joined-object
           join=%join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ship=[~ ~nec]
                   database='db2'
@@ -857,7 +857,7 @@
           ==
       :*  %joined-object
           %join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
@@ -879,7 +879,7 @@
           ==
       :*  %joined-object
           %join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
@@ -901,7 +901,7 @@
           ==
       :*  %joined-object
           %join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
@@ -923,7 +923,7 @@
           ==
       :*  %joined-object
           %join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
@@ -945,7 +945,7 @@
           ==
       :*  %joined-object
           %join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
@@ -967,7 +967,7 @@
           ==
       :*  %joined-object
           %join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
@@ -989,7 +989,7 @@
           ==
       :*  %joined-object
           %left-join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
@@ -1011,7 +1011,7 @@
           ==
       :*  %joined-object
           %left-join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db1'  ::database
@@ -1033,7 +1033,7 @@
           ==
       :*  %joined-object
           %left-join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
@@ -1055,7 +1055,7 @@
           ==
       :*  %joined-object
           %left-join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   ~      ::ship
                   'db2'  ::database
@@ -1077,7 +1077,7 @@
           ==
       :*  %joined-object
           %left-join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
@@ -1099,7 +1099,7 @@
           ==
       :*  %joined-object
           %left-join
-          :-  %table-set
+          :-  %relation
               :*  %qualified-table
                   [~ ~nec]  ::ship
                   'db2'     ::database
@@ -1793,12 +1793,12 @@
               :-
                 ~
                 :^  %from
-                    [%table-set [%qualified-table ~ %db1 %dbo %foo [~ 'F1']]]
+                    [%relation [%qualified-table ~ %db1 %dbo %foo [~ 'F1']]]
                     [~ [%dr ~h5.m30.s12]]
                     :~
                       :*  %joined-object
                           %join
-                          :-  %table-set
+                          :-  %relation
                               [%qualified-table ~ %db1 %dbo %bar [~ 'B2']]
                               
                           as-of=[~ [%da ~2000.1.1]]
@@ -1806,7 +1806,7 @@
                           ==
                       :*  %joined-object
                           %left-join
-                          :-  %table-set
+                          :-  %relation
                               [%qualified-table ~ %db1 %dbo %baz [~ 'B3']]
                           as-of=[~ [%da ~2000.1.1]]
                           :+  %eq
@@ -1815,14 +1815,14 @@
                           ==
                       :*  %joined-object
                           %join
-                          :-  %table-set
+                          :-  %relation
                               [%qualified-table ~ %db1 %dbo %bar [~ 'B4']]
                           as-of=~
                           predicate=~
                           ==
                       :*  %joined-object
                           %left-join
-                          :-  %table-set
+                          :-  %relation
                               [%qualified-table ~ %db1 %dbo %bar ~]
                           as-of=~
                           :+  %eq
@@ -1831,7 +1831,7 @@
                           ==
                       :*  %joined-object
                           %join
-                          :-  %table-set
+                          :-  %relation
                               [%qualified-table ~ %db1 %dbo %foo ~]
                           [~ [%as-of-offset offset=2 units=%minutes]]
                           :+  %eq
@@ -2159,7 +2159,7 @@
                                             ==
                                         :*  %joined-object
                                             join=%left-join
-                                            :-  %table-set
+                                            :-  %relation
                                                 :*  %qualified-table
                                                     ship=~
                                                     database='db1'
@@ -2196,7 +2196,7 @@
                                     as-of=~
                                     :~  :*  %joined-object
                                             join=%join
-                                            :-  %table-set
+                                            :-  %relation
                                                 :*  %qualified-table
                                                           ship=~
                                                           database='db1'
@@ -2209,7 +2209,7 @@
                                             ==
                                         :*  %joined-object
                                             join=%left-join
-                                            :-  %table-set
+                                            :-  %relation
                                                 :*  %qualified-table
                                                           ship=~
                                                           database='db1'
@@ -2237,7 +2237,7 @@
             "left join baz b2 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from pass-thru row (un-aliased)
-:::: to do: uncomment and fix when inserted table-set enabled
+:::: to do: uncomment and fix when inserted relation enabled
 ::++  test-join-10
 ::  %+  expect-eq
 ::    !>  ~[[%selection ctes=~ [[simple-from-foo-row] ~ ~]]]
@@ -2395,7 +2395,7 @@
             "FROM foo cross join bar SELECT *"
 ::
 ::  from pass-thru as (aliased) cross join bar (aliased)
-:::: to do: uncomment and fix when inserted table-set enabled
+:::: to do: uncomment and fix when inserted relation enabled
 ::++  test-join-22
 ::  %+  expect-eq
 ::  =/  expected  :+  %selection

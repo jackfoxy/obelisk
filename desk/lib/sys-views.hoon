@@ -40,7 +40,7 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             %sys
@@ -192,7 +192,7 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -293,7 +293,7 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -420,7 +420,7 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -556,7 +556,7 @@
     :+  :*  %query
             :-  ~          ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -691,7 +691,7 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -818,7 +818,7 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database

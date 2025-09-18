@@ -46,7 +46,7 @@
                       object.+.object.from
                     ~|("SELECT: not supported on %query-row" !!)
   =/  triple=[set-table qualified-lookup-type (list qual-col-type)]
-    %:  prep-table-set  query-source
+    %:  prep-relation  query-source
                         as-of.from
                         ~
                         ~
@@ -231,11 +231,11 @@
                                                       ==
                                  joins.from
   =/  relat=joined-relation  -.joined-relations
-  =/  query-source  ?:  ?=(qualified-table:ast object.table-set.relat)
-                      object.table-set.relat
+  =/  query-source  ?:  ?=(qualified-table:ast object.relation.relat)
+                      object.relation.relat
                     ~|("SELECT: not supported on %query-row" !!)
   =.  joined-relations  +.joined-relations
-  =/  triple            %:  prep-table-set  query-source
+  =/  triple            %:  prep-relation  query-source
                                           as-of.relat
                                           ~
                                           ~
@@ -254,10 +254,10 @@
                                   qualified-columns
                                   ==
   =.  query-source
-        ?:  ?=(qualified-table:ast object.table-set.i.joined-relations)
-              object.table-set.i.joined-relations
+        ?:  ?=(qualified-table:ast object.relation.i.joined-relations)
+              object.relation.i.joined-relations
             ~|("SELECT: not supported on %query-row" !!)
-  =.  triple  %:  prep-table-set  query-source
+  =.  triple  %:  prep-relation  query-source
                                   as-of.i.joined-relations
                                   join.i.joined-relations
                                   predicate.i.joined-relations
@@ -272,7 +272,7 @@
     qualified-columns  +>.triple
   ==
 ::
-++  prep-table-set
+++  prep-relation
   |=  $:  ts=qualified-table:ast
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
