@@ -16,6 +16,10 @@
 9. If two nested permissions are for the same @p, or the outer *grantee* is more generally the case for the inner @p, and the grant object nests, the inner permission must be more or equally permissive. ADMINREAD < READONLY < INSERT <= UPDATE <= DELETE < READWRITE
 10. Security permissions are outside the scope of time indexing and apply in real time.
 
+NOTE:  agent is a path (sup in bowl)  sup=bitt:gall  (map duct (pair ship path))
+       agent is lost by thread?
+       preventing SQL injection attacks ultimately requires stored procedures (not currently in sec model)
+
 Permission updating takes place through GRANT and REVOKE commands. GRANT adds permissions to foreign ships, possibly restricted by path, and to previously restricted local paths. REVOKE removes permissions from previously allowed foreign ships, possibly restricted by path, and from local paths.
 
 Permissions may grant access to foreign ships based on their relation to the host ship (parent, moons, siblings -- applies to moon host only) or as ship @p, optionally qualified by an agent or shrubbery path.
@@ -26,7 +30,7 @@ Granting and revoking permissions may be qualified be a timespan constraint.
 
 ## GRANT
 
-Grants permission to selected foreign ships and/or paths on foreign ships to read from and/or write to the server or selected `<database>`, `<namespace>`, `<table-set>`, or column objects on the host ship.
+Grants permission to selected foreign ships and/or paths on foreign ships to read from and/or write to the server or selected `<database>`, `<namespace>`, `<table>`, `<view>`, or column objects on the host ship.
 
 Grant will also restore a permission to a local path previously revoked.
 ```
@@ -49,8 +53,9 @@ Grant will also restore a permission to a local path previously revoked.
           | <security-target>
           | { DATABASE <database>
               | NAMESPACE [<database>.] <namespace>
-              | <table-set>
-              | /<db>/<namespace>/<table-set-name>/<column-name>
+              | <table>
+              | <view>
+              | /<db>/<namespace>/<table>/<column-name>
             } [ ,...n ]
         }
     [ FOR { <@dr> [ [ STARTING ] <@da> ] }
@@ -120,7 +125,7 @@ Grant permission on named database to all `<table>s` and `<view>`s.
 **`[<database>.]<namespace>`**
 Grant permission on named namespace to all `<table>s` and `<view>`s.
 
-**`[<db-qualifier>] { <table-set> | <view> | <column> }`**
+**`[<db-qualifier>] { <table> | <view> | <column> }`**
 Grant permission is on named object.
 
 ### Remarks
@@ -133,7 +138,7 @@ Write permission includes `INSERT`, `UPDATE`, `DELETE`, and `TRUNCATE TABLE`.
 
 If a database object is dropped and then recreated with the same name, all currently applicable permissions continue to apply.
 
-`<table-set>` applies whether a `<view>` is shadowing a `<table>` or not.
+`<table>` applies whether a `<view>` is shadowing a `<table>` or not.
 In the case where a shadowing `<view>` is dropped while a GRANT or REVOKE is in effect, the permission applies to the `<table>`. In the case where a new `<view>` shadows a granted `<table>` while a GRANT or REVOKE is in effect, the permission applies to both named objects.
 
 ### Produced Metadata
@@ -148,13 +153,13 @@ In the case where a shadowing `<view>` is dropped while a GRANT or REVOKE is in 
 grant permissions must be by local agent
 `<database>` does not exist.
 `<namespace>` does not exist.
-`<table-set>` does not exist.
+`<table>` does not exist.
 `GRANT` target type does not exist. (e.g. host is a `MOON` and `GRANT` is `ON MOONS`)
 
 
 ## REVOKE
 
-Revokes permission to selected foreign ships and local paths to read from and/or write to the server, selected `<database>`, `<namespace>`, `<table-set>`, `view`, or column objects on the host ship.
+Revokes permission to selected foreign ships and local paths to read from and/or write to the server, selected `<database>`, `<namespace>`, `<table>`, `<view>`, or column objects on the host ship.
 
 ```
 <revoke> ::=
@@ -176,8 +181,9 @@ Revokes permission to selected foreign ships and local paths to read from and/or
     ON   SERVER
          | { DATABASE <database>
              | NAMESPACE [<database>.] <namespace>
-             | <table-set>
-             | /<db>/<namespace>/<table-set-name>/<column-name>
+             | <table>
+             | <view>
+             | /<db>/<namespace>/<table>/<column-name>
            } [ ,...n ]
     [ FOR { <@dr> [ [ STARTING ] <@da> ] }
           | { <@da> TO <@da> }
@@ -244,7 +250,7 @@ Revoke permission on the named database.
 **`[<database>.]<namespace>`**
 Revoke permission on named namespace.
 
-**`[<db-qualifier>] { <table-set> | <view> | <column> }`**
+**`[<db-qualifier>] { <table> | <view> | <column> }`**
 Revoke permission is on named object.
 
 ### Remarks
@@ -284,6 +290,7 @@ revoke permissions must be by local agent
   CREATE SECURITY-TARGET
     { DATABASE <database>
       | NAMESPACE [<database>.] <namespace>
-      | <table-set>
-      | /<db>/<namespace>/<table-set-name>/<column-name>
+      | <table>
+      | <view>
+      | /<db>/<namespace>/<table>/<column-name>
     } [ ,...n ]

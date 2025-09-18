@@ -1,6 +1,6 @@
 # DELETE
 
-Deletes rows from a `<table-set>`.
+Deletes rows from a `<relation>`.
 
 ```
 <delete> ::=

@@ -1,19 +1,19 @@
 # SELECT
 *supported in urQL parser, partially supported and under development in Obelisk*
 
-The `<query>` command provides a means to create `<table-set>`s derived from persisted and/or cached `<table-set>`s and/or constants. Data rows can be joined based on predicates, specific columns can be selected, and the resulting rows can be filtered by predicate.
+The `<query>` command provides a means to create `<relation>`s derived from persisted and/or cached `<relation>`s and/or constants. Data rows can be joined based on predicates, specific columns can be selected, and the resulting rows can be filtered by predicate.
 
 ```
 <query> ::=
-  [ FROM <table-set> [ <as-of-time> ] [ [AS] <alias> ]
-    { JOIN <table-set> [ <as-of-time> ] [ [AS] <alias> ] }
+  [ FROM <relation> [ <as-of-time> ] [ [AS] <alias> ]
+    { JOIN <relation> [ <as-of-time> ] [ [AS] <alias> ] }
     | {
         { JOIN | LEFT JOIN | RIGHT JOIN | OUTER JOIN }
-          <table-set> [ <as-of-time> ] [ [AS] <alias> ]
+          <relation> [ <as-of-time> ] [ [AS] <alias> ]
           ON <predicate>
       } 
     [ ...n ]
-    | CROSS JOIN <table-set> [ <as-of-time> ] [ [AS] <alias> ]
+    | CROSS JOIN <relation> [ <as-of-time> ] [ [AS] <alias> ]
   ]
   [ WHERE <predicate> ]
   [ GROUP BY { <qualified-column> 
@@ -22,7 +22,7 @@ The `<query>` command provides a means to create `<table-set>`s derived from per
     [ HAVING <predicate> ]
   ]
   [ SCALARS {<alias> <scalar-function>} ]
-  SELECT [ TOP <n> ] [ BOTTOM <n> ]
+  SELECT [ TOP <n> ]
     { * | { [<ship-qualifier>]<table-view> | <alias> }.*
         | <expression> [ AS <column-alias> ]
     } [ ,...n ]
@@ -59,9 +59,9 @@ Timestamp for selection of table data. Defaults to `NOW` (current time). When sp
 
 *supported in urQL parser, not yet supported in Obelisk*
 
-Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<selection>`, unless required by `TOP` or `BOTTOM` specified in the `SELECT` statement.
+Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<selection>`, unless required by `TOP` specified in the `SELECT` statement.
 
-*GROUP BY, ORDER BY, TOP, and BOTTOM supported in urQL parser, not yet supported in Obelisk*
+*GROUP BY, ORDER BY, and TOP supported in urQL parser, not yet supported in Obelisk*
 
 ```
 <predicate> ::=
@@ -141,7 +141,7 @@ Whitespace is not required between operands and binary-operators, except when th
 +$  query
   $:
     %query
-    from=(unit from)
+    from=(unit from)f
     scalars=(list scalar-function)
     predicate=(unit predicate)
     group-by=(list grouping-column)
@@ -153,20 +153,20 @@ Whitespace is not required between operands and binary-operators, except when th
 
 ### Arguments
 
-**`<table-set> [ [AS] <alias> ]`**
-Any valid `<table-set>`.
+**`<relation> [ [AS] <alias> ]`**
+Any valid `<relation>`.
 
-`<alias>` allows short-hand reference to the `<table-set>` in the `SELECT` clause and subsequent `<predicates>`. 
+`<alias>` allows short-hand reference to the `<relation>` in the `SELECT` clause and subsequent `<predicates>`. 
 
 **`{ <qualified-column> | <column-alias> | <column-ordinal> }`**
 
 Used to select columns for ordering and grouping. `<column-ordinal>`s are 1-based.
 
-**`[ TOP <n> ] [ BOTTOM <n> ]`**
+**`[ TOP <n> ]`**
 
 Selects only the first and/or last `n` rows returned by the rest of the query. If the result set is less than `n`, the entire set of rows is returned. 
 
-`TOP` and `BOTTOM` require the presence of an `ORDER BY` clause. This clause must provide for a total ordering of the returned rows, i.e. every sequence of `ORDER BY` columns must be unique within the returned rows. 
+`TOP` requires the presence of an `ORDER BY` clause. This clause must provide for a total ordering of the returned rows, i.e. every sequence of `ORDER BY` columns must be unique within the returned rows. 
 
 ### Remarks
 

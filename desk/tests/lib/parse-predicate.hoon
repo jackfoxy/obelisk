@@ -20,7 +20,7 @@
 ::  predicate
 ::
 ::  re-used components
-++  select-all-columns  [%select top=~ bottom=~ columns=~[[%all %all]]]
+++  select-all-columns  [%select top=~ columns=~[[%all %all]]]
 ++  foo
   [[%unqualified-column 'foo' ~] ~ ~]
 ++  t1-foo
@@ -189,7 +189,7 @@
 ++  second-and               [%and first-and t2-bar-in-list]
 ++  king-and                 [%and [second-and] last-or]
 ::
-++  select-top-10-all  [%select top=[~ 10] bottom=~ columns=~[[%all %all]]]
+++  select-top-10-all  [%select top=[~ 10] columns=~[[%all %all]]]
 ++  foo-table
   [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]
 ++  foo-table-f1
@@ -201,16 +201,16 @@
       alias=[~ 'F1']
       ==
 ++  from-foo
-  [~ [%from object=[%table-set object=foo-table] as-of=~ joins=~]]
+  [~ [%from object=[%relation object=foo-table] as-of=~ joins=~]]
 ++  from-foo-aliased
-  [~ [%from object=[%table-set object=foo-table-f1] as-of=~ joins=~]]
+  [~ [%from object=[%relation object=foo-table-f1] as-of=~ joins=~]]
 ++  simple-from-foo
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
 ++  foo-alias-y
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -219,7 +219,7 @@
           alias=[~ 'y']
           ==
 ++  bar-alias-x
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -228,7 +228,7 @@
           alias=[~ 'x']
           ==
 ++  foo-unaliased
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -237,7 +237,7 @@
           alias=~
           ==
 ++  bar-unaliased
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -246,7 +246,7 @@
           alias=~
           ==
 ++  adoptions
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -255,7 +255,7 @@
           alias=[~ 'T1']
           ==
 ++  adoptions-t2
-  :-  %table-set
+  :-  %relation
       :*  %qualified-table
           ship=~
           database='db1'
@@ -264,11 +264,11 @@
           alias=[~ 'T2']
           ==
 ++  passthru-row-y
-  [%table-set object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
+  [%relation object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
 ++  passthru-row-x
-  [%table-set object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
+  [%relation object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
 ++  passthru-unaliased
-  [%table-set object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
+  [%relation object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
 ::
 ::  test binary operators, varying spacing
 ++  test-predicate-01
@@ -554,7 +554,7 @@
                     pred
                     group-by=~
                     having=~
-                    [%select top=~ bottom=~ columns=~[[%all %all]]]
+                    [%select top=~ columns=~[[%all %all]]]
                     ~
                     ==
                 ~
@@ -1445,7 +1445,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            :-  %table-set
+                            :-  %relation
                                 :*  %qualified-table
                                     ship=~
                                     database='db1'
@@ -1456,7 +1456,7 @@
                             as-of=~
                             :~  :*  %joined-object
                                     join=%join
-                                    :-  %table-set
+                                    :-  %relation
                                         :*  %qualified-table
                                             ship=~
                                             database='db1'
@@ -1726,7 +1726,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            :-  %table-set
+                            :-  %relation
                                 :*  %qualified-table
                                     ship=~
                                     database='db1'
@@ -1737,7 +1737,7 @@
                             as-of=~
                             :~  :*  %joined-object
                                     join=%join
-                                    :-  %table-set
+                                    :-  %relation
                                         :*  %qualified-table
                                             ship=~
                                             database='db1'

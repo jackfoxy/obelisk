@@ -13,9 +13,9 @@
   |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast)]
   ^-  (list command:ast)
   =/  columns  ~[unqualified-col-2 unqualified-col-1]
-  =/  select  [%select top=~ bottom=~ columns=columns]
-  =/  table-set  ?~(table table-set-1 [%table-set object=(need table)])
-  =/  from  [%from object=table-set as-of=~ joins=~]
+  =/  select  [%select top=~ columns=columns]
+  =/  relation  ?~(table relation-1 [%relation object=(need table)])
+  =/  from  [%from object=relation as-of=~ joins=~]
   =/  query
     :*
       %query
@@ -34,7 +34,7 @@
 ++  default-db           'db1'
 ++  default-namespace    %dbo
 ::
-++  table-set-1          :-  %table-set
+++  relation-1          :-  %relation
                            :*  %qualified-table
                                ship=~
                                database=%db1

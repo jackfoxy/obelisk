@@ -102,7 +102,7 @@ WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
 SELECT T1.date, day-name, us-federal-holiday
 
 parse: ms/34.649
-query: s/8.266
+query: s/7.073
 
 ```
 %obelisk-result:

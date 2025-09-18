@@ -49,7 +49,7 @@ Alter the structure of an existing `<view>`.
 Specifies the name of the view to alter.
 
 **`<selection>`**
-Refers to the `<selection>` producing the output `<table-set>`.
+Refers to the `<selection>` producing the output `<relation>`.
 
 ## Remarks
 This command mutates the state of the Obelisk agent.

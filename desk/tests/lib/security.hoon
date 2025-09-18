@@ -86,7 +86,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%readwrite
                              grantees=~[[[~.p ~sampel-palnet] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ~
                                                                'db'
@@ -107,7 +107,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%adminread
                              grantees=~[[[~.tas %parent] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
@@ -128,7 +128,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%readwrite
                              grantees=~[[[~.p ~sampel-palnet] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
@@ -149,7 +149,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%adminread
                              grantees=~[[[~.tas %parent] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
@@ -170,7 +170,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%readwrite
                              grantees=~[[[~.p ~sampel-palnet] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -195,7 +195,7 @@
                                  [[~.p ~nec] ~]
                                  [[~.p ~sampel-palnet] ~]
                                  ==
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -220,7 +220,7 @@
                                  [[~.p ~nec] ~]
                                  [[~.p ~sampel-palnet] ~]
                                  ==
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
@@ -245,7 +245,7 @@
                                  [[~.p ~nec] ~]
                                  [[~.p ~sampel-palnet] ~]
                                  ==
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -270,7 +270,7 @@
                                  [[~.p ~nec] ~]
                                  [[~.p ~sampel-palnet] ~]
                                  ==
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db'
@@ -291,7 +291,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%adminread
                              grantees=~[[[~.tas %parent] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -312,7 +312,7 @@
     !>  :~  %:  grant:ast    %grant
                              permission=%adminread
                              grantees=~[[[~.tas %our] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -338,7 +338,7 @@
                                  [[~.tas %siblings] [~ /foo/siblings]]
                                  [[~.tas %moons] [~ /foo/moons]]
                                  ==
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -368,7 +368,7 @@
                            [[~.tas %siblings] [~ /foo/siblings]]
                            [[~.tas %moons] [~ /foo/moons]]
                            ==
-                       :~  :-  %table-set
+                       :~  :-  %table
                                %:  qualified-table:ast  %qualified-table
                                                          ship=~
                                                          database='db2'
@@ -552,7 +552,7 @@
     !>  :~  %:  revoke:ast  %revoke
                             %readwrite
                             ~[[[~.p ~sampel-palnet] ~]]
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                           ship=~
                                           database='db'
@@ -573,7 +573,7 @@
     !>  :~  %:  revoke:ast  %revoke
                             %all
                             ~[[[~.tas %all] ~]]
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db'
@@ -594,7 +594,7 @@
     !>  :~  %:  revoke:ast  %revoke
                             %readwrite
                             ~[[[~.p ~sampel-palnet] ~]]
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db'
@@ -615,7 +615,7 @@
     !>  :~  %:  revoke:ast  %revoke
                             %adminread
                             ~[[[~.tas %parent] ~]]
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db'
@@ -636,7 +636,7 @@
     !>  :~  %:  revoke:ast  %revoke
                             %readwrite
                             ~[[[~.p ~sampel-palnet] ~]]
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db2'
@@ -661,7 +661,7 @@
                                 [[~.p ~nec] ~]
                                 [[~.p ~sampel-palnet] ~]
                                 ==
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db2'
@@ -688,7 +688,7 @@
                                 [[~.p ~nec] ~]
                                 [[~.p ~sampel-palnet] ~]
                                 ==
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db'
@@ -713,7 +713,7 @@
                                 [[~.p ~nec] ~]
                                 [[~.p ~sampel-palnet] ~]
                                 ==
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db2'
@@ -739,7 +739,7 @@
                                 [[~.p ~nec] ~]
                                 [[~.p ~sampel-palnet] ~]
                                 ==
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db'
@@ -761,7 +761,7 @@
     !>  :~  %:  revoke:ast  %revoke
                             %adminread
                             ~[[[~.tas %parent] ~]]
-                            :~  :-  %table-set
+                            :~  :-  %table
                                     :*  %qualified-table
                                         ship=~
                                         database='db2'
@@ -782,7 +782,7 @@
     !>  :~  %:  revoke:ast    %revoke
                              permission=%adminread
                              revokees=~[[[~.tas %our] ~]]
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -808,7 +808,7 @@
                                  [[~.tas %siblings] [~ /foo/siblings]]
                                  [[~.tas %moons] [~ /foo/moons]]
                                  ==
-                             :~  :-  %table-set
+                             :~  :-  %table
                                      %:  qualified-table:ast  %qualified-table
                                                                ship=~
                                                                database='db2'
@@ -838,7 +838,7 @@
                            [[~.tas %siblings] [~ /foo/siblings]]
                            [[~.tas %moons] [~ /foo/moons]]
                            ==
-                       :~  :-  %table-set
+                       :~  :-  %table
                                %:  qualified-table:ast  %qualified-table
                                                          ship=~
                                                          database='db2'

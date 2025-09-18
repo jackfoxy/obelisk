@@ -42,7 +42,7 @@ Features coming after v0.5 alpha release.
 
 * __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will.
 
-* __Scalar functions__ -- functions on one row of a table-set returning a noun. (A table-set is a user-defined table, view, result of a CTE, or join of any or all of the above.)
+* __Scalar functions__ -- functions on one row of a relation returning a noun. (A relation is a user-defined table, view, CTE, or join of any or all of the above.)
 
 * __GROUP BY...HAVING__ -- as in SQL.
 
@@ -54,7 +54,7 @@ Features coming after v0.5 alpha release.
 
 * __Localization of date/time__ -- TBD. (cf. https://github.com/sigilante/l10n) Not sure this is really important, but I can be persuaded.
 
-* __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every table-set is a proper set.)
+* __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
 
 * __Pivoting__ -- similar to SQL.
 
@@ -76,7 +76,7 @@ Features coming after v0.5 alpha release.
 
 * __%quiz__ -- property tests on database, namespace, table, insert, query, etc.
 
-* __in-line table-set__ -- much infrastructure is in place for this, not sure it is a good idea (idea floated at Re-Assembly 2023)
+* __in-line relation__ -- much infrastructure is in place for this, not sure it is a good idea (idea floated at Re-Assembly 2023)
 
 * __alternate urQL grammar__ -- row tuple in square brackets and/or pith for from.
 

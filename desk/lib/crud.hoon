@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *utils, *joins, *predicate
+/+  *utils, *selections, *predicate
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
@@ -449,11 +449,11 @@
   ^-  [server (list set-table) (list vector)]
   :: literal only
   ?~  from.q  [state (select-literals columns.select.q is-cte)]
-  :: no joins, it's a single table
+  :: no joins, it's a single relation
   =/  f  (need from.q)
-  ?~  joins.f  (select-table(state state, bowl bowl) q is-cte)
+  ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
   ::
-  =/  =join-return  (join-all(state state, bowl bowl) q)
+  =/  =join-return  (join-all(state state, bowl bowl) q named-ctes)
   =/  set-tables  set-tables.join-return
   ?~  set-tables  ~|("can't get here" !!)
   =/  selected  columns.select.q
@@ -622,7 +622,6 @@
                             ~
                             ~
                             1
-                            *(list key-column)
                             *(tree [(list @) (map @tas @)])
                             ~[[%indexed-row ~ indexed-cols]]
                             *(list joined-row)
@@ -639,7 +638,6 @@
                 ~
                 ~
                 1
-                *(list key-column)
                 *(tree [(list @) (map @tas @)])
                 ~[[%indexed-row ~ indexed-cols]]
                 *(list joined-row)

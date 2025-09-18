@@ -44,7 +44,7 @@ Row(s) of literal values to insert into target. Source auras must match target c
 **`<selection>`**
 *selection supported in urQL parser, not yet supported in Obelisk*
 
-Selection creating source `<table-set>` to insert into target. Source auras must match target columnwise.
+Selection creating source `<relation>` to insert into target. Source auras must match target columnwise.
 
 (Selection is a wrapper for query.)
 

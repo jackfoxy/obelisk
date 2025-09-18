@@ -1,5 +1,5 @@
 ```
-<table-set> ::=
+<relation> ::=
 ...
   | ( column-1 [,...column-n] )
 ...
