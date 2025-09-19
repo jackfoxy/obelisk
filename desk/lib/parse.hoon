@@ -1704,7 +1704,7 @@
             on-database
             on-namespace
             (stag %table-column stap)
-            (stag %table-set parse-qualified-3object)
+            (stag %relaton parse-qualified-3object)
             ==
 ++  parse-insert  ~+
   ;~  plug
@@ -2198,7 +2198,7 @@
             on-database
             on-namespace
             (stag %table-column stap)
-            (stag %table-set parse-qualified-3object)
+            (stag %relaton parse-qualified-3object)
             ==
 ++  parse-truncate-table  ~+
   ;~  sfix
@@ -2497,9 +2497,9 @@
   |=  a=*
   ^-  merge:ast
   =/  into          %.y
-  =/  target-table  *(unit table-set:ast)
-  =/  new-table     *(unit table-set:ast)
-  =/  source-table  *(unit table-set:ast)
+  =/  target-table  *(unit relaton:ast)
+  =/  new-table     *(unit relaton:ast)
+  =/  source-table  *(unit relaton:ast)
   =/  predicate     *predicate:ast
   =/  matching      *matching-lists:ast
   |-
@@ -2518,13 +2518,13 @@
   ?:  ?=(qualified-table:ast -.a)
     %=  $
       a  +.a
-      target-table  `(table-set:ast %table-set -.a)
+      target-table  `(relaton:ast %relaton -.a)
     ==
   ?:  ?=([%using @ %as @] -.a)
     %=  $
       a  +.a
       source-table
-        :-  ~  %:  table-set:ast  %table-set
+        :-  ~  %:  relaton:ast  %relaton
                                   %:  qualified-table:ast  %qualified-table
                                                             ~
                                                             default-database
@@ -2542,7 +2542,7 @@
   ?:  ?=([%using qualified-table:ast %as @] -.a)
     %=  $
       a  +.a
-      source-table  `(table-set:ast %table-set ->-.a `->+>.a)
+      source-table  `(relaton:ast %relaton ->-.a `->+>.a)
     ==
   ?:  =(%on -<.a)
     %=  $
@@ -2612,9 +2612,9 @@
   ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
-  ?:  =(-<-.a %table-set)   $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-.a %relaton)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %table-set)  $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %relaton)  $(a +.a, from `(produce-from -.a))
 
     ~&  "-.a:  {<-.a>}"
 
@@ -2624,9 +2624,9 @@
   |=  a=*
   ~+
   ^-  from:ast
-  =/  from-object=table-set:ast
-        ?:  ?=([%table-set %qualified-table (unit @p) @ @ @ (unit @t)] -<.a)
-          :-  %table-set
+  =/  from-object=relaton:ast
+        ?:  ?=([%relaton %qualified-table (unit @p) @ @ @ (unit @t)] -<.a)
+          :-  %relaton
               %:  qualified-table:ast  %qualified-table
                                         -<+>-.a
                                         -<+>+<.a
@@ -2634,7 +2634,7 @@
                                         -<+>+>+<.a
                                         -<+>+>+>.a
                                         ==
-        `table-set:ast`(make-query-object ->.a)
+        `relaton:ast`(make-query-object ->.a)
   =/  from-as-of=(unit as-of:ast)
         ?:  =(%as-of-offset ->-.a)  [~ ;;(as-of-offset:ast ->.a)]
         ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
@@ -2648,7 +2648,7 @@
   =/  raw-join  -.raw-joined-objects
   ::cross join
   ?:  ?=  $:  %cross-join
-              [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+              [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
               ==
           raw-join
       %=  $
@@ -2663,7 +2663,7 @@
         raw-joined-objects  +.raw-joined-objects
       ==
   ?:  ?=  $:  %cross-join
-              [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+              [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
               %as-of-offset
               *
               ==
@@ -2680,12 +2680,12 @@
         raw-joined-objects  +.raw-joined-objects
       ==
   ?:  ?|  ?=  $:  %cross-join
-                  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+                  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                   [%da @]
                   ==
               raw-join
           ?=  $:  %cross-join
-                  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+                  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                   [%dr @]
                   ==
               raw-join
@@ -2702,23 +2702,23 @@
         raw-joined-objects  +.raw-joined-objects
       ==
   ::natural join
-  ?:  ?|  ?=  [%join [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]]
+  ?:  ?|  ?=  [%join [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]]
               raw-join
           ?=  $:  %join
-                  $:  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+                  $:  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                       %as-of-offset
                       *
                       ==
                   ==
               raw-join
           ?=  $:  %join
-                  $:  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+                  $:  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                       [%da @]
                       ==
                   ==
               raw-join
           ?=  $:  %join
-                  $:  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+                  $:  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                       [%dr @]
                       ==
                   ==
@@ -2732,7 +2732,7 @@
             %join
             ::  object
             ?:  ?=  $:  %join
-                        $:  %table-set
+                        $:  %relaton
                             [%qualified-table (unit @p) @ @ @ (unit @t)]
                             ==
                         ==
@@ -2740,7 +2740,7 @@
               (make-query-object +>.raw-join)
             (make-query-object +<+.raw-join)
             :: as-of
-            ?:  ?=  $:  $:  %table-set
+            ?:  ?=  $:  $:  %relaton
                             [%qualified-table (unit @p) @ @ @ (unit @t)]
                             ==
                         %as-of-offset
@@ -2748,7 +2748,7 @@
                         ==
                     +.raw-join
               [~ ;;(as-of-offset:ast +>.raw-join)]
-            ?:  ?=  $:  $:  %table-set
+            ?:  ?=  $:  $:  %relaton
                             [%qualified-table (unit @p) @ @ @ (unit @t)]
                             ==
                         [@ @]
@@ -2764,17 +2764,17 @@
 
   :: join on predicate (no alias)
   ?:  ?=(join-type:ast -.raw-join)
-    ?:  ?|  ?=  $:  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+    ?:  ?|  ?=  $:  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                     %as-of-offset
                     @
                     @
                     ==
                 +<.raw-join
-            ?=  $:  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+            ?=  $:  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                     [%da @]
                     ==
                 +<.raw-join
-            ?=  $:  [%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]]
+            ?=  $:  [%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]]
                     [%dr @]
                     ==
                 +<.raw-join
@@ -2802,7 +2802,7 @@
             joined-objects
         raw-joined-objects    +.raw-joined-objects
       ==
-    ?:  ?=  [[%table-set [%qualified-table (unit @p) @ @ @ (unit @t)]] *]
+    ?:  ?=  [[%relaton [%qualified-table (unit @p) @ @ @ (unit @t)]] *]
             +.raw-join
       %=  $
         joined-objects
@@ -3097,7 +3097,7 @@
 ::
 ::  +mk-alias-map:  from:ast -> (map @t qualified-table:ast)
 ::
-:: map table-set alias to qualified-table
+:: map relaton alias to qualified-table
 :: if db of qualified-table is default db
 :: and namespace is 'dbo'
 ::
@@ -3131,7 +3131,7 @@
 ::
 ::  +mk-obj-name-map:  from:ast -> (map @t qualified-table:ast)
 ::
-:: map table-set object name to qualified-table
+:: map relaton object name to qualified-table
 :: if db of qualified-table is default db
 :: and namespace is 'dbo'
 ::
@@ -4176,12 +4176,12 @@
   ==
 ++  build-query-object  ~+
   |=  parsed=*
-  ^-  $?  table-set:ast
-          [table-set:ast as-of-offset:ast]
-          [table-set:ast as-of:ast]
+  ^-  $?  relaton:ast
+          [relaton:ast as-of-offset:ast]
+          [relaton:ast as-of:ast]
           ==
    ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] @] parsed)
-    %+  table-set:ast  %table-set
+    %+  relaton:ast  %relaton
                        :*  %qualified-table
                            ->-.parsed
                            ->+<.parsed
@@ -4190,13 +4190,13 @@
                            `+.parsed
                            ==
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)]] parsed)
-    (table-set:ast %table-set parsed)
+    (relaton:ast %relaton parsed)
   ::
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] %as-of %now] parsed)
-    :-  (table-set:ast %table-set -.parsed)
+    :-  (relaton:ast %relaton -.parsed)
         (as-of-offset:ast %as-of-offset 0 %seconds)
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of %now] @] parsed)
-    :-  %+  table-set:ast  %table-set
+    :-  %+  relaton:ast  %relaton
                            :*  %qualified-table
                                ->-.parsed
                                ->+<.parsed
@@ -4208,11 +4208,11 @@
   ::
   ?:  ?=  [[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago]]
           parsed
-    :-  (table-set:ast %table-set -.parsed)
+    :-  (relaton:ast %relaton -.parsed)
         (as-of-offset:ast %as-of-offset +>-.parsed +>+<.parsed)
   ?:  ?=  [[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago] @]
           parsed
-    :-  %+  table-set:ast  %table-set
+    :-  %+  relaton:ast  %relaton
                            :*  %qualified-table
                                ->-.parsed
                                ->+<.parsed
@@ -4223,10 +4223,10 @@
         (as-of-offset:ast %as-of-offset +<+<.parsed +<+>-.parsed)
   ::
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @]] parsed)
-    :-  (table-set:ast %table-set -.parsed)
+    :-  (relaton:ast %relaton -.parsed)
         ;;(as-of:ast [+>-.parsed +>+.parsed])
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @] @] parsed)
-    :-  %+  table-set:ast  %table-set
+    :-  %+  relaton:ast  %relaton
                            :*  %qualified-table
                                ->-.parsed
                                ->+<.parsed
@@ -4236,7 +4236,7 @@
                                ==
         ;;(as-of:ast [+<+<.parsed +<+>.parsed])
   ::
-  ?:  =(%query-row -.parsed)  ;;(table-set:ast parsed)
+  ?:  =(%query-row -.parsed)  ;;(relaton:ast parsed)
   ~|("cannot parse query-object  {<parsed>}" !!)
 ::
 ++  parse-query-object  ~+
@@ -4267,18 +4267,18 @@
 ++  make-query-object
   |=  a=*
   ~+
-  ^-  table-set:ast
+  ^-  relaton:ast
   ?:  ?=(qualified-table:ast a)
-    (table-set:ast %table-set a)
+    (relaton:ast %relaton a)
   ?:  ?=(qualified-table:ast -.a)
-    ?~  +.a  (table-set:ast %table-set -.a)
+    ?~  +.a  (relaton:ast %relaton -.a)
     ?:  ?=((unit @t) +.a)
-      (table-set:ast %table-set -.a +.a)
-    %+  table-set:ast  %table-set
+      (relaton:ast %relaton -.a +.a)
+    %+  relaton:ast  %relaton
                        [%qualified-table ->-.a ->+<.a ->+>-.a ->+>+<.a `+.a]
   ?:  ?=([@ @] a)
-    %+  table-set:ast
-      %table-set
+    %+  relaton:ast
+      %relaton
       %:  qualified-table:ast  %qualified-table
                                 ~
                                 'UNKNOWN'
@@ -4296,13 +4296,13 @@
   |-
   ?~  b
     ?~  alias
-      %:  table-set:ast
-        %table-set
+      %:  relaton:ast
+        %relaton
         object=(query-row:ast %query-row (flop columns))
         ~
       ==
-    %:  table-set:ast
-      %table-set
+    %:  relaton:ast
+      %relaton
       object=(query-row:ast %query-row (flop columns))
       `alias
     ==
