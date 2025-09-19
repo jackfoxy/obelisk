@@ -1,6 +1,6 @@
 # UPDATE
 
-Changes content of selected columns in existing rows of a `<table-set>`. 
+Changes content of selected columns in existing rows of a `<relation>`. 
 
 ```
 <update> ::=

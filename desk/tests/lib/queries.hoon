@@ -1815,6 +1815,65 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov2))
 ::
+::  one column name 2X
+++  test-simple-query-27
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col3 [~.t 'tricolor']]
+                  [%col3 [~.t 'tricolor']]
+                  ==
+          :-  %vector
+              :~  [%col3 [~.t 'ticolor']]
+                  [%col3 [~.t 'ticolor']]
+                  ==
+          :-  %vector
+              :~  [%col3 [~.t 'tuxedo']]
+                  [%col3 [~.t 'tuxedo']]
+                  ==
+              ==
+  =/  expected  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.3]
+                    [%message 'db1.dbo.my-table']
+                    [%schema-time ~2012.5.1]
+                    [%data-time ~2012.5.2]
+                    [%vector-count 3]
+                ==
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1"])
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE TABLE db1..my-table ".
+                "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+                "PRIMARY KEY (col1)"
+    =.  run  +(run)
+  =^  mov3  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "INSERT INTO my-table".
+                " VALUES".
+                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+  =.  run  +(run)
+  =^  mov4  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+        %obelisk-action
+        !>([%tape2 %db1 "FROM my-table SELECT col3,col3"])
+  ::
+  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+::
 ::  time travel
 ::
 ++  time-expected-rows

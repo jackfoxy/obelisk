@@ -40,7 +40,7 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             %sys
@@ -51,12 +51,11 @@
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
+            ~  ::=predicate
             ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
-            :^  %select  ::=select
+            ~  ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -193,7 +192,7 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -204,12 +203,11 @@
                     ~  ::(unit as-of)
                     ~               ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
+            ~  ::=predicate
             ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
-            :^  %select  ::=select
+            ~  ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -295,7 +293,7 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -306,12 +304,11 @@
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
+            ~  ::=predicate
             ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
-            :^  %select  ::=select
+            ~  ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -423,7 +420,7 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -434,12 +431,11 @@
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
+            ~  ::=predicate
             ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
-            :^  %select  ::=select
+            ~  ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -560,7 +556,7 @@
     :+  :*  %query
             :-  ~          ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -571,12 +567,11 @@
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
+            ~  ::=predicate
             ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
-            :^  %select  ::=select
+            ~  ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -696,7 +691,7 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -707,12 +702,11 @@
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-object)
             ~  ::scalars=(list scalar-function)
-            ~  ::predicate=(unit predicate)
+            ~  ::=predicate
             ~  ::group-by=(list grouping-column)
-            ~  ::having=(unit predicate)
-            :^  %select  ::=select
+            ~  ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)
@@ -824,7 +818,7 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %table-set  ::object=table-set
+                    :-  %relation  ::object=relation
                         :*  %qualified-table  ::object=query-source
                             ~
                             database
@@ -834,13 +828,12 @@
                             ==
                     ~       ::(unit as-of)
                     ~       ::joins=(list joined-object)
-            ~            ::scalars=(list scalar-function)
-            ~            ::predicate=(unit predicate)
-            ~            ::group-by=(list grouping-column)
-            ~            ::having=(unit predicate)
-            :^  %select  ::=select
+            ~   ::scalars=(list scalar-function)
+            ~   ::=predicate
+            ~   ::group-by=(list grouping-column)
+            ~   ::having=predicate
+            :+  %select  ::=select
                 ~               ::top=(unit @ud)
-                ~               ::bottom=(unit @ud)
                 :~  :^  %qualified-column    ::qualified-column
                         :*  %qualified-table  ::qualifier
                             ~                    ::ship=(unit @p)

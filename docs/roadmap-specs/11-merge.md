@@ -16,15 +16,15 @@ If no `WHEN` clause evaluates as true, the target row remains unchanged, which i
 
 `MERGE` actions have the same effect as the standard `UPDATE`, `INSERT`, or `DELETE` commands.
 
-`MERGE` can update the contents of an existing target `<table>`, produce a new `<table>`, or produce a new virtual `<table-set>`.
+`MERGE` can update the contents of an existing target `<table>`, produce a new `<table>`, or produce a new virtual `<relation>`.
 
 When `MERGE INTO` is specified or implied, `<target-table>` must be a base `<table>` and contents are updated in place. `PRODUCING NEW` may not be specified.
 
-When `MERGE FROM` is specified, `PRODUCING NEW` must also be specified. `<target-table>` can be a base `<table>` or any virtual table (i.e. `<view>` or `PASS-THRU` `<table-set>`).
+When `MERGE FROM` is specified, `PRODUCING NEW` must also be specified. `<target-table>` can be a base `<table>` or any virtual table (i.e. `<view>` `<relation>`).
 
 If `<new-table>` is specified, it will be created as a new `<table>` and populated in the same way as when `<target-table>` is updated with `MERGE INTO`.
 
-The output `<table-set>`'s row type will correspond to the row type of `<target-table>`. And its primary index (in the case when `<new-table>` is produced) will correspond to the primary index of `<target-table>`. The `<target-table>`'s `<foreign-key>`s are not replicated.
+The output `<relation>`'s row type will correspond to the row type of `<target-table>`. And its primary index (in the case when `<new-table>` is produced) will correspond to the primary index of `<target-table>`. The `<target-table>`'s `<foreign-key>`s are not replicated.
 
 If the resulting virtual-table row type is a union type, then the output must be a virtual-table `PASS-THRU`, not an update to `<target-table>` or creation of `<new-table>` as base `<table>`.
 
@@ -45,9 +45,9 @@ If the resulting virtual-table row type is a union type, then the output must be
 ```
 
 ```
-<target-table>               ::= <table-set>
-<new-table>                  ::= <table-set>
-<source-table>               ::= <table-set>
+<target-table>               ::= <relation>
+<new-table>                  ::= <relation>
+<source-table>               ::= <relation>
 <matched-predicate>          ::= <predicate>
 <unmatched-target-predicate> ::= <predicate>
 <unmatched-source-predicate> ::= <predicate>
@@ -106,9 +106,9 @@ No operation performed.
 +$  merge
   $:
     %merge
-    target-table=table-set
-    new-table=(unit table-set)
-    source-table=table-set
+    target-table=relation
+    new-table=(unit relation)
+    source-table=relation
     predicate=predicate
     matched=(list matching)
     unmatched-by-target=(list matching)
@@ -127,7 +127,7 @@ If `{ INTO | FROM }` is not specified, `INTO` is the default.
 
 If `INTO` is specified (or implied) then `<target-table>` is a base-table
 
-If `<target-table>` is a virtual-table -- any `<table-set>` other than a base-table, i.e. qualified `<view>`, `<common-table-expression>`, `*`, or `( column-1 [,...column-n] )` -- then `FROM` is required.
+If `<target-table>` is a virtual-table -- any `<relation>` other than a base-table, i.e. qualified `<view>`, `<common-table-expression>`, `*`, or `( column-1 [,...column-n] )` -- then `FROM` is required.
 
 `INTO` must not accompany `PRODUCING NEW` argument.
 
@@ -135,7 +135,7 @@ If `<target-table>` is a virtual-table -- any `<table-set>` other than a base-ta
 
 `<target-table>` is the table, view, or CTE against which the data rows from `<table-source>` are matched based on `<merge-predicate>`. 
 
-If `FROM` is specified, any `INSERT`, `UPDATE`, or `DELETE` operations specified by the `WHEN` clauses, as well as matched but otherwise unaffected target table rows, produce a new `<table-set>` as specified by the `PRODUCING NEW` clause.
+If `FROM` is specified, any `INSERT`, `UPDATE`, or `DELETE` operations specified by the `WHEN` clauses, as well as matched but otherwise unaffected target table rows, produce a new `<relation>` as specified by the `PRODUCING NEW` clause.
 
 **`[ PRODUCING NEW <new-table>` ]**
 
@@ -149,7 +149,7 @@ If `<target-table>` has a row type which is a union type, `<new-table>` cannot b
 
 **`USING <source-table> [ [ AS ] <alias> ]`**
 
-Specifies the data source that is matched with the data rows in `<target-table>` joining on `<merge-predicate>`. `<table-source>` can be any `<table-set>`.
+Specifies the data source that is matched with the data rows in `<target-table>` joining on `<merge-predicate>`. `<table-source>` can be any `<relation>`.
 
 `<alias>` is an alternative name to reference `<source-table>` in `WHEN` clauses and predicates.
 
@@ -220,7 +220,7 @@ At least one of the three `MATCHED` / `NOT MATCHED` clauses must be specified, b
 
 `INSERT`, `UPDATE`, or `DELETE` actions specified on `<target-table>` are limited by any constraints defined on it (when it is a base `<table>`), including unique indices and any cascading referential integrity constraints. 
 
-It `<target-table>` is updated in place, or a `<new-table>` created, every `INSERT` clause must account for all columns in `<target-table>`. Inserting fewer columns results in a new row sub-type, which is allowed when creating a virtual `<table-set>`.
+It `<target-table>` is updated in place, or a `<new-table>` created, every `INSERT` clause must account for all columns in `<target-table>`. Inserting fewer columns results in a new row sub-type, which is allowed when creating a virtual `<relation>`.
 
 Any `<binary-operator>` referencing a column each from `<target-table>` and `<source-table>` satisfies the requirement that `ON <merge-predicate>` not produce a cartesian join. However, it is to be noted a cartestian join cannot be entirely prevented depending on column contents. 
 

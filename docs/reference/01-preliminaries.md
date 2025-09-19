@@ -88,33 +88,33 @@ The following are some common language structures used throughout the reference.
 <common-table-expression> ::=
   <selection> [ AS ] <alias>
 ```
-**\<common-table-expression>** produces a row result set, `<table-set>`, for further manipulation by other CTEs, JOINS, SELECT clauses, or predicates.
+**\<common-table-expression>** produces a row result set, `<relation>`, for further manipulation by other CTEs, JOINS, SELECT clauses, or predicates.
 
-`<selection> ::=` from selection diagram. (More on `<selection>` under `<table-set>`.)
+`<selection> ::=` from selection diagram. (More on `<selection>` under `<relation>`.)
 
 `<alias> ::= @t` case-agnostic, see alias naming discussion above.
 
 CTEs are always referenced by alias, never inlined.
 
 ```
-<table-set> ::=
+<relation> ::=
   [ <ship-qualifier> ]{ <table> | <view> }
   | <common-table-expression>
   | *
 ```
-**\<table-set>** is sets of data cells arranged as row sets (of one or more row types), either as an interim result type or end result.
+**\<relation>** is sets of data cells arranged as row sets (of one or more row types), either as an interim result type or end result.
 
-Each simple row type is itself a set defined by its component columns (and literals). Rows of `<table-set>`s that are not also `<table>`s may be of varying length (jagged). Hence the row type of a `<table-set>` may be a union type.
+Each simple row type is itself a set defined by its component columns (and literals). Rows of `<relation>`s that are not also `<table>`s may be of varying length (jagged). Hence the row type of a `<relation>` may be a union type.
 
-The order of rows may be determined in the `<selection>` command by an ORDER BY clause, and so in the case of ordering `<table-set>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
+The order of rows may be determined in the `<selection>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
 
 When a `<view>`  and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored.
 
-User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<table-set>` that is not the result of some computation (selecting data).
+User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 
-The `<selection>` command returns a `<table-set>`, hence every `<table-set>` is typed by one or more equivalent urQL `<selection>` commands. This is true because every `<selection>` command is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
+The `<selection>` command returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<selection>` commands. This is true because every `<selection>` command is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
 
-More generally, a `<table-set>` is a user-defined table, view, common table expression, join, or result of a query. Most importantly, it is a proper set of its rows. 
+More generally, a `<relation>` is a user-defined table, view, common table expression, join, or result of a query. Most importantly, it is a proper set of its rows. 
 
 ```
 <as-of-time> ::=
@@ -218,7 +218,7 @@ likewise these must be in columns one and two
 All data representations (nouns) of the Obelisk system are strongly typed.
 
 ### Column Types
-The fundamental data element in Obelisk is an atom that is typed by an aura. Data cells, which are intersections of a `<table-set>` row and column, are typed atoms.
+The fundamental data element in Obelisk is an atom that is typed by an aura. Data cells, which are intersections of a `<relation>` row and column, are typed atoms.
 
 Obelisk supports the following auras (see the __Literals__ section for representing the atomic types):
 
@@ -270,17 +270,17 @@ Each user-defined table is typed by its `<row-type>`.
 ```
 <table-type> ::= (list <row-type>)
 ```
-A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<table-set>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
+A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
 
 Rows from `<view>`s, `<common-table-expression>`s, and the command output from `<selection>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
 
-When the `<table-set-type>` is a union of `<row-type>`s. There is a `<row-type>` representing the full width of the `SELECT` statement and as many sub-types as necessary to represent any selected unjoined outer `JOIN`s. 
+When the `<relation-type>` is a union of `<row-type>`s. There is a `<row-type>` representing the full width of the `SELECT` statement and as many sub-types as necessary to represent any selected unjoined outer `JOIN`s. 
 
 Sub-types align their columns with matching columns in the all-column `<row-type>`, regardless of the SELECT clause's construction.
 
-In general, `<table-set>`s have the type:
+In general, `<relation>`s have the type:
 ```
-<table-set-type> ::= 
+<relation-type> ::= 
   (list <row-type>)
   | (set (<all-column-row-type> | <row-sub-type-1> | ... | <row-sub-type-n> ))
 ```
@@ -296,9 +296,9 @@ All static types in the Obelisk API are defined in `sur/ast/hoon`.
 
 Even `<table>`s can be typed as sets, because a `SELECT` statement without an `ORDER BY` clause has an undefined row order.
 
-Regardless of the presence of `ORDER BY`, any `<table-set>` emitted by any step in a `<selection>`, a CTE, or a `<view>` is a list of `<row-type>` in some (possibly arbitrary) order.
+Regardless of the presence of `ORDER BY`, any `<relation>` emitted by any step in a `<selection>`, a CTE, or a `<view>` is a list of `<row-type>` in some (possibly arbitrary) order.
 
-Ultimately, "set" is the most important concept because every `<table-set>` will have one unique row value for any given sub-type of `<row-type>`.
+Ultimately, "set" is the most important concept because every `<relation>` will have one unique row value for any given sub-type of `<row-type>`.
 
 ## Time
 
@@ -310,7 +310,7 @@ The `CREATE DATABASE` command sets the first schema and content times to the dat
 
 The second, and last, rule is once you introduce a query returning results into a script, all subsequent commands must also be queries. No further schema or data changes are allowed.
 
-Among the metadata returned by queries is the schema and content times (labelled `schema time` and `data time`) used by the engine to create the query results. The query has a de facto `<as-of-time>` of the latest of the two. That is what makes it idempotent. You need to specify this `<as-of-time>` to recreate the same query. By specifying `<as-of-time>` in a query the engine uses the schema and content in effect at that time to create the results.
+Among the metadata returned by queries is the schema and content times (labelled `schema time` and `data time`) used by the engine to create the query results. The query has a de facto `<as-of-time>` of the latest of the two for each underlying table or view. That is what makes it idempotent. You need to specify this `<as-of-time>` to recreate the same query. By specifying `<as-of-time>` in a query the engine uses the schema and content in effect at that time to create the results.
 
 Creating a new `NAMESPACE` or `TABLE` may be back-dated to anytime subsequent to the latest of schema time or content time. The same applies to `TRUNCATE TABLE` which is a special case of zeroing-out the content of a table.
 

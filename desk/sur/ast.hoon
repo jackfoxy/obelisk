@@ -360,7 +360,7 @@
 +$  from
   $:
     %from
-    object=table-set
+    object=relation
     as-of=(unit as-of)
     joins=(list joined-object)
   ==
@@ -368,19 +368,18 @@
   $:
     %joined-object
     join=join-type
-    object=table-set
+    object=relation
     as-of=(unit as-of)
     =predicate
   ==
 ::
-::  $table-set:
-+$  table-set
+::  $relation:
++$  relation
   $:
-    %table-set
-    object=query-source
+    %relation
+    object=$%(qualified-table cte-alias query-row)
   ==
 ::
-+$  query-source  $%(qualified-table query-row)
 +$  query-row     ::  parses, not used for now, may never be used
   $:
     %query-row
@@ -393,7 +392,6 @@
   $:
     %select
     top=(unit @ud)
-    bottom=(unit @ud)
     columns=(list selected-column)
   ==
 +$  selected-column
@@ -525,13 +523,13 @@
   ==
 +$  value-or-default     ?(%default datum)
 ::
-::  $merge: merge from source table-set into target table-set
+::  $merge: merge from source relation into target relation
 +$  merge
   $:
     %merge
-    target-table=table-set
-    new-table=(unit table-set)
-    source-table=table-set
+    target-table=relation
+    new-table=(unit relation)
+    source-table=relation
     =predicate
     matched=(list matching)
     unmatched-by-target=(list matching)
@@ -742,12 +740,12 @@
 ::  $revoke-from: ?(%parent %siblings %moons %all)
 +$  revoke-from          ?(%parent %siblings %moons %all)
 ::
-::  $grant-object: ?(%server %database %namespace %table-set %table-column)
+::  $grant-object: ?(%server %database %namespace %table %table-column)
 +$  grant-object  
   $%  [%server %server]
       [%database @tas]
       [%namespace [@tas @tas]]
-      [%table-set qualified-table]
+      [%table qualified-table]
       [%table-column path]
       ==
 ::
@@ -785,10 +783,10 @@
       [%server %server]
       [%database @tas]
       [%namespace [@tas @tas]]
-      [%table-set qualified-table]
+      [%table qualified-table]
       [%table-column path]
       ==
-::
+::ela
 ::  $revoke:  permission=revoke-permission from=revoke-from 
 ::            revoke-target=revoke-object
 +$  revoke
