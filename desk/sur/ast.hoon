@@ -182,150 +182,67 @@
 ::
 ::  builtin scalar functions
 ::
-+$  builtin-scalar-fn
-  $+  builtin-scalar-function
-  $:
-    %builtin-scalar-fn
-    $=  fn
-    $%
-      getdate
-      sysdatetimeoffset
-      day
-      month
-      year
-      abs
-      log
-      floor
-      power
-      ceiling
-      round
-      sign
-      sqrt
-      len
-      left
-      right
-      substring
-      trim
-      concat
-    ==
++$  builtin-fn
+  $%
+    getdate
+    sysdatetimeoffset
+    day
+    month
+    year
+    abs
+    log
+    floor
+    power
+    ceiling
+    round
+    sign
+    sqrt
+    len
+    left
+    right
+    substring
+    trim
+    concat
   ==
 ::
 ::  datetime functions
 ::
-+$  getdate
-  $:
-    %getdate
-  ==
-+$  sysdatetimeoffset
-  $:
-    %sysdatetimeoffset
-  ==
-+$  day
-  $:
-    %day
-    date=@da
-  ==
-+$  month
-  $:
-    %month
-    date=@da
-  ==
-+$  year
-  $:
-    %year
-    date=@da
-  ==
++$  getdate                 [%getdate]
++$  sysdatetimeoffset       [%sysdatetimeoffset]
++$  day                     [%day date=literal-value]
++$  month                   [%month date=literal-value]
++$  year                    [%year date=literal-value]
 ::
 ::  mathematical functions
 ::
-+$  abs
-  $:
-    %abs
-    numeric-expression=@rs
-  ==
-+$  log
-  $:
-    %log
-    float-expression=@rs
-    base=(unit @rs)
-  ==
-+$  floor
-  $:
-    %floor
-    numeric-expression=@rs
-  ==
-+$  power
-  $:
-    %power
-    float-expression=@rs
-    exponent=@rs
-  ==
-+$  ceiling
-  $:
-    %ceiling
-    numeric-expression=@rs
-  ==
-+$  round
-  $:
-    %round
-    numeric-expression=@rs
-    length=@ud
-    function=(unit @ud)
-  ==
-+$  sign
-  $:
-    %sign
-    numeric-expression=@rs
-  ==
-+$  sqrt
-  $:
-    %sqrt
-    float-expression=@rs
-  ==
++$  abs        [%abs numeric-expression=literal-value]
++$  log        [%log float-expression=literal-value base=(unit literal-value)]
++$  floor      [%floor numeric-expression=literal-value]
++$  power      [%power float-expression=literal-value exponent=literal-value]
++$  ceiling    [%ceiling numeric-expression=literal-value]
++$  round      
+  [%round numeric-expression=literal-value length=literal-value function=(unit literal-value)]
++$  sign       [%sign numeric-expression=literal-value]
++$  sqrt       [%sqrt float-expression=literal-value]
 ::
 ::  string functions
 ::
-+$  len
-  $:
-    %len
-    string-expression=@t
-  ==
-+$  left
-  $:
-    %left
-    character-expression=@t
-    integer-expression=@ud
-  ==
-+$  right
-  $:
-    %right
-    character-expression=@t
-    integer-expression=@ud
-  ==
-+$  substring
-  $:
-    %substring
-    string-expression=@t
-    start=@ud
-    length=@ud
-  ==
-+$  trim
-  $:
-    %trim
-    characters=(unit @t)
-    string=@t
-  ==
-+$  concat
-  $:
-    %concat
-    arguments=(list @t)
-  ==
++$  len        [%len string-expression=literal-value]
++$  left       
+  [%left character-expression=literal-value integer-expression=literal-value]
++$  right      
+  [%right character-expression=literal-value integer-expression=literal-value]
++$  substring  
+  [%substring string-expression=literal-value start=literal-value length=literal-value]
++$  trim       [%trim characters=(unit literal-value) string=literal-value]
++$  concat     [%concat argument1=literal-value argument2=literal-value]
+::
 +$  scalar-function
   $%
     if-then-else
     case
     coalesce
-    builtin-scalar-fn
+    builtin-fn
     :: arithmetic
     scalar-alias
   ==
