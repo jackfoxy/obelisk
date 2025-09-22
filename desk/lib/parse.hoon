@@ -2943,10 +2943,89 @@
     =/  finalized-if  (finalize-if cooked-if aliases)
       finalized-if
   ?:  =(%case fn-name)
-    =/  cooked-case  (cook-case-body raw-scalar-body)
-    =/  finalized-case  (finalize-case cooked-case aliases)
-      finalized-case
-  ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
+     =/  cooked-case  (cook-case-body raw-scalar-body)
+     =/  finalized-case  (finalize-case cooked-case aliases)
+       finalized-case
+   ::  nullary builtin functions (no parameters, cast directly)
+   ?:  =(%getdate fn-name)
+     ^-  getdate:ast
+       [%getdate]
+   ?:  =(%sysdatetimeoffset fn-name)
+     ^-  sysdatetimeoffset:ast
+       [%sysdatetimeoffset]
+   ::  unary builtin functions
+   ?:  =(%day fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  day:ast
+       [%day cooked-params]
+   ?:  =(%month fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  month:ast
+       [%month cooked-params]
+   ?:  =(%year fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  year:ast
+       [%year cooked-params]
+   ?:  =(%abs fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  abs:ast
+       [%abs cooked-params]
+   ?:  =(%floor fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  floor:ast
+       [%floor cooked-params]
+   ?:  =(%ceiling fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  ceiling:ast
+       [%ceiling cooked-params]
+   ?:  =(%sign fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  sign:ast
+       [%sign cooked-params]
+   ?:  =(%sqrt fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  sqrt:ast
+       [%sqrt cooked-params]
+   ?:  =(%len fn-name)
+     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
+     ^-  len:ast
+       [%len cooked-params]
+   ::  binary builtin functions
+   ?:  =(%log fn-name)
+     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
+     ^-  log:ast
+       [%log cooked-params]
+   ?:  =(%power fn-name)
+     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
+     ^-  power:ast
+       [%power cooked-params]
+   ?:  =(%left fn-name)
+     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
+     ^-  left:ast
+       [%left cooked-params]
+   ?:  =(%right fn-name)
+     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
+     ^-  right:ast
+       [%right cooked-params]
+   ?:  =(%trim fn-name)
+     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
+     ^-  trim:ast
+       [%trim cooked-params]
+   ::  ternary builtin functions
+   ?:  =(%round fn-name)
+     =/  cooked-params  (cook-ternary-builtin-fn raw-scalar-body)
+     ^-  round:ast
+       [%round cooked-params]
+   ?:  =(%substring fn-name)
+     =/  cooked-params  (cook-ternary-builtin-fn raw-scalar-body)
+     ^-  substring:ast
+       [%substring cooked-params]
+   ::  n-ary builtin functions
+   ?:  =(%concat fn-name)
+     =/  cooked-params  (cook-n-ary-builtin-fn raw-scalar-body)
+     ^-  concat:ast
+       [%concat cooked-params]
+   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
   |=  [raw-scalars=* table-aliases=(map @t qualified-table:ast)]
   ^-  (list scalar:ast)
@@ -4733,6 +4812,10 @@
       (ifix [pal par] (easy ~))
     ==
   ==
+++  cook-unary-builtin-fn
+  |=  parsed=*
+  :: TODO: basically these are all dimes
+  ~|  "cook-unary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-unary-scalar-fn
   |*  [fn-name=@tas first-param=rule]
   ;~  plug
@@ -4749,6 +4832,9 @@
       ==
     ==
   ==
+++  cook-binary-builtin-fn
+  |=  parsed=*
+  ~|  "cook-binary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-binary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule]
   ;~  plug
@@ -4773,6 +4859,9 @@
       ==
     ==
   ==
+++  cook-ternary-builtin-fn
+  |=  parsed=*
+  ~|  "cook-ternary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-ternary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
   ;~  plug
@@ -4803,6 +4892,9 @@
       ==
     ==
   ==
+++  cook-n-ary-builtin-fn
+  |=  parsed=*
+  ~|  "cook-n-ary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-n-ary-scalar-fn
   |*  [fn-name=@tas parse-params=rule]
   ;~  plug
