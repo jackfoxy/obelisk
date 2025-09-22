@@ -225,20 +225,8 @@
     if-then-else
     case
     coalesce
-    builtin-fn
     :: arithmetic
     scalar-alias
-  ==
-+$  literal-value  $:(%literal-value dime=dime)
-+$  cte-alias      $:(%cte-alias alias=@t)
-+$  scalar-alias   $:(%scalar-alias alias=@t)
-++  datum-or-scalar  
-  $%
-    qualified-column
-    unqualified-column
-    literal-value
-    cte-alias
-    scalar-function
     :: builtin functions
     getdate
     sysdatetimeoffset
@@ -259,6 +247,17 @@
     substring
     trim
     concat
+  ==
++$  literal-value  $:(%literal-value dime=dime)
++$  cte-alias      $:(%cte-alias alias=@t)
++$  scalar-alias   $:(%scalar-alias alias=@t)
+++  datum-or-scalar  
+  $%
+    qualified-column
+    unqualified-column
+    literal-value
+    cte-alias
+    scalar-function
   ==
 ::
 ::  query
