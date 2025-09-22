@@ -180,31 +180,6 @@
     data=(list datum-or-scalar)
   ==
 ::
-::  builtin scalar functions
-::
-+$  builtin-fn
-  $%
-    getdate
-    sysdatetimeoffset
-    day
-    month
-    year
-    abs
-    log
-    floor
-    power
-    ceiling
-    round
-    sign
-    sqrt
-    len
-    left
-    right
-    substring
-    trim
-    concat
-  ==
-::
 ::  datetime functions
 ::
 +$  getdate                 [%getdate]
@@ -221,7 +196,11 @@
 +$  power      [%power float-expression=literal-value exponent=literal-value]
 +$  ceiling    [%ceiling numeric-expression=literal-value]
 +$  round      
-  [%round numeric-expression=literal-value length=literal-value function=(unit literal-value)]
+  $:  %round
+    numeric-expression=literal-value
+    length=literal-value
+    function=(unit literal-value)
+  ==
 +$  sign       [%sign numeric-expression=literal-value]
 +$  sqrt       [%sqrt float-expression=literal-value]
 ::
@@ -233,7 +212,11 @@
 +$  right      
   [%right character-expression=literal-value integer-expression=literal-value]
 +$  substring  
-  [%substring string-expression=literal-value start=literal-value length=literal-value]
+  $:  %substring
+    string-expression=literal-value
+    start=literal-value
+    length=literal-value
+  ==
 +$  trim       [%trim characters=(unit literal-value) string=literal-value]
 +$  concat     [%concat argument1=literal-value argument2=literal-value]
 ::
@@ -256,6 +239,26 @@
     literal-value
     cte-alias
     scalar-function
+    :: builtin functions
+    getdate
+    sysdatetimeoffset
+    day
+    month
+    year
+    abs
+    log
+    floor
+    power
+    ceiling
+    round
+    sign
+    sqrt
+    len
+    left
+    right
+    substring
+    trim
+    concat
   ==
 ::
 ::  query

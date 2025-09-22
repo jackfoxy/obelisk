@@ -4737,13 +4737,17 @@
   |*  [fn-name=@tas first-param=rule]
   ;~  plug
     (cold fn-name (jester fn-name))
+    ;~  pfix
+      whitespace 
       %+  ifix
         [pal par]
-        ;~  pose
-          first-param
-          ;~(pfix whitespace first-param)
-          ;~(sfix first-param whitespace)
-        ==
+      ;~  pose
+        (ifix [whitespace whitespace] first-param) 
+        :: TODO maybe we don't need these
+        ;~(pfix whitespace first-param)
+        ;~(sfix first-param whitespace)
+      ==
+    ==
   ==
 ++  parse-binary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule]
@@ -4751,20 +4755,22 @@
     (cold fn-name (jester fn-name))
     ;~  pfix
       whitespace 
-      %+  ifix
-        [pal par]
-        ;~  (glue com)
-          ;~  pose
-            first-param
-            ;~(pfix whitespace first-param)
-            ;~(sfix first-param whitespace)
-          ==
-          ;~  pose
-            second-param
-            ;~(pfix whitespace second-param)
-            ;~(sfix second-param whitespace)
-          ==
+    %+  ifix
+      [pal par]
+      ;~  (glue com)
+        ;~  pose
+          (ifix [whitespace whitespace] first-param) 
+          :: TODO maybe we don't need these
+          ;~(pfix whitespace first-param)
+          ;~(sfix first-param whitespace)
         ==
+        ;~  pose
+          (ifix [whitespace whitespace] second-param) 
+          :: TODO maybe we don't need these
+          ;~(pfix whitespace second-param)
+          ;~(sfix second-param whitespace)
+        ==
+      ==
     ==
   ==
 ++  parse-ternary-scalar-fn
@@ -4773,25 +4779,28 @@
     (cold fn-name (jester fn-name))
     ;~  pfix
       whitespace 
-      %+  ifix
-        [pal par]
-        ;~  (glue com)
-          ;~  pose
-            first-param
-            ;~(pfix whitespace first-param)
-            ;~(sfix first-param whitespace)
-          ==
-          ;~  pose
-            second-param
-            ;~(pfix whitespace second-param)
-            ;~(sfix second-param whitespace)
-          ==
-          ;~  pose
-            third-param
-            ;~(pfix whitespace third-param)
-            ;~(sfix third-param whitespace)
-          ==
+    %+  ifix
+      [pal par]
+      ;~  (glue com)
+        ;~  pose
+          (ifix [whitespace whitespace] first-param)
+          :: TODO maybe we don't need these
+          ;~(pfix whitespace first-param)
+          ;~(sfix first-param whitespace)
         ==
+        ;~  pose
+          :: TODO maybe we don't need these
+          (ifix [whitespace whitespace] second-param) 
+          ;~(pfix whitespace second-param)
+          ;~(sfix second-param whitespace)
+        ==
+        ;~  pose
+          (ifix [whitespace whitespace] third-param) 
+          :: TODO maybe we don't need these
+          ;~(pfix whitespace third-param)
+          ;~(sfix third-param whitespace)
+        ==
+      ==
     ==
   ==
 ++  parse-n-ary-scalar-fn
@@ -4802,13 +4811,13 @@
       whitespace
       %+  ifix
         [pal par]
-        %+  more
-          com
-        ;~  pose
-          parse-params
-          ;~(pfix whitespace parse-params)
-          ;~(sfix parse-params whitespace)
-        ==
+      %+  more
+        com
+      ;~  pose
+        (ifix [whitespace whitespace] parse-params) 
+        ;~(pfix whitespace parse-params)
+        ;~(sfix parse-params whitespace)
+      ==
     ==
   ==
 ::
@@ -4817,23 +4826,23 @@
   ;~  pose
     (parse-nullary-scalar-fn %getdate)
     (parse-nullary-scalar-fn %sysdatetimeoffset)
-    (parse-unary-scalar-fn %day when:so)
-    (parse-unary-scalar-fn %month when:so)
-    (parse-unary-scalar-fn %year when:so)
-    (parse-unary-scalar-fn %abs royl-rs:so)
-    (parse-unary-scalar-fn %floor royl-rs:so)
-    (parse-unary-scalar-fn %ceiling royl-rs:so)
-    (parse-unary-scalar-fn %sign royl-rs:so)
-    (parse-unary-scalar-fn %sqrt royl-rs:so)
-    (parse-unary-scalar-fn %len parse-quoted-string)
-    (parse-binary-scalar-fn %log royl-rs:so royl-rs:so)
-    (parse-binary-scalar-fn %power royl-rs:so royl-rs:so)
-    (parse-binary-scalar-fn %left parse-quoted-string bisk:so)
-    (parse-binary-scalar-fn %right parse-quoted-string bisk:so)
-    (parse-binary-scalar-fn %trim (ifix [soq soq] (star ;~(pose mixed-case-symbol ace))) parse-quoted-string)
-    (parse-ternary-scalar-fn %round royl-rs:so bisk:so bisk:so)
-    (parse-ternary-scalar-fn %substring parse-quoted-string bisk:so bisk:so)
-    (parse-n-ary-scalar-fn %concat parse-quoted-string)
+    (parse-unary-scalar-fn %day parse-value-literal)
+    (parse-unary-scalar-fn %month parse-value-literal)
+    (parse-unary-scalar-fn %year parse-value-literal)
+    (parse-unary-scalar-fn %abs parse-value-literal)
+    (parse-unary-scalar-fn %floor parse-value-literal)
+    (parse-unary-scalar-fn %ceiling parse-value-literal)
+    (parse-unary-scalar-fn %sign parse-value-literal)
+    (parse-unary-scalar-fn %sqrt parse-value-literal)
+    (parse-unary-scalar-fn %len parse-value-literal)
+    (parse-binary-scalar-fn %log parse-value-literal parse-value-literal)
+    (parse-binary-scalar-fn %power parse-value-literal parse-value-literal)
+    (parse-binary-scalar-fn %left parse-value-literal parse-value-literal)
+    (parse-binary-scalar-fn %right parse-value-literal parse-value-literal)
+    (parse-binary-scalar-fn %trim parse-value-literal parse-value-literal)
+    (parse-ternary-scalar-fn %round parse-value-literal parse-value-literal parse-value-literal)
+    (parse-ternary-scalar-fn %substring parse-value-literal parse-value-literal parse-value-literal)
+    (parse-n-ary-scalar-fn %concat parse-value-literal)
   ==
 ::
 ++  cook-scalar-param
@@ -5153,6 +5162,7 @@
               ==
     (more com parse-ordering-column)
   ==
+:: TODO: this is only called twice now, inline
 ++  finalize-qualifier
   |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
   ^-  datum-or-scalar:ast
