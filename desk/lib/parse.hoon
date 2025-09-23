@@ -4927,9 +4927,6 @@
       ==
     ==
   ==
-++  cook-ternary-builtin-fn
-  |=  parsed=*
-  ~|  "cook-ternary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-ternary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
   ;~  plug
@@ -4960,9 +4957,6 @@
       ==
     ==
   ==
-++  cook-n-ary-builtin-fn
-  |=  parsed=*
-  ~|  "cook-n-ary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-n-ary-scalar-fn
   |*  [fn-name=@tas parse-params=rule]
   ;~  plug

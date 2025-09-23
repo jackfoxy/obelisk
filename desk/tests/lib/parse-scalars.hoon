@@ -239,8 +239,7 @@
 ::  spaces after parameters
   =/  query-string
     "FROM foo ".
-    "SCALARS dt1 GETDATE() ".
-    "        dt2 SYSDATETIMEOFFSET() ".
+    "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY(2023.1.15) ".
     "        dt4 MONTH(2023.1.15) ".
     "        dt5 YEAR(2023.1.15) ".
@@ -273,8 +272,7 @@
   =/  literal-world          [%literal-value dime=[p=%t q='world']]
   =/  literal-space          [%literal-value dime=[p=%t q=' ']]
   ::
-  =/  getdate-fn             [%getdate ~]
-  =/  sysdatetimeoffset-fn   [%sysdatetimeoffset ~]
+  =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
@@ -297,8 +295,7 @@
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
   =/  scalars
     :~
-      [%scalar getdate-fn 'dt1']
-      [%scalar sysdatetimeoffset-fn 'dt2']
+      [%scalar getutcdate-fn 'dt1']
       [%scalar day-fn 'dt3']
       [%scalar month-fn 'dt4']
       [%scalar year-fn 'dt5']
@@ -329,8 +326,7 @@
 ++  test-builtins-02
   =/  query-string
     "FROM foo ".
-    "SCALARS dt1 GETDATE() ".
-    "        dt2 SYSDATETIMEOFFSET() ".
+    "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY( 2023.1.15) ".
     "        dt4 MONTH( 2023.1.15) ".
     "        dt5 YEAR( 2023.1.15) ".
@@ -360,8 +356,7 @@
   =/  literal-world          [%literal-value dime=[p=%t q='world']]
   =/  literal-space          [%literal-value dime=[p=%t q=' ']]
   ::
-  =/  getdate-fn             [%getdate ~]
-  =/  sysdatetimeoffset-fn   [%sysdatetimeoffset ~]
+  =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
@@ -381,8 +376,7 @@
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
   =/  scalars
     :~
-      [%scalar getdate-fn 'dt1']
-      [%scalar sysdatetimeoffset-fn 'dt2']
+      [%scalar getutcdate-fn 'dt1']
       [%scalar day-fn 'dt3']
       [%scalar month-fn 'dt4']
       [%scalar year-fn 'dt5']
@@ -410,8 +404,7 @@
 ++  test-builtins-03
   =/  query-string
     "FROM foo ".
-    "SCALARS dt1 GETDATE() ".
-    "        dt2 SYSDATETIMEOFFSET() ".
+    "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY(2023.1.15 ) ".
     "        dt4 MONTH(2023.1.15 ) ".
     "        dt5 YEAR(2023.1.15 ) ".
@@ -441,8 +434,7 @@
   =/  literal-world          [%literal-value dime=[p=%t q='world']]
   =/  literal-space          [%literal-value dime=[p=%t q=' ']]
   ::
-  =/  getdate-fn             [%getdate ~]
-  =/  sysdatetimeoffset-fn   [%sysdatetimeoffset ~]
+  =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
@@ -462,8 +454,7 @@
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
   =/  scalars
     :~
-      [%scalar getdate-fn 'dt1']
-      [%scalar sysdatetimeoffset-fn 'dt2']
+      [%scalar getutcdate-fn 'dt1']
       [%scalar day-fn 'dt3']
       [%scalar month-fn 'dt4']
       [%scalar year-fn 'dt5']
@@ -491,8 +482,7 @@
 ++  test-builtins-04
   =/  query-string
     "FROM foo ".
-    "SCALARS dt1 GETDATE() ".
-    "        dt2 SYSDATETIMEOFFSET() ".
+    "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY( 2023.1.15 ) ".
     "        dt4 MONTH( 2023.1.15 ) ".
     "        dt5 YEAR( 2023.1.15 ) ".
@@ -522,8 +512,7 @@
   =/  literal-world          [%literal-value dime=[p=%t q='world']]
   =/  literal-space          [%literal-value dime=[p=%t q=' ']]
   ::
-  =/  getdate-fn             [%getdate ~]
-  =/  sysdatetimeoffset-fn   [%sysdatetimeoffset ~]
+  =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
@@ -543,8 +532,7 @@
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
   =/  scalars
     :~
-      [%scalar getdate-fn 'dt1']
-      [%scalar sysdatetimeoffset-fn 'dt2']
+      [%scalar getutcdate-fn 'dt1']
       [%scalar day-fn 'dt3']
       [%scalar month-fn 'dt4']
       [%scalar year-fn 'dt5']
