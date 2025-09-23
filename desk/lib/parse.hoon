@@ -2946,12 +2946,9 @@
      =/  finalized-case  (finalize-case cooked-case aliases)
        finalized-case
    ::  nullary builtin functions (no parameters, cast directly)
-   ?:  =(%getdate fn-name)
-     ^-  getdate:ast
-       [%getdate ~]
-   ?:  =(%sysdatetimeoffset fn-name)
-     ^-  sysdatetimeoffset:ast
-       [%sysdatetimeoffset ~]
+   ?:  =(%getutcdate fn-name)
+     ^-  getutcdate:ast
+       [%getutcdate ~]
    ::  unary builtin functions
    ?:  =(%day fn-name)
      ^-  day:ast
@@ -4987,8 +4984,7 @@
 ++  parse-quoted-string  (ifix [soq soq] (star mixed-case-symbol))
 ++  parse-builtin-scalar-fn
   ;~  pose
-    (parse-nullary-scalar-fn %getdate)
-    (parse-nullary-scalar-fn %sysdatetimeoffset)
+    (parse-nullary-scalar-fn %getutcdate)
     (parse-unary-scalar-fn %day parse-value-literal)
     (parse-unary-scalar-fn %month parse-value-literal)
     (parse-unary-scalar-fn %year parse-value-literal)

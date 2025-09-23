@@ -182,8 +182,7 @@
 ::
 ::  datetime functions
 ::
-+$  getdate                 [%getdate ~]
-+$  sysdatetimeoffset       [%sysdatetimeoffset ~]
++$  getutcdate                 [%getutcdate ~]
 +$  day                     [%day date=literal-value]
 +$  month                   [%month date=literal-value]
 +$  year                    [%year date=literal-value]
@@ -228,8 +227,7 @@
     :: arithmetic
     scalar-alias
     :: builtin functions
-    getdate
-    sysdatetimeoffset
+    getutcdate
     day
     month
     year
