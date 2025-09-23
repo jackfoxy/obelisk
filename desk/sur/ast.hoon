@@ -218,7 +218,7 @@
     length=literal-value
   ==
 +$  trim       [%trim characters=(unit literal-value) string=literal-value]
-+$  concat     [%concat argument1=literal-value argument2=literal-value]
++$  concat     [%concat args=(list literal-value)]
 ::
 +$  scalar-function
   $%

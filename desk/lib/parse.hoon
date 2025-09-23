@@ -2955,74 +2955,141 @@
        [%sysdatetimeoffset]
    ::  unary builtin functions
    ?:  =(%day fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  day:ast
-       [%day cooked-params]
+     :*
+       %day
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%month fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  month:ast
-       [%month cooked-params]
+     :*
+       %month
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%year fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  year:ast
-       [%year cooked-params]
+     :*
+       %year
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%abs fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  abs:ast
-       [%abs cooked-params]
+     :*
+       %abs
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%floor fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  floor:ast
-       [%floor cooked-params]
+     :*
+       %floor
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%ceiling fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  ceiling:ast
-       [%ceiling cooked-params]
+     :*
+       %ceiling
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%sign fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  sign:ast
-       [%sign cooked-params]
+     :*
+       %sign
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%sqrt fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  sqrt:ast
-       [%sqrt cooked-params]
+     :*
+       %sqrt
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ?:  =(%len fn-name)
-     =/  cooked-params  (cook-unary-builtin-fn raw-scalar-body)
      ^-  len:ast
-       [%len cooked-params]
+     :*
+       %len
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ::  binary builtin functions
    ?:  =(%log fn-name)
-     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
      ^-  log:ast
-       [%log cooked-params]
+     ?:  ?=([[@ @] *] raw-scalar-body)
+       :*
+         %log
+         (cook-builtin-fn-parameter -.raw-scalar-body)
+         (cook-builtin-fn-optional-parameter +.raw-scalar-body)
+       ==
+     :*
+       %log
+       (cook-builtin-fn-parameter raw-scalar-body)
+       ~
+     ==
    ?:  =(%power fn-name)
-     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
      ^-  power:ast
-       [%power cooked-params]
+     :*
+       %power
+       (cook-builtin-fn-parameter -.raw-scalar-body)
+       (cook-builtin-fn-parameter +.raw-scalar-body)
+     ==
    ?:  =(%left fn-name)
-     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
      ^-  left:ast
-       [%left cooked-params]
+     :*
+       %left
+       (cook-builtin-fn-parameter -.raw-scalar-body)
+       (cook-builtin-fn-parameter +.raw-scalar-body)
+     ==
    ?:  =(%right fn-name)
-     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
      ^-  right:ast
-       [%right cooked-params]
+     :*
+       %right
+       (cook-builtin-fn-parameter -.raw-scalar-body)
+       (cook-builtin-fn-parameter +.raw-scalar-body)
+     ==
    ?:  =(%trim fn-name)
-     =/  cooked-params  (cook-binary-builtin-fn raw-scalar-body)
      ^-  trim:ast
-       [%trim cooked-params]
+     ?:  ?=([[@ @] *] raw-scalar-body)
+       :*
+         %trim
+         (cook-builtin-fn-optional-parameter -.raw-scalar-body)
+         (cook-builtin-fn-parameter +.raw-scalar-body)
+       ==
+     :*
+       %trim
+       ~
+       (cook-builtin-fn-parameter raw-scalar-body)
+     ==
    ::  ternary builtin functions
    ?:  =(%round fn-name)
-     =/  cooked-params  (cook-ternary-builtin-fn raw-scalar-body)
      ^-  round:ast
-       [%round cooked-params]
+     ?:  ?=([[@ @] * *] raw-scalar-body)
+       :*
+         %round
+         (cook-builtin-fn-parameter -.raw-scalar-body)
+         (cook-builtin-fn-parameter +<.raw-scalar-body)
+         (cook-builtin-fn-optional-parameter +>.raw-scalar-body)
+       ==
+     ?:  ?=([[@ @] *] raw-scalar-body)
+       :*
+         %round
+         (cook-builtin-fn-parameter -.raw-scalar-body)
+         (cook-builtin-fn-parameter +.raw-scalar-body)
+         ~
+       ==
+     !!
    ?:  =(%substring fn-name)
-     =/  cooked-params  (cook-ternary-builtin-fn raw-scalar-body)
      ^-  substring:ast
-       [%substring cooked-params]
+     :*
+       %substring
+       (cook-builtin-fn-parameter -.raw-scalar-body)
+       (cook-builtin-fn-parameter +<.raw-scalar-body)
+       (cook-builtin-fn-parameter +>.raw-scalar-body)
+     ==
    ::  n-ary builtin functions
    ?:  =(%concat fn-name)
-     =/  cooked-params  (cook-n-ary-builtin-fn raw-scalar-body)
+     =/  cooked-params=(list literal-value:ast)
+       |-
+       ?~  raw-scalar-body
+         ~
+       :-  (cook-builtin-fn-parameter -.raw-scalar-body)
+       $(raw-scalar-body +.raw-scalar-body)
      ^-  concat:ast
        [%concat cooked-params]
    ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
@@ -4812,10 +4879,18 @@
       (ifix [pal par] (easy ~))
     ==
   ==
-++  cook-unary-builtin-fn
+++  cook-builtin-fn-parameter
   |=  parsed=*
-  :: TODO: basically these are all dimes
-  ~|  "cook-unary-builtin-fn not implemented: {<parsed>}"  !!
+  ^-  literal-value:ast
+  ?:  ?=([@ @] parsed)
+    [%literal-value dime=`dime`parsed]
+  ~|("unexpected value: {<parsed>}" !!)
+++  cook-builtin-fn-optional-parameter
+  |=  parsed=*
+  ^-  (unit literal-value:ast)
+  ?~  parsed
+    ~
+  (some (cook-builtin-fn-parameter parsed))
 ++  parse-unary-scalar-fn
   |*  [fn-name=@tas first-param=rule]
   ;~  plug
@@ -4832,9 +4907,6 @@
       ==
     ==
   ==
-++  cook-binary-builtin-fn
-  |=  parsed=*
-  ~|  "cook-binary-builtin-fn not implemented: {<parsed>}"  !!
 ++  parse-binary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule]
   ;~  plug
@@ -4928,11 +5000,14 @@
     (parse-unary-scalar-fn %sqrt parse-value-literal)
     (parse-unary-scalar-fn %len parse-value-literal)
     (parse-binary-scalar-fn %log parse-value-literal parse-value-literal)
+    (parse-unary-scalar-fn %log parse-value-literal)
     (parse-binary-scalar-fn %power parse-value-literal parse-value-literal)
     (parse-binary-scalar-fn %left parse-value-literal parse-value-literal)
     (parse-binary-scalar-fn %right parse-value-literal parse-value-literal)
     (parse-binary-scalar-fn %trim parse-value-literal parse-value-literal)
+    (parse-unary-scalar-fn %trim parse-value-literal)
     (parse-ternary-scalar-fn %round parse-value-literal parse-value-literal parse-value-literal)
+    (parse-binary-scalar-fn %round parse-value-literal parse-value-literal)
     (parse-ternary-scalar-fn %substring parse-value-literal parse-value-literal parse-value-literal)
     (parse-n-ary-scalar-fn %concat parse-value-literal)
   ==
