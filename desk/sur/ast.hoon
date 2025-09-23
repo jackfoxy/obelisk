@@ -179,6 +179,46 @@
     %coalesce
     data=(list datum-or-scalar)
   ==
+::
+::  datetime functions
+::
++$  getutcdate                 [%getutcdate ~]
++$  day                     [%day date=literal-value]
++$  month                   [%month date=literal-value]
++$  year                    [%year date=literal-value]
+::
+::  mathematical functions
+::
++$  abs        [%abs numeric-expression=literal-value]
++$  log        [%log float-expression=literal-value base=(unit literal-value)]
++$  floor      [%floor numeric-expression=literal-value]
++$  power      [%power float-expression=literal-value exponent=literal-value]
++$  ceiling    [%ceiling numeric-expression=literal-value]
++$  round      
+  $:  %round
+    numeric-expression=literal-value
+    length=literal-value
+    function=(unit literal-value)
+  ==
++$  sign       [%sign numeric-expression=literal-value]
++$  sqrt       [%sqrt float-expression=literal-value]
+::
+::  string functions
+::
++$  len        [%len string-expression=literal-value]
++$  left       
+  [%left character-expression=literal-value integer-expression=literal-value]
++$  right      
+  [%right character-expression=literal-value integer-expression=literal-value]
++$  substring  
+  $:  %substring
+    string-expression=literal-value
+    start=literal-value
+    length=literal-value
+  ==
++$  trim       [%trim characters=(unit literal-value) string=literal-value]
++$  concat     [%concat args=(list literal-value)]
+::
 +$  scalar-function
   $%
     if-then-else
@@ -186,6 +226,25 @@
     coalesce
     :: arithmetic
     scalar-alias
+    :: builtin functions
+    getutcdate
+    day
+    month
+    year
+    abs
+    log
+    floor
+    power
+    ceiling
+    round
+    sign
+    sqrt
+    len
+    left
+    right
+    substring
+    trim
+    concat
   ==
 +$  literal-value  $:(%literal-value dime=dime)
 +$  cte-alias      $:(%cte-alias alias=@t)

@@ -233,6 +233,330 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+::  builtin scalar functions
+::  test for optional params
+++  test-builtins-01
+::  spaces after parameters
+  =/  query-string
+    "FROM foo ".
+    "SCALARS dt1 GETUTCDATE() ".
+    "        dt3 DAY(2023.1.15) ".
+    "        dt4 MONTH(2023.1.15) ".
+    "        dt5 YEAR(2023.1.15) ".
+    "        mt1 ABS(.5) ".
+    "        mt2 LOG(.5,.2) ".
+    "        mt21 LOG(.5) ".
+    "        mt3 FLOOR(.5) ".
+    "        mt4 POWER(.5, .2) ".
+    "        mt5 CEILING(.5) ".
+    "        mt6 ROUND(.5,2,1) ".
+    "        mt61 ROUND(.5,2) ".
+    "        mt7 SIGN(.5) ".
+    "        mt8 SQRT(.5) ".
+    "        st1 LEN('hello') ".
+    "        st2 LEFT('hello',3) ".
+    "        st3 RIGHT('hello',3) ".
+    "        st4 SUBSTRING('hello',2,3) ".
+    "        st5 TRIM(' ','hello') ".
+    "        st51 TRIM('hello') ".
+    "        st6 CONCAT('hello','world') ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=%t q='world']]
+  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  ::
+  =/  getutcdate-fn          [%getutcdate ~]
+  =/  day-fn                 [%day literal-date]
+  =/  month-fn               [%month literal-date]
+  =/  year-fn                [%year literal-date]
+  =/  abs-fn                 [%abs literal-float]
+  =/  floor-fn               [%floor literal-float]
+  =/  ceiling-fn             [%ceiling literal-float]
+  =/  sign-fn                [%sign literal-float]
+  =/  sqrt-fn                [%sqrt literal-float]
+  =/  len-fn                 [%len literal-hello]
+  =/  left-fn                [%left literal-hello literal-3]
+  =/  right-fn               [%right literal-hello literal-3]
+  =/  power-fn               [%power literal-float literal-float2]
+  =/  log-fn-1               [%log literal-float `literal-float2]
+  =/  log-fn-2               [%log literal-float ~]
+  =/  trim-fn-1              [%trim `literal-space literal-hello]
+  =/  trim-fn-2              [%trim ~ literal-hello]
+  =/  concat-fn              [%concat ~[literal-hello literal-world]]
+  =/  round-fn-1             [%round literal-float literal-2 `literal-1]
+  =/  round-fn-2             [%round literal-float literal-2 ~]
+  =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  =/  scalars
+    :~
+      [%scalar getutcdate-fn 'dt1']
+      [%scalar day-fn 'dt3']
+      [%scalar month-fn 'dt4']
+      [%scalar year-fn 'dt5']
+      [%scalar abs-fn 'mt1']
+      [%scalar log-fn-1 'mt2']
+      [%scalar log-fn-2 'mt21']
+      [%scalar floor-fn 'mt3']
+      [%scalar power-fn 'mt4']
+      [%scalar ceiling-fn 'mt5']
+      [%scalar round-fn-1 'mt6']
+      [%scalar round-fn-2 'mt61']
+      [%scalar sign-fn 'mt7']
+      [%scalar sqrt-fn 'mt8']
+      [%scalar len-fn 'st1']
+      [%scalar left-fn 'st2']
+      [%scalar right-fn 'st3']
+      [%scalar substring-fn 'st4']
+      [%scalar trim-fn-1 'st5']
+      [%scalar trim-fn-2 'st51']
+      [%scalar concat-fn 'st6']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+     !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces before parameters
+++  test-builtins-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS dt1 GETUTCDATE() ".
+    "        dt3 DAY( 2023.1.15) ".
+    "        dt4 MONTH( 2023.1.15) ".
+    "        dt5 YEAR( 2023.1.15) ".
+    "        mt1 ABS( .5) ".
+    "        mt2 LOG( .5, .2) ".
+    "        mt3 FLOOR( .5) ".
+    "        mt4 POWER( .5, .2) ".
+    "        mt5 CEILING( .5) ".
+    "        mt6 ROUND( .5, 2, 1) ".
+    "        mt7 SIGN( .5) ".
+    "        mt8 SQRT( .5) ".
+    "        st1 LEN( 'hello') ".
+    "        st2 LEFT( 'hello', 3) ".
+    "        st3 RIGHT( 'hello', 3) ".
+    "        st4 SUBSTRING( 'hello', 2, 3) ".
+    "        st5 TRIM( ' ', 'hello') ".
+    "        st6 CONCAT( 'hello', 'world') ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=%t q='world']]
+  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  ::
+  =/  getutcdate-fn          [%getutcdate ~]
+  =/  day-fn                 [%day literal-date]
+  =/  month-fn               [%month literal-date]
+  =/  year-fn                [%year literal-date]
+  =/  abs-fn                 [%abs literal-float]
+  =/  floor-fn               [%floor literal-float]
+  =/  ceiling-fn             [%ceiling literal-float]
+  =/  sign-fn                [%sign literal-float]
+  =/  sqrt-fn                [%sqrt literal-float]
+  =/  len-fn                 [%len literal-hello]
+  =/  left-fn                [%left literal-hello literal-3]
+  =/  right-fn               [%right literal-hello literal-3]
+  =/  power-fn               [%power literal-float literal-float2]
+  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  trim-fn                [%trim `literal-space literal-hello]
+  =/  concat-fn              [%concat ~[literal-hello literal-world]]
+  =/  round-fn               [%round literal-float literal-2 `literal-1]
+  =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  =/  scalars
+    :~
+      [%scalar getutcdate-fn 'dt1']
+      [%scalar day-fn 'dt3']
+      [%scalar month-fn 'dt4']
+      [%scalar year-fn 'dt5']
+      [%scalar abs-fn 'mt1']
+      [%scalar log-fn 'mt2']
+      [%scalar floor-fn 'mt3']
+      [%scalar power-fn 'mt4']
+      [%scalar ceiling-fn 'mt5']
+      [%scalar round-fn 'mt6']
+      [%scalar sign-fn 'mt7']
+      [%scalar sqrt-fn 'mt8']
+      [%scalar len-fn 'st1']
+      [%scalar left-fn 'st2']
+      [%scalar right-fn 'st3']
+      [%scalar substring-fn 'st4']
+      [%scalar trim-fn 'st5']
+      [%scalar concat-fn 'st6']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces after parameters
+++  test-builtins-03
+  =/  query-string
+    "FROM foo ".
+    "SCALARS dt1 GETUTCDATE() ".
+    "        dt3 DAY(2023.1.15 ) ".
+    "        dt4 MONTH(2023.1.15 ) ".
+    "        dt5 YEAR(2023.1.15 ) ".
+    "        mt1 ABS(.5 ) ".
+    "        mt2 LOG(.5 ,.2 ) ".
+    "        mt3 FLOOR(.5 ) ".
+    "        mt4 POWER(.5 ,.2 ) ".
+    "        mt5 CEILING(.5 ) ".
+    "        mt6 ROUND(.5 ,2 ,1 ) ".
+    "        mt7 SIGN(.5 ) ".
+    "        mt8 SQRT(.5 ) ".
+    "        st1 LEN('hello' ) ".
+    "        st2 LEFT('hello' ,3 ) ".
+    "        st3 RIGHT('hello' ,3 ) ".
+    "        st4 SUBSTRING('hello' ,2 ,3 ) ".
+    "        st5 TRIM(' ' ,'hello' ) ".
+    "        st6 CONCAT('hello' ,'world' ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=%t q='world']]
+  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  ::
+  =/  getutcdate-fn          [%getutcdate ~]
+  =/  day-fn                 [%day literal-date]
+  =/  month-fn               [%month literal-date]
+  =/  year-fn                [%year literal-date]
+  =/  abs-fn                 [%abs literal-float]
+  =/  floor-fn               [%floor literal-float]
+  =/  ceiling-fn             [%ceiling literal-float]
+  =/  sign-fn                [%sign literal-float]
+  =/  sqrt-fn                [%sqrt literal-float]
+  =/  len-fn                 [%len literal-hello]
+  =/  left-fn                [%left literal-hello literal-3]
+  =/  right-fn               [%right literal-hello literal-3]
+  =/  power-fn               [%power literal-float literal-float2]
+  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  trim-fn                [%trim `literal-space literal-hello]
+  =/  concat-fn              [%concat ~[literal-hello literal-world]]
+  =/  round-fn               [%round literal-float literal-2 `literal-1]
+  =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  =/  scalars
+    :~
+      [%scalar getutcdate-fn 'dt1']
+      [%scalar day-fn 'dt3']
+      [%scalar month-fn 'dt4']
+      [%scalar year-fn 'dt5']
+      [%scalar abs-fn 'mt1']
+      [%scalar log-fn 'mt2']
+      [%scalar floor-fn 'mt3']
+      [%scalar power-fn 'mt4']
+      [%scalar ceiling-fn 'mt5']
+      [%scalar round-fn 'mt6']
+      [%scalar sign-fn 'mt7']
+      [%scalar sqrt-fn 'mt8']
+      [%scalar len-fn 'st1']
+      [%scalar left-fn 'st2']
+      [%scalar right-fn 'st3']
+      [%scalar substring-fn 'st4']
+      [%scalar trim-fn 'st5']
+      [%scalar concat-fn 'st6']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+     !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces before and after parameters
+++  test-builtins-04
+  =/  query-string
+    "FROM foo ".
+    "SCALARS dt1 GETUTCDATE() ".
+    "        dt3 DAY( 2023.1.15 ) ".
+    "        dt4 MONTH( 2023.1.15 ) ".
+    "        dt5 YEAR( 2023.1.15 ) ".
+    "        mt1 ABS( .5 ) ".
+    "        mt2 LOG( .5 , .2 ) ".
+    "        mt3 FLOOR( .5 ) ".
+    "        mt4 POWER( .5 , .2 ) ".
+    "        mt5 CEILING( .5 ) ".
+    "        mt6 ROUND( .5 , 2 , 1 ) ".
+    "        mt7 SIGN( .5 ) ".
+    "        mt8 SQRT( .5 ) ".
+    "        st1 LEN( 'hello' ) ".
+    "        st2 LEFT( 'hello' , 3 ) ".
+    "        st3 RIGHT( 'hello' , 3 ) ".
+    "        st4 SUBSTRING( 'hello' , 2 , 3 ) ".
+    "        st5 TRIM( ' ' , 'hello' ) ".
+    "        st6 CONCAT( 'hello' , 'world' ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=%t q='world']]
+  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  ::
+  =/  getutcdate-fn          [%getutcdate ~]
+  =/  day-fn                 [%day literal-date]
+  =/  month-fn               [%month literal-date]
+  =/  year-fn                [%year literal-date]
+  =/  abs-fn                 [%abs literal-float]
+  =/  floor-fn               [%floor literal-float]
+  =/  ceiling-fn             [%ceiling literal-float]
+  =/  sign-fn                [%sign literal-float]
+  =/  sqrt-fn                [%sqrt literal-float]
+  =/  len-fn                 [%len literal-hello]
+  =/  left-fn                [%left literal-hello literal-3]
+  =/  right-fn               [%right literal-hello literal-3]
+  =/  power-fn               [%power literal-float literal-float2]
+  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  trim-fn                [%trim `literal-space literal-hello]
+  =/  concat-fn              [%concat ~[literal-hello literal-world]]
+  =/  round-fn               [%round literal-float literal-2 `literal-1]
+  =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  =/  scalars
+    :~
+      [%scalar getutcdate-fn 'dt1']
+      [%scalar day-fn 'dt3']
+      [%scalar month-fn 'dt4']
+      [%scalar year-fn 'dt5']
+      [%scalar abs-fn 'mt1']
+      [%scalar log-fn 'mt2']
+      [%scalar floor-fn 'mt3']
+      [%scalar power-fn 'mt4']
+      [%scalar ceiling-fn 'mt5']
+      [%scalar round-fn 'mt6']
+      [%scalar sign-fn 'mt7']
+      [%scalar sqrt-fn 'mt8']
+      [%scalar len-fn 'st1']
+      [%scalar left-fn 'st2']
+      [%scalar right-fn 'st3']
+      [%scalar substring-fn 'st4']
+      [%scalar trim-fn 'st5']
+      [%scalar concat-fn 'st6']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::
 ::  coalesce
 ::
 :: simple coalesce
