@@ -182,8 +182,8 @@
 ::
 ::  datetime functions
 ::
-+$  getdate                 [%getdate]
-+$  sysdatetimeoffset       [%sysdatetimeoffset]
++$  getdate                 [%getdate ~]
++$  sysdatetimeoffset       [%sysdatetimeoffset ~]
 +$  day                     [%day date=literal-value]
 +$  month                   [%month date=literal-value]
 +$  year                    [%year date=literal-value]

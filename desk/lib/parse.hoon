@@ -1268,7 +1268,6 @@
                                         " ..."
                                         %-  parse-query
                                               [[1 1] q.q.command-nail]
-                                ~&  "nail: {<nail>}"
                                 [(wonk nail) nail]
       ~|  "query parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -2949,10 +2948,10 @@
    ::  nullary builtin functions (no parameters, cast directly)
    ?:  =(%getdate fn-name)
      ^-  getdate:ast
-       [%getdate]
+       [%getdate ~]
    ?:  =(%sysdatetimeoffset fn-name)
      ^-  sysdatetimeoffset:ast
-       [%sysdatetimeoffset]
+       [%sysdatetimeoffset ~]
    ::  unary builtin functions
    ?:  =(%day fn-name)
      ^-  day:ast
@@ -3060,13 +3059,13 @@
    ?:  =(%round fn-name)
      ^-  round:ast
      ?:  ?=([[@ @] * *] raw-scalar-body)
-       :*
-         %round
-         (cook-builtin-fn-parameter -.raw-scalar-body)
-         (cook-builtin-fn-parameter +<.raw-scalar-body)
-         (cook-builtin-fn-optional-parameter +>.raw-scalar-body)
-       ==
-     ?:  ?=([[@ @] *] raw-scalar-body)
+       ?:  ?=([[@ @] *] +.raw-scalar-body)
+         :*
+           %round
+           (cook-builtin-fn-parameter -.raw-scalar-body)
+           (cook-builtin-fn-parameter +<.raw-scalar-body)
+           (cook-builtin-fn-optional-parameter +>.raw-scalar-body)
+         ==
        :*
          %round
          (cook-builtin-fn-parameter -.raw-scalar-body)
