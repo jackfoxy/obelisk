@@ -224,7 +224,7 @@
     if-then-else
     case
     coalesce
-    :: arithmetic
+    arithmetic
     scalar-alias
     :: builtin functions
     getutcdate

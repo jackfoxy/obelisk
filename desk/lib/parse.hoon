@@ -1262,12 +1262,14 @@
           ==
     %query
       =/  [parsed=* nail=edge]  |-
+                                ~&  "recursion"
                                 =/  nail  
                                     ~|  "query parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
                                         %-  parse-query
                                               [[1 1] q.q.command-nail]
+                                ~&  "nail: {<nail>}"
                                 [(wonk nail) nail]
       ~|  "query parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -5132,7 +5134,22 @@
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
 ::
-++  scalar-token
+++  cook-coalesce
+  |=  parsed=*
+  ^-  coalesce-helper
+  =/  coalesce-params
+    |-
+    ^-  (list scalar-param)
+    ?~  parsed
+      ~
+    [(cook-scalar-param -.parsed) $(parsed +.parsed)]
+  %:  coalesce-helper
+    %coalesce-helper
+    data=coalesce-params
+  ==
+++  parse-coalesce  ~+
+  (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
+++  arithmetic-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
     ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
@@ -5141,9 +5158,11 @@
     ;~(plug (cold %case (jester 'case')) parse-case)
     ;~  pfix
       whitespace
-      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+::      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
     ==
-    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
     (cold %pal ;~(plug whitespace pal))
     (cold %pal pal)
     (cold %par ;~(plug whitespace par))
@@ -5160,25 +5179,12 @@
     (cold %ket ket)
     parse-scalar-param
   ==
-++  cook-coalesce
-  |=  parsed=*
-  ^-  coalesce-helper
-  =/  coalesce-params
-    |-
-    ^-  (list scalar-param)
-    ?~  parsed
-      ~
-    [(cook-scalar-param -.parsed) $(parsed +.parsed)]
-  %:  coalesce-helper
-    %coalesce-helper
-    data=coalesce-params
-  ==
-++  parse-coalesce  ~+
-  (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
-++  parse-math
+++  parse-arithmetic
+  ~&  "parse arithmetic"
   ;~  plug
     (cold %begin (jester 'begin'))
-    (star scalar-token)
+    (star ~&("calling star" ;~(less scalar-stop arithmetic-token)))
+    ::(star arithmetic-token)
   ==
 ++  parse-scalar-body
   ;~  pose
@@ -5186,16 +5192,18 @@
     ;~(plug (cold %case (jester 'case')) parse-case)
     parse-coalesce
     parse-builtin-scalar-fn
-    parse-math
+    parse-arithmetic
   ==
-++  scalar-stop  ;~
-  pose
-    ;~(plug whitespace (jest ')'))
-    ;~(plug whitespace (jester 'where'))
+:: TODO: this is unused?
+++  scalar-stop
+  ~&  "scalar-stop"
+  ;~  pose
+    ::;~(plug whitespace (jest ')'))
+    ::;~(plug whitespace (jester 'where'))
     ;~(plug whitespace (jester 'select'))
-    ;~(plug whitespace (jester 'else'))
-    ;~(plug whitespace (jester 'endif'))
-    ;~(plug whitespace (jester 'end'))
+    ::;~(plug whitespace (jester 'else'))
+    ::;~(plug whitespace (jester 'endif'))
+    ::;~(plug whitespace (jester 'end'))
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  cook-scalar-alias
