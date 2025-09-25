@@ -1641,11 +1641,13 @@
 ++  test-arithmetic-1
   ::
   =/  query-string
-    "FROM foo SCALARS foo1 BEGIN 1 + 1 END foo2 BEGIN 1 - 1 END foo3 BEGIN 1 / 1 END foo4 BEGIN 1 * 1 END SELECT foo2,foo3"
-::    "        foo2 BEGIN 1 - 1 END ".
-::    "        foo3 BEGIN 1 / 1 END ".
-::    "        foo4 BEGIN 1 * 1 END ".
-::    "        foo5 BEGIN 1 ^ 1 END ".
+    "FROM foo ".
+    "SCALARS foo1 BEGIN 1 + 1 END ".
+    "        foo2 BEGIN 1 - 1 END ".
+    "        foo3 BEGIN 1 / 1 END ".
+    "        foo4 BEGIN 1 * 1 END ".
+    "        foo5 BEGIN 1 ^ 1 END ".
+    "SELECT foo2,foo3"
   ::
   =/  addition
     [%arithmetic operator=%lus left=literal-1 right=literal-1]

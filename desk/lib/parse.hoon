@@ -1269,7 +1269,6 @@
                                         " ..."
                                         %-  parse-query
                                               [[1 1] q.q.command-nail]
-                                ~&  "nail: {<nail>}"
                                 [(wonk nail) nail]
       ~|  "query parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
@@ -2947,6 +2946,9 @@
      =/  cooked-case  (cook-case-body raw-scalar-body)
      =/  finalized-case  (finalize-case cooked-case aliases)
        finalized-case
+  ?:  =(%arithmetic fn-name)
+     =/  cooked-math  (cook-arithmetic raw-scalar-body)
+       cooked-math
    ::  nullary builtin functions (no parameters, cast directly)
    ?:  =(%getutcdate fn-name)
      ^-  getutcdate:ast
@@ -5179,11 +5181,13 @@
     (cold %ket ket)
     parse-scalar-param
   ==
+++  cook-arithmetic
+  |=  parsed=*
+  ~|("cook-arithmetic not implemented: {<parsed>}" !!)
 ++  parse-arithmetic
-  ~&  "parse arithmetic"
   ;~  plug
     (cold %begin (jester 'begin'))
-    (star ~&("calling star" ;~(less scalar-stop arithmetic-token)))
+    (star ;~(less scalar-stop arithmetic-token))
     ::(star arithmetic-token)
   ==
 ++  parse-scalar-body
@@ -5192,18 +5196,16 @@
     ;~(plug (cold %case (jester 'case')) parse-case)
     parse-coalesce
     parse-builtin-scalar-fn
-    parse-arithmetic
+    ;~(plug (stag %arithmetic parse-arithmetic))
   ==
-:: TODO: this is unused?
 ++  scalar-stop
-  ~&  "scalar-stop"
   ;~  pose
-    ::;~(plug whitespace (jest ')'))
-    ::;~(plug whitespace (jester 'where'))
-    ;~(plug whitespace (jester 'select'))
-    ::;~(plug whitespace (jester 'else'))
-    ::;~(plug whitespace (jester 'endif'))
-    ::;~(plug whitespace (jester 'end'))
+::    ;~(plug whitespace (jest ')') whitespace)
+    ;~(plug whitespace (jester 'where') whitespace)
+    ;~(plug whitespace (jester 'select') whitespace)
+    ;~(plug whitespace (jester 'else') whitespace)
+    ;~(plug whitespace (jester 'endif') whitespace)
+::    ;~(plug whitespace (jester 'end') whitespace)
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  cook-scalar-alias
