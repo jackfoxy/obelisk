@@ -5183,7 +5183,23 @@
   ==
 ++  cook-arithmetic
   |=  parsed=*
-  ~|("cook-arithmetic not implemented: {<parsed>}" !!)
+  ^-  arithmetic:ast
+  =/  ops-and-operators  +.parsed
+  :: i think algo could be as follows
+  :: if thing is atom, then switch on if its a literal or an operator
+  :: if thing is cell, then call cook-arithmetic on it
+  =/  param  +<.ops-and-operators
+    |-
+    ?:  =(param %end)
+      ~
+    ?@  param
+      ?:  ?=([%literal *] param)
+        :-  %:(literal-value:ast %literal-value dime=+.param)
+        $(ops-and-operators +.ops-and-operators)
+      :-  %:(scalar-op:ast param)
+      $(ops-and-operators +.ops-and-operators)
+    ~|("cook-arithmetic for parenthesis not implemented: {<parsed>}" !!)
+  ~|("cooked params: {<cooked-params>}" !!)
 ++  parse-arithmetic
   ;~  plug
     (cold %begin (jester 'begin'))
