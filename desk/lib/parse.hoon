@@ -5182,6 +5182,7 @@
     (cold %ket ket)
     parse-scalar-param
   ==
+:: TODO: replicate predicate maybe
 ++  cook-arithmetic
   |=  parsed=*
   ~&  "parsed {<parsed>}"

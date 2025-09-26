@@ -1662,10 +1662,10 @@
   =/  scalars
     :~
       [%scalar addition 'foo1']
-      [%scalar addition 'foo2']
-      [%scalar addition 'foo3']
-      [%scalar addition 'foo4']
-      [%scalar addition 'foo5']
+      [%scalar subtraction 'foo2']
+      [%scalar division 'foo3']
+      [%scalar multiplication 'foo4']
+      [%scalar exponentiation 'foo5']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
