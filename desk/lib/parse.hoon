@@ -2948,6 +2948,7 @@
        finalized-case
   ?:  =(%arithmetic fn-name)
      =/  cooked-math  (cook-arithmetic raw-scalar-body)
+     ~&  "cooked math: {<cooked-math>}"
        cooked-math
    ::  nullary builtin functions (no parameters, cast directly)
    ?:  =(%getutcdate fn-name)
@@ -5183,27 +5184,40 @@
   ==
 ++  cook-arithmetic
   |=  parsed=*
+  ~&  "parsed {<parsed>}"
   ^-  arithmetic:ast
-  =/  ops-and-operators  +.parsed
+  =/  ops-and-operators  parsed
   :: i think algo could be as follows
   :: if thing is atom, then switch on if its a literal or an operator
   :: if thing is cell, then call cook-arithmetic on it
-  =/  param  +<.ops-and-operators
-    |-
-    ?:  =(param %end)
-      ~
-    ?@  param
-      ?:  ?=([%literal *] param)
-        :-  %:(literal-value:ast %literal-value dime=+.param)
-        $(ops-and-operators +.ops-and-operators)
-      :-  %:(scalar-op:ast param)
-      $(ops-and-operators +.ops-and-operators)
-    ~|("cook-arithmetic for parenthesis not implemented: {<parsed>}" !!)
-  ~|("cooked params: {<cooked-params>}" !!)
+  |-
+  ~&  "operator1 {<ops-and-operators>}"
+  =/  operand1  -.ops-and-operators
+  =/  cooked-operand1
+    ?:  ?=([%literal *] operand1)
+      %:(literal-value:ast %literal-value dime=+.operand1)
+    (cook-arithmetic operand1) :: this doesn't work because it needs a %end to stop the recusrsion
+  ?~  +.ops-and-operators
+    %:  arithmetic:ast
+      %arithmetic
+      %lus
+      cooked-operand1
+      %:(literal-value:ast %literal-value dime=[%ud 0])
+    ==
+  =/  operator  +<.ops-and-operators
+  %:  arithmetic:ast
+    %arithmetic
+    operator
+    cooked-operand1
+    $(ops-and-operators +>.ops-and-operators)
+  ==
 ++  parse-arithmetic
   ;~  plug
-    (cold %begin (jester 'begin'))
-    (star ;~(less scalar-stop arithmetic-token))
+    (cold %arithmetic (jester 'begin'))
+    ;~  sfix
+      (star ;~(less scalar-stop arithmetic-token))
+      ;~(pfix whitespace (jester 'end'))
+    ==
     ::(star arithmetic-token)
   ==
 ++  parse-scalar-body
@@ -5212,7 +5226,7 @@
     ;~(plug (cold %case (jester 'case')) parse-case)
     parse-coalesce
     parse-builtin-scalar-fn
-    ;~(plug (stag %arithmetic parse-arithmetic))
+    parse-arithmetic
   ==
 ++  scalar-stop
   ;~  pose
@@ -5221,7 +5235,7 @@
     ;~(plug whitespace (jester 'select') whitespace)
     ;~(plug whitespace (jester 'else') whitespace)
     ;~(plug whitespace (jester 'endif') whitespace)
-::    ;~(plug whitespace (jester 'end') whitespace)
+    ;~(plug whitespace (jester 'end') whitespace)
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  cook-scalar-alias
