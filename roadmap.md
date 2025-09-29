@@ -52,7 +52,7 @@ Features coming after v0.5 alpha release.
 
 * __Triggers__ -- TBD. Kick off some other process inside or outside of %obelisk.
 
-* __Localization of date/time__ -- TBD. (cf. https://github.com/sigilante/l10n) Not sure this is really important, but I can be persuaded.
+* __Localization of date/time__ -- pass timezoneoffset @dr to server
 
 * __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
 
