@@ -1671,6 +1671,66 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+:: nested math expressions
+++  test-arithmetic-2
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo1 BEGIN (1 + 1) + 1 END ".
+    "        foo2 BEGIN (1 - 1) - 1 END ".
+    "        foo3 BEGIN (1 / 1) / 1 END ".
+    "        foo4 BEGIN (1 * 1) * 1 END ".
+    "        foo5 BEGIN (1 ^ 1) ^ 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  addition
+    :*
+      %arithmetic
+      operator=%lus
+      left=[%arithmetic operator=%lus left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  subtraction
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%arithmetic operator=%hep left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  division
+    :*
+      %arithmetic
+      operator=%fas
+      left=[%arithmetic operator=%fas left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  multiplication
+    :*
+      %arithmetic
+      operator=%tar
+      left=[%arithmetic operator=%tar left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  exponentiation
+    :*
+      %arithmetic
+      operator=%ket
+      left=[%arithmetic operator=%ket left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  scalars
+    :~
+      [%scalar addition 'foo1']
+      [%scalar subtraction 'foo2']
+      [%scalar division 'foo3']
+      [%scalar multiplication 'foo4']
+      [%scalar exponentiation 'foo5']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::  simple case AS with datum
 ::++  test-scalar-06
 ::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN foo ELSE bar END"

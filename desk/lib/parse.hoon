@@ -1262,7 +1262,6 @@
           ==
     %query
       =/  [parsed=* nail=edge]  |-
-                                ~&  "recursion"
                                 =/  nail  
                                     ~|  "query parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
@@ -5153,6 +5152,7 @@
 ++  parse-coalesce  ~+
   (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
 ++  arithmetic-token
+  :: TODO: somehow when things are inside parens put in a cell
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
     ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
@@ -5183,9 +5183,60 @@
     parse-scalar-param
   ==
 :: TODO: replicate predicate maybe
+::++  produce-arithmetic
+::  |=  parsed=(list $?(scalar-token:ast literal-value:ast))
+::  ~+
+::  ^-  arithmetic:ast
+::  =/  length  (lent parsed)
+::  =/  state  (fold (flop parsed) [length 0 ~ 0 parsed] pred-folder)
+::  ?~  cmpnt.state
+::    ?:  =(%pal -.parsed)
+::      (produce-predicate (scag (sub length 2) `(list raw-pred-cmpnt)`+.parsed))
+::    (pred-leaf parsed)
+::  =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
+::        (split-at parsed cmpnt-displ.state)
+::  ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
+::    unary-op:ast     :: ?(%not %not-exists %exists)
+::      ?~  p.r
+::        [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+::      ?:  ?=(unary-op:ast -.p.r)
+::        [-.p.r (produce-predicate q.r) ~]
+::      ~|("unknown predicate node {<-.p.r>}" !!)
+::    binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
+::      ?:  ?=(unary-op:ast -.p.r)
+::        ?:  ?=(%not -.p.r)
+::          [-.p.r (produce-predicate +.parsed) ~]
+::        ~|("malformed predicate {<-.p.r>}" !!)
+::      [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
+::    ternary-op:ast   :: %between, %not-between
+::      ?:  =(%and +>-.q.r)
+::        :+  -.q.r
+::            [%gte (pred-leaf p.r) (pred-leaf (limo ~[+<.q.r]))]
+::            [%lte (pred-leaf p.r) (pred-leaf (limo +>+.q.r))]
+::      :+  -.q.r
+::        [%gte (pred-leaf p.r) (pred-leaf (limo ~[+<.q.r]))]
+::        [%lte (pred-leaf p.r) (pred-leaf (limo +>.q.r))]
+::    conjunction:ast  :: ?(%and %or)
+::      [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
+::    all-any-op:ast   :: ?(%all %any)
+::      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
+::  ==
+::++  arithmetic-list  ~+
+::  |=  a=*
+::  ^-  (list $?(scalar-token:ast literal-value:ast))
+::  =/  new-list  *(list scalar-token:ast)
+::  |-
+::  ?~  a
+::    ~
+::  ?:  ?=([%literal *] -.a) 
+::    [%:(literal-value:ast %literal-value dime=->.a) $(a +.a)]
+::  ?:  ?=(scalar-token:ast -.a)
+::    [`scalar-token:ast`-.a $(a +.a)]
+::  ~|("problem with arithmetic noun:  {<a>}" !!)
 ++  cook-arithmetic
   |=  parsed=*
   ~&  "parsed {<parsed>}"
+::  ~&  "arith list {<(arithmetic-list parsed)>}"
   ^-  arithmetic:ast
   =/  ops-and-operators  parsed
   :: i think algo could be as follows
@@ -5198,12 +5249,18 @@
     ?:  ?=([%literal *] operand1)
       %:(literal-value:ast %literal-value dime=+.operand1)
     (cook-arithmetic operand1) :: this doesn't work because it needs a %end to stop the recusrsion
-  ?~  +.ops-and-operators
+  ?~  +>+.ops-and-operators
+    =/  operator  +<.ops-and-operators
+    =/  operand2  +>-.ops-and-operators
+    =/  cooked-operand2
+      ?:  ?=([%literal *] operand2)
+        %:(literal-value:ast %literal-value dime=+.operand2)
+      (cook-arithmetic operand2) :: this doesn't work because it needs a %end to stop the recusrsion
     %:  arithmetic:ast
       %arithmetic
-      %lus
+      operator
       cooked-operand1
-      %:(literal-value:ast %literal-value dime=[%ud 0])
+      cooked-operand2
     ==
   =/  operator  +<.ops-and-operators
   %:  arithmetic:ast
@@ -5219,7 +5276,6 @@
       (star ;~(less scalar-stop arithmetic-token))
       ;~(pfix whitespace (jester 'end'))
     ==
-    ::(star arithmetic-token)
   ==
 ++  parse-scalar-body
   ;~  pose
