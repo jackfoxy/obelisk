@@ -745,7 +745,10 @@
           ~|  "UPDATE: {<table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ?:  =(p.i.values (~(got by +.type-lookup) name.i.columns))
+        ::?:  =(p.i.values (~(got by +.type-lookup) name.i.columns))
+        ?:  .=  p.i.values  ~|  "UPDATE: {<table>} does not have column ".
+                                "{<name.i.columns>}"
+                                (~(got by +.type-lookup) name.i.columns)
           [[name.i.columns +.i.values] updates]
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
