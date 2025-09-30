@@ -145,7 +145,7 @@
           ::~&  "{<->->+.rtree>}"   :: from objects
           ::~>  %bout.[0 %select]
           =/  rt  (do-query -.rtree named-ctes %.n)
-          [next-data -.rt (select-results named-ctes rt)]
+          [next-data ->-.rt (select-results named-ctes -.rt +>.rt)]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
@@ -440,15 +440,15 @@
           [%vector-count rowcount.file.txn]
           ==
 ::
-::  +do-query:  [query:ast ?] -> [server (list set-table) (list result)]
+::  +do-query:  [query:ast ?] -> [join-return (list set-table) (list result)]
 ::
 ::  state may be updated by insertion into view-cache, which does not effect
 ::  any other part of the state
 ++  do-query
   |=  [q=query:ast =named-ctes is-cte=?]
-  ^-  [server (list set-table) (list vector)]
+  ^-  [join-return (list set-table) (list vector)]
   :: literal only
-  ?~  from.q  [state (select-literals columns.select.q is-cte)]
+  ?~  from.q  [[%join-return state ~ *qualified-lookup-type ~] (select-literals columns.select.q is-cte)]
   :: no joins, it's a single relation
   =/  f  (need from.q)
   ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
@@ -468,8 +468,8 @@
                     qualifier-lookup
               type-lookup.join-return
               qualifier-lookup
-  ?:  is-cte  [server.join-return set-tables ~]
-  :+  server.join-return
+  ?:  is-cte  [join-return set-tables ~]
+  :+  join-return
       set-tables
       %:  joined-result  filter
                           qualified-columns.join-return
@@ -519,32 +519,35 @@
 ::                    -> (list result)
 ++  select-results
   |=  $:  =named-ctes
-          state=server
-          set-tables=(list set-table)
+          =join-return
+          ::state=server
+          ::set-tables=(list set-table)
           vectors=(list vector)
           ==
   ^-  (list result)
   =/  out  *(list (list result))
-  =/  ctes=(list set-table)  (zing ~(val by named-ctes))
+  =/  ctes=(list set-table)  %+  turn
+                                 `(list full-relation)`(zing ~(val by named-ctes))
+                                 |=(a=full-relation set-table.a)
   =/  raw  %+  sort  %~  tap  in
-                              %^  fold  (weld set-tables ctes)
+                              %^  fold  (weld set-tables.join-return ctes)
                                         *(set [qualified-table:ast @da @da])
                                         pick-from-object
                      order-results
-  ?~  set-tables  ~|("can't get here" !!)
+  ?~  set-tables.join-return  ~|("can't get here" !!)
   |-
   ?~  raw  ?~  out
              :~  [%message 'SELECT']
                  :-  %result-set
-                     ?~  indexed-rows.i.set-tables  ~
+                     ?~  indexed-rows.i.set-tables.join-return  ~
                      :~  %+  mk-vect
-                             columns.i.set-tables
-                             data.i.indexed-rows.i.set-tables
+                             columns.i.set-tables.join-return
+                             data.i.indexed-rows.i.set-tables.join-return
                          ==
                  [%server-time now.bowl]
-                 [%schema-time created-tmsp:(~(got by state) %sys)]
-                 [%data-time created-tmsp:(~(got by state) %sys)]
-                 [%vector-count (lent indexed-rows.i.set-tables)]
+                 [%schema-time created-tmsp:(~(got by server.join-return) %sys)]
+                 [%data-time created-tmsp:(~(got by server.join-return) %sys)]
+                 [%vector-count (lent indexed-rows.i.set-tables.join-return)]
                  ==
     %-  zing  :~  :~  [%message 'SELECT']
                       [%result-set vectors]
@@ -762,10 +765,18 @@
   ^-  named-ctes
   |-
   ?~  ctes  nctes
-  =/  state-table-unit  (do-query query.i.ctes nctes %.y)
-  =.  state             -.state-table-unit
+  ::=/  state-table-unit  (do-query query.i.ctes nctes %.y)
+  =/  =join-return  -:(do-query query.i.ctes nctes %.y)
+  ::=.  state             ->-.state-table-unit
+  =.  state           server.join-return
+  =/  =full-relation  :^  %full-relation
+                          -.set-tables.join-return
+                          type-lookup.join-return
+                          qualified-columns.join-return
   %=  $
-    nctes  (~(put by nctes) name.i.ctes +<.state-table-unit)
+    nctes  %+  ~(put by nctes)
+               name.i.ctes
+               ~[full-relation]
     ctes   +.ctes
   ==
 --

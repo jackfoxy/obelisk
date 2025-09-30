@@ -40,34 +40,41 @@
 ::  selection from a single table without joins
 ++  select-relation
   |=  [q=query:ast is-cte=? =named-ctes]
-  ^-  [server (list set-table) (list vector)]
+  ^-  [join-return (list set-table) (list vector)]
   =/  from          (need from.q)
-  =/  query-source  ?:  ?=(qualified-table:ast object.+.object.from)
+  =/  query-source    ?:  ?=(qualified-table:ast object.+.object.from)
                       object.+.object.from
                     ~|("SELECT: not supported on %query-row" !!)
-  =/  triple=[set-table qualified-lookup-type (list qual-col-type)]
-    %:  prep-relation  query-source
-                        as-of.from
-                        ~
-                        ~
-                        *qualified-lookup-type
-                        ~
-                        ==
-  =/  =set-table    -.triple
+  =/  the-relation=full-relation  %:  prep-relation  query-source
+                                      named-ctes
+                                      as-of.from
+                                      ~
+                                      ~
+                                      *qualified-lookup-type
+                                      ~
+                                      ==
+  =/  =set-table    set-table.the-relation
   =/  selected      columns.select.q
   =/  filter        ?~  predicate.q  ~
                     :-  ~
                         %^  pred-ops-and-conjs
                             (pred-unqualify-qualified predicate.q)
                             :-  %unqualified-lookup-type
-                                (~(got by +<+.triple) query-source)
+                                %-  ~(got by +.lookup-type.the-relation)
+                                    query-source
                             ~
   ::
-  ?:  is-cte  [state (select-for-cte q set-table filter) ~]
-  :+  state
+  =/  =join-return  :*  %join-return
+                        state
+                        ~[set-table]
+                        lookup-type.the-relation
+                        qual-col-types.the-relation
+                        ==
+  ?:  is-cte  [join-return (select-for-cte q set-table filter) ~]
+  :+  join-return
       ~[set-table]
       %:  table-result  filter
-                        +>.triple
+                        qual-col-types.the-relation
                         indexed-rows.set-table
                         selected
                         ==
@@ -234,53 +241,55 @@
   =/  query-source  ?:  ?=(qualified-table:ast object.relation.relat)
                       object.relation.relat
                     ~|("SELECT: not supported on %query-row" !!)
-  =.  joined-relations  +.joined-relations
-  =/  triple            %:  prep-relation  query-source
-                                          as-of.relat
-                                          ~
-                                          ~
-                                          *qualified-lookup-type
-                                          ~
-                                          ==
-  =/  prior-join        -.triple
+  =.  joined-relations            +.joined-relations
+  =/  the-relation=full-relation  %:  prep-relation  query-source
+                                                     named-ctes
+                                                     as-of.relat
+                                                     ~
+                                                     ~
+                                                     *qualified-lookup-type
+                                                     ~
+                                                     ==
+  =/  prior-join        set-table.the-relation
   =/  from-objects      (limo ~[prior-join])
-  =/  type-lookup       +<.triple
-  =/  qualified-columns=(list qual-col-type)  +>.triple
   |-
   ?~  joined-relations  %:  join-return  %join-return
-                                  state
-                                  from-objects
-                                  type-lookup
-                                  qualified-columns
-                                  ==
+                                         state
+                                         from-objects
+                                         lookup-type.the-relation
+                                         qual-col-types.the-relation
+                                         ==
   =.  query-source
         ?:  ?=(qualified-table:ast object.relation.i.joined-relations)
               object.relation.i.joined-relations
             ~|("SELECT: not supported on %query-row" !!)
-  =.  triple  %:  prep-relation  query-source
-                                  as-of.i.joined-relations
-                                  join.i.joined-relations
-                                  predicate.i.joined-relations
-                                  type-lookup
-                                  qualified-columns
-                                  ==
-  =.  prior-join       (join-up prior-join -.triple)
+  =.  the-relation  %:  prep-relation  query-source
+                                       named-ctes
+                                       as-of.i.joined-relations
+                                       join.i.joined-relations
+                                       predicate.i.joined-relations
+                                       lookup-type.the-relation
+                                       qual-col-types.the-relation
+                                       ==
+  =.  prior-join       (join-up prior-join set-table.the-relation)
   %=  $
-    joined-relations    +.joined-relations
+    joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
-    type-lookup        +<.triple
-    qualified-columns  +>.triple
   ==
 ::
 ++  prep-relation
   |=  $:  ts=qualified-table:ast
+          =named-ctes
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
           =predicate
           type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [set-table qualified-lookup-type (list qual-col-type)]
+  ^-  full-relation
+
+    ~&  "ts:  {<ts>}"
+
   =/  obj-alias  :-  ts
                      ?~  alias.ts  ~
                      `(crip (cass (trip (need alias.ts))))
@@ -325,14 +334,15 @@
           type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [set-table qualified-lookup-type (list qual-col-type)]
+  ^-  full-relation
   =/  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
                ".{<name.query-obj>} does not exist at schema time ".
                "{<tmsp.schema>}"
                (~(got by tables.schema) [namespace.query-obj name.query-obj])
   =/  file
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
-  :+  %:  set-table  %set-table
+  :^  %full-relation
+      %:  set-table  %set-table
                      [~ query-obj]
                      [~ tmsp.tbl]
                      [~ tmsp.file]
@@ -411,7 +421,7 @@
           type-lookup=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
-  ^-  [set-table qualified-lookup-type (list qual-col-type)]
+  ^-  full-relation
   =/  r=[database cache]  %:  got-view-cache  db
                                               schema
                                               view
@@ -425,7 +435,8 @@
   =.  state  ?.  =(db -.r)
                 (~(put by state) database.query-obj -.r)
              state
-  :+  %:  set-table  %set-table
+  :^  %full-relation  
+      %:  set-table  %set-table
                      [~ query-obj]
                      [~ tmsp.schema]
                      [~ tmsp.+.r]
