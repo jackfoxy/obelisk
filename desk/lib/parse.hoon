@@ -5151,37 +5151,6 @@
   ==
 ++  parse-coalesce  ~+
   (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
-++  arithmetic-token
-  :: TODO: somehow when things are inside parens put in a cell
-  ;~  pose
-    ;~(pfix whitespace (cold %end (jester 'end')))
-    ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
-    ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
-    ;~(plug (cold %case (jester 'case')) parse-case)
-    ;~  pfix
-      whitespace
-::      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-    parse-coalesce
-    ==
-::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-    parse-coalesce
-    (cold %pal ;~(plug whitespace pal))
-    (cold %pal pal)
-    (cold %par ;~(plug whitespace par))
-    (cold %par par)
-    (cold %lus ;~(plug whitespace lus))
-    (cold %lus lus)
-    (cold %hep ;~(plug whitespace hep))
-    (cold %hep hep)
-    (cold %tar ;~(plug whitespace tar))
-    (cold %tar tar)
-    (cold %fas ;~(plug whitespace fas))
-    (cold %fas fas)
-    (cold %ket ;~(plug whitespace ket))
-    (cold %ket ket)
-    parse-scalar-param
-  ==
 :: TODO: replicate predicate maybe
 ::++  produce-arithmetic
 ::  |=  parsed=(list $?(scalar-token:ast literal-value:ast))
@@ -5221,41 +5190,47 @@
 ::    all-any-op:ast   :: ?(%all %any)
 ::      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
 ::  ==
-::++  arithmetic-list  ~+
-::  |=  a=*
-::  ^-  (list $?(scalar-token:ast literal-value:ast))
-::  =/  new-list  *(list scalar-token:ast)
-::  |-
-::  ?~  a
-::    ~
-::  ?:  ?=([%literal *] -.a) 
-::    [%:(literal-value:ast %literal-value dime=->.a) $(a +.a)]
-::  ?:  ?=(scalar-token:ast -.a)
-::    [`scalar-token:ast`-.a $(a +.a)]
-::  ~|("problem with arithmetic noun:  {<a>}" !!)
+:: finds expressions wrapped in %pal and %par and puts them in a cell
+++  arithmetic-list  ~+
+  |=  a=*
+  ~&  "arith list param {<a>}"
+  ^-  *
+  =/  new-list=(list *)  ~
+  |-
+  ?~  a
+    (flop new-list)
+  ?:  ?|  =(-.a %par)
+          ::=(a %par)
+      ==
+    (flop new-list)
+  ?:  ?=([%literal *] -.a) 
+    $(a +.a, new-list [-.a new-list])
+  ?:  ?=(%pal -.a) 
+    $(a +.a, new-list [(arithmetic-list +.a) new-list])
+  ?:  ?=(scalar-token:ast -.a)
+    $(a +.a, new-list [`scalar-token:ast`-.a new-list])
+  ~|("arithmetic list problem with noun: {<a>}" !!)
 ++  cook-arithmetic
   |=  parsed=*
   ~&  "parsed {<parsed>}"
 ::  ~&  "arith list {<(arithmetic-list parsed)>}"
   ^-  arithmetic:ast
-  =/  ops-and-operators  parsed
-  :: i think algo could be as follows
-  :: if thing is atom, then switch on if its a literal or an operator
-  :: if thing is cell, then call cook-arithmetic on it
+  =/  ops-and-operators  (arithmetic-list parsed)
+  ~&  "ops and operators {<ops-and-operators>}"
   |-
-  ~&  "operator1 {<ops-and-operators>}"
   =/  operand1  -.ops-and-operators
+  ~&  "operand1 {<operand1>}"
   =/  cooked-operand1
     ?:  ?=([%literal *] operand1)
       %:(literal-value:ast %literal-value dime=+.operand1)
-    (cook-arithmetic operand1) :: this doesn't work because it needs a %end to stop the recusrsion
+    (cook-arithmetic operand1)
   ?~  +>+.ops-and-operators
     =/  operator  +<.ops-and-operators
     =/  operand2  +>-.ops-and-operators
     =/  cooked-operand2
       ?:  ?=([%literal *] operand2)
         %:(literal-value:ast %literal-value dime=+.operand2)
-      (cook-arithmetic operand2) :: this doesn't work because it needs a %end to stop the recusrsion
+      (cook-arithmetic operand2)
     %:  arithmetic:ast
       %arithmetic
       operator
@@ -5269,11 +5244,42 @@
     cooked-operand1
     $(ops-and-operators +>.ops-and-operators)
   ==
+++  arithmetic-token
+  ;~  pose
+    ;~(pfix whitespace (cold %end (jester 'end')))
+    ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
+    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~  pfix
+      whitespace
+::      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
+    ==
+::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
+    (cold %pal ;~(plug whitespace pal))
+    (cold %pal pal)
+    (cold %par ;~(plug whitespace par))
+    (cold %par par)
+    (cold %lus ;~(plug whitespace lus))
+    (cold %lus lus)
+    (cold %hep ;~(plug whitespace hep))
+    (cold %hep hep)
+    (cold %tar ;~(plug whitespace tar))
+    (cold %tar tar)
+    (cold %fas ;~(plug whitespace fas))
+    (cold %fas fas)
+    (cold %ket ;~(plug whitespace ket))
+    (cold %ket ket)
+    parse-scalar-param
+  ==
 ++  parse-arithmetic
   ;~  plug
     (cold %arithmetic (jester 'begin'))
     ;~  sfix
-      (star ;~(less scalar-stop arithmetic-token))
+      %-  star
+        ;~(less scalar-stop arithmetic-token)
       ;~(pfix whitespace (jester 'end'))
     ==
   ==
