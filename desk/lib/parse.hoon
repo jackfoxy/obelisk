@@ -5195,18 +5195,20 @@
   |=  a=*
   ~&  "arith list param {<a>}"
   ^-  *
+  =/  open-parens=?  %.n
   =/  new-list=(list *)  ~
   |-
+  ~&  "arith list loop param nl {<new-list>}"
   ?~  a
     (flop new-list)
-  ?:  ?|  =(-.a %par)
-          ::=(a %par)
-      ==
-    (flop new-list)
+  ?:  =(open-parens %.y)
+    $(a +.a) 
+  ?:  =(-.a %par)
+    $(a +.a, open-parens %.n) 
   ?:  ?=([%literal *] -.a) 
     $(a +.a, new-list [-.a new-list])
   ?:  ?=(%pal -.a) 
-    $(a +.a, new-list [(arithmetic-list +.a) new-list])
+    $(a +.a, open-parens %.y, new-list [[$(a +.a)] new-list])
   ?:  ?=(scalar-token:ast -.a)
     $(a +.a, new-list [`scalar-token:ast`-.a new-list])
   ~|("arithmetic list problem with noun: {<a>}" !!)
@@ -5223,14 +5225,14 @@
   =/  cooked-operand1
     ?:  ?=([%literal *] operand1)
       %:(literal-value:ast %literal-value dime=+.operand1)
-    (cook-arithmetic operand1)
+    $(ops-and-operators operand1)
   ?~  +>+.ops-and-operators
     =/  operator  +<.ops-and-operators
     =/  operand2  +>-.ops-and-operators
     =/  cooked-operand2
       ?:  ?=([%literal *] operand2)
         %:(literal-value:ast %literal-value dime=+.operand2)
-      (cook-arithmetic operand2)
+      $(ops-and-operators operand2)
     %:  arithmetic:ast
       %arithmetic
       operator
