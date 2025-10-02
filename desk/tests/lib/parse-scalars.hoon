@@ -1731,51 +1731,132 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-:: doubly nested math expressions
+::
+:: singly nested math expressions (right side)
 ++  test-arithmetic-3
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN ((1 + 1) + 1) + 1 END".
-    "        foo2 BEGIN ((1 - 1) - 1) - 1 END".
-    "        foo3 BEGIN ((1 / 1) / 1) / 1 END".
-    "        foo4 BEGIN ((1 * 1) * 1) * 1 END".
-    "        foo5 BEGIN ((1 ^ 1) ^ 1) ^ 1 END".
+    "SCALARS foo1 BEGIN 1 + (1 + 1) END ".
+    "        foo2 BEGIN 1 - (1 - 1) END ".
+    "        foo3 BEGIN 1 / (1 / 1) END ".
+    "        foo4 BEGIN 1 * (1 * 1) END ".
+    "        foo5 BEGIN 1 ^ (1 ^ 1) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
     :*
       %arithmetic
       operator=%lus
-      left=[%arithmetic operator=%lus left=[%arithmetic operator=%lus left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+      left=literal-1
+      right=[%arithmetic operator=%lus left=literal-1 right=literal-1]
     ==
   =/  subtraction
     :*
       %arithmetic
       operator=%hep
-      left=[%arithmetic operator=%hep left=[%arithmetic operator=%hep left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+      left=literal-1
+      right=[%arithmetic operator=%hep left=literal-1 right=literal-1]
     ==
   =/  division
     :*
       %arithmetic
       operator=%fas
-      left=[%arithmetic operator=%fas left=[%arithmetic operator=%fas left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+      left=literal-1
+      right=[%arithmetic operator=%fas left=literal-1 right=literal-1]
     ==
   =/  multiplication
     :*
       %arithmetic
       operator=%tar
-      left=[%arithmetic operator=%tar left=[%arithmetic operator=%tar left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+      left=literal-1
+      right=[%arithmetic operator=%tar left=literal-1 right=literal-1]
     ==
   =/  exponentiation
     :*
       %arithmetic
       operator=%ket
-      left=[%arithmetic operator=%ket left=[%arithmetic operator=%ket left=literal-1 right=literal-1] right=literal-1]
+      left=literal-1
+      right=[%arithmetic operator=%ket left=literal-1 right=literal-1]
+    ==
+  =/  scalars
+    :~
+      [%scalar addition 'foo1']
+      [%scalar subtraction 'foo2']
+      [%scalar division 'foo3']
+      [%scalar multiplication 'foo4']
+      [%scalar exponentiation 'foo5']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: doubly nested math expressions
+++  test-arithmetic-4
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo1 BEGIN ((1 * 1) - 1) + 1 END ".
+    "        foo2 BEGIN ((1 + 1) ^ 1) - 1 END ".
+    "        foo3 BEGIN ((1 - 1) * 1) / 1 END ".
+    "        foo4 BEGIN ((1 / 1) + 1) * 1 END ".
+    "        foo5 BEGIN ((1 ^ 1) / 1) ^ 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  inner-multiplication
+    [%arithmetic operator=%tar left=literal-1 right=literal-1]
+  =/  middle-subtraction
+    [%arithmetic operator=%hep left=inner-multiplication right=literal-1]
+  =/  addition
+    :*
+      %arithmetic
+      operator=%lus
+      left=middle-subtraction
+      right=literal-1
+    ==
+  =/  inner-addition
+    [%arithmetic operator=%lus left=literal-1 right=literal-1]
+  =/  middle-exponentiation
+    [%arithmetic operator=%ket left=inner-addition right=literal-1]
+  =/  subtraction
+    :*
+      %arithmetic
+      operator=%hep
+      left=middle-exponentiation
+      right=literal-1
+    ==
+  =/  inner-subtraction
+    [%arithmetic operator=%hep left=literal-1 right=literal-1]
+  =/  middle-multiplication
+    [%arithmetic operator=%tar left=inner-subtraction right=literal-1]
+  =/  division
+    :*
+      %arithmetic
+      operator=%fas
+      left=middle-multiplication
+      right=literal-1
+    ==
+  =/  inner-division
+    [%arithmetic operator=%fas left=literal-1 right=literal-1]
+  =/  middle-addition
+    [%arithmetic operator=%lus left=inner-division right=literal-1]
+  =/  multiplication
+    :*
+      %arithmetic
+      operator=%tar
+      left=middle-addition
+      right=literal-1
+    ==
+  =/  inner-exponentiation
+    [%arithmetic operator=%ket left=literal-1 right=literal-1]
+  =/  middle-division
+    [%arithmetic operator=%fas left=inner-exponentiation right=literal-1]
+  =/  exponentiation
+    :*
+      %arithmetic
+      operator=%ket
+      left=middle-division
       right=literal-1
     ==
   =/  scalars
@@ -1785,6 +1866,212 @@
       [%scalar division 'foo3']
       [%scalar multiplication 'foo4']
       [%scalar exponentiation 'foo5']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: doubly nested math expressions (right side)
+++  test-arithmetic-5
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo1 BEGIN 1 + (1 - (1 * 1)) END ".
+    "        foo2 BEGIN 1 - (1 ^ (1 + 1)) END ".
+    "        foo3 BEGIN 1 / (1 * (1 - 1)) END ".
+    "        foo4 BEGIN 1 * (1 + (1 / 1)) END ".
+    "        foo5 BEGIN 1 ^ (1 / (1 ^ 1)) END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  inner-multiplication
+    [%arithmetic operator=%tar left=literal-1 right=literal-1]
+  =/  middle-subtraction
+    [%arithmetic operator=%hep left=literal-1 right=inner-multiplication]
+  =/  addition
+    :*
+      %arithmetic
+      operator=%lus
+      left=literal-1
+      right=middle-subtraction
+    ==
+  =/  inner-addition
+    [%arithmetic operator=%lus left=literal-1 right=literal-1]
+  =/  middle-exponentiation
+    [%arithmetic operator=%ket left=literal-1 right=inner-addition]
+  =/  subtraction
+    :*
+      %arithmetic
+      operator=%hep
+      left=literal-1
+      right=middle-exponentiation
+    ==
+  =/  inner-subtraction
+    [%arithmetic operator=%hep left=literal-1 right=literal-1]
+  =/  middle-multiplication
+    [%arithmetic operator=%tar left=literal-1 right=inner-subtraction]
+  =/  division
+    :*
+      %arithmetic
+      operator=%fas
+      left=literal-1
+      right=middle-multiplication
+    ==
+  =/  inner-division
+    [%arithmetic operator=%fas left=literal-1 right=literal-1]
+  =/  middle-addition
+    [%arithmetic operator=%lus left=literal-1 right=inner-division]
+  =/  multiplication
+    :*
+      %arithmetic
+      operator=%tar
+      left=literal-1
+      right=middle-addition
+    ==
+  =/  inner-exponentiation
+    [%arithmetic operator=%ket left=literal-1 right=literal-1]
+  =/  middle-division
+    [%arithmetic operator=%fas left=literal-1 right=inner-exponentiation]
+  =/  exponentiation
+    :*
+      %arithmetic
+      operator=%ket
+      left=literal-1
+      right=middle-division
+    ==
+  =/  scalars
+    :~
+      [%scalar addition 'foo1']
+      [%scalar subtraction 'foo2']
+      [%scalar division 'foo3']
+      [%scalar multiplication 'foo4']
+      [%scalar exponentiation 'foo5']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: arithmetic expressions with spacing variations
+++  test-arithmetic-6
+  ::
+  =/  query-string
+    :: commented some out because not sure that we want double spacing
+    "FROM foo ".
+    "SCALARS foo1 BEGIN 1+1 END ".
+::    "        foo2 BEGIN 1  -  1 END ".
+    "        foo3 BEGIN 1/ 1 END ".
+    "        foo4 BEGIN 1 *1 END ".
+ ::   "        foo5 BEGIN 1   ^   1 END ".
+    "        foo6 BEGIN (1+1)+1 END ".
+    "        foo7 BEGIN ( 1 - 1 ) - 1 END ".
+::    "        foo8 BEGIN (1 / 1)/  1 END ".
+    "        foo9 BEGIN 1+( 1 + 1 ) END ".
+    "        foo10 BEGIN 1 -(1-1) END ".
+ ::   "        foo11 BEGIN 1  /  (1 / 1) END ".
+    "        foo12 BEGIN ((1*1)-1)+1 END ".
+    "        foo13 BEGIN ( ( 1 + 1 ) ^ 1 ) - 1 END ".
+ ::   "        foo14 BEGIN 1+  (1-(1*1)) END ".
+ ::   "        foo15 BEGIN 1*(  1+(1/1)  ) END ".
+    "SELECT foo1,foo2"
+  ::
+  =/  addition-no-space
+    [%arithmetic operator=%lus left=literal-1 right=literal-1]
+  =/  subtraction-extra-space
+    [%arithmetic operator=%hep left=literal-1 right=literal-1]
+  =/  division-mixed-space
+    [%arithmetic operator=%fas left=literal-1 right=literal-1]
+  =/  multiplication-mixed-space
+    [%arithmetic operator=%tar left=literal-1 right=literal-1]
+  =/  exponentiation-multi-space
+    [%arithmetic operator=%ket left=literal-1 right=literal-1]
+  =/  nested-left-no-space
+    :*
+      %arithmetic
+      operator=%lus
+      left=[%arithmetic operator=%lus left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  nested-left-paren-space
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%arithmetic operator=%hep left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  nested-left-mixed
+    :*
+      %arithmetic
+      operator=%fas
+      left=[%arithmetic operator=%fas left=literal-1 right=literal-1]
+      right=literal-1
+    ==
+  =/  nested-right-paren-space
+    :*
+      %arithmetic
+      operator=%lus
+      left=literal-1
+      right=[%arithmetic operator=%lus left=literal-1 right=literal-1]
+    ==
+  =/  nested-right-no-paren-space
+    :*
+      %arithmetic
+      operator=%hep
+      left=literal-1
+      right=[%arithmetic operator=%hep left=literal-1 right=literal-1]
+    ==
+  =/  nested-right-extra-space
+    :*
+      %arithmetic
+      operator=%fas
+      left=literal-1
+      right=[%arithmetic operator=%fas left=literal-1 right=literal-1]
+    ==
+  =/  double-nested-minimal
+    :*
+      %arithmetic
+      operator=%lus
+      left=[%arithmetic operator=%hep left=[%arithmetic operator=%tar left=literal-1 right=literal-1] right=literal-1]
+      right=literal-1
+    ==
+  =/  double-nested-maximal
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%arithmetic operator=%ket left=[%arithmetic operator=%lus left=literal-1 right=literal-1] right=literal-1]
+      right=literal-1
+    ==
+  =/  double-nested-right-mixed
+    :*
+      %arithmetic
+      operator=%lus
+      left=literal-1
+      right=[%arithmetic operator=%hep left=literal-1 right=[%arithmetic operator=%tar left=literal-1 right=literal-1]]
+    ==
+  =/  double-nested-right-paren-space
+    :*
+      %arithmetic
+      operator=%tar
+      left=literal-1
+      right=[%arithmetic operator=%lus left=literal-1 right=[%arithmetic operator=%fas left=literal-1 right=literal-1]]
+    ==
+  =/  scalars
+    :~
+      [%scalar addition-no-space 'foo1']
+      [%scalar subtraction-extra-space 'foo2']
+      [%scalar division-mixed-space 'foo3']
+      [%scalar multiplication-mixed-space 'foo4']
+      [%scalar exponentiation-multi-space 'foo5']
+      [%scalar nested-left-no-space 'foo6']
+      [%scalar nested-left-paren-space 'foo7']
+      [%scalar nested-left-mixed 'foo8']
+      [%scalar nested-right-paren-space 'foo9']
+      [%scalar nested-right-no-paren-space 'foo10']
+      [%scalar nested-right-extra-space 'foo11']
+      [%scalar double-nested-minimal 'foo12']
+      [%scalar double-nested-maximal 'foo13']
+      [%scalar double-nested-right-mixed 'foo14']
+      [%scalar double-nested-right-paren-space 'foo15']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
