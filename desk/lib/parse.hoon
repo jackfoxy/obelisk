@@ -2947,7 +2947,6 @@
        finalized-case
   ?:  =(%arithmetic fn-name)
      =/  cooked-math  (cook-arithmetic raw-scalar-body)
-     ~&  "cooked math: {<cooked-math>}"
        cooked-math
    ::  nullary builtin functions (no parameters, cast directly)
    ?:  =(%getutcdate fn-name)
@@ -5190,38 +5189,43 @@
 ::    all-any-op:ast   :: ?(%all %any)
 ::      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
 ::  ==
+++  arithmetic-list-parens  ~+
+  |=  a=*
+  ^-  [nl=(list *) r=*]
+  =/  state  [nl=*(list *) r=a]
+  |-
+  ?:  =(-.r.state %par)
+    [(flop nl.state) +.r.state]
+  ?:  ?=([%literal *] -.r.state) 
+    $(state [[-.r.state nl.state] +.r.state])
+  ?:  ?=(%pal -.r.state) 
+    =/  nested  (arithmetic-list-parens +.r.state)
+    $(state [[nl.nested nl.state] r.nested])
+  ?:  ?=(scalar-token:ast -.r.state)
+    $(state [[-.r.state nl.state] +.r.state])
+  ~|("arithmetic list problem with noun: {<a>}" !!)
 :: finds expressions wrapped in %pal and %par and puts them in a cell
 ++  arithmetic-list  ~+
   |=  a=*
-  ~&  "arith list param {<a>}"
   ^-  *
-  =/  open-parens=?  %.n
-  =/  new-list=(list *)  ~
+  =/  state  [nl=*(list *) r=a]
   |-
-  ~&  "arith list loop param nl {<new-list>}"
-  ?~  a
-    (flop new-list)
-  ?:  =(open-parens %.y)
-    $(a +.a) 
-  ?:  =(-.a %par)
-    $(a +.a, open-parens %.n) 
-  ?:  ?=([%literal *] -.a) 
-    $(a +.a, new-list [-.a new-list])
-  ?:  ?=(%pal -.a) 
-    $(a +.a, open-parens %.y, new-list [[$(a +.a)] new-list])
-  ?:  ?=(scalar-token:ast -.a)
-    $(a +.a, new-list [`scalar-token:ast`-.a new-list])
+  ?~  r.state
+    (flop nl.state)
+  ?:  ?=([%literal *] -.r.state) 
+    $(state [[-.r.state nl.state] +.r.state])
+  ?:  ?=(%pal -.r.state) 
+    =/  nested  (arithmetic-list-parens +.r.state)
+    $(state [[nl.nested nl.state] r.nested])
+  ?:  ?=(scalar-token:ast -.r.state)
+    $(state [[-.r.state nl.state] +.r.state])
   ~|("arithmetic list problem with noun: {<a>}" !!)
 ++  cook-arithmetic
   |=  parsed=*
-  ~&  "parsed {<parsed>}"
-::  ~&  "arith list {<(arithmetic-list parsed)>}"
   ^-  arithmetic:ast
   =/  ops-and-operators  (arithmetic-list parsed)
-  ~&  "ops and operators {<ops-and-operators>}"
   |-
   =/  operand1  -.ops-and-operators
-  ~&  "operand1 {<operand1>}"
   =/  cooked-operand1
     ?:  ?=([%literal *] operand1)
       %:(literal-value:ast %literal-value dime=+.operand1)
