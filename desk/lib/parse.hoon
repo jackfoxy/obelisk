@@ -2866,8 +2866,20 @@
     ::   scalar by the same name, then pass it down to finalize qualifier
   ?:  ?=(unqualified-column:ast cooked-param)
     =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
+    =/  maybe-alias  alias.cooked-param 
     ?~  maybe-scalar
-      (finalize-qualifier cooked-param table.aliases)
+      ?~  maybe-alias
+        `unqualified-column:ast`cooked-param
+      =/  table-alias  (need maybe-alias)
+      =/  maybe-table  (~(get by table.aliases) (crip (cass (trip table-alias))))
+      ?~  maybe-table
+        ~|("table alias {<table-alias>} is not defined" !!)
+      %:  qualified-column:ast
+          %qualified-column
+          (need maybe-table)
+          column=name.cooked-param
+          alias=~
+      ==
     (need maybe-scalar)
   :: - if the cooked-param is an unknown alias and there is a
   ::   scalar by the same name, then resolve the scalar
@@ -2878,7 +2890,7 @@
     ?~  maybe-scalar
       (cte-alias:ast %cte-alias name.cooked-param)
     (need maybe-scalar)
-  (finalize-qualifier cooked-param table.aliases)
+  cooked-param
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
@@ -4898,12 +4910,7 @@
       whitespace 
       %+  ifix
         [pal par]
-      ;~  pose
-        (ifix [whitespace whitespace] first-param) 
-        :: TODO maybe we don't need these
-        ;~(pfix whitespace first-param)
-        ;~(sfix first-param whitespace)
-      ==
+        ;~(pfix whitespace ;~(sfix first-param whitespace)) 
     ==
   ==
 ++  parse-binary-scalar-fn
@@ -4915,18 +4922,8 @@
     %+  ifix
       [pal par]
       ;~  (glue com)
-        ;~  pose
-          (ifix [whitespace whitespace] first-param) 
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace first-param)
-          ;~(sfix first-param whitespace)
-        ==
-        ;~  pose
-          (ifix [whitespace whitespace] second-param) 
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace second-param)
-          ;~(sfix second-param whitespace)
-        ==
+        ;~(pfix whitespace ;~(sfix first-param whitespace)) 
+        ;~(pfix whitespace ;~(sfix second-param whitespace)) 
       ==
     ==
   ==
@@ -4936,28 +4933,13 @@
     (cold fn-name (jester fn-name))
     ;~  pfix
       whitespace 
-    %+  ifix
-      [pal par]
-      ;~  (glue com)
-        ;~  pose
-          (ifix [whitespace whitespace] first-param)
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace first-param)
-          ;~(sfix first-param whitespace)
+      %+  ifix
+        [pal par]
+        ;~  (glue com)
+          ;~(pfix whitespace ;~(sfix first-param whitespace))
+          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
+          ;~(pfix whitespace ;~(sfix third-param whitespace)) 
         ==
-        ;~  pose
-          :: TODO maybe we don't need these
-          (ifix [whitespace whitespace] second-param) 
-          ;~(pfix whitespace second-param)
-          ;~(sfix second-param whitespace)
-        ==
-        ;~  pose
-          (ifix [whitespace whitespace] third-param) 
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace third-param)
-          ;~(sfix third-param whitespace)
-        ==
-      ==
     ==
   ==
 ++  parse-n-ary-scalar-fn
@@ -4968,13 +4950,7 @@
       whitespace
       %+  ifix
         [pal par]
-      %+  more
-        com
-      ;~  pose
-        (ifix [whitespace whitespace] parse-params) 
-        ;~(pfix whitespace parse-params)
-        ;~(sfix parse-params whitespace)
-      ==
+      (more com ;~(pfix whitespace ;~(sfix parse-params whitespace)))
     ==
   ==
 ::
@@ -5016,11 +4992,11 @@
     ::  column=parsed
     ::==
   ?:  ?=([@ @] parsed)
-    :*  %two-item-qualifier
-      alias=-.parsed
-      column=+.parsed
+    %:  unqualified-column:ast
+        %unqualified-column
+        name=`@tas`+.parsed
+        alias=(some -.parsed)
     ==
-
   ?:  ?=([@ @ @ @] parsed)
       %:  qualified-column:ast
           %qualified-column
@@ -5035,7 +5011,6 @@
           column=+>+.parsed
           alias=~
           ==
-
   ?:  ?=([@ @ @ @ @] parsed)
     %:  qualified-column:ast
         %qualified-column
@@ -5150,46 +5125,8 @@
   ==
 ++  parse-coalesce  ~+
   (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
-:: TODO: replicate predicate maybe
-::++  produce-arithmetic
-::  |=  parsed=(list $?(scalar-token:ast literal-value:ast))
-::  ~+
-::  ^-  arithmetic:ast
-::  =/  length  (lent parsed)
-::  =/  state  (fold (flop parsed) [length 0 ~ 0 parsed] pred-folder)
-::  ?~  cmpnt.state
-::    ?:  =(%pal -.parsed)
-::      (produce-predicate (scag (sub length 2) `(list raw-pred-cmpnt)`+.parsed))
-::    (pred-leaf parsed)
-::  =/  r=(pair (list raw-pred-cmpnt) (list raw-pred-cmpnt))
-::        (split-at parsed cmpnt-displ.state)
-::  ?+  -.q.r  ~|("unknown predicate node {<-.q.r>}" !!)
-::    unary-op:ast     :: ?(%not %not-exists %exists)
-::      ?~  p.r
-::        [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
-::      ?:  ?=(unary-op:ast -.p.r)
-::        [-.p.r (produce-predicate q.r) ~]
-::      ~|("unknown predicate node {<-.p.r>}" !!)
-::    binary-op:ast    :: ?(%eq inequality-op %equiv %not-equiv %in)
-::      ?:  ?=(unary-op:ast -.p.r)
-::        ?:  ?=(%not -.p.r)
-::          [-.p.r (produce-predicate +.parsed) ~]
-::        ~|("malformed predicate {<-.p.r>}" !!)
-::      [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
-::    ternary-op:ast   :: %between, %not-between
-::      ?:  =(%and +>-.q.r)
-::        :+  -.q.r
-::            [%gte (pred-leaf p.r) (pred-leaf (limo ~[+<.q.r]))]
-::            [%lte (pred-leaf p.r) (pred-leaf (limo +>+.q.r))]
-::      :+  -.q.r
-::        [%gte (pred-leaf p.r) (pred-leaf (limo ~[+<.q.r]))]
-::        [%lte (pred-leaf p.r) (pred-leaf (limo +>.q.r))]
-::    conjunction:ast  :: ?(%and %or)
-::      [-.q.r (produce-predicate p.r) (produce-predicate +.q.r)]
-::    all-any-op:ast   :: ?(%all %any)
-::      [-.q.r (produce-predicate `(list raw-pred-cmpnt)`+.q.r) ~]
-::  ==
-++  arithmetic-list-parens  ~+
+:: used when recursing on %pal and %par
+++  handle-arithmetic-parens  ~+
   |=  a=*
   ^-  [nl=(list *) r=*]
   =/  state  [nl=*(list *) r=a]
@@ -5199,12 +5136,12 @@
   ?:  ?=([%literal *] -.r.state) 
     $(state [[-.r.state nl.state] +.r.state])
   ?:  ?=(%pal -.r.state) 
-    =/  nested  (arithmetic-list-parens +.r.state)
+    =/  nested  (handle-arithmetic-parens +.r.state)
     $(state [[nl.nested nl.state] r.nested])
   ?:  ?=(scalar-token:ast -.r.state)
     $(state [[-.r.state nl.state] +.r.state])
   ~|("arithmetic list problem with noun: {<a>}" !!)
-:: finds expressions wrapped in %pal and %par and puts them in a cell
+:: cleans up %pal and %par from a parsed arithmetic expression
 ++  arithmetic-list  ~+
   |=  a=*
   ^-  *
@@ -5215,7 +5152,7 @@
   ?:  ?=([%literal *] -.r.state) 
     $(state [[-.r.state nl.state] +.r.state])
   ?:  ?=(%pal -.r.state) 
-    =/  nested  (arithmetic-list-parens +.r.state)
+    =/  nested  (handle-arithmetic-parens +.r.state)
     $(state [[nl.nested nl.state] r.nested])
   ?:  ?=(scalar-token:ast -.r.state)
     $(state [[-.r.state nl.state] +.r.state])
@@ -5428,21 +5365,6 @@
               ==
     (more com parse-ordering-column)
   ==
-:: TODO: this is only called twice now, inline
-++  finalize-qualifier
-  |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
-  ^-  datum-or-scalar:ast
-  ::?:  ?=(qualified-column:ast a)    a
-  ::?:  ?=(unqualified-column:ast a)  a
-  ?:  ?=([%two-item-qualifier *] a)
-    %:  qualified-column:ast
-      %qualified-column
-      table=(~(got by alias-map) (crip (cass (trip alias.a))))
-      column=column.a
-      alias=~
-    ==
-  a
-::
 ::  helper types
 ::
 +$  urql-command
@@ -5516,15 +5438,8 @@
       $:(%literal dime)
   ==
 +$   qualifier
-  $%  two-item-qualifier
-      qualified-column:ast
+  $%  qualified-column:ast
       unqualified-column:ast
-  ==
-+$  two-item-qualifier
-  $:
-     %two-item-qualifier
-     alias=@t               :: table or view alias
-     column=@tas
   ==
 +$  scalar-helper
   $%  coalesce-helper
