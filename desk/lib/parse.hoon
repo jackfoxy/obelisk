@@ -5278,6 +5278,7 @@
     (cold %fas fas)
     (cold %ket ;~(plug whitespace ket))
     (cold %ket ket)
+    ;~(pfix whitespace parse-scalar-param)
     parse-scalar-param
   ==
 ++  parse-arithmetic
@@ -5289,14 +5290,6 @@
       ;~(pfix whitespace (jester 'end'))
     ==
   ==
-++  parse-scalar-body
-  ;~  pose
-    ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(plug (cold %case (jester 'case')) parse-case)
-    parse-coalesce
-    parse-builtin-scalar-fn
-    parse-arithmetic
-  ==
 ++  scalar-stop
   ;~  pose
 ::    ;~(plug whitespace (jest ')') whitespace)
@@ -5305,6 +5298,14 @@
     ;~(plug whitespace (jester 'else') whitespace)
     ;~(plug whitespace (jester 'endif') whitespace)
     ;~(plug whitespace (jester 'end') whitespace)
+  ==
+++  parse-scalar-body
+  ;~  pose
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~(plug (cold %case (jester 'case')) parse-case)
+    parse-coalesce
+    parse-builtin-scalar-fn
+    parse-arithmetic
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  cook-scalar-alias
