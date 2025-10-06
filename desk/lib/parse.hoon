@@ -2846,13 +2846,6 @@
              js
     jss  +.jss
   ==
-:: todo:
-:: - implement arithmetic
-::   - add arithmetic to scalar fn
-:: - add loop to check for scalar definitions with the same name; if found, crash
-::   - modify scalar fn type so that it has a name and an alias, to allow for
-::     mixed case scalar names
-:: todo: refactor these gates
 +$  alias-maps
   [table=(map @t qualified-table:ast) scalar=(map @t scalar-function:ast)]
 ++  finalize-scalar-param
@@ -3121,6 +3114,8 @@
     =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
       (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
+    ?:  (~(has by scalar-map) scalar-alias)
+      ~|("there is already a scalar named {<scalar-alias>}" !!)
     =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
       :-  scalar
       %=  $

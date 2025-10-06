@@ -233,6 +233,24 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+::  test-scalars-04 tests that parsing fails when there are two scalars
+::  with the same alias
+++  test-scalars-04
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar1 COALESCE(Foo1,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  cte-alias
+    [%cte-alias alias='foo1']
+  =/  coalesce-1
+    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+  =/  coalesce-2
+    ~[%coalesce cte-alias literal-zod literal-1 unqualified-col-1]
+  %-  expect-fail
+    |.  (parse:parse(default-database default-db) query-string)
+::
 ::  builtin scalar functions
 ::  test for optional params
 ++  test-builtins-01
@@ -731,11 +749,6 @@
   ::
   =/  coalesce-1
     ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
 ::
@@ -1087,8 +1100,6 @@
       then=[qualified-col-6]
       else=[qualified-col-6]
     ==
-  =/  scalars  ~[[%scalar naked-if 'foo']]
-  =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
 ::
@@ -1495,8 +1506,6 @@
       ~[[%case-when-then simple-true-pred qualified-col-6]]
       (some qualified-col-6)
     ==
-  =/  scalars  ~[[%scalar case-qualified 'foo']]
-  =/  expected  (mk-selection scalars ~)
   %-  expect-fail
     |.  (parse:parse(default-database default-db) query-string)
 ::
