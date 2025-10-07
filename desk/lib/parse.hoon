@@ -2615,9 +2615,6 @@
   ?:  =(-<-.a %relation)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-<.a %relation)  $(a +.a, from `(produce-from -.a))
-
-    ~&  "-.a:  {<-.a>}"
-
   ~|("cannot parse query  {<a>}" !!)
 ::
 ++  produce-from

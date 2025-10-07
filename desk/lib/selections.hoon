@@ -35,17 +35,17 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +select-relation:  [query:ast ?] -> [server (list set-table) (list vector)]
+::  +select-relation:  [query:ast ? named-ctes] -> [join-return (list vector)]
 ::
 ::  selection from a single table without joins
 ++  select-relation
   |=  [q=query:ast is-cte=? =named-ctes]
-  ^-  [join-return (list set-table) (list vector)]
+  ^-  [join-return (list vector)]
   =/  from          (need from.q)
   =/  query-source    ?:  ?=(qualified-table:ast object.+.object.from)
                       object.+.object.from
                     ~|("SELECT: not supported on %query-row" !!)
-  =/  the-relation=full-relation  %:  prep-relation  query-source
+  =/  the-relation=full-relation  %:  got-relation  query-source
                                       named-ctes
                                       as-of.from
                                       ~
@@ -53,7 +53,6 @@
                                       *qualified-lookup-type
                                       ~
                                       ==
-  =/  =set-table    set-table.the-relation
   =/  selected      columns.select.q
   =/  filter        ?~  predicate.q  ~
                     :-  ~
@@ -64,23 +63,23 @@
                                     query-source
                             ~
   ::
-  =/  =join-return  :*  %join-return
-                        state
-                        ~[set-table]
-                        lookup-type.the-relation
-                        qual-col-types.the-relation
-                        ==
-  ?:  is-cte  [join-return (select-for-cte q set-table filter) ~]
-  :+  join-return
-      ~[set-table]
+  ?~  set-tables.the-relation  ~|("select-relation can't get here" !!)
+  ::
+  :-  :*  %join-return
+          state
+          ?.  is-cte   set-tables.the-relation
+              (select-for-cte q set-tables.the-relation filter)
+          lookup-type.the-relation
+          qual-col-types.the-relation
+          ==
       %:  table-result  filter
                         qual-col-types.the-relation
-                        indexed-rows.set-table
+                        indexed-rows.i.set-tables.the-relation
                         selected
                         ==
 ::
 ::  +select-for-cte:  [query:ast (unit $-(data-row ?))]
-::                  -> (list set-table) 
+::                    -> (list set-table) 
 ::
 ::  cons a set-table of the selection
 ::  1) object=~
@@ -97,25 +96,30 @@
 
 ::  5) row count
 ++  select-for-cte
-  |=  [q=query:ast st=set-table f=(unit $-(data-row ?))]
+  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?))]
   ^-  (list set-table)
-  =/  st2  st
-  =.  object.st2  ~
-  =/  cols=(list column:ast)
-        %-  zing  %+  turn  columns.select.q
-                            (cury selected-column-to-column columns.st)
-  =.  columns.st2     (flop cols)
+  ?~  set-tables  ~|("select-for-cte can't get here" !!)
+  =/  st2  i.set-tables
+  =.  object.st2      ~
+  =.  columns.st2     %-  flop
+                        ^-  (list column:ast)  %-  zing
+                            %+  turn  columns.select.q
+                                      %+  cury  selected-column-to-column
+                                                columns.i.set-tables
+  
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
-                                (cury selected-table-cols columns.st)
-  =/  st-key          key:(need pri-indx.st)
+                                (cury selected-table-cols columns.i.set-tables)
+  =/  st-key          key:(need pri-indx.i.set-tables)
   =/  count-key-cols  %^  fold  st-key
                                 *(pair @ud (list key-column))
                                 (cury count-keys selected-cols)
   =.  pri-indx.st2    ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
                       ~
-  ~[st2 st]
+
+  ?:  =(f ~)  [st2 set-tables]  :: to do: filtered CTE
+  [st2 set-tables]
 ::
 ::  +count-keys:  
 ::    [(map @tas (pair @tas (unit @t))) key-column (pair @ud (list key-column))]
@@ -242,7 +246,7 @@
                       object.relation.relat
                     ~|("SELECT: not supported on %query-row" !!)
   =.  joined-relations            +.joined-relations
-  =/  the-relation=full-relation  %:  prep-relation  query-source
+  =/  the-relation=full-relation  %:  got-relation  query-source
                                                      named-ctes
                                                      as-of.relat
                                                      ~
@@ -250,7 +254,7 @@
                                                      *qualified-lookup-type
                                                      ~
                                                      ==
-  =/  prior-join        set-table.the-relation
+  =/  prior-join        -.set-tables.the-relation
   =/  from-objects      (limo ~[prior-join])
   |-
   ?~  joined-relations  %:  join-return  %join-return
@@ -263,7 +267,7 @@
         ?:  ?=(qualified-table:ast object.relation.i.joined-relations)
               object.relation.i.joined-relations
             ~|("SELECT: not supported on %query-row" !!)
-  =.  the-relation  %:  prep-relation  query-source
+  =.  the-relation  %:  got-relation  query-source
                                        named-ctes
                                        as-of.i.joined-relations
                                        join.i.joined-relations
@@ -271,61 +275,74 @@
                                        lookup-type.the-relation
                                        qual-col-types.the-relation
                                        ==
-  =.  prior-join       (join-up prior-join set-table.the-relation)
+  =.  prior-join       (join-up prior-join -.set-tables.the-relation)
   %=  $
     joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
   ==
 ::
-++  prep-relation
+++  got-relation
   |=  $:  ts=qualified-table:ast
           =named-ctes
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
           =predicate
-          type-lookup=qualified-lookup-type
+          lookup-type=qualified-lookup-type
           qualified-columns=(list qual-col-type)
           ==
   ^-  full-relation
-
-    ~&  "ts:  {<ts>}"
-
-  =/  obj-alias  :-  ts
-                     ?~  alias.ts  ~
-                     `(crip (cass (trip (need alias.ts))))
   =/  sys-time   (set-tmsp as-of now.bowl)
-  =/  db         ~|  "SELECT: database {<database.-.obj-alias>} does not exist"
-                     (~(got by state) database.-.obj-alias)
-  =/  =schema    ~|  "SELECT: database {<database.-.obj-alias>} ".
+  =/  db         ~|  "SELECT: database {<database.ts>} does not exist"
+                     (~(got by state) database.ts)
+  =/  =schema    ~|  "SELECT: database {<database.ts>} ".
                      "doesn't exist at time {<sys-time>}"
                      (get-schema [sys.db sys-time])
-  =/  vw  %+  get-view  [namespace.-.obj-alias name.-.obj-alias sys-time]
+  =/  vw  %+  get-view  [namespace.ts name.ts sys-time]
                         views.schema
-  ?~  vw  %:  from-table  -.obj-alias
-                          +.obj-alias
+  ?~  vw  %:  from-table  ts
+                          named-ctes
                           db
                           schema
                           join
                           predicate
                           sys-time
-                          type-lookup
+                          lookup-type
                           qualified-columns
                           ==
-  %:  from-view  -.obj-alias
-                  +.obj-alias
-                  db
-                  schema
-                  (need vw)
-                  join
-                  predicate
-                  sys-time
-                  type-lookup
-                  qualified-columns
-                  ==
+  =/  vw2=view  (need vw)
+  =/  r=[database cache]
+        (got-view-cache db schema vw2 [namespace.ts name.ts sys-time])
+  =/  view-content  (need content.+.r)
+  ::
+  ::  database view cache may have been populated
+  =.  state  ?.  =(db -.r)
+                (~(put by state) name.db -.r)
+             state
+  :^  %full-relation  
+      :~  %:  set-table  %set-table
+                         [~ ts]
+                         [~ tmsp.schema]
+                         [~ tmsp.+.r]
+                         columns.vw2
+                         *unqualified-lookup-type
+                         ~
+                         join
+                         predicate
+                         rowcount.view-content
+                         ~
+                         %+  turn  rows.view-content
+                              |=(a=(map @tas @) (indexed-row %indexed-row ~ a))
+                         *(list joined-row)
+                         ==
+          ==
+      :-  %qualified-lookup-type
+          (~(put by *(map qualified-table (map @tas @ta))) ts type-lookup.vw2)
+      (mk-qualified-columns ts qualified-columns columns.vw2)
 ::
 ++  from-table
   |=  $:  query-obj=qualified-table:ast
-          alias=(unit @t)
+          =named-ctes
+          ::alias=(unit @t)
           db=database
           =schema
           join=(unit join-type:ast)
@@ -335,30 +352,33 @@
           qualified-columns=(list qual-col-type)
           ==
   ^-  full-relation
-  =/  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
+  =/  tbl  (~(get by tables.schema) [namespace.query-obj name.query-obj])
+  ?~  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
                ".{<name.query-obj>} does not exist at schema time ".
                "{<tmsp.schema>}"
-               (~(got by tables.schema) [namespace.query-obj name.query-obj])
+             `full-relation`(~(got by named-ctes) name.query-obj)
+  =/  tbl2=table  (need tbl)
   =/  file
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   :^  %full-relation
-      %:  set-table  %set-table
-                     [~ query-obj]
-                     [~ tmsp.tbl]
-                     [~ tmsp.file]
-                     columns.tbl
-                     [%unqualified-lookup-type type-lookup.tbl]
-                     [~ pri-indx.tbl]
-                     join
-                     predicate
-                     rowcount.file
-                     pri-idx.file
-                     indexed-rows.file
-                     *(list joined-row)
-                     ==
+      :~  %:  set-table  %set-table
+                         [~ query-obj]
+                         [~ tmsp.tbl2]
+                         [~ tmsp.file]
+                         columns.tbl2
+                         [%unqualified-lookup-type type-lookup.tbl2]
+                         [~ pri-indx.tbl2]
+                         join
+                         predicate
+                         rowcount.file
+                         pri-idx.file
+                         indexed-rows.file
+                         *(list joined-row)
+                         ==
+          ==
       :-  %qualified-lookup-type
-          (~(put by +.type-lookup) query-obj type-lookup.tbl)
-      (mk-qualified-columns query-obj qualified-columns columns.tbl)
+          (~(put by +.type-lookup) query-obj type-lookup.tbl2)
+      (mk-qualified-columns query-obj qualified-columns columns.tbl2)
 ::
 ::  +mk-joined-relations:  [relation (list joined-object:ast)]
 ::                         ->  (list joined-relation)
@@ -408,52 +428,6 @@
   |=  [query-obj=qualified-table:ast a=column:ast]
   ^-  qual-col-type
   [(qualified-column:ast %qualified-column query-obj name.a ~) type.a]
-::
-++  from-view
-  |=  $:  query-obj=qualified-table:ast
-          alias=(unit @t)
-          db=database
-          =schema
-          =view
-          join=(unit join-type:ast)
-          =predicate
-          sys-time=@da
-          type-lookup=qualified-lookup-type
-          qualified-columns=(list qual-col-type)
-          ==
-  ^-  full-relation
-  =/  r=[database cache]  %:  got-view-cache  db
-                                              schema
-                                              view
-                                              :+  namespace.query-obj
-                                                  name.query-obj
-                                                  sys-time
-                                              ==
-  =/  view-content  (need content.+.r)
-  ::
-  ::  database view cache may have been populated
-  =.  state  ?.  =(db -.r)
-                (~(put by state) database.query-obj -.r)
-             state
-  :^  %full-relation  
-      %:  set-table  %set-table
-                     [~ query-obj]
-                     [~ tmsp.schema]
-                     [~ tmsp.+.r]
-                     columns.view
-                     *unqualified-lookup-type
-                     ~
-                     join
-                     predicate
-                     rowcount.view-content
-                     ~
-                     %+  turn  rows.view-content
-                               |=(a=(map @tas @) [%indexed-row ~ a])
-                     *(list joined-row)
-                     ==
-      :-  %qualified-lookup-type
-          (~(put by +.type-lookup) query-obj type-lookup.view)
-      (mk-qualified-columns query-obj qualified-columns columns.view)
 ::
 ::  +got-view-cache:
 ::    [database schema view data-obj-key (list selected-column:ast)]

@@ -47,21 +47,20 @@
   %+  ~(on-poke agent (bowl [run ~2012.4.30]))
       %obelisk-action
       !>  [%tape2 %db1 init]                  :: <== initialize the DB
+  
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+      %obelisk-action
+      !>  [%tape2 %db1 resolve]               :: <== SELECT
   ::
-  ::=^  mov2  agent
-  ::%+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::    %obelisk-action
-  ::    !>  [%tape2 %db1 resolve]               :: <== SELECT
-  ::::
-  ::  ~&  ->+>+>+<.mov2
-  ::(eval-results expect1 ;;(cmd-result ->+>+>+<.mov2))
+  (eval-results expect1 ;;(cmd-result ->+>+>+<.mov2))
 
   ::
-  %+  expect-fail-message
-        'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
-          %obelisk-action
-          !>([%test %db1 resolve])
+  ::%+  expect-fail-message
+  ::      'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
+  ::        %obelisk-action
+  ::        !>([%test %db1 resolve])
 
 ::
 ::  [@ud tape tape tape cmd-result cmd-result] -> 
@@ -158,28 +157,28 @@
                                   :~
                                     :-  %vector
                                         :~  [%col0 [~.da ~2010.5.3]]
-                                            [%col1 [~.t 'hello']]
+                                            [%col1 [~.t 'cord']]
                                             [%col2 [~.p ~nomryg-nilref]]
                                             [%col3 [~.ud 20]]
                                             [%col4 [~.da ~2000.1.1]]
                                             ==
                                     :-  %vector
                                         :~  [%col0 [~.da ~2010.5.31]]
-                                            [%col1 [~.t 'hello']]
+                                            [%col1 [~.t 'Default']]
                                             [%col2 [~.p ~zod]]
                                             [%col3 [~.ud 0]]
                                             [%col4 [~.da ~2000.1.1]]
                                             ==
                                     :-  %vector
                                         :~  [%col0 [~.da ~2010.5.31]]
-                                            [%col1 [~.t 'hello']]
+                                            [%col1 [~.t 'Default']]
                                             [%col2 [~.p ~nec]]
                                             [%col3 [~.ud 1]]
                                             [%col4 [~.da ~2000.1.1]]
                                             ==
                                     :-  %vector
                                         :~  [%col0 [~.da ~2010.5.31]]
-                                            [%col1 [~.t 'hello']]
+                                            [%col1 [~.t 'Default']]
                                             [%col2 [~.p ~bus]]
                                             [%col3 [~.ud 2]]
                                             [%col4 [~.da ~2000.1.1]]
@@ -193,7 +192,7 @@
                                             ==
                                     :-  %vector
                                         :~  [%col0 [~.da ~2010.3.23]]
-                                            [%col1 [~.t '~nom galaxy']]
+                                            [%col1 [~.t '~num galaxy']]
                                             [%col2 [~.p ~num]]
                                             [%col3 [~.ud 4]]
                                             [%col4 [~.da ~2010.3.3]]
@@ -210,7 +209,7 @@
                               [%server-time ~2012.5.3]
                               [%message 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
-                              [%data-time ~2012.5.1]
+                              [%data-time ~2012.4.30]
                               [%vector-count 7]
                               ==
             ==

@@ -145,7 +145,7 @@
           ::~&  "{<->->+.rtree>}"   :: from objects
           ::~>  %bout.[0 %select]
           =/  rt  (do-query -.rtree named-ctes %.n)
-          [next-data ->-.rt (select-results named-ctes -.rt +>.rt)]
+          [next-data ->-.rt (select-results named-ctes -.rt +.rt)]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
@@ -440,24 +440,22 @@
           [%vector-count rowcount.file.txn]
           ==
 ::
-::  +do-query:  [query:ast ?] -> [join-return (list set-table) (list result)]
+::  +do-query:  [query:ast ?] -> [join-return (list vector)]
 ::
 ::  state may be updated by insertion into view-cache, which does not effect
 ::  any other part of the state
 ++  do-query
   |=  [q=query:ast =named-ctes is-cte=?]
-  ^-  [join-return (list set-table) (list vector)]
+  ^-  [join-return (list vector)]
   :: literal only
-  ?~  from.q  [[%join-return state ~ *qualified-lookup-type ~] (select-literals columns.select.q is-cte)]
+  ?~  from.q  (select-literals state columns.select.q is-cte)
   :: no joins, it's a single relation
   =/  f  (need from.q)
   ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
   ::
   =/  =join-return  (join-all(state state, bowl bowl) q named-ctes)
-  =/  set-tables  set-tables.join-return
-  ?~  set-tables  ~|("can't get here" !!)
   =/  selected  columns.select.q
-  =/  qualifier-lookup  (mk-qualifier-lookup set-tables selected)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
   =.  selected  (qualify-unqualified columns.select.q qualifier-lookup)
   =/  filter=(unit $-(data-row ?))
     ?~  predicate.q  ~
@@ -466,14 +464,14 @@
               %+  pred-qualify-unqualified
                     predicate.q
                     qualifier-lookup
-              type-lookup.join-return
+              lookup-type.join-return
               qualifier-lookup
-  ?:  is-cte  [join-return set-tables ~]
-  :+  join-return
-      set-tables
+  ?:  is-cte  [join-return ~]
+  ?~  set-tables.join-return  [join-return ~]
+  :-  join-return
       %:  joined-result  filter
                           qualified-columns.join-return
-                          joined-rows.i.set-tables
+                          joined-rows.i.set-tables.join-return
                           selected
                           ==
 ::
@@ -520,15 +518,12 @@
 ++  select-results
   |=  $:  =named-ctes
           =join-return
-          ::state=server
-          ::set-tables=(list set-table)
           vectors=(list vector)
           ==
   ^-  (list result)
   =/  out  *(list (list result))
-  =/  ctes=(list set-table)  %+  turn
-                                 `(list full-relation)`(zing ~(val by named-ctes))
-                                 |=(a=full-relation set-table.a)
+  =/  ctes=(list set-table)
+        (zing (turn ~(val by named-ctes) |=(a=full-relation set-tables.a)))
   =/  raw  %+  sort  %~  tap  in
                               %^  fold  (weld set-tables.join-return ctes)
                                         *(set [qualified-table:ast @da @da])
@@ -601,12 +596,13 @@
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
 ::
-::  +select-literals:  [(list selected-column:ast) ?] -> (list vector)
+::  +select-literals:  [server (list selected-column:ast) ?]
+::                     -> [join-return (list vector)]
 ::
 ::  selection of literals only, no from clause
 ++  select-literals
-  |=  [columns=(list selected-column:ast) is-cte=?]
-  ^-  [(list set-table) (list vector)]
+  |=  [=server columns=(list selected-column:ast) is-cte=?]
+  ^-  [join-return (list vector)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
                   (~(got by state) %sys)
@@ -615,41 +611,51 @@
   =/  i             0
   |-
   ?~  columns
-    ?:  is-cte  :-  :~  :*  %set-table
-                            ~
-                            [~ created-tmsp.sys-db]
-                            [~ created-tmsp.sys-db]
-                            columns-out
-                            *unqualified-lookup-type
-                            ~
-                            ~
-                            ~
-                            1
-                            *(tree [(list @) (map @tas @)])
-                            ~[[%indexed-row ~ indexed-cols]]
-                            *(list joined-row)
+    ?:  is-cte  :-  :*  %join-return
+                        server
+                        :~  :*  %set-table
+                                ~
+                                [~ created-tmsp.sys-db]
+                                [~ created-tmsp.sys-db]
+                                columns-out
+                                *unqualified-lookup-type
+                                ~
+                                ~
+                                ~
+                                1
+                                *(tree [(list @) (map @tas @)])
+                                ~[[%indexed-row ~ indexed-cols]]
+                                *(list joined-row)
+                                ==
                             ==
+                        *qualified-lookup-type
+                        ~
                         ==
                     ~
-    :-  :~  :*  %set-table
-                ~
-                [~ created-tmsp.sys-db]
-                [~ created-tmsp.sys-db]
-                columns-out
-                *unqualified-lookup-type
-                ~
-                ~
-                ~
-                1
-                *(tree [(list @) (map @tas @)])
-                ~[[%indexed-row ~ indexed-cols]]
-                *(list joined-row)
+    :-  :*  %join-return
+            server
+            :~  :*  %set-table
+                    ~
+                    [~ created-tmsp.sys-db]
+                    [~ created-tmsp.sys-db]
+                    columns-out
+                    *unqualified-lookup-type
+                    ~
+                    ~
+                    ~
+                    1
+                    *(tree [(list @) (map @tas @)])
+                    ~[[%indexed-row ~ indexed-cols]]
+                    *(list joined-row)
+                    ==
                 ==
+            *qualified-lookup-type
+            ~
             ==
         :~  %+  mk-vect
               columns-out
               indexed-cols
-          ==
+              ==
   ?.  ?=(selected-value:ast -.columns)
     ~|("selected value {<-.columns>} not a literal" !!)
   =/  column-name  ?~  alias.i.columns  (crip "literal-{<i>}")
@@ -757,7 +763,7 @@
     ==
   ~|("value type not supported: {<i.values>}" !!)
 ::
-::  +named-queries:  (list cte:ast) -> (map @tas [@ud (list indexed-row)])
+::  +named-queries:  (list cte:ast) -> named-ctes
 ::  resolve CTEs
 ::  state is recycled because view cache could have been updated
 ++  named-queries  ::To Do: resolve data tmsps in CTEs
@@ -765,18 +771,18 @@
   ^-  named-ctes
   |-
   ?~  ctes  nctes
-  ::=/  state-table-unit  (do-query query.i.ctes nctes %.y)
   =/  =join-return  -:(do-query query.i.ctes nctes %.y)
-  ::=.  state             ->-.state-table-unit
-  =.  state           server.join-return
-  =/  =full-relation  :^  %full-relation
-                          -.set-tables.join-return
-                          type-lookup.join-return
-                          qualified-columns.join-return
+  =.  state           server.join-return   
   %=  $
     nctes  %+  ~(put by nctes)
                name.i.ctes
-               ~[full-relation]
+               :^  %full-relation
+                   set-tables.join-return
+                   ?:  =(%qualified-lookup-type -.lookup-type.join-return)
+                       %+  qualified-lookup-type  %qualified-lookup-type
+                                                 +.lookup-type.join-return
+                     *qualified-lookup-type
+                   qualified-columns.join-return
     ctes   +.ctes
   ==
 --
