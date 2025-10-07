@@ -2843,13 +2843,6 @@
              js
     jss  +.jss
   ==
-:: todo:
-:: - implement arithmetic
-::   - add arithmetic to scalar fn
-:: - add loop to check for scalar definitions with the same name; if found, crash
-::   - modify scalar fn type so that it has a name and an alias, to allow for
-::     mixed case scalar names
-:: todo: refactor these gates
 +$  alias-maps
   [table=(map @t qualified-table:ast) scalar=(map @t scalar-function:ast)]
 ++  finalize-scalar-param
@@ -2863,8 +2856,20 @@
     ::   scalar by the same name, then pass it down to finalize qualifier
   ?:  ?=(unqualified-column:ast cooked-param)
     =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
+    =/  maybe-alias  alias.cooked-param 
     ?~  maybe-scalar
-      (finalize-qualifier cooked-param table.aliases)
+      ?~  maybe-alias
+        `unqualified-column:ast`cooked-param
+      =/  table-alias  (need maybe-alias)
+      =/  maybe-table  (~(get by table.aliases) (crip (cass (trip table-alias))))
+      ?~  maybe-table
+        ~|("table alias {<table-alias>} is not defined" !!)
+      %:  qualified-column:ast
+          %qualified-column
+          (need maybe-table)
+          column=name.cooked-param
+          alias=~
+      ==
     (need maybe-scalar)
   :: - if the cooked-param is an unknown alias and there is a
   ::   scalar by the same name, then resolve the scalar
@@ -2875,7 +2880,7 @@
     ?~  maybe-scalar
       (cte-alias:ast %cte-alias name.cooked-param)
     (need maybe-scalar)
-  (finalize-qualifier cooked-param table.aliases)
+  cooked-param
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
@@ -2942,6 +2947,9 @@
      =/  cooked-case  (cook-case-body raw-scalar-body)
      =/  finalized-case  (finalize-case cooked-case aliases)
        finalized-case
+  ?:  =(%arithmetic fn-name)
+     =/  cooked-math  (cook-arithmetic raw-scalar-body)
+       cooked-math
    ::  nullary builtin functions (no parameters, cast directly)
    ?:  =(%getutcdate fn-name)
      ^-  getutcdate:ast
@@ -3103,6 +3111,8 @@
     =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
       (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
+    ?:  (~(has by scalar-map) scalar-alias)
+      ~|("there is already a scalar named {<scalar-alias>}" !!)
     =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
       :-  scalar
       %=  $
@@ -4892,12 +4902,7 @@
       whitespace 
       %+  ifix
         [pal par]
-      ;~  pose
-        (ifix [whitespace whitespace] first-param) 
-        :: TODO maybe we don't need these
-        ;~(pfix whitespace first-param)
-        ;~(sfix first-param whitespace)
-      ==
+        ;~(pfix whitespace ;~(sfix first-param whitespace)) 
     ==
   ==
 ++  parse-binary-scalar-fn
@@ -4909,18 +4914,8 @@
     %+  ifix
       [pal par]
       ;~  (glue com)
-        ;~  pose
-          (ifix [whitespace whitespace] first-param) 
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace first-param)
-          ;~(sfix first-param whitespace)
-        ==
-        ;~  pose
-          (ifix [whitespace whitespace] second-param) 
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace second-param)
-          ;~(sfix second-param whitespace)
-        ==
+        ;~(pfix whitespace ;~(sfix first-param whitespace)) 
+        ;~(pfix whitespace ;~(sfix second-param whitespace)) 
       ==
     ==
   ==
@@ -4930,28 +4925,13 @@
     (cold fn-name (jester fn-name))
     ;~  pfix
       whitespace 
-    %+  ifix
-      [pal par]
-      ;~  (glue com)
-        ;~  pose
-          (ifix [whitespace whitespace] first-param)
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace first-param)
-          ;~(sfix first-param whitespace)
+      %+  ifix
+        [pal par]
+        ;~  (glue com)
+          ;~(pfix whitespace ;~(sfix first-param whitespace))
+          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
+          ;~(pfix whitespace ;~(sfix third-param whitespace)) 
         ==
-        ;~  pose
-          :: TODO maybe we don't need these
-          (ifix [whitespace whitespace] second-param) 
-          ;~(pfix whitespace second-param)
-          ;~(sfix second-param whitespace)
-        ==
-        ;~  pose
-          (ifix [whitespace whitespace] third-param) 
-          :: TODO maybe we don't need these
-          ;~(pfix whitespace third-param)
-          ;~(sfix third-param whitespace)
-        ==
-      ==
     ==
   ==
 ++  parse-n-ary-scalar-fn
@@ -4962,13 +4942,7 @@
       whitespace
       %+  ifix
         [pal par]
-      %+  more
-        com
-      ;~  pose
-        (ifix [whitespace whitespace] parse-params) 
-        ;~(pfix whitespace parse-params)
-        ;~(sfix parse-params whitespace)
-      ==
+      (more com ;~(pfix whitespace ;~(sfix parse-params whitespace)))
     ==
   ==
 ::
@@ -5010,11 +4984,11 @@
     ::  column=parsed
     ::==
   ?:  ?=([@ @] parsed)
-    :*  %two-item-qualifier
-      alias=-.parsed
-      column=+.parsed
+    %:  unqualified-column:ast
+        %unqualified-column
+        name=`@tas`+.parsed
+        alias=(some -.parsed)
     ==
-
   ?:  ?=([@ @ @ @] parsed)
       %:  qualified-column:ast
           %qualified-column
@@ -5029,7 +5003,6 @@
           column=+>+.parsed
           alias=~
           ==
-
   ?:  ?=([@ @ @ @ @] parsed)
     %:  qualified-column:ast
         %qualified-column
@@ -5129,34 +5102,6 @@
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
 ::
-++  scalar-token
-  ;~  pose
-    ;~(pfix whitespace (cold %end (jester 'end')))
-    ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
-    ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
-    ;~(plug (cold %case (jester 'case')) parse-case)
-    ;~  pfix
-      whitespace
-      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-    ==
-    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-    (cold %pal ;~(plug whitespace pal))
-    (cold %pal pal)
-    (cold %par ;~(plug whitespace par))
-    (cold %par par)
-    (cold %lus ;~(plug whitespace lus))
-    (cold %lus lus)
-    (cold %hep ;~(plug whitespace hep))
-    (cold %hep hep)
-    (cold %tar ;~(plug whitespace tar))
-    (cold %tar tar)
-    (cold %fas ;~(plug whitespace fas))
-    (cold %fas fas)
-    (cold %ket ;~(plug whitespace ket))
-    (cold %ket ket)
-    parse-scalar-param
-  ==
 ++  cook-coalesce
   |=  parsed=*
   ^-  coalesce-helper
@@ -5172,10 +5117,116 @@
   ==
 ++  parse-coalesce  ~+
   (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
-++  parse-math
+:: used when recursing on %pal and %par
+++  handle-arithmetic-parens  ~+
+  |=  a=*
+  ^-  [nl=(list *) r=*]
+  =/  state  [nl=*(list *) r=a]
+  |-
+  ?:  =(-.r.state %par)
+    [(flop nl.state) +.r.state]
+  ?:  ?=([%literal *] -.r.state) 
+    $(state [[-.r.state nl.state] +.r.state])
+  ?:  ?=(%pal -.r.state) 
+    =/  nested  (handle-arithmetic-parens +.r.state)
+    $(state [[nl.nested nl.state] r.nested])
+  ?:  ?=(scalar-token:ast -.r.state)
+    $(state [[-.r.state nl.state] +.r.state])
+  ~|("arithmetic list problem with noun: {<a>}" !!)
+:: cleans up %pal and %par from a parsed arithmetic expression
+++  arithmetic-list  ~+
+  |=  a=*
+  ^-  *
+  =/  state  [nl=*(list *) r=a]
+  |-
+  ?~  r.state
+    (flop nl.state)
+  ?:  ?=([%literal *] -.r.state) 
+    $(state [[-.r.state nl.state] +.r.state])
+  ?:  ?=(%pal -.r.state) 
+    =/  nested  (handle-arithmetic-parens +.r.state)
+    $(state [[nl.nested nl.state] r.nested])
+  ?:  ?=(scalar-token:ast -.r.state)
+    $(state [[-.r.state nl.state] +.r.state])
+  ~|("arithmetic list problem with noun: {<a>}" !!)
+++  cook-arithmetic
+  |=  parsed=*
+  ^-  arithmetic:ast
+  =/  ops-and-operators  (arithmetic-list parsed)
+  |-
+  =/  operand1  -.ops-and-operators
+  =/  cooked-operand1
+    ?:  ?=([%literal *] operand1)
+      %:(literal-value:ast %literal-value dime=+.operand1)
+    $(ops-and-operators operand1)
+  ?~  +>+.ops-and-operators
+    =/  operator  +<.ops-and-operators
+    =/  operand2  +>-.ops-and-operators
+    =/  cooked-operand2
+      ?:  ?=([%literal *] operand2)
+        %:(literal-value:ast %literal-value dime=+.operand2)
+      $(ops-and-operators operand2)
+    %:  arithmetic:ast
+      %arithmetic
+      operator
+      cooked-operand1
+      cooked-operand2
+    ==
+  =/  operator  +<.ops-and-operators
+  %:  arithmetic:ast
+    %arithmetic
+    operator
+    cooked-operand1
+    $(ops-and-operators +>.ops-and-operators)
+  ==
+++  arithmetic-token
+  ;~  pose
+    ;~(pfix whitespace (cold %end (jester 'end')))
+    ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
+    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~  pfix
+      whitespace
+::      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
+    ==
+::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    parse-coalesce
+    (cold %pal ;~(plug whitespace pal))
+    (cold %pal pal)
+    (cold %par ;~(plug whitespace par))
+    (cold %par par)
+    (cold %lus ;~(plug whitespace lus))
+    (cold %lus lus)
+    (cold %hep ;~(plug whitespace hep))
+    (cold %hep hep)
+    (cold %tar ;~(plug whitespace tar))
+    (cold %tar tar)
+    (cold %fas ;~(plug whitespace fas))
+    (cold %fas fas)
+    (cold %ket ;~(plug whitespace ket))
+    (cold %ket ket)
+    ;~(pfix whitespace parse-scalar-param)
+    parse-scalar-param
+  ==
+++  parse-arithmetic
   ;~  plug
-    (cold %begin (jester 'begin'))
-    (star scalar-token)
+    (cold %arithmetic (jester 'begin'))
+    ;~  sfix
+      %-  star
+        ;~(less scalar-stop arithmetic-token)
+      ;~(pfix whitespace (jester 'end'))
+    ==
+  ==
+++  scalar-stop
+  ;~  pose
+::    ;~(plug whitespace (jest ')') whitespace)
+    ;~(plug whitespace (jester 'where') whitespace)
+    ;~(plug whitespace (jester 'select') whitespace)
+    ;~(plug whitespace (jester 'else') whitespace)
+    ;~(plug whitespace (jester 'endif') whitespace)
+    ;~(plug whitespace (jester 'end') whitespace)
   ==
 ++  parse-scalar-body
   ;~  pose
@@ -5183,16 +5234,7 @@
     ;~(plug (cold %case (jester 'case')) parse-case)
     parse-coalesce
     parse-builtin-scalar-fn
-    parse-math
-  ==
-++  scalar-stop  ;~
-  pose
-    ;~(plug whitespace (jest ')'))
-    ;~(plug whitespace (jester 'where'))
-    ;~(plug whitespace (jester 'select'))
-    ;~(plug whitespace (jester 'else'))
-    ;~(plug whitespace (jester 'endif'))
-    ;~(plug whitespace (jester 'end'))
+    parse-arithmetic
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  cook-scalar-alias
@@ -5315,21 +5357,6 @@
               ==
     (more com parse-ordering-column)
   ==
-:: TODO: this is only called twice now, inline
-++  finalize-qualifier
-  |=  [a=qualifier alias-map=(map @t qualified-table:ast)]
-  ^-  datum-or-scalar:ast
-  ::?:  ?=(qualified-column:ast a)    a
-  ::?:  ?=(unqualified-column:ast a)  a
-  ?:  ?=([%two-item-qualifier *] a)
-    %:  qualified-column:ast
-      %qualified-column
-      table=(~(got by alias-map) (crip (cass (trip alias.a))))
-      column=column.a
-      alias=~
-    ==
-  a
-::
 ::  helper types
 ::
 +$  urql-command
@@ -5403,15 +5430,8 @@
       $:(%literal dime)
   ==
 +$   qualifier
-  $%  two-item-qualifier
-      qualified-column:ast
+  $%  qualified-column:ast
       unqualified-column:ast
-  ==
-+$  two-item-qualifier
-  $:
-     %two-item-qualifier
-     alias=@t               :: table or view alias
-     column=@tas
   ==
 +$  scalar-helper
   $%  coalesce-helper
