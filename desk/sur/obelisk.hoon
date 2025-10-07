@@ -96,7 +96,7 @@
   $:  %join-return
       =server
       set-tables=(list set-table)
-      type-lookup=lookup-type
+      =lookup-type
       qualified-columns=(list qual-col-type)
       ==
 ::
@@ -109,7 +109,14 @@
     =predicate
   ==
 ::
-+$  named-ctes  (map @tas (list set-table))
++$  full-relation
+  $:
+    %full-relation
+    set-tables=(list set-table)
+    lookup-type=qualified-lookup-type
+    qual-col-types=(list qual-col-type)
+    ==
++$  named-ctes  (map @tas full-relation)
 ::
 +$  db-cmd  $?  %create-database
                 %drop-database

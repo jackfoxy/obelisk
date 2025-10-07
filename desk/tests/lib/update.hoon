@@ -1318,20 +1318,22 @@
 ::
 ::  fail on column does not exist
   :: to do: after making type lookup 3 layer
-::++  test-fail-update-02
-::  =|  run=@ud
-::  %-  failon  :*  run
-::                  %-  zing  :~  "CREATE DATABASE db1;"
-::                                create-table
-::                                insert-table
-::                                ==
-::                  ::
-::                  "UPDATE my-table ".
-::                  "   SET col5=~1980.1.1, ".
-::                  "       col2=~nec; "
-::                  ::
-::                  'jftest'
-::                  ==
+++  test-fail-update-02
+  =|  run=@ud
+  %-  failon  :*  run
+                  %-  zing  :~  "CREATE DATABASE db1;"
+                                create-table
+                                insert-table
+                                ==
+                  ::
+                  "UPDATE my-table ".
+                  "   SET col5=~1980.1.1, ".
+                  "       col2=~nec; "
+                  ::
+                  %-  crip  "UPDATE: [%qualified-table ship=~ database=%db1 ".
+                            "namespace=%dbo name=%my-table alias=~] ".
+                            "does not have column %col5"
+                  ==
 ::
 ::  fail on column is wrong type
 ++  test-fail-update-03
