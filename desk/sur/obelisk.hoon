@@ -103,9 +103,9 @@
 +$  joined-relation
   $:
     %joined-relation
+    join=(unit join-type)
     =relation
     as-of=(unit as-of)
-    join=(unit join-type)
     =predicate
   ==
 ::

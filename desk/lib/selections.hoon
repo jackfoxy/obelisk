@@ -233,9 +233,9 @@
   =/  from  (need from.q)
   =/  joined-relations=(list joined-relation)
         %+  mk-joined-relations  %:  joined-relation  %joined-relation
+                                                      ~
                                                       relation.from
                                                       as-of.from
-                                                      ~
                                                       ~
                                                       ==
                                  joins.from
@@ -393,18 +393,18 @@
     %=  $
       joins  t.joins
       cross-joins  :-  %:  joined-relation  %joined-relation
+                                            `join.i.joins
                                             relation.i.joins
                                             as-of.i.joins
-                                            `join.i.joins
                                             predicate.i.joins
                                             ==
                        cross-joins
     ==  %=  $
     joins  t.joins
     joined-relations  :-  %:  joined-relation  %joined-relation
+                                              `join.i.joins
                                                relation.i.joins
                                                as-of.i.joins
-                                               `join.i.joins
                                                predicate.i.joins
                                                 ==
                    joined-relations
