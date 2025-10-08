@@ -315,7 +315,6 @@
   $%
     qualified-column
     unqualified-column
-    qualified-table
     selected-aggregate
     selected-value
     selected-all

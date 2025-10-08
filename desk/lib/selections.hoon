@@ -178,8 +178,6 @@
       ~|("not supported" !!)
     unqualified-column:ast
       ~|("not supported" !!)
-    qualified-table:ast
-      ~|("not supported" !!)
     selected-aggregate:ast
       ~|("not supported" !!)
     selected-value:ast
