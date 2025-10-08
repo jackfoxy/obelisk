@@ -3167,11 +3167,11 @@
 ++  mk-all-object
   |=  [=qualified-column:ast alias-map=(map @t qualified-table:ast)]
   ~+
-  ^-  selected-all-object:ast
+  ^-  selected-all-table:ast
   =/  object  %-  ~(get by alias-map)
                   (crip (cass (trip name.qualifier.qualified-column)))
   ?~  object
-    %+  selected-all-object:ast  %all-object
+    %+  selected-all-table:ast  %all-object
                                  %:  qualified-table:ast
                                       %qualified-table
                                       ~ 
@@ -3179,7 +3179,7 @@
                                       %dbo
                                       name.qualifier.qualified-column
                                       ==
-  (selected-all-object:ast %all-object (need object))
+  (selected-all-table:ast %all-object (need object))
 ::
 ++  mk-qualified-table
   |=  [a=qualified-column:ast alias-map=(map @t qualified-table:ast)]
@@ -3231,7 +3231,7 @@
                ?:  ?&  =('ALL' name.i.s)
                        !=(name.qualifier.i.s name.i.s)
                        ==
-                  %+  selected-all-object:ast
+                  %+  selected-all-table:ast
                       %all-object
                       qualifier.i.s
                ?:  ?&  =('UNKNOWN' database.qualifier.i.s)
@@ -3371,30 +3371,30 @@
     ?:  ?=([%all-columns %qualified-table (unit @p) @ @ @ (unit @t)] -.a)
       %=  $
         columns
-          :-  %+  selected-all-object:ast
-                    %all-object
-                    %:  qualified-table:ast  %qualified-table
-                                              ?~  ->+<.a  ~
-                                              [~ ->+<.a]
-                                              ->+>-.a
-                                              ->+>+<.a
-                                              ->+>+>-.a
-                                              ~
-                                              ==
+          :-  %+  selected-all-table:ast
+                  %all-object
+                  %:  qualified-table:ast  %qualified-table
+                                            ?~  ->+<.a  ~
+                                            [~ ->+<.a]
+                                            ->+>-.a
+                                            ->+>+<.a
+                                            ->+>+>-.a
+                                            ~
+                                            ==
               columns
         a        +.a
       ==
     ?:  ?=([@ @] -.a)
       ?:  ?=([%all-columns @] -.a)
         %=  $
-          columns  :-  %+  selected-all-object:ast
-                             %all-object
-                             ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
-                               (~(got by alias-map) (crip (cass (trip ->.a))))
-                             :: to do: if does not resolve try CTEs next
-                             ~|  "cannot resolve {<->.a>}"
-                                 %-  ~(got by (mk-obj-name-map (need f)))
-                                     ->.a
+          columns  :-  %+  selected-all-table:ast
+                           %all-object
+                           ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
+                             (~(got by alias-map) (crip (cass (trip ->.a))))
+                           :: to do: if does not resolve try CTEs next
+                           ~|  "cannot resolve {<->.a>}"
+                               %-  ~(got by (mk-obj-name-map (need f)))
+                                   ->.a
                        columns
           a        +.a
         ==

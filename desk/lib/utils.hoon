@@ -369,7 +369,7 @@
                      ==
                cells
     ==
-  ?:  ?=(selected-all-object:ast i.selected)
+  ?:  ?=(selected-all-table:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected
@@ -485,7 +485,7 @@
                      ==
                cells
     ==
-  ?:  ?=(selected-all-object:ast i.selected)
+  ?:  ?=(selected-all-table:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected

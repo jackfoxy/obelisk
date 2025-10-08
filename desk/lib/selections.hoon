@@ -161,7 +161,7 @@
       all-cols  t.all-cols
       b         (~(put by b) name.i.all-cols [name.i.all-cols ~])
     ==
-  ?:  ?=(selected-all-object:ast a)
+  ?:  ?=(selected-all-table:ast a)
     |-
     ?~  all-cols  b
     %=  $
@@ -184,7 +184,7 @@
       ~[[%column `@tas`(need alias.selected-column) p.value.selected-column]]
     selected-all:ast
       (flop columns)
-    selected-all-object:ast
+    selected-all-table:ast
       (flop columns)
     ==
 ::

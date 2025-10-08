@@ -318,7 +318,7 @@
     selected-aggregate
     selected-value
     selected-all
-    selected-all-object
+    selected-all-table
   ==
 +$  unqualified-column
   $:
@@ -332,7 +332,7 @@
     %all
   ==
 
-+$  selected-all-object  [%all-object qualified-table]
++$  selected-all-table  [%all-object qualified-table]
 
 +$  selected-aggregate
   $:
