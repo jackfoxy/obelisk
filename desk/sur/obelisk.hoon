@@ -132,10 +132,10 @@
                 %delete
                 ==
 ::
-::  template for selected column from qualified objects
+::  template for selected column from qualified ocolumnbjects
 +$  templ-cell
   $:  %templ-cell
-      object=(unit qualified-column)
+      column=(unit qualified-column)
       addr=@
       vc=vector-cell
   ==

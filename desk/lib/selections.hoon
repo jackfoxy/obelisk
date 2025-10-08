@@ -218,10 +218,10 @@
       out-rows  (~(put in out-rows) (vector %vector row))
       rows      t.rows
     ==
-  ?~  object.i.cols
+  ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
-  =/  value  (~(got by data.i.rows) name:(need object.cell)) 
+  =/  value  (~(got by data.i.rows) name:(need column.cell)) 
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +join-all  query:ast -> join-return

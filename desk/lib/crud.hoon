@@ -505,12 +505,12 @@
       out-rows  (~(put in out-rows) (vector %vector row))
       rows      t.rows
     ==
-  ?~  object.i.cols
+  ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
-  =/  qualifier=qualified-table:ast  qualifier:(need object.cell)
+  =/  qualifier=qualified-table:ast  qualifier:(need column.cell)
   =/  value
-        (~(got by (~(got by data.i.rows) qualifier)) name:(need object.cell))
+        (~(got by (~(got by data.i.rows) qualifier)) name:(need column.cell))
   $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
 ::
 ::  +select-results:  [named-ctes server (list set-table) (list vector)]
