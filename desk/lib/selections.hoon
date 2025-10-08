@@ -42,8 +42,8 @@
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (need from.q)
-  =/  query-source    ?:  ?=(qualified-table:ast object.+.object.from)
-                      object.+.object.from
+  =/  query-source    ?:  ?=(qualified-table:ast object.+.relation.from)
+                      object.+.relation.from
                     ~|("SELECT: not supported on %query-row" !!)
   =/  the-relation=full-relation  %:  got-relation  query-source
                                       named-ctes
@@ -233,7 +233,7 @@
   =/  from  (need from.q)
   =/  joined-relations=(list joined-relation)
         %+  mk-joined-relations  %:  joined-relation  %joined-relation
-                                                      object.from
+                                                      relation.from
                                                       as-of.from
                                                       ~
                                                       ~
@@ -393,7 +393,7 @@
     %=  $
       joins  t.joins
       cross-joins  :-  %:  joined-relation  %joined-relation
-                                            object.i.joins
+                                            relation.i.joins
                                             as-of.i.joins
                                             `join.i.joins
                                             predicate.i.joins
@@ -402,7 +402,7 @@
     ==  %=  $
     joins  t.joins
     joined-relations  :-  %:  joined-relation  %joined-relation
-                                               object.i.joins
+                                               relation.i.joins
                                                as-of.i.joins
                                                `join.i.joins
                                                predicate.i.joins

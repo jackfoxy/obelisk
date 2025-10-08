@@ -2829,14 +2829,14 @@
   =/  js   *(list joined-object:ast)
   |-
   ?~  jss
-    (from:ast %from object.f as-of.f (flop js))
+    (from:ast %from relation.f as-of.f (flop js))
   =/  j=joined-object:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
              %:  joined-object:ast
                    %joined-object
                    join.j
-                   object.j
+                   relation.j
                    as-of.j
                    (finalize-predicate predicate.j alias-map)
                    ==
@@ -3256,12 +3256,12 @@
   ~+
   ^-  (map @t qualified-table:ast)
   =/  n  (mk-alias-map-joins ~ joins.f)
-  ?.  ?=(qualified-table:ast object.object.f)
-    ~|("not implemented {<object.f>}" !!)
-  ?~  alias.object.object.f
+  ?.  ?=(qualified-table:ast object.relation.f)
+    ~|("not implemented {<relation.f>}" !!)
+  ?~  alias.object.relation.f
     n
-  %+  ~(put by n)  (crip (cass (trip (need alias.object.object.f))))
-                   object.object.f
+  %+  ~(put by n)  (crip (cass (trip (need alias.object.relation.f))))
+                   object.relation.f
 ::
 ++  mk-alias-map-joins
   |=  [m=(map @t qualified-table:ast) js=(list joined-object:ast)]
@@ -3270,12 +3270,12 @@
   |-
   ?~  js  m
   =/  j=joined-object:ast  -.js
-  ?.  ?=(qualified-table:ast object.object.j)
-    ~|("not implemented {<object.j>}" !!)
+  ?.  ?=(qualified-table:ast object.relation.j)
+    ~|("not implemented {<relation.j>}" !!)
   %=  $
-    m   ?~  alias.object.object.j  m
-        %+  ~(put by m)  (crip (cass (trip (need alias.object.object.j))))
-                         object.object.j
+    m   ?~  alias.object.relation.j  m
+        %+  ~(put by m)  (crip (cass (trip (need alias.object.relation.j))))
+                         object.relation.j
     js  +.js
   ==
 ::
@@ -3290,10 +3290,10 @@
   ~+
   ^-  (map @t qualified-table:ast)
   =/  n  (mk-obj-name-map-joins ~ joins.f)
-  ?.  ?=(qualified-table:ast object.object.f)
-    ~|("not implemented {<object.f>}" !!)
-  %+  ~(put by n)  (crip (cass (trip name.object.object.f)))
-                   object.object.f
+  ?.  ?=(qualified-table:ast object.relation.f)
+    ~|("not implemented {<relation.f>}" !!)
+  %+  ~(put by n)  (crip (cass (trip name.object.relation.f)))
+                   object.relation.f
 ::
 ++  mk-obj-name-map-joins
   |=  [m=(map @t qualified-table:ast) js=(list joined-object:ast)]
@@ -3302,11 +3302,11 @@
   |-
   ?~  js  m
   =/  j=joined-object:ast  -.js
-  ?.  ?=(qualified-table:ast object.object.j)
-    ~|("not implemented {<object.j>}" !!)
+  ?.  ?=(qualified-table:ast object.relation.j)
+    ~|("not implemented {<relation.j>}" !!)
   %=  $
-    m   %+  ~(put by m)  (crip (cass (trip name.object.object.j)))
-                         object.object.j
+    m   %+  ~(put by m)  (crip (cass (trip name.object.relation.j)))
+                         object.relation.j
     js  +.js
   ==
 ++  produce-select

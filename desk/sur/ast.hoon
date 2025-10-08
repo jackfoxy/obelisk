@@ -277,7 +277,7 @@
 +$  from
   $:
     %from
-    object=relation
+    =relation
     as-of=(unit as-of)
     joins=(list joined-object)
   ==
@@ -285,7 +285,7 @@
   $:
     %joined-object
     join=join-type
-    object=relation
+    =relation
     as-of=(unit as-of)
     =predicate
   ==
