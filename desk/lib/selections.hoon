@@ -100,7 +100,7 @@
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
-  =.  object.st2      ~
+  =.  relation.st2      ~
   =.  columns.st2     %-  flop
                         ^-  (list column:ast)  %-  zing
                             %+  turn  columns.select.q
@@ -483,11 +483,11 @@
     out-rows  :-  ?:  ?=(%joined-row -.i.a)
                     :+  %joined-row
                         ~
-                        (~(put by data.i.a) (need object.this) data.i.b)
+                        (~(put by data.i.a) (need relation.this) data.i.b)
                   %:  joined-from-indexed  i.a
-                                           (need object.prior)
+                                           (need relation.prior)
                                            i.b
-                                           (need object.this)
+                                           (need relation.this)
                                            ==
                   out-rows
     b  t.b
@@ -513,15 +513,15 @@
   =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
                       ?~  joined-rows.prior
                         %:  join-pri-key  indexed-rows.prior
-                                          (need object.prior)
+                                          (need relation.prior)
                                           indexed-rows.this
-                                          (need object.this)
+                                          (need relation.this)
                                           this-key
                                         ==
                       %:  join-pri-key  joined-rows.prior
-                                        (need object.prior)
+                                        (need relation.prior)
                                         indexed-rows.this
-                                        (need object.this)
+                                        (need relation.this)
                                         this-key
                                         ==
   ?:  =(prior-key this-key)
@@ -530,7 +530,7 @@
   ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
               (turn this-key |=(a=key-column [name.a aura.a]))
     ~|  "no natural join or foreign key join, columns do not match: ".
-        "{<(need object.this)>}"
+        "{<(need relation.this)>}"
         !!
   ::  sort the little one
   =/  the-key  ?:  (gth rowcount.this rowcount.prior)
@@ -541,31 +541,31 @@
           ?~  joined-rows.prior
             %:  join-pri-key  %+  sort  indexed-rows.prior
                                    ~(order data-row-comp (reduce-key the-key))
-                              (need object.prior)
+                              (need relation.prior)
                               indexed-rows.this
-                              (need object.this)
+                              (need relation.this)
                               this-key
                               ==
           %:  join-pri-key  %+  sort  joined-rows.prior
                                    ~(order data-row-comp (reduce-key the-key))
-                            (need object.prior)
+                            (need relation.prior)
                             indexed-rows.this
-                            (need object.this)
+                            (need relation.this)
                             this-key
                             ==
         ?~  joined-rows.prior
           %:  join-pri-key  indexed-rows.prior
-                            (need object.prior)
+                            (need relation.prior)
                             %+  sort  indexed-rows.this
                                     ~(order data-row-comp (reduce-key the-key))
-                            (need object.this)
+                            (need relation.this)
                             prior-key
                             ==
         %:  join-pri-key  joined-rows.prior
-                          (need object.prior)
+                          (need relation.prior)
                           %+  sort  indexed-rows.this
                                   ~(order data-row-comp (reduce-key the-key))
-                          (need object.this)
+                          (need relation.this)
                           prior-key
                           ==
   ::

@@ -739,7 +739,7 @@
     |-
     ?~  sources           lookup
     =/  source=set-table  i.sources
-    ?~  object.source     $(sources t.sources)
+    ?~  relation.source     $(sources t.sources)
     =/  columns=(list column:ast)  columns.source
     |-
     ?~  columns  ^$(sources t.sources)
@@ -749,10 +749,10 @@
       lookup   ?:  (~(has by lookup) name.col)
                  %+  ~(put by lookup)
                         name.col
-                        :-  (need object.source)
+                        :-  (need relation.source)
                             (~(got by lookup) name.col)
                %+  ~(put by lookup)  name.col
-                                     (limo ~[(need object.source)])
+                                     (limo ~[(need relation.source)])
     ==
 ::
 ::  +common-txn

@@ -60,7 +60,7 @@
 ::
 +$  set-table
   $:  %set-table
-      object=(unit qualified-table)
+      relation=(unit qualified-table)
       schema-tmsp=(unit @da)
       data-tmsp=(unit @da)
       columns=(list column)
