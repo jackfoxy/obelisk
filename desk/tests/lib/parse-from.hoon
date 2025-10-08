@@ -580,7 +580,7 @@
 ::  JOINED OBJECT
 ::
 ++  join-bar
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           object=bar-unaliased
           as-of=~
@@ -588,7 +588,7 @@
           ==
       ==
 ++  join-bar-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           object=bar-unaliased-ns1
           as-of=~
@@ -596,7 +596,7 @@
           ==
       ==
 ++  join-bar-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           object=bar-unaliased-db2
           as-of=~
@@ -604,7 +604,7 @@
           ==
       ==
 ++  join-bar-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           object=bar-unaliased-db2-ns1
           as-of=~
@@ -612,7 +612,7 @@
           ==
       ==
 ++  join-bar-nec-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           object=bar-unaliased-nec-db2
           as-of=~
@@ -620,7 +620,7 @@
           ==
       ==
 ++  join-bar-nec-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           object=bar-unaliased-nec-db2-ns1
           as-of=~
@@ -628,7 +628,7 @@
           ==
       ==
 ++  join-bar-aliased
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           :-  %relation
               :*  %qualified-table
@@ -643,7 +643,7 @@
           ==
       ==
 ++  join-bar-aliased-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           :-  %relation
               :*  %qualified-table
@@ -658,7 +658,7 @@
           ==
       ==
 ++  join-bar-aliased-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           :-  %relation
               :*  %qualified-table
@@ -673,7 +673,7 @@
           ==
       ==
 ++  join-bar-aliased-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           :-  %relation
               :*  %qualified-table
@@ -688,7 +688,7 @@
           ==
       ==
 ++  join-bar-aliased-nec-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           :-  %relation
               :*  %qualified-table
@@ -703,7 +703,7 @@
           ==
       ==
 ++  join-bar-aliased-nec-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
           :-  %relation
               :*  %qualified-table
@@ -722,7 +722,7 @@
 ::
 ++  join-bar-as-of
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased
           [~ time]  ::as-of
@@ -731,7 +731,7 @@
       ==
 ++  join-bar-as-of-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-ns1
           [~ time]  ::as-of
@@ -740,7 +740,7 @@
       ==
 ++  join-bar-as-of-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-db2
           [~ time]  ::as-of
@@ -749,7 +749,7 @@
       ==
 ++  join-bar-as-of-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-db2-ns1
           [~ time]  ::as-of
@@ -758,7 +758,7 @@
       ==
 ++  join-bar-as-of-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-nec-db2
           [~ time]  ::as-of
@@ -767,7 +767,7 @@
       ==
 ++  join-bar-as-of-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-nec-db2-ns1
           [~ time]  ::as-of
@@ -776,7 +776,7 @@
       ==
 ++  natural-join-bar
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased
           [~ time]  ::as-of
@@ -785,7 +785,7 @@
       ==
 ++  join-bar-aliased-as-of
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased 
           [~ time]  ::as-of
@@ -794,7 +794,7 @@
       ==
 ++  join-bar-aliased-as-of-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-ns1
           [~ time]  ::as-of
@@ -803,7 +803,7 @@
       ==
 ++  join-bar-aliased-as-of-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2
           [~ time]  ::as-of
@@ -812,7 +812,7 @@
       ==
 ++  join-bar-aliased-as-of-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2-ns1
           [~ time]  ::as-of
@@ -821,7 +821,7 @@
       ==
 ++  join-bar-aliased-as-of-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2
           [~ time]  ::as-of
@@ -830,7 +830,7 @@
       ==
 ++  join-bar-aliased-as-of-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2-ns1
           [~ time]  ::as-of
@@ -840,7 +840,7 @@
 
 ++  natural-join-bar-aliased
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased
           [~ time]  ::as-of
@@ -849,13 +849,13 @@
       ==
 ++  join-bar-baz
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
           :-  %relation
               :*  %qualified-table
@@ -871,13 +871,13 @@
       ==
 ++  join-bar-baz-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-ns1
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
           :-  %relation
               :*  %qualified-table
@@ -893,13 +893,13 @@
       ==
 ++  join-bar-baz-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-db2
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
           :-  %relation
               :*  %qualified-table
@@ -915,13 +915,13 @@
       ==
 ++  join-bar-baz-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-db2-ns1
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
           :-  %relation
               :*  %qualified-table
@@ -937,13 +937,13 @@
       ==
 ++  join-bar-baz-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-nec-db2
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
           :-  %relation
               :*  %qualified-table
@@ -959,13 +959,13 @@
       ==
 ++  join-bar-baz-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-nec-db2-ns1
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
           :-  %relation
               :*  %qualified-table
@@ -981,13 +981,13 @@
       ==
 ++  aliased-join-bar-baz
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
           :-  %relation
               :*  %qualified-table
@@ -1003,13 +1003,13 @@
       ==
 ++  aliased-join-bar-baz-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-ns1
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
           :-  %relation
               :*  %qualified-table
@@ -1025,13 +1025,13 @@
       ==
 ++  aliased-join-bar-baz-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
           :-  %relation
               :*  %qualified-table
@@ -1047,13 +1047,13 @@
       ==
 ++  aliased-join-bar-baz-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2-ns1
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
           :-  %relation
               :*  %qualified-table
@@ -1069,13 +1069,13 @@
       ==
 ++  aliased-join-bar-baz-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
           :-  %relation
               :*  %qualified-table
@@ -1091,13 +1091,13 @@
       ==
 ++  aliased-join-bar-baz-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2-ns1
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
           :-  %relation
               :*  %qualified-table
@@ -1113,7 +1113,7 @@
       ==
 ++  cross-join-bar
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-unaliased
           [~ time]  ::as-of
@@ -1122,7 +1122,7 @@
       ==
 ++  cross-join-bar-aliased
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased
           [~ time]  ::as-of
@@ -1131,7 +1131,7 @@
       ==
 ++  cross-join-bar-aliased-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-ns1
           [~ time]  ::as-of
@@ -1140,7 +1140,7 @@
       ==
 ++  cross-join-bar-aliased-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-db2
           [~ time]  ::as-of
@@ -1149,7 +1149,7 @@
       ==
 ++  cross-join-bar-aliased-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-db2-ns1
           [~ time]  ::as-of
@@ -1158,7 +1158,7 @@
       ==
 ++  cross-join-bar-aliased-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-nec-db2
           [~ time]  ::as-of
@@ -1167,7 +1167,7 @@
       ==
 ++  cross-join-bar-aliased-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-nec-db2-ns1
           [~ time]  ::as-of
@@ -1796,7 +1796,7 @@
                     [%relation [%qualified-table ~ %db1 %dbo %foo [~ 'F1']]]
                     [~ [%dr ~h5.m30.s12]]
                     :~
-                      :*  %joined-object
+                      :*  %joined-relation
                           %join
                           :-  %relation
                               [%qualified-table ~ %db1 %dbo %bar [~ 'B2']]
@@ -1804,7 +1804,7 @@
                           as-of=[~ [%da ~2000.1.1]]
                           predicate=~
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %left-join
                           :-  %relation
                               [%qualified-table ~ %db1 %dbo %baz [~ 'B3']]
@@ -1813,14 +1813,14 @@
                               [[value-type=%ud value=1] ~ ~]
                               [[value-type=%ud value=1] ~ ~]
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %join
                           :-  %relation
                               [%qualified-table ~ %db1 %dbo %bar [~ 'B4']]
                           as-of=~
                           predicate=~
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %left-join
                           :-  %relation
                               [%qualified-table ~ %db1 %dbo %bar ~]
@@ -1829,7 +1829,7 @@
                               [[value-type=%ud value=1] ~ ~]
                               [[value-type=%ud value=1] ~ ~]
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %join
                           :-  %relation
                               [%qualified-table ~ %db1 %dbo %foo ~]
@@ -2151,13 +2151,13 @@
                                 :^  %from
                                     object=object=foo-table
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
                                             object=bar-unaliased
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
-                                        :*  %joined-object
+                                        :*  %joined-relation
                                             join=%left-join
                                             :-  %relation
                                                 :*  %qualified-table
@@ -2194,7 +2194,7 @@
                                 :^  %from
                                     object=foo-table-f1-low
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
                                             :-  %relation
                                                 :*  %qualified-table
@@ -2207,7 +2207,7 @@
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
-                                        :*  %joined-object
+                                        :*  %joined-relation
                                             join=%left-join
                                             :-  %relation
                                                 :*  %qualified-table
@@ -2314,7 +2314,7 @@
                                 :^  %from
                                     object=foo-alias-y
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%cross-join
                                             object=bar-alias-x
                                             as-of=~
@@ -2344,7 +2344,7 @@
                                 :^  %from
                                     object=foo-alias-y
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%cross-join
                                             object=bar-alias-x
                                             as-of=~
@@ -2374,7 +2374,7 @@
                                 :^  %from
                                     object=foo-table
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%cross-join
                                             object=bar-unaliased
                                             as-of=~
@@ -2405,7 +2405,7 @@
 ::                                :^  %from
 ::                                    object=passthru-row-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
 ::                                            object=bar-alias-x
 ::                                            as-of=~
@@ -2435,7 +2435,7 @@
 ::                                :^  %from
 ::                                    object=passthru-row-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
 ::                                            object=bar-alias-x
 ::                                            as-of=~
@@ -2465,7 +2465,7 @@
 ::                                :^  %from
 ::                                    object=foo-alias-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
 ::                                            object=passthru-row-x as-of=~
 ::                                            predicate=~
@@ -2494,7 +2494,7 @@
 ::                                :^  %from
 ::                                    object=foo-alias-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
 ::                                            object=passthru-row-x
 ::                                            as-of=~
@@ -2524,7 +2524,7 @@
 ::                                :^  %from
 ::                                    object=passthru-unaliased
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
 ::                                            object=passthru-unaliased
 ::                                            as-of=~
@@ -2554,7 +2554,7 @@
 ::                                :^  %from
 ::                                    object=foo-alias-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
 ::                                            object=passthru-unaliased
 ::                                            as-of=~
@@ -2585,7 +2585,7 @@
                                 :^  %from
                                     object=foo-table
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
                                             object=bar-unaliased
                                             as-of=~
@@ -2614,7 +2614,7 @@
                                 :^  %from
                                     object=foo-alias-y
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
                                             object=bar-alias-x
                                             as-of=~

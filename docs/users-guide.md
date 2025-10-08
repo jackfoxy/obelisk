@@ -738,7 +738,7 @@ For instance the joined query we last ran produces the following pretty-printed 
             as-of=~
               joins
             ~[
-              [ %joined-object
+              [ %joined-relation
                 join=%join
                   object
                 [ %relation
@@ -855,7 +855,7 @@ For instance the joined query we last ran produces the following pretty-printed 
             as-of=~
               joins
             ~[
-              [ %joined-object
+              [ %joined-relation
                 join=%join
                   object
                 [ %relation

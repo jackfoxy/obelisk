@@ -49,7 +49,7 @@
                             ~
                             ==
                     ~  ::(unit as-of)
-                    ~  ::joins=(list joined-object)
+                    ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
             ~  ::=predicate
             ~  ::group-by=(list grouping-column)
@@ -201,7 +201,7 @@
                             ~
                             ==
                     ~  ::(unit as-of)
-                    ~               ::joins=(list joined-object)
+                    ~               ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
             ~  ::=predicate
             ~  ::group-by=(list grouping-column)
@@ -302,7 +302,7 @@
                             ~
                             ==
                     ~  ::(unit as-of)
-                    ~  ::joins=(list joined-object)
+                    ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
             ~  ::=predicate
             ~  ::group-by=(list grouping-column)
@@ -429,7 +429,7 @@
                             ~                    ::alias=(unit @t)
                             ==
                     ~  ::(unit as-of)
-                    ~  ::joins=(list joined-object)
+                    ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
             ~  ::=predicate
             ~  ::group-by=(list grouping-column)
@@ -565,7 +565,7 @@
                             ~                    ::alias=(unit @t)
                             ==
                     ~  ::(unit as-of)
-                    ~  ::joins=(list joined-object)
+                    ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
             ~  ::=predicate
             ~  ::group-by=(list grouping-column)
@@ -700,7 +700,7 @@
                             ~                    ::alias=(unit @t)
                             ==
                     ~  ::(unit as-of)
-                    ~  ::joins=(list joined-object)
+                    ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
             ~  ::=predicate
             ~  ::group-by=(list grouping-column)
@@ -827,7 +827,7 @@
                             ~                    ::alias=(unit @t)
                             ==
                     ~       ::(unit as-of)
-                    ~       ::joins=(list joined-object)
+                    ~       ::joins=(list joined-relatation)
             ~   ::scalars=(list scalar-function)
             ~   ::=predicate
             ~   ::group-by=(list grouping-column)

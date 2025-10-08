@@ -100,9 +100,9 @@
       qualified-columns=(list qual-col-type)
       ==
 ::
-+$  joined-relation
++$  joined-relat
   $:
-    %joined-relation
+    %joined-relat
     join=(unit join-type)
     =relation
     as-of=(unit as-of)

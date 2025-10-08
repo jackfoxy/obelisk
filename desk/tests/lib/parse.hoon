@@ -2078,7 +2078,7 @@
           :^  %from
               object=[%relation object=[%qualified-table ship=~ database='db1' namespace='dbo' name='tbl1' alias=~]]
               as-of=~
-              :~  :*  %joined-object
+              :~  :*  %joined-relation
                       join=%join
                       :-  %relation
                           :*  %qualified-table
@@ -2154,7 +2154,7 @@
                 :^  %from
                     object=[%relation object=[%qualified-table ship=~ database='db1' namespace='ns' name='table' alias=~]]
                     as-of=~
-                    :~  :*  %joined-object
+                    :~  :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table
@@ -2167,7 +2167,7 @@
                             as-of=~
                             predicate=~
                             ==
-                        :*  %joined-object
+                        :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table
@@ -2203,7 +2203,7 @@
                 :^  %from
                     object=[%relation object=foo-table-t1]
                     as-of=~
-                    :~  :*  %joined-object
+                    :~  :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table
@@ -2243,7 +2243,7 @@
                 :^  %from
                     object=[%relation object=[%qualified-table ship=~ database='db1' namespace='ns' name='table' alias=~]]
                     as-of=~
-                    :~  :*  %joined-object
+                    :~  :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table
@@ -2256,7 +2256,7 @@
                             as-of=~
                             predicate=~
                             ==
-                          :*  %joined-object
+                          :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table
@@ -2284,7 +2284,7 @@
                 :^  %from
                     object=[%relation object=[%qualified-table ship=~ database='db1' namespace='ns' name='table' alias=~]]
                     as-of=~
-                    :~  :*  %joined-object
+                    :~  :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table
@@ -2297,7 +2297,7 @@
                             as-of=~
                             predicate=~
                             ==
-                          :*  %joined-object
+                          :*  %joined-relation
                             join=%join
                             :-  %relation
                                 :*  %qualified-table

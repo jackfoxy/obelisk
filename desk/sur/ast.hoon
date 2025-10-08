@@ -279,11 +279,11 @@
     %from
     =relation
     as-of=(unit as-of)
-    joins=(list joined-object)
+    joins=(list joined-relation)
   ==
-+$  joined-object
++$  joined-relation
   $:
-    %joined-object
+    %joined-relation
     join=join-type
     =relation
     as-of=(unit as-of)

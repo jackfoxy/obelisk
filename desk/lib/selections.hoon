@@ -231,15 +231,15 @@
   |=  [q=query:ast =named-ctes]
   ^-  join-return
   =/  from  (need from.q)
-  =/  joined-relations=(list joined-relation)
-        %+  mk-joined-relations  %:  joined-relation  %joined-relation
-                                                      ~
-                                                      relation.from
-                                                      as-of.from
-                                                      ~
-                                                      ==
+  =/  joined-relations=(list joined-relat)
+        %+  mk-joined-relations  :*  %joined-relat
+                                     ~
+                                     relation.from
+                                     as-of.from
+                                     ~
+                                     ==
                                  joins.from
-  =/  relat=joined-relation  -.joined-relations
+  =/  relat=joined-relat  -.joined-relations
   =/  query-source  ?:  ?=(qualified-table:ast object.relation.relat)
                       object.relation.relat
                     ~|("SELECT: not supported on %query-row" !!)
@@ -378,35 +378,35 @@
           (~(put by +.type-lookup) query-obj type-lookup.tbl2)
       (mk-qualified-columns query-obj qualified-columns columns.tbl2)
 ::
-::  +mk-joined-relations:  [relation (list joined-object:ast)]
-::                         ->  (list joined-relation)
+::  +mk-joined-relations:  [relation (list joined-relation:ast)]
+::                         ->  (list joined-relat)
 ::
 ::  put all cross joins at the end of the list
 ++  mk-joined-relations
-  |=  [relat=joined-relation joins=(list joined-object:ast)]
-  ^-  (list joined-relation)
-  =/  joined-relations=(list joined-relation)    ~[relat]
-  =/  cross-joins  *(list joined-relation)
+  |=  [relat=joined-relat joins=(list joined-relation:ast)]
+  ^-  (list joined-relat)
+  =/  joined-relations=(list joined-relat)    ~[relat]
+  =/  cross-joins  *(list joined-relat)
   |-
   ?~  joins  (flop (weld cross-joins joined-relations))
   ?:  ?=(%cross-join join.i.joins)
     %=  $
       joins  t.joins
-      cross-joins  :-  %:  joined-relation  %joined-relation
-                                            `join.i.joins
-                                            relation.i.joins
-                                            as-of.i.joins
-                                            predicate.i.joins
-                                            ==
+      cross-joins  :-  :*  %joined-relat
+                           `join.i.joins
+                           relation.i.joins
+                           as-of.i.joins
+                           predicate.i.joins
+                           ==
                        cross-joins
     ==  %=  $
     joins  t.joins
-    joined-relations  :-  %:  joined-relation  %joined-relation
-                                              `join.i.joins
-                                               relation.i.joins
-                                               as-of.i.joins
-                                               predicate.i.joins
-                                                ==
+    joined-relations  :-  :*  %joined-relat
+                              `join.i.joins
+                                relation.i.joins
+                                as-of.i.joins
+                                predicate.i.joins
+                              ==
                    joined-relations
   ==
 ::

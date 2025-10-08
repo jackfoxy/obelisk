@@ -283,7 +283,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -313,7 +313,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -343,7 +343,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -373,7 +373,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -403,7 +403,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -433,7 +433,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -463,7 +463,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -493,7 +493,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -523,7 +523,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -599,7 +599,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -633,7 +633,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -667,7 +667,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -701,7 +701,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -734,7 +734,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -767,7 +767,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -800,7 +800,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -833,7 +833,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -866,7 +866,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -899,7 +899,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -932,7 +932,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -965,7 +965,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -998,7 +998,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1033,7 +1033,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1076,7 +1076,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1113,7 +1113,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1152,7 +1152,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1194,7 +1194,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1245,7 +1245,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1286,7 +1286,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1324,7 +1324,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1454,7 +1454,7 @@
                                     alias=[~ 'A1']
                                     ==
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     :-  %relation
                                         :*  %qualified-table
@@ -1495,7 +1495,7 @@
                         :^  %from
                             object=adoptions
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     object=adoptions-t2
                                     as-of=~
@@ -1735,7 +1735,7 @@
                                     alias=[~ 'A1']
                                     ==
                             as-of=~
-                            :~  :*  %joined-object
+                            :~  :*  %joined-relation
                                     join=%join
                                     :-  %relation
                                         :*  %qualified-table

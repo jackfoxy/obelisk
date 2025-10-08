@@ -2637,27 +2637,27 @@
         ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
         ?:  =(~.dr ->-.a)           [~ ;;(as-of:ast [%dr ->+.a])]
         ~
-  =/  raw-joined-objects  +.a
-  =/  joined-objects  *(list joined-object:ast)
+  =/  raw-joined-relations  +.a
+  =/  joined-relations  *(list joined-relation:ast)
   |-
-  ?:  =(raw-joined-objects ~)
-    (from:ast %from from-object from-as-of (flop joined-objects))
-  =/  raw-join  -.raw-joined-objects
+  ?:  =(raw-joined-relations ~)
+    (from:ast %from from-object from-as-of (flop joined-relations))
+  =/  raw-join  -.raw-joined-relations
   ::cross join
   ?:  ?=  $:  %cross-join
               [%relation [%qualified-table (unit @p) @ @ @ (unit @t)]]
               ==
           raw-join
       %=  $
-        joined-objects
-          :-  %:  joined-object:ast  %joined-object
+        joined-relations
+          :-  %:  joined-relation:ast  %joined-relation
                                      %cross-join
                                      +.raw-join
                                      ~
                                      ~
                                      ==
-              joined-objects
-        raw-joined-objects  +.raw-joined-objects
+              joined-relations
+        raw-joined-relations  +.raw-joined-relations
       ==
   ?:  ?=  $:  %cross-join
               [%relation [%qualified-table (unit @p) @ @ @ (unit @t)]]
@@ -2666,15 +2666,15 @@
               ==
           raw-join
       %=  $
-        joined-objects
-          :-  %:  joined-object:ast  %joined-object
+        joined-relations
+          :-  %:  joined-relation:ast  %joined-relation
                                      %cross-join
                                      +<.raw-join
                                      `+>.raw-join
                                      ~
                                      ==
-              joined-objects
-        raw-joined-objects  +.raw-joined-objects
+              joined-relations
+        raw-joined-relations  +.raw-joined-relations
       ==
   ?:  ?|  ?=  $:  %cross-join
                   [%relation [%qualified-table (unit @p) @ @ @ (unit @t)]]
@@ -2688,15 +2688,15 @@
               raw-join
           ==
       %=  $
-        joined-objects
-          :-  %:  joined-object:ast  %joined-object
+        joined-relations
+          :-  %:  joined-relation:ast  %joined-relation
                                      %cross-join
                                      +<.raw-join
                                      `;;(as-of:ast [+>-.raw-join +>+.raw-join])
                                      ~
                                      ==
-              joined-objects
-        raw-joined-objects  +.raw-joined-objects
+              joined-relations
+        raw-joined-relations  +.raw-joined-relations
       ==
   ::natural join
   ?:  ?|  ?=  [%join [%relation [%qualified-table (unit @p) @ @ @ (unit @t)]]]
@@ -2722,10 +2722,10 @@
               raw-join
           ==
     %=  $
-      joined-objects
+      joined-relations
         :-
-          %:  joined-object:ast
-            %joined-object
+          %:  joined-relation:ast
+            %joined-relation
             %join
             ::  object
             ?:  ?=  $:  %join
@@ -2755,8 +2755,8 @@
             ~
             ~  :: predicate
           ==
-          joined-objects
-      raw-joined-objects    +.raw-joined-objects
+          joined-relations
+      raw-joined-relations    +.raw-joined-relations
     ==
 
   :: join on predicate (no alias)
@@ -2777,10 +2777,10 @@
                 +<.raw-join
             ==
       %=  $
-        joined-objects
+        joined-relations
           :-
-            %:  joined-object:ast
-              %joined-object
+            %:  joined-relation:ast
+              %joined-relation
               :: join-type
               -.raw-join
               ::  object
@@ -2796,16 +2796,16 @@
               :: predicate
             (produce-predicate (predicate-list +>.raw-join))
             ==
-            joined-objects
-        raw-joined-objects    +.raw-joined-objects
+            joined-relations
+        raw-joined-relations    +.raw-joined-relations
       ==
     ?:  ?=  [[%relation [%qualified-table (unit @p) @ @ @ (unit @t)]] *]
             +.raw-join
       %=  $
-        joined-objects
+        joined-relations
           :-
-            %:  joined-object:ast
-              %joined-object
+            %:  joined-relation:ast
+              %joined-relation
               :: join-type
               -.raw-join
               ::  object
@@ -2815,8 +2815,8 @@
               :: predicate
             (produce-predicate (predicate-list +>.raw-join))
             ==
-            joined-objects
-        raw-joined-objects    +.raw-joined-objects
+            joined-relations
+        raw-joined-relations    +.raw-joined-relations
       ==
     ~|("join not supported: {<raw-join>}" !!)
   ~|("join type not supported: {<-.raw-join>}" !!)
@@ -2826,15 +2826,15 @@
   ~+
   ^-  from:ast
   =/  jss  joins.f
-  =/  js   *(list joined-object:ast)
+  =/  js   *(list joined-relation:ast)
   |-
   ?~  jss
     (from:ast %from relation.f as-of.f (flop js))
-  =/  j=joined-object:ast  -.jss
+  =/  j=joined-relation:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
-             %:  joined-object:ast
-                   %joined-object
+             %:  joined-relation:ast
+                   %joined-relation
                    join.j
                    relation.j
                    as-of.j
@@ -3264,12 +3264,12 @@
                    object.relation.f
 ::
 ++  mk-alias-map-joins
-  |=  [m=(map @t qualified-table:ast) js=(list joined-object:ast)]
+  |=  [m=(map @t qualified-table:ast) js=(list joined-relation:ast)]
   ~+
   ^-  (map @t qualified-table:ast)
   |-
   ?~  js  m
-  =/  j=joined-object:ast  -.js
+  =/  j=joined-relation:ast  -.js
   ?.  ?=(qualified-table:ast object.relation.j)
     ~|("not implemented {<relation.j>}" !!)
   %=  $
@@ -3296,12 +3296,12 @@
                    object.relation.f
 ::
 ++  mk-obj-name-map-joins
-  |=  [m=(map @t qualified-table:ast) js=(list joined-object:ast)]
+  |=  [m=(map @t qualified-table:ast) js=(list joined-relation:ast)]
   ~+
   ^-  (map @t qualified-table:ast)
   |-
   ?~  js  m
-  =/  j=joined-object:ast  -.js
+  =/  j=joined-relation:ast  -.js
   ?.  ?=(qualified-table:ast object.relation.j)
     ~|("not implemented {<relation.j>}" !!)
   %=  $
