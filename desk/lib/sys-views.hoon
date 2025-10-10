@@ -40,14 +40,13 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            %sys
-                            %sys
-                            %databases
-                            ~
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        %sys
+                        %sys
+                        %databases
+                        ~
+                        ==
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
@@ -192,14 +191,13 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %namespaces
-                            ~
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        database
+                        %sys
+                        %namespaces
+                        ~
+                        ==
                     ~  ::(unit as-of)
                     ~               ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
@@ -293,14 +291,13 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %tables
-                            ~
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        database
+                        %sys
+                        %tables
+                        ~
+                        ==
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
@@ -420,14 +417,13 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %table-keys
-                            ~                    ::alias=(unit @t)
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        database
+                        %sys
+                        %table-keys
+                        ~                    ::alias=(unit @t)
+                        ==
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
@@ -556,14 +552,13 @@
     :+  :*  %query
             :-  ~          ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %columns
-                            ~                    ::alias=(unit @t)
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        database
+                        %sys
+                        %columns
+                        ~                    ::alias=(unit @t)
+                        ==
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
@@ -691,14 +686,13 @@
     :+  :*  %query
             :-  ~            ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %sys-log
-                            ~                    ::alias=(unit @t)
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        database
+                        %sys
+                        %sys-log
+                        ~                    ::alias=(unit @t)
+                        ==
                     ~  ::(unit as-of)
                     ~  ::joins=(list joined-relatation)
             ~  ::scalars=(list scalar-function)
@@ -818,14 +812,13 @@
     :+  :*  %query
             :-  ~           ::from=(unit from)
                 :^  %from
-                    :-  %relation  ::object=relation
-                        :*  %qualified-table  ::object=query-source
-                            ~
-                            database
-                            %sys
-                            %data-log
-                            ~                    ::alias=(unit @t)
-                            ==
+                    :*  %qualified-table  ::relation
+                        ~
+                        database
+                        %sys
+                        %data-log
+                        ~                    ::alias=(unit @t)
+                        ==
                     ~       ::(unit as-of)
                     ~       ::joins=(list joined-relatation)
             ~   ::scalars=(list scalar-function)

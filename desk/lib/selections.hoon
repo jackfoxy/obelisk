@@ -42,8 +42,8 @@
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (need from.q)
-  =/  query-source    ?:  ?=(qualified-table:ast object.+.relation.from)
-                      object.+.relation.from
+  =/  query-source    ?:  ?=(qualified-table:ast relation.from)
+                      relation.from
                     ~|("SELECT: not supported on %query-row" !!)
   =/  the-relation=full-relation  %:  got-relation  query-source
                                       named-ctes
@@ -240,8 +240,8 @@
                                      ==
                                  joins.from
   =/  relat=joined-relat  -.joined-relations
-  =/  query-source  ?:  ?=(qualified-table:ast object.relation.relat)
-                      object.relation.relat
+  =/  query-source  ?:  ?=(qualified-table:ast relation.relat)
+                      relation.relat
                     ~|("SELECT: not supported on %query-row" !!)
   =.  joined-relations            +.joined-relations
   =/  the-relation=full-relation  %:  got-relation  query-source
@@ -262,8 +262,8 @@
                                          qual-col-types.the-relation
                                          ==
   =.  query-source
-        ?:  ?=(qualified-table:ast object.relation.i.joined-relations)
-              object.relation.i.joined-relations
+        ?:  ?=(qualified-table:ast relation.i.joined-relations)
+              relation.i.joined-relations
             ~|("SELECT: not supported on %query-row" !!)
   =.  the-relation  %:  got-relation  query-source
                                        named-ctes

@@ -37,118 +37,117 @@
 +$  server  (map @tas database)
 +$  database
   $:  %database
-      name=@tas
-      created-provenance=path
-      created-tmsp=@da
-      sys=((mop @da schema) gth)
-      content=((mop @da data) gth)
-      =view-cache
-  ==
+    name=@tas
+    created-provenance=path
+    created-tmsp=@da
+    sys=((mop @da schema) gth)
+    content=((mop @da data) gth)
+    =view-cache
+    ==
 +$  view-cache  ((mop data-obj-key cache) ns-obj-comp)
 +$  cache
   $:  %cache
-      tmsp=@da
-      content=(unit cache-content)
-  ==
+    tmsp=@da
+    content=(unit cache-content)
+    ==
 +$  cache-content
   $:  rowcount=@
       rows=(list (map @tas @))
-  ==
+      ==
 +$  schema
   $:  %schema
-      provenance=path
-      tmsp=@da
-      =namespaces
-      =tables
-      =views
+    provenance=path
+    tmsp=@da
+    =namespaces
+    =tables
+    =views
   :: permissions   :: maybe at server or database level?
-  ==
+    ==
 +$  data
   $:  %data
-      ship=@p
-      provenance=path
-      tmsp=@da
-      files=(map [@tas @tas] file)
-  ==
+    ship=@p
+    provenance=path
+    tmsp=@da
+    files=(map [@tas @tas] file)
+    ==
 +$  table
   $+  table
   $:  %table
-      provenance=path
-      tmsp=@da
-      =column-lookup
-      type-lookup=(map @tas @ta)
-      pri-indx=index
-      columns=(list column)      ::  canonical column list
-      indices=(list index)      :: to do: indices indexed by (list column)
-  ==
+    provenance=path
+    tmsp=@da
+    =column-lookup
+    type-lookup=(map @tas @ta)
+    pri-indx=index
+    columns=(list column)      ::  canonical column list
+    indices=(list index)      :: to do: indices indexed by (list column)
+    ==
 +$  column-lookup  (map @tas [aura @])  :: name [type index]
 +$  file
   $:  %file
-      ship=@p
-      provenance=path
-      tmsp=@da
-      =column-addrs
-      rowcount=@
-      pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
-      indexed-rows=(list indexed-row)
-      =column-catalog
-      ::    =indices
-  ==
+    ship=@p
+    provenance=path
+    tmsp=@da
+    =column-addrs
+    rowcount=@
+    pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
+    indexed-rows=(list indexed-row)
+    =column-catalog
+    ::    =indices
+    ==
 +$  indexed-row
   $:  %indexed-row
-      key=(list @)
-      data=(map @tas @)
-      ==
+    key=(list @)
+    data=(map @tas @)
+    ==
 +$  column-addrs    (map @tas @)
 +$  column-catalog  (map @tas column-mta)                 
 +$  column-mta
   $:  %column-mta
-      addr=@
-      distinct=@ud              :: (~(wyt by values))
-      values=((mop @ value-idx) lth)
-  ==
+    addr=@
+    distinct=@ud              :: (~(wyt by values))
+    values=((mop @ value-idx) lth)
+    ==
 +$  value-idx
   $:  first=file-ord
       last=file-ord
       domain=(list file-ord)    :: ordered
-  ==
+      ==
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
 +$  data-obj-key
   $:  ns=@tas
       obj=@tas
       time=@da
-  ==
+      ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
 +$  views  ((mop data-obj-key view) ns-obj-comp)
 +$  view
   $+  view
   $:  %view
-      provenance=path
-      tmsp=@da
-      =selection
-      =column-lookup
-      type-lookup=(map @tas @ta)
-      columns=(list column)      ::  canonical column list
+    provenance=path
+    tmsp=@da
+    =selection
+    =column-lookup
+    type-lookup=(map @tas @ta)
+    columns=(list column)      ::  canonical column list
 
-      :: to do: replace ordering with index (requires non-unique mop type)
-      ordering=(list column-order)
-      :: indices
-  ==
+    :: to do: replace ordering with index (requires non-unique mop type)
+    ordering=(list column-order)
+    :: indices
+    ==
 ::
 +$  index
   $:  %index
-      unique=?
-      key=(list key-column)
-  ==
+    unique=?
+    key=(list key-column)
+    ==
 +$  key-column
-  $:
-    %key-column
+  $:  %key-column
     name=@tas
     =aura
     ascending=?
-  ==
+    ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
 ::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
