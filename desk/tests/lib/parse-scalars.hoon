@@ -14,8 +14,8 @@
   ^-  (list command:ast)
   =/  columns  ~[unqualified-col-2 unqualified-col-1]
   =/  select  [%select top=~ columns=columns]
-  =/  relation  ?~(table relation-1 [%relation object=(need table)])
-  =/  from  [%from object=relation as-of=~ joins=~]
+  =/  relation  ?~(table relation-1 (need table))
+  =/  from  [%from relation=relation as-of=~ joins=~]
   =/  query
     :*
       %query
@@ -34,14 +34,13 @@
 ++  default-db           'db1'
 ++  default-namespace    %dbo
 ::
-++  relation-1          :-  %relation
-                           :*  %qualified-table
-                               ship=~
-                               database=%db1
-                               namespace=%dbo
-                               name=%foo
-                               alias=~
-                               ==
+++  relation-1          :*  %qualified-table
+                            ship=~
+                            database=%db1
+                            namespace=%dbo
+                            name=%foo
+                            alias=~
+                            ==
 ::
 ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
 ::  ~sampel-palnet.db2.dba.table1.bar

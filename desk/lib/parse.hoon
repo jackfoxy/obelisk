@@ -2618,16 +2618,7 @@
   |=  a=*
   ~+
   ^-  from:ast
-  =/  from-object=relation:ast
-        ?:  ?=([%qualified-table (unit @p) @ @ @ (unit @t)] -<.a)
-          %:  qualified-table:ast  %qualified-table
-                                   -<+>-.a
-                                   -<+>+<.a
-                                   -<+>+>-.a
-                                   -<+>+>+<.a
-                                   -<+>+>+>.a
-                                   ==
-        `relation:ast`(make-query-object ->.a)
+  =/  from-object=relation:ast  (make-query-object -.a)
   =/  from-as-of=(unit as-of:ast)
         ?:  =(%as-of-offset ->-.a)  [~ ;;(as-of-offset:ast ->.a)]
         ?:  =(~.da ->-.a)           [~ ;;(as-of:ast [%da ->+.a])]
@@ -4404,11 +4395,12 @@
   ^-  relation:ast
   ?:  ?=(qualified-table:ast a)
     (relation:ast a)
-  ?:  ?=(qualified-table:ast -.a)
-    ?~  +.a  (relation:ast -.a)
-    ?:  ?=((unit @t) +.a)
-      (relation:ast -.a +.a)
-    %-  relation:ast  [%qualified-table ->-.a ->+<.a ->+>-.a ->+>+<.a `+.a]
+  ?:  ?=([~ @tas @tas @tas ~] a)
+    (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a ~])
+  ?:  ?=([~ @tas @tas @tas [~ @t]] a)
+    (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a [~ +>+>+.a]])
+  ?:  ?=([%qualified-table ~ @tas @tas @tas ~ [@ @]] a)
+    (relation:ast [%qualified-table ~ ->+<.a ->+>-.a ->+>+<.a ~])
   ?:  ?=([@ @] a)
     %-  relation:ast
       %:  qualified-table:ast  %qualified-table
@@ -4420,7 +4412,13 @@
                                 ==
   ::  %query-row not implemented
   =/  columns  *(list @t)
-  =/  b  ?:  ?=([%query-row * @] a)  +<.a
+
+    ~&  "a:  {<a>}"
+    ~&  ""
+
+  =/  b
+    ::?:  ?=(query-row:ast [%query-row -.a %qualified-table +.a])
+    ::        [%query-row -.a %qualified-table +.a]
     ?:  =(%query-row -.a)  +.a
     ?:  =(%query-row -<.a)  ->.a  -.a
   =/  alias  ?:  ?=([%query-row * @] a)  +>.a

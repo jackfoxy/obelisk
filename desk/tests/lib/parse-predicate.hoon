@@ -201,17 +201,16 @@
       alias=[~ 'F1']
       ==
 ++  from-foo
-  [~ [%from object=[%relation object=foo-table] as-of=~ joins=~]]
+  [~ [%from relation=foo-table as-of=~ joins=~]]
 ++  from-foo-aliased
-  [~ [%from object=[%relation object=foo-table-f1] as-of=~ joins=~]]
+  [~ [%from relation=foo-table-f1 as-of=~ joins=~]]
 ++  simple-from-foo
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
 ++  foo-alias-y
-  :-  %relation
-      :*  %qualified-table
+  :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -219,8 +218,7 @@
           alias=[~ 'y']
           ==
 ++  bar-alias-x
-  :-  %relation
-      :*  %qualified-table
+  :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -228,8 +226,7 @@
           alias=[~ 'x']
           ==
 ++  foo-unaliased
-  :-  %relation
-      :*  %qualified-table
+  :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -237,8 +234,7 @@
           alias=~
           ==
 ++  bar-unaliased
-  :-  %relation
-      :*  %qualified-table
+  :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -246,8 +242,7 @@
           alias=~
           ==
 ++  adoptions
-  :-  %relation
-      :*  %qualified-table
+  :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -255,8 +250,7 @@
           alias=[~ 'T1']
           ==
 ++  adoptions-t2
-  :-  %relation
-      :*  %qualified-table
+  :*  %qualified-table
           ship=~
           database='db1'
           namespace='dbo'
@@ -264,11 +258,11 @@
           alias=[~ 'T2']
           ==
 ++  passthru-row-y
-  [%relation object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
+  [%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]
 ++  passthru-row-x
-  [%relation object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
+  [%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]
 ++  passthru-unaliased
-  [%relation object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
+  [%query-row alias=~ ~['col1' 'col2' 'col3']]
 ::
 ::  test binary operators, varying spacing
 ++  test-predicate-01
@@ -281,11 +275,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -311,11 +305,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -341,11 +335,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -371,11 +365,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -401,11 +395,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -431,11 +425,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -461,11 +455,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -491,11 +485,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -521,11 +515,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -597,11 +591,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -631,11 +625,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -665,11 +659,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -699,11 +693,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -732,11 +726,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -765,11 +759,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -798,11 +792,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -831,11 +825,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -864,11 +858,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -897,11 +891,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -930,11 +924,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -963,11 +957,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -996,11 +990,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1031,11 +1025,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1074,11 +1068,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1111,11 +1105,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1150,11 +1144,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1192,11 +1186,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1243,11 +1237,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1284,11 +1278,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1322,11 +1316,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=joinpred
                                     ==
@@ -1445,19 +1439,17 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            :-  %relation
-                                :*  %qualified-table
-                                    ship=~
-                                    database='db1'
-                                    namespace='dbo'
-                                    name='adoptions'
-                                    alias=[~ 'A1']
-                                    ==
+                            :*  %qualified-table
+                                ship=~
+                                database='db1'
+                                namespace='dbo'
+                                name='adoptions'
+                                alias=[~ 'A1']
+                                ==
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    :-  %relation
-                                        :*  %qualified-table
+                                            :*  %qualified-table
                                             ship=~
                                             database='db1'
                                             namespace='dbo'
@@ -1493,11 +1485,11 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    object=adoptions-t2
+                                    relation=adoptions-t2
                                     as-of=~
                                     predicate=pred
                                     ==
@@ -1536,7 +1528,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1570,7 +1562,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1607,7 +1599,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1644,7 +1636,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1670,7 +1662,7 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            object=adoptions
+                            relation=adoptions
                             as-of=~
                             ~
                     scalars=~
@@ -1726,25 +1718,23 @@
             :+  :*  %query
                     :-  ~
                         :^  %from
-                            :-  %relation
-                                :*  %qualified-table
-                                    ship=~
-                                    database='db1'
-                                    namespace='dbo'
-                                    name='adoptions'
-                                    alias=[~ 'A1']
-                                    ==
+                            :*  %qualified-table
+                                ship=~
+                                database='db1'
+                                namespace='dbo'
+                                name='adoptions'
+                                alias=[~ 'A1']
+                                ==
                             as-of=~
                             :~  :*  %joined-relation
                                     join=%join
-                                    :-  %relation
-                                        :*  %qualified-table
-                                            ship=~
-                                            database='db1'
-                                            namespace='dbo'
-                                            name='adoptions'
-                                            alias=[~ 'A2']
-                                            ==
+                                    :*  %qualified-table
+                                        ship=~
+                                        database='db1'
+                                        namespace='dbo'
+                                        name='adoptions'
+                                        alias=[~ 'A2']
+                                        ==
                                     as-of=~
                                     predicate=joinpred
                                     ==
