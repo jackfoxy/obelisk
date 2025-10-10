@@ -4395,34 +4395,18 @@
   ^-  relation:ast
   ?:  ?=(qualified-table:ast a)
     (relation:ast a)
+  ?:  ?=(qualified-table:ast -.a)
+    (relation:ast -.a)
   ?:  ?=([~ @tas @tas @tas ~] a)
     (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a ~])
   ?:  ?=([~ @tas @tas @tas [~ @t]] a)
-    (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a [~ +>+>+.a]])
-  ?:  ?=([%qualified-table ~ @tas @tas @tas ~ [@ @]] a)
-    (relation:ast [%qualified-table ~ ->+<.a ->+>-.a ->+>+<.a ~])
-  ?:  ?=([@ @] a)
-    %-  relation:ast
-      %:  qualified-table:ast  %qualified-table
-                                ~
-                                'UNKNOWN'
-                                'COLUMN-OR-CTE'
-                                -.a
-                                `+.a
-                                ==
+    (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a +>+>.a])
   ::  %query-row not implemented
   =/  columns  *(list @t)
-
-    ~&  "a:  {<a>}"
-    ~&  ""
-
-  =/  b
-    ::?:  ?=(query-row:ast [%query-row -.a %qualified-table +.a])
-    ::        [%query-row -.a %qualified-table +.a]
-    ?:  =(%query-row -.a)  +.a
-    ?:  =(%query-row -<.a)  ->.a  -.a
-  =/  alias  ?:  ?=([%query-row * @] a)  +>.a
-    ?:  =(%query-row -.a)  ~  +.a
+  =/  b       ?:  =(%query-row -.a)  +.a
+              ?:  =(%query-row -<.a)  ->.a  -.a
+  =/  alias   ?:  ?=([%query-row * @] a)  +>.a
+              ?:  =(%query-row -.a)  ~  +.a
   |-
   ?~  b
     ?~  alias
