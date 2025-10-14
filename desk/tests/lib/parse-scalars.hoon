@@ -1303,8 +1303,45 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with ship.database.namespace.table.column
+::  simple case with predicate, two cases in the same scalar
 ++  test-case-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 ".
+    "                 WHEN 1 = 1 THEN foo3".
+    "                 WHEN 1 = 1 THEN foo3".
+    "                END ".
+    "        foobar CASE foo3 ".
+    "                 WHEN 1 = 1 THEN foo3".
+    "                 WHEN 1 = 1 THEN foo3".
+    "               ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-1
+    :*  %case
+      unqualified-col-1
+      :~  [%case-when-then simple-true-pred unqualified-col-1]
+          [%case-when-then simple-true-pred unqualified-col-1]
+      ==
+      ~
+    ==
+  =/  case-2
+    :*  %case
+      unqualified-col-1
+      :~  [%case-when-then simple-true-pred unqualified-col-1]
+          [%case-when-then simple-true-pred unqualified-col-1]
+      ==
+      (some unqualified-col-2)
+    ==
+  =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column case scalar with ship.database.namespace.table.column
+++  test-case-05
   ::
   =/  query-string
     "FROM foo ".
