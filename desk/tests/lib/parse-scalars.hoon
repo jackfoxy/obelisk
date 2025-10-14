@@ -257,32 +257,32 @@
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  builtin scalar functions
-::  test for optional params
+::  spaces after parameters, also test for optional parameters
 ++  test-builtins-01
-::  spaces after parameters
+::  randomized spacing
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY(2023.1.15) ".
-    "        dt4 MONTH(2023.1.15) ".
-    "        dt5 YEAR(2023.1.15) ".
-    "        mt1 ABS(.5) ".
-    "        mt2 LOG(.5,.2) ".
-    "        mt21 LOG(.5) ".
-    "        mt3 FLOOR(.5) ".
-    "        mt4 POWER(.5, .2) ".
-    "        mt5 CEILING(.5) ".
-    "        mt6 ROUND(.5,2,1) ".
-    "        mt61 ROUND(.5,2) ".
-    "        mt7 SIGN(.5) ".
-    "        mt8 SQRT(.5) ".
-    "        st1 LEN('hello') ".
-    "        st2 LEFT('hello',3) ".
-    "        st3 RIGHT('hello',3) ".
-    "        st4 SUBSTRING('hello',2,3) ".
-    "        st5 TRIM(' ','hello') ".
-    "        st51 TRIM('hello') ".
-    "        st6 CONCAT('hello','world') ".
+    "        dt3 DAY( 2023.1.15  ) ".
+    "        dt4 MONTH(  2023.1.15) ".
+    "        dt5 YEAR(2023.1.15   ) ".
+    "        mt1 ABS(   .5 ) ".
+    "        mt2 LOG(.5  , .2   ) ".
+    "        mt21 LOG(  .5) ".
+    "        mt3 FLOOR( .5    ) ".
+    "        mt4 POWER(    .5,  .2) ".
+    "        mt5 CEILING(.5  ) ".
+    "        mt6 ROUND(  .5 ,2   , 1  ) ".
+    "        mt61 ROUND(.5   ,  2) ".
+    "        mt7 SIGN(   .5   ) ".
+    "        mt8 SQRT( .5 ) ".
+    "        st1 LEN(  'hello'   ) ".
+    "        st2 LEFT('hello'  ,  3   ) ".
+    "        st3 RIGHT(   'hello',3 ) ".
+    "        st4 SUBSTRING( 'hello'   , 2  ,3    ) ".
+    "        st5 TRIM(  ' ' ,'hello'  ) ".
+    "        st51 TRIM(   'hello'    ) ".
+    "        st6 CONCAT(  'hello'    ,  'world' ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
@@ -350,23 +350,23 @@
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY( 2023.1.15) ".
-    "        dt4 MONTH( 2023.1.15) ".
+    "        dt3 DAY(  2023.1.15) ".
+    "        dt4 MONTH(   2023.1.15) ".
     "        dt5 YEAR( 2023.1.15) ".
-    "        mt1 ABS( .5) ".
-    "        mt2 LOG( .5, .2) ".
-    "        mt3 FLOOR( .5) ".
-    "        mt4 POWER( .5, .2) ".
+    "        mt1 ABS(    .5) ".
+    "        mt2 LOG( .5,   .2) ".
+    "        mt3 FLOOR(  .5) ".
+    "        mt4 POWER(   .5, .2) ".
     "        mt5 CEILING( .5) ".
-    "        mt6 ROUND( .5, 2, 1) ".
-    "        mt7 SIGN( .5) ".
-    "        mt8 SQRT( .5) ".
+    "        mt6 ROUND(    .5,  2, 1) ".
+    "        mt7 SIGN(  .5) ".
+    "        mt8 SQRT(   .5) ".
     "        st1 LEN( 'hello') ".
-    "        st2 LEFT( 'hello', 3) ".
-    "        st3 RIGHT( 'hello', 3) ".
-    "        st4 SUBSTRING( 'hello', 2, 3) ".
-    "        st5 TRIM( ' ', 'hello') ".
-    "        st6 CONCAT( 'hello', 'world') ".
+    "        st2 LEFT(    'hello',  3) ".
+    "        st3 RIGHT(  'hello',   3) ".
+    "        st4 SUBSTRING( 'hello',    2,  3) ".
+    "        st5 TRIM(   ' ', 'hello') ".
+    "        st6 CONCAT(  'hello',    'world') ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
@@ -428,23 +428,23 @@
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY(2023.1.15 ) ".
-    "        dt4 MONTH(2023.1.15 ) ".
+    "        dt3 DAY(2023.1.15  ) ".
+    "        dt4 MONTH(2023.1.15    ) ".
     "        dt5 YEAR(2023.1.15 ) ".
-    "        mt1 ABS(.5 ) ".
-    "        mt2 LOG(.5 ,.2 ) ".
-    "        mt3 FLOOR(.5 ) ".
-    "        mt4 POWER(.5 ,.2 ) ".
-    "        mt5 CEILING(.5 ) ".
-    "        mt6 ROUND(.5 ,2 ,1 ) ".
-    "        mt7 SIGN(.5 ) ".
-    "        mt8 SQRT(.5 ) ".
-    "        st1 LEN('hello' ) ".
-    "        st2 LEFT('hello' ,3 ) ".
-    "        st3 RIGHT('hello' ,3 ) ".
-    "        st4 SUBSTRING('hello' ,2 ,3 ) ".
-    "        st5 TRIM(' ' ,'hello' ) ".
-    "        st6 CONCAT('hello' ,'world' ) ".
+    "        mt1 ABS(.5     ) ".
+    "        mt2 LOG(.5  ,.2   ) ".
+    "        mt3 FLOOR(.5   ) ".
+    "        mt4 POWER(.5    ,.2 ) ".
+    "        mt5 CEILING(.5  ) ".
+    "        mt6 ROUND(.5     ,2  ,1    ) ".
+    "        mt7 SIGN(.5   ) ".
+    "        mt8 SQRT(.5    ) ".
+    "        st1 LEN('hello'  ) ".
+    "        st2 LEFT('hello'     ,3  ) ".
+    "        st3 RIGHT('hello'   ,3    ) ".
+    "        st4 SUBSTRING('hello'  ,2     ,3   ) ".
+    "        st5 TRIM(' '    ,'hello'  ) ".
+    "        st6 CONCAT('hello'   ,'world'     ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
@@ -506,23 +506,23 @@
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY( 2023.1.15 ) ".
-    "        dt4 MONTH( 2023.1.15 ) ".
-    "        dt5 YEAR( 2023.1.15 ) ".
-    "        mt1 ABS( .5 ) ".
-    "        mt2 LOG( .5 , .2 ) ".
-    "        mt3 FLOOR( .5 ) ".
-    "        mt4 POWER( .5 , .2 ) ".
-    "        mt5 CEILING( .5 ) ".
-    "        mt6 ROUND( .5 , 2 , 1 ) ".
-    "        mt7 SIGN( .5 ) ".
-    "        mt8 SQRT( .5 ) ".
-    "        st1 LEN( 'hello' ) ".
-    "        st2 LEFT( 'hello' , 3 ) ".
-    "        st3 RIGHT( 'hello' , 3 ) ".
-    "        st4 SUBSTRING( 'hello' , 2 , 3 ) ".
-    "        st5 TRIM( ' ' , 'hello' ) ".
-    "        st6 CONCAT( 'hello' , 'world' ) ".
+    "        dt3 DAY(  2023.1.15    ) ".
+    "        dt4 MONTH(   2023.1.15  ) ".
+    "        dt5 YEAR( 2023.1.15     ) ".
+    "        mt1 ABS(    .5  ) ".
+    "        mt2 LOG(  .5   ,   .2    ) ".
+    "        mt3 FLOOR(   .5     ) ".
+    "        mt4 POWER( .5    ,  .2  ) ".
+    "        mt5 CEILING(    .5   ) ".
+    "        mt6 ROUND(  .5     ,   2  ,  1     ) ".
+    "        mt7 SIGN(   .5    ) ".
+    "        mt8 SQRT( .5     ) ".
+    "        st1 LEN(    'hello'  ) ".
+    "        st2 LEFT(  'hello'    ,   3   ) ".
+    "        st3 RIGHT(   'hello'  ,    3     ) ".
+    "        st4 SUBSTRING( 'hello'     ,  2    ,   3  ) ".
+    "        st5 TRIM(    ' '   ,  'hello'     ) ".
+    "        st6 CONCAT(  'hello'     ,    'world'  ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
@@ -1996,25 +1996,25 @@
   ::    there always need to be a space before an operator, otherwise it tries
   ::    to parse it with value-literal rule. see cord-literal
   ::
+  ::    "        foo14 BEGIN 1 +  (1-(1*1)) END ".
   =/  query-string
     :: commented some out because not sure that we want double spacing
     "FROM foo ".
     "SCALARS foo1 BEGIN 1 +1 END ".
-::  this infinite loops
-::    "        foo2 BEGIN 1  -  1 END ".
+    "        foo2 BEGIN 1  -  1 END ".
     "        foo3 BEGIN 1 /1 END ".
     "        foo4 BEGIN 1 *1 END ".
- ::   "        foo5 BEGIN 1   ^   1 END ".
+    "        foo5 BEGIN 1   ^   1 END ".
     "        foo6 BEGIN (1 +1)+1 END ".
     "        foo7 BEGIN ( 1 -1 ) - 1 END ".
-::    "        foo8 BEGIN (1 / 1)/  1 END ".
+    "        foo8 BEGIN (1 / 1)/  1 END ".
     "        foo9 BEGIN 1 +( 1 + 1 ) END ".
     "        foo10 BEGIN 1 -(1 -1) END ".
- ::   "        foo11 BEGIN 1  /  (1 / 1) END ".
+    "        foo11 BEGIN 1  /  (1 / 1) END ".
     "        foo12 BEGIN ((1 *1) -1) +1 END ".
     "        foo13 BEGIN ( ( 1 + 1 ) ^ 1 ) - 1 END ".
- ::   "        foo14 BEGIN 1+  (1-(1*1)) END ".
- ::   "        foo15 BEGIN 1*(  1+(1/1)  ) END ".
+    "        foo14 BEGIN 1 +  (1 -(1 *1)) END ".
+    "        foo15 BEGIN 1 *(  1 +(1 /1)  ) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition-no-space
@@ -2100,20 +2100,20 @@
   =/  scalars
     :~
       [%scalar addition-no-space 'foo1']
-::      [%scalar subtraction-extra-space 'foo2']
+      [%scalar subtraction-extra-space 'foo2']
       [%scalar division-mixed-space 'foo3']
       [%scalar multiplication-mixed-space 'foo4']
-::      [%scalar exponentiation-multi-space 'foo5']
+      [%scalar exponentiation-multi-space 'foo5']
       [%scalar nested-left-no-space 'foo6']
       [%scalar nested-left-paren-space 'foo7']
-::      [%scalar nested-left-mixed 'foo8']
+      [%scalar nested-left-mixed 'foo8']
       [%scalar nested-right-paren-space 'foo9']
       [%scalar nested-right-no-paren-space 'foo10']
-::      [%scalar nested-right-extra-space 'foo11']
+      [%scalar nested-right-extra-space 'foo11']
       [%scalar double-nested-minimal 'foo12']
       [%scalar double-nested-maximal 'foo13']
-::      [%scalar double-nested-right-mixed 'foo14']
-::      [%scalar double-nested-right-paren-space 'foo15']
+      [%scalar double-nested-right-mixed 'foo14']
+      [%scalar double-nested-right-paren-space 'foo15']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
