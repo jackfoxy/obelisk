@@ -232,22 +232,28 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-::  test-scalars-04 tests that parsing fails when there are two scalars
+::  test-fail-scalars-01 tests that parsing fails when there are two scalars
 ::  with the same alias
-++  test-scalars-04
+++  test-fail-scalars-01
   =/  query-string
     "FROM foo ".
     "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
     "        bar1 COALESCE(Foo1,~zod,1,foo3) ".
     "SELECT foo2,foo3"
   ::
-  =/  cte-alias
-    [%cte-alias alias='foo1']
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-  =/  coalesce-2
-    ~[%coalesce cte-alias literal-zod literal-1 unqualified-col-1]
-  %-  expect-fail
+  %+  expect-fail-message
+    'there is already a scalar named \'bar1\''
+    |.  (parse:parse(default-database default-db) query-string)
+::  test-fail-scalars-02 tests that parsing fails when scalars are defined
+::  without a select statement after
+++  test-fail-scalars-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar1 COALESCE(Foo1,~zod,1,foo3) "
+  ::
+  %+  expect-fail-message
+    'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  builtin scalar functions
@@ -738,21 +744,9 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with alias.column (default database)
-:: should fail, column alias is not defined
-++  test-coalesce-09
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
+:: should fail, table alias is not defined
 :: test coalesce with if scalar inline
-++  test-coalesce-10
+++  test-coalesce-09
   ::
   =/  query-string
     "FROM foo ".
@@ -780,7 +774,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with case scalar inline
-++  test-coalesce-11
+++  test-coalesce-10
   ::
   =/  query-string
     "FROM foo ".
@@ -803,7 +797,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with coalesce scalar inline
-++  test-coalesce-12
+++  test-coalesce-11
   ::
   =/  query-string
     "FROM foo ".
@@ -826,7 +820,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with a coalesce nested in a coalesce
-++  test-coalesce-13
+++  test-coalesce-12
   ::
   =/  query-string
     "FROM foo ".
@@ -853,7 +847,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce with space between name and arguments
-++  test-coalesce-14
+++  test-coalesce-13
   ::
   =/  query-string
     "FROM foo ".
@@ -871,15 +865,29 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+++  test-fail-coalesce-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
+  %+  expect-fail-message
+    'table alias \'MyTable\' is not defined'
+    |.  (parse:parse(default-database default-db) query-string)
+::
 :: coalesce without parens - should fail
-++  test-coalesce-15
+++  test-fail-coalesce-02
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo COALESCE foo3,~zod,1,foo3 ".
     "SELECT foo2,foo3"
   ::
-  %-  expect-fail
+  %+  expect-fail-message
+    'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  simple if
@@ -1086,27 +1094,6 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo ".
-    "IF 1 = 1 ".
-    " THEN MyTable.bar ".
-    " ELSE MyTable.bar ".
-    "ENDIF ".
-    "SELECT foo2,foo3"
-  ::
-  =/  naked-if 
-    :*  %if-then-else
-      if=simple-true-pred 
-      then=[qualified-col-6]
-      else=[qualified-col-6]
-    ==
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
-:: test if with coalesce scalar inline
-++  test-if-10
-  ::
-  =/  query-string
-    "FROM foo ".
     "SCALARS foo COALESCE(foo2,1,foo2) ".
     "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
@@ -1131,7 +1118,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with case scalar inline
-++  test-if-11
+++  test-if-10
   ::
   =/  query-string
     "FROM foo ".
@@ -1163,7 +1150,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with if scalar inline
-++  test-if-12
+++  test-if-11
   ::
   =/  query-string
     "FROM foo ".
@@ -1196,7 +1183,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with a if nested in a if
-++  test-if-13
+++  test-if-12
   ::
   =/  query-string
     "FROM foo ".
@@ -1237,6 +1224,19 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+++  test-fail-if-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "        IF 1 = 1 THEN MyTable.bar ELSE MyTable.bar ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'table alias \'MyTable\' is not defined'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+:: test if with coalesce scalar inline
 ::  simple case with predicate
 ++  test-case-01
   ::
@@ -1524,29 +1524,8 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with alias.column (should fail - undefined alias)
-++  test-case-11
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo ".
-    "CASE MyTable.bar ".
-    "WHEN 1 = 1 ".
-    "THEN MyTable.bar ".
-    "ELSE MyTable.bar ".
-    "END ".
-    "SELECT foo2,foo3"
-  ::
-  =/  case-qualified
-    :*  %case
-      qualified-col-6
-      ~[[%case-when-then simple-true-pred qualified-col-6]]
-      (some qualified-col-6)
-    ==
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
 :: test case with coalesce scalar inline
-++  test-case-12
+++  test-case-11
   ::
   =/  query-string
     "FROM foo ".
@@ -1574,7 +1553,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with if scalar inline
-++  test-case-13
+++  test-case-12
   ::
   =/  query-string
     "FROM foo ".
@@ -1607,7 +1586,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with case scalar inline
-++  test-case-14
+++  test-case-13
   ::
   =/  query-string
     "FROM foo ".
@@ -1640,7 +1619,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with a case nested in a case
-++  test-case-15
+++  test-case-14
   ::
   =/  query-string
     "FROM foo ".
@@ -1680,6 +1659,19 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+++  test-fail-case-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CASE MyTable.bar ".
+    "              WHEN 1 = 1 THEN MyTable.bar".
+    "            ELSE MyTable.bar END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'table alias \'MyTable\' is not defined'
+    |.  (parse:parse(default-database default-db) query-string)
 ::
 :: math
 :: simple math expression
