@@ -3,8 +3,6 @@
 ::
 |%
 ::
-::  todo: error message when scalars are defined without a select statement after?
-::
 ::  helper gates
 ::
 ::  mk-selection
@@ -1991,14 +1989,7 @@
 ::
 :: arithmetic expressions with spacing variations
 ++  test-arithmetic-6
-  ::
-  ::    this can't work: 'BEGIN 1-1 END'
-  ::    there always need to be a space before an operator, otherwise it tries
-  ::    to parse it with value-literal rule. see cord-literal
-  ::
-  ::    "        foo14 BEGIN 1 +  (1-(1*1)) END ".
   =/  query-string
-    :: commented some out because not sure that we want double spacing
     "FROM foo ".
     "SCALARS foo1 BEGIN 1 +1 END ".
     "        foo2 BEGIN 1  -  1 END ".
@@ -2119,3 +2110,23 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+:: test that there can't be an operator right after an operand
+::
+:: explaination: due to parsing rules there always need to be a space before an
+:: operator, otherwise it tries to parse it with value-literal rule. see
+:: cord-literal
+++  test-fail-arithmetic-1
+  ::
+  ::
+  ::    "        foo14 BEGIN 1 +  (1-(1*1)) END ".
+  =/  query-string
+    :: commented some out because not sure that we want double spacing
+    "FROM foo ".
+    "SCALARS foo1 BEGIN 1+1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+--
