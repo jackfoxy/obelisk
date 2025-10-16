@@ -121,7 +121,7 @@
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
 ::
 ++  literal-zod            [%literal-value dime=[p=%p q=0]]
-++  literal-1              [%literal-value dime=[p=%ud q=1]]
+++  literal-1              [%literal-value dime=[p=~.ud q=1]]
 ::
 ::  generic scalar-agnostic tests
 ::
@@ -283,15 +283,15 @@
     "        st6 CONCAT(  'hello'    ,  'world' ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
@@ -367,15 +367,15 @@
     "        st6 CONCAT(  'hello',    'world') ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
@@ -445,15 +445,15 @@
     "        st6 CONCAT('hello'   ,'world'     ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
@@ -523,15 +523,15 @@
     "        st6 CONCAT(  'hello'     ,    'world'  ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
