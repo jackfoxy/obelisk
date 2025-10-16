@@ -230,6 +230,124 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: one of these makes it type crash
+::  test mixing arithmetic with builtin functions
+::     not sure if we want this to work
+::    "        sc8 BEGIN POWER(CEILING(1.5), ABS(-2)) END ".
+++  test-scalars-4
+  =/  query-string
+    "FROM foo ".
+    "SCALARS sc1 BEGIN ABS(.5) + 1 END ".
+    "        sc2 BEGIN FLOOR(.2.8) - CEILING(.1.2) END ".
+    "        sc3 BEGIN SQRT(4) * POWER(2, 3) END ".
+    "        sc4 BEGIN LOG(10) / ABS(-5) END ".
+    "        sc5 BEGIN ROUND(.3.7, 0) ^ 2 END ".
+    "        sc6 BEGIN LEN('hello') + DAY(2023.1.15) END ".
+    "        sc7 BEGIN (ABS(-3) + FLOOR(.2.9)) * SQRT(16) END ".
+    "        sc9 BEGIN YEAR(2023.6.20) - MONTH(2023.6.20) END ".
+    "        sc10 BEGIN (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-05             [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-28             [%literal-value dime=[p=~.rs q=.2.8]]
+  =/  literal-12             [%literal-value dime=[p=~.rs q=.1.2]]
+  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-10             [%literal-value dime=[p=~.ud q=10]]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+  =/  literal-37             [%literal-value dime=[p=~.rs q=.3.7]]
+  =/  literal-0              [%literal-value dime=[p=~.ud q=0]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-date1          [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-neg3           [%literal-value dime=[p=~.sd q=-3]]
+  =/  literal-29             [%literal-value dime=[p=~.rs q=.2.9]]
+  =/  literal-16             [%literal-value dime=[p=~.ud q=16]]
+  =/  literal-15             [%literal-value dime=[p=~.rs q=.1.5]]
+  =/  literal-neg2           [%literal-value dime=[p=~.sd q=-2]]
+  =/  literal-date2          [%literal-value dime=[p=~.da q=~2023.6.20]]
+  =/  literal-100            [%literal-value dime=[p=~.ud q=100]]
+  =/  literal-9              [%literal-value dime=[p=~.ud q=9]]
+  ::
+  =/  sc1
+    [%arithmetic operator=%lus left=[%abs literal-05] right=literal-1]
+  =/  sc2
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%floor literal-28]
+      right=[%ceiling literal-12]
+    ==
+  =/  sc3
+    :*
+      %arithmetic
+      operator=%tar
+      left=[%sqrt literal-4]
+      right=[%power literal-2 literal-3]
+    ==
+  =/  sc4
+    :*
+      %arithmetic
+      operator=%fas
+      left=[%log literal-10 ~]
+      right=[%abs literal-neg5]
+    ==
+  =/  sc5
+    :*
+      %arithmetic
+      operator=%ket
+      left=[%round literal-37 literal-0 ~]
+      right=literal-2
+    ==
+  =/  sc6
+    :*
+      %arithmetic
+      operator=%lus
+      left=[%len literal-hello]
+      right=[%day literal-date1]
+    ==
+  =/  sc7
+    :*
+      %arithmetic
+      operator=%tar
+      left=[%arithmetic operator=%lus left=[%abs literal-neg3] right=[%floor literal-29]]
+      right=[%sqrt literal-16]
+    ==
+  =/  sc8
+    [%power [%ceiling literal-15] [%abs literal-neg2]]
+  =/  sc9
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%year literal-date2]
+      right=[%month literal-date2]
+    ==
+  =/  sc10
+    :*
+      %arithmetic
+      operator=%fas
+      left=[%arithmetic operator=%lus left=[%log literal-100 ~] right=[%sign literal-neg5]]
+      right=[%arithmetic operator=%hep left=[%sqrt literal-9] right=literal-1]
+    ==
+  =/  scalars
+    :~
+      [%scalar sc1 'sc1']
+      [%scalar sc2 'sc2']
+      [%scalar sc3 'sc3']
+      [%scalar sc4 'sc4']
+      [%scalar sc5 'sc5']
+      [%scalar sc6 'sc6']
+      [%scalar sc7 'sc7']
+::      [%scalar `scalar-function:ast`sc8 'sc8']
+      [%scalar sc9 'sc9']
+      [%scalar sc10 'sc10']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ::  test-fail-scalars-01 tests that parsing fails when there are two scalars
 ::  with the same alias
 ++  test-fail-scalars-01
@@ -341,7 +459,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-     !>  (parse:parse(default-database default-db) query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before parameters
 ++  test-builtins-02
