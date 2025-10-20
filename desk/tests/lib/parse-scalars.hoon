@@ -695,6 +695,20 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+::  test type mistmatch for %day
+++  test-fail-builtins-day-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo DAY('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
+  %+  expect-fail-message
+    'mismatched type for day builtin, have: ~.t, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
 ::  coalesce
 ::
 :: simple coalesce

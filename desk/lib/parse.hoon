@@ -4774,11 +4774,16 @@
       [%getutcdate ~]
   ::  unary builtin functions
   ?:  =(%day fn-name)
-    ^-  day:ast
-    :*
-      %day
-      (cook-builtin-fn-parameter raw-scalar-body)
-    ==
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:day-signature:ast
+    ?:  =(have need)
+      ^-  day:ast
+      :*
+        %day
+        cooked-first-param
+      ==
+    ~|("mismatched type for day builtin, have: {<have>}, need: {<need>}" !!)
   ?:  =(%month fn-name)
     ^-  month:ast
     :*
