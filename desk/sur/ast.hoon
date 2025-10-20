@@ -172,42 +172,111 @@
 ::
 ::  datetime functions
 ::
-+$  getutcdate  [%getutcdate ~]
-+$  day         [%day date=literal-value]
-+$  month       [%month date=literal-value]
-+$  year        [%year date=literal-value]
+++  getutcdate-signature  [params=~ ret=~.da]
++$  getutcdate
+  $:  %getutcdate
+    ~
+  ==
+++  day-signature  [params=~[~.da] ret=~.ud]
++$  day
+  $:  %day
+    date=literal-value
+  ==
+++  month-signature  [params=~[~.da] ret=~.ud]
++$  month
+  $:  %month
+    date=literal-value
+  ==
+++  year-signature  [params=~[~.da] ret=~.ud]
++$  year
+  $:  %year
+    date=literal-value
+  ==
 ::
 ::  mathematical functions
 ::
-+$  abs         [%abs numeric-expression=literal-value]
-+$  log         [%log float-expression=literal-value base=(unit literal-value)]
-+$  floor       [%floor numeric-expression=literal-value]
-+$  power       [%power float-expression=literal-value exponent=literal-value]
-+$  ceiling     [%ceiling numeric-expression=literal-value]
+++  abs-signature  [params=~[~.sd] ret=~.sd]
++$  abs
+  $:  %abs
+    numeric-expression=literal-value
+  ==
+++  log-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.sd]]
++$  log
+  $:  %log
+    float-expression=literal-value
+    base=(unit literal-value)
+  ==
+++  floor-signature  [params=~[~.rs] ret=~.rs]
++$  floor
+  $:  %floor
+    numeric-expression=literal-value
+  ==
+++  power-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.ud]]
++$  power
+  $:  %power
+    float-expression=literal-value
+    exponent=literal-value
+  ==
+++  ceiling-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
++$  ceiling
+  $:  %ceiling
+    numeric-expression=literal-value
+  ==
+++  round-signature  [params=~[~.rs ~.ud ~.tas] ret=~.rs]
 +$  round      
   $:  %round
     numeric-expression=literal-value
     length=literal-value
     function=(unit literal-value)
     ==
-+$  sign        [%sign numeric-expression=literal-value]
-+$  sqrt        [%sqrt float-expression=literal-value]
+++  sign-signature  [params=~[~.sd] ret=~.sd]
++$  sign
+  $:  %sign
+    numeric-expression=literal-value
+  ==
+++  sqrt-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
++$  sqrt
+  $:  %sqrt
+    float-expression=literal-value
+  ==
 ::
 ::  string functions
 ::
-+$  len         [%len string-expression=literal-value]
-+$  left       
-  [%left character-expression=literal-value integer-expression=literal-value]
-+$  right      
-  [%right character-expression=literal-value integer-expression=literal-value]
+++  len-signature  [params=~[~.ta] ret=~.ud]
++$  len
+  $:  %len
+    string-expression=literal-value
+  ==
+++  left-signature  [params=~[~.ta ~.ud] ret=~.ta]
++$  left
+  $:  %left
+    character-expression=literal-value
+    integer-expression=literal-value
+  ==
+++  right-signature  [params=~[~.ta ~.ud] ret=~.ta]
++$  right
+  $:  %right
+    character-expression=literal-value
+    integer-expression=literal-value
+  ==
+++  substring-signature  [params=~[~.ta ~.ud ~.ud] ret=~.ta]
 +$  substring  
   $:  %substring
     string-expression=literal-value
     start=literal-value
     length=literal-value
     ==
-+$  trim        [%trim characters=(unit literal-value) string=literal-value]
-+$  concat      [%concat args=(list literal-value)]
+++  trim-signature  [params=~[~.ta ~.ta] ret=~.ta]
++$  trim
+  $:  %trim
+    characters=(unit literal-value)
+    string=literal-value
+  ==
+++  concat-signature  [params=~.ta ret=~.ta]
++$  concat
+  $:  %concat
+    args=(list literal-value)
+  ==
 ::
 +$  scalar-function
   $%
