@@ -811,7 +811,7 @@
     "SCALARS foo LOG('hello') ".
     "SELECT foo2,foo3"
   ::
-  %+  expect-fail-message
+  %+  expect-fail-message 
     'mismatched type for log builtin, have: ~.t, need: [~.rs ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
@@ -824,7 +824,8 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for log builtin, have: ~.t, need: ~.ud'
+    'mismatched type for log builtin, \
+    /have: [~.ud ~.t ~], need: [[~.rs ~.ud ~] ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %power first parameter
@@ -836,7 +837,8 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for power builtin, have: ~.t, need: ~.rs'
+    'mismatched type for power builtin, \
+    /have: [~.t ~.ud ~], need: [[~.rs ~.ud ~] ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %power second parameter
@@ -848,7 +850,8 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for power builtin, have: ~.t, need: ~.ud'
+    'mismatched type for power builtin, \
+    /have: [~.ud ~.t ~], need: [[~.rs ~.ud ~] ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %left first parameter
@@ -884,7 +887,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for right builtin, have: ~.da, need: ~.t'
+    'mismatched type for right builtin, have: [~.da ~.ud ~], need: [~.t ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %right second parameter
@@ -896,7 +899,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for right builtin, have: ~.rs, need: ~.ud'
+    'mismatched type for right builtin, have: [~.t ~.rs ~], need: [~.t ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %trim first parameter
@@ -908,7 +911,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for trim builtin, have: ~.ud, need: ~.t'
+    'mismatched type for trim builtin, have: [~.ud ~.t ~], need: [~.t ~.t ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %trim second parameter
@@ -920,7 +923,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for trim builtin, have: ~.ud, need: ~.t'
+    'mismatched type for trim builtin, have: [~.t ~.ud ~], need: [~.t ~.t ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %round first parameter
@@ -932,7 +935,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for round builtin, have: ~.t, need: ~.rs'
+    'mismatched type for round builtin, have: [~.t ~.ud ~], need: [~.rs ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %round second parameter
@@ -944,7 +947,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for round builtin, have: ~.t, need: ~.ud'
+    'mismatched type for round builtin, have: [~.rs ~.t ~], need: [~.rs ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %round third parameter
@@ -956,7 +959,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for round builtin, have: ~.ud, need: ~.tas'
+    'mismatched type for round builtin, have: [~.rs ~.ud ~.ud ~], need: [~.rs ~.ud ~.tas ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %substring first parameter
@@ -968,7 +971,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for substring builtin, have: ~.ud, need: ~.t'
+    'mismatched type for substring builtin, have: [~.ud ~.ud ~.ud ~], need: [~.t ~.ud ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %substring second parameter
@@ -980,7 +983,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for substring builtin, have: ~.t, need: ~.ud'
+    'mismatched type for substring builtin, have: [~.t ~.t ~.ud ~], need: [~.t ~.ud ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %substring third parameter
@@ -992,7 +995,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for substring builtin, have: ~.rs, need: ~.ud'
+    'mismatched type for substring builtin, have: [~.t ~.ud ~.rs ~], need: [~.t ~.ud ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %concat

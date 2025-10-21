@@ -242,7 +242,7 @@
 ::
 ::  string functions
 ::
-++  len-signature  [params=~[~.ta] ret=~.ud]
+++  len-signature  [params=~[~.t] ret=~.ud]
 +$  len
   $:  %len
     string-expression=literal-value
@@ -253,20 +253,20 @@
     character-expression=literal-value
     integer-expression=literal-value
   ==
-++  right-signature  [params=~[~.ta ~.ud] ret=~.ta]
+++  right-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  right
   $:  %right
     character-expression=literal-value
     integer-expression=literal-value
   ==
-++  substring-signature  [params=~[~.ta ~.ud ~.ud] ret=~.ta]
+++  substring-signature  [params=~[~.t ~.ud ~.ud] ret=~.t]
 +$  substring  
   $:  %substring
     string-expression=literal-value
     start=literal-value
     length=literal-value
     ==
-++  trim-signature  [params=~[~.ta ~.ta] ret=~.ta]
+++  trim-signature  [params=~[~.t ~.t] ret=~.t]
 +$  trim
   $:  %trim
     characters=(unit literal-value)

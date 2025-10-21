@@ -4704,7 +4704,7 @@
   ^-  literal-value:ast
   ?:  ?=([@ @] parsed)
     [%literal-value dime=`dime`parsed]
-  ~|("unexpected value: {<parsed>}" !!)
+  ~|("cook-builtin-fn-parameter: unexpected value: {<parsed>}" !!)
 ++  cook-builtin-fn-optional-parameter
   |=  parsed=*
   ^-  (unit literal-value:ast)
@@ -4874,15 +4874,15 @@
     ~|("mismatched type for len builtin, have: {<have>}, need: {<need>}" !!)
   ::  binary builtin functions
   ?:  =(%log fn-name)
-    ?:  ?=([[@ @] *] raw-scalar-body)
+    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
       =/  have-first  p.dime.cooked-first-param
       =/  have-second  p.dime.cooked-second-param
       =/  need-first  -.params:log-signature:ast
       =/  need-second  +<.params:log-signature:ast
       ?:  ?&  !=((find [have-first]~ need-first) ~)
-              =(have-second ~.ud)
+              =(have-second need-second)
           ==
         ^-  log:ast
         :*
@@ -4890,18 +4890,24 @@
           cooked-first-param
           `cooked-second-param
         ==
-      ~|("mismatched type for log builtin parameters" !!)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:log-signature:ast
-    ?:  !=((find [have]~ need) ~)
-      ^-  log:ast
-      :*
-        %log
-        cooked-first-param
-        ~
-      ==
+    =/  have  [have-first have-second ~]
+    =/  need  params:log-signature:ast
     ~|("mismatched type for log builtin, have: {<have>}, need: {<need>}" !!)
+    ?:  ?=([@ @] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  need-first  -.params:log-signature:ast
+      ?:  !=((find [have-first]~ need-first) ~)
+        ^-  log:ast
+        :*
+          %log
+          cooked-first-param
+          ~
+        ==
+      =/  have  have-first
+      =/  need  need-first
+      ~|("mismatched type for log builtin, have: {<have>}, need: {<need>}" !!)
+    !!
   ?:  =(%power fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
@@ -4918,7 +4924,9 @@
         cooked-first-param
         cooked-second-param
       ==
-    ~|("mismatched type for power builtin parameters" !!)
+    =/  have  ~[have-first have-second]
+    =/  need  params:power-signature:ast
+    ~|("mismatched type for power builtin, have: {<have>}, need: {<need>}" !!)
   ?:  =(%left fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
@@ -4935,7 +4943,9 @@
         cooked-first-param
         cooked-second-param
       ==
-    ~|("mismatched type for left builtin, have: {<[have-first have-second ~]>}, need: {<params:left-signature:ast>}" !!)
+    =/  need  [have-first have-second ~]
+    =/  have  params:left-signature:ast
+    ~|("mismatched type for left builtin, have: {<need>}, need: {<have>}" !!)
   ?:  =(%right fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
@@ -4952,7 +4962,9 @@
         cooked-first-param
         cooked-second-param
       ==
-    ~|("mismatched type for right builtin parameters" !!)
+    =/  have  ~[have-first have-second]
+    =/  need  params:right-signature:ast
+    ~|("mismatched type for right builtin, have: {<have>}, need: {<need>}" !!)
   ?:  =(%trim fn-name)
     ?:  ?=([[@ @] *] raw-scalar-body)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
@@ -4970,7 +4982,9 @@
           `cooked-first-param
           cooked-second-param
         ==
-      ~|("mismatched type for trim builtin parameters" !!)
+      =/  have  ~[have-first have-second]
+      =/  need  params:trim-signature:ast
+      ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
     =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
     =/  have  p.dime.cooked-param
     =/  need  +<.params:trim-signature:ast
@@ -4985,7 +4999,7 @@
   ::  ternary builtin functions
   ?:  =(%round fn-name)
     ?:  ?=([[@ @] * *] raw-scalar-body)
-      ?:  ?=([[@ @] *] +.raw-scalar-body)
+      ?:  ?=([[@ @] [@ @] [@ @]] +.raw-scalar-body)
         =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
         =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
         =/  cooked-third-param  (cook-builtin-fn-parameter +>-.raw-scalar-body)
@@ -5006,7 +5020,9 @@
             cooked-second-param
             `cooked-third-param
           ==
-        ~|("mismatched type for round builtin parameters" !!)
+        =/  have  ~[have-first have-second have-third]
+        =/  need  params:round-signature:ast
+        ~|("mismatched type for round builtin, have: {<have>}, need: {<need>}" !!)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
       =/  have-first  p.dime.cooked-first-param
@@ -5023,7 +5039,9 @@
           cooked-second-param
           ~
         ==
-      ~|("mismatched type for round builtin parameters" !!)
+      =/  have  ~[have-first have-second]
+      =/  need  [-.params:round-signature:ast +<.params:round-signature:ast ~]
+      ~|("mismatched type for round builtin, have: {<have>}, need: {<need>}" !!)
     !!
   ?:  =(%substring fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
@@ -5046,7 +5064,9 @@
         cooked-second-param
         cooked-third-param
       ==
-    ~|("mismatched type for substring builtin parameters" !!)
+    =/  have  ~[have-first have-second have-third]
+    =/  need  params:substring-signature:ast
+    ~|("mismatched type for substring builtin, have: {<have>}, need: {<need>}" !!)
   ::  n-ary builtin functions
   ?:  =(%concat fn-name)
     =/  need  params:concat-signature:ast
