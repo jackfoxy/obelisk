@@ -703,10 +703,308 @@
     "SCALARS foo DAY('hello') ".
     "SELECT foo2,foo3"
   ::
-  =/  coalesce-1
-    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
   %+  expect-fail-message
     'mismatched type for day builtin, have: ~.t, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %month
+++  test-fail-builtins-month-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo MONTH('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for month builtin, have: ~.t, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %year
+++  test-fail-builtins-year-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo YEAR(123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for year builtin, have: ~.ud, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %abs
+++  test-fail-builtins-abs-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ABS('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for abs builtin, have: ~.t, need: ~.sd'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %floor
+++  test-fail-builtins-floor-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo FLOOR('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for floor builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %ceiling
+++  test-fail-builtins-ceiling-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CEILING('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for ceiling builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %sign
+++  test-fail-builtins-sign-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SIGN(2023.1.15) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for sign builtin, have: ~.da, need: ~.sd'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %sqrt
+++  test-fail-builtins-sqrt-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SQRT('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for sqrt builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %len
+++  test-fail-builtins-len-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LEN(123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for len builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %log first parameter
+++  test-fail-builtins-log-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LOG('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for log builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %log second parameter
+++  test-fail-builtins-log-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LOG(10, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for log builtin, have: ~.t, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %power first parameter
+++  test-fail-builtins-power-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo POWER('hello', 2) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for power builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %power second parameter
+++  test-fail-builtins-power-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo POWER(2, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for power builtin, have: ~.t, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %left first parameter
+++  test-fail-builtins-left-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LEFT(123, 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for left builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %left second parameter
+++  test-fail-builtins-left-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LEFT('hello', 'world') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for left builtin, have: ~.t, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %right first parameter
+++  test-fail-builtins-right-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo RIGHT(2023.1.15, 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for right builtin, have: ~.da, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %right second parameter
+++  test-fail-builtins-right-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo RIGHT('hello', .5) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for right builtin, have: ~.rs, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %trim first parameter
+++  test-fail-builtins-trim-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo TRIM(123, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for trim builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %trim second parameter
+++  test-fail-builtins-trim-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo TRIM(' ', 123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for trim builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %round first parameter
+++  test-fail-builtins-round-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND('hello', 2) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for round builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %round second parameter
+++  test-fail-builtins-round-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND(.3.14, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for round builtin, have: ~.t, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %round third parameter
+++  test-fail-builtins-round-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND(.3.14, 2, 123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for round builtin, have: ~.ud, need: ~.tas'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %substring first parameter
+++  test-fail-builtins-substring-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING(123, 2, 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for substring builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %substring second parameter
+++  test-fail-builtins-substring-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING('hello', 'world', 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for substring builtin, have: ~.t, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %substring third parameter
+++  test-fail-builtins-substring-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING('hello', 2, .5) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for substring builtin, have: ~.rs, need: ~.ud'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %concat
+++  test-fail-builtins-concat-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CONCAT('hello', 123, 'world') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for concat builtin, have: ~.ud, need: ~.t'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  coalesce
