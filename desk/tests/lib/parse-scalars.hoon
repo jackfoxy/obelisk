@@ -764,7 +764,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for ceiling builtin, have: ~.t, need: ~.rs'
+    'mismatched type for ceiling builtin, have: ~.t, need: [~.rs ~.sd ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %sign
@@ -788,7 +788,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for sqrt builtin, have: ~.t, need: ~.rs'
+    'mismatched type for sqrt builtin, have: ~.t, need: [~.rs ~.sd ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %len
@@ -812,7 +812,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for log builtin, have: ~.t, need: ~.rs'
+    'mismatched type for log builtin, have: ~.t, need: [~.rs ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %log second parameter
@@ -860,7 +860,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for left builtin, have: ~.ud, need: ~.t'
+    'mismatched type for left builtin, have: [~.ud ~.ud ~], need: [~.t ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %left second parameter
@@ -872,7 +872,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for left builtin, have: ~.t, need: ~.ud'
+    'mismatched type for left builtin, have: [~.t ~.t ~], need: [~.t ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %right first parameter

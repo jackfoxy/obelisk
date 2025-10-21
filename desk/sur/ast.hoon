@@ -200,7 +200,7 @@
   $:  %abs
     numeric-expression=literal-value
   ==
-++  log-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.sd]]
+++  log-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.sd]]
 +$  log
   $:  %log
     float-expression=literal-value
@@ -247,7 +247,7 @@
   $:  %len
     string-expression=literal-value
   ==
-++  left-signature  [params=~[~.ta ~.ud] ret=~.ta]
+++  left-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  left
   $:  %left
     character-expression=literal-value
@@ -272,7 +272,7 @@
     characters=(unit literal-value)
     string=literal-value
   ==
-++  concat-signature  [params=~.ta ret=~.ta]
+++  concat-signature  [params=~.t ret=~.t]
 +$  concat
   $:  %concat
     args=(list literal-value)
