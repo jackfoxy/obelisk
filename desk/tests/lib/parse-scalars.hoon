@@ -1954,7 +1954,7 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with alias.column (should fail - undefined alias)
+:: qualified column case scalar with alias.column (must fail - undefined alias)
 :: test case with coalesce scalar inline
 ++  test-case-11
   ::
@@ -2494,32 +2494,28 @@
       right=[%arithmetic operator=%fas left=literal-1 right=literal-1]
     ==
   =/  double-nested-minimal
-    :*
-      %arithmetic
-      operator=%lus
-      left=[%arithmetic operator=%hep left=[%arithmetic operator=%tar left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+    :*  %arithmetic
+        %lus
+        [%arithmetic %hep [%arithmetic %tar literal-1 literal-1] literal-1]
+        literal-1
     ==
   =/  double-nested-maximal
-    :*
-      %arithmetic
-      operator=%hep
-      left=[%arithmetic operator=%ket left=[%arithmetic operator=%lus left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+    :*  %arithmetic
+        %hep
+        [%arithmetic %ket [%arithmetic %lus literal-1 literal-1] literal-1]
+        literal-1
     ==
   =/  double-nested-right-mixed
-    :*
-      %arithmetic
-      operator=%lus
-      left=literal-1
-      right=[%arithmetic operator=%hep left=literal-1 right=[%arithmetic operator=%tar left=literal-1 right=literal-1]]
+    :*  %arithmetic
+        %lus
+        literal-1
+        [%arithmetic %hep literal-1 [%arithmetic %tar literal-1 literal-1]]
     ==
   =/  double-nested-right-paren-space
-    :*
-      %arithmetic
-      operator=%tar
-      left=literal-1
-      right=[%arithmetic operator=%lus left=literal-1 right=[%arithmetic operator=%fas left=literal-1 right=literal-1]]
+    :*  %arithmetic
+        %tar
+        literal-1
+        [%arithmetic %lus literal-1 [%arithmetic %fas literal-1 literal-1]]
     ==
   =/  scalars
     :~
@@ -2561,5 +2557,114 @@
   ::
   %+  expect-fail-message
     'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test-fail-arithmetic-* tests verify that non-arithmetic builtin functions
+::  (one that return string and date) can't be used with arithmetic operators
+::
+::  test mixing string function CONCAT with addition operator
+++  test-fail-arithmetic-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN CONCAT('hello', 'world') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function LEFT with subtraction operator
+++  test-fail-arithmetic-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN LEFT('hello', 2) - 5 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function RIGHT with multiplication operator
+++  test-fail-arithmetic-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN 10 * RIGHT('world', 3) END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %right in arithmetic expression, allowed scalars: %abs\
+    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function SUBSTRING with division operator
+++  test-fail-arithmetic-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN SUBSTRING('hello', 1, 3) / 2 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %substring in arithmetic expression, allowed scalars:\
+    / %abs %ceiling %day %floor %len %log %month %power %round %sign %sqrt\
+    / %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function TRIM with exponentiation operator
+++  test-fail-arithmetic-05
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN 2 ^ TRIM('  hello  ') END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %trim in arithmetic expression, allowed scalars: %abs\
+    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing date function GETUTCDATE with addition operator
+++  test-fail-arithmetic-06
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN GETUTCDATE() + 100 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %getutcdate in arithmetic expression, allowed scalars:\
+    / %abs %ceiling %day %floor %len %log %month %power %round %sign %sqrt\
+    / %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string on both sides of operator
+++  test-fail-arithmetic-07
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN LEFT('abc', 1) + RIGHT('xyz', 1) END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
+    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test nested arithmetic with string function
+++  test-fail-arithmetic-08
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN (5 + CONCAT('a', 'b')) * 2 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
+    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
     |.  (parse:parse(default-database default-db) query-string)
 --
