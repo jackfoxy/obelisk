@@ -4888,7 +4888,7 @@
         :*
           %log
           cooked-first-param
-          `cooked-second-param
+          (some cooked-second-param)
         ==
     =/  have  [have-first have-second ~]
     =/  need  params:log-signature:ast
@@ -4966,9 +4966,9 @@
     =/  need  params:right-signature:ast
     ~|("mismatched type for right builtin, have: {<have>}, need: {<need>}" !!)
   ?:  =(%trim fn-name)
-    ?:  ?=([[@ @] *] raw-scalar-body)
+    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
       =/  have-first  p.dime.cooked-first-param
       =/  have-second  p.dime.cooked-second-param
       =/  need-first  -.params:trim-signature:ast
@@ -4979,50 +4979,54 @@
         ^-  trim:ast
         :*
           %trim
-          `cooked-first-param
+          (some cooked-first-param)
           cooked-second-param
         ==
       =/  have  ~[have-first have-second]
       =/  need  params:trim-signature:ast
       ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
-    =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-param
-    =/  need  +<.params:trim-signature:ast
-    ?:  =(have need)
-      ^-  trim:ast
-      :*
-        %trim
-        ~
-        cooked-param
-      ==
-    ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
+    ?:  ?=([@ @] raw-scalar-body)
+      =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
+      =/  have  p.dime.cooked-param
+      =/  need  +<.params:trim-signature:ast
+      ?:  =(have need)
+        ^-  trim:ast
+        :*
+          %trim
+          ~
+          cooked-param
+        ==
+      ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
+    !!
   ::  ternary builtin functions
   ?:  =(%round fn-name)
-    ?:  ?=([[@ @] * *] raw-scalar-body)
-      ?:  ?=([[@ @] [@ @] [@ @]] +.raw-scalar-body)
-        =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-        =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
-        =/  cooked-third-param  (cook-builtin-fn-parameter +>-.raw-scalar-body)
-        =/  have-first  p.dime.cooked-first-param
-        =/  have-second  p.dime.cooked-second-param
-        =/  have-third  p.dime.cooked-third-param
-        =/  need-first  -.params:round-signature:ast
-        =/  need-second  +<.params:round-signature:ast
-        =/  need-third  +>-.params:round-signature:ast
-        ?:  ?&  =(have-first need-first)
-                =(have-second need-second)
-                =(have-third need-third)
-            ==
-          ^-  round:ast
-          :*
-            %round
-            cooked-first-param
-            cooked-second-param
-            `cooked-third-param
+    ?:  ?=([[@ @] [@ @] [@ @]] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
+      =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  have-second  p.dime.cooked-second-param
+      =/  have-third  p.dime.cooked-third-param
+      =/  need-first  -.params:round-signature:ast
+      =/  need-second  +<.params:round-signature:ast
+      =/  need-third  +>-.params:round-signature:ast
+      ?:  ?&  =(have-first need-first)
+              =(have-second need-second)
+              =(have-third need-third)
           ==
-        =/  have  ~[have-first have-second have-third]
-        =/  need  params:round-signature:ast
-        ~|("mismatched type for round builtin, have: {<have>}, need: {<need>}" !!)
+        ^-  round:ast
+        :*
+          %round
+          cooked-first-param
+          cooked-second-param
+          (some cooked-third-param)
+        ==
+      =/  have  ~[have-first have-second have-third]
+      =/  need  params:round-signature:ast
+      =/  error-message
+        "mismatched type for round builtin, have: {<have>}, need: {<need>}" 
+      ~|(error-message !!)
+    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
       =/  have-first  p.dime.cooked-first-param
