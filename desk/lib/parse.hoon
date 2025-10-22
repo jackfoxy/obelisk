@@ -5262,35 +5262,56 @@
 :: used when recursing on %pal and %par
 ++  handle-arithmetic-parens  ~+
   |=  a=*
-  ^-  [nl=(list *) r=*]
-  =/  state  [nl=*(list *) r=a]
+  ^-  [new-list=(list *) remaining=*]
+  =/  state  [new-list=*(list *) remaining=a]
   |-
-  ?@  -.r.state
-    ?:  =(-.r.state %par)
-      [(flop nl.state) +.r.state]
-    ?:  ?=(%pal -.r.state) 
-      =/  nested  (handle-arithmetic-parens +.r.state)
-      $(state [[nl.nested nl.state] r.nested])
-    ?:  ?=(scalar-token:ast -.r.state)
-      $(state [[-.r.state nl.state] +.r.state])
+  ?@  -.remaining.state
+    ?:  =(-.remaining.state %par)
+      [(flop new-list.state) +.remaining.state]
+    ?:  ?=(%pal -.remaining.state) 
+      =/  nested  (handle-arithmetic-parens +.remaining.state)
+      $(state [[new-list.nested new-list.state] remaining.nested])
+    ?:  ?=(scalar-token:ast -.remaining.state)
+      $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
-  $(state [[-.r.state nl.state] +.r.state])
+  $(state [[-.remaining.state new-list.state] +.remaining.state])
 :: cleans up %pal and %par from a parsed arithmetic expression
 ++  arithmetic-list  ~+
   |=  a=*
   ^-  *
-  =/  state  [nl=*(list *) r=a]
+  =/  state  [new-list=*(list *) remaining=a]
   |-
-  ?~  r.state
-    (flop nl.state)
-  ?@  -.r.state
-    ?:  ?=(%pal -.r.state) 
-      =/  nested  (handle-arithmetic-parens +.r.state)
-      $(state [[nl.nested nl.state] r.nested])
-    ?:  ?=(scalar-token:ast -.r.state)
-      $(state [[-.r.state nl.state] +.r.state])
+  ?~  remaining.state
+    (flop new-list.state)
+  ?@  -.remaining.state
+    ?:  ?=(%pal -.remaining.state) 
+      =/  nested  (handle-arithmetic-parens +.remaining.state)
+      $(state [[new-list.nested new-list.state] remaining.nested])
+    ?:  ?=(scalar-token:ast -.remaining.state)
+      $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
-  $(state [[-.r.state nl.state] +.r.state])
+  $(state [[-.remaining.state new-list.state] +.remaining.state])
+++  check-and-cook-builtin-fn
+  |=  builtin-fn=[@tas *]
+  ?:  ?!  ?|  =(-.builtin-fn %abs)
+              =(-.builtin-fn %ceiling)
+              =(-.builtin-fn %day)
+              =(-.builtin-fn %floor)
+              =(-.builtin-fn %len)
+              =(-.builtin-fn %log)
+              =(-.builtin-fn %month)
+              =(-.builtin-fn %power)
+              =(-.builtin-fn %round)
+              =(-.builtin-fn %sign)
+              =(-.builtin-fn %sqrt)
+              =(-.builtin-fn %year)
+          ==
+    =/  error-message
+      "cannot use scalar {<`@tas`-.builtin-fn>} in arithmetic ".
+      "expression, allowed scalars: %abs %ceiling %day %floor ".
+      "%len %log %month %power %round %sign %sqrt %year" 
+    ~|(error-message !!)
+  (cook-builtin-scalar-fn builtin-fn)
 ++  cook-arithmetic
   |=  parsed=*
   ^-  arithmetic:ast
