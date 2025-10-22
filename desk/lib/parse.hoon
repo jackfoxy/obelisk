@@ -5274,6 +5274,9 @@
     ?:  ?=(scalar-token:ast -.remaining.state)
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
+  :: TODO: add exception here:
+  :: when we find something like this <literal> ^ <literal> put inside cell
+  :: (inside parens basically)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
 :: cleans up %pal and %par from a parsed arithmetic expression
 ++  arithmetic-list  ~+
@@ -5322,25 +5325,7 @@
     ?:  ?=([%literal *] operand1)
       %:(literal-value:ast %literal-value dime=+.operand1)
     ?:  ?=([%builtin-fn [@tas *]] operand1)
-      ?:  ?!  ?|  =(+<.operand1 %abs)
-                  =(+<.operand1 %ceiling)
-                  =(+<.operand1 %day)
-                  =(+<.operand1 %floor)
-                  =(+<.operand1 %len)
-                  =(+<.operand1 %log)
-                  =(+<.operand1 %month)
-                  =(+<.operand1 %power)
-                  =(+<.operand1 %round)
-                  =(+<.operand1 %sign)
-                  =(+<.operand1 %sqrt)
-                  =(+<.operand1 %year)
-              ==
-        =/  error-message
-          "cannot use scalar {<`@tas`+<.operand1>} in arithmetic ".
-          "expression, allowed scalars: %abs %ceiling %day %floor ".
-          "%len %log %month %power %round %sign %sqrt %year" 
-        ~|(error-message !!)
-      (cook-builtin-scalar-fn +.operand1)
+      (check-and-cook-builtin-fn +.operand1)
     $(ops-and-operators operand1)
   ?~  +>+.ops-and-operators
     =/  operator  +<.ops-and-operators
@@ -5349,25 +5334,7 @@
       ?:  ?=([%literal *] operand2)
         %:(literal-value:ast %literal-value dime=+.operand2)
       ?:  ?=([%builtin-fn [@tas *]] operand2)
-        ?:  ?!  ?|  =(+<.operand2 %abs)
-                    =(+<.operand2 %ceiling)
-                    =(+<.operand2 %day)
-                    =(+<.operand2 %floor)
-                    =(+<.operand2 %len)
-                    =(+<.operand2 %log)
-                    =(+<.operand2 %month)
-                    =(+<.operand2 %power)
-                    =(+<.operand2 %round)
-                    =(+<.operand2 %sign)
-                    =(+<.operand2 %sqrt)
-                    =(+<.operand2 %year)
-                ==
-          =/  error-message
-            "cannot use scalar {<`@tas`+<.operand2>} in arithmetic ".
-            "expression, allowed scalars: %abs %ceiling %day %floor ".
-            "%len %log %month %power %round %sign %sqrt %year" 
-          ~|(error-message !!)
-        (cook-builtin-scalar-fn +.operand2)
+        (check-and-cook-builtin-fn +.operand2)
       $(ops-and-operators operand2)
     %:  arithmetic:ast
       %arithmetic
