@@ -222,7 +222,7 @@
   $:  %ceiling
     numeric-expression=literal-value
   ==
-++  round-signature  [params=~[~.rs ~.ud ~.tas] ret=~.rs]
+++  round-signature  [params=~[~.rs ~.ud ~.ud] ret=~.rs]
 +$  round      
   $:  %round
     numeric-expression=literal-value
@@ -234,7 +234,7 @@
   $:  %sign
     numeric-expression=literal-value
   ==
-++  sqrt-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
+++  sqrt-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.ud]]
 +$  sqrt
   $:  %sqrt
     float-expression=literal-value

@@ -237,7 +237,7 @@
 ++  test-scalars-4
   =/  query-string
     "FROM foo ".
-    "SCALARS sc1 BEGIN ABS(.5) + 1 END ".
+    "SCALARS sc1 BEGIN ABS(-5) + 1 END ".
     "        sc2 BEGIN FLOOR(.2.8) - CEILING(.1.2) END ".
     "        sc3 BEGIN SQRT(4) * POWER(2, 3) END ".
     "        sc4 BEGIN LOG(10) / ABS(-5) END ".
@@ -271,7 +271,7 @@
   =/  literal-9              [%literal-value dime=[p=~.ud q=9]]
   ::
   =/  sc1
-    [%arithmetic operator=%lus left=[%abs literal-05] right=literal-1]
+    [%arithmetic operator=%lus left=[%abs literal-neg5] right=literal-1]
   =/  sc2
     :*
       %arithmetic
@@ -382,15 +382,15 @@
     "        dt3 DAY( 2023.1.15  ) ".
     "        dt4 MONTH(  2023.1.15) ".
     "        dt5 YEAR(2023.1.15   ) ".
-    "        mt1 ABS(   .5 ) ".
-    "        mt2 LOG(.5  , .2   ) ".
+    "        mt1 ABS(   -5 ) ".
+    "        mt2 LOG(.5  , 2   ) ".
     "        mt21 LOG(  .5) ".
     "        mt3 FLOOR( .5    ) ".
-    "        mt4 POWER(    .5,  .2) ".
+    "        mt4 POWER(    .5,  2) ".
     "        mt5 CEILING(.5  ) ".
     "        mt6 ROUND(  .5 ,2   , 1  ) ".
     "        mt61 ROUND(.5   ,  2) ".
-    "        mt7 SIGN(   .5   ) ".
+    "        mt7 SIGN(   -5   ) ".
     "        mt8 SQRT( .5 ) ".
     "        st1 LEN(  'hello'   ) ".
     "        st2 LEFT('hello'  ,  3   ) ".
@@ -410,21 +410,22 @@
   =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
   =/  literal-world          [%literal-value dime=[p=~.t q='world']]
   =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn-1               [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn-1               [%log literal-float `literal-2]
   =/  log-fn-2               [%log literal-float ~]
   =/  trim-fn-1              [%trim `literal-space literal-hello]
   =/  trim-fn-2              [%trim ~ literal-hello]
@@ -469,13 +470,13 @@
     "        dt3 DAY(  2023.1.15) ".
     "        dt4 MONTH(   2023.1.15) ".
     "        dt5 YEAR( 2023.1.15) ".
-    "        mt1 ABS(    .5) ".
-    "        mt2 LOG( .5,   .2) ".
+    "        mt1 ABS(    -5) ".
+    "        mt2 LOG( .5,   2) ".
     "        mt3 FLOOR(  .5) ".
-    "        mt4 POWER(   .5, .2) ".
+    "        mt4 POWER(   .5, 2) ".
     "        mt5 CEILING( .5) ".
     "        mt6 ROUND(    .5,  2, 1) ".
-    "        mt7 SIGN(  .5) ".
+    "        mt7 SIGN(  -5) ".
     "        mt8 SQRT(   .5) ".
     "        st1 LEN( 'hello') ".
     "        st2 LEFT(    'hello',  3) ".
@@ -494,21 +495,22 @@
   =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
   =/  literal-world          [%literal-value dime=[p=~.t q='world']]
   =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn                 [%log literal-float `literal-2]
   =/  trim-fn                [%trim `literal-space literal-hello]
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
@@ -547,13 +549,13 @@
     "        dt3 DAY(2023.1.15  ) ".
     "        dt4 MONTH(2023.1.15    ) ".
     "        dt5 YEAR(2023.1.15 ) ".
-    "        mt1 ABS(.5     ) ".
-    "        mt2 LOG(.5  ,.2   ) ".
+    "        mt1 ABS(-5     ) ".
+    "        mt2 LOG(.5  ,2   ) ".
     "        mt3 FLOOR(.5   ) ".
-    "        mt4 POWER(.5    ,.2 ) ".
+    "        mt4 POWER(.5    ,2 ) ".
     "        mt5 CEILING(.5  ) ".
     "        mt6 ROUND(.5     ,2  ,1    ) ".
-    "        mt7 SIGN(.5   ) ".
+    "        mt7 SIGN(-5   ) ".
     "        mt8 SQRT(.5    ) ".
     "        st1 LEN('hello'  ) ".
     "        st2 LEFT('hello'     ,3  ) ".
@@ -572,21 +574,22 @@
   =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
   =/  literal-world          [%literal-value dime=[p=~.t q='world']]
   =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn                 [%log literal-float `literal-2]
   =/  trim-fn                [%trim `literal-space literal-hello]
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
@@ -625,13 +628,13 @@
     "        dt3 DAY(  2023.1.15    ) ".
     "        dt4 MONTH(   2023.1.15  ) ".
     "        dt5 YEAR( 2023.1.15     ) ".
-    "        mt1 ABS(    .5  ) ".
-    "        mt2 LOG(  .5   ,   .2    ) ".
+    "        mt1 ABS(    -5  ) ".
+    "        mt2 LOG(  .5   ,   2    ) ".
     "        mt3 FLOOR(   .5     ) ".
-    "        mt4 POWER( .5    ,  .2  ) ".
+    "        mt4 POWER( .5    ,  2  ) ".
     "        mt5 CEILING(    .5   ) ".
     "        mt6 ROUND(  .5     ,   2  ,  1     ) ".
-    "        mt7 SIGN(   .5    ) ".
+    "        mt7 SIGN(   -5    ) ".
     "        mt8 SQRT( .5     ) ".
     "        st1 LEN(    'hello'  ) ".
     "        st2 LEFT(  'hello'    ,   3   ) ".
@@ -650,21 +653,22 @@
   =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
   =/  literal-world          [%literal-value dime=[p=~.t q='world']]
   =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn                 [%log literal-float `literal-2]
   =/  trim-fn                [%trim `literal-space literal-hello]
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
@@ -788,7 +792,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for sqrt builtin, have: ~.t, need: [~.rs ~.sd ~]'
+    'mismatched type for sqrt builtin, have: ~.t, need: [~.rs ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %len
@@ -955,11 +959,11 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo ROUND(.3.14, 2, 123) ".
+    "SCALARS foo ROUND(.3.14, 2, 'h') ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for round builtin, have: [~.rs ~.ud ~.ud ~], need: [~.rs ~.ud ~.tas ~]'
+    'mismatched type for round builtin, have: [~.rs ~.ud ~.t ~], need: [~.rs ~.ud ~.ud ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %substring first parameter
@@ -2540,6 +2544,46 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: test exponentiation associativity
+++  test-arithmetic-7
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo1 BEGIN 2 ^ 2 ^ 3 END ".
+    "        foo2 BEGIN 2 ^ (2 ^ 3) END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  exponentiation-1
+    :*  %arithmetic
+      %ket
+      :*  %arithmetic
+        %ket
+        literal-2
+        literal-2
+      ==
+      literal-3
+    ==
+  =/  exponentiation-2
+    :*  %arithmetic
+      %ket
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-2
+        literal-3
+      ==
+    ==
+  =/  scalars
+    :~
+      [%scalar exponentiation-1 'foo1']
+      [%scalar exponentiation-2 'foo2']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 :: test that there can't be an operator right after an operand
 ::
 :: explaination: due to parsing rules there always need to be a space before an
@@ -2598,7 +2642,7 @@
   ::
   %+  expect-fail-message
     'cannot use scalar %right in arithmetic expression, allowed scalars: %abs\
-    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function SUBSTRING with division operator
@@ -2625,7 +2669,7 @@
   ::
   %+  expect-fail-message
     'cannot use scalar %trim in arithmetic expression, allowed scalars: %abs\
-    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing date function GETUTCDATE with addition operator
@@ -2652,7 +2696,7 @@
   ::
   %+  expect-fail-message
     'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
-    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test nested arithmetic with string function
@@ -2665,6 +2709,6 @@
   ::
   %+  expect-fail-message
     'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
-    /%ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
     |.  (parse:parse(default-database default-db) query-string)
 --
