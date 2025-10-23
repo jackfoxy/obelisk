@@ -2544,40 +2544,207 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: test exponentiation associativity
+:: test operator associativity
 ++  test-arithmetic-7
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 2 ^ 2 ^ 3 END ".
-    "        foo2 BEGIN 2 ^ (2 ^ 3) END ".
+    "SCALARS foo1 BEGIN 2 ^ 3 ^ 3 END ".
+    "        foo2 BEGIN 2 ^ (3 ^ 3) END ".
+    "        foo3 BEGIN (2 ^ 3) ^ 3 END ".
+    "        foo4 BEGIN 2 ^ 3 ^ 3 ^ 2 END ".
+    "        foo5 BEGIN 2 + 3 + 4 END ".
+    "        foo6 BEGIN 2 - 3 - 4 END ".
+    "        foo7 BEGIN 2 * 3 * 4 END ".
+    "        foo8 BEGIN 2 / 3 / 4 END ".
+    "        foo9 BEGIN 2 + 3 + 4 + 5 END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
   =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
+  =/  literal-5              [%literal-value dime=[p=~.ud q=5]]
   =/  exponentiation-1
     :*  %arithmetic
       %ket
+      literal-2
       :*  %arithmetic
         %ket
-        literal-2
-        literal-2
+        literal-3
+        literal-3
       ==
-      literal-3
     ==
+::
+::    ^
+::   /  
+::  2    
+::          
+::    ^
+::   / \
+::  2   ^
+::     3 
+::
+::    ^
+::   / \
+::  2   ^
+::     3 3  
+:: ---------
+::    2
+::      
+::    ^
+::   / \
+::  2   3
+::       
+::
+::    ^
+::   / \
+::  2   ^
+::     3 3  
+::
   =/  exponentiation-2
     :*  %arithmetic
       %ket
       literal-2
       :*  %arithmetic
         %ket
+        literal-3
+        literal-3
+      ==
+    ==
+  =/  exponentiation-3
+    :*  %arithmetic
+      %ket
+      :*  %arithmetic
+        %ket
         literal-2
         literal-3
       ==
+      literal-3
+    ==
+:: right assoc algo:
+::
+::    2
+::      
+::    ^
+::   / \
+::  2   3
+::       
+:: find the rightmost leaf and in its place put a new tree with the left leaf
+:: the old leaf and the right leaf the new operand
+::
+::    ^
+::   / \
+::  2   ^
+::     3 3  
+::
+::    ^
+::   / \
+::  2   ^
+::     3 \
+::        ^
+::       3 2
+::
+  =/  exponentiation-4
+    :*  %arithmetic
+      %ket
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-3
+        :*  %arithmetic
+          %ket
+          literal-3
+          literal-2
+        ==
+      ==
+    ==
+:: ---------
+:: left assoc algo
+::
+::    2
+::
+:: grab everything and make it the left node of a new tree
+::      
+::    +
+::   / \
+::  2   3
+::       
+::
+::    +
+::   / \
+::  +   4
+:: 2 3  
+::
+  =/  addition-left-assoc
+    :*  %arithmetic
+      %lus
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+::
+::    -
+::   / \
+::  -   4
+:: 2 3  
+::
+  =/  subtraction-left-assoc
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %hep
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  multiplication-left-assoc
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  division-left-assoc
+    :*  %arithmetic
+      %fas
+      :*  %arithmetic
+        %fas
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  addition-triple-left-assoc
+    :*  %arithmetic
+      %lus
+      :*  %arithmetic
+        %lus
+        :*  %arithmetic
+          %lus
+          literal-2
+          literal-3
+        ==
+        literal-4
+      ==
+      literal-5
     ==
   =/  scalars
     :~
       [%scalar exponentiation-1 'foo1']
       [%scalar exponentiation-2 'foo2']
+      [%scalar exponentiation-3 'foo3']
+      [%scalar exponentiation-4 'foo4']
+      [%scalar addition-left-assoc 'foo5']
+      [%scalar subtraction-left-assoc 'foo6']
+      [%scalar multiplication-left-assoc 'foo7']
+      [%scalar division-left-assoc 'foo8']
+      [%scalar addition-triple-left-assoc 'foo9']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq

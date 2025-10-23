@@ -5274,9 +5274,6 @@
     ?:  ?=(scalar-token:ast -.remaining.state)
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
-  :: TODO: add exception here:
-  :: when we find something like this <literal> ^ <literal> put inside cell
-  :: (inside parens basically)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
 :: cleans up %pal and %par from a parsed arithmetic expression
 ++  arithmetic-list  ~+
@@ -5315,40 +5312,75 @@
       "%len %log %month %power %round %sign %sqrt %year" 
     ~|(error-message !!)
   (cook-builtin-scalar-fn builtin-fn)
+++  compute-precedence
+  |=  op=scalar-op:ast
+  ^-  @ud
+  ?-  op
+    %lus  1
+    %hep  1
+    %fas  2
+    %tar  2
+    %ket  3
+  ==
+++  calculate-min-precedence
+  |=  [op=scalar-op:ast]
+  ^-  @ud
+  ?:  =(%ket op)
+    (compute-precedence %ket)
+  (add (compute-precedence op) 1)
+++  mk-arithmetic
+  |=  [op=scalar-op:ast left=datum-or-scalar:ast right=datum-or-scalar:ast]
+  %:  arithmetic:ast
+    %arithmetic
+    op
+    left
+    right
+  ==
+++  tree-to-arithmetic
+  |=  t=(tree $?(scalar-op:ast datum-or-scalar:ast))
+  ?@  t
+    ~|("tree-to-arithmetic: received ~ tree" !!)
+  ?:  ?=(scalar-op:ast n.t)
+    %:  arithmetic:ast
+      %arithmetic
+      n.t
+      $(t l.t)
+      $(t r.t)
+    ==
+  n.t
+++  cook-arithmetic-recursive
+  |=  parsed=*
+  =/  ops-and-operators  (arithmetic-list parsed)
+  =/  nested  (parse-with-precedence ops-and-operators 0)
+  tree.nested
+++  parse-with-precedence
+  |=  [ops=* min-prec=@ud]
+  ^-  [tree=(tree $?(scalar-op:ast datum-or-scalar:ast)) remaining=*]
+  =/  tr=(tree $?(scalar-op:ast datum-or-scalar:ast))
+    ?:  ?=([%literal *] -.ops)
+      [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
+    ?:  ?=([%builtin-fn [@tas *]] -.ops)
+      [(check-and-cook-builtin-fn ->.ops) ~ ~]
+    (cook-arithmetic-recursive -.ops)
+  |-
+  ?~  +.ops
+    [tr ops]
+  =/  next-operator
+    ?:  ?=(scalar-op:ast +<.ops)
+      `scalar-op:ast`+<.ops
+    !!
+  =/  precedence  (compute-precedence next-operator)
+  ?:  (gte precedence min-prec)
+    =/  next-min-precedence  (calculate-min-precedence next-operator)
+    =/  right-tree  (parse-with-precedence +>.ops next-min-precedence)
+    =/  new-tree=(tree $?(scalar-op:ast datum-or-scalar:ast))  [next-operator tr tree.right-tree]
+    $(tr new-tree, ops remaining.right-tree)
+  [tr +>.ops]
 ++  cook-arithmetic
   |=  parsed=*
   ^-  arithmetic:ast
-  =/  ops-and-operators  (arithmetic-list parsed)
-  |-
-  =/  operand1  -.ops-and-operators
-  =/  cooked-operand1
-    ?:  ?=([%literal *] operand1)
-      %:(literal-value:ast %literal-value dime=+.operand1)
-    ?:  ?=([%builtin-fn [@tas *]] operand1)
-      (check-and-cook-builtin-fn +.operand1)
-    $(ops-and-operators operand1)
-  ?~  +>+.ops-and-operators
-    =/  operator  +<.ops-and-operators
-    =/  operand2  +>-.ops-and-operators
-    =/  cooked-operand2
-      ?:  ?=([%literal *] operand2)
-        %:(literal-value:ast %literal-value dime=+.operand2)
-      ?:  ?=([%builtin-fn [@tas *]] operand2)
-        (check-and-cook-builtin-fn +.operand2)
-      $(ops-and-operators operand2)
-    %:  arithmetic:ast
-      %arithmetic
-      operator
-      cooked-operand1
-      cooked-operand2
-    ==
-  =/  operator  +<.ops-and-operators
-  %:  arithmetic:ast
-    %arithmetic
-    operator
-    cooked-operand1
-    $(ops-and-operators +>.ops-and-operators)
-  ==
+  =/  op-tree  (cook-arithmetic-recursive parsed)
+  (tree-to-arithmetic op-tree)
 ++  arithmetic-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
