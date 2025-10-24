@@ -154,27 +154,27 @@
   ?:  (lth sys-time tmsp.nxt-data)  !!
   nxt-data
 ::
-::  +  get-view:  [data-obj-key views] -> (unit view)
+::  +  get-view:  [ns-obj-key views] -> (unit view)
 ::
 ::  get view with current or most recent previous time
 ::
 ::  because ns-obj-comp orders on gth, tab logic requires +1 to include
 ::  exact match
-++  view-key  ((on data-obj-key view) ns-obj-comp)
+++  view-key  ((on ns-obj-key view) ns-obj-comp)
 ++  get-view
-  |=  [key=data-obj-key =views]
+  |=  [key=ns-obj-key =views]
   ^-  (unit view)
   =/  vw  (tab:view-key views `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
   ?~  vw  ~
-  =/  returned-key=data-obj-key  -<.vw
+  =/  returned-key=ns-obj-key  -<.vw
   ?:  &(=(ns.returned-key ns.key) =(obj.returned-key obj.key))  `->.vw
   ~
 ::
-::  +get-view-cache:  [data-obj-key ((mop data-obj-key cache) ns-obj-comp)]
+::  +get-view-cache:  [ns-obj-key ((mop ns-obj-key cache) ns-obj-comp)]
 ::                    -> (unit cache)
-++  view-cache-key  ((on data-obj-key cache) ns-obj-comp)
+++  view-cache-key  ((on ns-obj-key cache) ns-obj-comp)
 ++  get-view-cache
-  |=  [key=data-obj-key q=((mop data-obj-key cache) ns-obj-comp)]
+  |=  [key=ns-obj-key q=((mop ns-obj-key cache) ns-obj-comp)]
   ^-  cache
   =/  vw  (tab:view-cache-key q `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
   ?~  vw
@@ -183,9 +183,9 @@
 ::
 ::  +put-view-cache
 ++  put-view-cache
-  |=  [db=database value=cache key=data-obj-key]
+  |=  [db=database value=cache key=ns-obj-key]
   ^-  database
-  =/  gate  put:((on data-obj-key cache) ns-obj-comp)
+  =/  gate  put:((on ns-obj-key cache) ns-obj-comp)
   db(view-cache (gate view-cache.db [key value]))
 ::
 ::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file

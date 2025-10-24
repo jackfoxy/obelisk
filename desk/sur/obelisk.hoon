@@ -82,6 +82,7 @@
     pri-indx=(unit index)
     join=(unit join-type)
     =predicate
+    =qualified-column-addrs
     rowcount=@
     pri-indexed=(tree [(list @) (map @tas @)])
     indexed-rows=(list indexed-row)
