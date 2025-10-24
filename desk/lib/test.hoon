@@ -86,9 +86,12 @@
           ++  flatten
             |=  tang=(list tank)
             =|  res=tape
+            =/  retang  (flop tang)
             |-  ^-  tape
-            ?~  tang  res
-            $(tang t.tang, res (weld ~(ram re i.tang) res))
+            ?~  retang  res
+            ~&  "{<~(ram re i.retang)>}"
+            ::$(tang t.tang, res (weld ~(ram re i.tang) res))
+            $(retang t.retang)
           --
       %&  ['expected failure - succeeded' ~]
     ==

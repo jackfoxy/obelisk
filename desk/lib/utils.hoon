@@ -429,6 +429,14 @@
           row=indexed-row
           ==
   ^-  (list templ-cell)
+
+    ~&  "cols:  {<cols>}"
+    ~&  " "
+    ~&  "selected:  {<selected>}"
+    ~&  " "
+    ~&  "row:  {<row>}"
+
+
   =/  i  0
   =/  col-lookup
     %-  ~(gas by *(map @tas @ta))
@@ -517,6 +525,11 @@
 ++  addr-indexed
   |=  [row=indexed-row cs=(list templ-cell)]
   ^-  (list templ-cell)
+
+    ~&  " "
+    ~&  "cs:  {<cs>}"
+    ~&  " "
+
   =/  cs2  *(list templ-cell)
   |-
   ?~  cs  (flop cs2)
@@ -524,6 +537,14 @@
   =/  qual-col  (need column.i.cs)
   ::=/  xx=(map @tas @)  -:(~(got by data.row) qualifier.qual-col)
   =/  addr  (~(dig by data.row) name:(need column.i.cs))
+
+    ~&  " "
+    ~&  "addr:  {<addr>}"
+    ~&  "column.i.cs:  {<column.i.cs>}"
+    ~&  " "
+    ~&  "data.row:  {<data.row>}"
+    ~&  " "
+
   %=  $
     cs2  [(templ-cell %templ-cell column.i.cs (need addr) vc.i.cs) cs2]
     cs  t.cs

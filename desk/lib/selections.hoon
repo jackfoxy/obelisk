@@ -64,6 +64,11 @@
                             ~
   ::
   ?~  set-tables.the-relation  ~|("select-relation can't get here" !!)
+
+    ~&  "joined-rows.i.set-tables.the-relation:  {<joined-rows.i.set-tables.the-relation>}"
+    ~&  ""
+    ~&  ""
+
   ::
   :-  :*  %join-return
           state
