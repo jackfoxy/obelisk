@@ -2573,33 +2573,6 @@
         literal-3
       ==
     ==
-::
-::    ^
-::   /  
-::  2    
-::          
-::    ^
-::   / \
-::  2   ^
-::     3 
-::
-::    ^
-::   / \
-::  2   ^
-::     3 3  
-:: ---------
-::    2
-::      
-::    ^
-::   / \
-::  2   3
-::       
-::
-::    ^
-::   / \
-::  2   ^
-::     3 3  
-::
   =/  exponentiation-2
     :*  %arithmetic
       %ket
@@ -2620,29 +2593,6 @@
       ==
       literal-3
     ==
-:: right assoc algo:
-::
-::    2
-::      
-::    ^
-::   / \
-::  2   3
-::       
-:: find the rightmost leaf and in its place put a new tree with the left leaf
-:: the old leaf and the right leaf the new operand
-::
-::    ^
-::   / \
-::  2   ^
-::     3 3  
-::
-::    ^
-::   / \
-::  2   ^
-::     3 \
-::        ^
-::       3 2
-::
   =/  exponentiation-4
     :*  %arithmetic
       %ket
@@ -2657,23 +2607,6 @@
         ==
       ==
     ==
-:: ---------
-:: left assoc algo
-::
-::    2
-::
-:: grab everything and make it the left node of a new tree
-::      
-::    +
-::   / \
-::  2   3
-::       
-::
-::    +
-::   / \
-::  +   4
-:: 2 3  
-::
   =/  addition-left-assoc
     :*  %arithmetic
       %lus
@@ -2684,12 +2617,6 @@
       ==
       literal-4
     ==
-::
-::    -
-::   / \
-::  -   4
-:: 2 3  
-::
   =/  subtraction-left-assoc
     :*  %arithmetic
       %hep
