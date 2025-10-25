@@ -2548,21 +2548,36 @@
 ++  test-arithmetic-7
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 2 ^ 3 ^ 3 END ".
-    "        foo2 BEGIN 2 ^ (3 ^ 3) END ".
-    "        foo3 BEGIN (2 ^ 3) ^ 3 END ".
-    "        foo4 BEGIN 2 ^ 3 ^ 3 ^ 2 END ".
-    "        foo5 BEGIN 2 + 3 + 4 END ".
-    "        foo6 BEGIN 2 - 3 - 4 END ".
-    "        foo7 BEGIN 2 * 3 * 4 END ".
-    "        foo8 BEGIN 2 / 3 / 4 END ".
-    "        foo9 BEGIN 2 + 3 + 4 + 5 END ".
+    "SCALARS foo1  BEGIN 2 ^ 3 ^ 3 END ".
+    "        foo2  BEGIN 2 ^ (3 ^ 3) END ".
+    "        foo3  BEGIN (2 ^ 3) ^ 3 END ".
+    "        foo4  BEGIN 2 + 3 + 4 END ".
+    "        foo5  BEGIN 2 + (3 + 4) END ".
+    "        foo6  BEGIN (2 + 3) + 4 END ".
+    "        foo7  BEGIN 2 - 3 - 4 END ".
+    "        foo8  BEGIN 2 - (3 - 4) END ".
+    "        foo9  BEGIN (2 - 3) - 4 END ".
+    "        foo10 BEGIN 2 * 3 * 4 END ".
+    "        foo11 BEGIN 2 * (3 * 4) END ".
+    "        foo12 BEGIN (2 * 3) * 4 END ".
+    "        foo13 BEGIN 2 / 3 / 4 END ".
+    "        foo14 BEGIN 2 / (3 / 4) END ".
+    "        foo15 BEGIN (2 / 3) / 4 END ".
+    "        foo16 BEGIN 2 + 3 * 4 END ".
+    "        foo17 BEGIN (2 + 3) * 4 END ".
+    "        foo18 BEGIN 2 * 3 + 4 END ".
+    "        foo19 BEGIN 2 * 3 ^ 4 END ".
+    "        foo20 BEGIN (2 * 3) ^ 4 END ".
+    "        foo21 BEGIN 2 ^ 3 * 4 END ".
+    "        foo22 BEGIN 2 + 3 - 4 * 5 / 2 END ".
+    "        foo23 BEGIN 2 ^ 3 + 4 * 5 - 6 / 2 END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
   =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
   =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
   =/  literal-5              [%literal-value dime=[p=~.ud q=5]]
+  =/  literal-6              [%literal-value dime=[p=~.ud q=6]]
   =/  exponentiation-1
     :*  %arithmetic
       %ket
@@ -2593,21 +2608,27 @@
       ==
       literal-3
     ==
-  =/  exponentiation-4
+  =/  addition-left-assoc
     :*  %arithmetic
-      %ket
+      %lus
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  addition-right-assoc
+    :*  %arithmetic
+      %lus
       literal-2
       :*  %arithmetic
-        %ket
+        %lus
         literal-3
-        :*  %arithmetic
-          %ket
-          literal-3
-          literal-2
-        ==
+        literal-4
       ==
     ==
-  =/  addition-left-assoc
+  =/  addition-left-assoc-explicit
     :*  %arithmetic
       %lus
       :*  %arithmetic
@@ -2627,7 +2648,47 @@
       ==
       literal-4
     ==
+  =/  subtraction-right-assoc
+    :*  %arithmetic
+      %hep
+      literal-2
+      :*  %arithmetic
+        %hep
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  subtraction-left-assoc-explicit
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %hep
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
   =/  multiplication-left-assoc
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  multiplication-right-assoc
+    :*  %arithmetic
+      %tar
+      literal-2
+      :*  %arithmetic
+        %tar
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  multiplication-left-assoc-explicit
     :*  %arithmetic
       %tar
       :*  %arithmetic
@@ -2647,31 +2708,151 @@
       ==
       literal-4
     ==
-  =/  addition-triple-left-assoc
+  =/  division-right-assoc
+    :*  %arithmetic
+      %fas
+      literal-2
+      :*  %arithmetic
+        %fas
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  division-left-assoc-explicit
+    :*  %arithmetic
+      %fas
+      :*  %arithmetic
+        %fas
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-1
+    :*  %arithmetic
+      %lus
+      literal-2
+      :*  %arithmetic
+        %tar
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  mixed-precedence-2
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-3
     :*  %arithmetic
       %lus
       :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-4
+    :*  %arithmetic
+      %tar
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  mixed-precedence-5
+    :*  %arithmetic
+      %ket
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-6
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %ket
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-7
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      :*  %arithmetic
+        %fas
+        :*  %arithmetic
+          %tar
+          literal-4
+          literal-5
+        ==
+        literal-2
+      ==
+    ==
+  =/  mixed-precedence-8
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
         %lus
         :*  %arithmetic
-          %lus
+          %ket
           literal-2
           literal-3
         ==
-        literal-4
+        :*  %arithmetic
+          %tar
+          literal-4
+          literal-5
+        ==
       ==
-      literal-5
+      :*  %arithmetic
+        %fas
+        literal-6
+        literal-2
+      ==
     ==
   =/  scalars
     :~
       [%scalar exponentiation-1 'foo1']
       [%scalar exponentiation-2 'foo2']
       [%scalar exponentiation-3 'foo3']
-      [%scalar exponentiation-4 'foo4']
-      [%scalar addition-left-assoc 'foo5']
-      [%scalar subtraction-left-assoc 'foo6']
-      [%scalar multiplication-left-assoc 'foo7']
-      [%scalar division-left-assoc 'foo8']
-      [%scalar addition-triple-left-assoc 'foo9']
+      [%scalar addition-left-assoc 'foo4']
+      [%scalar addition-right-assoc 'foo5']
+      [%scalar addition-left-assoc-explicit 'foo6']
+      [%scalar subtraction-left-assoc 'foo7']
+      [%scalar subtraction-right-assoc 'foo8']
+      [%scalar subtraction-left-assoc-explicit 'foo9']
+      [%scalar multiplication-left-assoc 'foo10']
+      [%scalar multiplication-right-assoc 'foo11']
+      [%scalar multiplication-left-assoc-explicit 'foo12']
+      [%scalar division-left-assoc 'foo13']
+      [%scalar division-right-assoc 'foo14']
+      [%scalar division-left-assoc-explicit 'foo15']
+      [%scalar mixed-precedence-1 'foo16']
+      [%scalar mixed-precedence-2 'foo17']
+      [%scalar mixed-precedence-3 'foo18']
+      [%scalar mixed-precedence-4 'foo19']
+      [%scalar mixed-precedence-5 'foo20']
+      [%scalar mixed-precedence-6 'foo21']
+      [%scalar mixed-precedence-7 'foo22']
+      [%scalar mixed-precedence-8 'foo23']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
