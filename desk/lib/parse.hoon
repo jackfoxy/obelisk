@@ -5328,16 +5328,9 @@
   ?:  =(%ket op)
     (compute-precedence %ket)
   (add (compute-precedence op) 1)
-++  mk-arithmetic
-  |=  [op=scalar-op:ast left=datum-or-scalar:ast right=datum-or-scalar:ast]
-  %:  arithmetic:ast
-    %arithmetic
-    op
-    left
-    right
-  ==
 ++  tree-to-arithmetic
   |=  t=(tree $?(scalar-op:ast datum-or-scalar:ast))
+  ^-  datum-or-scalar:ast
   ?@  t
     ~|("tree-to-arithmetic: received ~ tree" !!)
   ?:  ?=(scalar-op:ast n.t)
@@ -5351,9 +5344,10 @@
 ++  cook-arithmetic-recursive
   |=  parsed=*
   =/  ops-and-operators  (arithmetic-list parsed)
-  =/  nested  (parse-with-precedence ops-and-operators 0)
+  =/  nested  (process-arithmetic-list ops-and-operators 0)
   tree.nested
-++  parse-with-precedence
+:: process arithmetic list with precedence climbing
+++  process-arithmetic-list
   |=  [ops=* min-prec=@ud]
   ^-  [tree=(tree $?(scalar-op:ast datum-or-scalar:ast)) remaining=*]
   =/  tr=(tree $?(scalar-op:ast datum-or-scalar:ast))
@@ -5369,18 +5363,30 @@
     ?:  ?=(scalar-op:ast +<.ops)
       `scalar-op:ast`+<.ops
     !!
-  =/  precedence  (compute-precedence next-operator)
-  ?:  (gte precedence min-prec)
-    =/  next-min-precedence  (calculate-min-precedence next-operator)
-    =/  right-tree  (parse-with-precedence +>.ops next-min-precedence)
-    =/  new-tree=(tree $?(scalar-op:ast datum-or-scalar:ast))  [next-operator tr tree.right-tree]
-    $(tr new-tree, ops remaining.right-tree)
-  [tr +>.ops]
+  =/  current-op-prec  (compute-precedence next-operator)
+  ?:  (gte current-op-prec min-prec)
+    =/  next-min-prec  (calculate-min-precedence next-operator)
+    =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec)
+    =/  new-tree=(tree $?(scalar-op:ast datum-or-scalar:ast))
+      [next-operator tr tree.expr-to-the-right]
+    $(tr new-tree, ops remaining.expr-to-the-right)
+  [tr ops]
 ++  cook-arithmetic
   |=  parsed=*
   ^-  arithmetic:ast
   =/  op-tree  (cook-arithmetic-recursive parsed)
-  (tree-to-arithmetic op-tree)
+  ?@  op-tree
+    !!
+  :: i don't think it's possible to get a ~ tree here
+  ?:  ?=(scalar-op:ast n.op-tree)
+    %:  arithmetic:ast
+      %arithmetic
+      n.op-tree
+      (tree-to-arithmetic l.op-tree)
+      (tree-to-arithmetic r.op-tree)
+    ==
+  :: TODO: maybe add check here for a tree [datum ~ ~], return error
+  !!
 ++  arithmetic-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
