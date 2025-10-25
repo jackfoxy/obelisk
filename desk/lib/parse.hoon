@@ -1,4 +1,4 @@
-/-  ast
+/-  astparse
 !:
 :: a library for parsing urQL tapes
 :: use (parse:parse(default-database '<db>') "<script>")
@@ -5341,11 +5341,6 @@
       $(t r.t)
     ==
   n.t
-++  cook-arithmetic-recursive
-  |=  parsed=*
-  =/  ops-and-operators  (arithmetic-list parsed)
-  =/  nested  (process-arithmetic-list ops-and-operators 0)
-  tree.nested
 :: process arithmetic list with precedence climbing
 ++  process-arithmetic-list
   |=  [ops=* min-prec=@ud]
@@ -5374,7 +5369,9 @@
 ++  cook-arithmetic
   |=  parsed=*
   ^-  arithmetic:ast
-  =/  op-tree  (cook-arithmetic-recursive parsed)
+  =/  ops-and-operators  (arithmetic-list parsed)
+  =/  nested  (process-arithmetic-list ops-and-operators 0) 
+  =/  op-tree  tree.nested
   ?@  op-tree
     !!
   :: i don't think it's possible to get a ~ tree here
