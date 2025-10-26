@@ -622,6 +622,7 @@
                                 ~
                                 ~
                                 ~
+                                ~
                                 1
                                 *(tree [(list @) (map @tas @)])
                                 ~[[%indexed-row ~ indexed-cols]]
@@ -640,6 +641,7 @@
                     [~ created-tmsp.sys-db]
                     columns-out
                     *unqualified-lookup-type
+                    ~
                     ~
                     ~
                     ~

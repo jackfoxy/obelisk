@@ -331,6 +331,7 @@
                          ~
                          join
                          predicate
+                         ~
                          rowcount.view-content
                          ~
                          %+  turn  rows.view-content
@@ -373,6 +374,7 @@
                          [~ pri-indx.tbl2]
                          join
                          predicate
+                         ~
                          rowcount.file
                          pri-idx.file
                          indexed-rows.file
