@@ -2986,4 +2986,17 @@
     'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
     / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
     |.  (parse:parse(default-database default-db) query-string)
+::
+::  test single operand in arithmetic expression
+++  test-fail-arithmetic-09
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN 42 END ".
+    "SELECT foo"
+  ::
+  %+  expect-fail-message
+    'can\'t do arithmetic with only a single operand:\
+    / [%literal-value dime=[p=~.ud q=42]]'
+    |.  (parse:parse(default-database default-db) query-string)
 --

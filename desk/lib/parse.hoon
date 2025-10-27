@@ -5383,8 +5383,7 @@
       (tree-to-arithmetic l.op-tree)
       (tree-to-arithmetic r.op-tree)
     ==
-  :: TODO: maybe add check here for a tree [datum ~ ~], return error
-  !!
+  ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
 ++  arithmetic-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
