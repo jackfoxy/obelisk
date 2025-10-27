@@ -1,4 +1,4 @@
-/-  astparse
+/-  ast
 !:
 :: a library for parsing urQL tapes
 :: use (parse:parse(default-database '<db>') "<script>")
@@ -5350,7 +5350,8 @@
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
       [(check-and-cook-builtin-fn ->.ops) ~ ~]
-    (cook-arithmetic-recursive -.ops)
+    =/  nested  (process-arithmetic-list -.ops 0)
+    tree.nested
   |-
   ?~  +.ops
     [tr ops]
