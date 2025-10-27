@@ -139,11 +139,11 @@
     ==
 +$  predicate     (tree predicate-component)
 +$  datum         $%(qualified-column unqualified-column dime)
-+$  scalar-op     ?(%lus %tar %hep %fas %ket)
-+$  scalar-token  ?(%pal %par scalar-op)
++$  arithmetic-op     ?(%lus %tar %hep %fas %ket)
++$  arithmetic-token  ?(%pal %par arithmetic-op)
 +$  arithmetic
   $:  %arithmetic
-    operator=scalar-op
+    operator=arithmetic-op
     left=datum-or-scalar
     right=datum-or-scalar
     ==

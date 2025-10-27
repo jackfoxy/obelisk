@@ -5271,7 +5271,7 @@
     ?:  ?=(%pal -.remaining.state) 
       =/  nested  (handle-arithmetic-parens +.remaining.state)
       $(state [[new-list.nested new-list.state] remaining.nested])
-    ?:  ?=(scalar-token:ast -.remaining.state)
+    ?:  ?=(arithmetic-token:ast -.remaining.state)
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
@@ -5287,7 +5287,7 @@
     ?:  ?=(%pal -.remaining.state) 
       =/  nested  (handle-arithmetic-parens +.remaining.state)
       $(state [[new-list.nested new-list.state] remaining.nested])
-    ?:  ?=(scalar-token:ast -.remaining.state)
+    ?:  ?=(arithmetic-token:ast -.remaining.state)
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
@@ -5313,7 +5313,7 @@
     ~|(error-message !!)
   (cook-builtin-scalar-fn builtin-fn)
 ++  compute-precedence
-  |=  op=scalar-op:ast
+  |=  op=arithmetic-op:ast
   ^-  @ud
   ?-  op
     %lus  1
@@ -5323,17 +5323,17 @@
     %ket  3
   ==
 ++  calculate-min-precedence
-  |=  [op=scalar-op:ast]
+  |=  [op=arithmetic-op:ast]
   ^-  @ud
   ?:  =(%ket op)
     (compute-precedence %ket)
   (add (compute-precedence op) 1)
 ++  tree-to-arithmetic
-  |=  t=(tree $?(scalar-op:ast datum-or-scalar:ast))
+  |=  t=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
   ^-  datum-or-scalar:ast
   ?@  t
     ~|("tree-to-arithmetic: received ~ tree" !!)
-  ?:  ?=(scalar-op:ast n.t)
+  ?:  ?=(arithmetic-op:ast n.t)
     %:  arithmetic:ast
       %arithmetic
       n.t
@@ -5344,8 +5344,8 @@
 :: process arithmetic list with precedence climbing
 ++  process-arithmetic-list
   |=  [ops=* min-prec=@ud]
-  ^-  [tree=(tree $?(scalar-op:ast datum-or-scalar:ast)) remaining=*]
-  =/  tr=(tree $?(scalar-op:ast datum-or-scalar:ast))
+  ^-  [tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast)) remaining=*]
+  =/  tr=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
     ?:  ?=([%literal *] -.ops)
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
@@ -5356,14 +5356,14 @@
   ?~  +.ops
     [tr ops]
   =/  next-operator
-    ?:  ?=(scalar-op:ast +<.ops)
-      `scalar-op:ast`+<.ops
+    ?:  ?=(arithmetic-op:ast +<.ops)
+      `arithmetic-op:ast`+<.ops
     !!
   =/  current-op-prec  (compute-precedence next-operator)
   ?:  (gte current-op-prec min-prec)
     =/  next-min-prec  (calculate-min-precedence next-operator)
     =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec)
-    =/  new-tree=(tree $?(scalar-op:ast datum-or-scalar:ast))
+    =/  new-tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
       [next-operator tr tree.expr-to-the-right]
     $(tr new-tree, ops remaining.expr-to-the-right)
   [tr ops]
@@ -5376,7 +5376,7 @@
   ?@  op-tree
     !!
   :: i don't think it's possible to get a ~ tree here
-  ?:  ?=(scalar-op:ast n.op-tree)
+  ?:  ?=(arithmetic-op:ast n.op-tree)
     %:  arithmetic:ast
       %arithmetic
       n.op-tree
