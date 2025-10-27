@@ -4,6 +4,8 @@ The full syntax involves complex manipulations at the row level through scalar f
 
 NOTE: scalar and aggregate functions are currently under development and not available. Also, these are subject to change.
 
+`<expression>` many be another scalar function, but not aggregate functions.
+
 ## Control Flow Functions
 
 ```
