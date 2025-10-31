@@ -3,8 +3,6 @@
 ::
 |%
 ::
-::  todo: error message when scalars are defined without a select statement after?
-::
 ::  helper gates
 ::
 ::  mk-selection
@@ -123,7 +121,7 @@
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
 ::
 ++  literal-zod            [%literal-value dime=[p=%p q=0]]
-++  literal-1              [%literal-value dime=[p=%ud q=1]]
+++  literal-1              [%literal-value dime=[p=~.ud q=1]]
 ::
 ::  generic scalar-agnostic tests
 ::
@@ -232,77 +230,202 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-::  test-scalars-04 tests that parsing fails when there are two scalars
+:: one of these makes it type crash
+::  test mixing arithmetic with builtin functions
+::     not sure if we want this to work
+::    "        sc8 BEGIN POWER(CEILING(1.5), ABS(-2)) END ".
+++  test-scalars-4
+  =/  query-string
+    "FROM foo ".
+    "SCALARS sc1 BEGIN ABS(-5) + 1 END ".
+    "        sc2 BEGIN FLOOR(.2.8) - CEILING(.1.2) END ".
+    "        sc3 BEGIN SQRT(4) * POWER(2, 3) END ".
+    "        sc4 BEGIN LOG(10) / ABS(-5) END ".
+    "        sc5 BEGIN ROUND(.3.7, 0) ^ 2 END ".
+    "        sc6 BEGIN LEN('hello') + DAY(2023.1.15) END ".
+    "        sc7 BEGIN (ABS(-3) + FLOOR(.2.9)) * SQRT(16) END ".
+    "        sc9 BEGIN YEAR(2023.6.20) - MONTH(2023.6.20) END ".
+    "        sc10 BEGIN (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-05             [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-28             [%literal-value dime=[p=~.rs q=.2.8]]
+  =/  literal-12             [%literal-value dime=[p=~.rs q=.1.2]]
+  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-10             [%literal-value dime=[p=~.ud q=10]]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+  =/  literal-37             [%literal-value dime=[p=~.rs q=.3.7]]
+  =/  literal-0              [%literal-value dime=[p=~.ud q=0]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-date1          [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-neg3           [%literal-value dime=[p=~.sd q=-3]]
+  =/  literal-29             [%literal-value dime=[p=~.rs q=.2.9]]
+  =/  literal-16             [%literal-value dime=[p=~.ud q=16]]
+  =/  literal-15             [%literal-value dime=[p=~.rs q=.1.5]]
+  =/  literal-neg2           [%literal-value dime=[p=~.sd q=-2]]
+  =/  literal-date2          [%literal-value dime=[p=~.da q=~2023.6.20]]
+  =/  literal-100            [%literal-value dime=[p=~.ud q=100]]
+  =/  literal-9              [%literal-value dime=[p=~.ud q=9]]
+  ::
+  =/  sc1
+    [%arithmetic operator=%lus left=[%abs literal-neg5] right=literal-1]
+  =/  sc2
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%floor literal-28]
+      right=[%ceiling literal-12]
+    ==
+  =/  sc3
+    :*
+      %arithmetic
+      operator=%tar
+      left=[%sqrt literal-4]
+      right=[%power literal-2 literal-3]
+    ==
+  =/  sc4
+    :*
+      %arithmetic
+      operator=%fas
+      left=[%log literal-10 ~]
+      right=[%abs literal-neg5]
+    ==
+  =/  sc5
+    :*
+      %arithmetic
+      operator=%ket
+      left=[%round literal-37 literal-0 ~]
+      right=literal-2
+    ==
+  =/  sc6
+    :*
+      %arithmetic
+      operator=%lus
+      left=[%len literal-hello]
+      right=[%day literal-date1]
+    ==
+  =/  sc7
+    :*
+      %arithmetic
+      operator=%tar
+      left=[%arithmetic operator=%lus left=[%abs literal-neg3] right=[%floor literal-29]]
+      right=[%sqrt literal-16]
+    ==
+  =/  sc8
+    [%power [%ceiling literal-15] [%abs literal-neg2]]
+  =/  sc9
+    :*
+      %arithmetic
+      operator=%hep
+      left=[%year literal-date2]
+      right=[%month literal-date2]
+    ==
+  =/  sc10
+    :*
+      %arithmetic
+      operator=%fas
+      left=[%arithmetic operator=%lus left=[%log literal-100 ~] right=[%sign literal-neg5]]
+      right=[%arithmetic operator=%hep left=[%sqrt literal-9] right=literal-1]
+    ==
+  =/  scalars
+    :~
+      [%scalar sc1 'sc1']
+      [%scalar sc2 'sc2']
+      [%scalar sc3 'sc3']
+      [%scalar sc4 'sc4']
+      [%scalar sc5 'sc5']
+      [%scalar sc6 'sc6']
+      [%scalar sc7 'sc7']
+::      [%scalar `scalar-function:ast`sc8 'sc8']
+      [%scalar sc9 'sc9']
+      [%scalar sc10 'sc10']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  test-fail-scalars-01 tests that parsing fails when there are two scalars
 ::  with the same alias
-++  test-scalars-04
+++  test-fail-scalars-01
   =/  query-string
     "FROM foo ".
     "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
     "        bar1 COALESCE(Foo1,~zod,1,foo3) ".
     "SELECT foo2,foo3"
   ::
-  =/  cte-alias
-    [%cte-alias alias='foo1']
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-  =/  coalesce-2
-    ~[%coalesce cte-alias literal-zod literal-1 unqualified-col-1]
-  %-  expect-fail
+  %+  expect-fail-message
+    'there is already a scalar named \'bar1\''
+    |.  (parse:parse(default-database default-db) query-string)
+::  test-fail-scalars-02 tests that parsing fails when scalars are defined
+::  without a select statement after
+++  test-fail-scalars-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+    "        bar1 COALESCE(Foo1,~zod,1,foo3) "
+  ::
+  %+  expect-fail-message
+    'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  builtin scalar functions
-::  test for optional params
+::  spaces after parameters, also test for optional parameters
 ++  test-builtins-01
-::  spaces after parameters
+::  randomized spacing
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY(2023.1.15) ".
-    "        dt4 MONTH(2023.1.15) ".
-    "        dt5 YEAR(2023.1.15) ".
-    "        mt1 ABS(.5) ".
-    "        mt2 LOG(.5,.2) ".
-    "        mt21 LOG(.5) ".
-    "        mt3 FLOOR(.5) ".
-    "        mt4 POWER(.5, .2) ".
-    "        mt5 CEILING(.5) ".
-    "        mt6 ROUND(.5,2,1) ".
-    "        mt61 ROUND(.5,2) ".
-    "        mt7 SIGN(.5) ".
-    "        mt8 SQRT(.5) ".
-    "        st1 LEN('hello') ".
-    "        st2 LEFT('hello',3) ".
-    "        st3 RIGHT('hello',3) ".
-    "        st4 SUBSTRING('hello',2,3) ".
-    "        st5 TRIM(' ','hello') ".
-    "        st51 TRIM('hello') ".
-    "        st6 CONCAT('hello','world') ".
+    "        dt3 DAY( 2023.1.15  ) ".
+    "        dt4 MONTH(  2023.1.15) ".
+    "        dt5 YEAR(2023.1.15   ) ".
+    "        mt1 ABS(   -5 ) ".
+    "        mt2 LOG(.5  , 2   ) ".
+    "        mt21 LOG(  .5) ".
+    "        mt3 FLOOR( .5    ) ".
+    "        mt4 POWER(    .5,  2) ".
+    "        mt5 CEILING(.5  ) ".
+    "        mt6 ROUND(  .5 ,2   , 1  ) ".
+    "        mt61 ROUND(.5   ,  2) ".
+    "        mt7 SIGN(   -5   ) ".
+    "        mt8 SQRT( .5 ) ".
+    "        st1 LEN(  'hello'   ) ".
+    "        st2 LEFT('hello'  ,  3   ) ".
+    "        st3 RIGHT(   'hello',3 ) ".
+    "        st4 SUBSTRING( 'hello'   , 2  ,3    ) ".
+    "        st5 TRIM(  ' ' ,'hello'  ) ".
+    "        st51 TRIM(   'hello'    ) ".
+    "        st6 CONCAT(  'hello'    ,  'world' ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn-1               [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn-1               [%log literal-float `literal-2]
   =/  log-fn-2               [%log literal-float ~]
   =/  trim-fn-1              [%trim `literal-space literal-hello]
   =/  trim-fn-2              [%trim ~ literal-hello]
@@ -337,56 +460,57 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-     !>  (parse:parse(default-database default-db) query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before parameters
 ++  test-builtins-02
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY( 2023.1.15) ".
-    "        dt4 MONTH( 2023.1.15) ".
+    "        dt3 DAY(  2023.1.15) ".
+    "        dt4 MONTH(   2023.1.15) ".
     "        dt5 YEAR( 2023.1.15) ".
-    "        mt1 ABS( .5) ".
-    "        mt2 LOG( .5, .2) ".
-    "        mt3 FLOOR( .5) ".
-    "        mt4 POWER( .5, .2) ".
+    "        mt1 ABS(    -5) ".
+    "        mt2 LOG( .5,   2) ".
+    "        mt3 FLOOR(  .5) ".
+    "        mt4 POWER(   .5, 2) ".
     "        mt5 CEILING( .5) ".
-    "        mt6 ROUND( .5, 2, 1) ".
-    "        mt7 SIGN( .5) ".
-    "        mt8 SQRT( .5) ".
+    "        mt6 ROUND(    .5,  2, 1) ".
+    "        mt7 SIGN(  -5) ".
+    "        mt8 SQRT(   .5) ".
     "        st1 LEN( 'hello') ".
-    "        st2 LEFT( 'hello', 3) ".
-    "        st3 RIGHT( 'hello', 3) ".
-    "        st4 SUBSTRING( 'hello', 2, 3) ".
-    "        st5 TRIM( ' ', 'hello') ".
-    "        st6 CONCAT( 'hello', 'world') ".
+    "        st2 LEFT(    'hello',  3) ".
+    "        st3 RIGHT(  'hello',   3) ".
+    "        st4 SUBSTRING( 'hello',    2,  3) ".
+    "        st5 TRIM(   ' ', 'hello') ".
+    "        st6 CONCAT(  'hello',    'world') ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn                 [%log literal-float `literal-2]
   =/  trim-fn                [%trim `literal-space literal-hello]
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
@@ -422,49 +546,50 @@
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY(2023.1.15 ) ".
-    "        dt4 MONTH(2023.1.15 ) ".
+    "        dt3 DAY(2023.1.15  ) ".
+    "        dt4 MONTH(2023.1.15    ) ".
     "        dt5 YEAR(2023.1.15 ) ".
-    "        mt1 ABS(.5 ) ".
-    "        mt2 LOG(.5 ,.2 ) ".
-    "        mt3 FLOOR(.5 ) ".
-    "        mt4 POWER(.5 ,.2 ) ".
-    "        mt5 CEILING(.5 ) ".
-    "        mt6 ROUND(.5 ,2 ,1 ) ".
-    "        mt7 SIGN(.5 ) ".
-    "        mt8 SQRT(.5 ) ".
-    "        st1 LEN('hello' ) ".
-    "        st2 LEFT('hello' ,3 ) ".
-    "        st3 RIGHT('hello' ,3 ) ".
-    "        st4 SUBSTRING('hello' ,2 ,3 ) ".
-    "        st5 TRIM(' ' ,'hello' ) ".
-    "        st6 CONCAT('hello' ,'world' ) ".
+    "        mt1 ABS(-5     ) ".
+    "        mt2 LOG(.5  ,2   ) ".
+    "        mt3 FLOOR(.5   ) ".
+    "        mt4 POWER(.5    ,2 ) ".
+    "        mt5 CEILING(.5  ) ".
+    "        mt6 ROUND(.5     ,2  ,1    ) ".
+    "        mt7 SIGN(-5   ) ".
+    "        mt8 SQRT(.5    ) ".
+    "        st1 LEN('hello'  ) ".
+    "        st2 LEFT('hello'     ,3  ) ".
+    "        st3 RIGHT('hello'   ,3    ) ".
+    "        st4 SUBSTRING('hello'  ,2     ,3   ) ".
+    "        st5 TRIM(' '    ,'hello'  ) ".
+    "        st6 CONCAT('hello'   ,'world'     ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn                 [%log literal-float `literal-2]
   =/  trim-fn                [%trim `literal-space literal-hello]
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
@@ -500,49 +625,50 @@
   =/  query-string
     "FROM foo ".
     "SCALARS dt1 GETUTCDATE() ".
-    "        dt3 DAY( 2023.1.15 ) ".
-    "        dt4 MONTH( 2023.1.15 ) ".
-    "        dt5 YEAR( 2023.1.15 ) ".
-    "        mt1 ABS( .5 ) ".
-    "        mt2 LOG( .5 , .2 ) ".
-    "        mt3 FLOOR( .5 ) ".
-    "        mt4 POWER( .5 , .2 ) ".
-    "        mt5 CEILING( .5 ) ".
-    "        mt6 ROUND( .5 , 2 , 1 ) ".
-    "        mt7 SIGN( .5 ) ".
-    "        mt8 SQRT( .5 ) ".
-    "        st1 LEN( 'hello' ) ".
-    "        st2 LEFT( 'hello' , 3 ) ".
-    "        st3 RIGHT( 'hello' , 3 ) ".
-    "        st4 SUBSTRING( 'hello' , 2 , 3 ) ".
-    "        st5 TRIM( ' ' , 'hello' ) ".
-    "        st6 CONCAT( 'hello' , 'world' ) ".
+    "        dt3 DAY(  2023.1.15    ) ".
+    "        dt4 MONTH(   2023.1.15  ) ".
+    "        dt5 YEAR( 2023.1.15     ) ".
+    "        mt1 ABS(    -5  ) ".
+    "        mt2 LOG(  .5   ,   2    ) ".
+    "        mt3 FLOOR(   .5     ) ".
+    "        mt4 POWER( .5    ,  2  ) ".
+    "        mt5 CEILING(    .5   ) ".
+    "        mt6 ROUND(  .5     ,   2  ,  1     ) ".
+    "        mt7 SIGN(   -5    ) ".
+    "        mt8 SQRT( .5     ) ".
+    "        st1 LEN(    'hello'  ) ".
+    "        st2 LEFT(  'hello'    ,   3   ) ".
+    "        st3 RIGHT(   'hello'  ,    3     ) ".
+    "        st4 SUBSTRING( 'hello'     ,  2    ,   3  ) ".
+    "        st5 TRIM(    ' '   ,  'hello'     ) ".
+    "        st6 CONCAT(  'hello'     ,    'world'  ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=%da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=%rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=%rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=%ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=%ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=%ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=%t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=%t q='world']]
-  =/  literal-space          [%literal-value dime=[p=%t q=' ']]
+  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
+  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
+  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
+  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
+  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
+  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
   ::
   =/  getutcdate-fn          [%getutcdate ~]
   =/  day-fn                 [%day literal-date]
   =/  month-fn               [%month literal-date]
   =/  year-fn                [%year literal-date]
-  =/  abs-fn                 [%abs literal-float]
+  =/  abs-fn                 [%abs literal-neg5]
   =/  floor-fn               [%floor literal-float]
   =/  ceiling-fn             [%ceiling literal-float]
-  =/  sign-fn                [%sign literal-float]
+  =/  sign-fn                [%sign literal-neg5]
   =/  sqrt-fn                [%sqrt literal-float]
   =/  len-fn                 [%len literal-hello]
   =/  left-fn                [%left literal-hello literal-3]
   =/  right-fn               [%right literal-hello literal-3]
-  =/  power-fn               [%power literal-float literal-float2]
-  =/  log-fn                 [%log literal-float `literal-float2]
+  =/  power-fn               [%power literal-float literal-2]
+  =/  log-fn                 [%log literal-float `literal-2]
   =/  trim-fn                [%trim `literal-space literal-hello]
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
@@ -572,6 +698,321 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+::  test type mistmatch for %day
+++  test-fail-builtins-day-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo DAY('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for day builtin, have: ~.t, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %month
+++  test-fail-builtins-month-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo MONTH('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for month builtin, have: ~.t, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %year
+++  test-fail-builtins-year-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo YEAR(123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for year builtin, have: ~.ud, need: ~.da'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %abs
+++  test-fail-builtins-abs-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ABS('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for abs builtin, have: ~.t, need: ~.sd'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %floor
+++  test-fail-builtins-floor-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo FLOOR('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for floor builtin, have: ~.t, need: ~.rs'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %ceiling
+++  test-fail-builtins-ceiling-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CEILING('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for ceiling builtin, have: ~.t, need: [~.rs ~.sd ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %sign
+++  test-fail-builtins-sign-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SIGN(2023.1.15) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for sign builtin, have: ~.da, need: ~.sd'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %sqrt
+++  test-fail-builtins-sqrt-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SQRT('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for sqrt builtin, have: ~.t, need: [~.rs ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %len
+++  test-fail-builtins-len-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LEN(123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for len builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %log first parameter
+++  test-fail-builtins-log-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LOG('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message 
+    'mismatched type for log builtin, have: ~.t, need: [~.rs ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %log second parameter
+++  test-fail-builtins-log-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LOG(10, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for log builtin, \
+    /have: [~.ud ~.t ~], need: [[~.rs ~.ud ~] ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %power first parameter
+++  test-fail-builtins-power-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo POWER('hello', 2) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for power builtin, \
+    /have: [~.t ~.ud ~], need: [[~.rs ~.ud ~] ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %power second parameter
+++  test-fail-builtins-power-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo POWER(2, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for power builtin, \
+    /have: [~.ud ~.t ~], need: [[~.rs ~.ud ~] ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %left first parameter
+++  test-fail-builtins-left-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LEFT(123, 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for left builtin, have: [~.ud ~.ud ~], need: [~.t ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %left second parameter
+++  test-fail-builtins-left-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LEFT('hello', 'world') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for left builtin, have: [~.t ~.t ~], need: [~.t ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %right first parameter
+++  test-fail-builtins-right-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo RIGHT(2023.1.15, 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for right builtin, have: [~.da ~.ud ~], need: [~.t ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %right second parameter
+++  test-fail-builtins-right-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo RIGHT('hello', .5) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for right builtin, have: [~.t ~.rs ~], need: [~.t ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %trim first parameter
+++  test-fail-builtins-trim-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo TRIM(123, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for trim builtin, have: [~.ud ~.t ~], need: [~.t ~.t ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %trim second parameter
+++  test-fail-builtins-trim-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo TRIM(' ', 123) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for trim builtin, have: [~.t ~.ud ~], need: [~.t ~.t ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %round first parameter
+++  test-fail-builtins-round-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND('hello', 2) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for round builtin, have: [~.t ~.ud ~], need: [~.rs ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %round second parameter
+++  test-fail-builtins-round-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND(.3.14, 'hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for round builtin, have: [~.rs ~.t ~], need: [~.rs ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %round third parameter
+++  test-fail-builtins-round-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND(.3.14, 2, 'h') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for round builtin, have: [~.rs ~.ud ~.t ~], need: [~.rs ~.ud ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %substring first parameter
+++  test-fail-builtins-substring-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING(123, 2, 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for substring builtin, have: [~.ud ~.ud ~.ud ~], need: [~.t ~.ud ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %substring second parameter
+++  test-fail-builtins-substring-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING('hello', 'world', 3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for substring builtin, have: [~.t ~.t ~.ud ~], need: [~.t ~.ud ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %substring third parameter
+++  test-fail-builtins-substring-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING('hello', 2, .5) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for substring builtin, have: [~.t ~.ud ~.rs ~], need: [~.t ~.ud ~.ud ~]'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test type mismatch for %concat
+++  test-fail-builtins-concat-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CONCAT('hello', 123, 'world') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'mismatched type for concat builtin, have: ~.ud, need: ~.t'
+    |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  coalesce
 ::
@@ -738,21 +1179,9 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with alias.column (default database)
-:: should fail, column alias is not defined
-++  test-coalesce-09
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
+:: should fail, table alias is not defined
 :: test coalesce with if scalar inline
-++  test-coalesce-10
+++  test-coalesce-09
   ::
   =/  query-string
     "FROM foo ".
@@ -780,7 +1209,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with case scalar inline
-++  test-coalesce-11
+++  test-coalesce-10
   ::
   =/  query-string
     "FROM foo ".
@@ -803,7 +1232,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with coalesce scalar inline
-++  test-coalesce-12
+++  test-coalesce-11
   ::
   =/  query-string
     "FROM foo ".
@@ -826,7 +1255,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with a coalesce nested in a coalesce
-++  test-coalesce-13
+++  test-coalesce-12
   ::
   =/  query-string
     "FROM foo ".
@@ -853,7 +1282,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce with space between name and arguments
-++  test-coalesce-14
+++  test-coalesce-13
   ::
   =/  query-string
     "FROM foo ".
@@ -871,15 +1300,29 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+++  test-fail-coalesce-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(MyTable.bar,~zod,1,foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-col-1]
+  %+  expect-fail-message
+    'table alias \'MyTable\' is not defined'
+    |.  (parse:parse(default-database default-db) query-string)
+::
 :: coalesce without parens - should fail
-++  test-coalesce-15
+++  test-fail-coalesce-02
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo COALESCE foo3,~zod,1,foo3 ".
     "SELECT foo2,foo3"
   ::
-  %-  expect-fail
+  %+  expect-fail-message
+    'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  simple if
@@ -1086,27 +1529,6 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo ".
-    "IF 1 = 1 ".
-    " THEN MyTable.bar ".
-    " ELSE MyTable.bar ".
-    "ENDIF ".
-    "SELECT foo2,foo3"
-  ::
-  =/  naked-if 
-    :*  %if-then-else
-      if=simple-true-pred 
-      then=[qualified-col-6]
-      else=[qualified-col-6]
-    ==
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
-:: test if with coalesce scalar inline
-++  test-if-10
-  ::
-  =/  query-string
-    "FROM foo ".
     "SCALARS foo COALESCE(foo2,1,foo2) ".
     "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
@@ -1131,7 +1553,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with case scalar inline
-++  test-if-11
+++  test-if-10
   ::
   =/  query-string
     "FROM foo ".
@@ -1163,7 +1585,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with if scalar inline
-++  test-if-12
+++  test-if-11
   ::
   =/  query-string
     "FROM foo ".
@@ -1196,7 +1618,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with a if nested in a if
-++  test-if-13
+++  test-if-12
   ::
   =/  query-string
     "FROM foo ".
@@ -1237,6 +1659,19 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+++  test-fail-if-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "        IF 1 = 1 THEN MyTable.bar ELSE MyTable.bar ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'table alias \'MyTable\' is not defined'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+:: test if with coalesce scalar inline
 ::  simple case with predicate
 ++  test-case-01
   ::
@@ -1303,8 +1738,45 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with ship.database.namespace.table.column
+::  simple case with predicate, two cases in the same scalar
 ++  test-case-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 ".
+    "                 WHEN 1 = 1 THEN foo3".
+    "                 WHEN 1 = 1 THEN foo3".
+    "                END ".
+    "        foobar CASE foo3 ".
+    "                 WHEN 1 = 1 THEN foo3".
+    "                 WHEN 1 = 1 THEN foo3".
+    "               ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-1
+    :*  %case
+      unqualified-col-1
+      :~  [%case-when-then simple-true-pred unqualified-col-1]
+          [%case-when-then simple-true-pred unqualified-col-1]
+      ==
+      ~
+    ==
+  =/  case-2
+    :*  %case
+      unqualified-col-1
+      :~  [%case-when-then simple-true-pred unqualified-col-1]
+          [%case-when-then simple-true-pred unqualified-col-1]
+      ==
+      (some unqualified-col-2)
+    ==
+  =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: qualified column case scalar with ship.database.namespace.table.column
+++  test-case-05
   ::
   =/  query-string
     "FROM foo ".
@@ -1486,30 +1958,9 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with alias.column (should fail - undefined alias)
-++  test-case-11
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo ".
-    "CASE MyTable.bar ".
-    "WHEN 1 = 1 ".
-    "THEN MyTable.bar ".
-    "ELSE MyTable.bar ".
-    "END ".
-    "SELECT foo2,foo3"
-  ::
-  =/  case-qualified
-    :*  %case
-      qualified-col-6
-      ~[[%case-when-then simple-true-pred qualified-col-6]]
-      (some qualified-col-6)
-    ==
-  %-  expect-fail
-    |.  (parse:parse(default-database default-db) query-string)
-::
+:: qualified column case scalar with alias.column (must fail - undefined alias)
 :: test case with coalesce scalar inline
-++  test-case-12
+++  test-case-11
   ::
   =/  query-string
     "FROM foo ".
@@ -1537,7 +1988,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with if scalar inline
-++  test-case-13
+++  test-case-12
   ::
   =/  query-string
     "FROM foo ".
@@ -1570,7 +2021,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with case scalar inline
-++  test-case-14
+++  test-case-13
   ::
   =/  query-string
     "FROM foo ".
@@ -1603,7 +2054,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: test case with a case nested in a case
-++  test-case-15
+++  test-case-14
   ::
   =/  query-string
     "FROM foo ".
@@ -1643,6 +2094,19 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+++  test-fail-case-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CASE MyTable.bar ".
+    "              WHEN 1 = 1 THEN MyTable.bar".
+    "            ELSE MyTable.bar END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'table alias \'MyTable\' is not defined'
+    |.  (parse:parse(default-database default-db) query-string)
 ::
 :: math
 :: simple math expression
@@ -1962,30 +2426,23 @@
 ::
 :: arithmetic expressions with spacing variations
 ++  test-arithmetic-6
-  ::
-  ::    this can't work: 'BEGIN 1-1 END'
-  ::    there always need to be a space before an operator, otherwise it tries
-  ::    to parse it with value-literal rule. see cord-literal
-  ::
   =/  query-string
-    :: commented some out because not sure that we want double spacing
     "FROM foo ".
     "SCALARS foo1 BEGIN 1 +1 END ".
-::  this infinite loops
-::    "        foo2 BEGIN 1  -  1 END ".
+    "        foo2 BEGIN 1  -  1 END ".
     "        foo3 BEGIN 1 /1 END ".
     "        foo4 BEGIN 1 *1 END ".
- ::   "        foo5 BEGIN 1   ^   1 END ".
+    "        foo5 BEGIN 1   ^   1 END ".
     "        foo6 BEGIN (1 +1)+1 END ".
     "        foo7 BEGIN ( 1 -1 ) - 1 END ".
-::    "        foo8 BEGIN (1 / 1)/  1 END ".
+    "        foo8 BEGIN (1 / 1)/  1 END ".
     "        foo9 BEGIN 1 +( 1 + 1 ) END ".
     "        foo10 BEGIN 1 -(1 -1) END ".
- ::   "        foo11 BEGIN 1  /  (1 / 1) END ".
+    "        foo11 BEGIN 1  /  (1 / 1) END ".
     "        foo12 BEGIN ((1 *1) -1) +1 END ".
     "        foo13 BEGIN ( ( 1 + 1 ) ^ 1 ) - 1 END ".
- ::   "        foo14 BEGIN 1+  (1-(1*1)) END ".
- ::   "        foo15 BEGIN 1*(  1+(1/1)  ) END ".
+    "        foo14 BEGIN 1 +  (1 -(1 *1)) END ".
+    "        foo15 BEGIN 1 *(  1 +(1 /1)  ) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition-no-space
@@ -2041,108 +2498,505 @@
       right=[%arithmetic operator=%fas left=literal-1 right=literal-1]
     ==
   =/  double-nested-minimal
-    :*
-      %arithmetic
-      operator=%lus
-      left=[%arithmetic operator=%hep left=[%arithmetic operator=%tar left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+    :*  %arithmetic
+        %lus
+        [%arithmetic %hep [%arithmetic %tar literal-1 literal-1] literal-1]
+        literal-1
     ==
   =/  double-nested-maximal
-    :*
-      %arithmetic
-      operator=%hep
-      left=[%arithmetic operator=%ket left=[%arithmetic operator=%lus left=literal-1 right=literal-1] right=literal-1]
-      right=literal-1
+    :*  %arithmetic
+        %hep
+        [%arithmetic %ket [%arithmetic %lus literal-1 literal-1] literal-1]
+        literal-1
     ==
   =/  double-nested-right-mixed
-    :*
-      %arithmetic
-      operator=%lus
-      left=literal-1
-      right=[%arithmetic operator=%hep left=literal-1 right=[%arithmetic operator=%tar left=literal-1 right=literal-1]]
+    :*  %arithmetic
+        %lus
+        literal-1
+        [%arithmetic %hep literal-1 [%arithmetic %tar literal-1 literal-1]]
     ==
   =/  double-nested-right-paren-space
-    :*
-      %arithmetic
-      operator=%tar
-      left=literal-1
-      right=[%arithmetic operator=%lus left=literal-1 right=[%arithmetic operator=%fas left=literal-1 right=literal-1]]
+    :*  %arithmetic
+        %tar
+        literal-1
+        [%arithmetic %lus literal-1 [%arithmetic %fas literal-1 literal-1]]
     ==
   =/  scalars
     :~
       [%scalar addition-no-space 'foo1']
-::      [%scalar subtraction-extra-space 'foo2']
+      [%scalar subtraction-extra-space 'foo2']
       [%scalar division-mixed-space 'foo3']
       [%scalar multiplication-mixed-space 'foo4']
-::      [%scalar exponentiation-multi-space 'foo5']
+      [%scalar exponentiation-multi-space 'foo5']
       [%scalar nested-left-no-space 'foo6']
       [%scalar nested-left-paren-space 'foo7']
-::      [%scalar nested-left-mixed 'foo8']
+      [%scalar nested-left-mixed 'foo8']
       [%scalar nested-right-paren-space 'foo9']
       [%scalar nested-right-no-paren-space 'foo10']
-::      [%scalar nested-right-extra-space 'foo11']
+      [%scalar nested-right-extra-space 'foo11']
       [%scalar double-nested-minimal 'foo12']
       [%scalar double-nested-maximal 'foo13']
-::      [%scalar double-nested-right-mixed 'foo14']
-::      [%scalar double-nested-right-paren-space 'foo15']
+      [%scalar double-nested-right-mixed 'foo14']
+      [%scalar double-nested-right-paren-space 'foo15']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-::  simple case AS with datum
-::++  test-scalar-06
-::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN foo ELSE bar END"
-::  %+  expect-eq
-::    !>  case-2
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
 ::
-::  simple case, 2 whens
-::++  test-scalar-07
-::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN foo WHEN 1 = 1 THEN foo ELSE bar END"
-::  %+  expect-eq
-::    !>  case-3
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
+:: test operator associativity
+++  test-arithmetic-7
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo1  BEGIN 2 ^ 3 ^ 3 END ".
+    "        foo2  BEGIN 2 ^ (3 ^ 3) END ".
+    "        foo3  BEGIN (2 ^ 3) ^ 3 END ".
+    "        foo4  BEGIN 2 + 3 + 4 END ".
+    "        foo5  BEGIN 2 + (3 + 4) END ".
+    "        foo6  BEGIN (2 + 3) + 4 END ".
+    "        foo7  BEGIN 2 - 3 - 4 END ".
+    "        foo8  BEGIN 2 - (3 - 4) END ".
+    "        foo9  BEGIN (2 - 3) - 4 END ".
+    "        foo10 BEGIN 2 * 3 * 4 END ".
+    "        foo11 BEGIN 2 * (3 * 4) END ".
+    "        foo12 BEGIN (2 * 3) * 4 END ".
+    "        foo13 BEGIN 2 / 3 / 4 END ".
+    "        foo14 BEGIN 2 / (3 / 4) END ".
+    "        foo15 BEGIN (2 / 3) / 4 END ".
+    "        foo16 BEGIN 2 + 3 * 4 END ".
+    "        foo17 BEGIN (2 + 3) * 4 END ".
+    "        foo18 BEGIN 2 * 3 + 4 END ".
+    "        foo19 BEGIN 2 * 3 ^ 4 END ".
+    "        foo20 BEGIN (2 * 3) ^ 4 END ".
+    "        foo21 BEGIN 2 ^ 3 * 4 END ".
+    "        foo22 BEGIN 2 + 3 - 4 * 5 / 2 END ".
+    "        foo23 BEGIN 2 ^ 3 + 4 * 5 - 6 / 2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
+  =/  literal-5              [%literal-value dime=[p=~.ud q=5]]
+  =/  literal-6              [%literal-value dime=[p=~.ud q=6]]
+  =/  exponentiation-1
+    :*  %arithmetic
+      %ket
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-3
+        literal-3
+      ==
+    ==
+  =/  exponentiation-2
+    :*  %arithmetic
+      %ket
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-3
+        literal-3
+      ==
+    ==
+  =/  exponentiation-3
+    :*  %arithmetic
+      %ket
+      :*  %arithmetic
+        %ket
+        literal-2
+        literal-3
+      ==
+      literal-3
+    ==
+  =/  addition-left-assoc
+    :*  %arithmetic
+      %lus
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  addition-right-assoc
+    :*  %arithmetic
+      %lus
+      literal-2
+      :*  %arithmetic
+        %lus
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  addition-left-assoc-explicit
+    :*  %arithmetic
+      %lus
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  subtraction-left-assoc
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %hep
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  subtraction-right-assoc
+    :*  %arithmetic
+      %hep
+      literal-2
+      :*  %arithmetic
+        %hep
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  subtraction-left-assoc-explicit
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %hep
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  multiplication-left-assoc
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  multiplication-right-assoc
+    :*  %arithmetic
+      %tar
+      literal-2
+      :*  %arithmetic
+        %tar
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  multiplication-left-assoc-explicit
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  division-left-assoc
+    :*  %arithmetic
+      %fas
+      :*  %arithmetic
+        %fas
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  division-right-assoc
+    :*  %arithmetic
+      %fas
+      literal-2
+      :*  %arithmetic
+        %fas
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  division-left-assoc-explicit
+    :*  %arithmetic
+      %fas
+      :*  %arithmetic
+        %fas
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-1
+    :*  %arithmetic
+      %lus
+      literal-2
+      :*  %arithmetic
+        %tar
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  mixed-precedence-2
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-3
+    :*  %arithmetic
+      %lus
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-4
+    :*  %arithmetic
+      %tar
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-3
+        literal-4
+      ==
+    ==
+  =/  mixed-precedence-5
+    :*  %arithmetic
+      %ket
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-6
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %ket
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  =/  mixed-precedence-7
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %lus
+        literal-2
+        literal-3
+      ==
+      :*  %arithmetic
+        %fas
+        :*  %arithmetic
+          %tar
+          literal-4
+          literal-5
+        ==
+        literal-2
+      ==
+    ==
+  =/  mixed-precedence-8
+    :*  %arithmetic
+      %hep
+      :*  %arithmetic
+        %lus
+        :*  %arithmetic
+          %ket
+          literal-2
+          literal-3
+        ==
+        :*  %arithmetic
+          %tar
+          literal-4
+          literal-5
+        ==
+      ==
+      :*  %arithmetic
+        %fas
+        literal-6
+        literal-2
+      ==
+    ==
+  =/  scalars
+    :~
+      [%scalar exponentiation-1 'foo1']
+      [%scalar exponentiation-2 'foo2']
+      [%scalar exponentiation-3 'foo3']
+      [%scalar addition-left-assoc 'foo4']
+      [%scalar addition-right-assoc 'foo5']
+      [%scalar addition-left-assoc-explicit 'foo6']
+      [%scalar subtraction-left-assoc 'foo7']
+      [%scalar subtraction-right-assoc 'foo8']
+      [%scalar subtraction-left-assoc-explicit 'foo9']
+      [%scalar multiplication-left-assoc 'foo10']
+      [%scalar multiplication-right-assoc 'foo11']
+      [%scalar multiplication-left-assoc-explicit 'foo12']
+      [%scalar division-left-assoc 'foo13']
+      [%scalar division-right-assoc 'foo14']
+      [%scalar division-left-assoc-explicit 'foo15']
+      [%scalar mixed-precedence-1 'foo16']
+      [%scalar mixed-precedence-2 'foo17']
+      [%scalar mixed-precedence-3 'foo18']
+      [%scalar mixed-precedence-4 'foo19']
+      [%scalar mixed-precedence-5 'foo20']
+      [%scalar mixed-precedence-6 'foo21']
+      [%scalar mixed-precedence-7 'foo22']
+      [%scalar mixed-precedence-8 'foo23']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::
-::  2 whens, embedded if for else
-::++  test-scalar-08
-::  =/  scalar  "SCALAR foobar AS CASE foo3 ".
-::" WHEN foo2 THEN foo WHEN 1 = 1 THEN foo ".
-::" ELSE IF 1 = 1 THEN foo ELSE bar ENDIF END"
-::  %+  expect-eq
-::    !>  case-4
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
+:: test that there can't be an operator right after an operand
 ::
-::  3 whens, coalesce, embedded if for else
-::++  test-scalar-09
-::  =/  scalar  "SCALAR foobar AS CASE foo3 ".
-::" WHEN foo2 THEN foo ".
-::" WHEN 1 = 1 THEN foo ".
-::" WHEN foo3 THEN COALESCE bar,~zod,1,foo ".
-::" ELSE IF 1 = 1 THEN foo ELSE bar ENDIF END"
-::  %+  expect-eq
-::    !>  case-5
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
+:: explaination: due to parsing rules there always need to be a space before an
+:: operator, otherwise it tries to parse it with value-literal rule. see
+:: cord-literal
+++  test-fail-arithmetic-1
+  ::
+  ::
+  ::    "        foo14 BEGIN 1 +  (1-(1*1)) END ".
+  =/  query-string
+    :: commented some out because not sure that we want double spacing
+    "FROM foo ".
+    "SCALARS foo1 BEGIN 1+1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
 ::
-::  if aggragate
-::++  test-scalar-10
-::  =/  scalar  "SCALAR foobar IF count(foo)=1 THEN foo3 else bar ENDIF"
-::  %+  expect-eq
-::    !>  [[%scalar %foobar] [%if [%eq [aggregate-count-foobar 0 0] literal-1 0 0] %then unqualified-col-1 %else column-bar %endif]]
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
+::  test-fail-arithmetic-* tests verify that non-arithmetic builtin functions
+::  (one that return string and date) can't be used with arithmetic operators
 ::
-::  coalesce aggragate
-::++  test-scalar-11
-::  =/  scalar  "SCALAR foobar AS COALESCE count(foo),~zod,1,foo"
-::  %+  expect-eq
-::    !>  [[%scalar %foobar] ~[%coalesce aggregate-count-foobar literal-zod literal-1 column-foo]]
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
+::  test mixing string function CONCAT with addition operator
+++  test-fail-arithmetic-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN CONCAT('hello', 'world') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
 ::
-::  case aggregate
-::++  test-scalar-12
-::  =/  scalar  "SCALAR foobar AS CASE foo3 WHEN foo2 THEN count(foo) ELSE count(foo) END"
-::  %+  expect-eq
-::    !>  case-aggregate
-::    !>  (wonk (parse-scalar:parse [[1 1] scalar]))
+::  test mixing string function LEFT with subtraction operator
+++  test-fail-arithmetic-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN LEFT('hello', 2) - 5 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
 ::
+::  test mixing string function RIGHT with multiplication operator
+++  test-fail-arithmetic-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN 10 * RIGHT('world', 3) END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %right in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function SUBSTRING with division operator
+++  test-fail-arithmetic-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN SUBSTRING('hello', 1, 3) / 2 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %substring in arithmetic expression, allowed scalars:\
+    / %abs %ceiling %day %floor %len %log %month %power %round %sign %sqrt\
+    / %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function TRIM with exponentiation operator
+++  test-fail-arithmetic-05
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN 2 ^ TRIM('  hello  ') END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %trim in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing date function GETUTCDATE with addition operator
+++  test-fail-arithmetic-06
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN GETUTCDATE() + 100 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %getutcdate in arithmetic expression, allowed scalars:\
+    / %abs %ceiling %day %floor %len %log %month %power %round %sign %sqrt\
+    / %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string on both sides of operator
+++  test-fail-arithmetic-07
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN LEFT('abc', 1) + RIGHT('xyz', 1) END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test nested arithmetic with string function
+++  test-fail-arithmetic-08
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN (5 + CONCAT('a', 'b')) * 2 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
+    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test single operand in arithmetic expression
+++  test-fail-arithmetic-09
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN 42 END ".
+    "SELECT foo"
+  ::
+  %+  expect-fail-message
+    'can\'t do arithmetic with only a single operand:\
+    / [%literal-value dime=[p=~.ud q=42]]'
+    |.  (parse:parse(default-database default-db) query-string)
 --

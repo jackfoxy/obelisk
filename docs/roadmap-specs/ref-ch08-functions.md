@@ -37,29 +37,9 @@ NOT ::=
 
 ## Scalar Functions
 
-`<expression>` many be another scalar function, but not aggregate functions.
 
 ### arithmetic operators
 
-```
-<addition> ::= 
-    <expression> + <expression>
-```
-
-```
-<subtraction> ::=
-  <expression> - <expression>
-```
-
-```
-<multiplication> ::=
-  <expression> * <expression>
-```
-
-```
-<division> ::=
-  <expression> / <expression>
-```
 
 ```
 <modulo> ::=
@@ -73,17 +53,6 @@ Returns the integer remainder of a division.
 ```
 NOT (-4) → 4
 
-```
-<exponentiation> ::=
-  <expression> ^ <expression>
-```
-2 ^ 3 → 8
-
-Unlike typical mathematical practice, multiple uses of ^ will associate left to right by default:
-
-2 ^ 3 ^ 3 → 512
-
-2 ^ (3 ^ 3) → 134217728
 
 ### bitwise operators
 
@@ -136,23 +105,6 @@ A scalar returning a predicate follows the same construction rules as a `WHERE` 
 (misc scalars)
 https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/appendix-e-scalar-functions?view=sql-server-ver16
 https://www.postgresql.org/docs/14/functions.html
-
-### string scalars
-
-https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/string-functions?view=sql-server-ver16
-https://www.postgresql.org/docs/14/functions-string.html
-https://www.postgresql.org/docs/15/functions-binarystring.html
-https://www.postgresql.org/docs/15/functions-bitstring.html
-
-### numeric scalars
-
-https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/numeric-functions?view=sql-server-ver16
-https://www.postgresql.org/docs/15/functions-math.html
-
-### date scalars
-
-https://learn.microsoft.com/en-us/sql/odbc/reference/appendixes/time-date-and-interval-functions?view=sql-server-ver16
-https://www.postgresql.org/docs/15/functions-datetime.html
 
 ### conversion and casting
 
