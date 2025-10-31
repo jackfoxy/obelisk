@@ -2931,150 +2931,9 @@
   ?:  =(%arithmetic fn-name)
      =/  cooked-math  (cook-arithmetic raw-scalar-body)
        cooked-math
-   ::  nullary builtin functions (no parameters, cast directly)
-   ?:  =(%getutcdate fn-name)
-     ^-  getutcdate:ast
-       [%getutcdate ~]
-   ::  unary builtin functions
-   ?:  =(%day fn-name)
-     ^-  day:ast
-     :*
-       %day
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%month fn-name)
-     ^-  month:ast
-     :*
-       %month
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%year fn-name)
-     ^-  year:ast
-     :*
-       %year
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%abs fn-name)
-     ^-  abs:ast
-     :*
-       %abs
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%floor fn-name)
-     ^-  floor:ast
-     :*
-       %floor
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%ceiling fn-name)
-     ^-  ceiling:ast
-     :*
-       %ceiling
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%sign fn-name)
-     ^-  sign:ast
-     :*
-       %sign
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%sqrt fn-name)
-     ^-  sqrt:ast
-     :*
-       %sqrt
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ?:  =(%len fn-name)
-     ^-  len:ast
-     :*
-       %len
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ::  binary builtin functions
-   ?:  =(%log fn-name)
-     ^-  log:ast
-     ?:  ?=([[@ @] *] raw-scalar-body)
-       :*
-         %log
-         (cook-builtin-fn-parameter -.raw-scalar-body)
-         (cook-builtin-fn-optional-parameter +.raw-scalar-body)
-       ==
-     :*
-       %log
-       (cook-builtin-fn-parameter raw-scalar-body)
-       ~
-     ==
-   ?:  =(%power fn-name)
-     ^-  power:ast
-     :*
-       %power
-       (cook-builtin-fn-parameter -.raw-scalar-body)
-       (cook-builtin-fn-parameter +.raw-scalar-body)
-     ==
-   ?:  =(%left fn-name)
-     ^-  left:ast
-     :*
-       %left
-       (cook-builtin-fn-parameter -.raw-scalar-body)
-       (cook-builtin-fn-parameter +.raw-scalar-body)
-     ==
-   ?:  =(%right fn-name)
-     ^-  right:ast
-     :*
-       %right
-       (cook-builtin-fn-parameter -.raw-scalar-body)
-       (cook-builtin-fn-parameter +.raw-scalar-body)
-     ==
-   ?:  =(%trim fn-name)
-     ^-  trim:ast
-     ?:  ?=([[@ @] *] raw-scalar-body)
-       :*
-         %trim
-         (cook-builtin-fn-optional-parameter -.raw-scalar-body)
-         (cook-builtin-fn-parameter +.raw-scalar-body)
-       ==
-     :*
-       %trim
-       ~
-       (cook-builtin-fn-parameter raw-scalar-body)
-     ==
-   ::  ternary builtin functions
-   ?:  =(%round fn-name)
-     ^-  round:ast
-     ?:  ?=([[@ @] * *] raw-scalar-body)
-       ?:  ?=([[@ @] *] +.raw-scalar-body)
-         :*
-           %round
-           (cook-builtin-fn-parameter -.raw-scalar-body)
-           (cook-builtin-fn-parameter +<.raw-scalar-body)
-           (cook-builtin-fn-optional-parameter +>.raw-scalar-body)
-         ==
-       :*
-         %round
-         (cook-builtin-fn-parameter -.raw-scalar-body)
-         (cook-builtin-fn-parameter +.raw-scalar-body)
-         ~
-       ==
-     !!
-   ?:  =(%substring fn-name)
-     ^-  substring:ast
-     :*
-       %substring
-       (cook-builtin-fn-parameter -.raw-scalar-body)
-       (cook-builtin-fn-parameter +<.raw-scalar-body)
-       (cook-builtin-fn-parameter +>.raw-scalar-body)
-     ==
-   ::  n-ary builtin functions
-   ?:  =(%concat fn-name)
-     =/  cooked-params=(list literal-value:ast)
-       |-
-       ?~  raw-scalar-body
-         ~
-       :-  (cook-builtin-fn-parameter -.raw-scalar-body)
-       $(raw-scalar-body +.raw-scalar-body)
-     ^-  concat:ast
-       [%concat cooked-params]
-   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
+  ?:  =(%builtin-fn fn-name)
+    (cook-builtin-scalar-fn raw-scalar-body)
+  ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
   |=  [raw-scalars=* table-aliases=(map @t qualified-table:ast)]
   ^-  (list scalar:ast)
@@ -4845,7 +4704,7 @@
   ^-  literal-value:ast
   ?:  ?=([@ @] parsed)
     [%literal-value dime=`dime`parsed]
-  ~|("unexpected value: {<parsed>}" !!)
+  ~|("cook-builtin-fn-parameter: unexpected value: {<parsed>}" !!)
 ++  cook-builtin-fn-optional-parameter
   |=  parsed=*
   ^-  (unit literal-value:ast)
@@ -4905,30 +4764,355 @@
   ==
 ::
 ++  parse-quoted-string  (ifix [soq soq] (star mixed-case-symbol))
+++  cook-builtin-scalar-fn
+  |=  parsed=*
+  =/  fn-name  -.parsed
+  =/  raw-scalar-body  +.parsed
+  ::  nullary builtin functions (no parameters, cast directly)
+  ?:  =(%getutcdate fn-name)
+    ^-  getutcdate:ast
+      [%getutcdate ~]
+  ::  unary builtin functions
+  ?:  =(%day fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:day-signature:ast
+    ?:  =(have need)
+      ^-  day:ast
+      :*
+        %day
+        cooked-first-param
+      ==
+    ~|("mismatched type for day builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%month fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:month-signature:ast
+    ?:  =(have need)
+      ^-  month:ast
+      :*
+        %month
+        cooked-first-param
+      ==
+    ~|("mismatched type for month builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%year fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:year-signature:ast
+    ?:  =(have need)
+      ^-  year:ast
+      :*
+        %year
+        cooked-first-param
+      ==
+    ~|("mismatched type for year builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%abs fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:abs-signature:ast
+    ?:  =(have need)
+      ^-  abs:ast
+      :*
+        %abs
+        cooked-first-param
+      ==
+    ~|("mismatched type for abs builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%floor fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:floor-signature:ast
+    ?:  =(have need)
+      ^-  floor:ast
+      :*
+        %floor
+        cooked-first-param
+      ==
+    ~|("mismatched type for floor builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%ceiling fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:ceiling-signature:ast
+    ?:  !=((find [have]~ need) ~)
+      ^-  ceiling:ast
+      :*
+        %ceiling
+        cooked-first-param
+      ==
+    ~|("mismatched type for ceiling builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%sign fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:sign-signature:ast
+    ?:  =(have need)
+      ^-  sign:ast
+      :*
+        %sign
+        cooked-first-param
+      ==
+    ~|("mismatched type for sign builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%sqrt fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:sqrt-signature:ast
+    ?:  !=((find [have]~ need) ~)
+      ^-  sqrt:ast
+      :*
+        %sqrt
+        cooked-first-param
+      ==
+    ~|("mismatched type for sqrt builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%len fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+    =/  have  p.dime.cooked-first-param
+    =/  need  -.params:len-signature:ast
+    ?:  =(have need)
+      ^-  len:ast
+      :*
+        %len
+        cooked-first-param
+      ==
+    ~|("mismatched type for len builtin, have: {<have>}, need: {<need>}" !!)
+  ::  binary builtin functions
+  ?:  =(%log fn-name)
+    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  have-second  p.dime.cooked-second-param
+      =/  need-first  -.params:log-signature:ast
+      =/  need-second  +<.params:log-signature:ast
+      ?:  ?&  !=((find [have-first]~ need-first) ~)
+              =(have-second need-second)
+          ==
+        ^-  log:ast
+        :*
+          %log
+          cooked-first-param
+          (some cooked-second-param)
+        ==
+    =/  have  [have-first have-second ~]
+    =/  need  params:log-signature:ast
+    ~|("mismatched type for log builtin, have: {<have>}, need: {<need>}" !!)
+    ?:  ?=([@ @] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  need-first  -.params:log-signature:ast
+      ?:  !=((find [have-first]~ need-first) ~)
+        ^-  log:ast
+        :*
+          %log
+          cooked-first-param
+          ~
+        ==
+      =/  have  have-first
+      =/  need  need-first
+      ~|("mismatched type for log builtin, have: {<have>}, need: {<need>}" !!)
+    !!
+  ?:  =(%power fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+    =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+    =/  have-first  p.dime.cooked-first-param
+    =/  have-second  p.dime.cooked-second-param
+    =/  need-first  -.params:power-signature:ast
+    =/  need-second  +<.params:power-signature:ast
+    ?:  ?&  !=((find [have-first]~ need-first) ~)
+            =(have-second need-second)
+        ==
+      ^-  power:ast
+      :*
+        %power
+        cooked-first-param
+        cooked-second-param
+      ==
+    =/  have  ~[have-first have-second]
+    =/  need  params:power-signature:ast
+    ~|("mismatched type for power builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%left fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+    =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+    =/  have-first  p.dime.cooked-first-param
+    =/  have-second  p.dime.cooked-second-param
+    =/  need-first  -.params:left-signature:ast
+    =/  need-second  +<.params:left-signature:ast
+    ?:  ?&  =(have-first need-first)
+            =(have-second need-second)
+        ==
+      ^-  left:ast
+      :*
+        %left
+        cooked-first-param
+        cooked-second-param
+      ==
+    =/  need  [have-first have-second ~]
+    =/  have  params:left-signature:ast
+    ~|("mismatched type for left builtin, have: {<need>}, need: {<have>}" !!)
+  ?:  =(%right fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+    =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+    =/  have-first  p.dime.cooked-first-param
+    =/  have-second  p.dime.cooked-second-param
+    =/  need-first  -.params:right-signature:ast
+    =/  need-second  +<.params:right-signature:ast
+    ?:  ?&  =(have-first need-first)
+            =(have-second need-second)
+        ==
+      ^-  right:ast
+      :*
+        %right
+        cooked-first-param
+        cooked-second-param
+      ==
+    =/  have  ~[have-first have-second]
+    =/  need  params:right-signature:ast
+    ~|("mismatched type for right builtin, have: {<have>}, need: {<need>}" !!)
+  ?:  =(%trim fn-name)
+    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  have-second  p.dime.cooked-second-param
+      =/  need-first  -.params:trim-signature:ast
+      =/  need-second  +<.params:trim-signature:ast
+      ?:  ?&  =(have-first need-first)
+              =(have-second need-second)
+          ==
+        ^-  trim:ast
+        :*
+          %trim
+          (some cooked-first-param)
+          cooked-second-param
+        ==
+      =/  have  ~[have-first have-second]
+      =/  need  params:trim-signature:ast
+      ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
+    ?:  ?=([@ @] raw-scalar-body)
+      =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
+      =/  have  p.dime.cooked-param
+      =/  need  +<.params:trim-signature:ast
+      ?:  =(have need)
+        ^-  trim:ast
+        :*
+          %trim
+          ~
+          cooked-param
+        ==
+      ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
+    !!
+  ::  ternary builtin functions
+  ?:  =(%round fn-name)
+    ?:  ?=([[@ @] [@ @] [@ @]] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
+      =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  have-second  p.dime.cooked-second-param
+      =/  have-third  p.dime.cooked-third-param
+      =/  need-first  -.params:round-signature:ast
+      =/  need-second  +<.params:round-signature:ast
+      =/  need-third  +>-.params:round-signature:ast
+      ?:  ?&  =(have-first need-first)
+              =(have-second need-second)
+              =(have-third need-third)
+          ==
+        ^-  round:ast
+        :*
+          %round
+          cooked-first-param
+          cooked-second-param
+          (some cooked-third-param)
+        ==
+      =/  have  ~[have-first have-second have-third]
+      =/  need  params:round-signature:ast
+      =/  error-message
+        "mismatched type for round builtin, have: {<have>}, need: {<need>}" 
+      ~|(error-message !!)
+    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
+      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+      =/  have-first  p.dime.cooked-first-param
+      =/  have-second  p.dime.cooked-second-param
+      =/  need-first  -.params:round-signature:ast
+      =/  need-second  +<.params:round-signature:ast
+      ?:  ?&  =(have-first need-first)
+              =(have-second need-second)
+          ==
+        ^-  round:ast
+        :*
+          %round
+          cooked-first-param
+          cooked-second-param
+          ~
+        ==
+      =/  have  ~[have-first have-second]
+      =/  need  [-.params:round-signature:ast +<.params:round-signature:ast ~]
+      ~|("mismatched type for round builtin, have: {<have>}, need: {<need>}" !!)
+    !!
+  ?:  =(%substring fn-name)
+    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+    =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
+    =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
+    =/  have-first  p.dime.cooked-first-param
+    =/  have-second  p.dime.cooked-second-param
+    =/  have-third  p.dime.cooked-third-param
+    =/  need-first  -.params:substring-signature:ast
+    =/  need-second  +<.params:substring-signature:ast
+    =/  need-third  +>-.params:substring-signature:ast
+    ?:  ?&  =(have-first need-first)
+            =(have-second need-second)
+            =(have-third need-third)
+        ==
+      ^-  substring:ast
+      :*
+        %substring
+        cooked-first-param
+        cooked-second-param
+        cooked-third-param
+      ==
+    =/  have  ~[have-first have-second have-third]
+    =/  need  params:substring-signature:ast
+    ~|("mismatched type for substring builtin, have: {<have>}, need: {<need>}" !!)
+  ::  n-ary builtin functions
+  ?:  =(%concat fn-name)
+    =/  need  params:concat-signature:ast
+    =/  cooked-params=(list literal-value:ast)
+      |-
+      ?~  raw-scalar-body
+        ~
+      =/  cooked  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  have  p.dime.cooked
+      ?.  =(have need)
+        ~|("mismatched type for concat builtin, have: {<have>}, need: {<need>}" !!)
+      :-  cooked
+      $(raw-scalar-body +.raw-scalar-body)
+    ^-  concat:ast
+      [%concat cooked-params]
+  ~|("unknown builtin scalar fn {<fn-name>}" !!)
 ++  parse-builtin-scalar-fn
-  ;~  pose
-    (parse-nullary-scalar-fn %getutcdate)
-    (parse-unary-scalar-fn %day parse-value-literal)
-    (parse-unary-scalar-fn %month parse-value-literal)
-    (parse-unary-scalar-fn %year parse-value-literal)
-    (parse-unary-scalar-fn %abs parse-value-literal)
-    (parse-unary-scalar-fn %floor parse-value-literal)
-    (parse-unary-scalar-fn %ceiling parse-value-literal)
-    (parse-unary-scalar-fn %sign parse-value-literal)
-    (parse-unary-scalar-fn %sqrt parse-value-literal)
-    (parse-unary-scalar-fn %len parse-value-literal)
-    (parse-binary-scalar-fn %log parse-value-literal parse-value-literal)
-    (parse-unary-scalar-fn %log parse-value-literal)
-    (parse-binary-scalar-fn %power parse-value-literal parse-value-literal)
-    (parse-binary-scalar-fn %left parse-value-literal parse-value-literal)
-    (parse-binary-scalar-fn %right parse-value-literal parse-value-literal)
-    (parse-binary-scalar-fn %trim parse-value-literal parse-value-literal)
-    (parse-unary-scalar-fn %trim parse-value-literal)
-    (parse-ternary-scalar-fn %round parse-value-literal parse-value-literal parse-value-literal)
-    (parse-binary-scalar-fn %round parse-value-literal parse-value-literal)
-    (parse-ternary-scalar-fn %substring parse-value-literal parse-value-literal parse-value-literal)
-    (parse-n-ary-scalar-fn %concat parse-value-literal)
-  ==
+  %+  stag
+    %builtin-fn
+    ;~  pose
+      (parse-nullary-scalar-fn %getutcdate)
+      (parse-unary-scalar-fn %day parse-value-literal)
+      (parse-unary-scalar-fn %month parse-value-literal)
+      (parse-unary-scalar-fn %year parse-value-literal)
+      (parse-unary-scalar-fn %abs parse-value-literal)
+      (parse-unary-scalar-fn %floor parse-value-literal)
+      (parse-unary-scalar-fn %ceiling parse-value-literal)
+      (parse-unary-scalar-fn %sign parse-value-literal)
+      (parse-unary-scalar-fn %sqrt parse-value-literal)
+      (parse-unary-scalar-fn %len parse-value-literal)
+      (parse-binary-scalar-fn %log parse-value-literal parse-value-literal)
+      (parse-unary-scalar-fn %log parse-value-literal)
+      (parse-binary-scalar-fn %power parse-value-literal parse-value-literal)
+      (parse-binary-scalar-fn %left parse-value-literal parse-value-literal)
+      (parse-binary-scalar-fn %right parse-value-literal parse-value-literal)
+      (parse-binary-scalar-fn %trim parse-value-literal parse-value-literal)
+      (parse-unary-scalar-fn %trim parse-value-literal)
+      (parse-ternary-scalar-fn %round parse-value-literal parse-value-literal parse-value-literal)
+      (parse-binary-scalar-fn %round parse-value-literal parse-value-literal)
+      (parse-ternary-scalar-fn %substring parse-value-literal parse-value-literal parse-value-literal)
+      (parse-n-ary-scalar-fn %concat parse-value-literal)
+    ==
 ::
 ++  cook-scalar-param
   |=  parsed=*
@@ -5078,65 +5262,128 @@
 :: used when recursing on %pal and %par
 ++  handle-arithmetic-parens  ~+
   |=  a=*
-  ^-  [nl=(list *) r=*]
-  =/  state  [nl=*(list *) r=a]
+  ^-  [new-list=(list *) remaining=*]
+  =/  state  [new-list=*(list *) remaining=a]
   |-
-  ?:  =(-.r.state %par)
-    [(flop nl.state) +.r.state]
-  ?:  ?=([%literal *] -.r.state) 
-    $(state [[-.r.state nl.state] +.r.state])
-  ?:  ?=(%pal -.r.state) 
-    =/  nested  (handle-arithmetic-parens +.r.state)
-    $(state [[nl.nested nl.state] r.nested])
-  ?:  ?=(scalar-token:ast -.r.state)
-    $(state [[-.r.state nl.state] +.r.state])
-  ~|("arithmetic list problem with noun: {<a>}" !!)
+  ?@  -.remaining.state
+    ?:  =(-.remaining.state %par)
+      [(flop new-list.state) +.remaining.state]
+    ?:  ?=(%pal -.remaining.state) 
+      =/  nested  (handle-arithmetic-parens +.remaining.state)
+      $(state [[new-list.nested new-list.state] remaining.nested])
+    ?:  ?=(arithmetic-token:ast -.remaining.state)
+      $(state [[-.remaining.state new-list.state] +.remaining.state])
+    ~|("arithmetic list problem with noun: {<a>}" !!)
+  $(state [[-.remaining.state new-list.state] +.remaining.state])
 :: cleans up %pal and %par from a parsed arithmetic expression
 ++  arithmetic-list  ~+
   |=  a=*
   ^-  *
-  =/  state  [nl=*(list *) r=a]
+  =/  state  [new-list=*(list *) remaining=a]
   |-
-  ?~  r.state
-    (flop nl.state)
-  ?:  ?=([%literal *] -.r.state) 
-    $(state [[-.r.state nl.state] +.r.state])
-  ?:  ?=(%pal -.r.state) 
-    =/  nested  (handle-arithmetic-parens +.r.state)
-    $(state [[nl.nested nl.state] r.nested])
-  ?:  ?=(scalar-token:ast -.r.state)
-    $(state [[-.r.state nl.state] +.r.state])
-  ~|("arithmetic list problem with noun: {<a>}" !!)
+  ?~  remaining.state
+    (flop new-list.state)
+  ?@  -.remaining.state
+    ?:  ?=(%pal -.remaining.state) 
+      =/  nested  (handle-arithmetic-parens +.remaining.state)
+      $(state [[new-list.nested new-list.state] remaining.nested])
+    ?:  ?=(arithmetic-token:ast -.remaining.state)
+      $(state [[-.remaining.state new-list.state] +.remaining.state])
+    ~|("arithmetic list problem with noun: {<a>}" !!)
+  $(state [[-.remaining.state new-list.state] +.remaining.state])
+++  check-and-cook-builtin-fn
+  |=  builtin-fn=[@tas *]
+  ?:  ?!  ?|  =(-.builtin-fn %abs)
+              =(-.builtin-fn %ceiling)
+              =(-.builtin-fn %day)
+              =(-.builtin-fn %floor)
+              =(-.builtin-fn %len)
+              =(-.builtin-fn %log)
+              =(-.builtin-fn %month)
+              =(-.builtin-fn %power)
+              =(-.builtin-fn %round)
+              =(-.builtin-fn %sign)
+              =(-.builtin-fn %sqrt)
+              =(-.builtin-fn %year)
+          ==
+    =/  error-message
+      "cannot use scalar {<`@tas`-.builtin-fn>} in arithmetic ".
+      "expression, allowed scalars: %abs %ceiling %day %floor ".
+      "%len %log %month %power %round %sign %sqrt %year" 
+    ~|(error-message !!)
+  (cook-builtin-scalar-fn builtin-fn)
+++  compute-precedence
+  |=  op=arithmetic-op:ast
+  ^-  @ud
+  ?-  op
+    %lus  1
+    %hep  1
+    %fas  2
+    %tar  2
+    %ket  3
+  ==
+++  calculate-min-precedence
+  |=  [op=arithmetic-op:ast]
+  ^-  @ud
+  ?:  =(%ket op)
+    (compute-precedence %ket)
+  (add (compute-precedence op) 1)
+++  tree-to-arithmetic
+  |=  t=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
+  ^-  datum-or-scalar:ast
+  ?@  t
+    ~|("tree-to-arithmetic: received ~ tree" !!)
+  ?:  ?=(arithmetic-op:ast n.t)
+    %:  arithmetic:ast
+      %arithmetic
+      n.t
+      $(t l.t)
+      $(t r.t)
+    ==
+  n.t
+:: process arithmetic list with precedence climbing
+++  process-arithmetic-list
+  |=  [ops=* min-prec=@ud]
+  ^-  [tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast)) remaining=*]
+  =/  tr=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
+    ?:  ?=([%literal *] -.ops)
+      [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
+    ?:  ?=([%builtin-fn [@tas *]] -.ops)
+      [(check-and-cook-builtin-fn ->.ops) ~ ~]
+    =/  nested  (process-arithmetic-list -.ops 0)
+    tree.nested
+  |-
+  ?~  +.ops
+    [tr ops]
+  =/  next-operator
+    ?:  ?=(arithmetic-op:ast +<.ops)
+      `arithmetic-op:ast`+<.ops
+    !!
+  =/  current-op-prec  (compute-precedence next-operator)
+  ?:  (gte current-op-prec min-prec)
+    =/  next-min-prec  (calculate-min-precedence next-operator)
+    =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec)
+    =/  new-tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
+      [next-operator tr tree.expr-to-the-right]
+    $(tr new-tree, ops remaining.expr-to-the-right)
+  [tr ops]
 ++  cook-arithmetic
   |=  parsed=*
   ^-  arithmetic:ast
   =/  ops-and-operators  (arithmetic-list parsed)
-  |-
-  =/  operand1  -.ops-and-operators
-  =/  cooked-operand1
-    ?:  ?=([%literal *] operand1)
-      %:(literal-value:ast %literal-value dime=+.operand1)
-    $(ops-and-operators operand1)
-  ?~  +>+.ops-and-operators
-    =/  operator  +<.ops-and-operators
-    =/  operand2  +>-.ops-and-operators
-    =/  cooked-operand2
-      ?:  ?=([%literal *] operand2)
-        %:(literal-value:ast %literal-value dime=+.operand2)
-      $(ops-and-operators operand2)
+  =/  nested  (process-arithmetic-list ops-and-operators 0) 
+  =/  op-tree  tree.nested
+  ?@  op-tree
+    !!
+  :: i don't think it's possible to get a ~ tree here
+  ?:  ?=(arithmetic-op:ast n.op-tree)
     %:  arithmetic:ast
       %arithmetic
-      operator
-      cooked-operand1
-      cooked-operand2
+      n.op-tree
+      (tree-to-arithmetic l.op-tree)
+      (tree-to-arithmetic r.op-tree)
     ==
-  =/  operator  +<.ops-and-operators
-  %:  arithmetic:ast
-    %arithmetic
-    operator
-    cooked-operand1
-    $(ops-and-operators +>.ops-and-operators)
-  ==
+  ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
 ++  arithmetic-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
@@ -5144,13 +5391,10 @@
     ;~(plug (cold %if (jester 'if')) parse-if)
     ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
     ;~(plug (cold %case (jester 'case')) parse-case)
-    ;~  pfix
-      whitespace
-::      ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
+    ;~(pfix whitespace parse-coalesce)
+    ;~(pfix whitespace parse-builtin-scalar-fn)
     parse-coalesce
-    ==
-::    ;~(plug (cold %coalesce (jester 'coalesce')) parse-coalesce)
-    parse-coalesce
+    parse-builtin-scalar-fn
     (cold %pal ;~(plug whitespace pal))
     (cold %pal pal)
     (cold %par ;~(plug whitespace par))

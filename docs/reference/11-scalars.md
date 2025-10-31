@@ -4,6 +4,8 @@ The full syntax involves complex manipulations at the row level through scalar f
 
 NOTE: scalar and aggregate functions are currently under development and not available. Also, these are subject to change.
 
+`<expression>` many be another scalar function, but not aggregate functions.
+
 ## Control Flow Functions
 
 ```
@@ -29,13 +31,56 @@ If a `CASE` expression uses `<predicate>`, the expected boolean (or loobean) log
 ```
 <operator> ::= + | - | * | / | ^
 <operand>  ::= <expression> | <named-scalar> 
-<arithmetic> ::=  
-    { <operand> <operator> <operand>
-    | ( <operand> <operator> <operand> ) }
-    [ <operator> [...n] ]
+<arithmetic> ::=
+  <operand> <operator> <operand>
+  | ( <arithmetic> )
+  | <arithmetic> <operator> <arithmetic>
 ```
 
-Arithmetic expressions support basic mathematical operations. TODO: add note on operator precedence when it's implemented in engine.
+Arithmetic expressions support basic mathematical operations following standard mathematical precedence and associativity rules.
+
+### Important Syntax Requirements
+
+**Whitespace around operators:** Operators require whitespace before the next operand. For example, `1+1` is invalid, but `1+ 1` or `1 + 1` are valid.
+
+**Float literal notation:** Floating-point literals must use Hoon notation with a leading dot. For example, `0.1` must be written as `.0.1`, and `3.14` as `.3.14`.
+
+### Operator Precedence and Associativity
+
+Arithmetic operators follow standard mathematical conventions for precedence and associativity:
+
+**Precedence** (which operations group together first):
+- Exponentiation (`^`) has highest precedence
+- Multiplication (`*`) and Division (`/`) have intermediate precedence
+- Addition (`+`) and Subtraction (`-`) have lowest precedence
+
+**Associativity** (how operators of equal precedence group):
+- Exponentiation (`^`) is right-associative: `a ^ b ^ c` means `a ^ (b ^ c)`
+- All other operators are left-associative: `a - b - c` means `(a - b) - c`
+
+Parentheses `( )` can be used to explicitly specify grouping.
+
+### Mixing Builtin Functions with Arithmetic
+
+Mathematical builtin functions can be combined with arithmetic operators in the same expression. Only mathematical functions (`ABS`, `CEILING`, `DAY`, `FLOOR`, `LEN`, `LOG`, `MONTH`, `POWER`, `ROUND`, `SIGN`, `SQRT`, `YEAR`) are allowed in arithmetic expressions. String functions like `CONCAT`, `TRIM`, etc. cannot be used in arithmetic contexts.
+
+Examples:
+```
+ABS(-5) + 1                           :: builtin function as operand
+SQRT(4) * POWER(2, 3)                 :: multiple builtins in one expression
+(ABS(-3) + FLOOR(.2.9)) * SQRT(16)   :: complex nested expression
+YEAR(~2023.6.20) - MONTH(~2023.6.20)  :: datetime functions in arithmetic
+```
+
+### Examples
+
+```
+2 + 3 * 4       :: multiplication before addition: 2 + (3 * 4) = 14
+(2 + 3) * 4     :: parentheses override precedence: 5 * 4 = 20
+2 ^ 3 ^ 2       :: right-associative: 2 ^ (3 ^ 2) = 2 ^ 9 = 512
+10 - 5 - 2      :: left-associative: (10 - 5) - 2 = 5 - 2 = 3
+8 / 4 / 2       :: left-associative: (8 / 4) / 2 = 2 / 2 = 1
+```
 
 ## Builtin Functions
 
@@ -56,13 +101,48 @@ Arithmetic expressions support basic mathematical operations. TODO: add note on 
   | YEAR ( <expression> )
 ```
 
-**GETUTCDATE()** returns the current UTC date and time as a `@da` atom.
+**GETUTCDATE()** returns the current UTC date and time.
 
-**DAY(** `<expression>` **)** extracts the day component from a date expression, returning an integer value from 1-31.
+Returns: `@da`
 
-**MONTH(** `<expression>` **)** extracts the month component from a date expression, returning an integer value from 1-12.
+Example:
+```
+SELECT GETUTCDATE()
+:: returns current time, e.g., ~2024.10.27..15.30.45
+```
 
-**YEAR(** `<expression>` **)** extracts the year component from a date expression, returning the full year as an integer.
+**DAY(** `<expression>` **)** extracts the day component from a date expression.
+
+Parameter: `@da` (date)  
+Returns: `@ud` (unsigned decimal, 1-31)
+
+Example:
+```
+SELECT DAY(~2024.10.27)
+:: returns 27
+```
+
+**MONTH(** `<expression>` **)** extracts the month component from a date expression.
+
+Parameter: `@da` (date)  
+Returns: `@ud` (unsigned decimal, 1-12)
+
+Example:
+```
+SELECT MONTH(~2024.10.27)
+:: returns 10
+```
+
+**YEAR(** `<expression>` **)** extracts the year component from a date expression.
+
+Parameter: `@da` (date)  
+Returns: `@ud` (unsigned decimal)
+
+Example:
+```
+SELECT YEAR(~2024.10.27)
+:: returns 2024
+```
 
 ### Mathematical Functions
 
@@ -78,21 +158,96 @@ Arithmetic expressions support basic mathematical operations. TODO: add note on 
   | SQRT ( <expression> )
 ```
 
-**ABS(** `<expression>` **)** returns the absolute value of a numeric expression. Negative values become positive; positive values remain unchanged.
+**ABS(** `<expression>` **)** returns the absolute value of a numeric expression.
 
-**LOG(** `<expression>` [ **,** `<expression>` ] **)** returns the logarithm of the first expression. If a second expression is provided, it is used as the base; otherwise, the natural logarithm (base e) is calculated.
+Parameter: `@sd` (signed decimal)  
+Returns: `@sd` (signed decimal)
 
-**FLOOR(** `<expression>` **)** returns the largest integer less than or equal to the numeric expression (rounds down to the nearest integer).
+Example:
+```
+SELECT ABS(-42)
+:: returns 42
+```
 
-**POWER(** `<expression>` **,** `<expression>` **)** returns the first expression raised to the power of the second expression (base^exponent).
+**LOG(** `<expression>` [ **,** `<expression>` ] **)** returns the logarithm of the first expression. If a base is provided, computes logarithm to that base.
 
-**CEILING(** `<expression>` **)** returns the smallest integer greater than or equal to the numeric expression (rounds up to the nearest integer).
+Parameters: `@rs` or `@ud` (float or unsigned decimal), optional `@ud` (base)  
+Returns: `@rs` or `@sd` (float or signed decimal)
 
-**ROUND(** `<expression>` **,** `<expression>` [ **,** `<expression>` ] **)** rounds the first expression to the number of decimal places specified by the second expression. The optional third expression specifies the rounding function behavior.
+Examples:
+```
+SELECT LOG(.2.718)
+:: returns natural logarithm (base e)
+
+SELECT LOG(100, 10)
+:: returns 2 (log base 10 of 100)
+```
+
+**FLOOR(** `<expression>` **)** returns the largest value less than or equal to the numeric expression.
+
+Parameter: `@rs` (float)  
+Returns: `@rs` (float)
+
+Example:
+```
+SELECT FLOOR(.3.7)
+:: returns .3.0
+```
+
+**POWER(** `<expression>` **,** `<expression>` **)** returns the first expression raised to the power of the second expression.
+
+Parameters: `@rs` or `@ud` (base), `@ud` (exponent)  
+Returns: `@rs` or `@ud` (same type as base)
+
+Example:
+```
+SELECT POWER(2, 8)
+:: returns 256
+```
+
+**CEILING(** `<expression>` **)** returns the smallest value greater than or equal to the numeric expression.
+
+Parameter: `@rs` or `@sd` (float or signed decimal)  
+Returns: `@rs` or `@sd` (same type as input)
+
+Example:
+```
+SELECT CEILING(.3.2)
+:: returns .4.0
+```
+
+**ROUND(** `<expression>` **,** `<expression>` [ **,** `<expression>` ] **)** rounds the first expression to the specified number of decimal places.
+
+Parameters: `@rs` (float), `@ud` (precision), optional `@ud` (rounding function)  
+Returns: `@rs` (float)
+
+Example:
+```
+SELECT ROUND(.3.14159, 2)
+:: returns .3.14
+```
 
 **SIGN(** `<expression>` **)** returns -1, 0, or 1 depending on whether the numeric expression is negative, zero, or positive.
 
-**SQRT(** `<expression>` **)** returns the square root of the numeric expression. The expression must evaluate to a non-negative number.
+Parameter: `@sd` (signed decimal)  
+Returns: `@sd` (signed decimal: -1, 0, or 1)
+
+Example:
+```
+SELECT SIGN(-42)
+:: returns -1
+```
+
+**SQRT(** `<expression>` **)** returns the square root of the numeric expression.
+
+Parameter: `@rs` or `@ud` (float or unsigned decimal)  
+Returns: `@rs` or `@ud` (same type as input)
+
+Example:
+```
+SELECT SQRT(16)
+:: returns 4
+```
 
 ### String Functions
 
@@ -106,17 +261,74 @@ Arithmetic expressions support basic mathematical operations. TODO: add note on 
   | CONCAT ( <expression> [ ,...n ] )
 ```
 
-**LEN(** `<expression>` **)** returns the length of a string expression as an integer representing the number of characters.
+**LEN(** `<expression>` **)** returns the length of a string expression.
 
-**LEFT(** `<expression>` **,** `<expression>` **)** returns the leftmost characters of the first expression, with the number of characters specified by the second expression.
+Parameter: `@t` (cord/string)  
+Returns: `@ud` (unsigned decimal)
 
-**RIGHT(** `<expression>` **,** `<expression>` **)** returns the rightmost characters of the first expression, with the number of characters specified by the second expression.
+Example:
+```
+SELECT LEN('hello')
+:: returns 5
+```
 
-**SUBSTRING(** `<expression>` **,** `<expression>` **,** `<expression>` **)** returns a substring from the first expression, starting at the position specified by the second expression (1-based) and with the length specified by the third expression.
+**LEFT(** `<expression>` **,** `<expression>` **)** returns the leftmost characters from a string.
 
-**TRIM(** [ `<expression>` **,** ] `<expression>` **)** removes leading and trailing whitespace from the string expression. If the optional first expression is provided, it specifies the characters to remove instead of whitespace.
+Parameters: `@t` (cord/string), `@ud` (number of characters)  
+Returns: `@t` (cord/string)
 
-**CONCAT(** `<expression>` [ **,...n** ] **)** concatenates two or more string expressions into a single string. All expressions are converted to strings before concatenation.
+Example:
+```
+SELECT LEFT('hello', 3)
+:: returns 'hel'
+```
+
+**RIGHT(** `<expression>` **,** `<expression>` **)** returns the rightmost characters from a string.
+
+Parameters: `@t` (cord/string), `@ud` (number of characters)  
+Returns: `@t` (cord/string)
+
+Example:
+```
+SELECT RIGHT('hello', 3)
+:: returns 'llo'
+```
+
+**SUBSTRING(** `<expression>` **,** `<expression>` **,** `<expression>` **)** returns a substring from a string.
+
+Parameters: `@t` (cord/string), `@ud` (start position, 1-based), `@ud` (length)  
+Returns: `@t` (cord/string)
+
+Example:
+```
+SELECT SUBSTRING('hello world', 7, 5)
+:: returns 'world'
+```
+
+**TRIM(** [ `<expression>` **,** ] `<expression>` **)** removes leading and trailing characters from a string.
+
+Parameters: optional `@t` (characters to remove), `@t` (cord/string)  
+Returns: `@t` (cord/string)
+
+Examples:
+```
+SELECT TRIM('  hello  ')
+:: returns 'hello' (whitespace removed by default)
+
+SELECT TRIM('x', 'xxxhelloxxx')
+:: returns 'hello'
+```
+
+**CONCAT(** `<expression>` [ **,...n** ] **)** concatenates two or more string expressions.
+
+Parameters: `@t` (cord/string) [ **,...n** ]  
+Returns: `@t` (cord/string)
+
+Example:
+```
+SELECT CONCAT('hello', ' ', 'world')
+:: returns 'hello world'
+```
 
 ### Expression Context
 
