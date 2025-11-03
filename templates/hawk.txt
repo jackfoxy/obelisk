@@ -1,14 +1,43 @@
 !:
-::
-::  A user interface for Obelisk.
-::
-::  
-::  Requires that the %obelisk agent is running.
-::   https://github.com/jackfoxy/obelisk
+:: obelisk-ui
+::   A user interface for Obelisk.
+::   [protocol: hawk-500]
 ::
 ::
-::  Place this code in a templates file:
-::    /~/config/templates/obelisk-ui
+::  Installation Instructions:
+::
+::   - Install %obelisk manually
+::       https://github.com/jackfoxy/obelisk
+::
+::   - Install this hawk template by
+::     placing it at an empty spot in %hawk
+::
+::   - Create an inital database:
+::     `CREATE DATABASE db1;`
+::
+::   - Run a query:
+::     `FROM sys.sys.databases SELECT *;`
+::
+::
+::  Usage Instructions
+::
+::   - If you select text in the script,
+::     only the selected portion will be run.
+::
+::   - Read the Obelisk Users Guide
+::
+::     https://github.com/jackfoxy/obelisk/blob/master/docs/users-guide.md
+::
+::
+::  It will also be useful to place this
+::  file at /~/config/templates/obelisk-ui
+::  so that you can easily place it at a
+::  blank hawk page.
+::
+::
+::  Keybindings:
+::
+::    F5          - run the query
 ::
 ::
 :-  %shed
@@ -39,10 +68,14 @@
       ==
       ::
     [* %query]
-      =/  query  (pib:c /query-text)
+      =/  full-query  (pib:c /query-text)
+      =/  selected-query  (pib:c /selected-query-text)
+      =/  query
+        ?^  selected-query  selected-query
+        full-query
       ;<  res=poke-result  bind:m  (query-obelisk %$ query)
       %:  print
-        query
+        full-query
         (print-poke-result res)
         parse-default-db
       ==
@@ -102,12 +135,13 @@
 ::
 ++  parse-query
   ^-  tape
-  %~  all-text-content  mx
+  =,  mq
+  %-  trip
   =<  q
-  %-  fall  :_
-    ^-  (pair path manx)
-    [/ ;div;]
-  (gid:d "query-text")
+  %^  fong  0  t+''
+  %-  dimes
+  %+  attributes  %value
+  (get-id "query-text" dat:f)
   ::
 ++  parse-results
   ^-  manx
@@ -115,7 +149,7 @@
   %-  fall  :_
     ^-  (pair path manx)
     :-  /
-    ;div.p8.fc.jc.ac.f4: No results yet
+    ;div#results.p8.fc.jc.ac.f4: No results yet
   (gid:d "results")
   ::
 ++  parse-default-db
@@ -146,7 +180,7 @@
       m(a.g [[%open ""] a.g.m])
     ;hawk-sidebar#h-schema.hf
       =side  "left"
-      =size  (pub:c /schema-size ud/200)
+      =size  "0.4"
       =label  "Schemas"
       ;+
         =/  m=manx  (print-schemas server default-db)
@@ -155,7 +189,7 @@
         =side  "bottom"
         =label  "Output"
         =open  ""
-        =size  (pub:c /output-size ud/200)
+        =size  "0.4"
         ;div.fc.hf
           ;+  (print-header server default-db)
           ;+  (print-query-form query)
@@ -171,11 +205,27 @@
   ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3);")
     ;button#run-btn.p-1.bd1.br1.b2.hover.loader
       =onclick  "$('#query-form').find('[type=submit]').click()"
-      ;span.loaded: Run
+      ;span.loaded.fr.ac.g2
+        ;span: Run
+        ;span.s-2.o6: F5
+      ==
       ;span.loading: ...
     ==
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Parse
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
+    ;button.p-1.bd1.br1.b2.hover(disabled ""): Import
+    ;form
+      =method  "post"
+      =action  "/apps/hawk/code{(spud here)}/script-1"
+      =hx-on-htmx-config-request  "exportScript(event)"
+      =hx-swap  "none"
+      ;button.p-1.bd1.br1.b2.hover.loader(disabled "")  :: XX broken
+        ;span.loaded.fr.ac.g1
+          ;span: Export
+        ==
+        ;span.loading: ...
+      ==
+    ==
     ;div.grow;
     ;+  (print-form-set-default-db server default-db)
   ==
@@ -234,15 +284,21 @@
 ++  print-query-form
   |=  [query=tape]
   ;form#query-form.grow.fc.mono.s0.hf
-    =method  "post"
+    :: =method  "post"
+    =hx-swap  "outerHTML"
+    =hx-target  "#results"
+    =hx-select  "#results"
+    =hx-post  ""
     =hx-indicator  "#run-btn"
-    =hx-on-htmx-config-request  "configRequest(event)"
+    =hx-on-htmx-config-request  "configRequest(event); $('#query-text').focus()"
+    =hx-on-htmx-after-request  "$('#query-text').focus();"
     ;input.hidden(name "/", value "query");
-    ;textarea#query-text.p3.grow.b0
-      =name  "tas//query-text"
-      =spellcheck  "false"
+    ;textarea#query-text.p3.grow.b0(hx-preserve "")
+      =aura  "t-multi"
+      =name  "/query-text"
       =placeholder  "FROM ... SELECT *"
-      =autocomplete  "off"
+      =value  query
+      =white-space  "pre-wrap"
       ;*  ~[;/(query)]
     ==
     ;button.hidden(type "submit");
@@ -357,8 +413,24 @@
     '''
     function configRequest(e) {
       e.detail.parameters['schema-open'] = $('#h-schema').is('[open]')
-      e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '200';
-      e.detail.parameters['output-size'] = $('#h-output').attr('size') || '200';
+      e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '0.3';
+      e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
+      let selection = window.getSelection()
+      e.detail.parameters['/selected-query-text'] = selection.toString();
+    }
+    function exportScript(e) {
+      let script = $('#query-text').val()
+      e.detail.parameters['code'] = script;
+      e.detail.parameters['/protocol'] = '/text/plain';
+    }
+
+    if (!window.obeliskKeyHandler) {
+      window.obeliskKeyHandler = true;
+      window.addEventListener('keydown', (e) => {
+        if (e.key == 'F5') {
+          $('#run-btn').click()
+        }
+      })
     }
     '''
   ==
