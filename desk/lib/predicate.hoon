@@ -571,6 +571,7 @@
   ::
   ?-  n.p
     %not
+    :: this doesn't handle a qualified/unqualified column as argument
         =/  ll=$-(data-row ?)
             (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
         (bake (cury not ll) data-row)
@@ -819,6 +820,7 @@
           col-lit=$-([[qualified-table:ast @tas] @ @ta data-row] ?)
           lit-col=$-([@ [qualified-table:ast @tas] @ta data-row] ?)
           ==
+  ~&  "DBG {<l>} {<r>}"
   ^-  $-(data-row ?)
 ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
