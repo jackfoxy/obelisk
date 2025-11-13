@@ -12,7 +12,7 @@ Aggregate functions operate on a single column of intermediary data rows. They a
 
 Boolean funtions can be Scalar or Aggregate and depending on their context must follow rules for either type.
 
-If `<expression>` is of loobean type (%.y, %.n) normal boolean evaluation proceeds.  Evaluation of any other type evaluates as boolean TRUE unless `EXISTS <expression>` evaluates as FALSE.
+If `<expression>` is of loobean type (%.y, %.n) normal boolean evaluation proceeds.
 
 
 ```
