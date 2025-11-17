@@ -35,6 +35,13 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
+::  $action
+::    [%tape @tas tape]          - prints result to dodjo
+::    [%tape2 @tas tape]         - suppresses printing result to dodjo
+::    [%commands (list command)] - prints result to dodjo
+::    [%test @tas tape]
+::    [%parse tape]              - returns
+::  
 +$  action
   $%
     [%tape default-database=@tas urql=tape]
