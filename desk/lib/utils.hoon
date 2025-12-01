@@ -429,14 +429,6 @@
           row=indexed-row
           ==
   ^-  (list templ-cell)
-
-    ~&  "cols:  {<cols>}"
-    ~&  " "
-    ~&  "selected:  {<selected>}"
-    ~&  " "
-    ~&  "row:  {<row>}"
-
-
   =/  i  0
   =/  col-lookup
     %-  ~(gas by *(map @tas @ta))
