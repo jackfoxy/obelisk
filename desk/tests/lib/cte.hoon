@@ -90,21 +90,28 @@
   %+  ~(on-poke agent (bowl [run ~2012.4.30]))
       %obelisk-action
       !>  [%tape2 %db1 init]                  :: <== initialize the DB
-  
-  ::=^  mov2  agent
-  ::%+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::    %obelisk-action
-  ::    !>  [%tape2 %db1 resolve]               :: <== SELECT
-  ::::
-  ::(eval-results expect1 ;;(cmd-result ->+>+>+<.mov2))
-
-  
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
+      %obelisk-action
+      !>  [%tape2 %db1 resolve]               :: <== SELECT
+  ::
+  (eval-results expect1 ;;(cmd-result ->+>+>+<.mov2))
+::
+++  debug-111
+  |=  $:  run=@ud
+          init=tape
+          resolve=tape
+          expect1=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
+      %obelisk-action
+      !>  [%tape2 %db1 init]
   %+  expect-fail-message
-        'table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
+        'placeholder for debugging'
   |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
           %obelisk-action
           !>([%test %db1 resolve])
-
 ::
 ::  [@ud tape tape tape cmd-result cmd-result] -> 
 ++  execut-112
@@ -268,7 +275,8 @@
                     [%us-federal-holiday [~.t 'Christmas Day']]
                     ==
             ==
-  %-  execute-111
+  ::%-  execute-111
+  %-  debug-111
         :*  run
             %-  zing  :~  "CREATE DATABASE db1;"
                           create-calendar
