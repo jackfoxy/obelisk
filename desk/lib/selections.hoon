@@ -64,16 +64,6 @@
                             ~
   ::
   ?~  set-tables.the-relation  ~|("select-relation can't get here" !!)
-
-    ::~&  "query-source:  {<query-source>}"
-    ::~&  ""
-    ::~&  "is-cte:  {<is-cte>}"
-    ::~&  ""
-    ::~&  "joined-rows.i.set-tables.the-relation:  {<joined-rows.i.set-tables.the-relation>}"
-    ::~&  ""
-    ::~&  "qual-col-types:  {<qual-col-types.the-relation>}"
-
-  ::
   :-  :*  %join-return
           state
           ?.  is-cte   set-tables.the-relation
@@ -306,13 +296,6 @@
                      (get-schema [sys.db sys-time])
   =/  vw  %+  get-view  [namespace.ts name.ts sys-time]
                         views.schema
-
-    ::~&  " "
-    ::~&  "ts:  {<ts>}"
-    ::~&  "named-ctes:  {<named-ctes>}"
-    ::~&  " "
-
-
   ?~  vw  %:  from-table  ts
                           named-ctes
                           db
