@@ -218,8 +218,8 @@
 ::
 ++  printable-ascii  "0123456789:;<=>?@ABCDEFGHIJK !#$%&'()*+,-./".
                      "LMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz|}~\{\"\\"
-++  alpha-ordering  " !\"#$%&'()*+,-./0123456789:;<=>?@`AaBbCcDdEeFfGgHhIiJjKk".
-                    "LlMmNnOoPpQqRrSsTtUuVvWwXxYyZz[\{\\|]}^~_"
+++  alpha-ordering  " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_`AaBbCcDdEeFfGgHhIiJjKk".
+                    "LlMmNnOoPpQqRrSsTtUuVvWwXxYyZz\{|}~"
 ++  aor-ordering    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW".
                     "XYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~"
 ::
@@ -271,24 +271,28 @@
   =/  expected  :~  'A'
                     'a'
                     'AB'
-                    'aB'
                     'Ab'
+                    'aB'
                     'ab'
                     'ABC'
-                    'aBC'
                     'ABc'
-                    'aBc'
                     'AbC'
                     'Abc'
+                    'aBC'
+                    'aBc'
                     'abC'
                     'abc'
                     'b'
                     'bac'
                     'bb'
                     ==
-  %+  expect-eq
-    !>  expected
-    !>  (sort the-list alpha:utils)
+  ::
+  %+  weld  %+  expect-eq
+                !>  expected
+                !>  (sort the-list alpha:utils)
+            %+  expect-eq
+                !>  expected
+                !>  (sort (flop the-list) alpha:utils)
 ::
 ::  CREATE DATABASE
 ::

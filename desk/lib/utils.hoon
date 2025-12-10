@@ -154,27 +154,27 @@
   ?:  (lth sys-time tmsp.nxt-data)  !!
   nxt-data
 ::
-::  +  get-view:  [data-obj-key views] -> (unit view)
+::  +  get-view:  [ns-obj-key views] -> (unit view)
 ::
 ::  get view with current or most recent previous time
 ::
 ::  because ns-obj-comp orders on gth, tab logic requires +1 to include
 ::  exact match
-++  view-key  ((on data-obj-key view) ns-obj-comp)
+++  view-key  ((on ns-obj-key view) ns-obj-comp)
 ++  get-view
-  |=  [key=data-obj-key =views]
+  |=  [key=ns-obj-key =views]
   ^-  (unit view)
   =/  vw  (tab:view-key views `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
   ?~  vw  ~
-  =/  returned-key=data-obj-key  -<.vw
+  =/  returned-key=ns-obj-key  -<.vw
   ?:  &(=(ns.returned-key ns.key) =(obj.returned-key obj.key))  `->.vw
   ~
 ::
-::  +get-view-cache:  [data-obj-key ((mop data-obj-key cache) ns-obj-comp)]
+::  +get-view-cache:  [ns-obj-key ((mop ns-obj-key cache) ns-obj-comp)]
 ::                    -> (unit cache)
-++  view-cache-key  ((on data-obj-key cache) ns-obj-comp)
+++  view-cache-key  ((on ns-obj-key cache) ns-obj-comp)
 ++  get-view-cache
-  |=  [key=data-obj-key q=((mop data-obj-key cache) ns-obj-comp)]
+  |=  [key=ns-obj-key q=((mop ns-obj-key cache) ns-obj-comp)]
   ^-  cache
   =/  vw  (tab:view-cache-key q `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
   ?~  vw
@@ -183,9 +183,9 @@
 ::
 ::  +put-view-cache
 ++  put-view-cache
-  |=  [db=database value=cache key=data-obj-key]
+  |=  [db=database value=cache key=ns-obj-key]
   ^-  database
-  =/  gate  put:((on data-obj-key cache) ns-obj-comp)
+  =/  gate  put:((on ns-obj-key cache) ns-obj-comp)
   db(view-cache (gate view-cache.db [key value]))
 ::
 ::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file
@@ -977,45 +977,17 @@
 ::
 ::  +alpha
 ::
-::  alphabetic order cords
-++  alpha 
-  |=  [a=@ b=@]
+::  alphabetically order cords
+++  alpha
+  |=  [a=cord b=cord]
   ~+  :: keep, makes big difference inserting large @t
   ^-  ?
-  ?:  =(a b)  %.y
-  =/  e  *(list ?)
-  |-
-  =+  [c=(end 3 a) d=(end 3 b)]
-  ?:  =(c 0)
-    ?:  &(=(d 0) (gth (lent e) 0))
-      -:(flop e)
-    %.y
-  ?:  =(d 0)
-    %.n
-  ::
-  ?:  &((gte (mix c d) 32) (gte (dis c d) 64))
-    ?:  (lth c d)
-      ?:  (lth c (sub d 32))   %.y
-      ?:  (gth c (sub d 32))   %.n
-      ?:  =(c (sub d 32))      $(a (rsh 3 a), b (rsh 3 b), e [%.y e])
-      $(a (rsh 3 a), b (rsh 3 b), e [%.y e])
-
-    ?:  =((sub c 32) d)
-      ?:  =((rsh 3 a) 0)
-        ?:  =((rsh 3 b) 0)
-          %.n
-        %.y
-      %.n
-
-    ?:  (gth c d)
-      ?:  (lth (sub c 32) d)
-        %.y       
-      %.n
-    ~|("can't get here" !!)
-  ::
-  ?:  =(c d)
-    $(a (rsh 3 a), b (rsh 3 b))  
-  (lth c d)
+  =/  a  (trip a)
+  =/  b  (trip b)
+  =/  a-cass  (cass a)
+  =/  b-cass  (cass b)
+  ?.  =(a-cass b-cass)  (aor a-cass b-cass)
+  (aor a b)
 ::    +split-all: [(list T) sep:(list t)] -> (list (list T))
 ::
 ::  Splits a list into multiple lists, delimited by another list.

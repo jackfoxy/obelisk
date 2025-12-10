@@ -278,7 +278,7 @@
                           %-  apply-ordering
                               (sys-data-log-view +<.c sap.bowl sys-time)
                       ==
-  =/  vws=views  (gas:view-key *((mop data-obj-key view) ns-obj-comp) db-views)
+  =/  vws=views  (gas:view-key *((mop ns-obj-key view) ns-obj-comp) db-views)
   ::
   =/  sys-db  ?:  (~(has by state) %sys)  (~(got by state) %sys)     
               %:  mk-db        ::  first time add sys database
@@ -303,20 +303,20 @@
           (~(put by next-data) name.c sys-time)
           (~(put by state) name.c (mk-db name.c ns sys-time db-views))
 ::
-::  +mk-db:  [@tas namespaces @da (list [p=data-obj-key q=view])] -> database
+::  +mk-db:  [@tas namespaces @da (list [p=ns-obj-key q=view])] -> database
 ++  mk-db
   |=  $:  name=@tas
           =namespaces
           sys-time=@da
-          db-views=(list [p=data-obj-key q=view])
+          db-views=(list [p=ns-obj-key q=view])
           ==
   ^-  database
-  =/  vws=views  (gas:view-key *((mop data-obj-key view) ns-obj-comp) db-views)
+  =/  vws=views  (gas:view-key *((mop ns-obj-key view) ns-obj-comp) db-views)
   =/  vw-cache
         %+  gas:view-cache-key
-              *((mop data-obj-key cache) ns-obj-comp)
+              *((mop ns-obj-key cache) ns-obj-comp)
               %+  turn  db-views
-                        |=([p=data-obj-key q=view] [p (cache %cache time.p ~)])
+                        |=([p=ns-obj-key q=view] [p (cache %cache time.p ~)])
   ::
   %:  database  %database
                 name

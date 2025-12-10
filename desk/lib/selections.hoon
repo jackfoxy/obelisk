@@ -64,7 +64,6 @@
                             ~
   ::
   ?~  set-tables.the-relation  ~|("select-relation can't get here" !!)
-  ::
   :-  :*  %join-return
           state
           ?.  is-cte   set-tables.the-relation
@@ -326,6 +325,7 @@
                          ~
                          join
                          predicate
+                         ~
                          rowcount.view-content
                          ~
                          %+  turn  rows.view-content
@@ -368,6 +368,7 @@
                          [~ pri-indx.tbl2]
                          join
                          predicate
+                         ~
                          rowcount.file
                          pri-idx.file
                          indexed-rows.file
@@ -428,10 +429,10 @@
   [(qualified-column:ast %qualified-column query-obj name.a ~) type.a]
 ::
 ::  +got-view-cache:
-::    [database schema view data-obj-key (list selected-column:ast)]
+::    [database schema view ns-obj-key (list selected-column:ast)]
 ::    -> [database cache]
 ++  got-view-cache
-  |=  [db=database =schema vw=view key=data-obj-key]
+  |=  [db=database =schema vw=view key=ns-obj-key]
   ^-  [database cache]
   =/  vw-cache=cache  (get-view-cache key view-cache.db)
   ?.  =(content.vw-cache ~)  [db vw-cache]

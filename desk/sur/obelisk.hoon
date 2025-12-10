@@ -34,12 +34,14 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-+$  vector-cell  [p=@tas q=dime]
-+$  vector
-    $:  %vector
-      (lest vector-cell)
-      ==
 ::
+::  $action
+::    [%tape @tas tape]          - prints result to dodjo
+::    [%tape2 @tas tape]         - suppresses printing result to dodjo
+::    [%commands (list command)] - prints result to dodjo
+::    [%test @tas tape]
+::    [%parse tape]              - returns
+::  
 +$  action
   $%
     [%tape default-database=@tas urql=tape]
@@ -48,6 +50,23 @@
     [%test default-database=@tas urql=tape]
     [%parse urql=tape]
     ==
+::
++$  db-cmd
+  $?
+    %create-database
+    %drop-database
+    %create-namespace
+    %alter-namespace
+    %drop-namespace
+    %create-table
+    %alter-table
+    %drop-table
+    %truncate-table
+    %insert
+    %update
+    %delete
+    ==
+::
 +$  cmd-result  [%results (list result)]
 +$  result
   $%
@@ -70,6 +89,7 @@
     pri-indx=(unit index)
     join=(unit join-type)
     =predicate
+    =qualified-column-addrs
     rowcount=@
     pri-indexed=(tree [(list @) (map @tas @)])
     indexed-rows=(list indexed-row)
@@ -118,28 +138,18 @@
     ==
 +$  named-ctes  (map @tas full-relation)
 ::
-+$  db-cmd
-  $?
-    %create-database
-    %drop-database
-    %create-namespace
-    %alter-namespace
-    %drop-namespace
-    %create-table
-    %alter-table
-    %drop-table
-    %truncate-table
-    %insert
-    %update
-    %delete
-    ==
-::
 ::  template for selected column from qualified ocolumnbjects
 +$  templ-cell
   $:  %templ-cell
     column=(unit qualified-column)
     addr=@
     vc=vector-cell
+    ==
+::
++$  vector-cell  [p=@tas q=dime]
++$  vector
+  $:  %vector
+    (lest vector-cell)
     ==
 ::
 ::  common metadata for DELETE, INSERT, UPDATE

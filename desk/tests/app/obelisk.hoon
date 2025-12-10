@@ -28,7 +28,7 @@
           sys-time=@da
           schemas=(list [@da =schema])
           contents=(list [@da =data])
-          view-caches=(list data-obj-key)
+          view-caches=(list ns-obj-key)
           sys-caches=(list @da)
           ==
   %-  ~(gas by `(map @tas database)`~)
@@ -42,11 +42,11 @@
             content=(gas:data-key *((mop @da data) gth) contents)
             %+  gas:view-cache-key
               %+  gas:view-cache-key
-                    *((mop data-obj-key cache) ns-obj-comp)
+                    *((mop ns-obj-key cache) ns-obj-comp)
                     %+  turn  (db-views name sys-time)
-                        |=([p=data-obj-key q=view] [p (cache %cache time.p ~)])
+                        |=([p=ns-obj-key q=view] [p (cache %cache time.p ~)])
               %+  turn  view-caches
-                        |=(p=data-obj-key [p (cache %cache time.p ~)])
+                        |=(p=ns-obj-key [p (cache %cache time.p ~)])
             ==
       (sys-database sys-time sys-caches)
       ==
@@ -67,13 +67,13 @@
                             [[%sys sys-time] ~ ~]
                             ~
                             %+  gas:view-key
-                                  *((mop data-obj-key view) ns-obj-comp)
+                                  *((mop ns-obj-key view) ns-obj-comp)
                                   (limo ~[(sys-sys-databases-view sys-time)])
                             ==
                       ==
             %+  gas:data-key  *((mop @da data) gth)
                           ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
-            %+  gas:view-cache-key  *((mop data-obj-key cache) ns-obj-comp)
+            %+  gas:view-cache-key  *((mop ns-obj-key cache) ns-obj-comp)
                   (turn sys-caches |=(a=@da [[%sys %databases a] [%cache a ~]]))
             ==
 ::
@@ -128,7 +128,7 @@
 ++  ns-sys-views
     |*  [db=@tas sys-time=@da]
     ^-  views
-    %+  gas:view-key  *((mop data-obj-key view) ns-obj-comp)
+    %+  gas:view-key  *((mop ns-obj-key view) ns-obj-comp)
                       (limo (db-views db sys-time))
 ::
 ::  schemas

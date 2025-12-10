@@ -95,28 +95,33 @@
         ==
     ==
   ::
-  %parse  !!
-    ::=/  virtualized
-    ::  ::^-  (each (pair (list command:ast) server) tang)
-    ::  ^-  (each (pair tape server) tang)
-    ::  %-  mule
-    ::  |.
-    ::  ::~>  %bout.[0 %parse-cmds]
-    ::  (parse-urql +<.act +>.act)
-    ::?-  -.virtualized
-    ::  %.n
+  %parse
+    =/  virtualized
+      ::^-  (each (pair (list command:ast) server) tang)
+      ::^-  (each (pair tape server) tang)
+      ^-  (each (list command) tang)
+      %-  mule
+      |.
+      ::~>  %bout.[0 %parse-cmds]
+      (parse-urql +<.act +>.act)
+    ?-  -.virtualized
+      %.n
+        ~&  "{<(slog p.virtualized)>}"
+        !!
     ::    :_  this
     ::    :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
     ::        [%give %kick ~[/server] ~]
     ::    ==
-    ::  %.y
-    ::    =/  res  p.virtualized
-    ::    =/  x  (print -.res)
+      %.y
+        ~&  "{<p.virtualized>}"
+        !!
+    ::    =/  res  p.virtualized   ~&  ""  ~&  "-.res:  <{-.res}>"  ~&  ""
+    ::    ::=/  x  (print -.res)
     ::    :_  this(server +.res)
     ::    :~  [%give %fact ~[/server] %noun !>([& -.res])]
     ::        [%give %kick ~[/server] ~]
     ::    ==
-    ::==
+    ==
   ::
   %commands
     =/  res  (state-server +.act)

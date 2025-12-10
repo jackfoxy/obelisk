@@ -44,7 +44,7 @@
     content=((mop @da data) gth)
     =view-cache
     ==
-+$  view-cache  ((mop data-obj-key cache) ns-obj-comp)
++$  view-cache  ((mop ns-obj-key cache) ns-obj-comp)
 +$  cache
   $:  %cache
     tmsp=@da
@@ -99,8 +99,9 @@
     key=(list @)
     data=(map @tas @)
     ==
-+$  column-addrs    (map @tas @)
-+$  column-catalog  (map @tas column-mta)                 
++$  column-addrs              (map @tas @)
++$  qualified-column-addrs    (map [qualified-table @tas] @)
++$  column-catalog            (map @tas column-mta)                 
 +$  column-mta
   $:  %column-mta
     addr=@
@@ -114,14 +115,14 @@
       ==
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
-+$  data-obj-key
++$  ns-obj-key
   $:  ns=@tas
       obj=@tas
       time=@da
       ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
-+$  views  ((mop data-obj-key view) ns-obj-comp)
++$  views  ((mop ns-obj-key view) ns-obj-comp)
 +$  view
   $+  view
   $:  %view
@@ -150,11 +151,11 @@
     ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
-::    +ns-obj-comp: [data-obj-key data-obj-key] -> ?
+::    +ns-obj-comp: [ns-obj-key ns-obj-key] -> ?
 ::
 ::  view and table comparer
 ++  ns-obj-comp
-  |=  [p=data-obj-key q=data-obj-key]
+  |=  [p=ns-obj-key q=ns-obj-key]
   ^-  ?
   ?.  =(ns.p ns.q)  (gth ns.p ns.q)
   ?.  =(obj.p obj.q)  (gth obj.p obj.q)
