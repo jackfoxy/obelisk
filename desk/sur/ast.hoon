@@ -160,7 +160,7 @@
     ==
 +$  case
   $:  %case
-    target=datum-or-scalar
+    target=(unit datum-or-scalar)
     cases=(list case-when-then)
     else=(unit datum-or-scalar)
     ==

@@ -2880,7 +2880,9 @@
   |=  [cooked-case=case-helper aliases=alias-maps]
   ^-  case:ast
   =/  finalized-target
-    (finalize-scalar-param target.cooked-case aliases)
+    ?~  target.cooked-case
+      ~
+    (some (finalize-scalar-param (need target.cooked-case) aliases))
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
@@ -2925,8 +2927,8 @@
     =/  cooked-if  (cook-if raw-scalar-body)
     =/  finalized-if  (finalize-if cooked-if aliases)
       finalized-if
-  ?:  =(%case fn-name)
-     =/  cooked-case  (cook-case-body raw-scalar-body)
+  ?:  ?|(=(%simple-case fn-name) =(%searched-case fn-name))
+     =/  cooked-case  (cook-case [fn-name raw-scalar-body])
      =/  finalized-case  (finalize-case cooked-case aliases)
        finalized-case
   ?:  =(%arithmetic fn-name)
@@ -5212,35 +5214,50 @@
     ;~(pfix whitespace ;~(pose parse-aggregate parse-scalar-param))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
-++  cook-case-body
+++  cook-case
   |=  parsed=*
   ~+
-  =/  cooked-target  (cook-scalar-param -.parsed)
-  =/  case-when-then-list  +<.parsed
-  =/  cases
-    |-
-    ^-  (list case-when-then-helper)
-    ?~  case-when-then-list
-      ~
-    =/  raw-when  ->-.case-when-then-list
-    =/  raw-then  ->+>.case-when-then-list
-    =/  cooked-when  (produce-predicate (predicate-list raw-when))
-    =/  cooked-then  (cook-scalar-param raw-then)
-    =/  cooked-case-when-then
-      (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
-    [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
-  ?@  +>.parsed
-    ?:  =(+>.parsed %end)
-      (case-helper %case-helper cooked-target (flop cases) ~)
-    ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
-  ?:  =(%else +>-.parsed)
-    =/  raw-else  +>+<.parsed
-    =/  cooked-else  (cook-scalar-param raw-else)
-    (case-helper %case-helper cooked-target (flop cases) (some cooked-else))
-  ~|("cannot cook case: unexpected atom: {<+>-.parsed>}" !!)
-++  parse-case
+  =/  fn-name  -.parsed
+  =/  [cooked-target=(unit scalar-param) rest=*]
+    ?:  =(fn-name %simple-case)
+      [(some (cook-scalar-param +<.parsed)) +>.parsed]
+    [~ +.parsed]
+  =/  cases  (cook-case-when-then-list -.rest)
+  =/  [cooked-else=(unit scalar-param) rest=*]
+    ?@  +.rest
+      [~ rest]
+    ?:  =(%else +<.rest)
+      [(some (cook-scalar-param +>-.rest)) +>.rest]
+    ~|("cannot cook else: unexpected atom: {<+<.rest>}" !!)
+  ?:  =(+.rest %end)
+    (case-helper %case-helper cooked-target (flop cases) cooked-else)
+  ~|("cannot cook case: unexpected atom: {<+.rest>}" !!)
+::
+++  cook-case-when-then-list
+  |=  case-when-then-list=*
+  |-
+  ^-  (list case-when-then-helper)
+  ?~  case-when-then-list
+    ~
+  =/  raw-when  ->-.case-when-then-list
+  =/  raw-then  ->+>.case-when-then-list
+  =/  cooked-when  (produce-predicate (predicate-list raw-when))
+  =/  cooked-then  (cook-scalar-param raw-then)
+  =/  cooked-case-when-then
+    (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
+  [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
+::
+::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
+++  parse-simple-case
   ;~  plug
     parse-scalar-param
+    (star parse-when-then)
+    ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
+  ==
+::
+::  CASE WHEN <pred> THEN <expr> [...] [ELSE <expr>]
+++  parse-searched-case
+  ;~  plug
     (star parse-when-then)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
@@ -5390,8 +5407,16 @@
     ;~(pfix whitespace (cold %end (jester 'end')))
     ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
-    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~  pfix
+      whitespace
+      ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+    ==
+    ;~  pfix
+      whitespace
+      ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
+    ==
+    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
     ;~(pfix whitespace parse-coalesce)
     ;~(pfix whitespace parse-builtin-scalar-fn)
     parse-coalesce
@@ -5434,7 +5459,8 @@
 ++  parse-scalar-body
   ;~  pose
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
     parse-coalesce
     parse-builtin-scalar-fn
     parse-arithmetic
@@ -5656,7 +5682,7 @@
 +$  case-helper
   $:
     %case-helper
-    target=scalar-param
+    target=(unit scalar-param)
     cases=(list case-when-then-helper)
     else=(unit scalar-param)
   ==
