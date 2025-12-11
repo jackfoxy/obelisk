@@ -44,7 +44,7 @@
     content=((mop @da data) gth)
     =view-cache
     ==
-+$  view-cache  ((mop ns-obj-key cache) ns-obj-comp)
++$  view-cache  ((mop ns-rel-key cache) ns-rel-comp)
 +$  cache
   $:  %cache
     tmsp=@da
@@ -115,14 +115,14 @@
       ==
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
-+$  ns-obj-key
++$  ns-rel-key
   $:  ns=@tas
-      obj=@tas
+      rel=@tas
       time=@da
       ==
 +$  namespaces  (map @tas @da)
 +$  tables  (map [@tas @tas] table)
-+$  views  ((mop ns-obj-key view) ns-obj-comp)
++$  views  ((mop ns-rel-key view) ns-rel-comp)
 +$  view
   $+  view
   $:  %view
@@ -132,7 +132,6 @@
     =column-lookup
     type-lookup=(map @tas @ta)
     columns=(list column)      ::  canonical column list
-
     :: to do: replace ordering with index (requires non-unique mop type)
     ordering=(list column-order)
     :: indices
@@ -151,13 +150,13 @@
     ==
 +$  column-order  [aor=? ascending=? offset=@ud]
 ::
-::    +ns-obj-comp: [ns-obj-key ns-obj-key] -> ?
+::    +ns-rel-comp: [ns-rel-key ns-rel-key] -> ?
 ::
 ::  view and table comparer
-++  ns-obj-comp
-  |=  [p=ns-obj-key q=ns-obj-key]
+++  ns-rel-comp
+  |=  [p=ns-rel-key q=ns-rel-key]
   ^-  ?
   ?.  =(ns.p ns.q)  (gth ns.p ns.q)
-  ?.  =(obj.p obj.q)  (gth obj.p obj.q)
+  ?.  =(rel.p rel.q)  (gth rel.p rel.q)
   (gth time.p time.q)
 --

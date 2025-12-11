@@ -154,38 +154,38 @@
   ?:  (lth sys-time tmsp.nxt-data)  !!
   nxt-data
 ::
-::  +  get-view:  [ns-obj-key views] -> (unit view)
+::  +  get-view:  [ns-rel-key views] -> (unit view)
 ::
 ::  get view with current or most recent previous time
 ::
-::  because ns-obj-comp orders on gth, tab logic requires +1 to include
+::  because ns-rel-comp orders on gth, tab logic requires +1 to include
 ::  exact match
-++  view-key  ((on ns-obj-key view) ns-obj-comp)
+++  view-key  ((on ns-rel-key view) ns-rel-comp)
 ++  get-view
-  |=  [key=ns-obj-key =views]
+  |=  [key=ns-rel-key =views]
   ^-  (unit view)
-  =/  vw  (tab:view-key views `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
+  =/  vw  (tab:view-key views `[ns.key rel.key `@da`(add `@`time.key 1)] 1)
   ?~  vw  ~
-  =/  returned-key=ns-obj-key  -<.vw
-  ?:  &(=(ns.returned-key ns.key) =(obj.returned-key obj.key))  `->.vw
+  =/  returned-key=ns-rel-key  -<.vw
+  ?:  &(=(ns.returned-key ns.key) =(rel.returned-key rel.key))  `->.vw
   ~
 ::
-::  +get-view-cache:  [ns-obj-key ((mop ns-obj-key cache) ns-obj-comp)]
+::  +get-view-cache:  [ns-rel-key ((mop ns-rel-key cache) ns-rel-comp)]
 ::                    -> (unit cache)
-++  view-cache-key  ((on ns-obj-key cache) ns-obj-comp)
+++  view-cache-key  ((on ns-rel-key cache) ns-rel-comp)
 ++  get-view-cache
-  |=  [key=ns-obj-key q=((mop ns-obj-key cache) ns-obj-comp)]
+  |=  [key=ns-rel-key q=((mop ns-rel-key cache) ns-rel-comp)]
   ^-  cache
-  =/  vw  (tab:view-cache-key q `[ns.key obj.key `@da`(add `@`time.key 1)] 1)
+  =/  vw  (tab:view-cache-key q `[ns.key rel.key `@da`(add `@`time.key 1)] 1)
   ?~  vw
-    ~|("view {<ns.key>}.{<obj.key>} does not exist from time {<time.key>}" !!)
+    ~|("view {<ns.key>}.{<rel.key>} does not exist from time {<time.key>}" !!)
   ->.vw
 ::
 ::  +put-view-cache
 ++  put-view-cache
-  |=  [db=database value=cache key=ns-obj-key]
+  |=  [db=database value=cache key=ns-rel-key]
   ^-  database
-  =/  gate  put:((on ns-obj-key cache) ns-obj-comp)
+  =/  gate  put:((on ns-rel-key cache) ns-rel-comp)
   db(view-cache (gate view-cache.db [key value]))
 ::
 ::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file

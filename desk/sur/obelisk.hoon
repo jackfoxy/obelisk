@@ -81,16 +81,16 @@
 ::
 +$  set-table
   $:  %set-table
+    join=(unit join-type)
     relation=(unit qualified-table)
     schema-tmsp=(unit @da)
     data-tmsp=(unit @da)
     columns=(list column)
+    =qualified-column-addrs
+    =predicate
+    rowcount=@
     =lookup-type
     pri-indx=(unit index)
-    join=(unit join-type)
-    =predicate
-    =qualified-column-addrs
-    rowcount=@
     pri-indexed=(tree [(list @) (map @tas @)])
     indexed-rows=(list indexed-row)
     joined-rows=(list joined-row)

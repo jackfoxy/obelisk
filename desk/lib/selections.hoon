@@ -317,16 +317,16 @@
              state
   :^  %full-relation  
       :~  %:  set-table  %set-table
+                         join
                          [~ ts]
                          [~ tmsp.schema]
                          [~ tmsp.+.r]
                          columns.vw2
-                         *unqualified-lookup-type
                          ~
-                         join
                          predicate
-                         ~
                          rowcount.view-content
+                         *unqualified-lookup-type                    
+                         ~
                          ~
                          %+  turn  rows.view-content
                               |=(a=(map @tas @) (indexed-row %indexed-row ~ a))
@@ -360,16 +360,16 @@
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
   :^  %full-relation
       :~  %:  set-table  %set-table
+                         join
                          [~ query-obj]
                          [~ tmsp.tbl2]
                          [~ tmsp.file]
                          columns.tbl2
+                         ~
+                         predicate
+                         rowcount.file
                          [%unqualified-lookup-type type-lookup.tbl2]
                          [~ pri-indx.tbl2]
-                         join
-                         predicate
-                         ~
-                         rowcount.file
                          pri-idx.file
                          indexed-rows.file
                          *(list joined-row)
@@ -429,10 +429,10 @@
   [(qualified-column:ast %qualified-column query-obj name.a ~) type.a]
 ::
 ::  +got-view-cache:
-::    [database schema view ns-obj-key (list selected-column:ast)]
+::    [database schema view ns-rel-key (list selected-column:ast)]
 ::    -> [database cache]
 ++  got-view-cache
-  |=  [db=database =schema vw=view key=ns-obj-key]
+  |=  [db=database =schema vw=view key=ns-rel-key]
   ^-  [database cache]
   =/  vw-cache=cache  (get-view-cache key view-cache.db)
   ?.  =(content.vw-cache ~)  [db vw-cache]
@@ -442,7 +442,7 @@
                                                             db
                                                             schema
                                                             vw
-                                                            obj.key
+                                                            rel.key
                                                             tmsp.vw-cache
                                                             ==
                                 !!  :: : implement view refresh for non-sys

@@ -615,15 +615,15 @@
                         server
                         :~  :*  %set-table
                                 ~
+                                ~
                                 [~ created-tmsp.sys-db]
                                 [~ created-tmsp.sys-db]
                                 columns-out
+                                ~
+                                ~
+                               1
                                 *unqualified-lookup-type
                                 ~
-                                ~
-                                ~
-                                ~
-                                1
                                 *(tree [(list @) (map @tas @)])
                                 ~[[%indexed-row ~ indexed-cols]]
                                 *(list joined-row)
@@ -637,15 +637,15 @@
             server
             :~  :*  %set-table
                     ~
+                    ~
                     [~ created-tmsp.sys-db]
                     [~ created-tmsp.sys-db]
                     columns-out
-                    *unqualified-lookup-type
-                    ~
-                    ~
                     ~
                     ~
                     1
+                    *unqualified-lookup-type
+                    ~
                     *(tree [(list @) (map @tas @)])
                     ~[[%indexed-row ~ indexed-cols]]
                     *(list joined-row)
