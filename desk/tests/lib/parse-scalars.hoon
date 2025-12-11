@@ -135,9 +135,9 @@
     "        baz-if IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
     "        bar-if if 1 = 1 then foo3 else foo2 endif ".
     "        foo-if If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
-    "        baz-ca CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
-    "        bar-ca case foo3 when 1 = 1 then foo3 else foo2 end ".
-    "        foo-ca CasE foo3 WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
+    "        baz-ca CASE WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "        bar-ca case when 1 = 1 then foo3 else foo2 end ".
+    "        foo-ca CasE WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
     "SELECT foo2,foo3"
   ::
   =/  coalesce
@@ -151,7 +151,7 @@
   =/  case
     :*
       %case
-      target=(some unqualified-col-1)
+      target=~
       cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=(some unqualified-col-2)
     ==
@@ -1213,12 +1213,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
     "        bar COALESCE(foo,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case (some unqualified-col-1) ~[[%case-when-then simple-true-pred unqualified-col-1]] ~]
+    [%case (some unqualified-col-1) ~[[%case-when-then literal-1 unqualified-col-1]] ~]
   =/  coalesce-1
     ~[%coalesce naked-case unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
@@ -1557,14 +1557,14 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
     "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
     :*  %case
       (some unqualified-col-1)
-      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      ~[[%case-when-then literal-1 unqualified-col-1]]
       ~
     ==
   =/  if-1
@@ -2483,7 +2483,7 @@
   =/  query-string
     "FROM foo ".
     "SCALARS foo CASE MyTable.bar ".
-    "              WHEN 1 = 1 THEN MyTable.bar".
+    "              WHEN 1 THEN MyTable.bar".
     "            ELSE MyTable.bar END ".
     "SELECT foo2,foo3"
   ::
