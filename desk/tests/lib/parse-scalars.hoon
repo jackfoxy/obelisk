@@ -1671,18 +1671,18 @@
     'table alias \'MyTable\' is not defined'
     |.  (parse:parse(default-database default-db) query-string)
 ::
-:: simple case expression with predicate
-++  test-case-01
+:: simple case expression with expression
+++  test-case-simple-01
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo3 END ".
+    "SCALARS foobar CASE foo3 WHEN 1 THEN foo3 ELSE foo3 END ".
     "SELECT foo2,foo3"
   ::
   =/  case
     :*  %case
       (some unqualified-col-1)
-      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      ~[[%case-when-then literal-1 unqualified-col-1]]
       (some unqualified-col-1)
     ==
   =/  scalars  ~[[%scalar case 'foobar']]
@@ -1691,15 +1691,15 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 
-:: simple case expression with predicate, no else
-++  test-case-02
+:: simple case expression with expression, no else
+++  test-case-simple-02
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SCALARS foobaz CASE foo3 WHEN 1 THEN foo3 END ".
     "SELECT foo2,foo3"
   ::
-  =/  case-when-then  [%case-when-then simple-true-pred unqualified-col-1] 
+  =/  case-when-then  [%case-when-then literal-1 unqualified-col-1] 
   =/  case
     :+  %scalar
       [%case (some unqualified-col-1) ~[case-when-then] ~]
@@ -1710,26 +1710,26 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 
-:: simple case expression with predicate, two cases, one with else
+:: simple case expression with expression, two cases, one with else
 :: the other without
-++  test-case-03
+++  test-case-simple-03
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
-    "        foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "SCALARS foobaz CASE foo3 WHEN 1 THEN foo3 END ".
+    "        foobar CASE foo3 WHEN ~zod THEN foo3 ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  case-1
     :*  %case
       (some unqualified-col-1)
-      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      ~[[%case-when-then literal-1 unqualified-col-1]]
       ~
     ==
   =/  case-2
     :*  %case
       (some unqualified-col-1)
-      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      ~[[%case-when-then literal-zod unqualified-col-1]]
       (some unqualified-col-2)
     ==
   =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
@@ -1738,34 +1738,34 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: simple case expression with predicate, two cases in the same scalar
-++  test-case-04
+:: simple case expression with expression, two cases in the same scalar
+++  test-case-simple-04
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foobaz CASE foo3 ".
-    "                 WHEN 1 = 1 THEN foo3".
-    "                 WHEN 1 = 1 THEN foo3".
+    "                 WHEN 1 THEN foo3".
+    "                 WHEN 1 THEN foo3".
     "                END ".
     "        foobar CASE foo3 ".
-    "                 WHEN 1 = 1 THEN foo3".
-    "                 WHEN 1 = 1 THEN foo3".
+    "                 WHEN 1 THEN foo3".
+    "                 WHEN 1 THEN foo3".
     "               ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  case-1
     :*  %case
       (some unqualified-col-1)
-      :~  [%case-when-then simple-true-pred unqualified-col-1]
-          [%case-when-then simple-true-pred unqualified-col-1]
+      :~  [%case-when-then literal-1 unqualified-col-1]
+          [%case-when-then literal-1 unqualified-col-1]
       ==
       ~
     ==
   =/  case-2
     :*  %case
       (some unqualified-col-1)
-      :~  [%case-when-then simple-true-pred unqualified-col-1]
-          [%case-when-then simple-true-pred unqualified-col-1]
+      :~  [%case-when-then literal-1 unqualified-col-1]
+          [%case-when-then literal-1 unqualified-col-1]
       ==
       (some unqualified-col-2)
     ==
@@ -1775,8 +1775,308 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: simple case expression: qualified column case scalar with
+:: ship.database.namespace.table.column
+++  test-case-simple-05
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE ~sampel-palnet.db2.dba.table1.bar ".
+    "WHEN ~sampel-palnet.db2.dba.table1.bar ".
+    "THEN ~sampel-palnet.db2.dba.table1.bar ".
+    "ELSE ~sampel-palnet.db2.dba.table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-1)
+      ~[[%case-when-then qualified-col-1 qualified-col-1]]
+      (some qualified-col-1)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: ship.database..table.column (default ns)
+++  test-case-simple-06
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE ~sampel-palnet.db2..table1.bar ".
+    "WHEN ~sampel-palnet.db2..table1.bar ".
+    "THEN ~sampel-palnet.db2..table1.bar ".
+    "ELSE ~sampel-palnet.db2..table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-2)
+      ~[[%case-when-then qualified-col-2 qualified-col-2]]
+      (some qualified-col-2)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: database.namespace.table.column
+++  test-case-simple-07
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE db2.dba.table1.bar ".
+    "WHEN db2.dba.table1.bar ".
+    "THEN db2.dba.table1.bar ".
+    "ELSE db2.dba.table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-3)
+      ~[[%case-when-then qualified-col-3 qualified-col-3]]
+      (some qualified-col-3)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: database..table.column (default ns)
+++  test-case-simple-08
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE db2..table1.bar ".
+    "WHEN db2..table1.bar ".
+    "THEN db2..table1.bar ".
+    "ELSE db2..table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-4)
+      ~[[%case-when-then qualified-col-4 qualified-col-4]]
+      (some qualified-col-4)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: namespace.table.column (default database)
+++  test-case-simple-09
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE dba.table1.bar ".
+    "WHEN dba.table1.bar ".
+    "THEN dba.table1.bar ".
+    "ELSE dba.table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-5)
+      ~[[%case-when-then qualified-col-5 qualified-col-5]]
+      (some qualified-col-5)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: alias.column (default database)
+++  test-case-simple-10
+  ::
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS foo ".
+    "CASE MyTable.bar ".
+    "WHEN MyTable.bar ".
+    "THEN MyTable.bar ".
+    "ELSE MyTable.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-6)
+      ~[[%case-when-then qualified-col-6 qualified-col-6]]
+      (some qualified-col-6)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with coalesce scalar inline
+++  test-case-simple-11
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo2,1,foo2) ".
+    "        bar CASE foo3 WHEN 1 THEN foo ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 naked-coalesce]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar naked-coalesce 'foo']
+      [%scalar case-1 'bar']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with if scalar inline
+++  test-case-simple-12
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar CASE foo3 WHEN 1 THEN foo ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 naked-if]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar naked-if 'foo']
+      [%scalar case-1 'bar']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with case scalar inline
+++  test-case-simple-13
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 THEN foo ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 unqualified-col-1]]
+      else=~
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 naked-case]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar naked-case 'foo']
+      [%scalar case-1 'bar']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with a case nested in a case
+++  test-case-simple-14
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS baz CASE foo3 WHEN 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 THEN baz END ".
+    "        foo CASE foo3 WHEN 1 THEN bar ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  second-case
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 unqualified-col-1]]
+      else=~
+    ==
+  =/  first-case
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 second-case]]
+      else=~
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 first-case]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar second-case 'baz']
+      [%scalar first-case 'bar']
+      [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 :: searched case expression with predicate
-++  test-case-05
+++  test-case-searched-01
   ::
   =/  query-string
     "FROM foo ".
@@ -1796,7 +2096,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 
 :: searched case expression with predicate, no else
-++  test-case-06
+++  test-case-searched-02
   ::
   =/  query-string
     "FROM foo ".
@@ -1816,7 +2116,7 @@
 
 :: searched case expression with predicate, two cases, one with else
 :: the other without
-++  test-case-07
+++  test-case-searched-03
   ::
   =/  query-string
     "FROM foo ".
@@ -1843,7 +2143,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression with predicate, two cases in the same scalar
-++  test-case-08
+++  test-case-searched-04
   ::
   =/  query-string
     "FROM foo ".
@@ -1879,8 +2179,8 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: ualified column case scalar with ship.database.namespace.table.column
-++  test-case-09
+:: qualified column case scalar with ship.database.namespace.table.column
+++  test-case-searched-05
   ::
   =/  query-string
     "FROM foo ".
@@ -1904,35 +2204,9 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: searched case expression: qualified column case scalar with
-:: WHEN clause using a datum
-::++  test-case-05
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo ".
-::    "CASE ~sampel-palnet.db2.dba.table1.bar ".
-::    "WHEN 1 ".
-::    "THEN ~sampel-palnet.db2.dba.table1.bar ".
-::    "ELSE ~sampel-palnet.db2.dba.table1.bar ".
-::    "END ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  case-qualified
-::    :*  %case
-::      qualified-col-1
-::      ~[`case-when-then:ast`[literal-1 qualified-col-1]]
-::      (some qualified-col-1)
-::    ==
-::  =/  scalars  ~[[%scalar case-qualified 'foo']]
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::
 :: searched case expression: qualified column case scalar
 :: with ship.database..table.column (default ns)
-++  test-case-10
+++  test-case-searched-06
   ::
   =/  query-string
     "FROM foo ".
@@ -1958,7 +2232,7 @@
 ::
 :: searched case expression: qualified column case scalar
 :: with database.namespace.table.column
-++  test-case-11
+++  test-case-searched-07
   ::
   =/  query-string
     "FROM foo ".
@@ -1984,7 +2258,7 @@
 ::
 :: searched case expression: qualified column case scalar with
 :: database..table.column (default ns)
-++  test-case-12
+++  test-case-searched-08
   ::
   =/  query-string
     "FROM foo ".
@@ -2010,7 +2284,7 @@
 ::
 :: searched case expression: qualified column case scalar with
 :: namespace.table.column (default database)
-++  test-case-13
+++  test-case-searched-09
   ::
   =/  query-string
     "FROM foo ".
@@ -2036,7 +2310,7 @@
 ::
 :: searched case expression: qualified column case scalar with
 :: alias.column (default database)
-++  test-case-14
+++  test-case-searched-10
   ::
   =/  query-string
     "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
@@ -2069,7 +2343,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with coalesce scalar inline
-++  test-case-15
+++  test-case-searched-11
   ::
   =/  query-string
     "FROM foo ".
@@ -2097,7 +2371,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with if scalar inline
-++  test-case-16
+++  test-case-searched-12
   ::
   =/  query-string
     "FROM foo ".
@@ -2130,7 +2404,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with case scalar inline
-++  test-case-17
+++  test-case-searched-13
   ::
   =/  query-string
     "FROM foo ".
@@ -2163,7 +2437,7 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with a case nested in a case
-++  test-case-18
+++  test-case-searched-14
   ::
   =/  query-string
     "FROM foo ".

@@ -155,7 +155,7 @@
     ==
 +$  case-when-then
   $:  %case-when-then
-    when=predicate                       :: predicate | datum
+    when=$%(predicate datum-or-scalar)                       :: predicate | datum
     then=datum-or-scalar
     ==
 +$  case

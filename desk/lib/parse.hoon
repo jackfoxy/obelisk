@@ -2888,9 +2888,13 @@
     ^-  (list case-when-then:ast)
     ?~  cases.cooked-case
       ~
+    =/  finalized-when  
+      ?:  ?=(scalar-param when.i.cases.cooked-case)
+        (finalize-scalar-param when.i.cases.cooked-case aliases)
+      when.i.cases.cooked-case
     =/  finalized-case-when-then
       :+  %case-when-then
-         when.i.cases.cooked-case
+         finalized-when
       (finalize-scalar-param then.i.cases.cooked-case aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
@@ -5201,10 +5205,17 @@
     ;~(pose parse-scalar-param)
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
-++  parse-when-then
+++  parse-when-then-datum
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
-    ;~(pose parse-predicate parse-scalar-param)
+    parse-scalar-param
+    ;~(pfix whitespace (cold %then (jester 'then')))
+    ;~(pose parse-aggregate parse-scalar-param)
+  ==
+++  parse-when-then-predicate
+  ;~  plug
+    ;~(pfix whitespace (cold %when (jester 'when')))
+    parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
     ;~(pose parse-aggregate parse-scalar-param)
   ==
@@ -5222,7 +5233,7 @@
     ?:  =(fn-name %simple-case)
       [(some (cook-scalar-param +<.parsed)) +>.parsed]
     [~ +.parsed]
-  =/  cases  (cook-case-when-then-list -.rest)
+  =/  cases  (cook-case-when-then-list fn-name -.rest)
   =/  [cooked-else=(unit scalar-param) rest=*]
     ?@  +.rest
       [~ rest]
@@ -5234,14 +5245,19 @@
   ~|("cannot cook case: unexpected atom: {<+.rest>}" !!)
 ::
 ++  cook-case-when-then-list
-  |=  case-when-then-list=*
+  |=  [case-type=* case-when-then-list=*]
   |-
   ^-  (list case-when-then-helper)
   ?~  case-when-then-list
     ~
   =/  raw-when  ->-.case-when-then-list
   =/  raw-then  ->+>.case-when-then-list
-  =/  cooked-when  (produce-predicate (predicate-list raw-when))
+  =/  cooked-when  
+    ?:  =(case-type %simple-case)
+      (cook-scalar-param raw-when)
+    ?:  =(case-type %searched-case)
+      (produce-predicate (predicate-list raw-when))
+    ~|("unknown case type {<case-type>}" !!)
   =/  cooked-then  (cook-scalar-param raw-then)
   =/  cooked-case-when-then
     (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
@@ -5251,14 +5267,14 @@
 ++  parse-simple-case
   ;~  plug
     parse-scalar-param
-    (star parse-when-then)
+    (star parse-when-then-datum)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
 ::
 ::  CASE WHEN <pred> THEN <expr> [...] [ELSE <expr>]
 ++  parse-searched-case
   ;~  plug
-    (star parse-when-then)
+    (star parse-when-then-predicate)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
 ::
@@ -5689,7 +5705,7 @@
 +$  case-when-then-helper
   $:
     %case-when-then-helper
-    when=predicate:ast
+    when=$%(scalar-param predicate:ast)
     then=scalar-param
   ==
 --
