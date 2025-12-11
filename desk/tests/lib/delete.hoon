@@ -270,15 +270,6 @@
   ::
   %+  weld  (eval-results expected-delete ;;(cmd-result ->+>+>+<.mov3))
             (eval-results expected-after-delete ;;(cmd-result ->+>+>+<.mov4))
-
-  ::%+  expect-fail-message
-  ::      'DELETE: state change after query in script'
-  ::|.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::        %obelisk-action
-  ::        !>  :+  %test
-  ::                %db1
-  ::                "FROM calendar SELECT *"
-
 ::
 ::  delete all but 1 FROM AS OF = data time
 ++  test-delete-05
