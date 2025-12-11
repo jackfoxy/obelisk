@@ -165,7 +165,90 @@
 ::
 ::  %eq tests
 ::
-
+++  test-case-eq-dime-dime
+  =/  cases
+    :~
+      [%case-when-then [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] then-q-col-1]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=~
+      cases=cases
+      else=(some then-q-col-2)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 1]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+++  test-case-eq-qualified-col-dime
+  =/  cases
+    :~
+      [%case-when-then [%eq [pred-q-col-1 ~ ~] [[~.ud 1] ~ ~]] then-q-col-1]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=~
+      cases=cases
+      else=(some then-q-col-2)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 1]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+++  test-case-eq-dime-qualified-col
+  =/  cases
+    :~
+      [%case-when-then [%eq [[~.ud 1] ~ ~] [pred-q-col-1 ~ ~]] then-q-col-1]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=~
+      cases=cases
+      else=(some then-q-col-2)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 1]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+++  test-case-eq-unqualified-col-dime
+  =/  cases
+    :~
+      [%case-when-then [%eq [pred-u-col-4 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=~
+      cases=cases
+      else=(some then-u-col-5)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 4]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+++  test-case-eq-dime-unqualified-col
+  =/  cases
+    :~
+      [%case-when-then [%eq [[~.ud 4] ~ ~] [pred-u-col-4 ~ ~]] then-u-col-4]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=~
+      cases=cases
+      else=(some then-u-col-5)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 4]
+    !>  (apply-scalar then-row scalar-to-apply)
 ::
 ::  %neq tests
 
@@ -278,7 +361,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some then-q-col-2)
     ==
@@ -298,7 +381,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some then-u-col-5)
     ==
@@ -317,7 +400,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some [%literal-value [~.t 'bar']])
     ==
@@ -337,7 +420,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some then-q-col-2)
     ==
@@ -357,7 +440,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some then-q-col-2)
     ==
@@ -438,7 +521,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some else-q-col-2)
     ==
@@ -458,7 +541,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some else-u-col-5)
     ==
@@ -477,7 +560,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some [%literal-value [~.t 'bar']])
     ==
@@ -497,7 +580,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some [%scalar-alias %scalar1])
     ==
@@ -517,7 +600,7 @@
     ==
   =/  case-expr=case:ast
     :*  %case
-      target=[%literal-value [~.ud 1]]
+      target=~
       cases=cases
       else=(some (~(got by else-scalars) %scalar1))
     ==

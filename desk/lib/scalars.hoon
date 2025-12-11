@@ -187,7 +187,7 @@
        ~|("no scalar found!" !!)
      (evaluate-datum-or-scalar (need maybe-resolved-scalar) named-ctes lookups scalars)
    (prepare-scalar scalar named-ctes lookups scalars)
-
+::
 ++  prepare-if-then-else
     |=  $:
           scalar=if-then-else:ast
@@ -210,4 +210,33 @@
     ?:  =((pred-result d) %.y)
       ((evaluate-datum-or-scalar then.scalar named-ctes lookups scalars) d)
     ((evaluate-datum-or-scalar else.scalar named-ctes lookups scalars) d)
+::
+++  prepare-case
+    |=  $:
+          scalar=case:ast
+          =named-ctes
+          =lookups
+          scalars=(map @t scalar-function:ast)
+        ==
+    ^-  $-(data-row dime)
+    ?.  =(target.scalar ~)  ~|("simple case expression not available yet" !!)
+    =/  cases  cases.scalar
+    =/  matched-case=(unit $-(data-row dime))
+      |-
+      ?~  cases
+        ~
+      =/  qualified-pred
+        (pred-qualify-unqualified when.-.cases qualifier.lookups)
+      ?:  (pred-ops-and-conjs qualified-pred type.lookups qualifier.lookups)
+        %-  some
+        |=  d=data-row
+        ((evaluate-datum-or-scalar then.case named-ctes lookups scalars) d)
+      $(cases +.cases)
+    ?.  =(matched-case ~)  (need matched-case)
+    ?:  ?&  =(matched-case ~)
+           !=(else.case ~)
+        ==
+      |=  d=data-row
+      ((evaluate-datum-or-scalar else.scalar named-ctes lookups scalars) d)
+    ~|("unimplemented" !!)
 --
