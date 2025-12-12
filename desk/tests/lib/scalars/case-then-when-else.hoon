@@ -513,7 +513,7 @@
 ::
 ::  test return qualified column
 ::  fail scenario: no table with column
-++  test-case-else-qualified-col-01
+++  test-searched-case-else-qualified-col-01
   =/  cases
     :~
       [%case-when-then false-predicate else-q-col-1]
@@ -533,7 +533,7 @@
 ::
 ::  test return unqualified column
 ::  fail scenario: no table with column
-++  test-case-else-unqualified-col-01
+++  test-searched-case-else-unqualified-col-01
   =/  cases
     :~
       [%case-when-then false-predicate else-u-col-4]
@@ -552,7 +552,7 @@
     !>  (apply-scalar else-row scalar-to-apply)
 ::
 ::  test return literal-value
-++  test-case-else-literal-value-01
+++  test-searched-case-else-literal-value-01
   =/  cases
     :~
       [%case-when-then false-predicate [%literal-value [~.t 'foo']]]
@@ -572,7 +572,7 @@
 ::
 ::  test return scalar-alias
 ::  fail scenario: no scalar with alias
-++  test-case-else-scalar-alias-01
+++  test-searched-case-else-scalar-alias-01
   =/  cases
     :~
       [%case-when-then false-predicate else-q-col-2]
@@ -592,7 +592,7 @@
 ::
 ::  test return embedded scalar
 ::  fail scenario: no scalar with alias
-++  test-case-else-embedded-scalar-01
+++  test-searched-case-else-embedded-scalar-01
   =/  cases
     :~
       [%case-when-then false-predicate else-q-col-2]
@@ -610,4 +610,20 @@
     !>  [~.ud 3]
     !>  (apply-scalar else-row scalar-to-apply)
 ::
+++  test-simple-case-else-qualified-col-01
+  =/  cases
+    :~
+      [%case-when-then [%literal-value [~.ud 1]] else-q-col-2]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some else-q-col-1)
+      cases=cases
+      else=(some else-q-col-2)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
+  %+  expect-eq
+    !>  [~.ud 2]
+    !>  (apply-scalar else-row scalar-to-apply)
 --
