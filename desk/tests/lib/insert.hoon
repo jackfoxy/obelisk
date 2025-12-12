@@ -283,7 +283,7 @@
                           [%message 'table data:']
                           [%vector-count 4]
                     ==
-  =/  expected-rows  :: to do: make "real" alpha ordering
+  =/  expected-rows
         :~
           :-  %vector
               :~  [%col1 [~.t 'cord']]

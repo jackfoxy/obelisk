@@ -376,11 +376,9 @@
     alias=(unit @t)
     ==
 +$  selected-all
-  $:  %all  %all  ::to do: pair
+  $:  %all  %all
     ==
-
 +$  selected-all-table  [%all-object qualified-table]
-
 +$  selected-aggregate
   $:  %selected-aggregate
     aggregate=aggregate

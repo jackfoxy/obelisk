@@ -1317,7 +1317,6 @@
                   ==
 ::
 ::  fail on column does not exist
-  :: to do: after making type lookup 3 layer
 ++  test-fail-update-02
   =|  run=@ud
   %-  failon  :*  run

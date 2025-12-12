@@ -272,7 +272,6 @@
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
 
-  :: to do: here and in do-update this can probably be more efficient
   =.  pri-idx.file.txn
       %+  gas:primary-key  *((mop (list @) ,(map @tas @)) comparator)
                            (turn indexed-rows.file.txn |=(a=indexed-row +.a))
@@ -395,7 +394,6 @@
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator
         ~(order idx-comp `(list [@ta ?])`(reduce-key key.pri-indx.table.txn))
-  :: to do: here and in do-delete this can probably be more efficient
   =.  pri-idx.file.txn
       %+  gas:primary-key  *((mop (list @) (map @tas @)) comparator)
                            (turn -.rows-count |=(a=indexed-row +.a))

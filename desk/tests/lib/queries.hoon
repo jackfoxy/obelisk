@@ -6181,7 +6181,7 @@
           %obelisk-action
           !>([%test %db1 my-select])
 ::
-::  fail on bad column name   to do: fix and uncomment
+::  fail on bad column name
 ++  test-fail-select-02
   =|  run=@ud
   =^  mov1  agent
