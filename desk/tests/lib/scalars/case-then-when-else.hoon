@@ -130,18 +130,18 @@
                              ==
                            ==
 ::
-+$  pred-test-row  $:  pred=predicate:ast     
-                    then=datum-or-scalar:ast
-                    else=datum-or-scalar:ast
-                    expected=dime
++$  pred-test-row  $:  target=(unit datum-or-scalar:ast)
+                     case=case-when-then:ast     
+                     else=(unit datum-or-scalar:ast)
+                     expected=dime
                    ==
 ::
 ++  pred-test-helper
   |=  [row=pred-test-row]
   =/  pred-lookups  [pred-qualifier-lookup pred-qual-type-lookup]
-  =/  if-expr       [%if-then-else if=pred.row then=then.row else=else.row]
+  =/  case-expr=case:ast       [%case target=target.row cases=~[case.row] else=else.row]
   =/  scalar-to-apply
-    (prepare-scalar if-expr pred-named-ctes pred-lookups pred-scalars)
+    (prepare-scalar case-expr pred-named-ctes pred-lookups pred-scalars)
   %+  expect-eq
     !>  expected.row
     !>  (apply-scalar pred-row scalar-to-apply)
@@ -168,90 +168,70 @@
 ::
 ::  %eq tests
 ::
-++  test-case-eq-dime-dime
-  =/  cases
-    :~
+++  test-case-predicate-eq
+  %-  pred-row-test
+  :~
+    :-  %searched-eq-dime-dime
+    :*  ~
       [%case-when-then [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] then-q-col-1]
+      (some then-q-col-2)
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some then-q-col-2)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-++  test-case-eq-qualified-col-dime
-  =/  cases
-    :~
+    :-  %searched-eq-qualified-col-dime
+    :*  ~
       [%case-when-then [%eq [pred-q-col-1 ~ ~] [[~.ud 1] ~ ~]] then-q-col-1]
+      (some then-q-col-2)
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some then-q-col-2)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-++  test-case-eq-dime-qualified-col
-  =/  cases
-    :~
+    :-  %searched-eq-dime-qualified-col
+    :*  ~
       [%case-when-then [%eq [[~.ud 1] ~ ~] [pred-q-col-1 ~ ~]] then-q-col-1]
+      (some then-q-col-2)
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some then-q-col-2)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-++  test-case-eq-unqualified-col-dime
-  =/  cases
-    :~
+    :-  %searched-eq-unqualified-col-dime
+    :*  ~
       [%case-when-then [%eq [pred-u-col-4 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
+      (some then-u-col-5)
+      [~.ud 4]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some then-u-col-5)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 4]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-++  test-case-eq-dime-unqualified-col
-  =/  cases
-    :~
+    :-  %searched-eq-dime-unqualified-col
+    :*  ~
       [%case-when-then [%eq [[~.ud 4] ~ ~] [pred-u-col-4 ~ ~]] then-u-col-4]
+      (some then-u-col-5)
+      [~.ud 4]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some then-u-col-5)
+    :-  %simple-eq-dime-dime
+    :*  (some [%literal-value [~.ud 1]])
+      [%case-when-then literal-1 then-q-col-1]
+      (some then-q-col-2)
+      [~.ud 1]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 4]
-    !>  (apply-scalar then-row scalar-to-apply)
+    :-  %simple-eq-qualified-col-dime
+    :*  (some pred-q-col-1)
+      [%case-when-then literal-1 then-q-col-1]
+      (some then-q-col-2)
+      [~.ud 1]
+    ==
+    :-  %simple-eq-dime-qualified-col
+    :*  (some [%literal-value [~.ud 1]])
+      [%case-when-then pred-q-col-1 then-q-col-1]
+      (some then-q-col-2)
+      [~.ud 1]
+    ==
+    :-  %simple-eq-unqualified-col-dime
+    :*  (some pred-u-col-4)
+      [%case-when-then [%literal-value [~.ud 4]] then-u-col-4]
+      (some then-u-col-5)
+      [~.ud 4]
+    ==
+    :-  %simple-eq-dime-unqualified-col
+    :*  (some [%literal-value [~.ud 4]])
+      [%case-when-then pred-u-col-4 then-u-col-4]
+      (some then-u-col-5)
+      [~.ud 4]
+    ==
+  ==
 ::
 ::  %neq tests
 
@@ -354,19 +334,21 @@
                                else=[then-q-col-2]
                              ==
                            ==
+::  tests for all possible then return types
+::
 ::  test return qualified column
 ::  fail scenario: no table with column
-++  test-case-then-qualified-col-01
+++  test-case-searched-then-qualified-col-01
   =/  cases
     :~
       [%case-when-then true-predicate then-q-col-1]
-      [%case-when-then true-predicate then-q-col-1]
+      [%case-when-then false-predicate then-q-col-2]
     ==
   =/  case-expr=case:ast
     :*  %case
       target=~
       cases=cases
-      else=(some then-q-col-2)
+      else=~
     ==
   =/  scalar-to-apply
     (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
@@ -376,17 +358,17 @@
 ::
 ::  test return unqualified column
 ::  fail scenario: no table with column
-++  test-case-then-unqualified-col-01
+++  test-case-searched-then-unqualified-col-01
   =/  cases
     :~
       [%case-when-then true-predicate then-u-col-4]
-      [%case-when-then true-predicate then-u-col-4]
+      [%case-when-then false-predicate then-u-col-5]
     ==
   =/  case-expr=case:ast
     :*  %case
       target=~
       cases=cases
-      else=(some then-u-col-5)
+      else=~
     ==
   =/  scalar-to-apply
     (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
@@ -395,17 +377,17 @@
     !>  (apply-scalar then-row scalar-to-apply)
 ::
 ::  test return literal-value
-++  test-case-then-literal-value-01
+++  test-case-searched-then-literal-value-01
   =/  cases
     :~
       [%case-when-then true-predicate [%literal-value [~.t 'foo']]]
-      [%case-when-then true-predicate [%literal-value [~.t 'foo']]]
+      [%case-when-then false-predicate [%literal-value [~.t 'baz']]]
     ==
   =/  case-expr=case:ast
     :*  %case
       target=~
       cases=cases
-      else=(some [%literal-value [~.t 'bar']])
+      else=~
     ==
   =/  scalar-to-apply
     (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
@@ -415,17 +397,17 @@
 ::
 ::  test return scalar-alias
 ::  fail scenario: no scalar with alias
-++  test-case-then-scalar-alias-01
+++  test-case-searched-then-scalar-alias-01
   =/  cases
     :~
       [%case-when-then true-predicate [%scalar-alias %scalar1]]
-      [%case-when-then true-predicate [%scalar-alias %scalar1]]
+      [%case-when-then false-predicate then-q-col-2]
     ==
   =/  case-expr=case:ast
     :*  %case
       target=~
       cases=cases
-      else=(some then-q-col-2)
+      else=~
     ==
   =/  scalar-to-apply
     (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
@@ -435,17 +417,112 @@
 ::
 ::  test return embedded scalar
 ::  fail scenario: no scalar with alias
-++  test-case-then-embedded-scalar-01
+++  test-case-searched-then-embedded-scalar-01
   =/  cases
     :~
       [%case-when-then true-predicate (~(got by then-scalars) %scalar1)]
-      [%case-when-then true-predicate (~(got by then-scalars) %scalar1)]
+      [%case-when-then false-predicate then-q-col-2]
     ==
   =/  case-expr=case:ast
     :*  %case
       target=~
       cases=cases
-      else=(some then-q-col-2)
+      else=~
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 3]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+++  test-case-simple-then-qualified-col-01
+  =/  cases
+    :~
+      [%case-when-then literal-1 then-q-col-1]
+      [%case-when-then literal-2 then-q-col-2]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some then-q-col-1)
+      cases=cases
+      else=~
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 1]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+++  test-case-simple-then-unqualified-col-01
+  =/  cases
+    :~
+      [%case-when-then literal-1 then-u-col-4]
+      [%case-when-then literal-2 then-u-col-5]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some then-q-col-1)
+      cases=cases
+      else=~
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 4]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+::  test return literal-value
+++  test-case-simple-then-literal-value-01
+  =/  cases
+    :~
+      [%case-when-then literal-1 [%literal-value [~.t 'foo']]]
+      [%case-when-then literal-2 [%literal-value [~.t 'baz']]]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some then-q-col-1)
+      cases=cases
+      else=~
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.t 'foo']
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+::  test return scalar-alias
+::  fail scenario: no scalar with alias
+++  test-case-simple-then-scalar-alias-01
+  =/  cases
+    :~
+      [%case-when-then literal-1 [%scalar-alias %scalar1]]
+      [%case-when-then literal-2 then-q-col-2]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some then-q-col-1)
+      cases=cases
+      else=~
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
+  %+  expect-eq
+    !>  [~.ud 3]
+    !>  (apply-scalar then-row scalar-to-apply)
+::
+::  test return embedded scalar
+::  fail scenario: no scalar with alias
+++  test-case-simple-then-embedded-scalar-01
+  =/  cases
+    :~
+      [%case-when-then literal-1 (~(got by then-scalars) %scalar1)]
+      [%case-when-then literal-2 then-q-col-2]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some then-q-col-1)
+      cases=cases
+      else=~
     ==
   =/  scalar-to-apply
     (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)

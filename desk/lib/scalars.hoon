@@ -243,7 +243,7 @@
         :: i think this is a bit brittle but it works
         :: these recursive types make it impossible to use ?=
         :: on the predicate itself 
-        ?>  ?=(predicate-component:ast -.when.case)
+        ?.  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
         =/  qualified-pred
              (pred-qualify-unqualified when.case qualifier.lookups)
         =/  result
@@ -263,15 +263,31 @@
       $(fns-to-apply +.fns-to-apply)
     ::  datum
     |-
-    ?~  cases
+    =/  target-fn  
+      (evaluate-datum-or-scalar (need target.scalar) named-ctes lookups scalars)
+    =/  fns-to-apply
+      |-
+      ^-  (list [$-(data-row ?) datum-or-scalar:ast])
+      ?~  cases
+        ~
+      =/  case  i.cases
+      :: gently pushing type inference
+      ?:  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
+      =/  when-fn
+        (evaluate-datum-or-scalar when.case named-ctes lookups scalars)
+      =/  result
+        :-  |=(=data-row =((target-fn data-row) (when-fn data-row)))
+        then.case
+      [result $(cases +.cases)]
+    |=  =data-row
+    ^-  dime
+    |-
+    ?~  fns-to-apply
       ?:  !=(else.scalar ~)
-        |=  =data-row
         ((evaluate-datum-or-scalar (need else.scalar) named-ctes lookups scalars) data-row)
       ~|("no case matched" !!)
-    =/  case  i.cases
-    ?>  !=(target.scalar ~)
-    ?:  =(when.case target.scalar)
-      |=  =data-row
-      ((evaluate-datum-or-scalar then.case named-ctes lookups scalars) data-row) 
-    $(cases +.cases)
+    =/  fn-datum  -.fns-to-apply
+    ?:  (-.fn-datum data-row)
+      ((evaluate-datum-or-scalar +.fn-datum named-ctes lookups scalars) data-row)
+    $(fns-to-apply +.fns-to-apply)
 --
