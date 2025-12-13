@@ -220,7 +220,6 @@
         ==
     ^-  $-(data-row dime)
     =/  cases  cases.scalar
-    ::  TODO: add check that all the whens be either expressions or predicates
     =/  is-searched-case
       ?~  cases  ~|("cases can't be empty" !!)
       ?=(predicate-component:ast -.when.i.cases)
@@ -229,6 +228,8 @@
         cases
         is-searched-case
         |=  [case=case-when-then:ast state=?]
+        :: TODO: add check that all the whens be either expressions or
+        :: predicates no mixing
         ?&(state ?=(predicate-component:ast when.case))
       ==
     ?:  is-searched-case
@@ -253,60 +254,24 @@
       ^-  dime
       |-
       ?~  fns-to-apply
+        ?:  !=(else.scalar ~)
+          ((evaluate-datum-or-scalar (need else.scalar) named-ctes lookups scalars) data-row)
         ~|("no case matched" !!)
       =/  fn-datum  -.fns-to-apply
       ?:  (-.fn-datum data-row)
         ((evaluate-datum-or-scalar +.fn-datum named-ctes lookups scalars) data-row)
       $(fns-to-apply +.fns-to-apply)
     ::  datum
-    ::?.  =(matched-case ~)  (need matched-case)
-    ::?:  ?&  =(matched-case ~)
-    ::       !=(else.scalar ~)
-    ::    ==
-    ::  |=  d=data-row
-    ::  ((evaluate-datum-or-scalar (need else.scalar) named-ctes lookups scalars) d)
-    ~|("unimplemented" !!)
+    |-
+    ?~  cases
+      ?:  !=(else.scalar ~)
+        |=  =data-row
+        ((evaluate-datum-or-scalar (need else.scalar) named-ctes lookups scalars) data-row)
+      ~|("no case matched" !!)
+    =/  case  i.cases
+    ?>  !=(target.scalar ~)
+    ?:  =(when.case target.scalar)
+      |=  =data-row
+      ((evaluate-datum-or-scalar then.case named-ctes lookups scalars) data-row) 
+    $(cases +.cases)
 --
-::    =/  fns-to-apply=(lest [$-(data-row ?) datum-or-scalar:ast])
-::      |-
-::      ?~  cases
-::        ~
-::      =/  case  i.cases
-::      :: i think this is a bit brittle but it works
-::      :: these recursive types make it impossible to use ?=
-::      :: on the predicate itself
-::      ?:  ?=(predicate-component:ast -.when.case)
-::        :: when is a predicate
-::        =/  qualified-pred
-::          (pred-qualify-unqualified when.case qualifier.lookups)
-::        =/  result
-::          :-  (pred-ops-and-conjs qualified-pred type.lookups qualifier.lookups)
-::          then.case
-::        [result $(cases +.cases)]
-::        ::
-::      !!
-::      :: - :: - ::
-::      ?:  ?=(predicate-component:ast -.when.case)
-::        :: when is a predicate
-::        =/  predicate-list
-::          |-
-::          ^-  (lest [$-(data-row ?) datum-or-scalar:ast])
-::          ?~  cases
-::            ~
-::          =/  case  i.cases
-::          =/  qualified-pred
-::            (pred-qualify-unqualified when.case qualifier.lookups)
-::          =/  result
-::            :-  (pred-ops-and-conjs qualified-pred type.lookups qualifier.lookups)
-::            then.case
-::          [result $(cases +.cases)]
-::        |=  d=data-row
-::        |-
-::        ?~  predicate-list
-::          ~|("no CASE matched" !!)
-::        =/  when-then-pair  -.pred
-::        ?:  (-.when-then-pair d)
-::          (evaluate-datum-or-scalar then.-.cases.scalar named-ctes lookups scalars)
-::        $(predicate-list +.predicate-list)
-::      :: when is a datum
-::      ~&("datum detected" $(cases +.cases))

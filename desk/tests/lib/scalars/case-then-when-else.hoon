@@ -23,6 +23,9 @@
 ++  true-predicate         [n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
 ++  false-predicate         [n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 0] ~ ~]]
 ::
+++  literal-1             [%literal-value [~.ud 1]]
+++  literal-2             [%literal-value [~.ud 2]]
+::
 ::  helper gates
 ::
 ::  make a qualified column
@@ -513,7 +516,7 @@
 ::
 ::  test return qualified column
 ::  fail scenario: no table with column
-++  test-searched-case-else-qualified-col-01
+++  test-case-searched-else-qualified-col-01
   =/  cases
     :~
       [%case-when-then false-predicate else-q-col-1]
@@ -533,7 +536,7 @@
 ::
 ::  test return unqualified column
 ::  fail scenario: no table with column
-++  test-searched-case-else-unqualified-col-01
+++  test-case-searched-else-unqualified-col-01
   =/  cases
     :~
       [%case-when-then false-predicate else-u-col-4]
@@ -552,7 +555,7 @@
     !>  (apply-scalar else-row scalar-to-apply)
 ::
 ::  test return literal-value
-++  test-searched-case-else-literal-value-01
+++  test-case-searched-else-literal-value-01
   =/  cases
     :~
       [%case-when-then false-predicate [%literal-value [~.t 'foo']]]
@@ -572,7 +575,7 @@
 ::
 ::  test return scalar-alias
 ::  fail scenario: no scalar with alias
-++  test-searched-case-else-scalar-alias-01
+++  test-case-searched-else-scalar-alias-01
   =/  cases
     :~
       [%case-when-then false-predicate else-q-col-2]
@@ -592,7 +595,7 @@
 ::
 ::  test return embedded scalar
 ::  fail scenario: no scalar with alias
-++  test-searched-case-else-embedded-scalar-01
+++  test-case-searched-else-embedded-scalar-01
   =/  cases
     :~
       [%case-when-then false-predicate else-q-col-2]
@@ -610,10 +613,10 @@
     !>  [~.ud 3]
     !>  (apply-scalar else-row scalar-to-apply)
 ::
-++  test-simple-case-else-qualified-col-01
+++  test-case-simple-else-qualified-col-01
   =/  cases
     :~
-      [%case-when-then [%literal-value [~.ud 1]] else-q-col-2]
+      [%case-when-then literal-2 else-q-col-2]
     ==
   =/  case-expr=case:ast
     :*  %case
@@ -625,5 +628,78 @@
     (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
   %+  expect-eq
     !>  [~.ud 2]
+    !>  (apply-scalar else-row scalar-to-apply)
+::
+++  test-case-simple-else-unqualified-col-01
+  =/  cases
+    :~
+      [%case-when-then literal-2 else-u-col-4]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some else-q-col-1)
+      cases=cases
+      else=(some else-u-col-5)
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
+  %+  expect-eq
+    !>  [~.ud 5]
+    !>  (apply-scalar else-row scalar-to-apply)
+::
+::  test return literal-value
+++  test-case-simple-else-literal-value-01
+  =/  cases
+    :~
+      [%case-when-then literal-2 [%literal-value [~.t 'foo']]]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some else-q-col-1)
+      cases=cases
+      else=(some [%literal-value [~.t 'bar']])
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
+  %+  expect-eq
+    !>  [~.t 'bar']
+    !>  (apply-scalar else-row scalar-to-apply)
+::
+::  test return scalar-alias
+::  fail scenario: no scalar with alias
+++  test-case-simple-else-scalar-alias-01
+  =/  cases
+    :~
+      [%case-when-then literal-2 else-q-col-2]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some else-q-col-1)
+      cases=cases
+      else=(some [%scalar-alias %scalar1])
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
+  %+  expect-eq
+    !>  [~.ud 3]
+    !>  (apply-scalar else-row scalar-to-apply)
+::
+::  test return embedded scalar
+::  fail scenario: no scalar with alias
+++  test-case-simple-else-embedded-scalar-01
+  =/  cases
+    :~
+      [%case-when-then literal-2 else-q-col-2]
+    ==
+  =/  case-expr=case:ast
+    :*  %case
+      target=(some else-q-col-1)
+      cases=cases
+      else=(some (~(got by else-scalars) %scalar1))
+    ==
+  =/  scalar-to-apply
+    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
+  %+  expect-eq
+    !>  [~.ud 3]
     !>  (apply-scalar else-row scalar-to-apply)
 --
