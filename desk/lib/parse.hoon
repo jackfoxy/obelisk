@@ -40,6 +40,7 @@
 ::  +parse: parse urQL script, emitting list of high level AST structures
 ++  parse
   |=  raw-script=tape
+  ~+
   ^-  (list command:ast)
   =/  script=tape  (block-cmnts raw-script)
   =/  commands  `(list command:ast)`~

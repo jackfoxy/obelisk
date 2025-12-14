@@ -44,6 +44,7 @@
 ::  +process-cmds:  [(list command:ast)] -> [(list cmd-result) server]
 ++  process-cmds
   |=  cmds=(list command:ast)
+  ~+
   ^-  [(list cmd-result) server]
   ::
   ::  to do:
