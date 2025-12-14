@@ -263,6 +263,7 @@
       $(fns-to-apply +.fns-to-apply)
     ::  datum
     |-
+    :: TODO: target id not null-checked -- add test
     =/  target-fn  
       (evaluate-datum-or-scalar (need target.scalar) named-ctes lookups scalars)
     =/  fns-to-apply
