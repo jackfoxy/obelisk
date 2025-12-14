@@ -185,7 +185,12 @@
      =/  maybe-resolved-scalar  (~(get by scalars) alias.scalar)
      ?~  maybe-resolved-scalar
        ~|("no scalar found!" !!)
-     (evaluate-datum-or-scalar (need maybe-resolved-scalar) named-ctes lookups scalars)
+     %:  evaluate-datum-or-scalar
+       (need maybe-resolved-scalar)
+       named-ctes
+       lookups
+       scalars
+     ==
    (prepare-scalar scalar named-ctes lookups scalars)
 ::
 ++  prepare-if-then-else
@@ -228,51 +233,41 @@
         cases
         is-searched-case
         |=  [case=case-when-then:ast state=?]
-        :: TODO: add check that all the whens be either expressions or
-        :: predicates no mixing
         ?&(state ?=(predicate-component:ast when.case))
       ==
-    ?:  is-searched-case
-      ::  predicates
-      =/  fns-to-apply
-        |-
-        ^-  (list [$-(data-row ?) datum-or-scalar:ast])
-        ?~  cases
-          ~
-        =/  case  i.cases
-        :: i think this is a bit brittle but it works
-        :: these recursive types make it impossible to use ?=
-        :: on the predicate itself 
-        ?.  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
-        =/  qualified-pred
-             (pred-qualify-unqualified when.case qualifier.lookups)
-        =/  result
-          :-  (pred-ops-and-conjs qualified-pred type.lookups qualifier.lookups)
-          then.case
-        [result $(cases +.cases)]
-      |=  =data-row
-      ^-  dime
+    =/  fns-to-apply=(list [$-(data-row ?) datum-or-scalar:ast])
+      ?:  is-searched-case
+          :: predicates
+          |-
+          ?~  cases
+            ~
+          =/  case  i.cases
+          :: need this so the proper type is inferred
+          ?.  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
+          =/  qualified-pred
+               (pred-qualify-unqualified when.case qualifier.lookups)
+          =/  result
+            :-  %:  pred-ops-and-conjs
+                  qualified-pred
+                  type.lookups
+                  qualifier.lookups
+                ==
+            then.case
+          [result $(cases +.cases)]
+          ::
+      ::  datums
+      =/  target-fn  
+        %:  evaluate-datum-or-scalar
+          (need target.scalar)
+          named-ctes
+          lookups
+          scalars
+        ==
       |-
-      ?~  fns-to-apply
-        ?:  !=(else.scalar ~)
-          ((evaluate-datum-or-scalar (need else.scalar) named-ctes lookups scalars) data-row)
-        ~|("no case matched" !!)
-      =/  fn-datum  -.fns-to-apply
-      ?:  (-.fn-datum data-row)
-        ((evaluate-datum-or-scalar +.fn-datum named-ctes lookups scalars) data-row)
-      $(fns-to-apply +.fns-to-apply)
-    ::  datum
-    |-
-    :: TODO: target id not null-checked -- add test
-    =/  target-fn  
-      (evaluate-datum-or-scalar (need target.scalar) named-ctes lookups scalars)
-    =/  fns-to-apply
-      |-
-      ^-  (list [$-(data-row ?) datum-or-scalar:ast])
       ?~  cases
         ~
       =/  case  i.cases
-      :: gently pushing type inference
+      :: need this so the proper type is inferred
       ?:  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
       =/  when-fn
         (evaluate-datum-or-scalar when.case named-ctes lookups scalars)
@@ -280,15 +275,28 @@
         :-  |=(=data-row =((target-fn data-row) (when-fn data-row)))
         then.case
       [result $(cases +.cases)]
+      ::
     |=  =data-row
     ^-  dime
     |-
     ?~  fns-to-apply
       ?:  !=(else.scalar ~)
-        ((evaluate-datum-or-scalar (need else.scalar) named-ctes lookups scalars) data-row)
+        %-  %:  evaluate-datum-or-scalar
+              (need else.scalar)
+              named-ctes
+              lookups
+              scalars
+            ==
+        data-row
       ~|("no case matched" !!)
     =/  fn-datum  -.fns-to-apply
     ?:  (-.fn-datum data-row)
-      ((evaluate-datum-or-scalar +.fn-datum named-ctes lookups scalars) data-row)
+        %-  %:  evaluate-datum-or-scalar
+              +.fn-datum
+              named-ctes
+              lookups
+              scalars
+            ==
+        data-row
     $(fns-to-apply +.fns-to-apply)
 --

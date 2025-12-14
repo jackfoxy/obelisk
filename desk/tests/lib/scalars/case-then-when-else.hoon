@@ -949,6 +949,7 @@
 ::  ::::::::::::::::::::::
 ::  :::: TARGET TESTS ::::
 ::  ::::::::::::::::::::::
+::  TODO: target is not null-checked -- add test
 ::
 ::  set up some costant context for tests
 ::
