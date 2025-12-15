@@ -57,6 +57,42 @@
   :-  %unqualified-lookup-type
   (malt kvp)
 ::
+::  table testing harness
++$  table-test-row  $:  target=(unit datum-or-scalar:ast)
+                     case=case-when-then:ast     
+                     else=(unit datum-or-scalar:ast)
+                     expected=dime
+                   ==
+::
+++  table-test-helper
+  |=  [row=table-test-row]
+  =/  when-lookups  [when-qualifier-lookup when-qual-type-lookup]
+  =/  case-expr=case:ast  [%case target=target.row cases=~[case.row] else=else.row]
+  =/  scalar-to-apply
+    (prepare-scalar case-expr when-named-ctes when-lookups when-scalars)
+  %+  expect-eq
+    !>  expected.row
+    !>  (apply-scalar when-row scalar-to-apply)
+::
+::  row structure:
+::  [@tas(test-name) [predicate then-branch else-branch expected]]
+::
+++  run-tests
+  |=  [rows=(list [@tas table-test-row])]
+  ^-  tang
+  %-  zing
+  |-
+  ?~  rows
+    ~
+  =/  row  -.rows
+  ::  category to prepend the test name in case of result mismatch
+  ::  the ~| to prepend test name in case of crash
+  =/  result
+    %+  category
+      (trip -.row)
+    ~|((weld "CRASH - " (trip -.row)) (table-test-helper +.row))
+  :-  result
+  $(rows +.rows)
 ::
 ::
 ::  tests
@@ -143,643 +179,607 @@
                              ==
                            ==
 ::
-+$  when-test-row  $:  target=(unit datum-or-scalar:ast)
-                     case=case-when-then:ast     
-                     else=(unit datum-or-scalar:ast)
-                     expected=dime
-                   ==
-::
-++  when-test-helper
-  |=  [row=when-test-row]
-  =/  when-lookups  [when-qualifier-lookup when-qual-type-lookup]
-  =/  case-expr=case:ast  [%case target=target.row cases=~[case.row] else=else.row]
-  =/  scalar-to-apply
-    (prepare-scalar case-expr when-named-ctes when-lookups when-scalars)
-  %+  expect-eq
-    !>  expected.row
-    !>  (apply-scalar when-row scalar-to-apply)
-::
-::  row structure:
-::  [@tas(test-name) [predicate then-branch else-branch expected]]
-::
-++  when-row-test
-  |=  [rows=(list [@tas when-test-row])]
-  ^-  tang
-  %-  zing
-  |-
-  ?~  rows
-    ~
-  =/  row  -.rows
-  ::  category to prepend the test name in case of result mismatch
-  ::  the ~| to prepend test name in case of crash
-  =/  result
-    %+  category
-      (trip -.row)
-    ~|((weld "CRASH - " (trip -.row)) (when-test-helper +.row))
-  :-  result
-  $(rows +.rows)
-::
 ::  %eq tests
 ::
-++  test-case-searched-when-eq
-  %-  when-row-test
+++  test-case-when-searched-eq
+  %-  run-tests
   :~
     :-  %searched-eq-dime-dime
     :*  ~
       [%case-when-then [%eq [literal-1 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-eq-qualified-col-dime
     :*  ~
       [%case-when-then [%eq [when-q-col-1 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-eq-dime-qualified-col
     :*  ~
       [%case-when-then [%eq [literal-1 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-eq-unqualified-col-dime
     :*  ~
       [%case-when-then [%eq [when-u-col-4 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-eq-dime-unqualified-col
     :*  ~
       [%case-when-then [%eq [[~.ud 4] ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %neq tests
 ::
-++  test-case-searched-when-neq
-  %-  when-row-test
+++  test-case-when-searched-neq
+  %-  run-tests
   :~
     :-  %searched-neq-dimes
     :*  ~
       [%case-when-then [%neq [literal-1 ~ ~] [literal-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-neq-qualified-columns
     :*  ~
       [%case-when-then [%neq [when-q-col-1 ~ ~] [when-q-col-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-neq-qualified-col-dime
     :*  ~
       [%case-when-then [%neq [when-q-col-1 ~ ~] [literal-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-neq-dime-qualified-col
     :*  ~
       [%case-when-then [%neq [literal-2 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-neq-unqualified-columns
     :*  ~
       [%case-when-then [%neq [when-u-col-4 ~ ~] [when-u-col-5 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-neq-unqualified-col-dime
     :*  ~
       [%case-when-then [%neq [when-u-col-4 ~ ~] [[~.ud 5] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-neq-dime-unqualified-col
     :*  ~
       [%case-when-then [%neq [[~.ud 5] ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %gte tests
 ::
-++  test-case-searched-when-gte
-  %-  when-row-test
+++  test-case-when-searched-gte
+  %-  run-tests
   :~
     :-  %searched-gte-dimes-gt
     :*  ~
       [%case-when-then [%gte [literal-2 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-dimes-eq
     :*  ~
       [%case-when-then [%gte [literal-1 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-qualified-columns-gt
     :*  ~
       [%case-when-then [%gte [when-q-col-2 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-qualified-columns-eq
     :*  ~
       [%case-when-then [%gte [when-q-col-1 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-qualified-col-dime-gt
     :*  ~
       [%case-when-then [%gte [when-q-col-2 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-qualified-col-dime-eq
     :*  ~
       [%case-when-then [%gte [when-q-col-1 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-dime-qualified-col-gt
     :*  ~
       [%case-when-then [%gte [literal-2 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-dime-qualified-col-eq
     :*  ~
       [%case-when-then [%gte [literal-1 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gte-unqualified-columns-gt
     :*  ~
       [%case-when-then [%gte [when-u-col-5 ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gte-unqualified-columns-eq
     :*  ~
       [%case-when-then [%gte [when-u-col-4 ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gte-unqualified-col-dime-gt
     :*  ~
       [%case-when-then [%gte [when-u-col-5 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gte-unqualified-col-dime-eq
     :*  ~
       [%case-when-then [%gte [when-u-col-4 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gte-dime-unqualified-col-gt
     :*  ~
       [%case-when-then [%gte [[~.ud 5] ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gte-dime-unqualified-col-eq
     :*  ~
       [%case-when-then [%gte [[~.ud 4] ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %gt tests
 ::
-++  test-case-searched-when-gt
-  %-  when-row-test
+++  test-case-when-searched-gt
+  %-  run-tests
   :~
     :-  %searched-gt-dimes-gt
     :*  ~
       [%case-when-then [%gt [literal-2 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gt-qualified-columns-gt
     :*  ~
       [%case-when-then [%gt [when-q-col-2 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gt-qualified-col-dime-gt
     :*  ~
       [%case-when-then [%gt [when-q-col-2 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gt-dime-qualified-col-gt
     :*  ~
       [%case-when-then [%gt [literal-2 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-gt-unqualified-columns-gt
     :*  ~
       [%case-when-then [%gt [when-u-col-5 ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gt-unqualified-col-dime-gt
     :*  ~
       [%case-when-then [%gt [when-u-col-5 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-gt-dime-unqualified-col-gt
     :*  ~
       [%case-when-then [%gt [[~.ud 5] ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %lte tests
 ::
-++  test-case-searched-when-lte
-  %-  when-row-test
+++  test-case-when-searched-lte
+  %-  run-tests
   :~
     :-  %searched-lte-dimes-lt
     :*  ~
       [%case-when-then [%lte [literal-1 ~ ~] [literal-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-dimes-eq
     :*  ~
       [%case-when-then [%lte [literal-1 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-qualified-columns-lt
     :*  ~
       [%case-when-then [%lte [when-q-col-1 ~ ~] [when-q-col-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-qualified-columns-eq
     :*  ~
       [%case-when-then [%lte [when-q-col-1 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-qualified-col-dime-lt
     :*  ~
       [%case-when-then [%lte [when-q-col-1 ~ ~] [literal-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-qualified-col-dime-eq
     :*  ~
       [%case-when-then [%lte [when-q-col-1 ~ ~] [literal-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-dime-qualified-col-lt
     :*  ~
       [%case-when-then [%lte [literal-1 ~ ~] [when-q-col-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-dime-qualified-col-eq
     :*  ~
       [%case-when-then [%lte [literal-1 ~ ~] [when-q-col-1 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lte-unqualified-columns-lt
     :*  ~
       [%case-when-then [%lte [when-u-col-4 ~ ~] [when-u-col-5 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lte-unqualified-columns-eq
     :*  ~
       [%case-when-then [%lte [when-u-col-4 ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lte-unqualified-col-dime-lt
     :*  ~
       [%case-when-then [%lte [when-u-col-4 ~ ~] [[~.ud 5] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lte-unqualified-col-dime-eq
     :*  ~
       [%case-when-then [%lte [when-u-col-4 ~ ~] [[~.ud 4] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lte-dime-unqualified-col-lt
     :*  ~
       [%case-when-then [%lte [[~.ud 4] ~ ~] [when-u-col-5 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lte-dime-unqualified-col-eq
     :*  ~
       [%case-when-then [%lte [[~.ud 4] ~ ~] [when-u-col-4 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %lt tests
 ::
-++  test-case-searched-when-lt
-  %-  when-row-test
+++  test-case-when-searched-lt
+  %-  run-tests
   :~
     :-  %searched-lt-dimes-lt
     :*  ~
       [%case-when-then [%lt [literal-1 ~ ~] [literal-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lt-qualified-columns-lt
     :*  ~
       [%case-when-then [%lt [when-q-col-1 ~ ~] [when-q-col-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lt-qualified-col-dime-lt
     :*  ~
       [%case-when-then [%lt [when-q-col-1 ~ ~] [literal-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lt-dime-qualified-col-lt
     :*  ~
       [%case-when-then [%lt [literal-1 ~ ~] [when-q-col-2 ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-lt-unqualified-columns-lt
     :*  ~
       [%case-when-then [%lt [when-u-col-4 ~ ~] [when-u-col-5 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lt-unqualified-col-dime-lt
     :*  ~
       [%case-when-then [%lt [when-u-col-4 ~ ~] [[~.ud 5] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-lt-dime-unqualified-col-lt
     :*  ~
       [%case-when-then [%lt [[~.ud 4] ~ ~] [when-u-col-5 ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %in tests
 ::
-++  test-case-searched-when-in
-  %-  when-row-test
+++  test-case-when-searched-in
+  %-  run-tests
   :~
     :-  %searched-in-dime
     :*  ~
       [%case-when-then [%in [literal-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-in-qualified-col
     :*  ~
       [%case-when-then [%in [when-q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-in-unqualified-col
     :*  ~
       [%case-when-then [%in [when-u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %not-in tests
 ::
-++  test-case-searched-when-not-in
-  %-  when-row-test
+++  test-case-when-searched-not-in
+  %-  run-tests
   :~
     :-  %searched-not-in-dime
     :*  ~
       [%case-when-then [%not-in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-in-qualified-col
     :*  ~
       [%case-when-then [%not-in [when-q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-in-unqualified-col
     :*  ~
       [%case-when-then [%not-in [when-u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %between tests
 ::
-++  test-case-searched-when-between
+++  test-case-when-searched-between
   =/  mk-between-pred
     |*  [val-to-test=* lower-bound=* upper-bound=*]
     :+  %between
       [%gte [val-to-test ~ ~] [lower-bound ~ ~]]
     [%lte [val-to-test ~ ~] [upper-bound ~ ~]]
-  %-  when-row-test
+  %-  run-tests
   :~
     :-  %searched-between-dime-dimes
     :*  ~
       [%case-when-then (mk-between-pred literal-2 literal-1 [~.ud 3]) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-between-qualified-col-qualified-cols
     :*  ~
       [%case-when-then (mk-between-pred when-q-col-2 when-q-col-1 when-q-col-3) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-between-qualified-col-dime-and-qualified-col
     :*  ~
       [%case-when-then (mk-between-pred when-q-col-2 literal-1 when-q-col-3) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-between-qualified-col-qualified-col-and-dime
     :*  ~
       [%case-when-then (mk-between-pred when-q-col-2 when-q-col-1 [~.ud 3]) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-between-qualified-col-dimes
     :*  ~
       [%case-when-then (mk-between-pred when-q-col-2 literal-1 [~.ud 3]) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-between-unqualified-col-unqualified-cols
     :*  ~
       [%case-when-then (mk-between-pred when-u-col-5 when-u-col-4 when-u-col-6) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-between-unqualified-col-dime-and-unqualified-col
     :*  ~
       [%case-when-then (mk-between-pred when-u-col-5 [~.ud 4] when-u-col-6) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-between-unqualified-col-unqualified-col-and-dime
     :*  ~
       [%case-when-then (mk-between-pred when-u-col-5 when-u-col-4 [~.ud 6]) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-between-unqualified-col-dimes
     :*  ~
       [%case-when-then (mk-between-pred when-u-col-5 [~.ud 4] [~.ud 6]) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %not-between tests
 ::
-++  test-case-searched-when-not-between
+++  test-case-when-searched-not-between
   =/  mk-not-between-pred
     |*  [val-to-test=* lower-bound=* upper-bound=*]
     :+  %not-between
       [%gte [val-to-test ~ ~] [lower-bound ~ ~]]
     [%lte [val-to-test ~ ~] [upper-bound ~ ~]]
-  %-  when-row-test
+  %-  run-tests
   :~
     :-  %searched-not-between-dime-dimes
     :*  ~
       [%case-when-then (mk-not-between-pred [~.ud 5] literal-1 [~.ud 3]) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-between-qualified-col-qualified-cols
     :*  ~
       [%case-when-then (mk-not-between-pred when-q-col-1 when-q-col-2 when-q-col-3) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-between-qualified-col-dime-and-qualified-col
     :*  ~
       [%case-when-then (mk-not-between-pred when-q-col-1 literal-2 when-q-col-3) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-between-qualified-col-qualified-col-and-dime
     :*  ~
       [%case-when-then (mk-not-between-pred when-q-col-1 when-q-col-2 [~.ud 3]) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-between-qualified-col-dimes
     :*  ~
       [%case-when-then (mk-not-between-pred when-q-col-1 literal-2 [~.ud 4]) then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-not-between-unqualified-col-unqualified-cols
     :*  ~
       [%case-when-then (mk-not-between-pred when-u-col-4 when-u-col-5 when-u-col-6) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-not-between-unqualified-col-dime-and-unqualified-col
     :*  ~
       [%case-when-then (mk-not-between-pred when-u-col-4 [~.ud 5] when-u-col-6) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-not-between-unqualified-col-unqualified-col-and-dime
     :*  ~
       [%case-when-then (mk-not-between-pred when-u-col-4 when-u-col-5 [~.ud 6]) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
     :-  %searched-not-between-unqualified-col-dimes
     :*  ~
       [%case-when-then (mk-not-between-pred when-u-col-4 [~.ud 5] [~.ud 7]) then-u-col-4]
-      (some then-u-col-5)
+      ~
       [~.ud 4]
     ==
   ==
 ::
 ::  %and tests
 ::
-++  test-case-searched-when-and
-  %-  when-row-test
+++  test-case-when-searched-and
+  %-  run-tests
   :~
     :-  %searched-and-true
     :*  ~
       [%case-when-then [%and [%eq [literal-1 ~ ~] [literal-1 ~ ~]] [%eq [literal-1 ~ ~] [literal-1 ~ ~]]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
   ==
 ::
 ::  %or tests
 ::
-++  test-case-searched-when-or
-  %-  when-row-test
+++  test-case-when-searched-or
+  %-  run-tests
   :~
     :-  %searched-or-true-true
     :*  ~
       [%case-when-then [%or [%eq [literal-1 ~ ~] [literal-1 ~ ~]] [%eq [literal-1 ~ ~] [literal-1 ~ ~]]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-or-true-false
     :*  ~
       [%case-when-then [%or [%eq [[~.ud 0] ~ ~] [literal-1 ~ ~]] [%eq [literal-1 ~ ~] [literal-1 ~ ~]]] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
     :-  %searched-or-false-false
     :*  ~
       [%case-when-then [%or [%eq [[~.ud 0] ~ ~] [literal-1 ~ ~]] [%eq [[~.ud 0] ~ ~] [literal-1 ~ ~]]] then-q-col-1]
-      (some then-q-col-2)
+      (some literal-value-2)
       literal-2
     ==
   ==
 ::
 ::  %not tests
 ::
-++  test-case-searched-when-not
-  %-  when-row-test
+++  test-case-when-searched-not
+  %-  run-tests
   :~
     :-  %searched-not-false-predicate
     :*  ~
       [%case-when-then [%not [%eq [[~.ud 0] ~ ~] [literal-1 ~ ~]] ~] then-q-col-1]
-      (some then-q-col-2)
+      ~
       literal-1
     ==
-    :-  %searched-not-true-preciate
+    :-  %searched-not-true-predicate
     :*  ~
       [%case-when-then [%not [%eq [literal-1 ~ ~] [literal-1 ~ ~]] ~] then-q-col-1]
-      (some then-q-col-2)
+      (some literal-value-2)
       literal-2
     ==
   ==
@@ -787,7 +787,7 @@
 ::  simple case expression tests
 ::
 ++  test-case-when-simple
-  %-  when-row-test
+  %-  run-tests
   :~
     ::  target = literal value
     :-  %simple-case-target-dime-when-dime
@@ -1011,101 +1011,40 @@
                                  else=[target-q-col-2]
                                ==
                              ==
-::
-::  test target as literal value
-++  test-case-target-literal-value
-  =/  cases
-    :~
+++  test-case-target
+  %-  run-tests
+  :~
+    :-  %literal-value
+    :*  (some [%literal-value [~.ud 1]])
       [%case-when-then [%literal-value [~.ud 1]] target-q-col-1]
-      [%case-when-then [%literal-value [~.ud 2]] target-q-col-2]
+      ~
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some [%literal-value [~.ud 1]])
-      cases=cases
-      else=(some target-q-col-3)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr target-named-ctes [target-qualifier-lookup target-qual-type-lookup] target-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar target-row scalar-to-apply)
-::
-::  test target as qualified column
-++  test-case-target-qualified-col
-  =/  cases
-    :~
+    :-  %qualified-col
+    :*  (some target-q-col-1)
       [%case-when-then [%literal-value [~.ud 1]] target-q-col-1]
-      [%case-when-then [%literal-value [~.ud 2]] target-q-col-2]
+      ~
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some target-q-col-1)
-      cases=cases
-      else=(some target-q-col-3)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr target-named-ctes [target-qualifier-lookup target-qual-type-lookup] target-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar target-row scalar-to-apply)
-::
-::  test target as unqualified column
-++  test-case-target-unqualified-col
-  =/  cases
-    :~
+    :-  %unqualified-col
+    :*  (some target-u-col-4)
       [%case-when-then [%literal-value [~.ud 4]] target-u-col-4]
-      [%case-when-then [%literal-value [~.ud 5]] target-u-col-5]
+      ~
+      [~.ud 4]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some target-u-col-4)
-      cases=cases
-      else=(some target-u-col-6)
+    :-  %scalar-alias
+    :*  (some [%scalar-alias %scalar1])
+      [%case-when-then [%literal-value [~.ud 3]] target-q-col-1]
+      ~
+      [~.ud 1]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr target-named-ctes [target-qualifier-lookup target-qual-type-lookup] target-scalars)
-  %+  expect-eq
-    !>  [~.ud 4]
-    !>  (apply-scalar target-row scalar-to-apply)
-::
-::  test target as scalar alias
-++  test-case-target-scalar-alias
-  =/  cases
-    :~
+    :-  %embedded-scalar
+    :*  (some (~(got by target-scalars) %scalar1))
       [%case-when-then [%literal-value [~.ud 1]] target-q-col-1]
-      [%case-when-then [%literal-value [~.ud 2]] target-q-col-2]
+      ~
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some [%scalar-alias %scalar1])
-      cases=cases
-      else=(some target-q-col-3)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr target-named-ctes [target-qualifier-lookup target-qual-type-lookup] target-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar target-row scalar-to-apply)
-::
-::  test target as embedded scalar
-++  test-case-target-embedded-scalar
-  =/  cases
-    :~
-      [%case-when-then [%literal-value [~.ud 1]] target-q-col-1]
-      [%case-when-then [%literal-value [~.ud 2]] target-q-col-2]
-    ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some (~(got by target-scalars) %scalar1))
-      cases=cases
-      else=(some target-q-col-3)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr target-named-ctes [target-qualifier-lookup target-qual-type-lookup] target-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar target-row scalar-to-apply)
+  ==
 
 ::  ::::::::::::::::::::
 ::  :::: THEN TESTS ::::
@@ -1167,201 +1106,78 @@
                                else=[then-q-col-2]
                              ==
                            ==
+::
 ::  tests for all possible then return types
+::  fail scenarios to test later:
+::    - qualified column: no table with column
+::    - unqualified column: no table with column
+::    - scalar alias: no scalar with alias
+::    - embedded scalar: no scalar with alias
 ::
-::  test return qualified column
-::  fail scenario: no table with column
-++  test-case-searched-then-qualified-col-01
-  =/  cases
-    :~
+++  test-case-then
+  %-  run-tests
+  :~
+    :-  %searched-qualified-col
+    :*  ~
       [%case-when-then true-predicate then-q-col-1]
-      [%case-when-then false-predicate then-q-col-2]
+      ~
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  literal-1
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return unqualified column
-::  fail scenario: no table with column
-++  test-case-searched-then-unqualified-col-01
-  =/  cases
-    :~
+    :-  %searched-unqualified-col
+    :*  ~
       [%case-when-then true-predicate then-u-col-4]
-      [%case-when-then false-predicate then-u-col-5]
+      ~
+      [~.ud 4]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 4]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return literal-value
-++  test-case-searched-then-literal-value-01
-  =/  cases
-    :~
+    :-  %searched-literal-value
+    :*  ~
       [%case-when-then true-predicate [%literal-value [~.t 'foo']]]
-      [%case-when-then false-predicate [%literal-value [~.t 'baz']]]
+      ~
+      [~.t 'foo']
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.t 'foo']
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return scalar-alias
-::  fail scenario: no scalar with alias
-++  test-case-searched-then-scalar-alias-01
-  =/  cases
-    :~
+    :-  %searched-scalar-alias
+    :*  ~
       [%case-when-then true-predicate [%scalar-alias %scalar1]]
-      [%case-when-then false-predicate then-q-col-2]
+      ~
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return embedded scalar
-::  fail scenario: no scalar with alias
-++  test-case-searched-then-embedded-scalar-01
-  =/  cases
-    :~
+    :-  %searched-embedded-scalar
+    :*  ~
       [%case-when-then true-predicate (~(got by then-scalars) %scalar1)]
-      [%case-when-then false-predicate then-q-col-2]
+      ~
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-++  test-case-simple-then-qualified-col-01
-  =/  cases
-    :~
+    :-  %simple-qualified-col
+    :*  (some then-q-col-1)
       [%case-when-then literal-value-1 then-q-col-1]
-      [%case-when-then literal-value-2 then-q-col-2]
+      ~
+      [~.ud 1]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some then-q-col-1)
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  literal-1
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-++  test-case-simple-then-unqualified-col-01
-  =/  cases
-    :~
+    :-  %simple-unqualified-col
+    :*  (some then-q-col-1)
       [%case-when-then literal-value-1 then-u-col-4]
-      [%case-when-then literal-value-2 then-u-col-5]
+      ~
+      [~.ud 4]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some then-q-col-1)
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 4]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return literal-value
-++  test-case-simple-then-literal-value-01
-  =/  cases
-    :~
+    :-  %simple-literal-value
+    :*  (some then-q-col-1)
       [%case-when-then literal-value-1 [%literal-value [~.t 'foo']]]
-      [%case-when-then literal-value-2 [%literal-value [~.t 'baz']]]
+      ~
+      [~.t 'foo']
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some then-q-col-1)
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.t 'foo']
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return scalar-alias
-::  fail scenario: no scalar with alias
-++  test-case-simple-then-scalar-alias-01
-  =/  cases
-    :~
+    :-  %simple-scalar-alias
+    :*  (some then-q-col-1)
       [%case-when-then literal-value-1 [%scalar-alias %scalar1]]
-      [%case-when-then literal-value-2 then-q-col-2]
+      ~
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some then-q-col-1)
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return embedded scalar
-::  fail scenario: no scalar with alias
-++  test-case-simple-then-embedded-scalar-01
-  =/  cases
-    :~
+    :-  %simple-embedded-scalar
+    :*  (some then-q-col-1)
       [%case-when-then literal-value-1 (~(got by then-scalars) %scalar1)]
-      [%case-when-then literal-value-2 then-q-col-2]
+      ~
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some then-q-col-1)
-      cases=cases
-      else=~
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar then-row scalar-to-apply)
+  ==
 ::
 ::  ::::::::::::::::::::
 ::  :::: ELSE TESTS ::::
@@ -1423,193 +1239,74 @@
                              ==
                            ==
 ::  tests for all possible else return types
+::  fail scenarios to test later:
+::    - qualified column: no table with column
+::    - unqualified column: no table with column
+::    - scalar alias: no scalar with alias
+::    - embedded scalar: no scalar with alias
 ::
-::  test return qualified column
-::  fail scenario: no table with column
-++  test-case-searched-else-qualified-col-01
-  =/  cases
-    :~
+++  test-case-else
+  %-  run-tests
+  :~
+    :-  %searched-qualified-col
+    :*  ~
       [%case-when-then false-predicate else-q-col-1]
-      [%case-when-then false-predicate else-q-col-1]
+      (some else-q-col-2)
+      [~.ud 2]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some else-q-col-2)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  literal-2
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return unqualified column
-::  fail scenario: no table with column
-++  test-case-searched-else-unqualified-col-01
-  =/  cases
-    :~
+    :-  %searched-unqualified-col
+    :*  ~
       [%case-when-then false-predicate else-u-col-4]
-      [%case-when-then false-predicate else-u-col-4]
+      (some else-u-col-5)
+      [~.ud 5]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some else-u-col-5)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 5]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return literal-value
-++  test-case-searched-else-literal-value-01
-  =/  cases
-    :~
+    :-  %searched-literal-value
+    :*  ~
       [%case-when-then false-predicate [%literal-value [~.t 'foo']]]
-      [%case-when-then false-predicate [%literal-value [~.t 'foo']]]
+      (some [%literal-value [~.t 'bar']])
+      [~.t 'bar']
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some [%literal-value [~.t 'bar']])
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.t 'bar']
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return scalar-alias
-::  fail scenario: no scalar with alias
-++  test-case-searched-else-scalar-alias-01
-  =/  cases
-    :~
+    :-  %searched-scalar-alias
+    :*  ~
       [%case-when-then false-predicate else-q-col-2]
+      (some [%scalar-alias %scalar1])
+      [~.ud 3]
+    ==
+    :-  %searched-embedded-scalar
+    :*  ~
       [%case-when-then false-predicate else-q-col-2]
+      (some (~(got by else-scalars) %scalar1))
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some [%scalar-alias %scalar1])
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return embedded scalar
-::  fail scenario: no scalar with alias
-++  test-case-searched-else-embedded-scalar-01
-  =/  cases
-    :~
-      [%case-when-then false-predicate else-q-col-2]
-      [%case-when-then false-predicate else-q-col-2]
-    ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=~
-      cases=cases
-      else=(some (~(got by else-scalars) %scalar1))
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-++  test-case-simple-else-qualified-col-01
-  =/  cases
-    :~
+    :-  %simple-qualified-col
+    :*  (some else-q-col-1)
       [%case-when-then literal-value-2 else-q-col-2]
+      (some else-q-col-2)
+      [~.ud 2]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some else-q-col-1)
-      cases=cases
-      else=(some else-q-col-2)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  literal-2
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-++  test-case-simple-else-unqualified-col-01
-  =/  cases
-    :~
+    :-  %simple-unqualified-col
+    :*  (some else-q-col-1)
       [%case-when-then literal-value-2 else-u-col-4]
+      (some else-u-col-5)
+      [~.ud 5]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some else-q-col-1)
-      cases=cases
-      else=(some else-u-col-5)
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 5]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return literal-value
-++  test-case-simple-else-literal-value-01
-  =/  cases
-    :~
+    :-  %simple-literal-value
+    :*  (some else-q-col-1)
       [%case-when-then literal-value-2 [%literal-value [~.t 'foo']]]
+      (some [%literal-value [~.t 'bar']])
+      [~.t 'bar']
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some else-q-col-1)
-      cases=cases
-      else=(some [%literal-value [~.t 'bar']])
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.t 'bar']
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return scalar-alias
-::  fail scenario: no scalar with alias
-++  test-case-simple-else-scalar-alias-01
-  =/  cases
-    :~
+    :-  %simple-scalar-alias
+    :*  (some else-q-col-1)
       [%case-when-then literal-value-2 else-q-col-2]
+      (some [%scalar-alias %scalar1])
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some else-q-col-1)
-      cases=cases
-      else=(some [%scalar-alias %scalar1])
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return embedded scalar
-::  fail scenario: no scalar with alias
-++  test-case-simple-else-embedded-scalar-01
-  =/  cases
-    :~
+    :-  %simple-embedded-scalar
+    :*  (some else-q-col-1)
       [%case-when-then literal-value-2 else-q-col-2]
+      (some (~(got by else-scalars) %scalar1))
+      [~.ud 3]
     ==
-  =/  case-expr=case:ast
-    :*  %case
-      target=(some else-q-col-1)
-      cases=cases
-      else=(some (~(got by else-scalars) %scalar1))
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar case-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar else-row scalar-to-apply)
+  ==
 --

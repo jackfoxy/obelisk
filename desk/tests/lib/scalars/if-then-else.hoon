@@ -57,6 +57,42 @@
   :-  %unqualified-lookup-type
   (malt kvp)
 ::
+::  table testing harness
++$  table-test-row  $:  pred=predicate:ast     
+                    then=datum-or-scalar:ast
+                    else=datum-or-scalar:ast
+                    expected=dime
+                   ==
+::
+++  table-test-helper
+  |=  [row=table-test-row]
+  =/  pred-lookups  [pred-qualifier-lookup pred-qual-type-lookup]
+  =/  if-expr       [%if-then-else if=pred.row then=then.row else=else.row]
+  =/  scalar-to-apply
+    (prepare-scalar if-expr pred-named-ctes pred-lookups pred-scalars)
+  %+  expect-eq
+    !>  expected.row
+    !>  (apply-scalar pred-row scalar-to-apply)
+::
+::  row structure:
+::  [@tas(test-name) [predicate then-branch else-branch expected]]
+::
+++  run-tests
+  |=  [rows=(list [@tas table-test-row])]
+  ^-  tang
+  %-  zing
+  |-
+  ?~  rows
+    ~
+  =/  row  -.rows
+  ::  category to prepend the test name in case of result mismatch
+  ::  the ~| to prepend test name in case of crash
+  =/  result
+    %+  category
+      (trip -.row)
+    ~|((weld "CRASH - " (trip -.row)) (table-test-helper +.row))
+  :-  result
+  $(rows +.rows)
 ::
 ::
 ::  tests
@@ -131,46 +167,10 @@
                              ==
                            ==
 ::
-+$  pred-test-row  $:  pred=predicate:ast     
-                    then=datum-or-scalar:ast
-                    else=datum-or-scalar:ast
-                    expected=dime
-                   ==
-::
-++  pred-test-helper
-  |=  [row=pred-test-row]
-  =/  pred-lookups  [pred-qualifier-lookup pred-qual-type-lookup]
-  =/  if-expr       [%if-then-else if=pred.row then=then.row else=else.row]
-  =/  scalar-to-apply
-    (prepare-scalar if-expr pred-named-ctes pred-lookups pred-scalars)
-  %+  expect-eq
-    !>  expected.row
-    !>  (apply-scalar pred-row scalar-to-apply)
-::
-::  row structure:
-::  [@tas(test-name) [predicate then-branch else-branch expected]]
-::
-++  pred-row-test
-  |=  [rows=(list [@tas pred-test-row])]
-  ^-  tang
-  %-  zing
-  |-
-  ?~  rows
-    ~
-  =/  row  -.rows
-  ::  category to prepend the test name in case of result mismatch
-  ::  the ~| to prepend test name in case of crash
-  =/  result
-    %+  category
-      (trip -.row)
-    ~|((weld "CRASH - " (trip -.row)) (pred-test-helper +.row))
-  :-  result
-  $(rows +.rows)
-::
 ::  %eq tests
 ::
 ++  test-if-predicate-eq
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %eq-dimes
     :*  [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
@@ -218,7 +218,7 @@
 ::
 ::  %neq tests
 ++  test-if-predicate-neq
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %neq-dimes
     :*  [%neq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
@@ -266,7 +266,7 @@
 ::
 ::  %gte tests
 ++  test-if-predicate-gte
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %gte-dimes-gt
     :*  [%gte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]]
@@ -398,7 +398,7 @@
 ::
 ::  %gt tests
 ++  test-if-predicate-gt
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %gt-dimes-gt
     :*  [%gt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]]
@@ -488,7 +488,7 @@
 ::
 ::  %lte tests
 ++  test-if-predicate-lte
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %lte-dimes-lt
     :*  [%lte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
@@ -620,7 +620,7 @@
 ::
 ::  %lt tests
 ++  test-if-predicate-lt
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %lt-dimes-lt
     :*  [%lt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
@@ -710,7 +710,7 @@
 ::
 ::  %in tests
 ++  test-if-predicate-in
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %in-dime
     :*  [%in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
@@ -752,7 +752,7 @@
 ::
 ::  %not-in tests
 ++  test-if-predicate-not-in
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %not-in-dime
     :*  [%not-in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
@@ -799,7 +799,7 @@
     :+  %between
       [%gte [val-to-test ~ ~] [lower-bound ~ ~]]
     [%lte [val-to-test ~ ~] [upper-bound ~ ~]]
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %between-dime-dimes
     :*  (mk-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
@@ -882,7 +882,7 @@
     :+  %not-between
       [%gte [val-to-test ~ ~] [lower-bound ~ ~]]
     [%lte [val-to-test ~ ~] [upper-bound ~ ~]]
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %not-between-dime-dimes
     :*  (mk-not-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
@@ -960,7 +960,7 @@
 ::
 ::  %and tests
 ++  test-if-predicate-and
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %and-true
     :*  :+  %and
@@ -982,7 +982,7 @@
 ::
 ::  %or tests
 ++  test-if-predicate-or
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %or-true-true
     :*  :+  %or
@@ -1012,7 +1012,7 @@
 ::
 ::  %not tests
 ++  test-if-predicate-not
-  %-  pred-row-test
+  %-  run-tests
   :~
     :-  %not-true-expression
     :*  [%not [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] ~]
@@ -1052,8 +1052,6 @@
 ::    ==
   ==
 ::
-:: TODO: value-literals cte-alias scalar-alias aggregate
-
 ::  ::::::::::::::::::::
 ::  :::: THEN TESTS ::::
 ::  ::::::::::::::::::::
@@ -1113,92 +1111,47 @@
                                else=[then-q-col-2]
                              ==
                            ==
-::  test return qualified column
-::  fail scenario: no table with column
-++  test-if-then-qualified-col-01
-  =/  if-expr
-    :*  %if-then-else
-      if=true-predicate
-      then=[then-q-col-1]
-      else=[then-q-col-2]
-    ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 1]
-    !>  (apply-scalar then-row scalar-to-apply)
+::  tests for all possible then return types
+::  fail scenarios to test later:
+::    - qualified column: no table with column
+::    - unqualified column: no table with column
+::    - scalar alias: no scalar with alias
+::    - embedded scalar: no scalar with alias
 ::
-::  test return unqualified column
-::  fail scenario: no table with column
-++  test-if-then-unqualified-col-01
-  =/  if-expr
-    :*  %if-then-else
-      if=true-predicate
-      then=[then-u-col-4]
-      else=[then-u-col-5]
+++  test-if-then
+  %-  run-tests
+  :~
+    :-  %qualified-col
+    :*  true-predicate
+      then-q-col-1
+      then-q-col-2
+      [~.ud 1]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 4]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return literal-value
-++  test-if-then-literal-value-01
-  =/  if-expr
-    :*  %if-then-else
-      if=true-predicate
-      then=[[%literal-value [~.t 'foo']]]
-      else=[[%literal-value [~.t 'bar']]]
+    :-  %unqualified-col
+    :*  true-predicate
+      then-u-col-4
+      then-u-col-5
+      [~.ud 4]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.t 'foo']
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return cte-alias
-::++  test-if-then-cte-alias-01
-::  =/  if-expr
-::    :*  %if-then-else
-::      if=true-predicate
-::      then=[then-q-col-1]
-::      else=[then-q-col-2]
-::    ==
-::  =/  scalar-to-apply  (prepare-scalar if-expr then-named-ctes then-lookups)
-::  %+  expect-eq
-::    !>  1
-::    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return scalar-alias
-::  fail scenario: no scalar with alias
-++  test-if-then-scalar-alias-01
-  =/  if-expr
-    :*  %if-then-else
-      if=true-predicate
-      then=[[%scalar-alias %scalar1]]
-      else=[then-q-col-2]
+    :-  %literal-value
+    :*  true-predicate
+      [%literal-value [~.t 'foo']]
+      [%literal-value [~.t 'bar']]
+      [~.t 'foo']
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar then-row scalar-to-apply)
-::
-::  test return embedded scalar
-::  fail scenario: no scalar with alias
-++  test-if-then-embedded-scalar-01
-  =/  if-expr
-    :*  %if-then-else
-      if=true-predicate
-      then=[(~(got by then-scalars) %scalar1)]
-      else=[then-q-col-2]
+    :-  %scalar-alias
+    :*  true-predicate
+      [%scalar-alias %scalar1]
+      then-q-col-2
+      [~.ud 3]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr then-named-ctes then-lookups then-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar then-row scalar-to-apply)
+    :-  %embedded-scalar
+    :*  true-predicate
+      (~(got by then-scalars) %scalar1)
+      then-q-col-2
+      [~.ud 3]
+    ==
+  ==
 ::
 ::  ::::::::::::::::::::
 ::  :::: ELSE TESTS ::::
@@ -1259,93 +1212,46 @@
                                else=[else-q-col-2]
                              ==
                            ==
-::  tests for all possible then return types
+::  tests for all possible else return types
+::  fail scenarios to test later:
+::    - qualified column: no table with column
+::    - unqualified column: no table with column
+::    - scalar alias: no scalar with alias
+::    - embedded scalar: no scalar with alias
 ::
-::  test return qualified column
-::  fail scenario: no table with column
-++  test-if-else-qualified-col-01
-  =/  if-expr
-    :*  %if-then-else
-      if=false-predicate
-      then=[else-q-col-1]
-      else=[else-q-col-2]
+++  test-if-else
+  %-  run-tests
+  :~
+    :-  %qualified-col
+    :*  false-predicate
+      else-q-col-1
+      else-q-col-2
+      [~.ud 2]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 2]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return unqualified column
-::  fail scenario: no table with column
-++  test-if-else-unqualified-col-01
-  =/  if-expr
-    :*  %if-then-else
-      if=false-predicate
-      then=[else-u-col-4]
-      else=[else-u-col-5]
+    :-  %unqualified-col
+    :*  false-predicate
+      else-u-col-4
+      else-u-col-5
+      [~.ud 5]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 5]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return literal-value
-++  test-if-else-literal-value-01
-  =/  if-expr
-    :*  %if-then-else
-      if=false-predicate
-      then=[[%literal-value [~.t 'foo']]]
-      else=[[%literal-value [~.t 'bar']]]
+    :-  %literal-value
+    :*  false-predicate
+      [%literal-value [~.t 'foo']]
+      [%literal-value [~.t 'bar']]
+      [~.t 'bar']
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.t 'bar']
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return cte-alias
-::++  test-if-else-cte-alias-01
-::  =/  if-expr
-::    :*  %if-then-else
-::      if=false-predicate
-::      then=[else-q-col-1]
-::      else=[else-q-col-2]
-::    ==
-::  =/  scalar-to-apply  (prepare-scalar if-expr else-named-ctes else-lookups)
-::  %+  expect-eq
-::    !>  1
-::    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return scalar-alias
-::  fail scenario: no scalar with alias
-++  test-if-else-scalar-alias-01
-  =/  if-expr
-    :*  %if-then-else
-      if=false-predicate
-      then=[else-q-col-2]
-      else=[[%scalar-alias %scalar1]]
+    :-  %scalar-alias
+    :*  false-predicate
+      else-q-col-2
+      [%scalar-alias %scalar1]
+      [~.ud 3]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar else-row scalar-to-apply)
-::
-::  test return embedded scalar
-::  fail scenario: no scalar with alias
-++  test-if-else-embedded-scalar-01
-  =/  if-expr
-    :*  %if-then-else
-      if=false-predicate
-      then=[else-q-col-2]
-      else=[(~(got by else-scalars) %scalar1)]
+    :-  %embedded-scalar
+    :*  false-predicate
+      else-q-col-2
+      (~(got by else-scalars) %scalar1)
+      [~.ud 3]
     ==
-  =/  scalar-to-apply
-    (prepare-scalar if-expr else-named-ctes else-lookups else-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar else-row scalar-to-apply)
+  ==
 ::
 --
