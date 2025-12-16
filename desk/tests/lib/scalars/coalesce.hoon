@@ -58,19 +58,19 @@
   (malt kvp)
 ::
 ::  table testing harness
-+$  table-test-row  $:  datum=datum-or-scalar:ast
++$  table-test-row  $:  datums=(list datum-or-scalar:ast)
                      expected=dime
                    ==
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  when-lookups  [when-qualifier-lookup when-qual-type-lookup]
-  =/  case-expr=coalesce:ast  [%coalesce data=~[datum.row]]
+  =/  coalesce-lookups  [coalesce-qualifier-lookup coalesce-qual-type-lookup]
+  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums.row]
   =/  scalar-to-apply
-    (prepare-scalar case-expr when-named-ctes when-lookups when-scalars)
+      (prepare-scalar coalesce-expr coalesce-named-ctes coalesce-lookups coalesce-scalars)
   %+  expect-eq
     !>  expected.row
-    !>  (apply-scalar when-row scalar-to-apply)
+    !>  (apply-scalar coalesce-row scalar-to-apply)
 ::
 ::  row structure:
 ::  [@tas(test-name) [predicate then-branch else-branch expected]]
@@ -116,74 +116,118 @@
 ++  u-col-5           [%unqualified-column %col5 ~]
 ++  u-col-6           [%unqualified-column %col6 ~]
 ::
-++  qual-type-lookup       %-  mk-qualified-type-lookup
-                                :~
-                                  :-  qualified-table-1
-                                  :~
-                                    [%col1 ~.ud]
-                                    [%col2 ~.ud]
-                                    [%col3 ~.ud]
-                                    [%col4 ~.ud]
-                                    [%other-col4 ~.ud]
-                                    [%col5 ~.ud]
-                                    [%col6 ~.ud]
-                                    [%col7 ~.ud]
-                                  ==
-                                ==
+++  coalesce-qual-type-lookup       %-  mk-qualified-type-lookup
+                                    :~
+                                      :-  qualified-table-1
+                                      :~
+                                        [%col1 ~.ud]
+                                        [%col4 ~.ud]
+                                      ==
+                                    ==
 ::
-++  unqual-type-lookup       %-  mk-unqualified-type-lookup
-                                  :~
-                                    [%col4 ~.ud]
-                                    [%col5 ~.ud]
-                                    [%col6 ~.ud]
-                                  ==
+++  coalesce-unqual-type-lookup       %-  mk-unqualified-type-lookup
+                                      :~
+                                        [%col4 ~.ud]
+                                      ==
 ::
-++  qualifier-lookup  %-  malt
-                           %-  limo
-                           :~
-                             [%col4 ~[qualified-table-1]]
-                             [%col5 ~[qualified-table-1]]
-                             [%col6 ~[qualified-table-1]]
-                           ==
+++  coalesce-qualifier-lookup  %-  malt
+                               %-  limo
+                               :~
+                                 [%col4 ~[qualified-table-1]]
+                               ==
 ::
-++  named-ctes        *named-ctes
+++  coalesce-named-ctes        *named-ctes
 ::
-++  row               %-  mk-indexed-row
+++  coalesce-row               %-  mk-indexed-row
                            :~
                              [%col1 1]
-                             [%col2 2]
-                             [%col3 3]
                              [%col4 4]
-                             [%other-col4 4]
-                             [%col5 5]
-                             [%col6 6]
                            ==
 ::
-++  scalars           %-  malt
-                           %-  limo
-                           :~
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[when-q-col-3]
-                               else=[when-q-col-2]
-                             ==
-                             :-  %scalar2
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[when-u-col-4]
-                               else=[when-u-col-5]
-                             ==
-                           ==
+++  coalesce-scalars          %-  malt
+                              %-  limo
+                              :~
+                                :-  %scalar1
+                                :*  %if-then-else
+                                  if=true-predicate
+                                  then=[q-col-3]
+                                  else=[q-col-2]
+                                ==
+                                :-  %scalar2
+                                :*  %if-then-else
+                                  if=true-predicate
+                                  then=[literal-value-1]
+                                  else=[literal-value-2]
+                                ==
+                              ==
 ::
-:: coalesce tests
-++  test-if-predicate-eq
+  :: coalesce tests
+++  test-coalesce
   %-  run-tests
   :~
-    :-  %eq-dimes
-    :*  
-      pred-q-col-2
+    :-  %coalesce-qualified-column
+    :*  ~[q-col-1]
+      [~.ud 1]
+    ==
+    :-  %coalesce-unqualified-column
+    :*  ~[u-col-4]
+      [~.ud 4]
+    ==
+    :-  %coalesce-3-q-unresolved-1-resolved-u
+    :*  ~[q-col-2 q-col-3 q-col-2 u-col-4]
+      [~.ud 4]
+    ==
+    :-  %coalesce-unqualified-column
+    :*  ~[u-col-5 u-col-6 u-col-5 q-col-1]
       [~.ud 1]
     ==
   ==
+::
+:: test what happens if no column matches
+++  test-fail-coalesce-01
+  ::
+  =/  datums  ~[u-col-5 u-col-6 q-col-2 q-col-3]
+  =/  coalesce-lookups  [coalesce-qualifier-lookup coalesce-qual-type-lookup]
+  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+  =/  scalar-to-apply
+      (prepare-scalar coalesce-expr coalesce-named-ctes coalesce-lookups coalesce-scalars)
+  %+  expect-fail-message
+    'coalesce: couldn\'t resolve any column'
+    |.  (apply-scalar coalesce-row scalar-to-apply)
+::
+:: test with scalar-alias
+++  test-fail-coalesce-02
+  ::
+  =/  datums  ~[[%scalar-alias %scalar1]]
+  =/  coalesce-lookups  [coalesce-qualifier-lookup coalesce-qual-type-lookup]
+  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+  =/  scalar-to-apply
+      (prepare-scalar coalesce-expr coalesce-named-ctes coalesce-lookups coalesce-scalars)
+  %+  expect-fail-message
+    'coalesce: can only use columns'
+    |.  (apply-scalar coalesce-row scalar-to-apply)
+::
+:: test with embedded scalar
+++  test-fail-coalesce-03
+  ::
+  =/  datums  ~[(~(got by coalesce-scalars) %scalar1)]
+  =/  coalesce-lookups  [coalesce-qualifier-lookup coalesce-qual-type-lookup]
+  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+  =/  scalar-to-apply
+      (prepare-scalar coalesce-expr coalesce-named-ctes coalesce-lookups coalesce-scalars)
+  %+  expect-fail-message
+    'coalesce: can only use columns'
+    |.  (apply-scalar coalesce-row scalar-to-apply)
+::
+:: test with literal-value
+++  test-fail-coalesce-04
+  ::
+  =/  datums  ~[[%literal-value [~.ud 1]]]
+  =/  coalesce-lookups  [coalesce-qualifier-lookup coalesce-qual-type-lookup]
+  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+  =/  scalar-to-apply
+      (prepare-scalar coalesce-expr coalesce-named-ctes coalesce-lookups coalesce-scalars)
+  %+  expect-fail-message
+    'coalesce: can only use columns'
+    |.  (apply-scalar coalesce-row scalar-to-apply)
 --

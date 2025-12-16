@@ -47,7 +47,7 @@
       (prepare-case scalar named-ctes lookups scalars)
     ::
         %coalesce
-      !!
+      (prepare-coalesce scalar named-ctes lookups scalars)
     ::
         %arithmetic
       !!
@@ -143,7 +143,7 @@
        ~|("no col" !!)
      =/  type  (get-qualified-col-type type-lookup col)
      [type (need value)]
-    ==
+   ==
 
 ++  evaluate-datum-or-scalar
    |=  $:
@@ -299,4 +299,68 @@
             ==
         data-row
     $(fns-to-apply +.fns-to-apply)
+::
+++  get-column-data-coalesce
+   |=  [=data-row type-lookup=qualified-lookup-type col=qualified-column:ast]
+   ^-  (unit dime)
+   ?-    -.data-row
+       %joined-row
+     =/  maybe-table  (~(get by data.data-row) qualifier.col)
+     ?~  maybe-table
+       ~
+     =/  value  (~(get by (need maybe-table)) name.col)
+     ?~  value
+       ~
+     =/  type  (get-qualified-col-type type-lookup col)
+     (some [type (need value)])
+     ::
+       %indexed-row
+     =/  value  (~(get by data.data-row) name.col)
+     ?~  value
+       ~
+     =/  type  (get-qualified-col-type type-lookup col)
+     (some [type (need value)])
+   ==
+::
+++  prepare-coalesce
+    |=  $:
+          scalar=coalesce:ast
+          =named-ctes
+          =lookups
+          scalars=(map @t scalar-function:ast)
+        ==
+    ^-  $-(data-row dime)
+    =/  datums  data.scalar
+    |-
+    ^-  $-(=data-row dime)
+    ?~  datums
+      ::|=  *
+      ~|("coalesce: couldn't resolve any column" !!)
+    =/  datum  -.datums
+    ?:  ?=(qualified-column:ast datum)
+      ::
+      ?>  ?=(%qualified-lookup-type -.type.lookups)
+      |=  =data-row
+      =/  res  (get-column-data-coalesce data-row type.lookups datum)
+      ?~  res
+        (^$(datums +.datums) data-row)
+      (need res)
+    ?:  ?=(unqualified-column:ast datum)
+      :: for some reason name.datum doesn't work
+      =/  maybe-table-list  (~(get by qualifier.lookups) +<.datum)
+      ?~  maybe-table-list
+        $(datums +.datums)
+      =/  table-list  (need maybe-table-list)
+      ?:  (gth (lent table-list) 1)
+        $(datums +.datums) 
+      =/  column=qualified-column:ast
+        [%qualified-column -.table-list +<.datum ~]
+      ?>  ?=(%qualified-lookup-type -.type.lookups)
+      |=  =data-row
+      =/  res  (get-column-data-coalesce data-row type.lookups column)
+      ?~  res
+        (^$(datums +.datums) data-row)
+      (need res)
+    |=  *
+    ~|("coalesce: can only use columns" !!)
 --
