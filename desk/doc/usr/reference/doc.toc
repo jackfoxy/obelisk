@@ -1,0 +1,12 @@
+/01-preliminaries/md           Preliminaries
+/02-ddl-database/md            DDL Database
+/03-ddl-namespace/md           DDL Namespace
+/04-ddl-table/md               DDL Table
+/05-ddl-index/md               DDL Index
+/06-insert/md                  Insert
+/07-update/md                  Update
+/08-delete/md                  Delete
+/09-truncate-table/md          Truncate Table
+/10-select/md                  Select
+/11-scalars/md                 Scalars
+/12-security-permissions/md    Security Permissions
