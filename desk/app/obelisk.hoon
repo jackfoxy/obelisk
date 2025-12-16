@@ -50,8 +50,6 @@
           %:  state-server
           ::::~>  %bout.[0 %parse-cmds]
           (parse-urql +<.act +>.act)
-          ::(parse-urql(state server, bowl bowl) +<.act +>.act)
-          ::::(parse:parse(default-database +<.act) +>.act)
           ==
     ?-  -.virtualized
       %.n
@@ -96,8 +94,6 @@
   ::
   %parse
     =/  virtualized
-      ::^-  (each (pair (list command:ast) server) tang)
-      ::^-  (each (pair tape server) tang)
       ^-  (each (list command) tang)
       %-  mule
       |.
@@ -112,7 +108,6 @@
         ==
       %.y
         ~&  "{<p.virtualized>}"
-        ::!!
         :_  this
         :~  [%give %fact ~[/server] %noun !>([& -.p.virtualized])]
             [%give %kick ~[/server] ~]
@@ -132,7 +127,6 @@
                   ::~>  %bout.[0 %parse-cmds]
                   (parse-urql +<.act +>.act)
                   ==
-                                                       ::=/  x  (print -.res2)
     :_  this(server +.res2)
     :~  [%give %fact ~[/server] %noun !>(-.res2)]
         [%give %kick ~[/server] ~]
