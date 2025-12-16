@@ -106,20 +106,17 @@
     ?-  -.virtualized
       %.n
         ~&  "{<(slog p.virtualized)>}"
-        !!
-    ::    :_  this
-    ::    :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
-    ::        [%give %kick ~[/server] ~]
-    ::    ==
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| (slog p.virtualized)])]
+            [%give %kick ~[/server] ~]
+        ==
       %.y
         ~&  "{<p.virtualized>}"
-        !!
-    ::    =/  res  p.virtualized   ~&  ""  ~&  "-.res:  <{-.res}>"  ~&  ""
-    ::    ::=/  x  (print -.res)
-    ::    :_  this(server +.res)
-    ::    :~  [%give %fact ~[/server] %noun !>([& -.res])]
-    ::        [%give %kick ~[/server] ~]
-    ::    ==
+        ::!!
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([& -.p.virtualized])]
+            [%give %kick ~[/server] ~]
+        ==
     ==
   ::
   %commands
