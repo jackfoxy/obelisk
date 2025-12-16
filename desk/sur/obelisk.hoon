@@ -1,4 +1,5 @@
 /-  *ast, *server-state
+/+  *mip
 ^?
 |%
 ::
@@ -99,7 +100,7 @@
 +$  qual-col-type  [qualified-column @ta]
 +$  qualified-lookup-type
   $:  %qualified-lookup-type
-    (map qualified-table (map @tas @ta))
+    (mip qualified-table @tas @ta)
     ==
 +$  unqualified-lookup-type
   $:  %unqualified-lookup-type
@@ -110,7 +111,7 @@
 +$  joined-row
   $:  %joined-row
     key=(list @)
-    data=(map qualified-table (map @tas @))
+    data=(mip qualified-table @tas @)
     ==
 +$  data-row  $%(joined-row indexed-row)
 ::
