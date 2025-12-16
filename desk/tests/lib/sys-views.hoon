@@ -22,6 +22,8 @@
 --
 |%
 ::
+::  To Do: when alter implemented, for sys-tmsp ahead and behind data
+::
 ::  sys.sys.databases
 ::
 ::  Test Cases: series ending in each of effective commands
