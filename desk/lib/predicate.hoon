@@ -1,5 +1,5 @@
 /-  *ast, *obelisk, *server-state
-/+  *utils
+/+  *utils, *mip
 |%
 ::
 ::  +license:  MIT+n license
@@ -81,7 +81,8 @@
           c=data-row
           ==
   ^-  ?
-  ?:  ?=(%joined-row -.c)  =(a (~(got by (~(got by data.c) -.b)) +.b))
+  ::?:  ?=(%joined-row -.c)  =(a (~(got by (~(got by data.c) -.b)) +.b))
+  ?:  ?=(%joined-row -.c)  =(a ~(got bi data.c -.b +.b))
   =(a (~(got by data.c) +.b))
 ::
 ++  eq-col-lit

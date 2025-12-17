@@ -22,7 +22,10 @@
   ::
   ++  got
     |*  [b=* c=*]
-    (need (get b c))
+    ::(need (get b c))
+    =>  .(b `_?>(?=(^ a) p.n.a)`b, c `_?>(?=(^ a) ?>(?=(^ q.n.a) p.n.q.n.a))`c)
+    ^-  _?>(?=(^ a) ?>(?=(^ q.n.a) q.n.q.n.a))
+    (~(got by (~(got by a) b)) c)
   ::
   ++  gut
     |*  [b=* c=* d=*]
