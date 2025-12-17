@@ -14,7 +14,7 @@
 
 Obelisk employs a dialect of SQL called "urQL" that provides for these properties.
 
-See [Reference/Preliminaries](/docs/reference/01-preliminaries.md) and the [Users Guide](/docs/users-guide.md) in the docs folder for more information.
+See [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and the [Users Guide](/desk/doc/sur/users-guide.md) in the docs folder for more information.
 
 ### Sample database
 

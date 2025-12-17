@@ -2423,8 +2423,6 @@
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=~ group-by=~ having=~ select=select-all-columns order-by] ~ ~]]]
     !>  (parse:parse(default-database 'db1') select)
-
-::  to do: fix when update implemented
 ::
 :: update
 ::

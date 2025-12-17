@@ -424,7 +424,7 @@
 ::
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-indexed-vect-templ
-  |=  $:  cols=(list qual-col-type)   ::to do: ?
+  |=  $:  cols=(list qual-col-type)
           selected=(list selected-column:ast)
           row=indexed-row
           ==
