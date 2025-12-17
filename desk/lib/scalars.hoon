@@ -50,7 +50,7 @@
       (prepare-coalesce scalar named-ctes lookups scalars)
     ::
         %arithmetic
-      !!
+      (prepare-arithmetic scalar named-ctes lookups scalars)
     ::
         %scalar-alias
       !!
@@ -363,4 +363,81 @@
       (need res)
     |=  *
     ~|("coalesce: can only use columns" !!)
+::
+++  prepare-arithmetic
+    |=  $:
+          scalar=arithmetic:ast
+          =named-ctes
+          =lookups
+          scalars=(map @t scalar-function:ast)
+        ==
+    ^-  $-(data-row dime)
+    ::
+    ?-    operator.scalar
+        %lus
+      |=  =data-row
+      =/  evald-left  
+        %-  (evaluate-datum-or-scalar left.scalar named-ctes lookups scalars)
+        data-row
+      =/  evald-right  
+        %-  (evaluate-datum-or-scalar right.scalar named-ctes lookups scalars)
+        data-row
+      ?:  =(-.evald-left -.evald-right)
+        [-.evald-left (add +.evald-left +.evald-right)]
+      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+      !!
+    ::
+        %hep
+      |=  =data-row
+      =/  evald-left  
+        %-  (evaluate-datum-or-scalar left.scalar named-ctes lookups scalars)
+        data-row
+      =/  evald-right  
+        %-  (evaluate-datum-or-scalar right.scalar named-ctes lookups scalars)
+        data-row
+      ?:  =(-.evald-left -.evald-right)
+        [-.evald-left (sub +.evald-left +.evald-right)]
+      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+      !!
+    ::
+        %tar
+      |=  =data-row
+      =/  evald-left  
+        %-  (evaluate-datum-or-scalar left.scalar named-ctes lookups scalars)
+        data-row
+      =/  evald-right  
+        %-  (evaluate-datum-or-scalar right.scalar named-ctes lookups scalars)
+        data-row
+      ?:  =(-.evald-left -.evald-right)
+        [-.evald-left (mul +.evald-left +.evald-right)]
+      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+      !!
+    ::
+        %fas
+      |=  =data-row
+      =/  evald-left  
+        %-  (evaluate-datum-or-scalar left.scalar named-ctes lookups scalars)
+        data-row
+      =/  evald-right  
+        %-  (evaluate-datum-or-scalar right.scalar named-ctes lookups scalars)
+        data-row
+      ?:  =(-.evald-left -.evald-right)
+        [-.evald-left (div +.evald-left +.evald-right)]
+      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+      !!
+    ::
+        %ket
+      |=  =data-row
+      =/  evald-left  
+        %-  (evaluate-datum-or-scalar left.scalar named-ctes lookups scalars)
+        data-row
+      =/  evald-right  
+        %-  (evaluate-datum-or-scalar right.scalar named-ctes lookups scalars)
+        data-row
+      ?:  =(-.evald-left -.evald-right)
+        [-.evald-left (pow +.evald-left +.evald-right)]
+      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+      !!
+    ::
+    ==
 --
