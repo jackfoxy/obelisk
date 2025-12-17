@@ -1,5 +1,5 @@
 /-  *ast, *obelisk, *server-state
-/+  *utils, *mip
+/+  *utils, mip   :: *mip does not build
 |%
 ::
 ::  +license:  MIT+n license
@@ -81,8 +81,7 @@
           c=data-row
           ==
   ^-  ?
-  ::?:  ?=(%joined-row -.c)  =(a (~(got by (~(got by data.c) -.b)) +.b))
-  ?:  ?=(%joined-row -.c)  =(a ~(got bi data.c -.b +.b))
+  ?:  ?=(%joined-row -.c)  =(a (~(got bi:mip data.c) -.b +.b))
   =(a (~(got by data.c) +.b))
 ::
 ++  eq-col-lit
@@ -92,7 +91,7 @@
           c=data-row
           ==
   ^-  ?
-  ?:  ?=(%joined-row -.c)  =((~(got by (~(got by data.c) -.a)) +.a) b)
+  ?:  ?=(%joined-row -.c)  =((~(got bi:mip data.c) -.a +.a) b)
   =((~(got by data.c) +.a) b)
 ::
 ++  eq-col-col
@@ -102,8 +101,8 @@
           c=data-row
           ==
   ^-  ?
-  ?:  ?=(%joined-row -.c)  .=  (~(got by (~(got by data.c) -.a)) +.a)
-                            (~(got by (~(got by data.c) -.b)) +.b)
+  ?:  ?=(%joined-row -.c)  .=  (~(got bi:mip data.c) -.a +.a)
+                               (~(got bi:mip data.c) -.b +.b)
   =((~(got by data.c) +.a) (~(got by data.c) +.b))
 ::
 ++  eq-lit-lit
@@ -120,7 +119,7 @@
           c=data-row
           ==
   ^-  ?
-  ?:  ?=(%joined-row -.c)  ?!(=(a (~(got by (~(got by data.c) -.b)) +.b)))
+  ?:  ?=(%joined-row -.c)  ?!(=(a (~(got bi:mip data.c) -.b +.b)))
   ?!(=(a (~(got by data.c) +.b)))
 ::
 ++  neq-col-lit
@@ -130,7 +129,7 @@
           c=data-row
           ==
   ^-  ?
-  ?:  ?=(%joined-row -.c)  ?!(=((~(got by (~(got by data.c) -.a)) +.a) b))
+  ?:  ?=(%joined-row -.c)  ?!(=((~(got bi:mip data.c) -.a +.a) b))
   ?!(=((~(got by data.c) +.a) b))
 ::
 ++  neq-col-col
@@ -140,8 +139,8 @@
           c=data-row
           ==
   ^-  ?
-  ?:  ?=(%joined-row -.c)   ?!  .=  (~(got by (~(got by data.c) -.a)) +.a)
-                                 (~(got by (~(got by data.c) -.b)) +.b)
+  ?:  ?=(%joined-row -.c)   ?!  .=  (~(got bi:mip data.c) -.a +.a)
+                                 (~(got bi:mip data.c) -.b +.b)
   ?!(=((~(got by data.c) +.a) (~(got by data.c) +.b)))
 ::
 ++  neq-lit-lit
@@ -160,9 +159,9 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)  
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      ?:  =(a (~(got by (~(got by data.c) -.b)) +.b))  %.n
-      (alpha (~(got by (~(got by data.c) -.b)) +.b) a)
-    (gth a (~(got by (~(got by data.c) -.b)) +.b))
+      ?:  =(a (~(got bi:mip data.c) -.b +.b))  %.n
+      (alpha (~(got bi:mip data.c) -.b +.b) a)
+    (gth a (~(got bi:mip data.c) -.b +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a (~(got by data.c) +.b))  %.n
     (alpha (~(got by data.c) +.b) a)
@@ -177,9 +176,9 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      ?:  =((~(got by (~(got by data.c) -.a)) +.a) b)  %.n
-      (alpha b (~(got by (~(got by data.c) -.a)) +.a))
-    (gth (~(got by (~(got by data.c) -.a)) +.a) b)
+      ?:  =((~(got bi:mip data.c) -.a +.a) b)  %.n
+      (alpha b (~(got bi:mip data.c) -.a +.a))
+    (gth (~(got bi:mip data.c) -.a +.a) b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by data.c) +.a) b)  %.n
     (alpha b (~(got by data.c) +.a))
@@ -194,13 +193,13 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      ?:  .=  (~(got by (~(got by data.c) -.a)) +.a)
-              (~(got by (~(got by data.c) -.b)) +.b)
+      ?:  .=  (~(got bi:mip data.c) -.a +.a)
+              (~(got bi:mip data.c) -.b +.b)
         %.n
-      %+  alpha  (~(got by (~(got by data.c) -.b)) +.b)
-                 (~(got by (~(got by data.c) -.a)) +.a)
-     %+  gth  (~(got by (~(got by data.c) -.a)) +.a)
-              (~(got by (~(got by data.c) -.b)) +.b)
+      %+  alpha  (~(got bi:mip data.c) -.b +.b)
+                 (~(got bi:mip data.c) -.a +.a)
+     %+  gth  (~(got bi:mip data.c) -.a +.a)
+              (~(got bi:mip data.c) -.b +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by data.c) +.a) (~(got by data.c) +.b))  %.n
     (alpha (~(got by data.c) +.b) (~(got by data.c) +.a))
@@ -225,8 +224,8 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)  
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      (alpha (~(got by (~(got by data.c) -.b)) +.b) a)
-    (gte a (~(got by (~(got by data.c) -.b)) +.b))
+      (alpha (~(got bi:mip data.c) -.b +.b) a)
+    (gte a (~(got bi:mip data.c) -.b +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by data.c) +.b) a)
   (gte a (~(got by data.c) +.b))
@@ -240,8 +239,8 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)  
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      (alpha b (~(got by (~(got by data.c) -.a)) +.a))
-    (gte (~(got by (~(got by data.c) -.a)) +.a) b)
+      (alpha b (~(got bi:mip data.c) -.a +.a))
+    (gte (~(got bi:mip data.c) -.a +.a) b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b (~(got by data.c) +.a))
   (gte (~(got by data.c) +.a) b)
@@ -255,10 +254,10 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)  
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      %+  alpha  (~(got by (~(got by data.c) -.b)) +.b)
-                 (~(got by (~(got by data.c) -.a)) +.a)
-    %+  gte  (~(got by (~(got by data.c) -.a)) +.a)
-             (~(got by (~(got by data.c) -.b)) +.b)
+      %+  alpha  (~(got bi:mip data.c) -.b +.b)
+                 (~(got bi:mip data.c) -.a +.a)
+    %+  gte  (~(got bi:mip data.c) -.a +.a)
+             (~(got bi:mip data.c) -.b +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by data.c) +.b) (~(got by data.c) +.a))
   (gte (~(got by data.c) +.a) (~(got by data.c) +.b))
@@ -281,9 +280,9 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      ?:  =(a (~(got by (~(got by data.c) -.b)) +.b))  %.n
-      (alpha a (~(got by (~(got by data.c) -.b)) +.b))
-    (lth a (~(got by (~(got by data.c) -.b)) +.b))
+      ?:  =(a (~(got bi:mip data.c) -.b +.b))  %.n
+      (alpha a (~(got bi:mip data.c) -.b +.b))
+    (lth a (~(got bi:mip data.c) -.b +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a (~(got by data.c) +.b))  %.n
     (alpha a (~(got by data.c) +.b))
@@ -298,9 +297,9 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)  
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      ?:  =((~(got by (~(got by data.c) -.a)) +.a) b)  %.n
-      (alpha (~(got by (~(got by data.c) -.a)) +.a) b)
-    (lth (~(got by (~(got by data.c) -.a)) +.a) b)
+      ?:  =((~(got bi:mip data.c) -.a +.a) b)  %.n
+      (alpha (~(got bi:mip data.c) -.a +.a) b)
+    (lth (~(got bi:mip data.c) -.a +.a) b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by data.c) +.a) b)  %.n
     (alpha (~(got by data.c) +.a) b)
@@ -315,12 +314,12 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      ?:  .=  (~(got by (~(got by data.c) -.a)) +.a)
-              (~(got by (~(got by data.c) -.b)) +.b)  %.n
-      %+  alpha  (~(got by (~(got by data.c) -.a)) +.a)
-                 (~(got by (~(got by data.c) -.b)) +.b)
-    %+  lth  (~(got by (~(got by data.c) -.a)) +.a)
-             (~(got by (~(got by data.c) -.b)) +.b)
+      ?:  .=  (~(got bi:mip data.c) -.a +.a)
+              (~(got bi:mip data.c) -.b +.b)  %.n
+      %+  alpha  (~(got bi:mip data.c) -.a +.a)
+                 (~(got bi:mip data.c) -.b +.b)
+    %+  lth  (~(got bi:mip data.c) -.a +.a)
+             (~(got bi:mip data.c) -.b +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =((~(got by data.c) +.a) (~(got by data.c) +.b))  %.n
     (alpha (~(got by data.c) +.a) (~(got by data.c) +.b))
@@ -345,8 +344,8 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      (alpha a (~(got by (~(got by data.c) -.b)) +.b))
-    (lte a (~(got by (~(got by data.c) -.b)) +.b))
+      (alpha a (~(got bi:mip data.c) -.b +.b))
+    (lte a (~(got bi:mip data.c) -.b +.b))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha a (~(got by data.c) +.b))
   (lte a (~(got by data.c) +.b))
@@ -360,8 +359,8 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      (alpha (~(got by (~(got by data.c) -.a)) +.a) b)
-    (lte (~(got by (~(got by data.c) -.a)) +.a) b)
+      (alpha (~(got bi:mip data.c) -.a +.a) b)
+    (lte (~(got bi:mip data.c) -.a +.a) b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by data.c) +.a) b)
   (lte (~(got by data.c) +.a) b)
@@ -375,10 +374,10 @@
   ^-  ?
   ?:  ?=(%joined-row -.c)
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
-      %+  alpha  (~(got by (~(got by data.c) -.a)) +.a)
-                 (~(got by (~(got by data.c) -.b)) +.b)
-    %+  lte  (~(got by (~(got by data.c) -.a)) +.a)
-             (~(got by (~(got by data.c) -.b)) +.b)
+      %+  alpha  (~(got bi:mip data.c) -.a +.a)
+                 (~(got bi:mip data.c) -.b +.b)
+    %+  lte  (~(got bi:mip data.c) -.a +.a)
+             (~(got bi:mip data.c) -.b +.b)
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha (~(got by data.c) +.a) (~(got by data.c) +.b))
   (lte (~(got by data.c) +.a) (~(got by data.c) +.b))
@@ -406,7 +405,7 @@
           c=data-row
           ==
   ^-  ? 
-  =/  val  ?:  ?=(%joined-row -.c)  (~(got by (~(got by data.c) -.a)) +.a)
+  =/  val  ?:  ?=(%joined-row -.c)  (~(got bi:mip data.c) -.a +.a)
            (~(got by data.c) +.a)
   |-
   ?~  b  %.n
@@ -429,7 +428,7 @@
           c=data-row
           ==
   ^-  ?
-  =/  val  ?:  ?=(%joined-row -.c)  (~(got by (~(got by data.c) -.a)) +.a)
+  =/  val  ?:  ?=(%joined-row -.c)  (~(got bi:mip data.c) -.a +.a)
                (~(got by data.c) +.a)
   |-
   ?~  b  %.y
@@ -719,7 +718,7 @@
     ?:  ?&  ?=(qualified-column:ast n.l.p)
             ?=(%qualified-lookup-type -.type-lookup)
             ==
-      (~(got by (~(got by +.type-lookup) qualifier.n.l.p)) name.n.l.p)
+      (~(got bi:mip +.type-lookup) qualifier.n.l.p name.n.l.p)
     ?:  ?&  ?=(unqualified-column:ast n.l.p)
             ?=(%unqualified-lookup-type -.type-lookup)
             ==
@@ -776,38 +775,38 @@
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
-              (~(got by (~(got by type-lookup) qualifier.l)) name.l)
-              (~(got by (~(got by type-lookup) qualifier.r)) name.r)
+              (~(got bi:mip type-lookup) qualifier.l name.l)
+              (~(got bi:mip type-lookup) qualifier.r name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col [qualifier.l name.l])
                               [qualifier.r name.r]
-                    (~(got by (~(got by type-lookup) qualifier.l)) name.l)
+                    (~(got bi:mip type-lookup) qualifier.l name.l)
                 data-row
     ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<(~(got by (~(got by type-lookup) qualifier.l)) name.l)>} ".
+        "{<(~(got bi:mip type-lookup) qualifier.l name.l)>} ".
         "{<name.r>} ".
-        "{<(~(got by (~(got by type-lookup) qualifier.r)) name.r)>}"
+        "{<(~(got bi:mip type-lookup) qualifier.r name.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
     ?:  %+  types-match
               -.l
-              (~(got by (~(got by type-lookup) qualifier.r)) name.r)
+              (~(got bi:mip type-lookup) qualifier.r name.r)
       %+  bake  (cury (cury (cury lit-col +.l) [qualifier.r name.r]) -.l)
                 data-row
     ~|  "comparing literal to column of different aura: ".
         "{<l>} {<name.r>} ".
-        "{<(~(got by (~(got by type-lookup) qualifier.r)) name.r)>}"
+        "{<(~(got bi:mip type-lookup) qualifier.r name.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
     ?:  %+  types-match  
-              (~(got by (~(got by type-lookup) qualifier.l)) name.l)
+              (~(got bi:mip type-lookup) qualifier.l name.l)
               -.r
       %+  bake  (cury (cury (cury col-lit [qualifier.l name.l]) +.r) -.r)
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<(~(got by (~(got by type-lookup) qualifier.l)) name.l)>} {<r>}"
+        "{<(~(got bi:mip type-lookup) qualifier.l name.l)>} {<r>}"
         !!
   ~|("datum-ops can't get here" !!)
 ::

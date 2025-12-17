@@ -15,14 +15,13 @@
     (~(put by a) b e)
   ::
   ++  get
-    |*  [b=* c=*]
+    |*  [b=* c=*]  ~+
     =>  .(b `_?>(?=(^ a) p.n.a)`b, c `_?>(?=(^ a) ?>(?=(^ q.n.a) p.n.q.n.a))`c)
     ^-  (unit _?>(?=(^ a) ?>(?=(^ q.n.a) q.n.q.n.a)))
     (~(get by (~(gut by a) b ~)) c)
   ::
   ++  got
-    |*  [b=* c=*]
-    ::(need (get b c))
+    |*  [b=* c=*]  ~+
     =>  .(b `_?>(?=(^ a) p.n.a)`b, c `_?>(?=(^ a) ?>(?=(^ q.n.a) p.n.q.n.a))`c)
     ^-  _?>(?=(^ a) ?>(?=(^ q.n.a) q.n.q.n.a))
     (~(got by (~(got by a) b)) c)
