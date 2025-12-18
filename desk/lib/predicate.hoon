@@ -820,7 +820,6 @@
           col-lit=$-([[qualified-table:ast @tas] @ @ta data-row] ?)
           lit-col=$-([@ [qualified-table:ast @tas] @ta data-row] ?)
           ==
-  ~&  "DBG {<l>} {<r>}"
   ^-  $-(data-row ?)
 ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
