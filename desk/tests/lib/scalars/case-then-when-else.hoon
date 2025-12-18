@@ -66,10 +66,10 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  when-lookups  [qualifier-lookup when-qual-type-lookup]
+  =/  lookups  [qualifier-lookup qual-type-lookup]
   =/  case-expr=case:ast  [%case target=target.row cases=~[case.row] else=else.row]
   =/  scalar-to-apply
-    (prepare-scalar case-expr table-named-ctes when-lookups embedded-scalars)
+    (prepare-scalar case-expr table-named-ctes lookups embedded-scalars)
   %+  expect-eq
     !>  expected.row
     !>  (apply-scalar table-row scalar-to-apply)
@@ -79,26 +79,12 @@
 ++  q-col-3           [%qualified-column qualified-table-1 %col3 ~]
 ++  q-col-4           [%qualified-column qualified-table-1 %other-col4 ~]
 ::
-::  tests
-::  - DONE:             %eq %neq %gte %gt %lte %lt %in %not-in %between
-::                      %not-between %and %or 
-::  - MISSING:          
-::  - ???:              %not (doesn't work for qualified/unqualified col)
-::  - NOT IMPLEMENTED:  %equiv %not-equiv %exists %not-%exists %all %any
-::
-
-::  ::::::::::::::::::::
-::  :::: WHEN TESTS ::::
-::  ::::::::::::::::::::
-::  TODO: test that if we have a target then the whens are datums (and viceversa)
-::  TODO: test that all the whens are of the same kind
-::  set up some costant context for tests
 ::
 ++  u-col-4           [%unqualified-column %col4 ~]
 ++  u-col-5           [%unqualified-column %col5 ~]
 ++  u-col-6           [%unqualified-column %col6 ~]
 ::
-++  when-qual-type-lookup       %-  mk-qualified-type-lookup
+++  qual-type-lookup       %-  mk-qualified-type-lookup
                                 :~
                                   :-  qualified-table-1
                                   :~
