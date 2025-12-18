@@ -72,7 +72,16 @@
       !!
     ::
         %abs
-      !!
+      |=  =data-row
+      =/  expr
+        %-  %:  evaluate-datum-or-scalar
+              numeric-expression.scalar
+              named-ctes
+              lookups
+              scalars
+            ==
+        data-row
+      [~.u (abs:si +.expr)]
     ::
         %log
       !!
