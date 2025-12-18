@@ -66,13 +66,72 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  pred-lookups  [pred-qualifier-lookup pred-qual-type-lookup]
+  =/  pred-lookups  [qualifier-lookup qual-type-lookup]
   =/  if-expr       [%if-then-else if=pred.row then=then.row else=else.row]
   =/  scalar-to-apply
-    (prepare-scalar if-expr pred-named-ctes pred-lookups pred-scalars)
+    (prepare-scalar if-expr table-named-ctes pred-lookups embedded-scalars)
   %+  expect-eq
     !>  expected.row
-    !>  (apply-scalar pred-row scalar-to-apply)
+    !>  (apply-scalar table-row scalar-to-apply)
+::
+++  q-col-1             [%qualified-column qualified-table-1 %col1 ~]
+++  q-col-2             [%qualified-column qualified-table-1 %col2 ~]
+++  q-col-3             [%qualified-column qualified-table-1 %col3 ~]
+::
+++  u-col-4             [%unqualified-column %col4 ~]
+++  u-col-5             [%unqualified-column %col5 ~]
+++  u-col-6             [%unqualified-column %col6 ~]
+::
+++  qual-type-lookup       %-  mk-qualified-type-lookup
+                                :~
+                                  :-  qualified-table-1
+                                  :~
+                                    [%col1 ~.ud]
+                                    [%col2 ~.ud]
+                                    [%col3 ~.ud]
+                                    [%col4 ~.ud]
+                                    [%col5 ~.ud]
+                                    [%col6 ~.ud]
+                                  ==
+                                ==
+::
+++  unqual-type-lookup       %-  mk-unqualified-type-lookup
+                                  :~
+                                    [%col4 ~.ud]
+                                    [%col5 ~.ud]
+                                    [%col6 ~.ud]
+                                  ==
+::
+++  qualifier-lookup  %-  malt
+                           %-  limo
+                           :~
+                             [%col4 ~[qualified-table-1]]
+                             [%col5 ~[qualified-table-1]]
+                             [%col6 ~[qualified-table-1]]
+                           ==
+::
+++  table-named-ctes        *named-ctes
+::
+++  table-row               %-  mk-indexed-row
+                           :~
+                             [%col1 1]
+                             [%col2 2]
+                             [%col3 3]
+                             [%col4 4]
+                             [%col5 5]
+                             [%col6 6]
+                           ==
+::
+++  embedded-scalars           %-  malt
+                           %-  limo
+                           :~
+                             :-  %scalar1
+                             :*  %if-then-else
+                               if=true-predicate
+                               then=[q-col-3]
+                               else=[q-col-2]
+                             ==
+                           ==
 ::
 ::  row structure:
 ::  [@tas(test-name) [predicate then-branch else-branch expected]]
@@ -108,65 +167,6 @@
 ::
 ::  set up some costant context for tests
 ::
-++  pred-q-col-1             [%qualified-column qualified-table-1 %col1 ~]
-++  pred-q-col-2             [%qualified-column qualified-table-1 %col2 ~]
-++  pred-q-col-3             [%qualified-column qualified-table-1 %col3 ~]
-::
-++  pred-u-col-4             [%unqualified-column %col4 ~]
-++  pred-u-col-5             [%unqualified-column %col5 ~]
-++  pred-u-col-6             [%unqualified-column %col6 ~]
-::
-++  pred-qual-type-lookup       %-  mk-qualified-type-lookup
-                                :~
-                                  :-  qualified-table-1
-                                  :~
-                                    [%col1 ~.ud]
-                                    [%col2 ~.ud]
-                                    [%col3 ~.ud]
-                                    [%col4 ~.ud]
-                                    [%col5 ~.ud]
-                                    [%col6 ~.ud]
-                                  ==
-                                ==
-::
-++  pred-unqual-type-lookup       %-  mk-unqualified-type-lookup
-                                  :~
-                                    [%col4 ~.ud]
-                                    [%col5 ~.ud]
-                                    [%col6 ~.ud]
-                                  ==
-::
-++  pred-qualifier-lookup  %-  malt
-                           %-  limo
-                           :~
-                             [%col4 ~[qualified-table-1]]
-                             [%col5 ~[qualified-table-1]]
-                             [%col6 ~[qualified-table-1]]
-                           ==
-::
-++  pred-named-ctes        *named-ctes
-::
-++  pred-row               %-  mk-indexed-row
-                           :~
-                             [%col1 1]
-                             [%col2 2]
-                             [%col3 3]
-                             [%col4 4]
-                             [%col5 5]
-                             [%col6 6]
-                           ==
-::
-++  pred-scalars           %-  malt
-                           %-  limo
-                           :~
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[pred-q-col-3]
-                               else=[pred-q-col-2]
-                             ==
-                           ==
-::
 ::  %eq tests
 ::
 ++  test-if-predicate-eq
@@ -174,44 +174,44 @@
   :~
     :-  %eq-dimes
     :*  [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %eq-qualified-columns
-    :*  [%eq [pred-q-col-1 ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%eq [q-col-1 ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %eq-qualified-column-and-dime
-    :*  [%eq [pred-q-col-1 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%eq [q-col-1 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %eq-dime-and-qualified-column
-    :*  [%eq [[~.ud 1] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%eq [[~.ud 1] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %eq-unqualified-columns
-    :*  [%eq [pred-u-col-4 ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%eq [u-col-4 ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %eq-unqualified-column-and-dime
-    :*  [%eq [pred-u-col-4 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%eq [u-col-4 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %eq-dime-and-unqualified-column
-    :*  [%eq [[~.ud 4] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%eq [[~.ud 4] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
   ==
@@ -222,44 +222,44 @@
   :~
     :-  %neq-dimes
     :*  [%neq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %neq-qualified-columns
-    :*  [%neq [pred-q-col-1 ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%neq [q-col-1 ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %neq-qualified-column-and-dime
-    :*  [%neq [pred-q-col-1 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%neq [q-col-1 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %neq-dime-and-qualified-column
-    :*  [%neq [[~.ud 1] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%neq [[~.ud 1] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %neq-unqualified-columns
-    :*  [%neq [pred-u-col-4 ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%neq [u-col-4 ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %neq-unqualified-column-and-dime
-    :*  [%neq [pred-u-col-4 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%neq [u-col-4 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %neq-dime-and-unqualified-column
-    :*  [%neq [[~.ud 4] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%neq [[~.ud 4] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -270,128 +270,128 @@
   :~
     :-  %gte-dimes-gt
     :*  [%gte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-dimes-eq
     :*  [%gte [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-dimes-false
     :*  [%gte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gte-qualified-columns-gt
-    :*  [%gte [pred-q-col-2 ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [q-col-2 ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-qualified-columns-eq
-    :*  [%gte [pred-q-col-1 ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [q-col-1 ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-qualified-columns-false
-    :*  [%gte [pred-q-col-1 ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [q-col-1 ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gte-qualified-column-and-dime-gt
-    :*  [%gte [pred-q-col-2 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [q-col-2 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-qualified-column-and-dime-eq
-    :*  [%gte [pred-q-col-1 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [q-col-1 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-qualified-column-and-dime-false
-    :*  [%gte [pred-q-col-1 ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [q-col-1 ~ ~] [[~.ud 2] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gte-dime-and-qualified-column-gt
-    :*  [%gte [[~.ud 2] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [[~.ud 2] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-dime-and-qualified-column-eq
-    :*  [%gte [[~.ud 1] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [[~.ud 1] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gte-dime-and-qualified-column-false
-    :*  [%gte [[~.ud 1] ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gte [[~.ud 1] ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gte-unqualified-columns-gt
-    :*  [%gte [pred-u-col-5 ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [u-col-5 ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gte-unqualified-columns-eq
-    :*  [%gte [pred-u-col-4 ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [u-col-4 ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gte-unqualified-columns-false
-    :*  [%gte [pred-u-col-4 ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [u-col-4 ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %gte-unqualified-column-and-dime-gt
-    :*  [%gte [pred-u-col-5 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [u-col-5 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gte-unqualified-column-and-dime-eq
-    :*  [%gte [pred-u-col-4 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [u-col-4 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gte-unqualified-column-and-dime-false
-    :*  [%gte [pred-u-col-4 ~ ~] [[~.ud 5] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [u-col-4 ~ ~] [[~.ud 5] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %gte-dime-and-unqualified-column-gt
-    :*  [%gte [[~.ud 5] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [[~.ud 5] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gte-dime-and-unqualified-column-eq
-    :*  [%gte [[~.ud 4] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [[~.ud 4] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gte-dime-and-unqualified-column-false
-    :*  [%gte [[~.ud 4] ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gte [[~.ud 4] ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -402,86 +402,86 @@
   :~
     :-  %gt-dimes-gt
     :*  [%gt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gt-dimes-false
     :*  [%gt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gt-qualified-columns-gt
-    :*  [%gt [pred-q-col-2 ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gt [q-col-2 ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gt-qualified-columns-false
-    :*  [%gt [pred-q-col-1 ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gt [q-col-1 ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gt-qualified-column-and-dime-gt
-    :*  [%gt [pred-q-col-2 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gt [q-col-2 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gt-qualified-column-and-dime-false
-    :*  [%gt [pred-q-col-1 ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gt [q-col-1 ~ ~] [[~.ud 2] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gt-dime-and-qualified-column-gt
-    :*  [%gt [[~.ud 2] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gt [[~.ud 2] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %gt-dime-and-qualified-column-false
-    :*  [%gt [[~.ud 1] ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%gt [[~.ud 1] ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %gt-unqualified-columns-gt
-    :*  [%gt [pred-u-col-5 ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gt [u-col-5 ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gt-unqualified-columns-false
-    :*  [%gt [pred-u-col-4 ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gt [u-col-4 ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %gt-unqualified-column-and-dime-gt
-    :*  [%gt [pred-u-col-5 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gt [u-col-5 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gt-unqualified-column-and-dime-false
-    :*  [%gt [pred-u-col-4 ~ ~] [[~.ud 5] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gt [u-col-4 ~ ~] [[~.ud 5] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %gt-dime-and-unqualified-column-gt
-    :*  [%gt [[~.ud 5] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gt [[~.ud 5] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %gt-dime-and-unqualified-column-false
-    :*  [%gt [[~.ud 4] ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%gt [[~.ud 4] ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -492,128 +492,128 @@
   :~
     :-  %lte-dimes-lt
     :*  [%lte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-dimes-eq
     :*  [%lte [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-dimes-false
     :*  [%lte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lte-qualified-columns-lt
-    :*  [%lte [pred-q-col-1 ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [q-col-1 ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-qualified-columns-eq
-    :*  [%lte [pred-q-col-1 ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [q-col-1 ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-qualified-columns-false
-    :*  [%lte [pred-q-col-2 ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [q-col-2 ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lte-qualified-column-and-dime-lt
-    :*  [%lte [pred-q-col-1 ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [q-col-1 ~ ~] [[~.ud 2] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-qualified-column-and-dime-eq
-    :*  [%lte [pred-q-col-1 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [q-col-1 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-qualified-column-and-dime-false
-    :*  [%lte [pred-q-col-2 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [q-col-2 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lte-dime-and-qualified-column-lt
-    :*  [%lte [[~.ud 1] ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [[~.ud 1] ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-dime-and-qualified-column-eq
-    :*  [%lte [[~.ud 1] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [[~.ud 1] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lte-dime-and-qualified-column-false
-    :*  [%lte [[~.ud 2] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lte [[~.ud 2] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lte-unqualified-columns-lt
-    :*  [%lte [pred-u-col-4 ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [u-col-4 ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lte-unqualified-columns-eq
-    :*  [%lte [pred-u-col-4 ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [u-col-4 ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lte-unqualified-columns-false
-    :*  [%lte [pred-u-col-5 ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [u-col-5 ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %lte-unqualified-column-and-dime-lt
-    :*  [%lte [pred-u-col-4 ~ ~] [[~.ud 5] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [u-col-4 ~ ~] [[~.ud 5] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lte-unqualified-column-and-dime-eq
-    :*  [%lte [pred-u-col-4 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [u-col-4 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lte-unqualified-column-and-dime-false
-    :*  [%lte [pred-u-col-5 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [u-col-5 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %lte-dime-and-unqualified-column-lt
-    :*  [%lte [[~.ud 4] ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [[~.ud 4] ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lte-dime-and-unqualified-column-eq
-    :*  [%lte [[~.ud 4] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [[~.ud 4] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lte-dime-and-unqualified-column-false
-    :*  [%lte [[~.ud 5] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lte [[~.ud 5] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -624,86 +624,86 @@
   :~
     :-  %lt-dimes-lt
     :*  [%lt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lt-dimes-false
     :*  [%lt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lt-qualified-columns-lt
-    :*  [%lt [pred-q-col-1 ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lt [q-col-1 ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lt-qualified-columns-false
-    :*  [%lt [pred-q-col-2 ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lt [q-col-2 ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lt-qualified-column-and-dime-lt
-    :*  [%lt [pred-q-col-1 ~ ~] [[~.ud 2] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lt [q-col-1 ~ ~] [[~.ud 2] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lt-qualified-column-and-dime-false
-    :*  [%lt [pred-q-col-2 ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lt [q-col-2 ~ ~] [[~.ud 1] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lt-dime-and-qualified-column-lt
-    :*  [%lt [[~.ud 1] ~ ~] [pred-q-col-2 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lt [[~.ud 1] ~ ~] [q-col-2 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %lt-dime-and-qualified-column-false
-    :*  [%lt [[~.ud 2] ~ ~] [pred-q-col-1 ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%lt [[~.ud 2] ~ ~] [q-col-1 ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %lt-unqualified-columns-lt
-    :*  [%lt [pred-u-col-4 ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lt [u-col-4 ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lt-unqualified-columns-false
-    :*  [%lt [pred-u-col-5 ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lt [u-col-5 ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %lt-unqualified-column-and-dime-lt
-    :*  [%lt [pred-u-col-4 ~ ~] [[~.ud 5] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lt [u-col-4 ~ ~] [[~.ud 5] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lt-unqualified-column-and-dime-false
-    :*  [%lt [pred-u-col-5 ~ ~] [[~.ud 4] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lt [u-col-5 ~ ~] [[~.ud 4] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %lt-dime-and-unqualified-column-lt
-    :*  [%lt [[~.ud 4] ~ ~] [pred-u-col-5 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lt [[~.ud 4] ~ ~] [u-col-5 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %lt-dime-and-unqualified-column-false
-    :*  [%lt [[~.ud 5] ~ ~] [pred-u-col-4 ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%lt [[~.ud 5] ~ ~] [u-col-4 ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -714,38 +714,38 @@
   :~
     :-  %in-dime
     :*  [%in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %in-dime-false
     :*  [%in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %in-qualified-column
-    :*  [%in [pred-q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%in [q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %in-qualified-column-false
-    :*  [%in [pred-q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%in [q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %in-unqualified-column
-    :*  [%in [pred-u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %in-unqualified-column-false
-    :*  [%in [pred-u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -756,38 +756,38 @@
   :~
     :-  %not-in-dime
     :*  [%not-in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-in-dime-false
     :*  [%not-in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %not-in-qualified-column
-    :*  [%not-in [pred-q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%not-in [q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-in-qualified-column-false
-    :*  [%not-in [pred-q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+    :*  [%not-in [q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %not-in-unqualified-column
-    :*  [%not-in [pred-u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%not-in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %not-in-unqualified-column-false
-    :*  [%not-in [pred-u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
-      pred-u-col-4
-      pred-u-col-5
+    :*  [%not-in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]]
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -803,74 +803,74 @@
   :~
     :-  %between-dime-dimes
     :*  (mk-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %between-qualified-column-qualified-columns
-    :*  (mk-between-pred pred-q-col-2 pred-q-col-1 pred-q-col-3)
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-between-pred q-col-2 q-col-1 q-col-3)
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %between-qualified-column-dime-and-qualified-column
-    :*  (mk-between-pred pred-q-col-2 [~.ud 1] pred-q-col-3)
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-between-pred q-col-2 [~.ud 1] q-col-3)
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %between-qualified-column-qualified-column-and-dime
-    :*  (mk-between-pred pred-q-col-2 pred-q-col-1 [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-between-pred q-col-2 q-col-1 [~.ud 3])
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %between-qualified-column-dimes
-    :*  (mk-between-pred pred-q-col-2 [~.ud 1] [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-between-pred q-col-2 [~.ud 1] [~.ud 3])
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %between-unqualified-column-unqualified-columns
-    :*  (mk-between-pred pred-u-col-5 pred-u-col-4 pred-u-col-6)
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-between-pred u-col-5 u-col-4 u-col-6)
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %between-unqualified-column-dime-and-unqualified-column
-    :*  (mk-between-pred pred-u-col-5 [~.ud 4] pred-u-col-6)
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-between-pred u-col-5 [~.ud 4] u-col-6)
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %between-unqualified-column-unqualified-column-and-dime
-    :*  (mk-between-pred pred-u-col-5 pred-u-col-4 [~.ud 6])
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-between-pred u-col-5 u-col-4 [~.ud 6])
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %between-unqualified-column-dimes
-    :*  (mk-between-pred pred-u-col-5 [~.ud 4] [~.ud 6])
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-between-pred u-col-5 [~.ud 4] [~.ud 6])
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %between-dime-dimes-false
     :*  (mk-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %between-qualified-column-dimes-false
-    :*  (mk-between-pred pred-q-col-1 [~.ud 2] [~.ud 4])
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-between-pred q-col-1 [~.ud 2] [~.ud 4])
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %between-unqualified-column-dimes-false
-    :*  (mk-between-pred pred-u-col-4 [~.ud 5] [~.ud 7])
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-between-pred u-col-4 [~.ud 5] [~.ud 7])
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -886,74 +886,74 @@
   :~
     :-  %not-between-dime-dimes
     :*  (mk-not-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-between-qualified-column-qualified-columns
-    :*  (mk-not-between-pred pred-q-col-1 pred-q-col-2 pred-q-col-3)
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-not-between-pred q-col-1 q-col-2 q-col-3)
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-between-qualified-column-dime-and-qualified-column
-    :*  (mk-not-between-pred pred-q-col-1 [~.ud 2] pred-q-col-3)
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-not-between-pred q-col-1 [~.ud 2] q-col-3)
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-between-qualified-column-qualified-column-and-dime
-    :*  (mk-not-between-pred pred-q-col-1 pred-q-col-2 [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-not-between-pred q-col-1 q-col-2 [~.ud 3])
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-between-qualified-column-dimes
-    :*  (mk-not-between-pred pred-q-col-1 [~.ud 2] [~.ud 4])
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-not-between-pred q-col-1 [~.ud 2] [~.ud 4])
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %not-between-unqualified-column-unqualified-columns
-    :*  (mk-not-between-pred pred-u-col-4 pred-u-col-5 pred-u-col-6)
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-not-between-pred u-col-4 u-col-5 u-col-6)
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %not-between-unqualified-column-dime-and-unqualified-column
-    :*  (mk-not-between-pred pred-u-col-4 [~.ud 5] pred-u-col-6)
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-not-between-pred u-col-4 [~.ud 5] u-col-6)
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %not-between-unqualified-column-unqualified-column-and-dime
-    :*  (mk-not-between-pred pred-u-col-4 pred-u-col-5 [~.ud 6])
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-not-between-pred u-col-4 u-col-5 [~.ud 6])
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %not-between-unqualified-column-dimes
-    :*  (mk-not-between-pred pred-u-col-4 [~.ud 5] [~.ud 7])
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-not-between-pred u-col-4 [~.ud 5] [~.ud 7])
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %not-between-dime-dimes-false
     :*  (mk-not-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %not-between-qualified-column-dimes-false
-    :*  (mk-not-between-pred pred-q-col-2 [~.ud 1] [~.ud 3])
-      pred-q-col-1
-      pred-q-col-2
+    :*  (mk-not-between-pred q-col-2 [~.ud 1] [~.ud 3])
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %not-between-unqualified-column-dimes-false
-    :*  (mk-not-between-pred pred-u-col-5 [~.ud 4] [~.ud 6])
-      pred-u-col-4
-      pred-u-col-5
+    :*  (mk-not-between-pred u-col-5 [~.ud 4] [~.ud 6])
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
   ==
@@ -966,16 +966,16 @@
     :*  :+  %and
           [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
         [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %and-false
     :*  :+  %and
           [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
         [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
   ==
@@ -988,24 +988,24 @@
     :*  :+  %or
           [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
         [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %or-true-false
     :*  :+  %or
           [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
         [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %or-false-false
     :*  :+  %or
           [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
         [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
   ==
@@ -1016,38 +1016,38 @@
   :~
     :-  %not-true-expression
     :*  [%not [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] ~]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %not-false-expression
     :*  [%not [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]] ~]
-      pred-q-col-1
-      pred-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
 ::    :-  %not-true-qualified-column
-::    :*  [%not [pred-q-col-2 ~ ~] ~]
-::      pred-q-col-1
-::      pred-q-col-2
+::    :*  [%not [q-col-2 ~ ~] ~]
+::      q-col-1
+::      q-col-2
 ::      [~.ud 1]
 ::    ==
 ::    :-  %not-false-qualified-column
-::    :*  [%not [pred-q-col-2 ~ ~] ~]
-::      pred-q-col-1
-::      pred-q-col-2
+::    :*  [%not [q-col-2 ~ ~] ~]
+::      q-col-1
+::      q-col-2
 ::      [~.ud 1]
 ::    ==
 ::    :-  %not-true-unqualified-column
-::    :*  [%not [pred-q-col-2 ~ ~] ~]
-::      pred-q-col-1
-::      pred-q-col-2
+::    :*  [%not [q-col-2 ~ ~] ~]
+::      q-col-1
+::      q-col-2
 ::      [~.ud 1]
 ::    ==
 ::    :-  %not-false-unqualified-column
-::    :*  [%not [pred-q-col-2 ~ ~] ~]
-::      pred-q-col-1
-::      pred-q-col-2
+::    :*  [%not [q-col-2 ~ ~] ~]
+::      q-col-1
+::      q-col-2
 ::      [~.ud 1]
 ::    ==
   ==
@@ -1058,59 +1058,6 @@
 ::
 ::  set up some costant context for tests
 ::
-++  then-q-col-1                  [%qualified-column qualified-table-1 %col1 ~]
-++  then-q-col-2                  [%qualified-column qualified-table-1 %col2 ~]
-++  then-q-col-3                  [%qualified-column qualified-table-1 %col3 ~]
-::
-++  then-u-col-4                  [%unqualified-column %col4 ~]
-++  then-u-col-5                  [%unqualified-column %col5 ~]
-++  then-u-col-6                  [%unqualified-column %col6 ~]
-::
-++  then-type-lookup       %-  mk-qualified-type-lookup
-                           :~
-                             :-  qualified-table-1
-                             :~
-                               [%col1 ~.ud]
-                               [%col2 ~.ud]
-                               [%col3 ~.ud]
-                               [%col4 ~.ud]
-                               [%col5 ~.ud]
-                               [%col6 ~.ud]
-                             ==
-                           ==
-::
-++  then-qualifier-lookup  %-  malt
-                           %-  limo
-                           :~
-                             [%col4 ~[qualified-table-1]]
-                             [%col5 ~[qualified-table-1]]
-                             [%col6 ~[qualified-table-1]]
-                           ==
-::
-++  then-lookups           [then-qualifier-lookup then-type-lookup]
-::
-++  then-named-ctes        *named-ctes
-::
-++  then-row               %-  mk-indexed-row
-                           :~
-                             [%col1 1]
-                             [%col2 2]
-                             [%col3 3]
-                             [%col4 4]
-                             [%col5 5]
-                             [%col6 6]
-                           ==
-::
-++  then-scalars           %-  malt
-                           %-  limo
-                           :~
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[then-q-col-3]
-                               else=[then-q-col-2]
-                             ==
-                           ==
 ::  tests for all possible then return types
 ::  fail scenarios to test later:
 ::    - qualified column: no table with column
@@ -1123,14 +1070,14 @@
   :~
     :-  %qualified-col
     :*  true-predicate
-      then-q-col-1
-      then-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 1]
     ==
     :-  %unqualified-col
     :*  true-predicate
-      then-u-col-4
-      then-u-col-5
+      u-col-4
+      u-col-5
       [~.ud 4]
     ==
     :-  %literal-value
@@ -1142,13 +1089,13 @@
     :-  %scalar-alias
     :*  true-predicate
       [%scalar-alias %scalar1]
-      then-q-col-2
+      q-col-2
       [~.ud 3]
     ==
     :-  %embedded-scalar
     :*  true-predicate
-      (~(got by then-scalars) %scalar1)
-      then-q-col-2
+      (~(got by embedded-scalars) %scalar1)
+      q-col-2
       [~.ud 3]
     ==
   ==
@@ -1159,59 +1106,6 @@
 ::
 ::  set up some costant context for tests
 ::
-++  else-q-col-1                  [%qualified-column qualified-table-1 %col1 ~]
-++  else-q-col-2                  [%qualified-column qualified-table-1 %col2 ~]
-++  else-q-col-3                  [%qualified-column qualified-table-1 %col3 ~]
-::
-++  else-u-col-4                  [%unqualified-column %col4 ~]
-++  else-u-col-5                  [%unqualified-column %col5 ~]
-++  else-u-col-6                  [%unqualified-column %col6 ~]
-::
-++  else-type-lookup       %-  mk-qualified-type-lookup
-                           :~
-                             :-  qualified-table-1
-                             :~
-                               [%col1 ~.ud]
-                               [%col2 ~.ud]
-                               [%col3 ~.ud]
-                               [%col4 ~.ud]
-                               [%col5 ~.ud]
-                               [%col6 ~.ud]
-                             ==
-                           ==
-::
-++  else-qualifier-lookup  %-  malt
-                           %-  limo
-                           :~
-                             [%col4 ~[qualified-table-1]]
-                             [%col5 ~[qualified-table-1]]
-                             [%col6 ~[qualified-table-1]]
-                           ==
-::
-++  else-lookups           [else-qualifier-lookup else-type-lookup]
-::
-++  else-named-ctes        *named-ctes
-::
-++  else-row               %-  mk-indexed-row
-                           :~
-                             [%col1 1]
-                             [%col2 2]
-                             [%col3 3]
-                             [%col4 4]
-                             [%col5 5]
-                             [%col6 6]
-                           ==
-::
-++  else-scalars           %-  malt
-                           %-  limo
-                           :~
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[else-q-col-3]
-                               else=[else-q-col-2]
-                             ==
-                           ==
 ::  tests for all possible else return types
 ::  fail scenarios to test later:
 ::    - qualified column: no table with column
@@ -1224,14 +1118,14 @@
   :~
     :-  %qualified-col
     :*  false-predicate
-      else-q-col-1
-      else-q-col-2
+      q-col-1
+      q-col-2
       [~.ud 2]
     ==
     :-  %unqualified-col
     :*  false-predicate
-      else-u-col-4
-      else-u-col-5
+      u-col-4
+      u-col-5
       [~.ud 5]
     ==
     :-  %literal-value
@@ -1242,16 +1136,15 @@
     ==
     :-  %scalar-alias
     :*  false-predicate
-      else-q-col-2
+      q-col-2
       [%scalar-alias %scalar1]
       [~.ud 3]
     ==
     :-  %embedded-scalar
     :*  false-predicate
-      else-q-col-2
-      (~(got by else-scalars) %scalar1)
+      q-col-2
+      (~(got by embedded-scalars) %scalar1)
       [~.ud 3]
     ==
   ==
-::
 --
