@@ -53,7 +53,11 @@
       (prepare-arithmetic scalar named-ctes lookups scalars)
     ::
         %scalar-alias
-      !!
+      =/  resolved  (~(get by scalars) alias.scalar)
+      ?~  resolved
+        |=  *
+        ~|("no scalar with name: {<alias.scalar>}" !!)
+      (prepare-scalar (need resolved) named-ctes lookups scalars)
     ::
         %getutcdate
       !!
