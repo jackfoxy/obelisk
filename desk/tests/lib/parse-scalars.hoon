@@ -744,7 +744,8 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'mismatched type for abs builtin, have: ~.t, need: ~.sd'
+    'mismatched type for abs builtin, have: ~.t, \
+    /need: [~.sb ~.sd ~.si ~.sv ~.sw ~.sx ~]'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test type mismatch for %floor

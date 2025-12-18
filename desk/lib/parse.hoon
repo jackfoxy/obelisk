@@ -4817,13 +4817,13 @@
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
     =/  have  p.dime.cooked-first-param
     =/  need  -.params:abs-signature:ast
-    ?:  =(have need)
-      ^-  abs:ast
-      :*
-        %abs
-        cooked-first-param
-      ==
-    ~|("mismatched type for abs builtin, have: {<have>}, need: {<need>}" !!)
+    ?~  (find [have]~ need)
+      ~|("mismatched type for abs builtin, have: {<have>}, need: {<need>}" !!)
+    ^-  abs:ast
+    :*
+      %abs
+      cooked-first-param
+    ==
   ?:  =(%floor fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
     =/  have  p.dime.cooked-first-param

@@ -195,7 +195,7 @@
 ::
 ::  mathematical functions
 ::
-++  abs-signature  [params=~[~.sd] ret=~.sd]
+++  abs-signature  [params=~[~[~.sb ~.sd ~.si ~.sv ~.sw ~.sx]] ret=~.u]
 +$  abs
   $:  %abs
     numeric-expression=literal-value
