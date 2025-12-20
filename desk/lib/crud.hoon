@@ -766,7 +766,7 @@
 ::  +named-queries:  (list cte:ast) -> named-ctes
 ::  resolve CTEs
 ::  state is recycled because view cache could have been updated
-++  named-queries  ::To Do: resolve data tmsps in CTEs
+++  named-queries
   |=  [ctes=(list cte:ast) nctes=named-ctes]
   ^-  named-ctes
   |-
@@ -777,7 +777,7 @@
     nctes  %+  ~(put by nctes)
                name.i.ctes
                :^  %full-relation
-                   set-tables.join-return
+                   (cte-set-tables set-tables.join-return)
                    ?:  =(%qualified-lookup-type -.lookup-type.join-return)
                        %+  qualified-lookup-type  %qualified-lookup-type
                                                  +.lookup-type.join-return
@@ -785,5 +785,9 @@
                    qualified-columns.join-return
     ctes   +.ctes
   ==
+++  cte-set-tables
+  |=  st=(list set-table)
+  ^-  (list set-table)
+  st
 --
  
