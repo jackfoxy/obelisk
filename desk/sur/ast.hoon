@@ -180,17 +180,17 @@
 ++  day-signature  [params=~[~.da] ret=~.ud]
 +$  day
   $:  %day
-    date=literal-value
+    date=datum-or-scalar
   ==
 ++  month-signature  [params=~[~.da] ret=~.ud]
 +$  month
   $:  %month
-    date=literal-value
+    date=datum-or-scalar
   ==
 ++  year-signature  [params=~[~.da] ret=~.ud]
 +$  year
   $:  %year
-    date=literal-value
+    date=datum-or-scalar
   ==
 ::
 ::  mathematical functions
@@ -198,46 +198,46 @@
 ++  abs-signature  [params=~[~[~.sb ~.sd ~.si ~.sv ~.sw ~.sx]] ret=~.u]
 +$  abs
   $:  %abs
-    numeric-expression=literal-value
+    numeric-expression=datum-or-scalar
   ==
 ++  log-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.sd]]
 +$  log
   $:  %log
-    float-expression=literal-value
-    base=(unit literal-value)
+    float-expression=datum-or-scalar
+    base=(unit datum-or-scalar)
   ==
 ++  floor-signature  [params=~[~.rs] ret=~.rs]
 +$  floor
   $:  %floor
-    numeric-expression=literal-value
+    numeric-expression=datum-or-scalar
   ==
 ++  power-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.ud]]
 +$  power
   $:  %power
-    float-expression=literal-value
-    exponent=literal-value
+    float-expression=datum-or-scalar
+    exponent=datum-or-scalar
   ==
 ++  ceiling-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
 +$  ceiling
   $:  %ceiling
-    numeric-expression=literal-value
+    numeric-expression=datum-or-scalar
   ==
 ++  round-signature  [params=~[~.rs ~.ud ~.ud] ret=~.rs]
 +$  round      
   $:  %round
-    numeric-expression=literal-value
-    length=literal-value
-    function=(unit literal-value)
+    numeric-expression=datum-or-scalar
+    length=datum-or-scalar
+    function=(unit datum-or-scalar)
     ==
 ++  sign-signature  [params=~[~.sd] ret=~.sd]
 +$  sign
   $:  %sign
-    numeric-expression=literal-value
+    numeric-expression=datum-or-scalar
   ==
 ++  sqrt-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.ud]]
 +$  sqrt
   $:  %sqrt
-    float-expression=literal-value
+    float-expression=datum-or-scalar
   ==
 ::
 ::  string functions
@@ -245,37 +245,40 @@
 ++  len-signature  [params=~[~.t] ret=~.ud]
 +$  len
   $:  %len
-    string-expression=literal-value
+    string-expression=datum-or-scalar
   ==
 ++  left-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  left
   $:  %left
-    character-expression=literal-value
-    integer-expression=literal-value
+    character-expression=datum-or-scalar
+    integer-expression=datum-or-scalar
   ==
 ++  right-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  right
   $:  %right
-    character-expression=literal-value
-    integer-expression=literal-value
+    character-expression=datum-or-scalar
+    integer-expression=datum-or-scalar
   ==
 ++  substring-signature  [params=~[~.t ~.ud ~.ud] ret=~.t]
 +$  substring  
   $:  %substring
-    string-expression=literal-value
-    start=literal-value
-    length=literal-value
+    string-expression=datum-or-scalar
+    start=datum-or-scalar
+    length=datum-or-scalar
     ==
 ++  trim-signature  [params=~[~.t ~.t] ret=~.t]
 +$  trim
   $:  %trim
-    characters=(unit literal-value)
-    string=literal-value
+    characters=(unit datum-or-scalar)
+    string=datum-or-scalar
   ==
 ++  concat-signature  [params=~.t ret=~.t]
 +$  concat
+  $+  concat
+  :: TODO: wierd: if we remove this bucpat the type checker loops
+  :: infinitely
   $:  %concat
-    args=(list literal-value)
+    args=$@(~ (list datum-or-scalar))
   ==
 ::
 +$  scalar-function
