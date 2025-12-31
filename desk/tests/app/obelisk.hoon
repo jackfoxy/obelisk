@@ -362,7 +362,7 @@
                     ship=~zod
                     provenance=`path`/test-agent
                     tmsp=~2023.7.9..22.35.35..7e90
-                    column-addrs=~
+                    column-addrs=[%column-addrs ~]
                     rowcount=0
                     pri-idx=~
                     indexed-rows=~
@@ -408,7 +408,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-          ~
+          [%column-addrs ~]
           0
           ~
           ~
@@ -420,7 +420,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-           ~
+           [%column-addrs ~]
           0
           ~
           ~
@@ -432,7 +432,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-           ~
+          [%column-addrs ~]
           0
           ~
           ~
@@ -444,7 +444,7 @@
           ~zod
           `path`/test-agent
           ~2023.7.9..22.35.36..7e90
-           ~
+          [%column-addrs ~]
           0
           ~
           ~
@@ -456,7 +456,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.3
-           ~
+          [%column-addrs ~]
           0
           ~
           ~
@@ -469,7 +469,7 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.3
-              column-addrs=[n=[p=%col1 q=2] l=~ r=~]
+              column-addrs=[%column-addrs [n=[p=%col1 q=2] l=~ r=~]]
               rowcount=1
               pri-idx=file-4-pri-idx
               ^-  (list indexed-row)
@@ -492,7 +492,7 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.4
-              column-addrs=~
+              column-addrs=[%column-addrs ~]
               rowcount=0
               pri-idx=~
               indexed-rows=~
@@ -507,7 +507,7 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2023.7.9..22.35.36..7e90
-              column-addrs=[[p=%col1 q=2] ~ ~]
+              column-addrs=[%column-addrs [[p=%col1 q=2] ~ ~]]
               rowcount=1
               pri-idx=file-4-pri-idx
               ^-  (list indexed-row)

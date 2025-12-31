@@ -96,7 +96,7 @@
   =.  indexed-rows.file    ~
   =.  rowcount.file        0
   =.  tmsp.file            sys-time
-  =.  column-addrs.file    ~
+  =.  column-addrs.file    [%column-addrs ~]
   =.  column-catalog.file  ~
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
   =.  files.nxt-data       files
@@ -617,7 +617,7 @@
                                 [~ created-tmsp.sys-db]
                                 [~ created-tmsp.sys-db]
                                 columns-out
-                                ~
+                                [%column-addrs ~]
                                 ~
                                 1
                                 *unqualified-lookup-type
@@ -639,7 +639,7 @@
                     [~ created-tmsp.sys-db]
                     [~ created-tmsp.sys-db]
                     columns-out
-                    ~
+                    [%column-addrs ~]
                     ~
                     1
                     *unqualified-lookup-type
@@ -777,7 +777,7 @@
     nctes  %+  ~(put by nctes)
                name.i.ctes
                :^  %full-relation
-                   (cte-set-tables set-tables.join-return)
+                   (cte-set-tables columns.select.query.i.ctes set-tables.join-return)
                    ?:  =(%qualified-lookup-type -.lookup-type.join-return)
                        %+  qualified-lookup-type  %qualified-lookup-type
                                                  +.lookup-type.join-return
@@ -786,8 +786,15 @@
     ctes   +.ctes
   ==
 ++  cte-set-tables
-  |=  st=(list set-table)
+  |=  [columns=(list selected-column) st=(list set-table)]
   ^-  (list set-table)
-  st
+  ?~  st  ~|("can't get here" !!)
+  ?:  =(~ relation.i.st)  st
+  =/  new  i.st
+  =.  join.new      ~
+  =.  relation.new  ~
+  ::=.  columns.new  
+  ::=.  qualified-column-addr.new  
+  [new st]
 --
  

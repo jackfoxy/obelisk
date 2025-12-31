@@ -48,11 +48,6 @@
   =|  result=tang
   ::
   =?  result  !=(q.expected q.actual)
-      ::
-      ::~&  "expected: {<q.expected>}"
-      ::~&  ""
-      ::~&  "actual: {<q.actual>}"
-      ::
     =/  diff=(pair tank tank)  (vary [expected actual])
     %+  weld  result
     ^-  tang

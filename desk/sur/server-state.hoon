@@ -99,9 +99,10 @@
     key=(list @)
     data=(map @tas @)
     ==
-+$  column-addrs              (map @tas @)
-+$  qualified-column-addrs    (map [qualified-table @tas] @)
-+$  column-catalog            (map @tas column-mta)                 
++$  column-addrs     [%column-addrs (map @tas @)]
++$  qualified-addrs  [%qualified-addrs (map [qualified-table @tas] @)]
++$  joined-addrs     $%(column-addrs qualified-addrs)
++$  column-catalog   (map @tas column-mta)
 +$  column-mta
   $:  %column-mta
     addr=@

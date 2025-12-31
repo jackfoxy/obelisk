@@ -803,7 +803,7 @@
 ++  update-cat
   |=  rs=(list indexed-row)
   ^-  [@ud column-addrs column-catalog]
-  ?:  =(rs ~)  [0 ~ ~]
+  ?:  =(rs ~)  [0 [%column-addrs ~] ~]
   =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
   =/  ord  0
   =/  p  -.pq
@@ -852,11 +852,11 @@
 ++  init-cat
   |=  r=indexed-row
   ^-  [column-addrs column-catalog]
-  =/  addrs=column-addrs      ~
-  =/  cat       ~(tap by data.r)
+  =/  addrs=(map @tas @)      ~
+  =/  cat                     ~(tap by data.r)
   =/  catalog=column-catalog  ~
   |-   
-  ?~  cat  [addrs catalog]
+  ?~  cat  [[%column-addrs addrs] catalog]
   =/  addr  (need (~(dig by data.r) -.i.cat))
   %=  $
     cat      t.cat

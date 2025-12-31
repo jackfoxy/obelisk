@@ -116,7 +116,6 @@
   =.  pri-indx.st2    ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
                       ~
-
   ?:  =(f ~)  [st2 set-tables]  :: to do: filtered CTE
   [st2 set-tables]
 ::
@@ -322,7 +321,7 @@
                          [~ tmsp.schema]
                          [~ tmsp.+.r]
                          columns.vw2
-                         ~
+                         [%column-addrs ~]
                          predicate
                          rowcount.view-content
                          *unqualified-lookup-type                    
@@ -365,7 +364,7 @@
                          [~ tmsp.tbl2]
                          [~ tmsp.file]
                          columns.tbl2
-                         ~
+                         column-addrs.file
                          predicate
                          rowcount.file
                          [%unqualified-lookup-type type-lookup.tbl2]

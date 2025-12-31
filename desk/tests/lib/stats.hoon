@@ -107,17 +107,18 @@
 ::  no indexed rows
 ++  test-metadata-00
   %+  expect-eq
-      !>  [0 ~ ~]
+      !>  [0 [%column-addrs ~] ~]
       !>  (update-cat:utils ~)
 ::
 ::  one indexed row
 ++  test-metadata-01
   =/  aa  sample-data
-  =/  column-addrs  :+  n=[%adoption-date 2]
-                        l=~
-                        :+  n=[%adopter-email 14]
+  =/  column-addrs  :-  %column-addrs
+                        :+  n=[%adoption-date 2]
                             l=~
-                            r=[[%adoption-fee 62] [[%species 252] ~ ~] ~]
+                            :+  n=[%adopter-email 14]
+                                l=~
+                                r=[[%adoption-fee 62] [[%species 252] ~ ~] ~]
   =/  column-catalog
         :+  :-  %adoption-date
                 :^  %column-mta
@@ -166,11 +167,12 @@
 ::  three indexed rows
 ++  test-metadata-02
   =/  aa  sample-data
-  =/  column-addrs  :+  n=[%adoption-date 2]
-                        l=~
-                        :+  n=[%adopter-email 14]
+  =/  column-addrs  :-  %column-addrs
+                        :+  n=[%adoption-date 2]
                             l=~
-                            r=[[%adoption-fee 62] [[%species 252] ~ ~] ~]
+                            :+  n=[%adopter-email 14]
+                                l=~
+                                r=[[%adoption-fee 62] [[%species 252] ~ ~] ~]
   =/  adoption-fee  :~  [58 [0 0 ~[0]]]
                         [68 [1 1 ~[1]]]
                         [82 [2 2 ~[2]]]
