@@ -517,12 +517,21 @@
 ++  addr-indexed
   |=  [row=indexed-row cs=(list templ-cell)]
   ^-  (list templ-cell)
+
+    ::~&  "cs:  {<cs>}"
+    ::~&  ""
+
   =/  cs2  *(list templ-cell)
   |-
   ?~  cs  (flop cs2)
   ?~  column.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need column.i.cs)
-  ::=/  xx=(map @tas @)  -:(~(got by data.row) qualifier.qual-col)
+
+    ::~&  "data.row:  {<data.row>}"
+    ::~&  ""
+    ::~&  "column.i.cs:  {<column.i.cs>}"
+    ::~&  ""
+
   =/  addr  (~(dig by data.row) name:(need column.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell column.i.cs (need addr) vc.i.cs) cs2]

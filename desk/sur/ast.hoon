@@ -378,7 +378,7 @@
 +$  selected-all
   $:  %all  %all
     ==
-+$  selected-all-table  [%all-object qualified-table]
++$  selected-all-table  $:([%all-object =qualified-table])
 +$  selected-aggregate
   $:  %selected-aggregate
     aggregate=aggregate

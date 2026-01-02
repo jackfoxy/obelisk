@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *utils, *selections, *predicate
+/+  *utils, *selections, *predicate, mip
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
@@ -777,7 +777,7 @@
     nctes  %+  ~(put by nctes)
                name.i.ctes
                :^  %full-relation
-                   (cte-set-tables columns.select.query.i.ctes set-tables.join-return)
+                   (cte-set-tables name.i.ctes columns.select.query.i.ctes set-tables.join-return)
                    ?:  =(%qualified-lookup-type -.lookup-type.join-return)
                        %+  qualified-lookup-type  %qualified-lookup-type
                                                  +.lookup-type.join-return
@@ -785,16 +785,81 @@
                    qualified-columns.join-return
     ctes   +.ctes
   ==
+::
 ++  cte-set-tables
-  |=  [columns=(list selected-column) st=(list set-table)]
+  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table)]
   ^-  (list set-table)
   ?~  st  ~|("can't get here" !!)
   ?:  =(~ relation.i.st)  st
   =/  new  i.st
-  =.  join.new      ~
-  =.  relation.new  ~
-  ::=.  columns.new  
-  ::=.  qualified-column-addr.new  
+  =.  join.new        ~
+  =.  relation.new    ~
+  ::
+  =/  f  %+  bake  %+  cury  (cury cte-columns (mk-col-lookup st))
+                             (mk-rel-col-lookup st)
+                   selected-column:ast
+  =.  columns.new  %+  cte-col-dups  name
+                                     `(list column:ast)`(zing (turn columns f))
+  ::
+  ::=.  joined-addrs.new  ::[%column-addrs (map @tas @)]
   [new st]
+::
+++  cte-columns
+  |=  $:  col-lookup=(mip:mip qualified-table:ast @tas @ta)
+          rel-col-lookup=(map qualified-table:ast (list column:ast))
+          a=selected-column:ast
+          ==
+  ^-  (list column:ast)
+  ?:  ?=(qualified-column a)
+    ?~  alias.a  ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a)]]
+    ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a)]]
+  ?:  ?=(unqualified-column a)  ~|("can't be unqualified in join" !!)
+  ?:  ?=(selected-aggregate a)  ~|("selected-aggregate not implemented" !!)
+  ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a]]
+  ?:  ?=(selected-all a)        !!
+  ?:  ?=(selected-all-table a)  (~(got by rel-col-lookup) qualified-table.a)
+  !!
+::
+++  mk-col-lookup
+  |=  st=(list set-table)
+  ^-  (mip:mip qualified-table:ast @tas @ta)
+  =/  lookup  *(mip:mip qualified-table:ast @tas @ta)
+  |-
+  ?~  st  lookup
+  ?~  relation.i.st  $(st t.st)
+  |-
+  ?~  columns.i.st  ^$(st t.st)
+  =.  lookup  %^  ~(put bi:mip lookup)  (need relation.i.st)
+                                        name.i.columns.i.st
+                                        type.i.columns.i.st
+  $(columns.i.st t.columns.i.st)
+::
+++  mk-rel-col-lookup
+  |=  st=(list set-table)
+  ^-  (map qualified-table:ast (list column:ast))
+  =/  lookup  *(map qualified-table:ast (list column:ast))
+  |-
+  ?~  st  lookup
+  ?~  relation.i.st  $(st t.st)
+  %=  $
+    st      t.st
+    lookup  (~(put by lookup) (need relation.i.st) columns.i.st)
+  ==
+::
+++  cte-col-dups
+  |=  [name=@tas cols=(list column:ast)]
+  ^-  (list column:ast)
+  =/  dup  *(map @tas ~)
+  =/  cs   cols
+  |-
+  ?~  cs  cols
+  ?:  (~(has by dup) name.i.cs)
+    ~|  "{<name.i.cs>} is duplicate column name in ".
+        "common table expression {<name>}"
+        !!
+  %=  $
+    cs  t.cs
+    dup  (~(put by dup) name.i.cs ~)
+  ==
 --
  
