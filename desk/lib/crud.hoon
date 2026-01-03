@@ -777,7 +777,9 @@
     nctes  %+  ~(put by nctes)
                name.i.ctes
                :^  %full-relation
-                   (cte-set-tables name.i.ctes columns.select.query.i.ctes set-tables.join-return)
+                   %^  cte-set-tables  name.i.ctes
+                                       columns.select.query.i.ctes
+                                       set-tables.join-return
                    ?:  =(%qualified-lookup-type -.lookup-type.join-return)
                        %+  qualified-lookup-type  %qualified-lookup-type
                                                  +.lookup-type.join-return
@@ -795,8 +797,10 @@
   =.  join.new        ~
   =.  relation.new    ~
   ::
-  =/  f  %+  bake  %+  cury  (cury cte-columns (mk-col-lookup st))
-                             (mk-rel-col-lookup st)
+  =/  f  %+  bake  %+  cury
+                       %+  cury  (cury cte-columns (mk-col-lookup st))
+                                 (mk-rel-col-lookup st)
+                       (flop st)
                    selected-column:ast
   =.  columns.new  %+  cte-col-dups  name
                                      `(list column:ast)`(zing (turn columns f))
@@ -807,16 +811,21 @@
 ++  cte-columns
   |=  $:  col-lookup=(mip:mip qualified-table:ast @tas @ta)
           rel-col-lookup=(map qualified-table:ast (list column:ast))
+          st=(list set-table)
           a=selected-column:ast
           ==
   ^-  (list column:ast)
   ?:  ?=(qualified-column a)
-    ?~  alias.a  ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a)]]
+    ?~  alias.a
+      ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a)]]
     ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a)]]
   ?:  ?=(unqualified-column a)  ~|("can't be unqualified in join" !!)
   ?:  ?=(selected-aggregate a)  ~|("selected-aggregate not implemented" !!)
   ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a]]
-  ?:  ?=(selected-all a)        !!
+  ?:  ?=(selected-all a)
+    %-  flop
+        %+  roll  st    :: to do: why (flop columns.a)?
+|=([a=set-table b=(list column:ast)] ?~(relation.a b (weld (flop columns.a) b)))
   ?:  ?=(selected-all-table a)  (~(got by rel-col-lookup) qualified-table.a)
   !!
 ::
