@@ -366,7 +366,6 @@
                     rowcount=0
                     pri-idx=~
                     indexed-rows=~
-                    column-catalog=~
                 ==
             ~
             ~
@@ -412,7 +411,6 @@
           0
           ~
           ~
-          ~
       ==
 ++  file-2col-1-2
   :-  [%dbo %my-table-2]
@@ -422,7 +420,6 @@
           ~2000.1.2
            [%column-addrs ~]
           0
-          ~
           ~
           ~
       ==
@@ -436,7 +433,6 @@
           0
           ~
           ~
-          ~
       ==
 ++  file-time-3
   :-  [%dbo %my-table-2]
@@ -448,7 +444,6 @@
           0
           ~
           ~
-          ~
       ==
 ++  file-2col-1-3
   :-  [%dbo %my-table-2]
@@ -458,7 +453,6 @@
           ~2000.1.3
           [%column-addrs ~]
           0
-          ~
           ~
           ~
       ==
@@ -478,11 +472,6 @@
                           [n=[p=%col1 q=1.685.221.219] l=~ r=~]
                           ==
                       ==
-              :+  :-  %col1
-                      ::[%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
-                      [%column-mta 2 0 ~]
-                  ~
-                  ~
               ==
       l=~
       r=~
@@ -496,7 +485,6 @@
               rowcount=0
               pri-idx=~
               indexed-rows=~
-              column-catalog=~
           ==
       l=~
       r=~
@@ -516,11 +504,6 @@
                           [n=[p=%col1 q=1.685.221.219] l=~ r=~]
                           ==
                       ==
-              :+  :-  %col1
-                      ::[%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
-                      [%column-mta 2 0 ~]
-                  ~
-                  ~
               ==
       l=~
       r=~

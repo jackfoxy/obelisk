@@ -806,71 +806,17 @@
       f
       tmsp.f
       ==
-::
-::  +update-cat:  (list indexed-row) -> [@ud column-addrs column-catalog]
-::
-++  update-cat
-  |=  rs=(list indexed-row)
-  ^-  [@ud column-addrs column-catalog]
-  ?:  =(rs ~)  [0 [%column-addrs ~] ~]
-  =/  pq=[column-addrs column-catalog]  (init-cat -.rs)
-  =/  ord  0
-  =/  p  -.pq
-  =/  q  +.pq
-
-  ?:  =(1 1)  [(lent rs) p q]
-  :: to do: experimental, takes too long for big inserts
-
-  =/  idx  ((on @ value-idx) lth)
-  =/  flop-domains
-        |=  [k=@tas v=column-mta]
-        ^-  column-mta
-        =/  idx  ((on @ value-idx) lth)
-        :^  %column-mta
-            addr.v
-            distinct.v
-            (run:idx values.v |=(a=value-idx [first.a last.a (flop domain.a)]))
-  |-
-  ?~  rs  [ord p (~(urn by q) flop-domains)]
-  %=  $
-    ord  +(ord)
-    rs   +.rs
-    q    (~(urn by q) |=([k=@tas v=column-mta] (record-values ord v i.rs)))
-  ==
-++  record-values
-  |=  [ord=@ud mta=column-mta r=indexed-row]
-  ^-  column-mta
-  =/  col-val  ;;(@ +:.*(data.r [0 addr.mta]))
-  =/  idx  ((on @ value-idx) lth)
-  =/  val-log  (get:idx values.mta col-val)
-  ?~  val-log
-    %:  column-mta  %column-mta
-                    addr.mta
-                    +(distinct.mta)
-                    (put:idx values.mta col-val [ord ord ~[ord]])
-                    ==
-  =/  log  (need val-log)
-  %:  column-mta  %column-mta
-                  addr.mta
-                  distinct.mta
-                  (put:idx values.mta col-val [first.log ord [ord domain.log]])
-                  ==
-::
-::  +init-cat:  indexed-row -> [column-addrs column-catalog]
-::
-++  init-cat
+++  init-addrs
   |=  r=indexed-row
-  ^-  [column-addrs column-catalog]
+  ^-  column-addrs
   =/  addrs=(map @tas @)      ~
   =/  cat                     ~(tap by data.r)
-  =/  catalog=column-catalog  ~
   |-   
-  ?~  cat  [[%column-addrs addrs] catalog]
+  ?~  cat  [%column-addrs addrs]
   =/  addr  (need (~(dig by data.r) -.i.cat))
   %=  $
     cat      t.cat
     addrs    (~(put by addrs) -.i.cat addr)
-    catalog  (~(put by catalog) -.i.cat (column-mta %column-mta addr 0 ~))
   ==
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
@@ -902,11 +848,11 @@
   ~+  :: keeper
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
-  =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
-  =.  column-addrs.file    +<.rpq
-  =.  column-catalog.file  +>.rpq
+  ::=/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
+  =.  column-addrs.file    (init-addrs -.new-indexed-rows)
+  ::=.  column-catalog.file  +>.rpq
   =.  indexed-rows.file    new-indexed-rows
-  =.  rowcount.file        -.rpq
+  =.  rowcount.file        (lent new-indexed-rows)
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::

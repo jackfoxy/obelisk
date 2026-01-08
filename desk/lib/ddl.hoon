@@ -172,7 +172,6 @@
                 0
                 ~
                 ~
-                ~
             ==
   =/  files
     ~|  "CREATE TABLE: {<name.table.create-table>} ".

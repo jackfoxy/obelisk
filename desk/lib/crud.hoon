@@ -97,7 +97,6 @@
   =.  rowcount.file        0
   =.  tmsp.file            sys-time
   =.  column-addrs.file    [%column-addrs ~]
-  =.  column-catalog.file  ~
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
@@ -276,11 +275,8 @@
       %+  gas:primary-key  *((mop (list @) ,(map @tas @)) comparator)
                            (turn indexed-rows.file.txn |=(a=indexed-row +.a))
   ::
-  =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
-  =.  column-addrs.file.txn    +<.rpq
-  =.  column-catalog.file.txn  +>.rpq
-  ::
-  =/  deleted-rows  (sub rowcount.file.txn -.rpq)
+  =/  rowcount  (lent indexed-rows.file.txn)
+  =/  deleted-rows  (sub rowcount.file.txn rowcount)
   ?:  =(deleted-rows 0)
     :+  next-data
         state
@@ -293,7 +289,7 @@
             [%data-time tmsp.file.txn]
             [%message 'no rows deleted']
             ==
-  =.  rowcount.file.txn        -.rpq
+  =.  rowcount.file.txn        rowcount
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
                                    [namespace.table.d name.table.d]
@@ -405,9 +401,6 @@
   ::
   =/  new-indexed-rows  %+  turn  (tap:primary-key pri-idx.file.txn)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
-  =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
-  =.  column-addrs.file.txn    +<.rpq
-  =.  column-catalog.file.txn  +>.rpq
   =.  indexed-rows.file.txn    new-indexed-rows
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)

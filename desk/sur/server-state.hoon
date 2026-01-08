@@ -91,7 +91,6 @@
     rowcount=@
     pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
     indexed-rows=(list indexed-row)
-    =column-catalog
     ::    =indices
     ==
 +$  indexed-row
@@ -102,18 +101,6 @@
 +$  column-addrs     [%column-addrs (map @tas @)]
 +$  qualified-addrs  [%qualified-addrs (map [qualified-table @tas] @)]
 +$  joined-addrs     $%(column-addrs qualified-addrs)
-+$  column-catalog   (map @tas column-mta)
-+$  column-mta
-  $:  %column-mta
-    addr=@
-    distinct=@ud              :: (~(wyt by values))
-    values=((mop @ value-idx) lth)
-    ==
-+$  value-idx
-  $:  first=file-ord
-      last=file-ord
-      domain=(list file-ord)    :: ordered
-      ==
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
 +$  ns-rel-key

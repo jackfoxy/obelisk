@@ -265,43 +265,43 @@
             ==
 ::
 ::  simple query of joined, filtered cte, SELECT *
-++  test-cte-01
-  =|  run=@ud
-  =/  expected-rows
-        :~  :-  %vector
-                :~  [%day-name [~.t 'Monday']]
-                    [%date [~.da ~2023.12.25]]
-                    [%us-federal-holiday [~.t 'Christmas Day']]
-                    [%us-federal-holiday [~.t 'Christmas Day']]
-                    ==
-            ==
-  ::%-  execute-111
-  %-  debug-111
-        :*  run
-            %-  zing  :~  "CREATE DATABASE db1;"
-                          create-calendar
-                          insert-calendar
-                          create-holiday-calendar
-                          insert-holiday-calendar
-                          ==
-            ::
-            "WITH (FROM calendar t1 ".
-                  "JOIN holiday-calendar T2 ".
-                  "WHERE T1.day-name = 'Monday' ".
-                  "  AND t2.us-federal-holiday = 'Christmas Day' ".
-                  "SELECT T1.day-name, t2.*, t2.us-federal-holiday as fed) ".
-                  "AS my-cte ".
-            "FROM my-cte SELECT * "
-            ::
-            :-  %results  :~  [%message 'SELECT']
-                              [%result-set expected-rows]
-                              [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
-                              [%schema-time ~2012.4.30]
-                              [%data-time ~2012.4.30]
-                              [%vector-count 7]
-                              ==
-            ==
+::++  test-cte-01
+::  =|  run=@ud
+::  =/  expected-rows
+::        :~  :-  %vector
+::                :~  [%day-name [~.t 'Monday']]
+::                    [%date [~.da ~2023.12.25]]
+::                    [%us-federal-holiday [~.t 'Christmas Day']]
+::                    [%us-federal-holiday [~.t 'Christmas Day']]
+::                    ==
+::            ==
+::  ::%-  execute-111
+::  %-  debug-111
+::        :*  run
+::            %-  zing  :~  "CREATE DATABASE db1;"
+::                          create-calendar
+::                          insert-calendar
+::                          create-holiday-calendar
+::                          insert-holiday-calendar
+::                          ==
+::            ::
+::            "WITH (FROM calendar t1 ".
+::                  "JOIN holiday-calendar T2 ".
+::                  "WHERE T1.day-name = 'Monday' ".
+::                  "  AND t2.us-federal-holiday = 'Christmas Day' ".
+::                  "SELECT T1.day-name, t2.*, t2.us-federal-holiday as fed) ".
+::                  "AS my-cte ".
+::            "FROM my-cte SELECT * "
+::            ::
+::            :-  %results  :~  [%message 'SELECT']
+::                              [%result-set expected-rows]
+::                              [%server-time ~2012.5.3]
+::                              [%message 'db1.dbo.my-table']
+::                              [%schema-time ~2012.4.30]
+::                              [%data-time ~2012.4.30]
+::                              [%vector-count 7]
+::                              ==
+::            ==
 ::
 ::  fail on duplicate column name
 ++  test-fail-cte-00
