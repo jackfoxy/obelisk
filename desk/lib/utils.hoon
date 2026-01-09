@@ -517,21 +517,11 @@
 ++  addr-indexed
   |=  [row=indexed-row cs=(list templ-cell)]
   ^-  (list templ-cell)
-
-    ::~&  "cs:  {<cs>}"
-    ::~&  ""
-
   =/  cs2  *(list templ-cell)
   |-
   ?~  cs  (flop cs2)
   ?~  column.i.cs  $(cs t.cs, cs2 [i.cs cs2])
   =/  qual-col  (need column.i.cs)
-
-    ::~&  "data.row:  {<data.row>}"
-    ::~&  ""
-    ::~&  "column.i.cs:  {<column.i.cs>}"
-    ::~&  ""
-
   =/  addr  (~(dig by data.row) name:(need column.i.cs))
   %=  $
     cs2  [(templ-cell %templ-cell column.i.cs (need addr) vc.i.cs) cs2]
@@ -848,9 +838,7 @@
   ~+  :: keeper
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
-  ::=/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
   =.  column-addrs.file    (init-addrs -.new-indexed-rows)
-  ::=.  column-catalog.file  +>.rpq
   =.  indexed-rows.file    new-indexed-rows
   =.  rowcount.file        (lent new-indexed-rows)
   =.  files.data  (~(put by files.data) tbl-key file)

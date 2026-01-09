@@ -196,6 +196,7 @@
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
   =/  cells=(list templ-cell)
+    ::?>  =(%indexed-row -<.rows)
     %^  mk-indexed-vect-templ
           qualified-columns
           selected
@@ -219,8 +220,14 @@
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
-  =/  value  (~(got by data.i.rows) name:(need column.cell)) 
-  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
+
+
+    ::~&  "addr.cell:  {<addr.cell>}"
+
+  ::=/  value  (~(got by data.i.rows) name:(need column.cell))
+  ::=/  value  ;;(@ +:.*(data.i.rows [%0 addr.cell]))
+  ::$(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
+  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell ;;(@ +:.*(data.i.rows [%0 addr.cell]))]] row])
 ::
 ::  +join-all  query:ast -> join-return
 :: 

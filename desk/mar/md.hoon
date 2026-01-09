@@ -1,37 +1,18 @@
-::|_  md=*
-::++  grab
-::  |%
-::  ++  noun  *
-::  ++  mime  *
-::  --
-::++  grow
-::  |%
-::  ++  noun  md
-::  --
-::++  grad  %noun
-::--
 ::
-::
-::
-::
-/-  m=markdown
-/+  md=markdown
-|%
-++  grow
-  |%
-  ++  hdon  |=  mud=@t
-            ^-  (unit (each manx tang))
-            %-  some
-            %+  fall
-              (~(en md mud) md)
-            [%.n *tang]
+::::  /hoon/md/mar
+  ::
+/?    310
+=,  eyre
+=,  mimes:html
+|_  mud=@t
+++  grow                                                ::  convert to
+  |%  
+  ++  mime  [/text/markdown (as-octs mud)]              ::  convert to %mime
   --
 ++  grab
-  |%
-  ++  noun  |=  any=*
-            ^-  @t
-            ?~  any  ''
-            (crip (tuba (trip `@t`any)))
+  |%                                                    ::  convert from
+  ++  mime  |=([p=mite q=octs] q.q)
+  ++  noun  @t                                          ::  clam from %noun
   --
-++  grad  %noun
+++  grad  %mime
 --
