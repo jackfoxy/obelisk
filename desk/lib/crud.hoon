@@ -468,19 +468,18 @@
 ::
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
-          qualified-columns=(list qual-col-type)
-          rows=(list joined-row)
+          qualified-columns=(list column-meta)
+          rows=(list data-row)
           selected=(list selected-column:ast)
           ==
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
   =/  cells=(list templ-cell)
-    ::?>  ?=(joined-row -.rows)
     %^  mk-joined-vect-templ
           qualified-columns
           selected
-          -.rows
+          ;;(joined-row -.rows)
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
@@ -501,12 +500,17 @@
     $(cols t.cols, row [vc.i.cols row])
   =/  cell=templ-cell  i.cols
   =/  qualifier=qualified-table:ast  qualifier:(need column.cell)
-
-    ::~&  "addr.cell:  {<addr.cell>}"
-
-  =/  value
-        (~(got by (~(got by data.i.rows) qualifier)) name:(need column.cell))
-  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
+  ::
+  %=  $
+    cols  t.cols
+    row   :-  :-  p.vc.cell 
+                  :-  p.q.vc.cell
+                      %-  %~  got
+                              bi:mip
+                              ;;((mip:mip qualified-table @tas @ta) data.i.rows)
+                          qualifier name:(need column.cell)
+              row
+  ==
 ::
 ::  +select-results:  [named-ctes server (list set-table) (list vector)]
 ::                    -> (list result)
@@ -660,7 +664,7 @@
   %=  $
     i             +(i)
     columns       +.columns
-    columns-out   :-  (column:ast %column column-name p.value.i.columns)
+    columns-out   :-  (column:ast %column column-name p.value.i.columns 0)
                       columns-out
     indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
   ==
@@ -814,11 +818,11 @@
   ^-  (list column:ast)
   ?:  ?=(qualified-column a)
     ?~  alias.a
-      ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a)]]
-    ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a)]]
+      ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
+    ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
   ?:  ?=(unqualified-column a)  ~|("can't be unqualified in join" !!)
   ?:  ?=(selected-aggregate a)  ~|("selected-aggregate not implemented" !!)
-  ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a]]
+  ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a 0]]
   ?:  ?=(selected-all a)
     %-  flop
         %+  roll  st    :: to do: why (flop columns.a)?

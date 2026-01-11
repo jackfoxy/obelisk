@@ -1109,9 +1109,9 @@
   =/  cmd
     :*  %create-table
         [%qualified-table ship=~ database='db' namespace='dbo' name='my-table' alias=~]
-        :~  [%column name='col1' column-type=%t]
-            [%column name='col2' column-type=%p]
-            [%column name='col3' column-type=%ud]
+        :~  [%column name='col1' column-type=%t addr=0]
+            [%column name='col2' column-type=%p addr=0]
+            [%column name='col3' column-type=%ud addr=0]
         ==
         pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
@@ -1141,9 +1141,9 @@
             name='my-table'
             alias=~
         ==
-        :~  [%column name='col1' column-type=%t]
-            [%column name='col2' column-type=%p]
-            [%column name='col3' column-type=%ud]
+        :~  [%column name='col1' column-type=%t addr=0]
+            [%column name='col2' column-type=%p addr=0]
+            [%column name='col3' column-type=%ud addr=0]
         ==
         pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
@@ -1173,9 +1173,9 @@
             name='my-table'
             alias=~
         ==
-        :~  [%column name='col1' column-type=%t]
-            [%column name='col2' column-type=%p]
-            [%column name='col3' column-type=%ud]
+        :~  [%column name='col1' column-type=%t addr=0]
+            [%column name='col2' column-type=%p addr=0]
+            [%column name='col3' column-type=%ud addr=0]
         ==
         pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
@@ -1210,9 +1210,9 @@
             name='my-table'
             alias=~
         ==
-        :~  [%column name='col1' column-type=%t]
-            [%column name='col2' column-type=%p]
-            [%column name='col1' column-type=%t]
+        :~  [%column name='col1' column-type=%t addr=0]
+            [%column name='col2' column-type=%p addr=0]
+            [%column name='col1' column-type=%t addr=0]
         ==
         pri-indx=~[[%ordered-column column-name='col1' ascending=%.y]]
         foreign-keys=~
@@ -1226,8 +1226,10 @@
   ::
   %+  expect-fail-message
     %-  crip  
-        "CREATE TABLE: duplicate column names ~[[%column name=%col1 type=~.t] ".
-        "[%column name=%col2 type=~.p] [%column name=%col1 type=~.t]]"
+        "CREATE TABLE: duplicate column names ".
+        "~[[%column name=%col1 type=~.t addr=0] ".
+        "[%column name=%col2 type=~.p addr=0] ".
+        "[%column name=%col1 type=~.t addr=0]]"
   |.  %+  ~(on-poke agent (bowl [run ~ ~2000.1.4]))
           %obelisk-action
           !>([%commands ~[cmd]])
@@ -1352,9 +1354,9 @@
             name='my-table'
             alias=~
         ==
-        :~  [%column name='col1' column-type=%t]
-            [%column name='col2' column-type=%p]
-            [%column name='col3' column-type=%ud]
+        :~  [%column name='col1' column-type=%t addr=0]
+            [%column name='col2' column-type=%p addr=0]
+            [%column name='col3' column-type=%ud addr=0]
         ==
         :~  [%ordered-column column-name='col1' ascending=%.y]
             [%ordered-column column-name='col4' ascending=%.y]
@@ -1389,9 +1391,9 @@
             name='my-table'
             alias=~
         ==
-        :~  [%column name='col1' column-type=%t]
-            [%column name='col2' column-type=%p]
-            [%column name='col3' column-type=%t]
+        :~  [%column name='col1' column-type=%t addr=0]
+            [%column name='col2' column-type=%p addr=0]
+            [%column name='col3' column-type=%t addr=0]
         ==
         :~  [%ordered-column column-name='col1' ascending=%.y]
             [%ordered-column column-name='col1' ascending=%.n]
@@ -1484,9 +1486,9 @@
 ::            name='my-table'
 ::            alias=~
 ::        ==
-::        :~  [%column name='col1' column-type=%t]
-::            [%column name='col2' column-type=%p]
-::            [%column name='col3' column-type=%t]
+::        :~  [%column name='col1' column-type=%t addr=0]
+::            [%column name='col2' column-type=%p addr=0]
+::            [%column name='col3' column-type=%t addr=0]
 ::        ==
 ::        pri-indx=~[[%ordered-column column-name='col1' ascending=%.y] [%ordered-column column-name='col1' ascending=%.n]]
 ::        foreign-keys=~

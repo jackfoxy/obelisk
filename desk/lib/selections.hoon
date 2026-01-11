@@ -69,10 +69,10 @@
           ?.  is-cte   set-tables.the-relation
               (select-for-cte q set-tables.the-relation filter)
           lookup-type.the-relation
-          qual-col-types.the-relation
+          column-metas.the-relation
           ==
       %:  table-result  filter
-                        qual-col-types.the-relation
+                        column-metas.the-relation
                         indexed-rows.i.set-tables.the-relation
                         selected
                         ==
@@ -179,7 +179,7 @@
     selected-aggregate:ast
       ~|("not supported" !!)
     selected-value:ast
-      ~[[%column `@tas`(need alias.selected-column) p.value.selected-column]]
+      ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
     selected-all:ast
       (flop columns)
     selected-all-table:ast
@@ -188,19 +188,18 @@
 ::
 ++  table-result
   |=  $:  filter=(unit $-(data-row ?))
-          qualified-columns=(list qual-col-type)
-          rows=(list indexed-row)
+          qualified-columns=(list column-meta)
+          rows=(list data-row)
           selected=(list selected-column:ast)
           ==
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
   =/  cells=(list templ-cell)
-    ::?>  =(%indexed-row -<.rows)
     %^  mk-indexed-vect-templ
           qualified-columns
           selected
-          -.rows
+          ;;(indexed-row -.rows)
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
@@ -219,15 +218,12 @@
     ==
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols
-
-
-    ::~&  "addr.cell:  {<addr.cell>}"
-
-  ::=/  value  (~(got by data.i.rows) name:(need column.cell))
-  ::=/  value  ;;(@ +:.*(data.i.rows [%0 addr.cell]))
-  ::$(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
-  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell ;;(@ +:.*(data.i.rows [%0 addr.cell]))]] row])
+  %=  $
+      cols  t.cols
+      row   :-  :-  p.vc.i.cols
+                    [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
+                row
+  ==
 ::
 ::  +join-all  query:ast -> join-return
 :: 
@@ -264,7 +260,7 @@
                                          state
                                          from-objects
                                          lookup-type.the-relation
-                                         qual-col-types.the-relation
+                                         column-metas.the-relation
                                          ==
   =.  query-source
         ?:  ?=(qualified-table:ast relation.i.joined-relations)
@@ -276,7 +272,7 @@
                                        join.i.joined-relations
                                        predicate.i.joined-relations
                                        lookup-type.the-relation
-                                       qual-col-types.the-relation
+                                       column-metas.the-relation
                                        ==
   =.  prior-join       (join-up prior-join -.set-tables.the-relation)
   %=  $
@@ -291,7 +287,7 @@
           join=(unit join-type:ast)
           =predicate
           lookup-type=qualified-lookup-type
-          qualified-columns=(list qual-col-type)
+          qualified-columns=(list column-meta)
           ==
   ^-  full-relation
   =/  sys-time   (set-tmsp as-of now.bowl)
@@ -353,7 +349,7 @@
           =predicate
           sys-time=@da
           type-lookup=qualified-lookup-type
-          qualified-columns=(list qual-col-type)
+          qualified-columns=(list column-meta)
           ==
   ^-  full-relation
   =/  tbl  (~(get by tables.schema) [namespace.query-obj name.query-obj])
@@ -419,9 +415,10 @@
 ::
 ++  mk-qualified-columns
   |=  $:  query-obj=qualified-table:ast
-          qualified-columns=(list qual-col-type)
+          qualified-columns=(list column-meta)
           columns=(list column:ast)
           ==
+  ^-  (list column-meta)
   ?~  qualified-columns
         %+  turn  columns
                 |=(a=column:ast (mk-qualified-column query-obj a))
@@ -431,8 +428,8 @@
 ::
 ++  mk-qualified-column
   |=  [query-obj=qualified-table:ast a=column:ast]
-  ^-  qual-col-type
-  [(qualified-column:ast %qualified-column query-obj name.a ~) type.a]
+  ^-  column-meta
+  [(qualified-column:ast %qualified-column query-obj name.a ~) type.a addr.a]
 ::
 ::  +got-view-cache:
 ::    [database schema view ns-rel-key (list selected-column:ast)]

@@ -87,6 +87,7 @@
   $:  %column
     name=@tas
     type=@ta
+    addr=@
     ==
 +$  qualified-table
   $+  qualified-table

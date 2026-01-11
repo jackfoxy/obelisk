@@ -17,12 +17,12 @@
 ++  sys-sys-dbs-view
     |=  [provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %database ~.tas]
-                                       [%column %sys-agent ~.ta]
-                                       [%column %sys-tmsp ~.da]
-                                       [%column %data-ship ~.p]
-                                       [%column %data-agent ~.ta]
-                                       [%column %data-tmsp ~.da]
+    =/  columns=(list column:ast)  :~  [%column %database ~.tas 0]
+                                       [%column %sys-agent ~.ta 0]
+                                       [%column %sys-tmsp ~.da 0]
+                                       [%column %data-ship ~.p 0]
+                                       [%column %data-agent ~.ta 0]
+                                       [%column %data-tmsp ~.da 0]
                                        ==
     :*  %view
         provenance                                            ::provenance=path
@@ -171,8 +171,8 @@
 ++  sys-namespaces-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
-                                       [%column %tmsp ~.da]
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas 0]
+                                       [%column %tmsp ~.da 0]
                                        ==
     :*  %view
         provenance                     ::provenance=path
@@ -268,11 +268,11 @@
 ++  sys-tables-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
-                                       [%column %name ~.tas]
-                                       [%column %agent ~.ta]
-                                       [%column %tmsp ~.da]
-                                       [%column %row-count ~.ud]
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas 0]
+                                       [%column %name ~.tas 0]
+                                       [%column %agent ~.ta 0]
+                                       [%column %tmsp ~.da 0]
+                                       [%column %row-count ~.ud 0]
                                        ==
     :*  %view
         provenance                     ::provenance=path
@@ -394,11 +394,11 @@
 ++  sys-table-keys-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
-                                       [%column %name ~.tas]
-                                       [%column %key-ordinal ~.ud]
-                                       [%column %key ~.tas]
-                                       [%column %key-ascending ~.f]
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas 0]
+                                       [%column %name ~.tas 0]
+                                       [%column %key-ordinal ~.ud 0]
+                                       [%column %key ~.tas 0]
+                                       [%column %key-ascending ~.f 0]
                                        ==
     :*  %view
         provenance                     ::provenance=path
@@ -529,11 +529,11 @@
 ++  sys-columns-view
     |=  [db=@tas provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas]
-                                       [%column %name ~.tas]
-                                       [%column %col-ordinal ~.ud]
-                                       [%column %col-name ~.tas]
-                                       [%column %col-type ~.ta]
+    =/  columns=(list column:ast)  :~  [%column %namespace ~.tas 0]
+                                       [%column %name ~.tas 0]
+                                       [%column %col-ordinal ~.ud 0]
+                                       [%column %col-name ~.tas 0]
+                                       [%column %col-type ~.ta 0]
                                        ==
     :*  %view
         provenance                     ::provenance=path
@@ -664,10 +664,10 @@
 ++  sys-sys-log-view
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %tmsp ~.da]
-                                       [%column %agent ~.ta]
-                                       [%column %component ~.tas]
-                                       [%column %name ~.tas]
+    =/  columns=(list column:ast)  :~  [%column %tmsp ~.da 0]
+                                       [%column %agent ~.ta 0]
+                                       [%column %component ~.tas 0]
+                                       [%column %name ~.tas 0]
                                        ==
     :*  %view
         provenance                     ::provenance=path
@@ -788,12 +788,12 @@
 ++  sys-data-log-view
     |=  [database=@tas provenance=path tmsp=@da]
     ^-  view
-    =/  columns=(list column:ast)  :~  [%column %tmsp ~.da]
-                                       [%column %ship ~.p]
-                                       [%column %agent ~.ta]
-                                       [%column %namespace ~.tas]
-                                       [%column %table ~.tas]
-                                       [%column %row-count ~.ud]
+    =/  columns=(list column:ast)  :~  [%column %tmsp ~.da 0]
+                                       [%column %ship ~.p 0]
+                                       [%column %agent ~.ta 0]
+                                       [%column %namespace ~.tas 0]
+                                       [%column %table ~.tas 0]
+                                       [%column %row-count ~.ud 0]
                                        ==
     :*  %view
         provenance                     ::provenance=path
