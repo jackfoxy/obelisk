@@ -103,12 +103,12 @@
         ==
 ++  sys-sys-databases-view
   |=  sys-time=@da
-  =/  columns=(list column:ast)    :~  [%column %database ~.tas]
-                                       [%column name=%sys-agent type=~.ta]
-                                       [%column name=%sys-tmsp type=~.da]
-                                       [%column name=%data-ship type=~.p]
-                                       [%column name=%data-agent type=~.ta]
-                                       [%column name=%data-tmsp type=~.da]
+  =/  columns=(list column:ast)    :~  [%column %database ~.tas 0]
+                                       [%column name=%sys-agent type=~.ta 0]
+                                       [%column name=%sys-tmsp type=~.da 0]
+                                       [%column name=%data-ship type=~.p 0]
+                                       [%column name=%data-agent type=~.ta 0]
+                                       [%column name=%data-tmsp type=~.da 0]
                                        ==
   :-  [%sys %databases sys-time]
       :*  %view
@@ -362,11 +362,9 @@
                     ship=~zod
                     provenance=`path`/test-agent
                     tmsp=~2023.7.9..22.35.35..7e90
-                    column-addrs=~
                     rowcount=0
                     pri-idx=~
                     indexed-rows=~
-                    column-catalog=~
                 ==
             ~
             ~
@@ -408,9 +406,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-          ~
           0
-          ~
           ~
           ~
       ==
@@ -420,9 +416,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-           ~
           0
-          ~
           ~
           ~
       ==
@@ -432,9 +426,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.2
-           ~
           0
-          ~
           ~
           ~
       ==
@@ -444,9 +436,7 @@
           ~zod
           `path`/test-agent
           ~2023.7.9..22.35.36..7e90
-           ~
           0
-          ~
           ~
           ~
       ==
@@ -456,9 +446,7 @@
           ~zod
           `path`/test-agent
           ~2000.1.3
-           ~
           0
-          ~
           ~
           ~
       ==
@@ -469,7 +457,6 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.3
-              column-addrs=[n=[p=%col1 q=2] l=~ r=~]
               rowcount=1
               pri-idx=file-4-pri-idx
               ^-  (list indexed-row)
@@ -478,11 +465,6 @@
                           [n=[p=%col1 q=1.685.221.219] l=~ r=~]
                           ==
                       ==
-              :+  :-  %col1
-                      ::[%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
-                      [%column-mta 2 0 ~]
-                  ~
-                  ~
               ==
       l=~
       r=~
@@ -492,11 +474,9 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2000.1.4
-              column-addrs=~
               rowcount=0
               pri-idx=~
               indexed-rows=~
-              column-catalog=~
           ==
       l=~
       r=~
@@ -507,7 +487,6 @@
               ship=~zod
               provenance=`path`/test-agent
               tmsp=~2023.7.9..22.35.36..7e90
-              column-addrs=[[p=%col1 q=2] ~ ~]
               rowcount=1
               pri-idx=file-4-pri-idx
               ^-  (list indexed-row)
@@ -516,11 +495,6 @@
                           [n=[p=%col1 q=1.685.221.219] l=~ r=~]
                           ==
                       ==
-              :+  :-  %col1
-                      ::[%column-mta 2 1 [['cord' [0 0 ~[0]]] ~ ~]]
-                      [%column-mta 2 0 ~]
-                  ~
-                  ~
               ==
       l=~
       r=~
@@ -538,7 +512,7 @@
           :+  %index
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
-          ~[[%column name=%col1 column-type=%t]]
+          ~[[%column name=%col1 column-type=%t addr=2]]
           ~
       ==
 ++  time-one-col-tbl
@@ -551,7 +525,7 @@
           :+  %index
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
-          ~[[%column name=%col1 column-type=%t]]
+          ~[[%column name=%col1 column-type=%t addr=2]]
           ~
       ==
 ++  two-col-tbl
@@ -564,7 +538,7 @@
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
-          ~[[%column %col1 %t] [%column %col2 %p]]
+          ~[[%column %col1 %t 14] [%column %col2 %p 2]]
           ~
       ==
 ++  two-comb-col-tbl
@@ -577,7 +551,7 @@
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
-          ~[[%column %col1 %t] [%column %col2 %p]]
+          ~[[%column %col1 %t 14] [%column %col2 %p 2]]
           ~
       ==
 ++  time-3-tbl
@@ -590,7 +564,7 @@
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
-          ~[[%column %col1 %t] [%column %col2 %p]]
+          ~[[%column %col1 %t 14] [%column %col2 %p 2]]
           ~
       ==
 ::
@@ -598,7 +572,7 @@
 ++  cmd-two-col
   :*  %create-table
       [%qualified-table ~ 'db1' 'dbo' 'my-table-2' ~]
-      ~[[%column 'col1' %t] [%column 'col2' %p]]
+      ~[[%column 'col1' %t 14] [%column 'col2' %p 2]]
       ~[[%ordered-column 'col1' %.y] [%ordered-column 'col2' %.y]]
       ~
       ~
@@ -606,7 +580,7 @@
 ++  cmd-one-col
   :*  %create-table
       [%qualified-table ~ 'db1' 'dbo' 'my-table' ~]
-      ~[[%column 'col1' %t]]
+      ~[[%column 'col1' %t 2]]
       ~[[%ordered-column 'col1' %.y]]
       ~
       ~

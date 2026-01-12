@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *utils, *selections, *predicate
+/+  *utils, *selections, *predicate, mip
 |_  [state=server =bowl:gall]
 ::
 ::  +license:  MIT+n license
@@ -96,8 +96,6 @@
   =.  indexed-rows.file    ~
   =.  rowcount.file        0
   =.  tmsp.file            sys-time
-  =.  column-addrs.file    ~
-  =.  column-catalog.file  ~
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
@@ -276,11 +274,8 @@
       %+  gas:primary-key  *((mop (list @) ,(map @tas @)) comparator)
                            (turn indexed-rows.file.txn |=(a=indexed-row +.a))
   ::
-  =/  rpq=[@ud column-addrs column-catalog]  (update-cat indexed-rows.file.txn)
-  =.  column-addrs.file.txn    +<.rpq
-  =.  column-catalog.file.txn  +>.rpq
-  ::
-  =/  deleted-rows  (sub rowcount.file.txn -.rpq)
+  =/  rowcount  (lent indexed-rows.file.txn)
+  =/  deleted-rows  (sub rowcount.file.txn rowcount)
   ?:  =(deleted-rows 0)
     :+  next-data
         state
@@ -293,7 +288,7 @@
             [%data-time tmsp.file.txn]
             [%message 'no rows deleted']
             ==
-  =.  rowcount.file.txn        -.rpq
+  =.  rowcount.file.txn        rowcount
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
                                    [namespace.table.d name.table.d]
@@ -405,9 +400,6 @@
   ::
   =/  new-indexed-rows  %+  turn  (tap:primary-key pri-idx.file.txn)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
-  =/  rpq=[@ud column-addrs column-catalog]  (update-cat new-indexed-rows)
-  =.  column-addrs.file.txn    +<.rpq
-  =.  column-catalog.file.txn  +>.rpq
   =.  indexed-rows.file.txn    new-indexed-rows
   =.  tmsp.file.txn            now.bowl
   =/  files                    %+  ~(put by files.nxt-data.txn)
@@ -475,8 +467,8 @@
 ::
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
-          qualified-columns=(list qual-col-type)
-          rows=(list joined-row)
+          qualified-columns=(list column-meta)
+          rows=(list data-row)
           selected=(list selected-column:ast)
           ==
   ^-  (list vector)
@@ -486,7 +478,7 @@
     %^  mk-joined-vect-templ
           qualified-columns
           selected
-          -.rows
+          ;;(joined-row -.rows)
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
@@ -505,11 +497,18 @@
     ==
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols
-  =/  qualifier=qualified-table:ast  qualifier:(need column.cell)
-  =/  value
-        (~(got by (~(got by data.i.rows) qualifier)) name:(need column.cell))
-  $(cols t.cols, row [[p.vc.cell [p.q.vc.cell value]] row])
+  =/  qualifier=qualified-table:ast  qualifier:(need column.i.cols)
+  ::
+  %=  $
+    cols  t.cols
+    row   :-  :-  p.vc.i.cols 
+                  :-  p.q.vc.i.cols
+                      %-  %~  got
+                              bi:mip
+                              ;;((mip:mip qualified-table @tas @ta) data.i.rows)
+                          [qualifier name:(need column.i.cols)]
+              row
+  ==
 ::
 ::  +select-results:  [named-ctes server (list set-table) (list vector)]
 ::                    -> (list result)
@@ -618,7 +617,6 @@
                                 [~ created-tmsp.sys-db]
                                 columns-out
                                 ~
-                                ~
                                 1
                                 *unqualified-lookup-type
                                 ~
@@ -639,7 +637,6 @@
                     [~ created-tmsp.sys-db]
                     [~ created-tmsp.sys-db]
                     columns-out
-                    ~
                     ~
                     1
                     *unqualified-lookup-type
@@ -663,7 +660,7 @@
   %=  $
     i             +(i)
     columns       +.columns
-    columns-out   :-  (column:ast %column column-name p.value.i.columns)
+    columns-out   :-  (column:ast %column column-name p.value.i.columns 0)
                       columns-out
     indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
   ==
@@ -766,7 +763,7 @@
 ::  +named-queries:  (list cte:ast) -> named-ctes
 ::  resolve CTEs
 ::  state is recycled because view cache could have been updated
-++  named-queries  ::To Do: resolve data tmsps in CTEs
+++  named-queries
   |=  [ctes=(list cte:ast) nctes=named-ctes]
   ^-  named-ctes
   |-
@@ -777,13 +774,96 @@
     nctes  %+  ~(put by nctes)
                name.i.ctes
                :^  %full-relation
-                   set-tables.join-return
+                   %^  cte-set-tables  name.i.ctes
+                                       columns.select.query.i.ctes
+                                       set-tables.join-return
                    ?:  =(%qualified-lookup-type -.lookup-type.join-return)
                        %+  qualified-lookup-type  %qualified-lookup-type
                                                  +.lookup-type.join-return
                      *qualified-lookup-type
                    qualified-columns.join-return
     ctes   +.ctes
+  ==
+::
+++  cte-set-tables
+  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table)]
+  ^-  (list set-table)
+  ?~  st  ~|("can't get here" !!)
+  ?:  =(~ relation.i.st)  st
+  =/  new  i.st
+  =.  join.new        ~
+  =.  relation.new    ~
+  ::
+  =/  f  %+  bake  %+  cury
+                       %+  cury  (cury cte-columns (mk-col-lookup st))
+                                 (mk-rel-col-lookup st)
+                       (flop st)
+                   selected-column:ast
+  =.  columns.new  %+  cte-col-dups  name
+                                     `(list column:ast)`(zing (turn columns f))
+  [new st]
+::
+++  cte-columns
+  |=  $:  col-lookup=(mip:mip qualified-table:ast @tas @ta)
+          rel-col-lookup=(map qualified-table:ast (list column:ast))
+          st=(list set-table)
+          a=selected-column:ast
+          ==
+  ^-  (list column:ast)
+  ?:  ?=(qualified-column a)
+    ?~  alias.a
+      ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
+    ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
+  ?:  ?=(unqualified-column a)  ~|("can't be unqualified in join" !!)
+  ?:  ?=(selected-aggregate a)  ~|("selected-aggregate not implemented" !!)
+  ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a 0]]
+  ?:  ?=(selected-all a)
+    %-  flop
+        %+  roll  st    :: to do: why (flop columns.a)?
+|=([a=set-table b=(list column:ast)] ?~(relation.a b (weld (flop columns.a) b)))
+  ?:  ?=(selected-all-table a)  (~(got by rel-col-lookup) qualified-table.a)
+  !!
+::
+++  mk-col-lookup
+  |=  st=(list set-table)
+  ^-  (mip:mip qualified-table:ast @tas @ta)
+  =/  lookup  *(mip:mip qualified-table:ast @tas @ta)
+  |-
+  ?~  st  lookup
+  ?~  relation.i.st  $(st t.st)
+  |-
+  ?~  columns.i.st  ^$(st t.st)
+  =.  lookup  %^  ~(put bi:mip lookup)  (need relation.i.st)
+                                        name.i.columns.i.st
+                                        type.i.columns.i.st
+  $(columns.i.st t.columns.i.st)
+::
+++  mk-rel-col-lookup
+  |=  st=(list set-table)
+  ^-  (map qualified-table:ast (list column:ast))
+  =/  lookup  *(map qualified-table:ast (list column:ast))
+  |-
+  ?~  st  lookup
+  ?~  relation.i.st  $(st t.st)
+  %=  $
+    st      t.st
+    lookup  (~(put by lookup) (need relation.i.st) columns.i.st)
+  ==
+::
+++  cte-col-dups
+  |=  [name=@tas cols=(list column:ast)]
+  ^-  (list column:ast)
+  =/  dup  *(map @tas ~)
+  =/  cs   cols
+  |-
+  ?~  cs  cols
+  ?:  (~(has by dup) name.i.cs)
+    ~|  "{<name.i.cs>} is duplicate column name in ".
+        "common table expression {<name>}"
+        !!
+  %=  $
+    cs  t.cs
+    dup  (~(put by dup) name.i.cs ~)
   ==
 --
  
