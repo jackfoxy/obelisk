@@ -135,9 +135,9 @@
     "        baz-if IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
     "        bar-if if 1 = 1 then foo3 else foo2 endif ".
     "        foo-if If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
-    "        baz-ca CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
-    "        bar-ca case foo3 when 1 = 1 then foo3 else foo2 end ".
-    "        foo-ca CasE foo3 WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
+    "        baz-ca CASE WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "        bar-ca case when 1 = 1 then foo3 else foo2 end ".
+    "        foo-ca CasE WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
     "SELECT foo2,foo3"
   ::
   =/  coalesce
@@ -151,7 +151,7 @@
   =/  case
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=(some unqualified-col-2)
     ==
@@ -372,6 +372,7 @@
     'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
 ::
+
 ::  builtin scalar functions
 ::  spaces after parameters, also test for optional parameters
 ++  test-builtins-01
@@ -399,6 +400,17 @@
     "        st5 TRIM(  ' ' ,'hello'  ) ".
     "        st51 TRIM(   'hello'    ) ".
     "        st6 CONCAT(  'hello'    ,  'world' ) ".
+    "        dq1 DAY( ~sampel-palnet.db2.dba.table1.bar  ) ".
+    "        dq2 DAY(  db2.dba.table1.bar ) ".
+    "        dq3 DAY(   dba.table1.bar) ".
+    "        du1 DAY( foo3  ) ".
+    "        ds1 DAY(  dt3 ) ".
+    "        aq1 ABS(   ~sampel-palnet.db2.dba.table1.bar ) ".
+    "        au1 ABS( foo3   ) ".
+    "        as1 ABS(  mt1  ) ".
+    "        lq1 LEN(  ~sampel-palnet.db2.dba.table1.bar   ) ".
+    "        lu1 LEN(   foo3 ) ".
+    "        ls1 LEN( st1   ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
@@ -433,6 +445,18 @@
   =/  round-fn-1             [%round literal-float literal-2 `literal-1]
   =/  round-fn-2             [%round literal-float literal-2 ~]
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  ::  with qualified columns and scalar aliases
+  =/  day-q1                 [%day qualified-col-1]
+  =/  day-q2                 [%day qualified-col-3]
+  =/  day-q3                 [%day qualified-col-5]
+  =/  day-u1                 [%day unqualified-col-1]
+  =/  day-s1                 [%day day-fn]
+  =/  abs-q1                 [%abs qualified-col-1]
+  =/  abs-u1                 [%abs unqualified-col-1]
+  =/  abs-s1                 [%abs abs-fn]
+  =/  len-q1                 [%len qualified-col-1]
+  =/  len-u1                 [%len unqualified-col-1]
+  =/  len-s1                 [%len len-fn]
   =/  scalars
     :~
       [%scalar getutcdate-fn 'dt1']
@@ -456,6 +480,17 @@
       [%scalar trim-fn-1 'st5']
       [%scalar trim-fn-2 'st51']
       [%scalar concat-fn 'st6']
+      [%scalar day-q1 'dq1']
+      [%scalar day-q2 'dq2']
+      [%scalar day-q3 'dq3']
+      [%scalar day-u1 'du1']
+      [%scalar day-s1 'ds1']
+      [%scalar abs-q1 'aq1']
+      [%scalar abs-u1 'au1']
+      [%scalar abs-s1 'as1']
+      [%scalar len-q1 'lq1']
+      [%scalar len-u1 'lu1']
+      [%scalar len-s1 'ls1']
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -465,7 +500,7 @@
 ::  spaces before parameters
 ++  test-builtins-02
   =/  query-string
-    "FROM foo ".
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
     "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY(  2023.1.15) ".
     "        dt4 MONTH(   2023.1.15) ".
@@ -484,6 +519,15 @@
     "        st4 SUBSTRING( 'hello',    2,  3) ".
     "        st5 TRIM(   ' ', 'hello') ".
     "        st6 CONCAT(  'hello',    'world') ".
+    "        mq1 MONTH( ~sampel-palnet.db2..table1.bar) ".
+    "        mu1 MONTH(  foo3) ".
+    "        ms1 MONTH(   dt4 ) ".
+    "        fq1 FLOOR(   db2..table1.bar) ".
+    "        fu1 FLOOR( foo3) ".
+    "        fs1 FLOOR(  mt3  ) ".
+    "        pq1 POWER(  MyTable.bar,   2) ".
+    "        pu1 POWER( foo3,  2) ".
+    "        ps1 POWER(  mt4 ,  2   ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
@@ -515,6 +559,16 @@
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  ::  with qualified columns and scalar aliases
+  =/  month-q1               [%month qualified-col-2]
+  =/  month-u1               [%month unqualified-col-1]
+  =/  month-s1               [%month month-fn]
+  =/  floor-q1               [%floor qualified-col-4]
+  =/  floor-u1               [%floor unqualified-col-1]
+  =/  floor-s1               [%floor floor-fn]
+  =/  power-q1               [%power qualified-col-6 literal-2]
+  =/  power-u1               [%power unqualified-col-1 literal-2]
+  =/  power-s1               [%power power-fn literal-2]
   =/  scalars
     :~
       [%scalar getutcdate-fn 'dt1']
@@ -535,8 +589,25 @@
       [%scalar substring-fn 'st4']
       [%scalar trim-fn 'st5']
       [%scalar concat-fn 'st6']
+      [%scalar month-q1 'mq1']
+      [%scalar month-u1 'mu1']
+      [%scalar month-s1 'ms1']
+      [%scalar floor-q1 'fq1']
+      [%scalar floor-u1 'fu1']
+      [%scalar floor-s1 'fs1']
+      [%scalar power-q1 'pq1']
+      [%scalar power-u1 'pu1']
+      [%scalar power-s1 'ps1']
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -544,7 +615,7 @@
 ::  spaces after parameters
 ++  test-builtins-03
   =/  query-string
-    "FROM foo ".
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
     "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY(2023.1.15  ) ".
     "        dt4 MONTH(2023.1.15    ) ".
@@ -563,6 +634,15 @@
     "        st4 SUBSTRING('hello'  ,2     ,3   ) ".
     "        st5 TRIM(' '    ,'hello'  ) ".
     "        st6 CONCAT('hello'   ,'world'     ) ".
+    "        yq1 YEAR(~sampel-palnet.db2.dba.table1.bar  ) ".
+    "        yu1 YEAR(foo3 ) ".
+    "        ys1 YEAR(dt5 ) ".
+    "        cq1 CEILING(db2.dba.table1.bar   ) ".
+    "        cu1 CEILING(foo3  ) ".
+    "        cs1 CEILING(mt5  ) ".
+    "        rq1 ROUND(dba.table1.bar    ,2  ,1 ) ".
+    "        ru1 ROUND(foo3  ,2     ,1   ) ".
+    "        rs1 ROUND(mt6, 2, 1) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
@@ -594,6 +674,16 @@
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  ::  with qualified columns and scalar aliases
+  =/  year-q1                [%year qualified-col-1]
+  =/  year-u1                [%year unqualified-col-1]
+  =/  year-s1                [%year year-fn]
+  =/  ceiling-q1             [%ceiling qualified-col-3]
+  =/  ceiling-u1             [%ceiling unqualified-col-1]
+  =/  ceiling-s1             [%ceiling ceiling-fn]
+  =/  round-q1               [%round qualified-col-5 literal-2 `literal-1]
+  =/  round-u1               [%round unqualified-col-1 literal-2 `literal-1]
+  =/  round-s1               [%round round-fn literal-2 `literal-1]
   =/  scalars
     :~
       [%scalar getutcdate-fn 'dt1']
@@ -614,16 +704,33 @@
       [%scalar substring-fn 'st4']
       [%scalar trim-fn 'st5']
       [%scalar concat-fn 'st6']
+      [%scalar year-q1 'yq1']
+      [%scalar year-u1 'yu1']
+      [%scalar year-s1 'ys1']
+      [%scalar ceiling-q1 'cq1']
+      [%scalar ceiling-u1 'cu1']
+      [%scalar ceiling-s1 'cs1']
+      [%scalar round-q1 'rq1']
+      [%scalar round-u1 'ru1']
+      [%scalar round-s1 'rs1']
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-     !>  (parse:parse(default-database default-db) query-string)
+    !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before and after parameters
 ++  test-builtins-04
   =/  query-string
-    "FROM foo ".
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
     "SCALARS dt1 GETUTCDATE() ".
     "        dt3 DAY(  2023.1.15    ) ".
     "        dt4 MONTH(   2023.1.15  ) ".
@@ -642,6 +749,15 @@
     "        st4 SUBSTRING( 'hello'     ,  2    ,   3  ) ".
     "        st5 TRIM(    ' '   ,  'hello'     ) ".
     "        st6 CONCAT(  'hello'     ,    'world'  ) ".
+    "        sq1 SIGN(  ~sampel-palnet.db2..table1.bar   ) ".
+    "        su1 SIGN( foo3    ) ".
+    "        ss1 SIGN(   mt7  ) ".
+    "        sqq1 SQRT(   db2..table1.bar  ) ".
+    "        squ1 SQRT(  foo3    ) ".
+    "        sqs1 SQRT(    mt8   ) ".
+    "        lfq1 LEFT( MyTable.bar   ,  3    ) ".
+    "        lfu1 LEFT(   foo3    ,   3  ) ".
+    "        lfs1 LEFT(  st2   ,   3   ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
@@ -673,6 +789,16 @@
   =/  concat-fn              [%concat ~[literal-hello literal-world]]
   =/  round-fn               [%round literal-float literal-2 `literal-1]
   =/  substring-fn           [%substring literal-hello literal-2 literal-3]
+  ::  with qualified columns and scalar aliases
+  =/  sign-q1                [%sign qualified-col-2]
+  =/  sign-u1                [%sign unqualified-col-1]
+  =/  sign-s1                [%sign sign-fn]
+  =/  sqrt-q1                [%sqrt qualified-col-4]
+  =/  sqrt-u1                [%sqrt unqualified-col-1]
+  =/  sqrt-s1                [%sqrt sqrt-fn]
+  =/  left-q1                [%left qualified-col-6 literal-3]
+  =/  left-u1                [%left unqualified-col-1 literal-3]
+  =/  left-s1                [%left left-fn literal-3]
   =/  scalars
     :~
       [%scalar getutcdate-fn 'dt1']
@@ -693,387 +819,89 @@
       [%scalar substring-fn 'st4']
       [%scalar trim-fn 'st5']
       [%scalar concat-fn 'st6']
+      [%scalar sign-q1 'sq1']
+      [%scalar sign-u1 'su1']
+      [%scalar sign-s1 'ss1']
+      [%scalar sqrt-q1 'sqq1']
+      [%scalar sqrt-u1 'squ1']
+      [%scalar sqrt-s1 'sqs1']
+      [%scalar left-q1 'lfq1']
+      [%scalar left-u1 'lfu1']
+      [%scalar left-s1 'lfs1']
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-::
-::  test type mistmatch for %day
-++  test-fail-builtins-day-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo DAY('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for day builtin, have: ~.t, need: ~.da'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %month
-++  test-fail-builtins-month-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo MONTH('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for month builtin, have: ~.t, need: ~.da'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %year
-++  test-fail-builtins-year-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo YEAR(123) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for year builtin, have: ~.ud, need: ~.da'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %abs
-++  test-fail-builtins-abs-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo ABS('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for abs builtin, have: ~.t, need: ~.sd'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %floor
-++  test-fail-builtins-floor-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo FLOOR('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for floor builtin, have: ~.t, need: ~.rs'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %ceiling
-++  test-fail-builtins-ceiling-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo CEILING('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for ceiling builtin, have: ~.t, need: [~.rs ~.sd ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %sign
-++  test-fail-builtins-sign-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo SIGN(2023.1.15) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for sign builtin, have: ~.da, need: ~.sd'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %sqrt
-++  test-fail-builtins-sqrt-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo SQRT('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for sqrt builtin, have: ~.t, need: [~.rs ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %len
-++  test-fail-builtins-len-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo LEN(123) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for len builtin, have: ~.ud, need: ~.t'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %log first parameter
-++  test-fail-builtins-log-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo LOG('hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message 
-    'mismatched type for log builtin, have: ~.t, need: [~.rs ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %log second parameter
-++  test-fail-builtins-log-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo LOG(10, 'hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for log builtin, \
-    /have: [~.ud ~.t ~], need: [[~.rs ~.ud ~] ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %power first parameter
-++  test-fail-builtins-power-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo POWER('hello', 2) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for power builtin, \
-    /have: [~.t ~.ud ~], need: [[~.rs ~.ud ~] ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %power second parameter
-++  test-fail-builtins-power-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo POWER(2, 'hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for power builtin, \
-    /have: [~.ud ~.t ~], need: [[~.rs ~.ud ~] ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %left first parameter
-++  test-fail-builtins-left-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo LEFT(123, 3) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for left builtin, have: [~.ud ~.ud ~], need: [~.t ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %left second parameter
-++  test-fail-builtins-left-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo LEFT('hello', 'world') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for left builtin, have: [~.t ~.t ~], need: [~.t ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %right first parameter
-++  test-fail-builtins-right-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo RIGHT(2023.1.15, 3) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for right builtin, have: [~.da ~.ud ~], need: [~.t ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %right second parameter
-++  test-fail-builtins-right-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo RIGHT('hello', .5) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for right builtin, have: [~.t ~.rs ~], need: [~.t ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %trim first parameter
-++  test-fail-builtins-trim-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo TRIM(123, 'hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for trim builtin, have: [~.ud ~.t ~], need: [~.t ~.t ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %trim second parameter
-++  test-fail-builtins-trim-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo TRIM(' ', 123) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for trim builtin, have: [~.t ~.ud ~], need: [~.t ~.t ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %round first parameter
-++  test-fail-builtins-round-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo ROUND('hello', 2) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for round builtin, have: [~.t ~.ud ~], need: [~.rs ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %round second parameter
-++  test-fail-builtins-round-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo ROUND(.3.14, 'hello') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for round builtin, have: [~.rs ~.t ~], need: [~.rs ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %round third parameter
-++  test-fail-builtins-round-03
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo ROUND(.3.14, 2, 'h') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for round builtin, have: [~.rs ~.ud ~.t ~], need: [~.rs ~.ud ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %substring first parameter
-++  test-fail-builtins-substring-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo SUBSTRING(123, 2, 3) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for substring builtin, have: [~.ud ~.ud ~.ud ~], need: [~.t ~.ud ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %substring second parameter
-++  test-fail-builtins-substring-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo SUBSTRING('hello', 'world', 3) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for substring builtin, have: [~.t ~.t ~.ud ~], need: [~.t ~.ud ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %substring third parameter
-++  test-fail-builtins-substring-03
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo SUBSTRING('hello', 2, .5) ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for substring builtin, have: [~.t ~.ud ~.rs ~], need: [~.t ~.ud ~.ud ~]'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test type mismatch for %concat
-++  test-fail-builtins-concat-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo CONCAT('hello', 123, 'world') ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'mismatched type for concat builtin, have: ~.ud, need: ~.t'
-    |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  coalesce
 ::
 :: simple coalesce
 ++  test-coalesce-01
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-2 literal-zod literal-1 unqualified-col-1]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+::
+=/  query-string
+  "FROM foo ".
+  "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
+  "SELECT foo2,foo3"
+::
+=/  coalesce-1
+  ~[%coalesce unqualified-col-2 literal-zod literal-1 unqualified-col-1]
+=/  scalars
+  :~
+    [%scalar coalesce-1 'foo']
+  ==
+=/  expected  (mk-selection scalars ~)
+%+  expect-eq
+  !>  expected
+  !>  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce, 2 scalars
 ++  test-coalesce-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
-    "        baz COALESCE(foo2,~zod,1,foo3) ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    ~[%coalesce unqualified-col-2 literal-zod literal-1 unqualified-col-1]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-      [%scalar coalesce-1 'baz']
-    ==
-  =/  expected  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+::
+=/  query-string
+  "FROM foo ".
+  "SCALARS foo COALESCE(foo2,~zod,1,foo3) ".
+  "        baz COALESCE(foo2,~zod,1,foo3) ".
+  "SELECT foo2,foo3"
+::
+=/  coalesce-1
+  ~[%coalesce unqualified-col-2 literal-zod literal-1 unqualified-col-1]
+=/  scalars
+  :~
+    [%scalar coalesce-1 'foo']
+    [%scalar coalesce-1 'baz']
+  ==
+=/  expected  (mk-selection scalars ~)
+%+  expect-eq
+  !>  expected
+  !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with ship.database.namespace.table.column
 ++  test-coalesce-03
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo COALESCE(~sampel-palnet.db2.dba.table1.bar,~zod,1,foo3) ".
-    "SELECT foo2,foo3"
-  ::
-  =/  coalesce-1
-    [%coalesce data=~[qualified-col-1 literal-zod literal-1 unqualified-col-1]]
-  =/  scalars
-    :~
-      [%scalar coalesce-1 'foo']
-    ==
-  =/  expected=(list command:ast)  (mk-selection scalars ~)
-  %+  expect-eq
-    !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+::
+=/  query-string
+  "FROM foo ".
+  "SCALARS foo COALESCE(~sampel-palnet.db2.dba.table1.bar,~zod,1,foo3) ".
+  "SELECT foo2,foo3"
+::
+=/  coalesce-1
+  [%coalesce data=~[qualified-col-1 literal-zod literal-1 unqualified-col-1]]
+=/  scalars
+  :~
+    [%scalar coalesce-1 'foo']
+  ==
+=/  expected=(list command:ast)  (mk-selection scalars ~)
+%+  expect-eq
+  !>  expected
+  !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with ship.database..table.column (default ns)
 ++  test-coalesce-04
@@ -1213,12 +1041,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
     "        bar COALESCE(foo,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
-    [%case unqualified-col-1 ~[[%case-when-then simple-true-pred unqualified-col-1]] ~]
+    [%case (some unqualified-col-1) ~[[%case-when-then literal-1 unqualified-col-1]] ~]
   =/  coalesce-1
     ~[%coalesce naked-case unqualified-col-2 literal-1 unqualified-col-1]
   =/  scalars
@@ -1557,14 +1385,14 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
     "        bar IF 1 = 1 THEN foo ELSE foo2 ENDIF ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
     :*  %case
-      unqualified-col-1
-      ~[[%case-when-then simple-true-pred unqualified-col-1]]
+      (some unqualified-col-1)
+      ~[[%case-when-then literal-1 unqualified-col-1]]
       ~
     ==
   =/  if-1
@@ -1671,18 +1499,421 @@
     'table alias \'MyTable\' is not defined'
     |.  (parse:parse(default-database default-db) query-string)
 ::
-:: test if with coalesce scalar inline
-::  simple case with predicate
-++  test-case-01
+:: simple case expression with expression
+++  test-case-simple-01
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo3 END ".
+    "SCALARS foobar CASE foo3 WHEN 1 THEN foo3 ELSE foo3 END ".
     "SELECT foo2,foo3"
   ::
   =/  case
     :*  %case
-      unqualified-col-1
+      (some unqualified-col-1)
+      ~[[%case-when-then literal-1 unqualified-col-1]]
+      (some unqualified-col-1)
+    ==
+  =/  scalars  ~[[%scalar case 'foobar']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: simple case expression with expression, no else
+++  test-case-simple-02
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 WHEN 1 THEN foo3 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-when-then  [%case-when-then literal-1 unqualified-col-1] 
+  =/  case
+    :+  %scalar
+      [%case (some unqualified-col-1) ~[case-when-then] ~]
+    'foobaz'
+  =/  scalars  ~[case]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+
+:: simple case expression with expression, two cases, one with else
+:: the other without
+++  test-case-simple-03
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 WHEN 1 THEN foo3 END ".
+    "        foobar CASE foo3 WHEN ~zod THEN foo3 ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-1
+    :*  %case
+      (some unqualified-col-1)
+      ~[[%case-when-then literal-1 unqualified-col-1]]
+      ~
+    ==
+  =/  case-2
+    :*  %case
+      (some unqualified-col-1)
+      ~[[%case-when-then literal-zod unqualified-col-1]]
+      (some unqualified-col-2)
+    ==
+  =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression with expression, two cases in the same scalar
+++  test-case-simple-04
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobaz CASE foo3 ".
+    "                 WHEN 1 THEN foo3".
+    "                 WHEN 1 THEN foo3".
+    "                END ".
+    "        foobar CASE foo3 ".
+    "                 WHEN 1 THEN foo3".
+    "                 WHEN 1 THEN foo3".
+    "               ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-1
+    :*  %case
+      (some unqualified-col-1)
+      :~  [%case-when-then literal-1 unqualified-col-1]
+          [%case-when-then literal-1 unqualified-col-1]
+      ==
+      ~
+    ==
+  =/  case-2
+    :*  %case
+      (some unqualified-col-1)
+      :~  [%case-when-then literal-1 unqualified-col-1]
+          [%case-when-then literal-1 unqualified-col-1]
+      ==
+      (some unqualified-col-2)
+    ==
+  =/  scalars  ~[[%scalar case-1 'foobaz'] [%scalar case-2 'foobar']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: ship.database.namespace.table.column
+++  test-case-simple-05
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE ~sampel-palnet.db2.dba.table1.bar ".
+    "WHEN ~sampel-palnet.db2.dba.table1.bar ".
+    "THEN ~sampel-palnet.db2.dba.table1.bar ".
+    "ELSE ~sampel-palnet.db2.dba.table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-1)
+      ~[[%case-when-then qualified-col-1 qualified-col-1]]
+      (some qualified-col-1)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: ship.database..table.column (default ns)
+++  test-case-simple-06
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE ~sampel-palnet.db2..table1.bar ".
+    "WHEN ~sampel-palnet.db2..table1.bar ".
+    "THEN ~sampel-palnet.db2..table1.bar ".
+    "ELSE ~sampel-palnet.db2..table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-2)
+      ~[[%case-when-then qualified-col-2 qualified-col-2]]
+      (some qualified-col-2)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: database.namespace.table.column
+++  test-case-simple-07
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE db2.dba.table1.bar ".
+    "WHEN db2.dba.table1.bar ".
+    "THEN db2.dba.table1.bar ".
+    "ELSE db2.dba.table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-3)
+      ~[[%case-when-then qualified-col-3 qualified-col-3]]
+      (some qualified-col-3)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: database..table.column (default ns)
+++  test-case-simple-08
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE db2..table1.bar ".
+    "WHEN db2..table1.bar ".
+    "THEN db2..table1.bar ".
+    "ELSE db2..table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-4)
+      ~[[%case-when-then qualified-col-4 qualified-col-4]]
+      (some qualified-col-4)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: namespace.table.column (default database)
+++  test-case-simple-09
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ".
+    "CASE dba.table1.bar ".
+    "WHEN dba.table1.bar ".
+    "THEN dba.table1.bar ".
+    "ELSE dba.table1.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-5)
+      ~[[%case-when-then qualified-col-5 qualified-col-5]]
+      (some qualified-col-5)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: qualified column case scalar with
+:: alias.column (default database)
+++  test-case-simple-10
+  ::
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS foo ".
+    "CASE MyTable.bar ".
+    "WHEN MyTable.bar ".
+    "THEN MyTable.bar ".
+    "ELSE MyTable.bar ".
+    "END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  case-qualified
+    :*  %case
+      (some qualified-col-6)
+      ~[[%case-when-then qualified-col-6 qualified-col-6]]
+      (some qualified-col-6)
+    ==
+  =/  scalars  ~[[%scalar case-qualified 'foo']]
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with coalesce scalar inline
+++  test-case-simple-11
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo2,1,foo2) ".
+    "        bar CASE foo3 WHEN 1 THEN foo ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    ~[%coalesce unqualified-col-2 literal-1 unqualified-col-2]
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 naked-coalesce]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar naked-coalesce 'foo']
+      [%scalar case-1 'bar']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with if scalar inline
+++  test-case-simple-12
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar CASE foo3 WHEN 1 THEN foo ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-col-1]
+      else=[unqualified-col-2]
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 naked-if]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar naked-if 'foo']
+      [%scalar case-1 'bar']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with case scalar inline
+++  test-case-simple-13
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 THEN foo ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 unqualified-col-1]]
+      else=~
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 naked-case]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar naked-case 'foo']
+      [%scalar case-1 'bar']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with a case nested in a case
+++  test-case-simple-14
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS baz CASE foo3 WHEN 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 THEN baz END ".
+    "        foo CASE foo3 WHEN 1 THEN bar ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  second-case
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 unqualified-col-1]]
+      else=~
+    ==
+  =/  first-case
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 second-case]]
+      else=~
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-col-1)
+      cases=~[[%case-when-then literal-1 first-case]]
+      else=(some unqualified-col-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar second-case 'baz']
+      [%scalar first-case 'bar']
+      [%scalar case-1 'foo']
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: searched case expression with predicate
+++  test-case-searched-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE WHEN 1 = 1 THEN foo3 ELSE foo3 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case
+    :*  %case
+      ~
       ~[[%case-when-then simple-true-pred unqualified-col-1]]
       (some unqualified-col-1)
     ==
@@ -1692,18 +1923,18 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 
-::  simple case with predicate, no else
-++  test-case-02
+:: searched case expression with predicate, no else
+++  test-case-searched-02
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
+    "SCALARS foobaz CASE WHEN 1 = 1 THEN foo3 END ".
     "SELECT foo2,foo3"
   ::
   =/  case-when-then  [%case-when-then simple-true-pred unqualified-col-1] 
   =/  case
     :+  %scalar
-      [%case unqualified-col-1 ~[case-when-then] ~]
+      [%case ~ ~[case-when-then] ~]
     'foobaz'
   =/  scalars  ~[case]
   =/  expected  (mk-selection scalars ~)
@@ -1711,24 +1942,25 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 
-::  simple case with predicate, two cases, one with else, the other without
-++  test-case-03
+:: searched case expression with predicate, two cases, one with else
+:: the other without
+++  test-case-searched-03
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobaz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
-    "        foobar CASE foo3 WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+    "SCALARS foobaz CASE WHEN 1 = 1 THEN foo3 END ".
+    "        foobar CASE WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  case-1
     :*  %case
-      unqualified-col-1
+      ~
       ~[[%case-when-then simple-true-pred unqualified-col-1]]
       ~
     ==
   =/  case-2
     :*  %case
-      unqualified-col-1
+      ~
       ~[[%case-when-then simple-true-pred unqualified-col-1]]
       (some unqualified-col-2)
     ==
@@ -1738,16 +1970,16 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-::  simple case with predicate, two cases in the same scalar
-++  test-case-04
+:: searched case expression with predicate, two cases in the same scalar
+++  test-case-searched-04
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foobaz CASE foo3 ".
+    "SCALARS foobaz CASE ".
     "                 WHEN 1 = 1 THEN foo3".
     "                 WHEN 1 = 1 THEN foo3".
     "                END ".
-    "        foobar CASE foo3 ".
+    "        foobar CASE ".
     "                 WHEN 1 = 1 THEN foo3".
     "                 WHEN 1 = 1 THEN foo3".
     "               ELSE foo2 END ".
@@ -1755,7 +1987,7 @@
   ::
   =/  case-1
     :*  %case
-      unqualified-col-1
+      ~
       :~  [%case-when-then simple-true-pred unqualified-col-1]
           [%case-when-then simple-true-pred unqualified-col-1]
       ==
@@ -1763,7 +1995,7 @@
     ==
   =/  case-2
     :*  %case
-      unqualified-col-1
+      ~
       :~  [%case-when-then simple-true-pred unqualified-col-1]
           [%case-when-then simple-true-pred unqualified-col-1]
       ==
@@ -1776,12 +2008,12 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with ship.database.namespace.table.column
-++  test-case-05
+++  test-case-searched-05
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo ".
-    "CASE ~sampel-palnet.db2.dba.table1.bar ".
+    "CASE ".
     "WHEN 1 = 1 ".
     "THEN ~sampel-palnet.db2.dba.table1.bar ".
     "ELSE ~sampel-palnet.db2.dba.table1.bar ".
@@ -1790,7 +2022,7 @@
   ::
   =/  case-qualified
     :*  %case
-      qualified-col-1
+      ~
       ~[[%case-when-then simple-true-pred qualified-col-1]]
       (some qualified-col-1)
     ==
@@ -1800,38 +2032,14 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with WHEN clause using a datum
-::++  test-case-05
-::  ::
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo ".
-::    "CASE ~sampel-palnet.db2.dba.table1.bar ".
-::    "WHEN 1 ".
-::    "THEN ~sampel-palnet.db2.dba.table1.bar ".
-::    "ELSE ~sampel-palnet.db2.dba.table1.bar ".
-::    "END ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  case-qualified
-::    :*  %case
-::      qualified-col-1
-::      ~[`case-when-then:ast`[literal-1 qualified-col-1]]
-::      (some qualified-col-1)
-::    ==
-::  =/  scalars  ~[[%scalar case-qualified 'foo']]
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::
-:: qualified column case scalar with ship.database..table.column (default ns)
-++  test-case-06
+:: searched case expression: qualified column case scalar
+:: with ship.database..table.column (default ns)
+++  test-case-searched-06
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo ".
-    "CASE ~sampel-palnet.db2..table1.bar ".
+    "CASE ".
     "WHEN 1 = 1 ".
     "THEN ~sampel-palnet.db2..table1.bar ".
     "ELSE ~sampel-palnet.db2..table1.bar ".
@@ -1840,7 +2048,7 @@
   ::
   =/  case-qualified
     :*  %case
-      qualified-col-2
+      ~
       ~[[%case-when-then simple-true-pred qualified-col-2]]
       (some qualified-col-2)
     ==
@@ -1850,13 +2058,14 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with database.namespace.table.column
-++  test-case-07
+:: searched case expression: qualified column case scalar
+:: with database.namespace.table.column
+++  test-case-searched-07
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo ".
-    "CASE db2.dba.table1.bar ".
+    "CASE ".
     "WHEN 1 = 1 ".
     "THEN db2.dba.table1.bar ".
     "ELSE db2.dba.table1.bar ".
@@ -1865,7 +2074,7 @@
   ::
   =/  case-qualified
     :*  %case
-      qualified-col-3
+      ~
       ~[[%case-when-then simple-true-pred qualified-col-3]]
       (some qualified-col-3)
     ==
@@ -1875,13 +2084,14 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with database..table.column (default ns)
-++  test-case-08
+:: searched case expression: qualified column case scalar with
+:: database..table.column (default ns)
+++  test-case-searched-08
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo ".
-    "CASE db2..table1.bar ".
+    "CASE ".
     "WHEN 1 = 1 ".
     "THEN db2..table1.bar ".
     "ELSE db2..table1.bar ".
@@ -1890,7 +2100,7 @@
   ::
   =/  case-qualified
     :*  %case
-      qualified-col-4
+      ~
       ~[[%case-when-then simple-true-pred qualified-col-4]]
       (some qualified-col-4)
     ==
@@ -1900,13 +2110,14 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with namespace.table.column (default database)
-++  test-case-09
+:: searched case expression: qualified column case scalar with
+:: namespace.table.column (default database)
+++  test-case-searched-09
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo ".
-    "CASE dba.table1.bar ".
+    "CASE ".
     "WHEN 1 = 1 ".
     "THEN dba.table1.bar ".
     "ELSE dba.table1.bar ".
@@ -1915,7 +2126,7 @@
   ::
   =/  case-qualified
     :*  %case
-      qualified-col-5
+      ~
       ~[[%case-when-then simple-true-pred qualified-col-5]]
       (some qualified-col-5)
     ==
@@ -1925,13 +2136,14 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with alias.column (default database)
-++  test-case-10
+:: searched case expression: qualified column case scalar with
+:: alias.column (default database)
+++  test-case-searched-10
   ::
   =/  query-string
     "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
     "SCALARS foo ".
-    "CASE MyTable.bar ".
+    "CASE ".
     "WHEN 1 = 1 ".
     "THEN MyTable.bar ".
     "ELSE MyTable.bar ".
@@ -1948,7 +2160,7 @@
     ==
   =/  case-qualified
     :*  %case
-      qualified-col-6
+      ~
       ~[[%case-when-then simple-true-pred qualified-col-6]]
       (some qualified-col-6)
     ==
@@ -1958,14 +2170,13 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: qualified column case scalar with alias.column (must fail - undefined alias)
-:: test case with coalesce scalar inline
-++  test-case-11
+:: searched case expression: test case with coalesce scalar inline
+++  test-case-searched-11
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo COALESCE(foo2,1,foo2) ".
-    "        bar CASE foo3 WHEN 1 = 1 THEN foo ELSE foo2 END ".
+    "        bar CASE WHEN 1 = 1 THEN foo ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
@@ -1973,7 +2184,7 @@
   =/  case-1
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred naked-coalesce]]
       else=(some unqualified-col-2)
     ==
@@ -1987,13 +2198,13 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: test case with if scalar inline
-++  test-case-12
+:: searched case expression: test case with if scalar inline
+++  test-case-searched-12
   ::
   =/  query-string
     "FROM foo ".
     "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
-    "        bar CASE foo3 WHEN 1 = 1 THEN foo ELSE foo2 END ".
+    "        bar CASE WHEN 1 = 1 THEN foo ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  naked-if
@@ -2006,7 +2217,7 @@
   =/  case-1
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred naked-if]]
       else=(some unqualified-col-2)
     ==
@@ -2020,26 +2231,26 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: test case with case scalar inline
-++  test-case-13
+:: searched case expression: test case with case scalar inline
+++  test-case-searched-13
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo CASE foo3 WHEN 1 = 1 THEN foo3 END ".
-    "        bar CASE foo3 WHEN 1 = 1 THEN foo ELSE foo2 END ".
+    "SCALARS foo CASE WHEN 1 = 1 THEN foo3 END ".
+    "        bar CASE WHEN 1 = 1 THEN foo ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  naked-case
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=~
     ==
   =/  case-1
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred naked-case]]
       else=(some unqualified-col-2)
     ==
@@ -2053,34 +2264,34 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: test case with a case nested in a case
-++  test-case-14
+:: searched case expression: test case with a case nested in a case
+++  test-case-searched-14
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS baz CASE foo3 WHEN 1 = 1 THEN foo3 END ".
-    "        bar CASE foo3 WHEN 1 = 1 THEN baz END ".
-    "        foo CASE foo3 WHEN 1 = 1 THEN bar ELSE foo2 END ".
+    "SCALARS baz CASE WHEN 1 = 1 THEN foo3 END ".
+    "        bar CASE WHEN 1 = 1 THEN baz END ".
+    "        foo CASE WHEN 1 = 1 THEN bar ELSE foo2 END ".
     "SELECT foo2,foo3"
   ::
   =/  second-case
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
       else=~
     ==
   =/  first-case
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred second-case]]
       else=~
     ==
   =/  case-1
     :*
       %case
-      target=unqualified-col-1
+      target=~
       cases=~[[%case-when-then simple-true-pred first-case]]
       else=(some unqualified-col-2)
     ==
@@ -2100,7 +2311,7 @@
   =/  query-string
     "FROM foo ".
     "SCALARS foo CASE MyTable.bar ".
-    "              WHEN 1 = 1 THEN MyTable.bar".
+    "              WHEN 1 THEN MyTable.bar".
     "            ELSE MyTable.bar END ".
     "SELECT foo2,foo3"
   ::

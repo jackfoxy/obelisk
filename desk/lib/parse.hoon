@@ -2880,15 +2880,21 @@
   |=  [cooked-case=case-helper aliases=alias-maps]
   ^-  case:ast
   =/  finalized-target
-    (finalize-scalar-param target.cooked-case aliases)
+    ?~  target.cooked-case
+      ~
+    (some (finalize-scalar-param (need target.cooked-case) aliases))
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
     ?~  cases.cooked-case
       ~
+    =/  finalized-when  
+      ?:  ?=(scalar-param when.i.cases.cooked-case)
+        (finalize-scalar-param when.i.cases.cooked-case aliases)
+      when.i.cases.cooked-case
     =/  finalized-case-when-then
       :+  %case-when-then
-         when.i.cases.cooked-case
+         finalized-when
       (finalize-scalar-param then.i.cases.cooked-case aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
@@ -2925,15 +2931,15 @@
     =/  cooked-if  (cook-if raw-scalar-body)
     =/  finalized-if  (finalize-if cooked-if aliases)
       finalized-if
-  ?:  =(%case fn-name)
-     =/  cooked-case  (cook-case-body raw-scalar-body)
+  ?:  ?|(=(%simple-case fn-name) =(%searched-case fn-name))
+     =/  cooked-case  (cook-case [fn-name raw-scalar-body])
      =/  finalized-case  (finalize-case cooked-case aliases)
        finalized-case
   ?:  =(%arithmetic fn-name)
-     =/  cooked-math  (cook-arithmetic raw-scalar-body)
+     =/  cooked-math  (cook-and-finalize-arithmetic raw-scalar-body aliases)
        cooked-math
   ?:  =(%builtin-fn fn-name)
-    (cook-builtin-scalar-fn raw-scalar-body)
+    (cook-and-finalize-builtin-scalar-fn raw-scalar-body aliases)
   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
   |=  [raw-scalars=* table-aliases=(map @t qualified-table:ast)]
@@ -4691,56 +4697,64 @@
 ::
 ::  helper wet gates for scalar functions
 ::
-++  parse-nullary-scalar-fn
-  |*  [fn-name=@tas]
-  ;~  plug
-    (cold fn-name (jester fn-name))
+++  cook-builtin-fn-parameter
+  |=  parsed=*
+  ^-  scalar-param
+  (cook-scalar-param parsed)
+  
+++  cook-builtin-fn-optional-parameter
+  |=  parsed=*
+  ^-  (unit scalar-param)
+  ?~  parsed
+    ~
+  (some (cook-builtin-fn-parameter parsed))
+++  parse-no-params
+  |*  [a=*]
     ;~  pfix
       whitespace 
       (ifix [pal par] (easy ~))
     ==
-  ==
-++  cook-builtin-fn-parameter
-  |=  parsed=*
-  ^-  literal-value:ast
-  ?:  ?=([@ @] parsed)
-    [%literal-value dime=`dime`parsed]
-  ~|("cook-builtin-fn-parameter: unexpected value: {<parsed>}" !!)
-++  cook-builtin-fn-optional-parameter
-  |=  parsed=*
-  ^-  (unit literal-value:ast)
-  ?~  parsed
-    ~
-  (some (cook-builtin-fn-parameter parsed))
-++  parse-unary-scalar-fn
-  |*  [fn-name=@tas first-param=rule]
+++  parse-nullary-scalar-fn
+  |*  [fn-name=@tas]
   ;~  plug
-    (cold fn-name (jester fn-name))
+    (stag fn-name (cold %one-param (jester fn-name)))
+    (parse-no-params ~)
+  ==
+++  parse-one-param
+  |*  [first-param=rule]
     ;~  pfix
       whitespace 
       %+  ifix
         [pal par]
-        ;~(pfix whitespace ;~(sfix first-param whitespace)) 
+        ;~  (glue com)
+          ;~(pfix whitespace ;~(sfix first-param whitespace))
+        ==
     ==
+++  parse-unary-scalar-fn
+  |*  [fn-name=@tas first-param=rule]
+  ;~  plug
+    (stag fn-name (cold %one-param (jester fn-name)))
+    (parse-one-param first-param)
   ==
+++  parse-two-params
+  |*  [first-param=rule second-param=rule]
+    ;~  pfix
+      whitespace 
+      %+  ifix
+        [pal par]
+        ;~  (glue com)
+          ;~(pfix whitespace ;~(sfix first-param whitespace))
+          ;~(pfix whitespace ;~(sfix second-param whitespace)) 
+        ==
+    ==
 ++  parse-binary-scalar-fn
   |*  [fn-name=@tas first-param=rule second-param=rule]
   ;~  plug
-    (cold fn-name (jester fn-name))
-    ;~  pfix
-      whitespace 
-    %+  ifix
-      [pal par]
-      ;~  (glue com)
-        ;~(pfix whitespace ;~(sfix first-param whitespace)) 
-        ;~(pfix whitespace ;~(sfix second-param whitespace)) 
-      ==
-    ==
+    (stag fn-name (cold %two-param (jester fn-name)))
+    (parse-two-params first-param second-param)
   ==
-++  parse-ternary-scalar-fn
-  |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
-  ;~  plug
-    (cold fn-name (jester fn-name))
+++  parse-three-params
+  |*  [first-param=rule second-param=rule third-param=rule]
     ;~  pfix
       whitespace 
       %+  ifix
@@ -4751,24 +4765,33 @@
           ;~(pfix whitespace ;~(sfix third-param whitespace)) 
         ==
     ==
-  ==
-++  parse-n-ary-scalar-fn
-  |*  [fn-name=@tas parse-params=rule]
+++  parse-ternary-scalar-fn
+  |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
   ;~  plug
-    (cold fn-name (jester fn-name))
+    (stag fn-name (cold %three-param (jester fn-name)))
+    (parse-three-params first-param second-param third-param)
+  ==
+++  parse-n-params
+  |*  [parse-params=rule]
     ;~  pfix
       whitespace
       %+  ifix
         [pal par]
       (more com ;~(pfix whitespace ;~(sfix parse-params whitespace)))
     ==
+++  parse-n-ary-scalar-fn
+  |*  [fn-name=@tas parse-params=rule]
+  ;~  plug
+    (stag %n-param (jester fn-name))
+    (parse-n-params parse-params)
   ==
 ::
 ++  parse-quoted-string  (ifix [soq soq] (star mixed-case-symbol))
-++  cook-builtin-scalar-fn
-  |=  parsed=*
+++  cook-and-finalize-builtin-scalar-fn
+  |=  [parsed=* aliases=alias-maps]
   =/  fn-name  -.parsed
-  =/  raw-scalar-body  +.parsed
+  =/  param-count  +<.parsed
+  =/  raw-scalar-body  +>.parsed
   ::  nullary builtin functions (no parameters, cast directly)
   ?:  =(%getutcdate fn-name)
     ^-  getutcdate:ast
@@ -4776,343 +4799,231 @@
   ::  unary builtin functions
   ?:  =(%day fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:day-signature:ast
-    ?:  =(have need)
-      ^-  day:ast
-      :*
-        %day
-        cooked-first-param
-      ==
-    ~|("mismatched type for day builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  day:ast
+    [%day finalized-first-param]
   ?:  =(%month fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:month-signature:ast
-    ?:  =(have need)
-      ^-  month:ast
-      :*
-        %month
-        cooked-first-param
-      ==
-    ~|("mismatched type for month builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  month:ast
+    [%month finalized-first-param]
   ?:  =(%year fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:year-signature:ast
-    ?:  =(have need)
-      ^-  year:ast
-      :*
-        %year
-        cooked-first-param
-      ==
-    ~|("mismatched type for year builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  year:ast
+    [%year finalized-first-param]
   ?:  =(%abs fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:abs-signature:ast
-    ?:  =(have need)
-      ^-  abs:ast
-      :*
-        %abs
-        cooked-first-param
-      ==
-    ~|("mismatched type for abs builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  abs:ast
+    [%abs finalized-first-param]
   ?:  =(%floor fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:floor-signature:ast
-    ?:  =(have need)
-      ^-  floor:ast
-      :*
-        %floor
-        cooked-first-param
-      ==
-    ~|("mismatched type for floor builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  floor:ast
+    [%floor finalized-first-param]
   ?:  =(%ceiling fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:ceiling-signature:ast
-    ?:  !=((find [have]~ need) ~)
-      ^-  ceiling:ast
-      :*
-        %ceiling
-        cooked-first-param
-      ==
-    ~|("mismatched type for ceiling builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  ceiling:ast
+    [%ceiling finalized-first-param]
   ?:  =(%sign fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:sign-signature:ast
-    ?:  =(have need)
-      ^-  sign:ast
-      :*
-        %sign
-        cooked-first-param
-      ==
-    ~|("mismatched type for sign builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  sign:ast
+    [%sign finalized-first-param]
   ?:  =(%sqrt fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:sqrt-signature:ast
-    ?:  !=((find [have]~ need) ~)
-      ^-  sqrt:ast
-      :*
-        %sqrt
-        cooked-first-param
-      ==
-    ~|("mismatched type for sqrt builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  sqrt:ast
+    [%sqrt finalized-first-param]
   ?:  =(%len fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  have  p.dime.cooked-first-param
-    =/  need  -.params:len-signature:ast
-    ?:  =(have need)
-      ^-  len:ast
-      :*
-        %len
-        cooked-first-param
-      ==
-    ~|("mismatched type for len builtin, have: {<have>}, need: {<need>}" !!)
-  ::  binary builtin functions
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    ^-  len:ast
+    [%len finalized-first-param]
   ?:  =(%log fn-name)
-    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
+    ?:  =(%one-param param-count)
+      =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
+      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      ^-  log:ast
+      [%log finalized-first-param ~]
+    ?:  =(%two-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  have-first  p.dime.cooked-first-param
-      =/  have-second  p.dime.cooked-second-param
-      =/  need-first  -.params:log-signature:ast
-      =/  need-second  +<.params:log-signature:ast
-      ?:  ?&  !=((find [have-first]~ need-first) ~)
-              =(have-second need-second)
-          ==
-        ^-  log:ast
-        :*
-          %log
-          cooked-first-param
-          (some cooked-second-param)
-        ==
-    =/  have  [have-first have-second ~]
-    =/  need  params:log-signature:ast
-    ~|("mismatched type for log builtin, have: {<have>}, need: {<need>}" !!)
-    ?:  ?=([@ @] raw-scalar-body)
-      =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-      =/  have-first  p.dime.cooked-first-param
-      =/  need-first  -.params:log-signature:ast
-      ?:  !=((find [have-first]~ need-first) ~)
-        ^-  log:ast
-        :*
-          %log
-          cooked-first-param
-          ~
-        ==
-      =/  have  have-first
-      =/  need  need-first
-      ~|("mismatched type for log builtin, have: {<have>}, need: {<need>}" !!)
+      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+      ^-  log:ast
+      [%log finalized-first-param (some finalized-second-param)]
     !!
   ?:  =(%power fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  have-first  p.dime.cooked-first-param
-    =/  have-second  p.dime.cooked-second-param
-    =/  need-first  -.params:power-signature:ast
-    =/  need-second  +<.params:power-signature:ast
-    ?:  ?&  !=((find [have-first]~ need-first) ~)
-            =(have-second need-second)
-        ==
-      ^-  power:ast
-      :*
-        %power
-        cooked-first-param
-        cooked-second-param
-      ==
-    =/  have  ~[have-first have-second]
-    =/  need  params:power-signature:ast
-    ~|("mismatched type for power builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    ^-  power:ast
+    [%power finalized-first-param finalized-second-param]
   ?:  =(%left fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  have-first  p.dime.cooked-first-param
-    =/  have-second  p.dime.cooked-second-param
-    =/  need-first  -.params:left-signature:ast
-    =/  need-second  +<.params:left-signature:ast
-    ?:  ?&  =(have-first need-first)
-            =(have-second need-second)
-        ==
-      ^-  left:ast
-      :*
-        %left
-        cooked-first-param
-        cooked-second-param
-      ==
-    =/  need  [have-first have-second ~]
-    =/  have  params:left-signature:ast
-    ~|("mismatched type for left builtin, have: {<need>}, need: {<have>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    ^-  left:ast
+    [%left finalized-first-param finalized-second-param]
   ?:  =(%right fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  have-first  p.dime.cooked-first-param
-    =/  have-second  p.dime.cooked-second-param
-    =/  need-first  -.params:right-signature:ast
-    =/  need-second  +<.params:right-signature:ast
-    ?:  ?&  =(have-first need-first)
-            =(have-second need-second)
-        ==
-      ^-  right:ast
-      :*
-        %right
-        cooked-first-param
-        cooked-second-param
-      ==
-    =/  have  ~[have-first have-second]
-    =/  need  params:right-signature:ast
-    ~|("mismatched type for right builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    ^-  right:ast
+    [%right finalized-first-param finalized-second-param]
   ?:  =(%trim fn-name)
-    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
+    ?:  =(%one-param param-count)
+      =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
+      =/  finalized-param  (finalize-scalar-param cooked-param aliases)
+      ^-  trim:ast
+      [%trim ~ finalized-param]
+    ?:  =(%two-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  have-first  p.dime.cooked-first-param
-      =/  have-second  p.dime.cooked-second-param
-      =/  need-first  -.params:trim-signature:ast
-      =/  need-second  +<.params:trim-signature:ast
-      ?:  ?&  =(have-first need-first)
-              =(have-second need-second)
-          ==
-        ^-  trim:ast
-        :*
-          %trim
-          (some cooked-first-param)
-          cooked-second-param
-        ==
-      =/  have  ~[have-first have-second]
-      =/  need  params:trim-signature:ast
-      ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
-    ?:  ?=([@ @] raw-scalar-body)
-      =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
-      =/  have  p.dime.cooked-param
-      =/  need  +<.params:trim-signature:ast
-      ?:  =(have need)
-        ^-  trim:ast
-        :*
-          %trim
-          ~
-          cooked-param
-        ==
-      ~|("mismatched type for trim builtin, have: {<have>}, need: {<need>}" !!)
+      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+      ^-  trim:ast
+      [%trim (some finalized-first-param) finalized-second-param]
     !!
-  ::  ternary builtin functions
   ?:  =(%round fn-name)
-    ?:  ?=([[@ @] [@ @] [@ @]] raw-scalar-body)
+    ?:  =(%two-param param-count)
+      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
+      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
+      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+      ^-  round:ast
+      [%round finalized-first-param finalized-second-param ~]
+    ?:  =(%three-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
       =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
-      =/  have-first  p.dime.cooked-first-param
-      =/  have-second  p.dime.cooked-second-param
-      =/  have-third  p.dime.cooked-third-param
-      =/  need-first  -.params:round-signature:ast
-      =/  need-second  +<.params:round-signature:ast
-      =/  need-third  +>-.params:round-signature:ast
-      ?:  ?&  =(have-first need-first)
-              =(have-second need-second)
-              =(have-third need-third)
-          ==
-        ^-  round:ast
-        :*
-          %round
-          cooked-first-param
-          cooked-second-param
-          (some cooked-third-param)
-        ==
-      =/  have  ~[have-first have-second have-third]
-      =/  need  params:round-signature:ast
-      =/  error-message
-        "mismatched type for round builtin, have: {<have>}, need: {<need>}" 
-      ~|(error-message !!)
-    ?:  ?=([[@ @] [@ @]] raw-scalar-body)
-      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  have-first  p.dime.cooked-first-param
-      =/  have-second  p.dime.cooked-second-param
-      =/  need-first  -.params:round-signature:ast
-      =/  need-second  +<.params:round-signature:ast
-      ?:  ?&  =(have-first need-first)
-              =(have-second need-second)
-          ==
-        ^-  round:ast
-        :*
-          %round
-          cooked-first-param
-          cooked-second-param
-          ~
-        ==
-      =/  have  ~[have-first have-second]
-      =/  need  [-.params:round-signature:ast +<.params:round-signature:ast ~]
-      ~|("mismatched type for round builtin, have: {<have>}, need: {<need>}" !!)
+      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+      =/  finalized-third-param  (finalize-scalar-param cooked-third-param aliases)
+      ^-  round:ast
+      [%round finalized-first-param finalized-second-param (some finalized-third-param)]
     !!
   ?:  =(%substring fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
     =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
-    =/  have-first  p.dime.cooked-first-param
-    =/  have-second  p.dime.cooked-second-param
-    =/  have-third  p.dime.cooked-third-param
-    =/  need-first  -.params:substring-signature:ast
-    =/  need-second  +<.params:substring-signature:ast
-    =/  need-third  +>-.params:substring-signature:ast
-    ?:  ?&  =(have-first need-first)
-            =(have-second need-second)
-            =(have-third need-third)
-        ==
-      ^-  substring:ast
-      :*
-        %substring
-        cooked-first-param
-        cooked-second-param
-        cooked-third-param
-      ==
-    =/  have  ~[have-first have-second have-third]
-    =/  need  params:substring-signature:ast
-    ~|("mismatched type for substring builtin, have: {<have>}, need: {<need>}" !!)
+    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    =/  finalized-third-param  (finalize-scalar-param cooked-third-param aliases)
+    ^-  substring:ast
+    [%substring finalized-first-param finalized-second-param finalized-third-param]
   ::  n-ary builtin functions
   ?:  =(%concat fn-name)
-    =/  need  params:concat-signature:ast
-    =/  cooked-params=(list literal-value:ast)
+    =/  finalized-params=(list datum-or-scalar:ast)
       |-
       ?~  raw-scalar-body
         ~
       =/  cooked  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  have  p.dime.cooked
-      ?.  =(have need)
-        ~|("mismatched type for concat builtin, have: {<have>}, need: {<need>}" !!)
-      :-  cooked
+      =/  finalized  (finalize-scalar-param cooked aliases)
+      :-  finalized
       $(raw-scalar-body +.raw-scalar-body)
     ^-  concat:ast
-      [%concat cooked-params]
+    [%concat finalized-params]
   ~|("unknown builtin scalar fn {<fn-name>}" !!)
+:: TODO: replace params with parse-scalar-param
 ++  parse-builtin-scalar-fn
   %+  stag
     %builtin-fn
     ;~  pose
-      (parse-nullary-scalar-fn %getutcdate)
-      (parse-unary-scalar-fn %day parse-value-literal)
-      (parse-unary-scalar-fn %month parse-value-literal)
-      (parse-unary-scalar-fn %year parse-value-literal)
-      (parse-unary-scalar-fn %abs parse-value-literal)
-      (parse-unary-scalar-fn %floor parse-value-literal)
-      (parse-unary-scalar-fn %ceiling parse-value-literal)
-      (parse-unary-scalar-fn %sign parse-value-literal)
-      (parse-unary-scalar-fn %sqrt parse-value-literal)
-      (parse-unary-scalar-fn %len parse-value-literal)
-      (parse-binary-scalar-fn %log parse-value-literal parse-value-literal)
-      (parse-unary-scalar-fn %log parse-value-literal)
-      (parse-binary-scalar-fn %power parse-value-literal parse-value-literal)
-      (parse-binary-scalar-fn %left parse-value-literal parse-value-literal)
-      (parse-binary-scalar-fn %right parse-value-literal parse-value-literal)
-      (parse-binary-scalar-fn %trim parse-value-literal parse-value-literal)
-      (parse-unary-scalar-fn %trim parse-value-literal)
-      (parse-ternary-scalar-fn %round parse-value-literal parse-value-literal parse-value-literal)
-      (parse-binary-scalar-fn %round parse-value-literal parse-value-literal)
-      (parse-ternary-scalar-fn %substring parse-value-literal parse-value-literal parse-value-literal)
-      (parse-n-ary-scalar-fn %concat parse-value-literal)
+      ;~  plug
+        (cold %getutcdate (jester %getutcdate))
+        (stag %no-params (parse-no-params ~))
+      ==
+      ;~  plug
+        (cold %day (jester %day))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %month (jester %month))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %year (jester %year))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %abs (jester %abs))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %floor (jester %floor))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %ceiling (jester %ceiling))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %sign (jester %sign))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %sqrt (jester %sqrt))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %len (jester %len))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %log (jester %log))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %log (jester %log))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %trim (jester %trim))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %log (jester %log))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %power (jester %power))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %left (jester %left))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %right (jester %right))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %trim (jester %trim))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %round (jester %round))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %round (jester %round))
+        (stag %three-param (parse-three-params parse-scalar-param parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %substring (jester %substring))
+        (stag %three-param (parse-three-params parse-scalar-param parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %concat (jester %concat))
+        (stag %n-params (parse-n-params parse-scalar-param))
+      ==
     ==
 ::
 ++  cook-scalar-param
@@ -5199,10 +5110,17 @@
     ;~(pose parse-scalar-param)
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
-++  parse-when-then
+++  parse-when-then-datum
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
-    ;~(pose parse-predicate parse-scalar-param)
+    parse-scalar-param
+    ;~(pfix whitespace (cold %then (jester 'then')))
+    ;~(pose parse-aggregate parse-scalar-param)
+  ==
+++  parse-when-then-predicate
+  ;~  plug
+    ;~(pfix whitespace (cold %when (jester 'when')))
+    parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
     ;~(pose parse-aggregate parse-scalar-param)
   ==
@@ -5212,36 +5130,56 @@
     ;~(pfix whitespace ;~(pose parse-aggregate parse-scalar-param))
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
-++  cook-case-body
+++  cook-case
   |=  parsed=*
   ~+
-  =/  cooked-target  (cook-scalar-param -.parsed)
-  =/  case-when-then-list  +<.parsed
-  =/  cases
-    |-
-    ^-  (list case-when-then-helper)
-    ?~  case-when-then-list
-      ~
-    =/  raw-when  ->-.case-when-then-list
-    =/  raw-then  ->+>.case-when-then-list
-    =/  cooked-when  (produce-predicate (predicate-list raw-when))
-    =/  cooked-then  (cook-scalar-param raw-then)
-    =/  cooked-case-when-then
-      (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
-    [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
-  ?@  +>.parsed
-    ?:  =(+>.parsed %end)
-      (case-helper %case-helper cooked-target (flop cases) ~)
-    ~|("cannot parse case: unexpected atom: {<+>.parsed>}" !!)
-  ?:  =(%else +>-.parsed)
-    =/  raw-else  +>+<.parsed
-    =/  cooked-else  (cook-scalar-param raw-else)
-    (case-helper %case-helper cooked-target (flop cases) (some cooked-else))
-  ~|("cannot cook case: unexpected atom: {<+>-.parsed>}" !!)
-++  parse-case
+  =/  fn-name  -.parsed
+  =/  [cooked-target=(unit scalar-param) rest=*]
+    ?:  =(fn-name %simple-case)
+      [(some (cook-scalar-param +<.parsed)) +>.parsed]
+    [~ +.parsed]
+  =/  cases  (cook-case-when-then-list fn-name -.rest)
+  =/  [cooked-else=(unit scalar-param) rest=*]
+    ?@  +.rest
+      [~ rest]
+    ?:  =(%else +<.rest)
+      [(some (cook-scalar-param +>-.rest)) +>.rest]
+    ~|("cannot cook else: unexpected atom: {<+<.rest>}" !!)
+  ?:  =(+.rest %end)
+    (case-helper %case-helper cooked-target (flop cases) cooked-else)
+  ~|("cannot cook case: unexpected atom: {<+.rest>}" !!)
+::
+++  cook-case-when-then-list
+  |=  [case-type=* case-when-then-list=*]
+  |-
+  ^-  (list case-when-then-helper)
+  ?~  case-when-then-list
+    ~
+  =/  raw-when  ->-.case-when-then-list
+  =/  raw-then  ->+>.case-when-then-list
+  =/  cooked-when  
+    ?:  =(case-type %simple-case)
+      (cook-scalar-param raw-when)
+    ?:  =(case-type %searched-case)
+      (produce-predicate (predicate-list raw-when))
+    ~|("unknown case type {<case-type>}" !!)
+  =/  cooked-then  (cook-scalar-param raw-then)
+  =/  cooked-case-when-then
+    (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
+  [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
+::
+::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
+++  parse-simple-case
   ;~  plug
     parse-scalar-param
-    (star parse-when-then)
+    (star parse-when-then-datum)
+    ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
+  ==
+::
+::  CASE WHEN <pred> THEN <expr> [...] [ELSE <expr>]
+++  parse-searched-case
+  ;~  plug
+    (star parse-when-then-predicate)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
 ::
@@ -5259,7 +5197,10 @@
     data=coalesce-params
   ==
 ++  parse-coalesce  ~+
-  (parse-n-ary-scalar-fn %coalesce ;~(pose parse-aggregate parse-scalar-param))
+  ;~  plug
+    (cold %coalesce (jester %coalesce))
+    (parse-n-params ;~(pose parse-aggregate parse-scalar-param))
+  ==
 :: used when recursing on %pal and %par
 ++  handle-arithmetic-parens  ~+
   |=  a=*
@@ -5292,8 +5233,8 @@
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
-++  check-and-cook-builtin-fn
-  |=  builtin-fn=[@tas *]
+++  check-cook-and-finalize-builtin-fn
+  |=  [builtin-fn=[@tas *] aliases=alias-maps]
   ?:  ?!  ?|  =(-.builtin-fn %abs)
               =(-.builtin-fn %ceiling)
               =(-.builtin-fn %day)
@@ -5312,7 +5253,7 @@
       "expression, allowed scalars: %abs %ceiling %day %floor ".
       "%len %log %month %power %round %sign %sqrt %year" 
     ~|(error-message !!)
-  (cook-builtin-scalar-fn builtin-fn)
+  (cook-and-finalize-builtin-scalar-fn builtin-fn aliases)
 ++  compute-precedence
   |=  op=arithmetic-op:ast
   ^-  @ud
@@ -5344,14 +5285,14 @@
   n.t
 :: process arithmetic list with precedence climbing
 ++  process-arithmetic-list
-  |=  [ops=* min-prec=@ud]
+  |=  [ops=* min-prec=@ud aliases=alias-maps]
   ^-  [tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast)) remaining=*]
   =/  tr=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
     ?:  ?=([%literal *] -.ops)
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
-      [(check-and-cook-builtin-fn ->.ops) ~ ~]
-    =/  nested  (process-arithmetic-list -.ops 0)
+      [(check-cook-and-finalize-builtin-fn ->.ops aliases) ~ ~]
+    =/  nested  (process-arithmetic-list -.ops 0 aliases)
     tree.nested
   |-
   ?~  +.ops
@@ -5363,16 +5304,16 @@
   =/  current-op-prec  (compute-precedence next-operator)
   ?:  (gte current-op-prec min-prec)
     =/  next-min-prec  (calculate-min-precedence next-operator)
-    =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec)
+    =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec aliases)
     =/  new-tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
       [next-operator tr tree.expr-to-the-right]
     $(tr new-tree, ops remaining.expr-to-the-right)
   [tr ops]
-++  cook-arithmetic
-  |=  parsed=*
+++  cook-and-finalize-arithmetic
+  |=  [parsed=* aliases=alias-maps]
   ^-  arithmetic:ast
   =/  ops-and-operators  (arithmetic-list parsed)
-  =/  nested  (process-arithmetic-list ops-and-operators 0) 
+  =/  nested  (process-arithmetic-list ops-and-operators 0 aliases) 
   =/  op-tree  tree.nested
   ?@  op-tree
     !!
@@ -5390,8 +5331,16 @@
     ;~(pfix whitespace (cold %end (jester 'end')))
     ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(pfix whitespace ;~(plug (cold %case (jester 'case')) parse-case))
-    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~  pfix
+      whitespace
+      ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+    ==
+    ;~  pfix
+      whitespace
+      ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
+    ==
+    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
     ;~(pfix whitespace parse-coalesce)
     ;~(pfix whitespace parse-builtin-scalar-fn)
     parse-coalesce
@@ -5434,7 +5383,8 @@
 ++  parse-scalar-body
   ;~  pose
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(plug (cold %case (jester 'case')) parse-case)
+    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
+    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
     parse-coalesce
     parse-builtin-scalar-fn
     parse-arithmetic
@@ -5656,14 +5606,14 @@
 +$  case-helper
   $:
     %case-helper
-    target=scalar-param
+    target=(unit scalar-param)
     cases=(list case-when-then-helper)
     else=(unit scalar-param)
   ==
 +$  case-when-then-helper
   $:
     %case-when-then-helper
-    when=predicate:ast
+    when=$%(scalar-param predicate:ast)
     then=scalar-param
   ==
 --

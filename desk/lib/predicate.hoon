@@ -571,6 +571,7 @@
   ::
   ?-  n.p
     %not
+    :: this doesn't handle a qualified/unqualified column as argument
         =/  ll=$-(data-row ?)
             (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
         (bake (cury not ll) data-row)
