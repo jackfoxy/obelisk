@@ -2852,7 +2852,8 @@
           column=name.cooked-param
           alias=~
       ==
-    (need maybe-scalar)
+    ::(need maybe-scalar)
+    !!
   :: - if the cooked-param is an unknown alias and there is a
   ::   scalar by the same name, then resolve the scalar
   :: - if the cooked-param is an unknown alias and there isn't
@@ -2861,7 +2862,8 @@
     =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
     ?~  maybe-scalar
       (cte-alias:ast %cte-alias name.cooked-param)
-    (need maybe-scalar)
+    ::(need maybe-scalar)
+    !!
   cooked-param
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
@@ -5273,16 +5275,17 @@
 ++  tree-to-arithmetic
   |=  t=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
   ^-  datum-or-scalar:ast
-  ?@  t
-    ~|("tree-to-arithmetic: received ~ tree" !!)
-  ?:  ?=(arithmetic-op:ast n.t)
-    %:  arithmetic:ast
-      %arithmetic
-      n.t
-      $(t l.t)
-      $(t r.t)
-    ==
-  n.t
+  !!
+  ::?@  t
+  ::  ~|("tree-to-arithmetic: received ~ tree" !!)
+  ::?:  ?=(arithmetic-op:ast n.t)
+  ::  %:  arithmetic:ast
+  ::    %arithmetic
+  ::    n.t
+  ::    $(t l.t)
+  ::    $(t r.t)
+  ::  ==
+  ::n.t
 :: process arithmetic list with precedence climbing
 ++  process-arithmetic-list
   |=  [ops=* min-prec=@ud aliases=alias-maps]
@@ -5291,7 +5294,8 @@
     ?:  ?=([%literal *] -.ops)
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
-      [(check-cook-and-finalize-builtin-fn ->.ops aliases) ~ ~]
+      ::[(check-cook-and-finalize-builtin-fn ->.ops aliases) ~ ~]
+      !!
     =/  nested  (process-arithmetic-list -.ops 0 aliases)
     tree.nested
   |-

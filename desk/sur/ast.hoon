@@ -278,7 +278,7 @@
   :: TODO: wierd: if we remove this bucpat the type checker loops
   :: infinitely
   $:  %concat
-    args=$@(~ (list datum-or-scalar))
+    (list datum-or-scalar)
   ==
 ::
 +$  scalar-function
@@ -317,7 +317,7 @@
     unqualified-column
     literal-value
     cte-alias
-    scalar-function
+    scalar-alias
     ==
 ::
 ::  query
