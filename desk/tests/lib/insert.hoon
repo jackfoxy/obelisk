@@ -1157,6 +1157,122 @@
   ::
   (eval-results expected ;;(cmd-result ->+>+>+<.mov3))
 ::
+::
+::  create db, create tbl, 2X insert more unordered rows
+++  test-insert-19
+  =|  run=@ud
+  =/  expected  :~
+                  :-  %results
+                    :~  [%message 'created database %db2']
+                        [%server-time ~2000.1.1]
+                        [%schema-time ~2000.1.1]
+                    ==
+                  :-  %results
+                    :~  [%message 'CREATE TABLE %my-table-1']
+                        [%server-time ~2000.1.1]
+                        [%schema-time ~2000.1.1]
+                    ==
+                  :-  %results
+                    :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+                        [%server-time ~2000.1.1]
+                        [%schema-time ~2000.1.1]
+                        [%data-time ~2000.1.1]
+                        [%message 'inserted:']
+                        [%vector-count 3]
+                        [%message 'table data:']
+                        [%vector-count 3]
+                    ==
+                  :-  %results
+                    :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+                        [%server-time ~2000.1.1]
+                        [%schema-time ~2000.1.1]
+                        [%data-time ~2000.1.1]
+                        [%message 'inserted:']
+                        [%vector-count 5]
+                        [%message 'table data:']
+                        [%vector-count 8]
+                    ==
+                  ==
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [%col1 [~.t 'next-next day2']]
+                  [%col2 [~.da ~2000.1.4]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'next-today']]
+                  [%col2 [~.da ~2000.1.1]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'next-next day']]
+                  [%col2 [~.da ~2000.1.3]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'next-tomorrow']]
+                  [%col2 [~.da ~2000.1.2]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'next-next day3']]
+                  [%col2 [~.da ~2000.1.5]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'today']]
+                  [%col2 [~.da ~2000.1.1]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'tomorrow']]
+                  [%col2 [~.da ~2000.1.2]]
+                  ==
+          :-  %vector
+              :~  [%col1 [~.t 'next day']]
+                  [%col2 [~.da ~2000.1.3]]
+                  ==
+              ==
+  =/  expected2  :~  %results
+                    [%message 'SELECT']
+                    [%result-set expected-rows]
+                    [%server-time ~2012.5.1]
+                    [%message 'db2.dbo.my-table-1']
+                    [%schema-time ~2000.1.1]
+                    [%data-time ~2000.1.1]
+                    [%vector-count 8]
+                ==
+  ::
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "CREATE DATABASE db2;".
+                "CREATE TABLE db2..my-table-1 (col1 @t, col2 @da) ".
+                "       PRIMARY KEY (col1); ".
+                "INSERT INTO db2..my-table-1 ".
+                "  (col1, col2) ".
+                "VALUES".
+                "  ('today', ~2000.1.1)".
+                "  ('tomorrow', ~2000.1.2)".
+                "  ('next day', ~2000.1.3);".
+                "INSERT INTO db2..my-table-1 ".
+                "  (col1, col2) ".
+                "VALUES".
+                "  ('next-next day2', ~2000.1.4)".
+                "  ('next-today', ~2000.1.1)".
+                "  ('next-next day', ~2000.1.3)".
+                "  ('next-tomorrow', ~2000.1.2)".
+                "  ('next-next day3', ~2000.1.5);"
+  =.  run  +(run)
+  =^  mov2  agent
+    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
+        %obelisk-action
+        !>  :+  %tape2
+                %db1
+                "FROM db2..my-table-1 SELECT *"
+  ::
+  %+  weld  %+  expect-eq
+                !>  expected
+                !>  ;;((list cmd-result) ->+>+>+.mov1)
+            (eval-results expected2 ;;(cmd-result ->+>+>+<.mov2))
+::
 :: INSERT error messages
 ::
 :: insert rows without columns, fail on col wrong type

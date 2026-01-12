@@ -135,6 +135,9 @@
         !!
   ::
   =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
+  =/  fake-data=(map @tas @)
+        %+  roll  columns.create-table 
+                  |=([a=column:ast b=(map @tas @)] (~(put by b) [name.a 0]))
   ::
   =/  table
         %:  table
@@ -148,7 +151,8 @@
                 %.y
                 (mk-key-column column-look-up pri-indx.create-table)
             ==
-            columns.create-table
+            %+  turn  columns.create-table
+         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
             ~
         ==
   =/  tables
@@ -169,8 +173,6 @@
                 sap.bowl
                 sys-time
                 0
-                ~
-                ~
                 ~
                 ~
             ==

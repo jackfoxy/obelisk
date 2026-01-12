@@ -87,7 +87,6 @@
     schema-tmsp=(unit @da)
     data-tmsp=(unit @da)
     columns=(list column)
-    =qualified-column-addrs
     =predicate
     rowcount=@
     =lookup-type
@@ -97,7 +96,11 @@
     joined-rows=(list joined-row)
     ==
 ::
-+$  qual-col-type  [qualified-column @ta]
++$  column-meta
+  $:  =qualified-column
+      type=@ta
+      addr=@
+      ==
 +$  qualified-lookup-type
   $:  %qualified-lookup-type
     (mip qualified-table @tas @ta)
@@ -120,7 +123,7 @@
     =server
     set-tables=(list set-table)
     =lookup-type
-    qualified-columns=(list qual-col-type)
+    qualified-columns=(list column-meta)
     ==
 ::
 +$  joined-relat
@@ -135,7 +138,7 @@
   $:  %full-relation
     set-tables=(list set-table)
     lookup-type=qualified-lookup-type
-    qual-col-types=(list qual-col-type)
+    column-metas=(list column-meta)
     ==
 +$  named-ctes  (map @tas full-relation)
 ::

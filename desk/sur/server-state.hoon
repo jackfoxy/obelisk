@@ -87,11 +87,9 @@
     ship=@p
     provenance=path
     tmsp=@da
-    =column-addrs
     rowcount=@
     pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
     indexed-rows=(list indexed-row)
-    =column-catalog
     ::    =indices
     ==
 +$  indexed-row
@@ -99,20 +97,7 @@
     key=(list @)
     data=(map @tas @)
     ==
-+$  column-addrs              (map @tas @)
-+$  qualified-column-addrs    (map [qualified-table @tas] @)
-+$  column-catalog            (map @tas column-mta)                 
-+$  column-mta
-  $:  %column-mta
-    addr=@
-    distinct=@ud              :: (~(wyt by values))
-    values=((mop @ value-idx) lth)
-    ==
-+$  value-idx
-  $:  first=file-ord
-      last=file-ord
-      domain=(list file-ord)    :: ordered
-      ==
++$  qualified-addrs  [%qualified-addrs (map [qualified-table @tas] @)]
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
 +$  ns-rel-key

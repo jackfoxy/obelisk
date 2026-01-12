@@ -3710,7 +3710,7 @@
   |=  a=*
     ?.  ?=([@ @] [a])  ~|("cannot parse column  {<a>}" !!)
     ?@  +.a
-      (column:ast %column -.a (crip (slag 1 (trip +.a))))
+      (column:ast %column -.a (crip (slag 1 (trip +.a))) 0)
     ~|("cannot parse column  {<a>}" !!)
 ++  cook-ordered-column
   |=  a=*

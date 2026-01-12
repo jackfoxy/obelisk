@@ -1,0 +1,12 @@
+:~
+  title+'Obelisk'
+  info+'Temporal RDBMS for the Urbit computer'
+  color+0x81.88c9
+  image+'https://raw.githubusercontent.com/jackfoxy/obelisk/cte/public/obelisk-icon.png'
+  base+'obelisk'
+  glob-ames+[~zod 0v0]
+  ::glob-http+['https://s3.us-east-2.amazonaws.com/warkgnall.com/urbit/turf/globs/0v7.0336n.oc92u.inifd.6ca3h.1ouil.glob' 0v7.0336n.oc92u.inifd.6ca3h.1ouil]
+  version+[0 0 9]
+  website+'https://github.com/jackfoxy/obelisk'
+  license+'MIT+n'
+==
