@@ -324,7 +324,6 @@
                          [~ tmsp.schema]
                          [~ tmsp.+.r]
                          columns.vw2
-                         [%column-addrs ~]
                          predicate
                          rowcount.view-content
                          *unqualified-lookup-type                    
@@ -342,7 +341,6 @@
 ++  from-table
   |=  $:  query-obj=qualified-table:ast
           =named-ctes
-          ::alias=(unit @t)
           db=database
           =schema
           join=(unit join-type:ast)
@@ -367,7 +365,6 @@
                          [~ tmsp.tbl2]
                          [~ tmsp.file]
                          columns.tbl2
-                         column-addrs.file
                          predicate
                          rowcount.file
                          [%unqualified-lookup-type type-lookup.tbl2]

@@ -87,7 +87,6 @@
     schema-tmsp=(unit @da)
     data-tmsp=(unit @da)
     columns=(list column)
-    =joined-addrs
     =predicate
     rowcount=@
     =lookup-type

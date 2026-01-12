@@ -795,18 +795,6 @@
       f
       tmsp.f
       ==
-++  init-addrs
-  |=  r=indexed-row
-  ^-  column-addrs
-  =/  addrs=(map @tas @)      ~
-  =/  cat                     ~(tap by data.r)
-  |-   
-  ?~  cat  [%column-addrs addrs]
-  =/  addr  (need (~(dig by data.r) -.i.cat))
-  %=  $
-    cat      t.cat
-    addrs    (~(put by addrs) -.i.cat addr)
-  ==
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::
@@ -837,7 +825,6 @@
   ~+  :: keeper
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
-  =.  column-addrs.file    (init-addrs -.new-indexed-rows)
   =.  indexed-rows.file    new-indexed-rows
   =.  rowcount.file        (lent new-indexed-rows)
   =.  files.data  (~(put by files.data) tbl-key file)

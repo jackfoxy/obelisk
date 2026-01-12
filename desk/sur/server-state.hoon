@@ -87,7 +87,6 @@
     ship=@p
     provenance=path
     tmsp=@da
-    =column-addrs
     rowcount=@
     pri-idx=(tree [(list @) (map @tas @)])  ::generic, reify as mop
     indexed-rows=(list indexed-row)
@@ -98,9 +97,7 @@
     key=(list @)
     data=(map @tas @)
     ==
-+$  column-addrs     [%column-addrs (map @tas @)]
 +$  qualified-addrs  [%qualified-addrs (map [qualified-table @tas] @)]
-+$  joined-addrs     $%(column-addrs qualified-addrs)
 +$  file-ord   @ud              :: ordinal position in indexed-row sorted file
 ::
 +$  ns-rel-key

@@ -96,7 +96,6 @@
   =.  indexed-rows.file    ~
   =.  rowcount.file        0
   =.  tmsp.file            sys-time
-  =.  column-addrs.file    [%column-addrs ~]
   =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
@@ -498,17 +497,16 @@
     ==
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
-  =/  cell=templ-cell  i.cols
-  =/  qualifier=qualified-table:ast  qualifier:(need column.cell)
+  =/  qualifier=qualified-table:ast  qualifier:(need column.i.cols)
   ::
   %=  $
     cols  t.cols
-    row   :-  :-  p.vc.cell 
-                  :-  p.q.vc.cell
+    row   :-  :-  p.vc.i.cols 
+                  :-  p.q.vc.i.cols
                       %-  %~  got
                               bi:mip
                               ;;((mip:mip qualified-table @tas @ta) data.i.rows)
-                          qualifier name:(need column.cell)
+                          [qualifier name:(need column.i.cols)]
               row
   ==
 ::
@@ -618,7 +616,6 @@
                                 [~ created-tmsp.sys-db]
                                 [~ created-tmsp.sys-db]
                                 columns-out
-                                [%column-addrs ~]
                                 ~
                                 1
                                 *unqualified-lookup-type
@@ -640,7 +637,6 @@
                     [~ created-tmsp.sys-db]
                     [~ created-tmsp.sys-db]
                     columns-out
-                    [%column-addrs ~]
                     ~
                     1
                     *unqualified-lookup-type
@@ -805,8 +801,6 @@
                    selected-column:ast
   =.  columns.new  %+  cte-col-dups  name
                                      `(list column:ast)`(zing (turn columns f))
-  ::
-  ::=.  joined-addrs.new  ::[%column-addrs (map @tas @)]
   [new st]
 ::
 ++  cte-columns

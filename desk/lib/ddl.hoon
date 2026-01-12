@@ -172,7 +172,6 @@
                 src.bowl
                 sap.bowl
                 sys-time
-                [%column-addrs ~]
                 0
                 ~
                 ~
