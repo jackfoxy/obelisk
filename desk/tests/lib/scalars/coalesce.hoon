@@ -161,72 +161,72 @@
 ::
 ::
 :: coalesce tests
-++  test-coalesce
-  %-  run-tests
-  :~
-    :-  %qualified-column
-    :*  ~[q-col-1]
-      [~.ud 1]
-    ==
-    :-  %unqualified-column
-    :*  ~[u-col-4]
-      [~.ud 4]
-    ==
-    :-  %coalesce-3-q-unresolved-1-resolved-u
-    :*  ~[q-col-2 q-col-3 q-col-2 u-col-4]
-      [~.ud 4]
-    ==
-    :-  %unqualified-column
-    :*  ~[u-col-5 u-col-6 u-col-5 q-col-1]
-      [~.ud 1]
-    ==
-  ==
-::
-:: test what happens if no column matches
-++  test-fail-coalesce-01
-  ::
-  =/  datums  ~[u-col-5 u-col-6 q-col-2 q-col-3]
-  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
-  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
-  =/  scalar-to-apply
-      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
-  %+  expect-fail-message
-    'coalesce: couldn\'t resolve any column'
-    |.  (apply-scalar table-row scalar-to-apply)
-::
-:: test with scalar-alias
-++  test-fail-coalesce-02
-  ::
-  =/  datums  ~[[%scalar-alias %scalar1]]
-  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
-  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
-  =/  scalar-to-apply
-      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
-  %+  expect-fail-message
-    'coalesce: can only use columns'
-    |.  (apply-scalar table-row scalar-to-apply)
-::
-:: test with embedded scalar
-++  test-fail-coalesce-03
-  ::
-  =/  datums  ~[(~(got by table-scalars) %scalar1)]
-  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
-  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
-  =/  scalar-to-apply
-      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
-  %+  expect-fail-message
-    'coalesce: can only use columns'
-    |.  (apply-scalar table-row scalar-to-apply)
-::
-:: test with literal-value
-++  test-fail-coalesce-04
-  ::
-  =/  datums  ~[[%literal-value [~.ud 1]]]
-  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
-  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
-  =/  scalar-to-apply
-      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
-  %+  expect-fail-message
-    'coalesce: can only use columns'
-    |.  (apply-scalar table-row scalar-to-apply)
+::++  test-coalesce
+::  %-  run-tests
+::  :~
+::    :-  %qualified-column
+::    :*  ~[q-col-1]
+::      [~.ud 1]
+::    ==
+::    :-  %unqualified-column
+::    :*  ~[u-col-4]
+::      [~.ud 4]
+::    ==
+::    :-  %coalesce-3-q-unresolved-1-resolved-u
+::    :*  ~[q-col-2 q-col-3 q-col-2 u-col-4]
+::      [~.ud 4]
+::    ==
+::    :-  %unqualified-column
+::    :*  ~[u-col-5 u-col-6 u-col-5 q-col-1]
+::      [~.ud 1]
+::    ==
+::  ==
+::::
+:::: test what happens if no column matches
+::++  test-fail-coalesce-01
+::  ::
+::  =/  datums  ~[u-col-5 u-col-6 q-col-2 q-col-3]
+::  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
+::  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+::  =/  scalar-to-apply
+::      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
+::  %+  expect-fail-message
+::    'coalesce: couldn\'t resolve any column'
+::    |.  (apply-scalar table-row scalar-to-apply)
+::::
+:::: test with scalar-alias
+::++  test-fail-coalesce-02
+::  ::
+::  =/  datums  ~[[%scalar-alias %scalar1]]
+::  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
+::  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+::  =/  scalar-to-apply
+::      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
+::  %+  expect-fail-message
+::    'coalesce: can only use columns'
+::    |.  (apply-scalar table-row scalar-to-apply)
+::::
+:::: test with embedded scalar
+::++  test-fail-coalesce-03
+::  ::
+::  =/  datums  ~[(~(got by table-scalars) %scalar1)]
+::  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
+::  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+::  =/  scalar-to-apply
+::      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
+::  %+  expect-fail-message
+::    'coalesce: can only use columns'
+::    |.  (apply-scalar table-row scalar-to-apply)
+::::
+:::: test with literal-value
+::++  test-fail-coalesce-04
+::  ::
+::  =/  datums  ~[[%literal-value [~.ud 1]]]
+::  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
+::  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
+::  =/  scalar-to-apply
+::      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
+::  %+  expect-fail-message
+::    'coalesce: can only use columns'
+::    |.  (apply-scalar table-row scalar-to-apply)
 --

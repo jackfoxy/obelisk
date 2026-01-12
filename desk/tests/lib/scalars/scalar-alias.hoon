@@ -173,22 +173,22 @@
 ::
 ::
 :: scala-alias tests
-++  test-scalar-alias
-  =/  lookups  [qualifier-lookup qual-type-lookup]
-  =/  expr=scalar-alias:ast  [%scalar-alias alias=%scalar1]
-  =/  scalar-to-apply
-      (prepare-scalar expr table-named-ctes lookups table-scalars)
-  %+  expect-eq
-    !>  [~.ud 3]
-    !>  (apply-scalar table-row scalar-to-apply)
-::
-:: test what happens if no column matches
-++  test-fail-scalar-alias-01
-  =/  lookups  [qualifier-lookup qual-type-lookup]
-  =/  expr=scalar-alias:ast  [%scalar-alias alias=%scalarfoo]
-  =/  scalar-to-apply
-      (prepare-scalar expr table-named-ctes lookups table-scalars)
-  %+  expect-fail-message
-    'no scalar with name: \'scalarfoo\''
-    |.  (apply-scalar table-row scalar-to-apply)
+::++  test-scalar-alias
+::  =/  lookups  [qualifier-lookup qual-type-lookup]
+::  =/  expr=scalar-alias:ast  [%scalar-alias alias=%scalar1]
+::  =/  scalar-to-apply
+::      (prepare-scalar expr table-named-ctes lookups table-scalars)
+::  %+  expect-eq
+::    !>  [~.ud 3]
+::    !>  (apply-scalar table-row scalar-to-apply)
+::::
+:::: test what happens if no column matches
+::++  test-fail-scalar-alias-01
+::  =/  lookups  [qualifier-lookup qual-type-lookup]
+::  =/  expr=scalar-alias:ast  [%scalar-alias alias=%scalarfoo]
+::  =/  scalar-to-apply
+::      (prepare-scalar expr table-named-ctes lookups table-scalars)
+::  %+  expect-fail-message
+::    'no scalar with name: \'scalarfoo\''
+::    |.  (apply-scalar table-row scalar-to-apply)
 --
