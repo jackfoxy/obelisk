@@ -103,12 +103,12 @@
         ==
 ++  sys-sys-databases-view
   |=  sys-time=@da
-  =/  columns=(list column:ast)    :~  [%column %database ~.tas 0]
-                                       [%column name=%sys-agent type=~.ta 0]
-                                       [%column name=%sys-tmsp type=~.da 0]
-                                       [%column name=%data-ship type=~.p 0]
-                                       [%column name=%data-agent type=~.ta 0]
-                                       [%column name=%data-tmsp type=~.da 0]
+  =/  columns=(list column:ast)    :~  [%column %database ~.tas 62]
+                                       [%column name=%sys-agent type=~.ta 12]
+                                       [%column name=%sys-tmsp type=~.da 2]
+                                       [%column name=%data-ship type=~.p 14]
+                                       [%column name=%data-agent type=~.ta 254]
+                                       [%column name=%data-tmsp type=~.da 252]
                                        ==
   :-  [%sys %databases sys-time]
       :*  %view

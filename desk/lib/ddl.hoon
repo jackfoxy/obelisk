@@ -151,8 +151,7 @@
                 %.y
                 (mk-key-column column-look-up pri-indx.create-table)
             ==
-            %+  turn  columns.create-table
-         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
+            (addr-columns columns.create-table)
             ~
         ==
   =/  tables
