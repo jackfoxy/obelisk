@@ -1,6 +1,6 @@
 :: this file  will contain code that handles scalars in the engine
 /-  ast, *obelisk
-/+  *predicate, utils
+/+  *predicate, utils, mip
 |%
 :: inventory:
 :: - we know the qualified table (or tables in case of a join) we're acting on;
@@ -135,7 +135,7 @@
 ++  get-qualified-col-type
   |=  [type-lookup=qualified-lookup-type col=qualified-column:ast]
   ^-  @ta
-  (~(got by (~(got by +.type-lookup) qualifier.col)) name.col)
+  -:(~(got bi:mip +.type-lookup) qualifier.col name.col)
 
 ++  get-column-data
    |=  [=data-row type-lookup=qualified-lookup-type col=qualified-column:ast]

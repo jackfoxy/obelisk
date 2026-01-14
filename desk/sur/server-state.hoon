@@ -76,12 +76,16 @@
     provenance=path
     tmsp=@da
     =column-lookup
-    type-lookup=(map @tas @ta)
+    typ-addr-lookup=(map @tas typ-addr)
     pri-indx=index
     columns=(list column)      ::  canonical column list
     indices=(list index)      :: to do: indices indexed by (list column)
     ==
-+$  column-lookup  (map @tas [aura @])  :: name [type index]
++$  column-lookup  (map @tas [aura @])
++$  typ-addr
+  $:  type=@ta
+      addr=@
+      ==
 +$  file
   $:  %file
     ship=@p
@@ -115,7 +119,7 @@
     tmsp=@da
     =selection
     =column-lookup
-    type-lookup=(map @tas @ta)
+    typ-addr-lookup=(map @tas typ-addr)
     columns=(list column)      ::  canonical column list
     :: to do: replace ordering with index (requires non-unique mop type)
     ordering=(list column-order)

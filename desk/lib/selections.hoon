@@ -218,6 +218,10 @@
     ==
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
+
+    ::~&  [%col i.cols]
+    ::~&  [%row i.rows]
+
   %=  $
       cols  t.cols
       row   :-  :-  p.vc.i.cols
@@ -335,7 +339,9 @@
                          ==
           ==
       :-  %qualified-lookup-type
-          (~(put by *(map qualified-table (map @tas @ta))) ts type-lookup.vw2)
+          %+  ~(put by *(map qualified-table (map @tas typ-addr)))
+                ts
+                typ-addr-lookup.vw2
       (mk-qualified-columns ts qualified-columns columns.vw2)
 ::
 ++  from-table
@@ -367,7 +373,7 @@
                          columns.tbl2
                          predicate
                          rowcount.file
-                         [%unqualified-lookup-type type-lookup.tbl2]
+                         [%unqualified-lookup-type typ-addr-lookup.tbl2]
                          [~ pri-indx.tbl2]
                          pri-idx.file
                          indexed-rows.file
@@ -375,7 +381,7 @@
                          ==
           ==
       :-  %qualified-lookup-type
-          (~(put by +.type-lookup) query-obj type-lookup.tbl2)
+          (~(put by +.type-lookup) query-obj typ-addr-lookup.tbl2)
       (mk-qualified-columns query-obj qualified-columns columns.tbl2)
 ::
 ::  +mk-joined-relations:  [relation (list joined-relation:ast)]

@@ -134,10 +134,7 @@
         "{<pri-indx.create-table>}"
         !!
   ::
-  =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
-  =/  fake-data=(map @tas @)
-        %+  roll  columns.create-table 
-                  |=([a=column:ast b=(map @tas @)] (~(put by b) [name.a 0]))
+  =/  column-look-up  (malt (spun columns.create-table mk-col-lu-data))
   ::
   =/  table
         %:  table
@@ -145,7 +142,7 @@
             sap.bowl
             sys-time
             column-look-up
-            (malt (turn columns.create-table |=(a=column:ast [name.a type.a])))
+            (mk-unqualified-typ-addr-lookup (addr-columns columns.create-table))
             %:  index
                 %index
                 %.y

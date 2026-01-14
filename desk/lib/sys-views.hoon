@@ -31,8 +31,10 @@
         :+  %selection                                          ::selection
             ~                                                 ::ctes=(list cte)
             sys-sys-dbs-query                                   ::query
-        (malt (spun columns make-col-lu-data))                  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))                  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                                         ::columns=(list column)
         ~                                         ::ordering=(list column-order)
         ==
@@ -182,8 +184,10 @@
         :+  %selection                 ::selection
             ~                              ::ctes=(list cte)
             (sys-namespaces-query db)      ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -283,8 +287,10 @@
         :+  %selection                 ::selection
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -410,8 +416,10 @@
         :+  %selection                 ::selection
             ~                              ::ctes=(list cte)
             (sys-tables-query db)          ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -546,8 +554,10 @@
         :+  %selection                 ::selection
             ~                              ::ctes=(list cte)
             (sys-columns-query db)         ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -681,8 +691,10 @@
         :+  %selection                 ::selection
             ~                              ::ctes=(list cte)
             (sys-sys-log-query database)   ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==
@@ -808,8 +820,10 @@
         :+  %selection                 ::selection
             ~                              ::ctes=(list cte)
             (sys-data-log-query database)  ::query
-        (malt (spun columns make-col-lu-data))  ::column-lookup
-        (malt (turn columns |=(a=column:ast [name.a type.a])))  ::column-types
+        (malt (spun columns mk-col-lu-data))  ::column-lookup
+        %-  malt
+          %+  turn  columns
+                    |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
         columns                        ::columns=(list column)
         ~                              ::ordering=(list column-order)
         ==

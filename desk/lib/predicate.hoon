@@ -650,12 +650,12 @@
       ::?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
       ::  ?:  &(?!(l-exists) ?!(r-exists))  always-true
       ::  ?.  &(l-exists r-exists)  always-false
-      ::  ?:  %+  types-match  (~(got by type-lookup) [qualifier.l name.l])
-      ::                    (~(got by type-lookup) [qualifier.r name.r])
+      ::  ?:  %+  types-match  -:(~(got by type-lookup) [qualifier.l name.l])
+      ::                    -:(~(got by type-lookup) [qualifier.r name.r])
       ::    %+  bake  %+  cury
       ::                  %+  cury  (cury eq-col-col [qualifier.l name.l])
       ::                            [qualifier.r name.r]
-      ::                  (~(got by type-lookup) [qualifier.l name.l])
+      ::                  -:(~(got by type-lookup) [qualifier.l name.l])
       ::              data-row
       ::  ~|  "comparing columns of different auras: ".
       ::      "{<name.l>} {<name.r>}"
@@ -663,7 +663,7 @@
       ::::
       ::?:  &(?=(qualified-column:ast l) ?=(dime r))
       ::  ?.  l-exists  always-false
-      ::  ?:  (types-match (~(got by type-lookup) [qualifier.l name.l]) -.r)
+      ::  ?:  (types-match -:(~(got by type-lookup) [qualifier.l name.l]) -.r)
       ::    %+  bake
       ::          (cury (cury (cury eq-lit-col +.r) [qualifier.l name.l]) -.r)
       ::          data-row
@@ -673,7 +673,7 @@
       ::::
       ::?:  &(?=(dime l) ?=(qualified-column:ast r))
       ::  ?.  r-exists  always-false
-      ::  ?:  (types-match -.l (~(got by type-lookup) [qualifier.r name.r]))
+      ::  ?:  (types-match -.l -:(~(got by type-lookup) [qualifier.r name.r]))
       ::    %+  bake
       ::          (cury (cury (cury eq-lit-col +.l) [qualifier.r name.r]) -.l)
       ::          data-row
@@ -719,11 +719,11 @@
     ?:  ?&  ?=(qualified-column:ast n.l.p)
             ?=(%qualified-lookup-type -.type-lookup)
             ==
-      (~(got bi:mip +.type-lookup) qualifier.n.l.p name.n.l.p)
+      -:(~(got bi:mip +.type-lookup) qualifier.n.l.p name.n.l.p)
     ?:  ?&  ?=(unqualified-column:ast n.l.p)
             ?=(%unqualified-lookup-type -.type-lookup)
             ==
-      (~(got by +.type-lookup) name.n.l.p)
+      -:(~(got by +.type-lookup) name.n.l.p)
     ~|("can't get here" !!)
   ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
     ~|("type of IN list incorrect, should be {<typ>}" !!)
@@ -760,7 +760,7 @@
 ++  datum-ops-qualified
   |=  $:  l=datum:ast
           r=datum:ast
-          type-lookup=(map qualified-table (map @tas @ta))
+          type-lookup=(mip:mip qualified-table @tas typ-addr)
           qualifier-lookup=(map @tas (list qualified-table:ast))
           lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
@@ -776,45 +776,45 @@
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
-              (~(got bi:mip type-lookup) qualifier.l name.l)
-              (~(got bi:mip type-lookup) qualifier.r name.r)
+              -:(~(got bi:mip type-lookup) qualifier.l name.l)
+              -:(~(got bi:mip type-lookup) qualifier.r name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col [qualifier.l name.l])
                               [qualifier.r name.r]
-                    (~(got bi:mip type-lookup) qualifier.l name.l)
+                    -:(~(got bi:mip type-lookup) qualifier.l name.l)
                 data-row
     ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<(~(got bi:mip type-lookup) qualifier.l name.l)>} ".
+        "{<-:(~(got bi:mip type-lookup) qualifier.l name.l)>} ".
         "{<name.r>} ".
-        "{<(~(got bi:mip type-lookup) qualifier.r name.r)>}"
+        "{<-:(~(got bi:mip type-lookup) qualifier.r name.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
     ?:  %+  types-match
               -.l
-              (~(got bi:mip type-lookup) qualifier.r name.r)
+              -:(~(got bi:mip type-lookup) qualifier.r name.r)
       %+  bake  (cury (cury (cury lit-col +.l) [qualifier.r name.r]) -.l)
                 data-row
     ~|  "comparing literal to column of different aura: ".
         "{<l>} {<name.r>} ".
-        "{<(~(got bi:mip type-lookup) qualifier.r name.r)>}"
+        "{<-:(~(got bi:mip type-lookup) qualifier.r name.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
     ?:  %+  types-match  
-              (~(got bi:mip type-lookup) qualifier.l name.l)
+              -:(~(got bi:mip type-lookup) qualifier.l name.l)
               -.r
       %+  bake  (cury (cury (cury col-lit [qualifier.l name.l]) +.r) -.r)
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<(~(got bi:mip type-lookup) qualifier.l name.l)>} {<r>}"
+        "{<-:(~(got bi:mip type-lookup) qualifier.l name.l)>} {<r>}"
         !!
   ~|("datum-ops can't get here" !!)
 ::
 ++  datum-ops-unqualified
   |=  $:  l=datum:ast
           r=datum:ast
-          type-lookup=(map @tas @ta)
+          type-lookup=(map @tas typ-addr)
           lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
           col-lit=$-([[qualified-table:ast @tas] @ @ta data-row] ?)
@@ -828,37 +828,37 @@
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
   ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
-    ?:  %+  types-match  (~(got by type-lookup) name.l)
-                         (~(got by type-lookup) name.r)
+    ?:  %+  types-match  -:(~(got by type-lookup) name.l)
+                         -:(~(got by type-lookup) name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col [*qualified-table:ast name.l])
                               [*qualified-table:ast name.r]
-                    (~(got by type-lookup) name.l)
+                    -:(~(got by type-lookup) name.l)
                 data-row
     ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<(~(got by type-lookup) name.l)>} {<name.r>} ".
-        "{<(~(got by type-lookup) name.r)>}"
+        "{<-:(~(got by type-lookup) name.l)>} {<name.r>} ".
+        "{<-:(~(got by type-lookup) name.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(unqualified-column:ast r))
-    ?:  (types-match -.l (~(got by type-lookup) name.r))
+    ?:  (types-match -.l -:(~(got by type-lookup) name.r))
       %+  bake  %+  cury
                     (cury (cury lit-col +.l) [*qualified-table:ast name.r])
                     -.l
                 data-row
     ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
-        "{<(~(got by type-lookup) name.r)>}"
+        "{<-:(~(got by type-lookup) name.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(unqualified-column:ast l) ?=(dime r))
-    ?:  (types-match (~(got by type-lookup) name.l) -.r)
+    ?:  (types-match -:(~(got by type-lookup) name.l) -.r)
       %+  bake  %+  cury  %+  cury
                               (cury col-lit [*qualified-table:ast name.l])
                                +.r
                           -.r
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<(~(got by type-lookup) name.l)>} {<r>}"
+        "{<-:(~(got by type-lookup) name.l)>} {<r>}"
         !!
   ::
   ~|("datum-ops can't get here" !!)

@@ -103,13 +103,14 @@
         ==
 ++  sys-sys-databases-view
   |=  sys-time=@da
-  =/  columns=(list column:ast)    :~  [%column %database ~.tas 62]
-                                       [%column name=%sys-agent type=~.ta 12]
-                                       [%column name=%sys-tmsp type=~.da 2]
-                                       [%column name=%data-ship type=~.p 14]
-                                       [%column name=%data-agent type=~.ta 254]
-                                       [%column name=%data-tmsp type=~.da 252]
-                                       ==
+  =/  columns=(list column:ast)
+        %-  addr-columns  :~  [%column %database ~.tas 62]
+                              [%column name=%sys-agent type=~.ta 12]
+                              [%column name=%sys-tmsp type=~.da 2]
+                              [%column name=%data-ship type=~.p 14]
+                              [%column name=%data-agent type=~.ta 254]
+                              [%column name=%data-tmsp type=~.da 252]
+                              ==
   :-  [%sys %databases sys-time]
       :*  %view
           [~.test-agent /]
@@ -117,8 +118,8 @@
           :+  %selection
               ~
               sys-sys-dbs-query
-          (malt (spun columns make-col-lu-data))
-          (malt (turn columns |=(a=column:ast [name.a type.a])))
+          (malt (spun columns mk-col-lu-data))
+          (mk-unqualified-typ-addr-lookup columns)
           columns
           :~  [aor=%.y ascending=%.y offset=0]
               [aor=%.n ascending=%.y offset=2]
@@ -508,7 +509,7 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.2
           [[%col1 [%t 0]] ~ ~]
-          [[%col1 ~.t] ~ ~]
+          [[%col1 ~.t 2] ~ ~]
           :+  %index
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
@@ -521,7 +522,7 @@
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.35..7e90
           [[%col1 [%t 0]] ~ ~]
-          [[%col1 ~.t] ~ ~]
+          [[%col1 ~.t 2] ~ ~]
           :+  %index
               unique=%.y
               ~[[%key-column name=%col1 ~.t ascending=%.y]]
@@ -534,7 +535,7 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.3
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          [[%col2 ~.p] ~ [[%col1 ~.t] ~ ~]]
+          [[%col2 ~.p 2] ~ [[%col1 ~.t 14] ~ ~]]
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
@@ -547,7 +548,7 @@
           provenance=`path`/test-agent
           tmsp=~2000.1.2
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          [[%col2 ~.p] ~ [[%col1 ~.t] ~ ~]]
+          [[%col2 ~.p 2] ~ [[%col1 ~.t 14] ~ ~]]
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]
@@ -560,7 +561,7 @@
           provenance=`path`/test-agent
           tmsp=~2023.7.9..22.35.36..7e90
           [[%col2 [%p 1]] ~ [[%col1 [%t 0]] ~ ~]]
-          [[%col2 ~.p] ~ [[%col1 ~.t] ~ ~]]
+          [[%col2 ~.p 2] ~ [[%col1 ~.t 14] ~ ~]]
           :+  %index
               %.y
               ~[[%key-column %col1 ~.t %.y] [%key-column %col2 ~.p %.y]]

@@ -103,11 +103,11 @@
       ==
 +$  qualified-lookup-type
   $:  %qualified-lookup-type
-    (mip qualified-table @tas @ta)
+    (mip qualified-table @tas typ-addr)
     ==
 +$  unqualified-lookup-type
   $:  %unqualified-lookup-type
-    (map @tas @ta)
+    (map @tas typ-addr)
     ==
 +$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
 ::

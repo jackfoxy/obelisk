@@ -319,8 +319,8 @@
                           (trip name.a)
                           ==
 ::
-::  +make-col-lu-data:  [=column:ast a=@] -> [[@tas [@tas @ud]] @ud]
-++  make-col-lu-data
+::  +mk-col-lu-data:  [=column:ast a=@] -> [[@tas [@tas @ud]] @ud]
+++  mk-col-lu-data
     |=  [=column:ast a=@]
     ^-  [[@tas [@tas @ud]] @ud]
     [[name.column [type.column a]] +(a)]
@@ -530,6 +530,18 @@
                cells
     ==
   ~|("{<i.selected>} not supported" !!)
+::
+++  mk-unqualified-typ-addr-lookup
+  |=  a=(list column:ast)
+  ^-  (map @tas typ-addr)
+  (malt (turn a |=(a=column:ast [name.a [type.a addr.a]])))
+::
+++  mk-qualified-type-lookup
+  |=  [kvp=(list [qualified-table:ast (list column:ast)])]
+  ^-  qualified-lookup-type
+  :-  %qualified-lookup-type
+  %-  malt
+  (turn kvp |=(e=[qualified-table:ast (list column:ast)] [-.e (mk-unqualified-typ-addr-lookup +.e)]))
 ::
 ++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)

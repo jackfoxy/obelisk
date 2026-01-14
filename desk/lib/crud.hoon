@@ -261,7 +261,7 @@
   =/  filter=$-(data-row ?)  %^  pred-ops-and-conjs
                                  (pred-unqualify-qualified predicate.d)
                                  :-  %unqualified-lookup-type
-                                     type-lookup.table.txn
+                                     typ-addr-lookup.table.txn
                                  ~
   =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
                                        |=(a=indexed-row !(filter a))
@@ -348,12 +348,13 @@
                   %^  pred-ops-and-conjs  %-  pred-unqualify-qualified
                                               predicate.u
                                           :-  %unqualified-lookup-type
-                                              type-lookup.table.txn
+                                              typ-addr-lookup.table.txn
                                           ~
   =/  updates  %:  mk-updates  table.u
                                columns.u
                                values.u
-                               [%unqualified-lookup-type type-lookup.table.txn]
+                               :-  %unqualified-lookup-type
+                                   typ-addr-lookup.table.txn
                                ==
   ::  updating key column requires re-indexing
   =/  aa  %-  silt
@@ -738,7 +739,7 @@
     %=  $
       columns   t.columns
       values    t.values
-      updates   ?:  =(~.da (~(got by +.type-lookup) name.i.columns))
+      updates   ?:  =(~.da -:(~(got by +.type-lookup) name.i.columns))
                   [[name.i.columns *@da] updates]
                 [[name.i.columns 0] updates]
     ==
@@ -751,10 +752,9 @@
           ~|  "UPDATE: {<table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ::?:  =(p.i.values (~(got by +.type-lookup) name.i.columns))
         ?:  .=  p.i.values  ~|  "UPDATE: {<table>} does not have column ".
                                 "{<name.i.columns>}"
-                                (~(got by +.type-lookup) name.i.columns)
+                                -:(~(got by +.type-lookup) name.i.columns)
           [[name.i.columns +.i.values] updates]
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
@@ -799,8 +799,7 @@
                                  (mk-rel-col-lookup st)
                        (flop st)
                    selected-column:ast
-  =.  columns.new  %+  cte-col-dups  name
-                                     `(list column:ast)`(zing (turn columns f))
+  =.  columns.new  (addr-columns (cte-col-dups name (zing (turn columns f))))
   [new st]
 ::
 ++  cte-columns

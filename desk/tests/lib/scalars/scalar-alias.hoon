@@ -1,5 +1,5 @@
 /-  ast
-/+  *scalars,  *test,  *server
+/+  *scalars, *test, *server, *utils
 ::
 |%
 ::
@@ -43,20 +43,6 @@
     data=(malt (limo kvp))
   ==
 ::
-::  make a qualified-type-lookup
-++  mk-qualified-type-lookup
-  |=  [kvp=(lest [qualified-table (lest [@tas @])])]
-  :-  %qualified-lookup-type
-  %-  malt
-  %-  limo
-  (turn kvp |=(e=[qualified-table (lest [@tas @])] [-.e (malt (limo +.e))]))
-::
-::  make an unqualified-type-lookup
-++  mk-unqualified-type-lookup
-  |=  [kvp=(lest [@tas @ta])]
-  :-  %unqualified-lookup-type
-  (malt kvp)
-::
 ++  q-col-1           [%qualified-column qualified-table-1 %col1 ~]
 ++  q-col-2           [%qualified-column qualified-table-1 %col2 ~]
 ++  q-col-3           [%qualified-column qualified-table-1 %col3 ~]
@@ -66,25 +52,22 @@
 ++  u-col-5           [%unqualified-column %col5 ~]
 ++  u-col-6           [%unqualified-column %col6 ~]
 ::
-++  qual-type-lookup       %-  mk-qualified-type-lookup
-                                :~
-                                  :-  qualified-table-1
-                                  :~
-                                    [%col1 ~.ud]
-                                    [%col2 ~.ud]
-                                    [%col3 ~.ud]
-                                    [%col4 ~.ud]
-                                    [%col5 ~.ud]
-                                    [%col6 ~.ud]
-                                  ==
-                                ==
+++  qual-type-lookup  %-  mk-qualified-type-lookup
+                          :~  :-  qualified-table-1
+                                  %-  addr-columns  :~  [%column %col1 ~.ud 0]
+                                                        [%column %col2 ~.ud 0]
+                                                        [%column %col3 ~.ud 0]
+                                                        [%column %col4 ~.ud 0]
+                                                        [%column %col5 ~.ud 0]
+                                                        [%column %col6 ~.ud 0]
+                                                        ==
+                              ==
 ::
-++  unqual-type-lookup       %-  mk-unqualified-type-lookup
-                                  :~
-                                    [%col4 ~.ud]
-                                    [%col5 ~.ud]
-                                    [%col6 ~.ud]
-                                  ==
+++  unqual-type-lookup  %-  mk-unqualified-typ-addr-lookup
+                            %-  addr-columns  :~  [%column %col4 ~.ud 0]
+                                                  [%column %col5 ~.ud 0]
+                                                  [%column %col6 ~.ud 0]
+                                                  ==
 ::
 ++  qualifier-lookup  %-  malt
                            %-  limo
