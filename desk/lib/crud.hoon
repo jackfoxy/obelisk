@@ -477,12 +477,12 @@
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
-  =/  cells=(list templ-cell)
-    %:  mk-joined-vect-templ  qualified-columns
-                              selected
-                              ;;(joined-row -.rows)
-                              ;;(qualified-lookup-type lookup-type)
-                              ==
+  =/  cells  %:  mk-rel-vect-templ  qualified-columns
+                                    selected
+                                    ::;;(joined-row -.rows)
+                                    -.rows
+                                    lookup-type
+                                    ==
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?

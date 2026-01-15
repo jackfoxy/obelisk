@@ -197,13 +197,12 @@
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
-  =/  cells=(list templ-cell)
-    %:  mk-indexed-vect-templ
-          qualified-columns
-          ;;(unqualified-lookup-type lookup-type)
-          selected
-          ;;(indexed-row -.rows)
-          ==
+  =/  cells  %:  mk-rel-vect-templ  qualified-columns
+                                    selected
+                                    ::;;(indexed-row -.rows)
+                                    -.rows
+                                    lookup-type
+                                    ==
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
