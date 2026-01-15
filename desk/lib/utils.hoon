@@ -547,76 +547,23 @@
   ?~  a  b
   $(a t.a, b (c i.a b))
 ::
-++  key-atom
-  |=  a=[p=@tas q=(map @tas @)]
-  ^-  @
-  ~|  "key atom {<p.a>} not supported"
-  (~(got by q.a) p.a)
+::  +alpha
 ::
-++  update-file
-  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
-  ~+  :: keeper
-  =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
-                                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
-  =.  indexed-rows.file    new-indexed-rows
-  =.  rowcount.file        (lent new-indexed-rows)
-  =.  files.data  (~(put by files.data) tbl-key file)
-  data
+::  alphabetically order cords
+++  alpha
+  |=  [a=cord b=cord]
+  ~+  :: keep, makes big difference inserting large @t
+  ^-  ?
+  =/  a  (trip a)
+  =/  b  (trip b)
+  =/  a-cass  (cass a)
+  =/  b-cass  (cass b)
+  ?.  =(a-cass b-cass)  (aor a-cass b-cass)
+  (aor a b)
 ::
-::  +row-cells:
-::    [(list value-or-default:ast) (list column:ast)] -> (map @tas @)
+::  tree engine
 ::
-::  Create the saved row-wise file data.
-++  row-cells
-  |=  [p=(list value-or-default:ast) q=(list column:ast)]
-  ^-  (map @tas @)
-  =/  cells  *(list [@tas @])
-  |-
-  ?~  p  (malt cells)
-  %=  $
-    cells  [(row-cell -.p -.q) cells]
-    p  +.p
-    q  +.q
-  ==
-::
-++  row-cell
-  |=  [p=value-or-default:ast q=column:ast]
-  ^-  [@tas @]
-  ?:  ?=(dime p)
-    ?:  =(p.p type.q)  [name.q q.p]
-    ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
-        "does not match input value type {<p.p>}"
-        !!
-  ?:  =(%default p)
-    ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
-    [name.q 0]
-  ~|("row cell {<p>} not supported" !!)
-::
-++  joined-row-from-indexed
-  |=  [qo=qualified-table:ast =indexed-row]
-  ^-  joined-row      
-  :+  %joined-row
-      key.indexed-row
-      %+  ~(put by *(map qualified-table:ast (map @tas @)))
-          qo
-          data.indexed-row
-::
-++  make-key-pick
-  |=  [key=@tas column-lookup=(map @tas [aura @])]
-  ^-  [@tas @]
-  [key +:(~(got by column-lookup) key)]
-::
-++  rdc-set-func
-  |=  =(tree set-function:ast)
-  ?~  tree  ~
-  ::  template
-  ?~  l.tree
-    ?~  r.tree  [n.tree ~ ~]
-    [n.r.tree ~ ~]
-  ?~  r.tree  [n.l.tree ~ ~]
-  [n.r.tree ~ ~]
-::
-++  of                              ::  tree engine
+++  of
   =|  a=(tree)
   |@
   ++  rep                           ::  reduce to product
@@ -636,46 +583,4 @@
     ?:  ?=([* * *] a)              $(a [n=n.a l=$(a l.a) r=$(a r.a)])
     ~
   --
-::
-::  +alpha
-::
-::  alphabetically order cords
-++  alpha
-  |=  [a=cord b=cord]
-  ~+  :: keep, makes big difference inserting large @t
-  ^-  ?
-  =/  a  (trip a)
-  =/  b  (trip b)
-  =/  a-cass  (cass a)
-  =/  b-cass  (cass b)
-  ?.  =(a-cass b-cass)  (aor a-cass b-cass)
-  (aor a b)
-::    +split-all: [(list T) sep:(list t)] -> (list (list T))
-::
-::  Splits a list into multiple lists, delimited by another list.
-::    Examples
-::      > (split-all "abcdefabhijkablmn" "ab")
-::      ~[~ "cdef" "hijk" "lmn"]
-::    Source
-++  split-all
-  |*  [p=(list) sep=(list)]
-  =/  c=(list (list _?>(?=(^ p) i.p)))  ~
-  =/  len  (lent sep)
-  =/  q=(list @)  (flop (fand sep p))
-  |-  ^+  c
-  ?~  p  c
-  ?~  q  $(p ~, c [p c])
-  ?:  =(i.q 0)
-    $(c [~ [(slag (add len i.q) `(list _?>(?=(^ p) i.p))`p) c]], p ~)
-  %=  $
-    c  [(slag (add len i.q) `(list _?>(?=(^ p) i.p))`p) c]
-    p  (scag i.q `(list _?>(?=(^ p) i.p))`p)
-    q  t.q
-  ==
-::
-++  name-set
-  |*  a=(set)
-  ~+   :: keep, seems to make small difference
-  ^-  (set @tas)
-  (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 --

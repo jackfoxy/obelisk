@@ -921,5 +921,59 @@
                %+  ~(put by lookup)  name.col
                                      (limo ~[(need relation.source)])
     ==
+::
+++  update-file
+  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
+  ~+  :: keeper
+  =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
+                                  |=(a=[(list @) (map @tas @)] [%indexed-row a])
+  =.  indexed-rows.file    new-indexed-rows
+  =.  rowcount.file        (lent new-indexed-rows)
+  =.  files.data  (~(put by files.data) tbl-key file)
+  data
+::
+::  +row-cells:
+::    [(list value-or-default:ast) (list column:ast)] -> (map @tas @)
+::
+::  Create the saved row-wise file data.
+++  row-cells
+  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  ^-  (map @tas @)
+  =/  cells  *(list [@tas @])
+  |-
+  ?~  p  (malt cells)
+  %=  $
+    cells  [(row-cell -.p -.q) cells]
+    p  +.p
+    q  +.q
+  ==
+::
+++  row-cell
+  |=  [p=value-or-default:ast q=column:ast]
+  ^-  [@tas @]
+  ?:  ?=(dime p)
+    ?:  =(p.p type.q)  [name.q q.p]
+    ~|  "INSERT: type of column {<-.q>} {<+<.q>} ".
+        "does not match input value type {<p.p>}"
+        !!
+  ?:  =(%default p)
+    ?:  =(%da type.q)  [name.q *@da]                :: default to bunt
+    [name.q 0]
+  ~|("row cell {<p>} not supported" !!)
+::
+++  make-key-pick
+  |=  [key=@tas column-lookup=(map @tas [aura @])]
+  ^-  [@tas @]
+  [key +:(~(got by column-lookup) key)]
+::
+++  rdc-set-func
+  |=  =(tree set-function:ast)
+  ?~  tree  ~
+  ::  template
+  ?~  l.tree
+    ?~  r.tree  [n.tree ~ ~]
+    [n.r.tree ~ ~]
+  ?~  r.tree  [n.l.tree ~ ~]
+  [n.r.tree ~ ~]
 --
  

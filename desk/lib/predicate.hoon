@@ -968,4 +968,26 @@
                                  lte-lit-col
                                  ==
     ==
+::    +split-all: [(list T) sep:(list t)] -> (list (list T))
+::
+::  Splits a list into multiple lists, delimited by another list.
+::    Examples
+::      > (split-all "abcdefabhijkablmn" "ab")
+::      ~[~ "cdef" "hijk" "lmn"]
+::    Source
+++  split-all
+  |*  [p=(list) sep=(list)]
+  =/  c=(list (list _?>(?=(^ p) i.p)))  ~
+  =/  len  (lent sep)
+  =/  q=(list @)  (flop (fand sep p))
+  |-  ^+  c
+  ?~  p  c
+  ?~  q  $(p ~, c [p c])
+  ?:  =(i.q 0)
+    $(c [~ [(slag (add len i.q) `(list _?>(?=(^ p) i.p))`p) c]], p ~)
+  %=  $
+    c  [(slag (add len i.q) `(list _?>(?=(^ p) i.p))`p) c]
+    p  (scag i.q `(list _?>(?=(^ p) i.p))`p)
+    q  t.q
+  ==
 --

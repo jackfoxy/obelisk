@@ -302,4 +302,10 @@
                                   ==
                   key
   ==
+::
+++  name-set
+  |*  a=(set)
+  ~+   :: keep, seems to make small difference
+  ^-  (set @tas)
+  (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 --

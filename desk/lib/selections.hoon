@@ -672,4 +672,10 @@
   ^-  database
   =/  gate  put:((on ns-rel-key cache) ns-rel-comp)
   db(view-cache (gate view-cache.db [key value]))
+::
+++  key-atom
+  |=  a=[p=@tas q=(map @tas @)]
+  ^-  @
+  ~|  "key atom {<p.a>} not supported"
+  (~(got by q.a) p.a)
 --
