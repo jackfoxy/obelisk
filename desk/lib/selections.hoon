@@ -635,4 +635,41 @@
                            data.a
           b-qual
           data.b
+::
+::  +data-row-comp
+::
+::  comparator for index mops
+++  data-row-comp
+  |_  index=(list [@tas ?])
+  ++  order
+    |=  [a=[data-row] b=[data-row]]
+    =/  p  key.a
+    =/  q  key.b
+    =/  k=(list [@tas ?])  index
+    |-  ^-  ?
+    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
+    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  ->.k  (gth -.p -.q)
+    (lth -.p -.q)
+  --
+++  get-schema
+    |=  [sys=((mop @da schema) gth) time=@da]
+    ^-  schema
+    =/  time-key  (add time 1)
+    ~|  "schema not available for {<time>}"
+    ->:(pop:schema-key (lot:schema-key sys `time-key ~))
+++  get-view-cache
+  |=  [key=ns-rel-key q=((mop ns-rel-key cache) ns-rel-comp)]
+  ^-  cache
+  =/  vw  (tab:view-cache-key q `[ns.key rel.key `@da`(add `@`time.key 1)] 1)
+  ?~  vw
+    ~|("view {<ns.key>}.{<rel.key>} does not exist from time {<time.key>}" !!)
+  ->.vw
+::
+::  +put-view-cache
+++  put-view-cache
+  |=  [db=database value=cache key=ns-rel-key]
+  ^-  database
+  =/  gate  put:((on ns-rel-key cache) ns-rel-comp)
+  db(view-cache (gate view-cache.db [key value]))
 --

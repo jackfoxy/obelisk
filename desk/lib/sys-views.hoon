@@ -1177,4 +1177,12 @@
                 |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
   %+  turn  tbls
     |=([k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k +.k])
+++  get-data
+  |=  [sys=((mop @da data) gth) time=@da]
+  ^-  data
+  =/  exact  (get:data-key sys time)
+  ?^  exact  (need exact)
+  =/  prior  (pry:data-key (lot:data-key sys `time ~))
+  ?~  prior  ~|("data not available for {<time>}" !!)
+  +:(need prior)
 --

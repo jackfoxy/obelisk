@@ -34,19 +34,6 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-
-::
-++  map-insert
-  |*  [m=(map) key=* value=*]
-  ^+  m
-  ?:  (~(has by m) key)  ~|("duplicate key: {<key>}" !!)
-  (~(put by m) key value)
-::
-++  map-delete
-  |*  [m=(map) key=*]
-  ^+  m
-  ?:  (~(has by m) key)  (~(del by m) key)
-  ~|("deletion key does not exist: {<key>}" !!)
 ::
 ::  +reduce-key:  (list key-column) -> (list [@ta ?])
 ++  reduce-key
@@ -69,23 +56,6 @@
     (lth -.p -.q)
   --
 ::
-::  +data-row-comp
-::
-::  comparator for index mops
-++  data-row-comp
-  |_  index=(list [@tas ?])
-  ++  order
-    |=  [a=[data-row] b=[data-row]]
-    =/  p  key.a
-    =/  q  key.b
-    =/  k=(list [@tas ?])  index
-    |-  ^-  ?
-    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
-    ?:  =(-<.k %t)  (alpha -.q -.p)
-    ?:  ->.k  (gth -.p -.q)
-    (lth -.p -.q)
-  --
-::
 ++  pri-key
   |=  key=(list key-column)
   =/  comparator  ~(order idx-comp (reduce-key key))
@@ -93,12 +63,6 @@
 ::
 ::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
-++  get-schema
-    |=  [sys=((mop @da schema) gth) time=@da]
-    ^-  schema
-    =/  time-key  (add time 1)
-    ~|  "schema not available for {<time>}"
-    ->:(pop:schema-key (lot:schema-key sys `time-key ~))
 ::
 ::  +get-next-schema
 ::  gets the schema with the highest timestamp for mutation
@@ -121,14 +85,6 @@
 ::
 ::  gets the data with matching or highest timestamp prior to
 ++  data-key  ((on @da data) gth)
-++  get-data
-  |=  [sys=((mop @da data) gth) time=@da]
-  ^-  data
-  =/  exact  (get:data-key sys time)
-  ?^  exact  (need exact)
-  =/  prior  (pry:data-key (lot:data-key sys `time ~))
-  ?~  prior  ~|("data not available for {<time>}" !!)
-  +:(need prior)
 ::
 ::  gets the data with the highest timestamp for schema mutation
 ++  get-next-data
@@ -174,40 +130,6 @@
 ::  +get-view-cache:  [ns-rel-key ((mop ns-rel-key cache) ns-rel-comp)]
 ::                    -> (unit cache)
 ++  view-cache-key  ((on ns-rel-key cache) ns-rel-comp)
-++  get-view-cache
-  |=  [key=ns-rel-key q=((mop ns-rel-key cache) ns-rel-comp)]
-  ^-  cache
-  =/  vw  (tab:view-cache-key q `[ns.key rel.key `@da`(add `@`time.key 1)] 1)
-  ?~  vw
-    ~|("view {<ns.key>}.{<rel.key>} does not exist from time {<time.key>}" !!)
-  ->.vw
-::
-::  +put-view-cache
-++  put-view-cache
-  |=  [db=database value=cache key=ns-rel-key]
-  ^-  database
-  =/  gate  put:((on ns-rel-key cache) ns-rel-comp)
-  db(view-cache (gate view-cache.db [key value]))
-::
-::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file
-++  content-key  ((on @da data) gth)
-++  get-content
-  |=  [content=((mop @da data) gth) sys-time=@da tbl-key=[@tas @tas]]
-  ^-  file
-  ~|  "data for {<tbl-key>} does not exist for time {<sys-time>}"
-  =/  d=data  ->:(tab:content-key content ``@da`(add `@`sys-time 1) 1)
-  (~(got by files.d) tbl-key)
-::
-::  +is-content-populated:  [database @da] -> ?
-++  is-content-populated
-  |=  [=database sys-time=@da]
-  ^-  ?
-  =/  content  (tab:content-key content.database ``@da`(add `@`sys-time 1) 1)
-  ?~  content  %.n
-  =/  d=data  ->.content
-  %^  fold  ~(tap by files.d)
-            `?`%.n
-            |=([[* =file] state=?] ?:(=(0 rowcount.file) state %.y))
 ::
 ::  +heading:  [=selected-column:ast @tas] -> @tas
 ::
@@ -326,80 +248,6 @@
     ^-  [[@tas [@tas @ud]] @ud]
     [[name.column [type.column a]] +(a)]
 ::
-::  +mk-joined-vect-templ:
-::    [(list column-meta) (list selected-column:ast) joined-row]
-::    -> (list templ-cell)
-::
-::  leave output un-flopped so consuming arm does not flop
-++  mk-joined-vect-templ
-  |=  $:  cols=(list column-meta)
-          selected=(list selected-column:ast)
-          j=joined-row
-          col-lookup=qualified-lookup-type
-          ==
-  ^-  (list templ-cell)
-  =/  i  0
-  =/  cells  *(list templ-cell)
-  ::
-  |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
-  ?:  =([%all %all] i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     %+  weld 
-                    (flop (turn cols (cury mk-templ-cell-joined +>.j)))
-                    cells
-    ==
-  ?:  ?=(selected-all-table:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     
-        %+  weld
-          %-  flop
-            %+  turn
-              %+  skim
-                    cols
-                  |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
-              (cury mk-templ-cell-joined +>.j)
-          cells
-    ==
-  ?:  ?=(selected-value:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells
-        :-  %:  templ-cell  %templ-cell
-                            ~
-                            0  :: addr
-                            :-  (heading i.selected (crip "literal-{<i>}"))
-                                [p=+<-.i.selected q=+<+.i.selected]
-                            ==
-            cells
-    ==
-  ?:  ?=(qualified-column:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
-             :-
-               %:  templ-cell
-                     %templ-cell
-                     [~ i.selected]
-                     %^  calc-joined-addr  +>.j
-                                           qualifier.i.selected
-                                           name.i.selected
-                     :-  (heading i.selected name.i.selected)
-                         :-  %-  head  %+  ~(got bi:mip +.col-lookup)
-                                              qualifier.i.selected
-                                              name.i.selected
-                             0
-                     ==
-               cells
-    ==
-  ~|("{<i.selected>} not supported" !!)
-::
 ++  calc-joined-addr
   |=  $:  data=(mip:mip qualified-table:ast @tas @)
           qual=qualified-table:ast
@@ -420,121 +268,9 @@
         columns
         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
 ::
-::  leave output un-flopped so consuming arm does not flop
-++  mk-indexed-vect-templ
-  |=  $:  cols=(list column-meta)
-          col-lookup=unqualified-lookup-type
-          selected=(list selected-column:ast)
-          row=indexed-row
-          ==
-  ^-  (list templ-cell)
-  =/  i  0
-  =/  cells  *(list templ-cell)
-  ::
-  |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
-  ?:  =([%all %all] i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     %+  weld
-                    (flop (turn cols (cury mk-templ-cell-indexed +.col-lookup)))
-                    cells
-    ==
-  ?:  ?=(selected-all-table:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells     
-        %+  weld
-          %-  flop
-            %+  turn
-              %+  skim
-                    cols
-                  |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
-              (cury mk-templ-cell-indexed +.col-lookup)
-          cells
-    ==
-  ?:  ?=(selected-value:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells
-        :-  %:  templ-cell  %templ-cell
-                            ~
-                            0  :: addr
-                            :-  (heading i.selected (crip "literal-{<i>}"))
-                                [p=+<-.i.selected q=+<+.i.selected]
-                            ==
-            cells
-    ==
-  =/  typ-addr  ?:  ?=(unqualified-column:ast i.selected)
-                  ~|  "SELECT: column {<name.i.selected>} not found"
-                  (~(got by +.col-lookup) name.i.selected)
-                ?:  ?=(qualified-column:ast i.selected)
-                  ~|  "SELECT: column {<name.i.selected>} not found"
-                  (~(got by +.col-lookup) name.i.selected) 
-                ~|("{<i.selected>} not supported" !!)
-  ?:  ?=(unqualified-column:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
-             :-
-               %:  templ-cell
-                     %templ-cell
-                     :-  ~
-                         :^  %qualified-column
-                             *qualified-table:ast
-                             name.i.selected 
-                             alias.i.selected
-                     +.typ-addr
-                     [(heading i.selected name.i.selected) [-.typ-addr 0]]
-                     ==
-               cells
-    ==
-  ?:  ?=(qualified-column:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
-             :-
-               %:  templ-cell
-                     %templ-cell
-                     [~ i.selected]
-                     +.typ-addr
-                     [(heading i.selected name.i.selected) [-.typ-addr 0]]
-                     ==
-               cells
-    ==
-  ~|("{<i.selected>} not supported" !!)
-::::
-::++  qualify-unqualified
-::  |=  $:  selected=(list selected-column:ast)
-::          qualifier-lookup=(map @tas (list qualified-table:ast))
-::          ==
-::  =/  selected-out  *(list selected-column:ast)
-::  |-
-::  ?~  selected  (flop selected-out)
-::  ?.  ?=(unqualified-column:ast -.selected)
-::    %=  $
-::      selected      t.selected
-::      selected-out  [i.selected selected-out]
-::    ==
-::  =/  qualifiers   ~|  "SELECT: column {<name.i.selected>} not found"
-::                       (~(got by qualifier-lookup) name.i.selected)
-::  ?:  (gth (lent qualifiers) 1)
-::    ~|("SELECT: column {<name.i.selected>} must be qualified" !!)
-::  %=  $
-::    selected      t.selected
-::    selected-out  :-  ^-  selected-column:ast
-::                      %:  qualified-column:ast  %qualified-column
-::                                                -.qualifiers
-::                                                name.i.selected
-::                                                alias.i.selected
-::                                                ==
-::                      selected-out
-::  ==
+::  +mk-rel-vect-templ:
+::    [(list column-meta) (list selected-column:ast) data-row lookup-type]
+::    -> (list templ-cell)
 ::
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-rel-vect-templ
@@ -613,14 +349,6 @@
                      ==
                cells
     ==
-
-    ::~&  [%is-join is-join]
-    ::~&  [%typ-addr typ-addr]
-    ::~&  [%selected i.selected]
-    ::~&  [%cols cols]
-    ::~&  [%lookup-type ]
-
-
   ?:  ?=(qualified-column:ast i.selected)
     %=  $
       i         +(i)
@@ -649,26 +377,6 @@
                 cells
     ==
   ~|("{<i.selected>} not supported" !!)
-::
-::++  mk-templ-cell
-::  |=  [col-lookup=* a=column-meta]
-::  ^-  templ-cell
-::  ?:  =(%unqualified-lookup-type -.col-lookup)
-::    :^  %templ-cell
-::        `-.a 
-::        +:(~(got by ;;((map @tas [@ta @]) +>.col-lookup)) name.qualified-column.a)
-::        [name.qualified-column.a [type.a 0]]
-::
-::    ::~&  [%col-lookup col-lookup]
-::
-::  :^  %templ-cell
-::      `-.a
-::      (calc-joined-addr ;;((mip:mip qualified-table:ast @tas @) +.col-lookup) qualifier.qualified-column.a name.qualified-column.a)
-::      ::(calc-joined-addr ;;((map qualified-table:ast (map @tas @)) col-lookup) qualifier.qualified-column.a name.qualified-column.a)
-::      [name.qualified-column.a [type.a 0]]
-
-
-
 ::
 ++  mk-templ-cell-indexed
   |=  [col-lookup=(map @tas typ-addr) a=column-meta]
@@ -966,6 +674,15 @@
       f
       tmsp.f
       ==
+::
+::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file
+++  content-key  ((on @da data) gth)
+++  get-content
+  |=  [content=((mop @da data) gth) sys-time=@da tbl-key=[@tas @tas]]
+  ^-  file
+  ~|  "data for {<tbl-key>} does not exist for time {<sys-time>}"
+  =/  d=data  ->:(tab:content-key content ``@da`(add `@`sys-time 1) 1)
+  (~(got by files.d) tbl-key)
 ::
 ::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ::

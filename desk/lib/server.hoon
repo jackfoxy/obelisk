@@ -362,4 +362,15 @@
   =.  view-cache.sys-db  %+  run:tab:view-cache-key  view-cache.sys-db
                                                      |=(a=cache [%cache +<.a ~])
   (~(del by (~(put by state) %sys sys-db)) name.drop)
+::
+::  +is-content-populated:  [database @da] -> ?
+++  is-content-populated
+  |=  [=database sys-time=@da]
+  ^-  ?
+  =/  content  (tab:content-key content.database ``@da`(add `@`sys-time 1) 1)
+  ?~  content  %.n
+  =/  d=data  ->.content
+  %^  fold  ~(tap by files.d)
+            `?`%.n
+            |=([[* =file] state=?] ?:(=(0 rowcount.file) state %.y))
 --
