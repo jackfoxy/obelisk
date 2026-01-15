@@ -462,6 +462,7 @@
   :-  join-return
       %:  joined-result  filter
                           qualified-columns.join-return
+                          lookup-type.join-return
                           joined-rows.i.set-tables.join-return
                           selected
                           ==
@@ -469,6 +470,7 @@
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list column-meta)
+          =lookup-type
           rows=(list data-row)
           selected=(list selected-column:ast)
           ==
@@ -476,10 +478,11 @@
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
   =/  cells=(list templ-cell)
-    %^  mk-joined-vect-templ
-          qualified-columns
-          selected
-          ;;(joined-row -.rows)
+    %:  mk-joined-vect-templ  qualified-columns
+                              selected
+                              ;;(joined-row -.rows)
+                              ;;(qualified-lookup-type lookup-type)
+                              ==
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
@@ -502,12 +505,8 @@
   ::
   %=  $
     cols  t.cols
-    row   :-  :-  p.vc.i.cols 
-                  :-  p.q.vc.i.cols
-                      %-  %~  got
-                              bi:mip
-                              ;;((mip:mip qualified-table @tas @ta) data.i.rows)
-                          [qualifier name:(need column.i.cols)]
+    row   :-  :-  p.vc.i.cols
+                  [p.q.vc.i.cols ;;(@ .*(data.i.rows [%0 addr.i.cols]))]
               row
   ==
 ::

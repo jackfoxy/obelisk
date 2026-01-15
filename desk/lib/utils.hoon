@@ -1,4 +1,5 @@
 /-  ast, *obelisk, *server-state
+/+  mip
 |%
 ::
 ::  +license:  MIT+n license
@@ -334,40 +335,21 @@
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
           j=joined-row
+          col-lookup=qualified-lookup-type
           ==
   ^-  (list templ-cell)
   =/  i  0
-  =/  col-lookup
-    %-  ~(gas by `(map [qualified-table:ast @tas] @ta)`~)
-        %+  turn
-              cols
-              |=(a=column-meta [[qualifier.qualified-column.a name.qualified-column.a] type.a])
   =/  cells  *(list templ-cell)
   ::
   |-
-  ?~  selected  ?~  cells  ~|("no cells" !!)  (addr-join j cells)
+  ?~  selected  ?~  cells  ~|("no cells" !!)  cells
   ?:  =([%all %all] i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells     (weld (flop (turn cols mk-templ-cell2)) cells)
-    ==
-  ?:  ?=(qualified-column:ast i.selected)
-    %=  $
-      i         +(i)
-      selected  t.selected
-      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
-             :-
-               %:  templ-cell
-                     %templ-cell
-                     [~ i.selected]
-                     0  :: addr
-                     :-  (heading i.selected name.i.selected)
-                         :-  %-  ~(got by col-lookup)
-                                 [qualifier.i.selected name.i.selected]
-                              0
-                     ==
-               cells
+      cells     %+  weld 
+                    (flop (turn cols (cury mk-templ-cell-joined +>.j)))
+                    cells
     ==
   ?:  ?=(selected-all-table:ast i.selected)
     %=  $
@@ -379,8 +361,8 @@
             %+  turn
               %+  skim
                     cols
-                    |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
-              mk-templ-cell2
+                  |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
+              (cury mk-templ-cell-joined +>.j)
           cells
     ==
   ?:  ?=(selected-value:ast i.selected)
@@ -396,21 +378,42 @@
                             ==
             cells
     ==
+  ?:  ?=(qualified-column:ast i.selected)
+    %=  $
+      i         +(i)
+      selected  t.selected
+      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
+             :-
+               %:  templ-cell
+                     %templ-cell
+                     [~ i.selected]
+                     %^  calc-joined-addr  +>.j
+                                           qualifier.i.selected
+                                           name.i.selected
+                     [(heading i.selected name.i.selected) [-:(~(got bi:mip +.col-lookup) qualifier.i.selected name.i.selected) 0]]
+                     ==
+               cells
+    ==
   ~|("{<i.selected>} not supported" !!)
 ::
-++  mk-templ-cell2
-  |=  a=column-meta
+++  mk-templ-cell-joined
+  |=  [data=(mip:mip qualified-table:ast @tas @) a=column-meta]
   ^-  templ-cell
-  [%templ-cell `-.a addr.a `vector-cell`[name.qualified-column.a [type.a 0]]]
-  ::
-++  mk-templ-cell
-  |=  [col-lookup=(map @tas [@ta @]) a=column-meta]
-  ^-  templ-cell
-  :*  %templ-cell
-      `-.a 
-      +:(~(got by col-lookup) name.qualified-column.a)
-      [name.qualified-column.a [type.a 0]]
-      ==
+  :^  %templ-cell
+      `-.a
+      (calc-joined-addr data qualifier.qualified-column.a name.qualified-column.a)
+      `vector-cell`[name.qualified-column.a [type.a 0]]
+::
+++  calc-joined-addr
+  |=  $:  data=(mip:mip qualified-table:ast @tas @)
+          qual=qualified-table:ast
+          col=@tas
+          ==
+  ^-  @
+  =/  outer    +:(~(dig by data) qual)
+  =/  columns  ;;((map @tas @) +:.*(data [%0 outer]))
+  =/  inner    +:(~(dig by columns) col)
+  (peg (add (mul 2 outer) 1) (add (mul 2 inner) 1))
 ::
 ++  addr-columns
   |=  columns=(list column:ast)
@@ -420,21 +423,21 @@
   %+  turn
         columns
         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
-::
-++  addr-join
-  |=  [j=joined-row cs=(list templ-cell)]
-  ^-  (list templ-cell)
-  =/  cs2  *(list templ-cell)
-  |-
-  ?~  cs  (flop cs2)
-  ?~  column.i.cs  $(cs t.cs, cs2 [i.cs cs2])
-  =/  qual-col  (need column.i.cs)
-  =/  xx=(map @tas @)  (~(got by data.j) qualifier.qual-col)
-  =/  addr  (~(dig by xx) name:(need column.i.cs))
-  %=  $
-    cs2  [(templ-cell %templ-cell column.i.cs (need addr) vc.i.cs) cs2]
-    cs  t.cs
-  ==
+::::
+::++  addr-join
+::  |=  [j=joined-row cs=(list templ-cell)]
+::  ^-  (list templ-cell)
+::  =/  cs2  *(list templ-cell)
+::  |-
+::  ?~  cs  (flop cs2)
+::  ?~  column.i.cs  $(cs t.cs, cs2 [i.cs cs2])
+::  =/  qual-col  (need column.i.cs)
+::  =/  xx=(map @tas @)  (~(got by data.j) qualifier.qual-col)
+::  =/  addr  (~(dig by xx) name:(need column.i.cs))
+::  %=  $
+::    cs2  [(templ-cell %templ-cell column.i.cs (need addr) vc.i.cs) cs2]
+::    cs  t.cs
+::  ==
 ::
 ::  +mk-indexed-vect-templ:
 ::    [(list column-meta) (list selected-column:ast) indexed-row]
@@ -443,16 +446,12 @@
 ::  leave output un-flopped so consuming arm does not flop
 ++  mk-indexed-vect-templ
   |=  $:  cols=(list column-meta)
+          col-lookup=unqualified-lookup-type
           selected=(list selected-column:ast)
           row=indexed-row
           ==
   ^-  (list templ-cell)
   =/  i  0
-  =/  col-lookup
-    %-  ~(gas by *(map @tas [@ta @]))
-        %+  turn
-              cols
-              |=(a=column-meta [name.qualified-column.a type.a addr.a])
   =/  cells  *(list templ-cell)
   ::
   |-
@@ -461,7 +460,9 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells     (weld (flop (turn cols (cury mk-templ-cell col-lookup))) cells)
+      cells     %+  weld
+                    (flop (turn cols (cury mk-templ-cell-indexed +.col-lookup)))
+                    cells
     ==
   ?:  ?=(selected-all-table:ast i.selected)
     %=  $
@@ -474,7 +475,7 @@
               %+  skim
                     cols
                   |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
-              (cury mk-templ-cell col-lookup)
+              (cury mk-templ-cell-indexed +.col-lookup)
           cells
     ==
   ?:  ?=(selected-value:ast i.selected)
@@ -492,10 +493,10 @@
     ==
   =/  typ-addr  ?:  ?=(unqualified-column:ast i.selected)
                   ~|  "SELECT: column {<name.i.selected>} not found"
-                  (~(got by col-lookup) name.i.selected)
+                  (~(got by +.col-lookup) name.i.selected)
                 ?:  ?=(qualified-column:ast i.selected)
                   ~|  "SELECT: column {<name.i.selected>} not found"
-                  (~(got by col-lookup) name.i.selected) 
+                  (~(got by +.col-lookup) name.i.selected) 
                 ~|("{<i.selected>} not supported" !!)
   ?:  ?=(unqualified-column:ast i.selected)
     %=  $
@@ -530,6 +531,14 @@
                cells
     ==
   ~|("{<i.selected>} not supported" !!)
+::
+++  mk-templ-cell-indexed
+  |=  [col-lookup=(map @tas [@ta @]) a=column-meta]
+  ^-  templ-cell
+  :^  %templ-cell
+      `-.a 
+      +:(~(got by col-lookup) name.qualified-column.a)
+      [name.qualified-column.a [type.a 0]]
 ::
 ++  mk-unqualified-typ-addr-lookup
   |=  a=(list column:ast)

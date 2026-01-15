@@ -73,6 +73,7 @@
           ==
       %:  table-result  filter
                         column-metas.the-relation
+                        lookup-type.i.set-tables.the-relation
                         indexed-rows.i.set-tables.the-relation
                         selected
                         ==
@@ -189,6 +190,7 @@
 ++  table-result
   |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list column-meta)
+          =lookup-type
           rows=(list data-row)
           selected=(list selected-column:ast)
           ==
@@ -196,10 +198,12 @@
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
   =/  cells=(list templ-cell)
-    %^  mk-indexed-vect-templ
+    %:  mk-indexed-vect-templ
           qualified-columns
+          ;;(unqualified-lookup-type lookup-type)
           selected
           ;;(indexed-row -.rows)
+          ==
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
@@ -218,15 +222,11 @@
     ==
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
-
-    ::~&  [%col i.cols]
-    ::~&  [%row i.rows]
-
   %=  $
-      cols  t.cols
-      row   :-  :-  p.vc.i.cols
-                    [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
-                row
+    cols  t.cols
+    row   :-  :-  p.vc.i.cols
+                  [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
+              row
   ==
 ::
 ::  +join-all  query:ast -> join-return
@@ -330,7 +330,7 @@
                          columns.vw2
                          predicate
                          rowcount.view-content
-                         *unqualified-lookup-type                    
+                         [%unqualified-lookup-type typ-addr-lookup.vw2]
                          ~
                          ~
                          %+  turn  rows.view-content
