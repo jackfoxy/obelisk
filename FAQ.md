@@ -50,7 +50,7 @@ Currently Obelisk can only be accessed from the host ship. [The roadmap](roadmap
 
 ## How can I protect my app from SQL injection?
 
-You may want to allow injection of some SQL commands in your app. The general solution is to submit your script to the Obelisk parser which returns a list of Obelisk API commands. Filter on the commands you want to allow and submit those for execution, or construct API commands directly.
+You may want to allow injection of some SQL statements in your app. The general solution is to submit your script to the Obelisk parser which returns a list of Obelisk API statements. Filter on the statements you want to allow and submit those for execution, or construct API statements directly.
 
 ## Can Obelisk do \__?
 
