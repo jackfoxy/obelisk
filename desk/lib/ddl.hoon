@@ -284,4 +284,22 @@
   ^+  m
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
+::
+::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
+::                   -> (list key-column)
+++  mk-key-column
+  |=  [=column-lookup pri-indx=(list ordered-column:ast)]
+  ^-  (list key-column)
+  =/  key  *(list key-column)
+  |-
+  ?~  pri-indx  (flop key)
+  %=  $
+    pri-indx  t.pri-indx
+    key       :-  %:  key-column  %key-column
+                                  name.i.pri-indx
+                                  -:(~(got by column-lookup) name.i.pri-indx)
+                                  ascending.i.pri-indx
+                                  ==
+                  key
+  ==
 --

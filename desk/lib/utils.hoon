@@ -148,100 +148,6 @@
         (crip (cass (trip (need alias.selected-column))))
   ~|("{<selected-column>} not supported" !!)
 ::
-::  +order:  [(list @) (list @)] -> ?
-::
-::  Currently orders rows inversely so +select-columns is not required to flop
-::  its output
-++  order-row
-  |_  index=(list column-order)
-  :: to do: accommodate varying row types
-  ++  order
-  |=  [p=(list @) q=(list @)]
-  =/  k=(list [aor=? ascending=? offset=@ud])  index
-  |-  ^-  ?
-  ?~  k  %.n
-  =/  pp=(list @)
-    ?:  =(0 ->+.k)  p                      ::offset of current index
-    (oust [0 ->+.k] p)
-  =/  qq=(list @)
-    ?:  =(0 ->+.k)  q                      ::offset of current index
-    (oust [0 ->+.k] q)
-  ?:  =(-.pp -.qq)  $(k +.k)
-  ?:  =(-<.k %.y)  (alpha -.qq -.pp)
-  ?:  ->-.k  (gth -.pp -.qq)
-  (lth -.pp -.qq)
-  --
-::
-::  +make-ordering:  [(list column:ast) *] -> (list column-order)
-++  make-ordering
-  |=  [columns=(list column:ast) order=*]
-  ^-  (list column-order)
-  =/  out  *(list column-order)
-  |-
-  ?~  order  (flop out)
-  ~|  "bad order column:  {<-.order>} ..."
-  ?>  ?=(ordering-column:ast -.order)
-  =/  ordering=ordering-column:ast  `ordering-column:ast`-.order
-  =/  order-column  column.ordering
-  =/  col-i=(unit [@ @ta])
-        ?:  ?=(qualified-column:ast order-column)
-          (try-find-col-index columns name.order-column)
-        ~|("order column error:  {<order-column>}" !!)
-  ?~  col-i  $(order +.order)
-  =/  offset-type  (need col-i)
-  %=  $
-    order  +.order
-    out
-      ?:  ?|(=(~.t +.offset-type) =(~.ta +.offset-type) =(~.tas +.offset-type))
-        [[%.y ascending.ordering -.offset-type] out]
-      [[%.n ascending.ordering -.offset-type] out]
-  ==
-
-::
-++  try-find-col-index
-  |=  [a=(list column:ast) name=@tas]
-  =/  i  0
-  |-  ^-  (unit [@ @ta])
-  ?~  a  ~
-  ?:  =(name name.i.a)  `[i type.i.a]
-  $(a t.a, i +(i))
-::
-::  +atoms-2-mapped-row:  [(list (list @)) (list column:ast)]
-::                        -> (list (map @tas @))
-++  atoms-2-mapped-row
-  |=  [p=(list (list @)) q=(list column:ast)]
-  ^-  [@ (list (map @tas @))]
-  =/  rows  *(list (map @tas @))
-  =/  i  0
-  |-
-  ?~  p  [i (flop rows)]
-  $(i +(i), p +.p, rows [(malt (zip-columns -.p q)) rows])
-::
-::  +zip-columns: [(list @) (list column:ast)] -> (list [@tas @])
-++  zip-columns
-  |*  [a=(list @) b=(list column:ast)]
-  ^-  (list [@tas @])
-  =/  c  *(list [@tas @])
-  |-
-  ?~  a  ?~  b  c  ~|('column lists of unequal length' !!)
-  ?~  b  ~|('column lists of unequal length' !!)
-  $(a +.a, b +.b, c [[name.i.b -.a] c])
-::
-++  qualified-table-to-cord
-  |=  a=qualified-table:ast
-  ^-  @t
-  =/  b  %-  zing  :~  (trip database.a)
-                       "."
-                       (trip namespace.a)
-                       "."
-                       (trip name.a)
-                       ==
-  ?~  ship.a  (crip b)
-  %-  crip  %-  zing  :~  (trip (need ship.a))
-                          "."
-                          (trip name.a)
-                          ==
-::
 ::  +mk-col-lu-data:  [=column:ast a=@] -> [[@tas [@tas @ud]] @ud]
 ++  mk-col-lu-data
     |=  [=column:ast a=@]
@@ -433,24 +339,6 @@
                       selected-out
   ==
 ::
-::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
-::                   -> (list key-column)
-++  mk-key-column
-  |=  [=column-lookup pri-indx=(list ordered-column:ast)]
-  ^-  (list key-column)
-  =/  key  *(list key-column)
-  |-
-  ?~  pri-indx  (flop key)
-  %=  $
-    pri-indx  t.pri-indx
-    key       :-  %:  key-column  %key-column
-                                  name.i.pri-indx
-                                  -:(~(got by column-lookup) name.i.pri-indx)
-                                  ascending.i.pri-indx
-                                  ==
-                  key
-  ==
-::
 ::    +set-tmsp: [(unit as-of:ast) @da] -> @da
 ++  set-tmsp
   |=  [p=(unit as-of:ast) q=@da]
@@ -498,21 +386,6 @@
   ^-  column:ast
   ~|  "INSERT: invalid column: {<p>}"
   (column:ast %column p -:(~(got by q) p) 0)
-::
-::  +upd-indices-views:  [server qualified-table @da =views] -> server
-::
-::  post- insert, update, delete, truncate procedure to create new view
-::  and index instances for effected tables
-::  =views passes effected sys views
-++  upd-indices-views    :: to do: revisit when there are views & indices
-  |=  $:  state=server
-          sys-time=@da
-          objs=(list qualified-table:ast)
-          sys-vws=(list [@tas @tas])
-          ==
-  ^-  server
-  :: to do: iterate through objects
-  state
 ::
 ::  +update-sys:  [server @da] -> server
 ++  update-sys
@@ -603,34 +476,6 @@
         %+  turn
               sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
-::
-::  +mk-qualifier-lookup:  [(list set-table) (list selected-column:ast)]
-::                         -> (map @tas (list qualified-table:ast))
-::
-::  Make lookup qualifier by column name for predicate processing when a column
-::  is unqualified.
-++  mk-qualifier-lookup
-    |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
-    ^-  (map @tas (list qualified-table:ast))
-    =/  lookup  *(map @tas (list qualified-table:ast))
-    |-
-    ?~  sources           lookup
-    =/  source=set-table  i.sources
-    ?~  relation.source     $(sources t.sources)
-    =/  columns=(list column:ast)  columns.source
-    |-
-    ?~  columns  ^$(sources t.sources)
-    =/  col=column:ast  -.columns
-    %=  $
-      columns  +.columns
-      lookup   ?:  (~(has by lookup) name.col)
-                 %+  ~(put by lookup)
-                        name.col
-                        :-  (need relation.source)
-                            (~(got by lookup) name.col)
-               %+  ~(put by lookup)  name.col
-                                     (limo ~[(need relation.source)])
-    ==
 ::
 ::  +common-txn
 ::    [tape server @da qualified-table:ast (unit as-of:ast) (map @tas @da)]

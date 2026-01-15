@@ -863,5 +863,63 @@
     cs  t.cs
     dup  (~(put by dup) name.i.cs ~)
   ==
+::
+++  qualified-table-to-cord
+  |=  a=qualified-table:ast
+  ^-  @t
+  =/  b  %-  zing  :~  (trip database.a)
+                       "."
+                       (trip namespace.a)
+                       "."
+                       (trip name.a)
+                       ==
+  ?~  ship.a  (crip b)
+  %-  crip  %-  zing  :~  (trip (need ship.a))
+                          "."
+                          (trip name.a)
+                          ==
+::
+::  +upd-indices-views:  [server qualified-table @da =views] -> server
+::
+::  post- insert, update, delete, truncate procedure to create new view
+::  and index instances for effected tables
+::  =views passes effected sys views
+++  upd-indices-views    :: to do: revisit when there are views & indices
+  |=  $:  state=server
+          sys-time=@da
+          objs=(list qualified-table:ast)
+          sys-vws=(list [@tas @tas])
+          ==
+  ^-  server
+  :: to do: iterate through objects
+  state
+::
+::  +mk-qualifier-lookup:  [(list set-table) (list selected-column:ast)]
+::                         -> (map @tas (list qualified-table:ast))
+::
+::  Make lookup qualifier by column name for predicate processing when a column
+::  is unqualified.
+++  mk-qualifier-lookup
+    |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
+    ^-  (map @tas (list qualified-table:ast))
+    =/  lookup  *(map @tas (list qualified-table:ast))
+    |-
+    ?~  sources           lookup
+    =/  source=set-table  i.sources
+    ?~  relation.source     $(sources t.sources)
+    =/  columns=(list column:ast)  columns.source
+    |-
+    ?~  columns  ^$(sources t.sources)
+    =/  col=column:ast  -.columns
+    %=  $
+      columns  +.columns
+      lookup   ?:  (~(has by lookup) name.col)
+                 %+  ~(put by lookup)
+                        name.col
+                        :-  (need relation.source)
+                            (~(got by lookup) name.col)
+               %+  ~(put by lookup)  name.col
+                                     (limo ~[(need relation.source)])
+    ==
 --
  

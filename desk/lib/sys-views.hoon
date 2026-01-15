@@ -1185,4 +1185,82 @@
   =/  prior  (pry:data-key (lot:data-key sys `time ~))
   ?~  prior  ~|("data not available for {<time>}" !!)
   +:(need prior)
+::
+::  +order:  [(list @) (list @)] -> ?
+::
+::  Currently orders rows inversely so +select-columns is not required to flop
+::  its output
+++  order-row
+  |_  index=(list column-order)
+  :: to do: accommodate varying row types
+  ++  order
+  |=  [p=(list @) q=(list @)]
+  =/  k=(list [aor=? ascending=? offset=@ud])  index
+  |-  ^-  ?
+  ?~  k  %.n
+  =/  pp=(list @)
+    ?:  =(0 ->+.k)  p                      ::offset of current index
+    (oust [0 ->+.k] p)
+  =/  qq=(list @)
+    ?:  =(0 ->+.k)  q                      ::offset of current index
+    (oust [0 ->+.k] q)
+  ?:  =(-.pp -.qq)  $(k +.k)
+  ?:  =(-<.k %.y)  (alpha -.qq -.pp)
+  ?:  ->-.k  (gth -.pp -.qq)
+  (lth -.pp -.qq)
+  --
+::
+::  +make-ordering:  [(list column:ast) *] -> (list column-order)
+++  make-ordering
+  |=  [columns=(list column:ast) order=*]
+  ^-  (list column-order)
+  =/  out  *(list column-order)
+  |-
+  ?~  order  (flop out)
+  ~|  "bad order column:  {<-.order>} ..."
+  ?>  ?=(ordering-column:ast -.order)
+  =/  ordering=ordering-column:ast  `ordering-column:ast`-.order
+  =/  order-column  column.ordering
+  =/  col-i=(unit [@ @ta])
+        ?:  ?=(qualified-column:ast order-column)
+          (try-find-col-index columns name.order-column)
+        ~|("order column error:  {<order-column>}" !!)
+  ?~  col-i  $(order +.order)
+  =/  offset-type  (need col-i)
+  %=  $
+    order  +.order
+    out
+      ?:  ?|(=(~.t +.offset-type) =(~.ta +.offset-type) =(~.tas +.offset-type))
+        [[%.y ascending.ordering -.offset-type] out]
+      [[%.n ascending.ordering -.offset-type] out]
+  ==
+::
+++  try-find-col-index
+  |=  [a=(list column:ast) name=@tas]
+  =/  i  0
+  |-  ^-  (unit [@ @ta])
+  ?~  a  ~
+  ?:  =(name name.i.a)  `[i type.i.a]
+  $(a t.a, i +(i))
+::
+::  +atoms-2-mapped-row:  [(list (list @)) (list column:ast)]
+::                        -> (list (map @tas @))
+++  atoms-2-mapped-row
+  |=  [p=(list (list @)) q=(list column:ast)]
+  ^-  [@ (list (map @tas @))]
+  =/  rows  *(list (map @tas @))
+  =/  i  0
+  |-
+  ?~  p  [i (flop rows)]
+  $(i +(i), p +.p, rows [(malt (zip-columns -.p q)) rows])
+::
+::  +zip-columns: [(list @) (list column:ast)] -> (list [@tas @])
+++  zip-columns
+  |*  [a=(list @) b=(list column:ast)]
+  ^-  (list [@tas @])
+  =/  c  *(list [@tas @])
+  |-
+  ?~  a  ?~  b  c  ~|('column lists of unequal length' !!)
+  ?~  b  ~|('column lists of unequal length' !!)
+  $(a +.a, b +.b, c [[name.i.b -.a] c])
 --
