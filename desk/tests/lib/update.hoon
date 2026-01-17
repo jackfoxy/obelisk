@@ -1,7 +1,6 @@
 ::  Demonstrate unit testing queries on a Gall agent with %obelisk.
 ::
-::/-  ast, *obelisk, *server-state
-/+  *test, *test-helpers
+/+  *test-helpers
 ::
 |%
 ::
