@@ -1,7 +1,7 @@
 ::  Demonstrate unit testing queries on a Gall agent with %obelisk.
 ::
 /-  ast, *obelisk, *server-state
-/+  *test
+/+  *test, *test-helpers
 /=  agent  /app/obelisk
 |%
 ::
@@ -685,41 +685,38 @@
 ::  fail on no predicate
 ++  test-fail-delete-00
   =|  run=@ud
-  =^  mov1  agent
-    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-        %obelisk-action
-        !>  :+  %tape2
-                %db1
-                %-  zing  :~  "CREATE DATABASE db1;"
-                              create-calendar
-                              insert-calendar
-                              ==
-  ::
-  %+  expect-fail-message
-        'PARSER:'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-          %obelisk-action
-          !>  :+  %test
-                  %db1
-                  "DELETE FROM calendar "
+  %-  failon
+  :*  run
+      :+  ~2012.4.30
+          %db1
+      %-  zing  :~  "CREATE DATABASE db1;"
+                    create-calendar
+                    insert-calendar
+                    ==
+      ::
+      :+  ~2012.5.3
+          %db1
+      "DELETE FROM calendar "
+      ::
+      'PARSER:'
+      ==
 ::
 ::  fail on changing state after select in script
 ++  test-fail-delete-01
   =|  run=@ud
-  =^  mov1  agent
-    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
-        %obelisk-action
-        !>([%tape2 %sys "CREATE DATABASE db1"])
-  =.  run  +(run)
-  ::
-  %+  expect-fail-message
-        'DELETE: state change after query in script'
-  |.  %+  ~(on-poke agent (bowl [run ~2000.1.2]))
-          %obelisk-action
-          !>  :+  %test
-                  %db1
-                  "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
-                  "SELECT 0;".
-                  "DELETE FROM calendar ".
-                  "WHERE 1 = 1 "
+  %-  failon
+  :*  run
+      :+  ~2000.1.1
+          %sys
+      "CREATE DATABASE db1"
+      ::
+      :+  ~2000.1.2
+          %db1
+      "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
+      "SELECT 0;".
+      "DELETE FROM calendar ".
+      "WHERE 1 = 1 "
+      ::
+      'DELETE: state change after query in script'
+      ==
 --
