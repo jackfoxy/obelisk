@@ -1,26 +1,6 @@
 ::  Unit testing cte queries and data mutation on a Gall agent with %obelisk.
 ::
-/-  ast, *obelisk, *server-state
-/+  *test
-/=  agent  /app/obelisk
-|%
-::
-::  Build an example bowl manually
-++  bowl
-  |=  [run=@ud now=@da]
-  ^-  bowl:gall
-  :*  [~zod ~zod %obelisk `path`(limo `path`/test-agent)]  :: (our src dap sap)
-      [~ ~ ~]                                              :: (wex sup sky)
-      [run `@uvJ`(shax run) now [~zod %base ud+run]]       :: (act eny now byk)
-  ==
-::
-::  Build a reference state mold
-+$  state
-  $:  %0
-      =server
-      ==
-::
---
+/+  *test-helpers
 |%
 ::
 ++  create-table              "CREATE TABLE db1..my-table ".
@@ -79,128 +59,23 @@
   "       (~2010.3.23, '~num galaxy',~num, 4,~2010.3.3) ".
   "       (~2012.2.29, 'rygged',~rus, 5,~2012.2.1); "
 ::
-::  [@ud tape tape cmd-result cmd-result] -> 
-++  execute-111
-  |=  $:  run=@ud
-          init=tape
-          resolve=tape
-          expect1=cmd-result
-          ==
-  =^  mov1  agent
-  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-      %obelisk-action
-      !>  [%tape2 %db1 init]                  :: <== initialize the DB
-  =^  mov2  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-      %obelisk-action
-      !>  [%tape2 %db1 resolve]               :: <== SELECT
-  ::
-  (eval-results expect1 ;;(cmd-result ->+>+>+<.mov2))
-::
-++  debug-111
-  |=  $:  run=@ud
-          init=tape
-          resolve=tape
-          expect1=cmd-result
-          ==
-  =^  mov1  agent
-  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-      %obelisk-action
-      !>  [%tape2 %db1 init]
-  %+  expect-fail-message
-        'placeholder for debugging'
-  |.  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
-          %obelisk-action
-          !>([%test %db1 resolve])
-::
-::  [@ud tape tape tape cmd-result cmd-result] -> 
-++  execut-112
-  |=  $:  run=@ud
-          init=tape
-          action=tape
-          resolve=tape
-          expect1=cmd-result
-          expect2=cmd-result
-          ==
-  =^  mov1  agent
-  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-      %obelisk-action
-      !>  [%tape2 %db1 init]                        :: <==
-  =^  mov2  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
-      %obelisk-action
-      !>  [%tape2 %db1 action]                      :: <==
-  =^  mov3  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-      %obelisk-action
-      !>  [%tape2 %db1 resolve]                     :: <==
-  ::
-  %+  weld  (eval-results expect1 ;;(cmd-result ->+>+>+<.mov2))
-            (eval-results expect2 ;;(cmd-result ->+>+>+<.mov3))
-::
-::
-++  execut-222
-  |=  $:  run=@ud
-          init=tape
-          action-1=tape
-          action-2=tape
-          resolve-1=tape
-          resolve-2=tape
-          expect1=cmd-result
-          expect2=cmd-result
-          ==
-  =^  mov1  agent
-  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-      %obelisk-action
-      !>  [%tape2 %db1 init]                        :: <==
-  =^  mov2  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
-      %obelisk-action
-      !>  [%tape2 %db1 action-1]                    :: <==
-  =^  mov3  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.2]))
-      %obelisk-action
-      !>  [%tape2 %db1 action-2]                    :: <==
-  =^  mov4  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-      %obelisk-action
-      !>  [%tape2 %db1 resolve-1]                   :: <==
-  =^  mov5  agent
-  %+  ~(on-poke agent (bowl [run ~2012.5.4]))
-      %obelisk-action
-      !>  [%tape2 %db1 resolve-2]                   :: <==
-  ::
-  %+  weld  (eval-results expect1 ;;(cmd-result ->+>+>+<.mov4))
-            (eval-results expect2 ;;(cmd-result ->+>+>+<.mov5))
-::
-::
-++  failon
-  |=  [run=@ud init=tape action=tape expect1=@t]
-  =^  mov1  agent
-  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-      %obelisk-action
-      !>  [%tape2 %db1 init]                        :: <==
-  ::
-  %+  expect-fail-message
-      expect1
-      |.  %+  ~(on-poke agent (bowl [run ~2012.5.5]))
-              %obelisk-action
-              !>  [%test %db1 action]
-::
-::
 ::  simple query of cte, SELECT *
 ++  test-cte-00
   =|  run=@ud
-  %-  execute-111
+  %-  exec-0-1
         :*  run
-            %-  zing  :~  "CREATE DATABASE db1;"
-                          create-table
-                          insert-table
-                          ==
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              ==
             ::
-            "WITH (FROM my-table ".
-            "      SELECT *) AS my-cte ".
-            "FROM my-cte SELECT * "
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM my-table ".
+                "      SELECT *) AS my-cte ".
+                "FROM my-cte SELECT * "
             ::
             :-  %results  :~  [%message 'SELECT']
                               :-  %result-set
@@ -275,23 +150,28 @@
 ::                    [%us-federal-holiday [~.t 'Christmas Day']]
 ::                    ==
 ::            ==
-::  ::%-  execute-111
-::  %-  debug-111
+::  ::%-  exec-0-1
+::  %-    debug-0-1
 ::        :*  run
-::            %-  zing  :~  "CREATE DATABASE db1;"
-::                          create-calendar
-::                          insert-calendar
-::                          create-holiday-calendar
-::                          insert-holiday-calendar
-::                          ==
+::            :+  ~2012.4.30
+::                %db1
+::                %-  zing  :~  "CREATE DATABASE db1;"
+::                              create-calendar
+::                              insert-calendar
+::                              create-holiday-calendar
+::                              insert-holiday-calendar
+::                              ==
 ::            ::
-::            "WITH (FROM calendar t1 ".
-::                  "JOIN holiday-calendar T2 ".
-::                  "WHERE T1.day-name = 'Monday' ".
-::                  "  AND t2.us-federal-holiday = 'Christmas Day' ".
-::                  "SELECT T1.day-name, t2.*, t2.us-federal-holiday as fed) ".
-::                  "AS my-cte ".
-::            "FROM my-cte SELECT * "
+::            :+  ~2012.5.3
+::                %db1
+::                "WITH (FROM calendar t1 ".
+::                      "JOIN holiday-calendar T2 ".
+::                      "WHERE T1.day-name = 'Monday' ".
+::                      "  AND t2.us-federal-holiday = 'Christmas Day' ".
+::                      "SELECT T1.day-name, t2.*, ".
+::                            "t2.us-federal-holiday as fed) ".
+::                      "AS my-cte ".
+::                "FROM my-cte SELECT * "
 ::            ::
 ::            :-  %results  :~  [%message 'SELECT']
 ::                              [%result-set expected-rows]
@@ -307,20 +187,24 @@
 ++  test-fail-cte-00
   =|  run=@ud
   %-  failon  :*  run
-                  %-  zing  :~  "CREATE DATABASE db1;"
-                          create-calendar
-                          insert-calendar
-                          create-holiday-calendar
-                          insert-holiday-calendar
-                          ==
+                  :+  ~2012.4.30
+                      %db1
+                      %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
                   ::
-                  "WITH (FROM calendar t1 ".
-                  "JOIN holiday-calendar T2 ".
-                  "WHERE T1.day-name = 'Monday' ".
-                  "  AND t2.us-federal-holiday = 'Christmas Day' ".
-                  "SELECT T1.day-name, t2.*, t2.us-federal-holiday) ".
-                  "AS my-cte ".
-                  "FROM my-cte SELECT * "
+                  :+  ~2012.5.5
+                      %db1
+                      "WITH (FROM calendar t1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "WHERE T1.day-name = 'Monday' ".
+                      "  AND t2.us-federal-holiday = 'Christmas Day' ".
+                      "SELECT T1.day-name, t2.*, t2.us-federal-holiday) ".
+                      "AS my-cte ".
+                      "FROM my-cte SELECT * "
                   ::
                   %-  crip  "%us-federal-holiday is duplicate column name in ".
                             "common table expression %my-cte"
@@ -330,19 +214,23 @@
 ++  test-fail-cte-01
   =|  run=@ud
   %-  failon  :*  run
-                  %-  zing  :~  "CREATE DATABASE db1;"
-                          create-calendar
-                          insert-calendar
-                          create-holiday-calendar
-                          insert-holiday-calendar
-                          ==
+                  :+  ~2012.4.30
+                      %db1
+                      %-  zing  :~  "CREATE DATABASE db1;"
+                                create-calendar
+                                insert-calendar
+                                create-holiday-calendar
+                                insert-holiday-calendar
+                                ==
                   ::
-                  "WITH (FROM calendar t1 ".
-                  "JOIN holiday-calendar T2 ".
-                  "WHERE T1.day-name = 'Monday' ".
-                  "  AND t2.us-federal-holiday = 'Christmas Day' ".
-                  "SELECT *) AS my-cte ".
-                  "FROM my-cte SELECT * "
+                  :+  ~2012.5.5
+                      %db1
+                      "WITH (FROM calendar t1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "WHERE T1.day-name = 'Monday' ".
+                      "  AND t2.us-federal-holiday = 'Christmas Day' ".
+                      "SELECT *) AS my-cte ".
+                      "FROM my-cte SELECT * "
                   ::
                   %-  crip  "%date is duplicate column name in ".
                             "common table expression %my-cte"
