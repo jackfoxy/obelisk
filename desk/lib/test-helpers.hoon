@@ -23,6 +23,19 @@
 |%
 ::
 ::
+::  exec-0-r: init/resolve → compare cmd-result only
+++  exec-0-r
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          expect=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  ::
+  (eval-results expect ;;(cmd-result ->+>+>+>+>+<.mov1))
+::
 ::  exec-0-l: init/resolve → compare 1 results
 ++  exec-0-l
   |=  $:  run=@ud
@@ -398,6 +411,46 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov5))
+::
+::  exec-3-2: init + 4 actions + 2 resolves
+++  exec-3-2
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action-1=[tmsp=@da db=@tas uql=tape]
+          action-2=[tmsp=@da db=@tas uql=tape]
+          action-3=[tmsp=@da db=@tas uql=tape]
+          resolve-1=[tmsp=@da db=@tas uql=tape]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result
+          expect-2=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-1]))
+      %obelisk-action
+      !>  [%tape2 db.action-1 uql.action-1]
+  =^  mov3  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-2]))
+      %obelisk-action
+      !>  [%tape2 db.action-2 uql.action-2]
+  =^  mov4  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-3]))
+      %obelisk-action
+      !>  [%tape2 db.action-3 uql.action-3]
+  =^  mov5  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+      %obelisk-action
+      !>  [%tape2 db.resolve-1 uql.resolve-1]
+  =^  mov6  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
+      %obelisk-action
+      !>  [%tape2 db.resolve-2 uql.resolve-2]
+  ::
+  %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov5))
+            (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov6))
 ::
 ::  exec-4-2: init + 4 actions + 2 resolves
 ++  exec-4-2
