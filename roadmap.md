@@ -12,6 +12,10 @@ Features coming after v0.5 alpha release.
 
 * __JOIN ON__ -- JOIN ON `<predicate>`
 
+* __partial pri key natural join__ -- natural join on beginning of primary key
+
+* __Any natural join__ -- natural join on any column(s) match
+
 * __Set operators__ -- UNION, INTERSECT, EXCEPT, DIVIDED BY, DIVIDED BY WITH REMAINDER
 
 * __ORDER BY ...__ -- order result set
