@@ -41,7 +41,7 @@
 ::    [%tape2 @tas tape]         - suppresses printing result to dodjo
 ::    [%commands (list command)] - prints result to dodjo
 ::    [%test @tas tape]          - supports expect-fail-message in unit tests
-::    [%parse tape]              - returns
+::    [%parse tape]              - returns (list command)
 ::  
 +$  action
   $%

@@ -613,7 +613,7 @@
 ::  fail on no predicate
 ++  test-fail-delete-00
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       :+  ~2012.4.30
           %db1
@@ -632,7 +632,7 @@
 ::  fail on changing state after select in script
 ++  test-fail-delete-01
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       :+  ~2000.1.1
           %sys

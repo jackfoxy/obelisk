@@ -68,6 +68,51 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov2))
+
+
+++  exec-0-0c2
+  |=  $:  run=@ud
+          resolve-1=[tmsp=@da cmds=action]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result
+          expect-2=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+      %obelisk-action
+      !>  cmds.resolve-1
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
+      %obelisk-action
+      !>  [%tape2 db.resolve-2 uql.resolve-2]
+  ::
+  %+  weld  %+  expect-eq
+              !>  expect-1
+              !>  ->+>+>-.mov1
+            (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov2))
+
+
+::
+::  exec-0-02: init + 2 resolve
+++  exec-0-02
+  |=  $:  run=@ud
+          resolve-1=[tmsp=@da db=@tas uql=tape]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result
+          expect-2=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+      %obelisk-action
+      !>  [%tape2 db.resolve-1 uql.resolve-1]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
+      %obelisk-action
+      !>  [%tape2 db.resolve-2 uql.resolve-2]
+  ::
+  %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov1))
+            (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov2))
+::
 ::
 ++  debug-0-1
   |=  $:  run=@ud
@@ -1102,8 +1147,22 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov11))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov12))
 ::
+::
+::  failon: init
+++  failon-0
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          expect=@t
+          ==
+  ::
+  %+  expect-fail-message
+      expect
+      |.  %+  ~(on-poke agent (bowl [run tmsp.init]))
+              %obelisk-action
+              !>  [%test db.init uql.init]
+::
 ::  failon: init + fail on 1st action
-++  failon
+++  failon-1
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -1119,6 +1178,42 @@
       |.  %+  ~(on-poke agent (bowl [run tmsp.action]))
               %obelisk-action
               !>  [%test db.action uql.action]
+::
+::  failon: initc + failc on 1st action
+++  failon-1c
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da cmds=action]
+          expect=@t
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  ::
+  %+  expect-fail-message
+      expect
+      |.  %+  ~(on-poke agent (bowl [run tmsp.action]))
+              %obelisk-action
+              !>  cmds.action
+::
+::  failon: initc + failc on 1st action
+++  failon-1cc
+  |=  $:  run=@ud
+          init=[tmsp=@da cmds=action]
+          action=[tmsp=@da cmds=action]
+          expect=@t
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  cmds.init
+  ::
+  %+  expect-fail-message
+      expect
+      |.  %+  ~(on-poke agent (bowl [run tmsp.action]))
+              %obelisk-action
+              !>  cmds.action
 ::
 ::  failon-c: init + 1 action (action) that should fail
 ++  failon-c
@@ -1161,6 +1256,29 @@
               %obelisk-action
               !>  [%test db.action-2 uql.action-2]
 ::
+::  failon-2c: initc + failc on 2nd action
+++  failon-2c
+  |=  $:  run=@ud
+          init=[tmsp=@da cmds=action]
+          action-1=[tmsp=@da cmds=action]
+          action-2=[tmsp=@da cmds=action]
+          expect=@t
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  cmds.init
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-1]))
+      %obelisk-action
+      !>  cmds.action-1
+  ::
+  %+  expect-fail-message
+      expect
+      |.  %+  ~(on-poke agent (bowl [run tmsp.action-2]))
+              %obelisk-action
+              !>  cmds.action-2
+::
 ::  failon-3: init + fail on 2nd action
 ++  failon-3
   |=  $:  run=@ud
@@ -1188,6 +1306,34 @@
       |.  %+  ~(on-poke agent (bowl [run tmsp.action-3]))
               %obelisk-action
               !>  [%test db.action-3 uql.action-3]
+::
+::  failon-3c: init + fail on 2nd action
+++  failon-3c
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action-1=[tmsp=@da db=@tas uql=tape]
+          action-2=[tmsp=@da db=@tas uql=tape]
+          action-3=[tmsp=@da cmds=action]
+          expect=@t
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-1]))
+      %obelisk-action
+      !>  [%tape2 db.action-1 uql.action-1]
+   =^  mov3  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-2]))
+      %obelisk-action
+      !>  [%tape2 db.action-2 uql.action-2]
+  ::
+  %+  expect-fail-message
+      expect
+      |.  %+  ~(on-poke agent (bowl [run tmsp.action-3]))
+              %obelisk-action
+              !>  cmds.action-3
 ::
 ::  failon-4: init + fail on 2nd action
 ++  failon-4
@@ -1221,4 +1367,102 @@
       |.  %+  ~(on-poke agent (bowl [run tmsp.action-4]))
               %obelisk-action
               !>  [%test db.action-4 uql.action-4]
+::
+::  create and populate test tables
+::
+++  animal-shelter-animals
+  "CREATE TABLE animals ".
+  "(".
+  "  name            @t,".
+  "  species         @t,".
+  "  primary-color   @t,".
+  "  implant-chip-id @t, ".
+  "  gender          @t,".
+  "  birth-date      @da,".
+  "  pattern         @t,".
+  "  admission-date  @da".
+  ")".
+  "  PRIMARY KEY (name, species);".
+  " ".
+  "INSERT INTO animals ".
+  "(name, species, primary-color, implant-chip-id, gender, birth-date, pattern, admission-date) ".
+  "VALUES ".
+  "('Abby', 'Dog', 'Black', 'FDFDB6FE.3347.4E80.8C8A.2E3235C6D1DE', 'F', ~1999.2.19, 'Tricolor', ~2016.7.19) ".
+  "('Ace', 'Dog', 'Ginger', '33D50C6B.9D2E.4EB1.8171.0466DEE4F349', 'M', ~2005.12.19, 'Bicolor', ~2019.6.25) ".
+  "('Angel', 'Dog', 'Brown', 'F0769A5E.1A11.49F1.AC80.3F40A32EA158', 'F', ~2001.9.19, 'Tuxedo', ~2017.2.4) ".
+  "('April', 'Rabbit', 'Gray', 'CCFEF7E8.6FAD.4BA0.81EA.0611DD229E42', 'F', ~2005.1.27, 'Broken', ~2019.4.24) ".
+  "('Archie', 'Cat', 'Ginger', '970D7094.AB66.4DCA.A0D1.0C16264989AF', 'M', ~2009.8.26, 'Tricolor', ~2016.7.10) ".
+  "('Arya', 'Dog', 'Gray', 'CD1528AD.C91D.47EA.9B70.3CACD5BDBE71', 'F', ~2014.4.14, 'Bicolor', ~2018.6.10) ".
+  "('Aspen', 'Dog', 'Brown', '51D4CFD1.CD25.4C5A.AA52.0BFD771F8886', 'F', ~2010.4.17, 'Tuxedo', ~2016.2.9) ".
+  "('Bailey', 'Dog', 'Ginger', '36438BC9.E225.4038.97B2.1E28FD287957', 'F', ~2014.9.28, 'Bicolor', ~2018.10.1) ".
+  "('Baloo', 'Rabbit', 'White', 'F5CE3A02.1EC7.431D.8A76.09369E8D798B', 'M', ~2015.4.27, 'Broken', ~2016.8.21) ".
+  "('Beau', 'Dog', 'Cream', '4B94A68C.0C97.4F70.9275.35B3A9EEE8D9', 'M', ~2016.2.9, 'Solid', ~2017.5.24) ".
+  "('Benji', 'Dog', 'Gray', '646F0A76.14E4.42E7.9554.3AF1EA6CC78F', 'M', ~2012.5.21, 'Bicolor', ~2018.10.2) ".
+  "('Benny', 'Dog', 'Brown', '2AE54BBB.A587.49D5.9A4D.1400A303C4BF', 'M', ~2010.3.4, 'Tuxedo', ~2018.9.30) ".
+  "('Blue', 'Dog', 'Ginger', '6D296D1D.E14D.4308.8B4F.27F87FE1534E', 'M', ~2003.9.3, 'Bicolor', ~2016.4.3) ".
+  "('Bon bon', 'Rabbit', 'Gray', 'BCE7E239.304A.483D.9E38.05B9B66AF496', 'F', ~2002.6.29, 'Broken', ~2016.1.3) ".
+  "('Boomer', 'Dog', 'Black', '01E2AD60.DAA5.4681.B934.40C9DCF7D73A', 'M', ~2013.8.11, 'Tricolor', ~2017.1.11) ".
+  "('Brody', 'Dog', 'Black', 'EB517826.E48A.41AE.A5FB.1BBECA23C05D', 'M', ~2007.8.23, 'Tricolor', ~2018.12.5) ".
+  "('Brutus', 'Dog', 'Ginger', 'B7FAD096.7CD1.42A7.85D6.0C3E6599DBEB', 'M', ~2011.4.4, 'Bicolor', ~2018.8.3) ".
+  "('Buddy', 'Cat', 'White', '6D49B3F6.E075.4F33.97A3.1D4878EE1345', 'M', ~2017.1.26, 'Tortoiseshell', ~2018.12.20) ".
+  "('Callie', 'Dog', 'Cream', '2636F17F.5893.482F.94A7.47EEB715047A', 'F', ~2003.8.28, 'Solid', ~2017.12.19) ".
+  "('Charlie', 'Cat', 'Gray', 'AB967364.43CC.4DD2.A4D9.080F0DEF56CA', 'M', ~2016.6.16, 'Calico', ~2018.2.16) ".
+  "('Chico', 'Dog', 'Brown', 'C6614119.945A.45A9.A5A2.3C8F840EDC01', 'M', ~2014.3.20, 'Tuxedo', ~2019.3.22) ".
+  "('Chubby', 'Rabbit', 'Ginger', '561FEA02.9C12.43B1.9EA8.071C9EAE4C55', 'M', ~2013.2.7, 'Broken', ~2017.10.31) ".
+  "('Cleo', 'Cat', 'Black', '0897655B.1486.4D5D.AD60.03A855AFCAF3', 'F', ~2015.8.13, 'Tortoiseshell', ~2019.9.6) ".
+  "('Cooper', 'Dog', 'Black', '14F9E97B.6CD4.4EE4.9798.1C4F2376141B', 'M', ~2009.11.15, 'Tricolor', ~2017.1.15) ".
+  "('Cosmo', 'Cat', 'Cream', '2754B9C9.5DF4.4206.818D.21BDD1A093ED', 'M', ~2017.11.9, 'Solid', ~2019.5.13) ".
+  "('Dolly', 'Dog', 'Gray', 'DBDC4F81.1709.49D6.9F73.1D2099ECA35C', 'F', ~2013.9.29, 'Bicolor', ~2018.4.27) ".
+  "('Emma', 'Dog', 'Black', 'BAC4C56D.EBB6.43E3.86F3.36506E17F74D', 'F', ~2006.12.26, 'Tricolor', ~2019.3.28) ".
+  "('Fiona', 'Cat', 'Gray', '90226140.F54E.419D.82E5.0EA81E0E6384', 'F', ~1999.5.23, 'Calico', ~2017.1.13) ".
+  "('Frankie', 'Dog', 'Gray', 'CC96E651.2F1C.45F8.BCE2.26AC8C9868A7', 'M', ~2003.9.10, 'Bicolor', ~2016.6.20) ".
+  "('George', 'Cat', 'Brown', '6FEFC95E.7D46.4E25.B90A.0BA75F45D972', 'M', ~2001.10.4, 'Bicolor', ~2017.11.24) ".
+  "('Ginger', 'Dog', 'Ginger', '9E241A82.AD77.49DC.AD15.0AC8D2E89DDE', 'F', ~2015.11.17, 'Bicolor', ~2016.11.27) ".
+  "('Gizmo', 'Dog', 'Brown', '78556795.4748.447F.A2CE.336B01173A18', 'M', ~2006.1.23, 'Tuxedo', ~2019.8.14) ".
+  "('Gracie', 'Cat', 'Black', '66691184.06B1.4AA8.89B3.0DEF5FD9FBE1', 'F', ~2007.11.20, 'Spotted', ~2017.5.21) ".
+  "('Gus', 'Dog', 'Cream', '104A1427.D921.4D11.B45C.370C70E1578F', 'M', ~2014.10.29, 'Solid', ~2016.9.28) ".
+  "('Hobbes', 'Cat', 'Gray', '8788E7B9.DC20.45EF.8778.0066F60D790D', 'M', ~2002.1.1, 'Spotted', ~2016.7.29) ".
+  "('Holly', 'Dog', 'Cream', 'DD737E6E.3B26.43B4.AD4B.28398602DF74', 'F', ~2011.6.13, 'Solid', ~2016.12.30) ".
+  "('Hudini', 'Rabbit', 'Cream', 'DE295DD6.502F.43E3.B139.06CEB3FA2128', 'M', ~2018.3.22, 'Brindle', ~2019.12.10) ".
+  "('Humphrey', 'Rabbit', 'Cream', '2A423596.5BF8.41A7.906A.0BD3EA15E17C', 'M', ~2008.12.22, 'Brindle', ~2017.12.31) ".
+  "('Ivy', 'Cat', 'Brown', '0955C70B.A2B6.4D78.8E4B.1F6386FFC763', 'F', ~2013.5.13, 'Spotted', ~2018.5.20) ".
+  "('Jake', 'Dog', 'White', '9209D54C.0238.457B.9922.02171E9DF0E6', 'M', ~2011.2.27, 'Tuxedo', ~2016.12.14) ".
+  "('Jax', 'Dog', 'Ginger', '24AD2ED9.E7E6.4571.8A45.3C9361418B07', 'M', ~2009.2.6, 'Bicolor', ~2017.10.3) ".
+  "('Kiki', 'Cat', 'Cream', '4E029101.2326.461C.8FF7.0EB809F110CB', 'F', ~2015.7.7, 'Tricolor', ~2019.11.16) ".
+  "('King', 'Dog', 'Brown', '793E68EB.B952.4425.B9E2.0406EA01AC53', 'M', ~2015.9.12, 'Tuxedo', ~2017.8.29) ".
+  "('Kona', 'Dog', 'Gray', 'C87EE041.973F.482C.B5E4.3310B4D80612', 'F', ~2008.10.16, 'Bicolor', ~2019.12.13) ".
+  "('Layla', 'Dog', 'Cream', 'DF2E0BBC.ACB7.413C.90BC.2AAE37ACEB90', 'F', ~2006.3.11, 'Solid', ~2018.6.14) ".
+  "('Lexi', 'Dog', 'Brown', 'BFD890AA.AFB6.4E8F.B60B.0124840EB504', 'F', ~2017.9.17, 'Tuxedo', ~2018.6.22);"
+::
+++  animal-shelter-animals-breed
+  "CREATE TABLE animals-breed ".
+  "(".
+  "  name    @t,".
+  "  species @t, ".
+  "  breed   @t".
+  ")".
+  "  PRIMARY KEY (name, species);".
+  " ".
+  "INSERT INTO animals-breed ".
+  "(name, species, breed) ".
+  "VALUES ".
+  "('Archie', 'Cat', 'Persian') ".
+  "('Baloo', 'Rabbit', 'English Lop') ".
+  "('Benji', 'Dog', 'English setter') ".
+  "('Boomer', 'Dog', 'Schnauzer') ".
+  "('Brody', 'Dog', 'Schnauzer') ".
+  "('Brutus', 'Dog', 'Weimaraner') ".
+  "('Callie', 'Dog', 'English setter') ".
+  "('Emma', 'Dog', 'Schnauzer') ".
+  "('Frankie', 'Dog', 'English setter') ".
+  "('Gus', 'Dog', 'English setter') ".
+  "('Humphrey', 'Rabbit', 'Belgian Hare') ".
+  "('Ivy', 'Cat', 'Turkish Angora') ".
+  "('Jake', 'Dog', 'Bullmastiff') ".
+  "('Jax', 'Dog', 'Weimaraner') ".
+  "('Lily', 'Dog', 'Schnauzer') ".
+  "('Lucy', 'Dog', 'Weimaraner') ".
+  "('Mac', 'Dog', 'English setter') ".
+  "('Miss Kitty', 'Cat', 'Maine Coon') ".
+  "('Misty', 'Cat', 'Siamese') "
 --

@@ -1212,7 +1212,7 @@
 ::  fail on changing state after select in script
 ++  test-fail-insert-10
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -1228,7 +1228,7 @@
 ::  fail on database does not exist
 ++  test-fail-insert-11
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::

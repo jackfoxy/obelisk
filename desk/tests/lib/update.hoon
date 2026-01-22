@@ -1288,7 +1288,7 @@
 ::  fail on no predicate, create dup key
 ++  test-fail-update-00
   =|  run=@ud
-  %-  failon  :*  run
+  %-  failon-1  :*  run
                     :+  ~2012.4.30
                         %db1
                         %-  zing  :~  "CREATE DATABASE db1;"
@@ -1304,7 +1304,7 @@
 ::  fail on predicate, create 1 dup key
 ++  test-fail-update-01
   =|  run=@ud
-  %-  failon  :*  run
+  %-  failon-1  :*  run
                     :+  ~2012.4.30
                         %db1
                         %-  zing  :~  "CREATE DATABASE db1;"
@@ -1321,7 +1321,7 @@
 ::  fail on column does not exist
 ++  test-fail-update-02
   =|  run=@ud
-  %-  failon  :*  run
+  %-  failon-1  :*  run
                     :+  ~2012.4.30
                         %db1
                         %-  zing  :~  "CREATE DATABASE db1;"
@@ -1339,7 +1339,7 @@
 ::  fail on column is wrong type
 ++  test-fail-update-03
   =|  run=@ud
-  %-  failon  :*  run
+  %-  failon-1  :*  run
                     :+  ~2012.4.30
                         %db1
                         %-  zing  :~  "CREATE DATABASE db1;"
@@ -1471,7 +1471,7 @@
 ::  fail on changing state after select in script
 ++  test-fail-update-06
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       :+  ~2000.1.1
           %sys

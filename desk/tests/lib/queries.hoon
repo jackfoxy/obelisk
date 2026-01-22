@@ -5330,7 +5330,7 @@
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       :+  ~2012.4.30
           %db1
@@ -5350,7 +5350,7 @@
 ::  same object 2X with unknown column
 ++  test-fail-join-01
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       :+  ~2012.4.30
           %db1
@@ -5370,7 +5370,7 @@
 ::  fail natural join on incompatible keys
 ++  test-fail-join-02
   =|  run=@ud
-  %-  failon
+  %-  failon-1
   :*  run
       :+  ~2012.4.30
           %db1

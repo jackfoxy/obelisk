@@ -186,53 +186,53 @@
 ::  fail on duplicate column name
 ++  test-fail-cte-00
   =|  run=@ud
-  %-  failon  :*  run
-                  :+  ~2012.4.30
-                      %db1
-                      %-  zing  :~  "CREATE DATABASE db1;"
-                              create-calendar
-                              insert-calendar
-                              create-holiday-calendar
-                              insert-holiday-calendar
-                              ==
-                  ::
-                  :+  ~2012.5.5
-                      %db1
-                      "WITH (FROM calendar t1 ".
-                      "JOIN holiday-calendar T2 ".
-                      "WHERE T1.day-name = 'Monday' ".
-                      "  AND t2.us-federal-holiday = 'Christmas Day' ".
-                      "SELECT T1.day-name, t2.*, t2.us-federal-holiday) ".
-                      "AS my-cte ".
-                      "FROM my-cte SELECT * "
-                  ::
-                  %-  crip  "%us-federal-holiday is duplicate column name in ".
-                            "common table expression %my-cte"
-                  ==
-::
-::  fail on duplicate column name, part 2
-++  test-fail-cte-01
-  =|  run=@ud
-  %-  failon  :*  run
-                  :+  ~2012.4.30
-                      %db1
-                      %-  zing  :~  "CREATE DATABASE db1;"
+  %-  failon-1  :*  run
+                    :+  ~2012.4.30
+                        %db1
+                        %-  zing  :~  "CREATE DATABASE db1;"
                                 create-calendar
                                 insert-calendar
                                 create-holiday-calendar
                                 insert-holiday-calendar
                                 ==
-                  ::
-                  :+  ~2012.5.5
-                      %db1
-                      "WITH (FROM calendar t1 ".
-                      "JOIN holiday-calendar T2 ".
-                      "WHERE T1.day-name = 'Monday' ".
-                      "  AND t2.us-federal-holiday = 'Christmas Day' ".
-                      "SELECT *) AS my-cte ".
-                      "FROM my-cte SELECT * "
-                  ::
-                  %-  crip  "%date is duplicate column name in ".
-                            "common table expression %my-cte"
-                  ==
+                    ::
+                    :+  ~2012.5.5
+                        %db1
+                        "WITH (FROM calendar t1 ".
+                        "JOIN holiday-calendar T2 ".
+                        "WHERE T1.day-name = 'Monday' ".
+                        "  AND t2.us-federal-holiday = 'Christmas Day' ".
+                        "SELECT T1.day-name, t2.*, t2.us-federal-holiday) ".
+                        "AS my-cte ".
+                        "FROM my-cte SELECT * "
+                    ::
+                    %-  crip  "%us-federal-holiday is duplicate column name in ".
+                              "common table expression %my-cte"
+                    ==
+::
+::  fail on duplicate column name, part 2
+++  test-fail-cte-01
+  =|  run=@ud
+  %-  failon-1  :*  run
+                    :+  ~2012.4.30
+                        %db1
+                        %-  zing  :~  "CREATE DATABASE db1;"
+                                  create-calendar
+                                  insert-calendar
+                                  create-holiday-calendar
+                                  insert-holiday-calendar
+                                  ==
+                    ::
+                    :+  ~2012.5.5
+                        %db1
+                        "WITH (FROM calendar t1 ".
+                        "JOIN holiday-calendar T2 ".
+                        "WHERE T1.day-name = 'Monday' ".
+                        "  AND t2.us-federal-holiday = 'Christmas Day' ".
+                        "SELECT *) AS my-cte ".
+                        "FROM my-cte SELECT * "
+                    ::
+                    %-  crip  "%date is duplicate column name in ".
+                              "common table expression %my-cte"
+                    ==
 --
