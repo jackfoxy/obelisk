@@ -821,8 +821,8 @@
   ~|  "failed lookup for column:  {<a>}"
   ?:  ?=(qualified-column a)
     ?~  alias.a
-      ~[[%column name.a (~(got bi:mip col-lookup) (normalize-qt qualifier.a) name.a) 0]]
-    ~[[%column (need alias.a) (~(got bi:mip col-lookup) (normalize-qt qualifier.a) name.a) 0]]
+      ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
+    ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
   ?:  ?=(unqualified-column a)  ~|("can't be unqualified in join" !!)
   ?:  ?=(selected-aggregate a)  ~|("selected-aggregate not implemented" !!)
   ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a 0]]
@@ -832,7 +832,7 @@
                   |=  [a=set-table b=(list column:ast)]
                   ?~(relation.a b (weld (flop columns.a) b))
   ?:  ?=(selected-all-table a)
-    (~(got by rel-col-lookup) (normalize-qt qualified-table.a))
+    (~(got by rel-col-lookup) qualified-table.a)
   !!  :: to do: message?
 ::
 ::  +mk-cte-column-metas
@@ -852,8 +852,8 @@
                               qualifier.c
                               ?~(alias.c name.c (need alias.c))
                               ?~(alias.c ~ [~ name.c])
-                          type:(~(got bi:mip +.lookup-type) (normalize-qt qualifier.c) name.c)
-                          (calc-cte-col-addr lookup-type (normalize-qt qualifier.c) name.c)
+                          type:(~(got bi:mip +.lookup-type) qualifier.c name.c)
+                          (calc-cte-col-addr lookup-type qualifier.c name.c)
                       ==
                 unqualified-column:ast
                   ~|("not supported" !!)
@@ -879,7 +879,7 @@
   =/  metas  *(list column-meta)
   |-
   ?~  columns  (flop metas)
-  ~|  "can't lookup column {<(normalize-qt qualified-table)>} {<name.i.columns>}"
+  ~|  "can't lookup column {<qualified-table>} {<name.i.columns>}"
   =/  typ-addr  %+  ~(got bi:mip +.qualified-lookup-type)  %-  normalize-qt
                                                                 qualified-table
                                                            name.i.columns
@@ -891,7 +891,7 @@
                         ~
                     type.typ-addr
                     %^  calc-cte-col-addr  qualified-lookup-type
-                                           (normalize-qt qualified-table)
+                                           qualified-table
                                            name.i.columns
                 metas
   ==
@@ -902,7 +902,7 @@
           col=@tas
           ==
   ^-  @
-  =/  outer    +:(~(dig by +.lookup) (normalize-qt qual))
+  =/  outer    +:(~(dig by +.lookup) qual)
   =/  columns  ;;((map @tas typ-addr) +:.*(+.lookup [%0 outer]))
   =/  inner    +:(~(dig by columns) col)
   (peg (add (mul 2 outer) 1) (add (mul 2 inner) 1))
@@ -916,7 +916,7 @@
   ?~  relation.i.st  $(st t.st)
   |-
   ?~  columns.i.st  ^$(st t.st)
-  =.  lookup  %^  ~(put bi:mip lookup)  (normalize-qt (need relation.i.st))
+  =.  lookup  %^  ~(put bi:mip lookup)  (need relation.i.st)
                                         name.i.columns.i.st
                                         type.i.columns.i.st
   $(columns.i.st t.columns.i.st)
@@ -930,7 +930,7 @@
   ?~  relation.i.st  $(st t.st)
   %=  $
     st      t.st
-    lookup  (~(put by lookup) (normalize-qt (need relation.i.st)) columns.i.st)
+    lookup  (~(put by lookup) (need relation.i.st) columns.i.st)
   ==
 ::
 ++  cte-col-dups

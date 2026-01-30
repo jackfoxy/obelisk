@@ -200,13 +200,6 @@
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
-
-
-    ::~&  [%row -.rows]
-    ::~&  [%selected selected]
-    ::~&  [%qualified-columns qualified-columns]
-    ::~&  [%qualified-columns qualified-columns]
-
   =/  cells  %:  mk-rel-vect-templ  qualified-columns
                                     selected
                                     -.rows
@@ -348,7 +341,7 @@
           ==
       :-  %qualified-lookup-type
           %+  ~(put by *(map qualified-table (map @tas typ-addr)))
-                (normalize-qt ts)
+                ts
                 typ-addr-lookup.vw2
       (mk-qualified-columns ts qualified-columns columns.vw2)
 ::
@@ -389,7 +382,7 @@
                          ==
           ==
       :-  %qualified-lookup-type
-          (~(put by +.type-lookup) (normalize-qt query-obj) typ-addr-lookup.tbl2)
+          (~(put by +.type-lookup) query-obj typ-addr-lookup.tbl2)
       (mk-qualified-columns query-obj qualified-columns columns.tbl2)
 ::
 ::  +mk-joined-relations:  [relation (list joined-relation:ast)]
@@ -480,7 +473,7 @@
     out-rows  :-  ?:  ?=(%joined-row -.i.a)
                     :+  %joined-row
                         ~
-                        (~(put by data.i.a) (normalize-qt (need relation.this)) data.i.b)
+                        (~(put by data.i.a) (need relation.this) data.i.b)
                   %:  joined-from-indexed  i.a
                                            (need relation.prior)
                                            i.b
@@ -602,7 +595,7 @@
   ?:  =(key.i.a key.i.b)
     %=  $ 
       c  ?:  ?=(%joined-row -.i.a) 
-        [[%joined-row key.i.a (~(put by data.i.a) (normalize-qt b-qual) data.i.b)] c]
+        [[%joined-row key.i.a (~(put by data.i.a) b-qual data.i.b)] c]
       [(joined-from-indexed i.a a-qual i.b b-qual) c]
       a  t.a
       b  t.b
@@ -622,9 +615,9 @@
   :+  %joined-row
       key.a
       %+  %~  put  by  %+  %~  put  by  *(map qualified-table:ast (map @tas @))
-                           (normalize-qt a-qual)
+                           a-qual
                            data.a
-          (normalize-qt b-qual)
+          b-qual
           data.b
 ::
 ::  +data-row-comp

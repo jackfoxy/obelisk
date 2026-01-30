@@ -160,7 +160,7 @@
           col=@tas
           ==
   ^-  @
-  =/  outer    +:(~(dig by data) (normalize-qt qual))
+  =/  outer    +:(~(dig by data) qual)
   =/  columns  ;;((map @tas @) +:.*(data [%0 outer]))
   =/  inner    +:(~(dig by columns) col)
   (peg (add (mul 2 outer) 1) (add (mul 2 inner) 1))
@@ -177,61 +177,61 @@
   qt(alias `(crip (cass (trip u.alias.qt))))
 ::
 ++  normalize-relation
-|=  =relation:ast
-^-  relation:ast
-?:  =(-.relation %qualified-table)
-  (normalize-qt ;;(qualified-table:ast relation))
-?:  =(-.relation %cte-alias)
-  [%cte-alias (crip (cass (trip alias:;;(cte-alias:ast relation))))]
-~|("normalize-relation not implemented" !!)
+  |=  =relation:ast
+  ^-  relation:ast
+  ?:  =(-.relation %qualified-table)
+    (normalize-qt ;;(qualified-table:ast relation))
+  ?:  =(-.relation %cte-alias)
+    [%cte-alias (crip (cass (trip alias:;;(cte-alias:ast relation))))]
+  ~|("normalize-relation not implemented" !!)
 ::
 ++  normalize-from
-|=  =from:ast
-^-  from:ast
-:^  %from
-    (normalize-relation relation.from)
-    as-of.from
-    %+  turn  joins.from  |=  j=joined-relation:ast
-                          :*  %joined-relation
-                              join.j
-                              (normalize-relation relation.j)
-                              as-of.j
-                              predicate.j
-                              ==
+  |=  =from:ast
+  ^-  from:ast
+  :^  %from
+      (normalize-relation relation.from)
+      as-of.from
+      %+  turn  joins.from  |=  j=joined-relation:ast
+                            :*  %joined-relation
+                                join.j
+                                (normalize-relation relation.j)
+                                as-of.j
+                                predicate.j
+                                ==
 ::
 ++  normalize-selected
-|=  selected-columns=(list selected-column:ast)
-^-  (list selected-column:ast)
-=/  out  *(list selected-column:ast)
-|-
-?~  selected-columns  (flop out)
-?-  i.selected-columns
-  qualified-column:ast
-    %=  $
-      out               :-  :^  %qualified-column
-                                (normalize-qt qualifier.i.selected-columns)
-                                name.i.selected-columns
-                                alias.i.selected-columns
-                            out
-      selected-columns  t.selected-columns
+  |=  selected-columns=(list selected-column:ast)
+  ^-  (list selected-column:ast)
+  =/  out  *(list selected-column:ast)
+  |-
+  ?~  selected-columns  (flop out)
+  ?-  i.selected-columns
+    qualified-column:ast
+      %=  $
+        out               :-  :^  %qualified-column
+                                  (normalize-qt qualifier.i.selected-columns)
+                                  name.i.selected-columns
+                                  alias.i.selected-columns
+                              out
+        selected-columns  t.selected-columns
+      ==
+    unqualified-column:ast
+      $(out [i.selected-columns out], selected-columns t.selected-columns)
+    selected-aggregate:ast
+      $(out [i.selected-columns out], selected-columns t.selected-columns)
+    selected-value:ast
+      $(out [i.selected-columns out], selected-columns t.selected-columns)
+    selected-all:ast
+      $(out [i.selected-columns out], selected-columns t.selected-columns)
+    selected-all-table:ast
+      %=  $
+        out               :-  :-  %all-object
+                                  %-  normalize-qt
+                                        qualified-table.i.selected-columns
+                              out
+        selected-columns  t.selected-columns
+      ==
     ==
-  unqualified-column:ast
-    $(out [i.selected-columns out], selected-columns t.selected-columns)
-  selected-aggregate:ast
-    $(out [i.selected-columns out], selected-columns t.selected-columns)
-  selected-value:ast
-    $(out [i.selected-columns out], selected-columns t.selected-columns)
-  selected-all:ast
-    $(out [i.selected-columns out], selected-columns t.selected-columns)
-  selected-all-table:ast
-    %=  $
-      out               :-  :-  %all-object
-                                %-  normalize-qt
-                                      qualified-table.i.selected-columns
-                            out
-      selected-columns  t.selected-columns
-    ==
-  ==
 ::
 ++  mk-qualified-columns
   |=  $:  query-obj=qualified-table:ast
@@ -280,7 +280,7 @@
       cells     %+  weld
                     ?:  is-join
                       (flop (turn cols (cury mk-templ-cell-joined +>:;;(joined-row row))))
-                    (flop (turn cols (cury mk-templ-cell-indexed +:;;(unqualified-lookup-type lookup-type))))   ::<==
+                    (flop (turn cols (cury mk-templ-cell-indexed +:;;(unqualified-lookup-type lookup-type))))
                     cells
     ==
   ?:  ?=(selected-all-table:ast i.selected)
@@ -295,7 +295,7 @@
                     cols
                   |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
               ?:  is-join  (cury mk-templ-cell-joined +>:;;(joined-row row))
-              (cury mk-templ-cell-indexed +:;;(unqualified-lookup-type lookup-type))     ::<==
+              (cury mk-templ-cell-indexed +:;;(unqualified-lookup-type lookup-type))
           cells
     ==
   ?:  ?=(selected-value:ast i.selected)
@@ -347,11 +347,11 @@
                       %templ-cell
                       [~ i.selected]
                       %^  calc-joined-addr  data:;;(joined-row row)
-                                            (normalize-qt qualifier.i.selected)
+                                            qualifier.i.selected
                                             name.i.selected
                       :-  (heading i.selected name.i.selected)
                           :-  %-  head  %+  ~(got bi:mip +:;;(qualified-lookup-type lookup-type))
-                                                (normalize-qt qualifier.i.selected)
+                                                qualifier.i.selected
                                                 name.i.selected
                               0
                       ==
@@ -379,8 +379,8 @@
   :^  %templ-cell
       `-.a
       ?~  alias.qualified-column.a
-        (calc-joined-addr data (normalize-qt qualifier.qualified-column.a) name.qualified-column.a)
-      (calc-joined-addr data (normalize-qt qualifier.qualified-column.a) (need alias.qualified-column.a))
+        (calc-joined-addr data qualifier.qualified-column.a name.qualified-column.a)
+      (calc-joined-addr data qualifier.qualified-column.a (need alias.qualified-column.a))
       `vector-cell`[name.qualified-column.a [type.a 0]]
 ::
 ++  mk-unqualified-typ-addr-lookup
@@ -393,7 +393,7 @@
   ^-  qualified-lookup-type
   :-  %qualified-lookup-type
   %-  malt
-  (turn kvp |=(e=[qualified-table:ast (list column:ast)] [(normalize-qt -.e) (mk-unqualified-typ-addr-lookup +.e)]))
+  (turn kvp |=(e=[qualified-table:ast (list column:ast)] [-.e (mk-unqualified-typ-addr-lookup +.e)]))
 ::
 ++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)
@@ -415,7 +415,7 @@
     selected      t.selected
     selected-out  :-  ^-  selected-column:ast
                       %:  qualified-column:ast  %qualified-column
-                                                (normalize-qt -.qualifiers)
+                                                -.qualifiers
                                                 name.i.selected
                                                 alias.i.selected
                                                 ==
