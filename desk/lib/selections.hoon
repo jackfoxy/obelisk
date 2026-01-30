@@ -346,7 +346,7 @@
       (mk-qualified-columns ts qualified-columns columns.vw2)
 ::
 ++  from-table
-  |=  $:  query-obj=qualified-table:ast
+  |=  $:  =qualified-table:ast
           =named-ctes
           db=database
           =schema
@@ -357,18 +357,20 @@
           qualified-columns=(list column-meta)
           ==
   ^-  full-relation
-  =/  tbl  (~(get by tables.schema) [namespace.query-obj name.query-obj])
-  ?~  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
-               ".{<name.query-obj>} does not exist at schema time ".
-               "{<tmsp.schema>}"
-           `full-relation`(~(got by named-ctes) name.query-obj)
+  =/  tbl  %-  ~(get by tables.schema)
+               [namespace.qualified-table name.qualified-table]
+  ?~  tbl  ~|  "SELECT: table {<database.qualified-table>}.".
+               "{<namespace.qualified-table>}.{<name.qualified-table>} does ".
+               "not exist at schema time {<tmsp.schema>}"
+           `full-relation`(~(got by named-ctes) name.qualified-table)
   =/  tbl2=table  (need tbl)
-  =/  file
-        (get-content content.db sys-time [namespace.query-obj name.query-obj])
+  =/  file  %^  get-content  content.db
+                             sys-time
+                             [namespace.qualified-table name.qualified-table]
   :^  %full-relation
       :~  %:  set-table  %set-table
                          join
-                         [~ query-obj]
+                         [~ qualified-table]
                          [~ tmsp.tbl2]
                          [~ tmsp.file]
                          columns.tbl2
@@ -382,8 +384,8 @@
                          ==
           ==
       :-  %qualified-lookup-type
-          (~(put by +.type-lookup) query-obj typ-addr-lookup.tbl2)
-      (mk-qualified-columns query-obj qualified-columns columns.tbl2)
+          (~(put by +.type-lookup) qualified-table typ-addr-lookup.tbl2)
+      (mk-qualified-columns qualified-table qualified-columns columns.tbl2)
 ::
 ::  +mk-joined-relations:  [relation (list joined-relation:ast)]
 ::                         ->  (list joined-relat)

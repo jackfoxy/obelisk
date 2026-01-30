@@ -156,11 +156,11 @@
 ::
 ++  calc-joined-addr
   |=  $:  data=(mip:mip qualified-table:ast @tas @)
-          qual=qualified-table:ast
+          =qualified-table:ast
           col=@tas
           ==
   ^-  @
-  =/  outer    +:(~(dig by data) qual)
+  =/  outer    +:(~(dig by data) qualified-table)
   =/  columns  ;;((map @tas @) +:.*(data [%0 outer]))
   =/  inner    +:(~(dig by columns) col)
   (peg (add (mul 2 outer) 1) (add (mul 2 inner) 1))
@@ -171,10 +171,10 @@
   [(qualified-column:ast %qualified-column (normalize-qt qualified-table) name.a ~) type.a addr.a]
 ::
 ++  normalize-qt
-  |=  qt=qualified-table:ast
+  |=  =qualified-table:ast
   ^-  qualified-table:ast
-  ?~  alias.qt  qt
-  qt(alias `(crip (cass (trip u.alias.qt))))
+  ?~  alias.qualified-table  qualified-table
+  qualified-table(alias `(crip (cass (trip u.alias.qualified-table))))
 ::
 ++  normalize-relation
   |=  =relation:ast
@@ -572,25 +572,26 @@
   |=  $:  txn=tape
           state=server
           now=@da
-          t=qualified-table:ast
+          =qualified-table:ast
           as-of=(unit as-of:ast)
           next-schemas=(map @tas @da)
           ==
   ^-  txn-meta
-  =/  db  ~|  %+  weld  txn  ": database {<database.t>} does not exist"
-          (~(got by state) database.t)
+  =/  db  ~|  %+  weld  txn  
+                        ": database {<database.qualified-table>} does not exist"
+          (~(got by state) database.qualified-table)
   =/  content-time  (set-tmsp as-of now)
-  =/  nxt-schema=schema  ~|  %+  weld  txn  ": table {<name.t>} ".
+  =/  nxt-schema=schema  ~|  %+  weld  txn  ": table {<name.qualified-table>} ".
                              "as-of schema time out of order"
                               %:  get-next-schema  sys.db
                                                     next-schemas
                                                     now
-                                                    database.t
+                                                    database.qualified-table
                                                     ==
-  =/  nxt-data=data  ~|  %+  weld  txn  ": table {<name.t>} ".
+  =/  nxt-data=data  ~|  %+  weld  txn  ": table {<name.qualified-table>} ".
                          "as-of data time out of order"
                          (get-data-next content.db now)
-  =/  tbl-key  [namespace.t name.t]
+  =/  tbl-key  [namespace.qualified-table name.qualified-table]
   =/  =table  ~|  %+  weld  txn  ": table {<tbl-key>} does not exist"
                   (~(got by tables:nxt-schema) tbl-key)
   =/  f=file  (get-content content.db content-time tbl-key)

@@ -502,7 +502,6 @@
     ==
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
-  =/  qualifier=qualified-table:ast  qualifier:(need column.i.cols)
   ::
   %=  $
     cols  t.cols
@@ -725,7 +724,7 @@
     updates  +.updates
   ==
 ++  mk-updates
-  |=  $:  table=qualified-table:ast
+  |=  $:  =qualified-table:ast
           columns=(list qualified-column:ast)
           values=(list *)   ::(list value-or-default:ast)
           type-lookup=unqualified-lookup-type
@@ -748,11 +747,11 @@
       columns   t.columns
       values    t.values
       updates
-        ?.  =(table qualifier.i.columns)
-          ~|  "UPDATE: {<table>} not matched by column qualifier ".
+        ?.  =(qualified-table qualifier.i.columns)
+          ~|  "UPDATE: {<qualified-table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ?:  .=  p.i.values  ~|  "UPDATE: {<table>} does not have column ".
+        ?:  .=  p.i.values  ~|  "UPDATE: {<qualified-table>} does not have column ".
                                 "{<name.i.columns>}"
                                 -:(~(got by +.type-lookup) name.i.columns)
           [[name.i.columns +.i.values] updates]
@@ -898,11 +897,11 @@
 ::
 ++  calc-cte-col-addr
   |=  $:  lookup=qualified-lookup-type
-          qual=qualified-table:ast
+          =qualified-table:ast
           col=@tas
           ==
   ^-  @
-  =/  outer    +:(~(dig by +.lookup) qual)
+  =/  outer    +:(~(dig by +.lookup) qualified-table)
   =/  columns  ;;((map @tas typ-addr) +:.*(+.lookup [%0 outer]))
   =/  inner    +:(~(dig by columns) col)
   (peg (add (mul 2 outer) 1) (add (mul 2 inner) 1))
@@ -950,18 +949,18 @@
   ==
 ::
 ++  qualified-table-to-cord
-  |=  a=qualified-table:ast
+  |=  =qualified-table:ast
   ^-  @t
-  =/  b  %-  zing  :~  (trip database.a)
+  =/  b  %-  zing  :~  (trip database.qualified-table)
                        "."
-                       (trip namespace.a)
+                       (trip namespace.qualified-table)
                        "."
-                       (trip name.a)
+                       (trip name.qualified-table)
                        ==
-  ?~  ship.a  (crip b)
-  %-  crip  %-  zing  :~  (trip (need ship.a))
+  ?~  ship.qualified-table  (crip b)
+  %-  crip  %-  zing  :~  (trip (need ship.qualified-table))
                           "."
-                          (trip name.a)
+                          (trip name.qualified-table)
                           ==
 ::
 ::  +upd-indices-views:  [server qualified-table @da =views] -> server

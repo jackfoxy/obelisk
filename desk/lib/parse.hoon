@@ -2271,13 +2271,13 @@
   !!
 ::
 ++  qualify-predicate
-  |=  [p=predicate:ast obj=qualified-table:ast]
+  |=  [p=predicate:ast =qualified-table:ast]
   ~+
   ^-  predicate:ast
   ::
   |-
   ?~  p  ~
-  p(n (qualify-pred-leaf n.p obj), l $(p l.p), r $(p r.p))
+  p(n (qualify-pred-leaf n.p qualified-table), l $(p l.p), r $(p r.p))
 ::
 ++  qualify-pred-leaf
   |=  [a=predicate-component:ast obj=qualified-table:ast]
