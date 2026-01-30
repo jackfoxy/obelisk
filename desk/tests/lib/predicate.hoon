@@ -333,97 +333,98 @@
 ++  test-eq-joined-00
   =|  run=@ud
   %-  exec-2-1
-  :*  run
-      [~2012.4.30 %sys "CREATE DATABASE db1"]
-      ::
-      [~2012.5.1 %db1 create-joined-tables]
-      ::
-      :+  ~2012.5.2
-          %db1
-          "INSERT INTO my-table".
-          " VALUES".
-          " ('Abby', ~1999.2.19)".
-          " ('Ace', ~2005.12.19)".
-          " ('Angel', ~2001.9.19); ".
-          "INSERT INTO my-table-2".
-          " VALUES".
-          " ('Abby', 'tricolor', 'row1')".
-          " ('Ace', 'ticolor', 'row2')".
-          " ('Angel', 'tuxedo', 'row3')"
-      ::
-      :+  ~2012.5.3
-          %db1
-          "FROM my-table T1 JOIN my-table-2 T2 ".
-          "WHERE col3 = 'tuxedo' SELECT T1.*, T2.col3, T2.col4"
-      ::
-      :-  %results
-          :~  [%message 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%col1 [~.t 'Angel']]
-                              [%col2 [~.da ~2001.9.19]]
-                              [%col3 [~.t 'tuxedo']]
-                              [%col4 [~.t 'row3']]
-                              ==
-                      ==
-              [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%vector-count 1]
-              ==
-      ==
+  ::%-  debug-2-1
+    :*  run
+        [~2012.4.30 %sys "CREATE DATABASE db1"]
+        ::
+        [~2012.5.1 %db1 create-joined-tables]
+        ::
+        :+  ~2012.5.2
+            %db1
+            "INSERT INTO my-table".
+            " VALUES".
+            " ('Abby', ~1999.2.19)".
+            " ('Ace', ~2005.12.19)".
+            " ('Angel', ~2001.9.19); ".
+            "INSERT INTO my-table-2".
+            " VALUES".
+            " ('Abby', 'tricolor', 'row1')".
+            " ('Ace', 'ticolor', 'row2')".
+            " ('Angel', 'tuxedo', 'row3')"
+        ::
+        :+  ~2012.5.3
+            %db1
+            "FROM my-table T1 JOIN my-table-2 T2 ".
+            "WHERE col3 = 'tuxedo' SELECT T1.*, T2.col3, T2.col4"
+        ::
+        :-  %results
+            :~  [%message 'SELECT']
+                :-  %result-set
+                    :~  :-  %vector
+                            :~  [%col1 [~.t 'Angel']]
+                                [%col2 [~.da ~2001.9.19]]
+                                [%col3 [~.t 'tuxedo']]
+                                [%col4 [~.t 'row3']]
+                                ==
+                        ==
+                [%server-time ~2012.5.3]
+                [%message 'db1.dbo.my-table']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%message 'db1.dbo.my-table-2']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%vector-count 1]
+                ==
+        ==
 ::
 ::  WHERE <literal> = <column> joined
 ++  test-eq-joined-01
   =|  run=@ud
   %-  exec-2-1
-  :*  run
-      [~2012.4.30 %sys "CREATE DATABASE db1"]
-      ::
-      [~2012.5.1 %db1 create-joined-tables]
-      ::
-      :+  ~2012.5.2
-          %db1
-          "INSERT INTO my-table".
-          " VALUES".
-          " ('Abby', ~1999.2.19)".
-          " ('Ace', ~2005.12.19)".
-          " ('Angel', ~2001.9.19); ".
-          "INSERT INTO my-table-2".
-          " VALUES".
-          " ('Abby', 'tricolor', 'row1')".
-          " ('Ace', 'ticolor', 'row2')".
-          " ('Angel', 'tuxedo', 'row3')"
-      ::
-      :+  ~2012.5.3
-          %db1
-          "FROM my-table T1 JOIN my-table-2 T2 ".
-          "WHERE 'tuxedo' = col3 SELECT T1.*, T2.col3, T2.col4"
-      ::
-      :-  %results
-          :~  [%message 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%col1 [~.t 'Angel']]
-                              [%col2 [~.da ~2001.9.19]]
-                              [%col3 [~.t 'tuxedo']]
-                              [%col4 [~.t 'row3']]
-                              ==
-                      ==
-              [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%vector-count 1]
-              ==
-      ==
+    :*  run
+        [~2012.4.30 %sys "CREATE DATABASE db1"]
+        ::
+        [~2012.5.1 %db1 create-joined-tables]
+        ::
+        :+  ~2012.5.2
+            %db1
+            "INSERT INTO my-table".
+            " VALUES".
+            " ('Abby', ~1999.2.19)".
+            " ('Ace', ~2005.12.19)".
+            " ('Angel', ~2001.9.19); ".
+            "INSERT INTO my-table-2".
+            " VALUES".
+            " ('Abby', 'tricolor', 'row1')".
+            " ('Ace', 'ticolor', 'row2')".
+            " ('Angel', 'tuxedo', 'row3')"
+        ::
+        :+  ~2012.5.3
+            %db1
+            "FROM my-table T1 JOIN my-table-2 T2 ".
+            "WHERE 'tuxedo' = col3 SELECT T1.*, T2.col3, T2.col4"
+        ::
+        :-  %results
+            :~  [%message 'SELECT']
+                :-  %result-set
+                    :~  :-  %vector
+                            :~  [%col1 [~.t 'Angel']]
+                                [%col2 [~.da ~2001.9.19]]
+                                [%col3 [~.t 'tuxedo']]
+                                [%col4 [~.t 'row3']]
+                                ==
+                        ==
+                [%server-time ~2012.5.3]
+                [%message 'db1.dbo.my-table']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%message 'db1.dbo.my-table-2']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%vector-count 1]
+                ==
+        ==
 ::
 ::  WHERE <column> = <column> joined
 ++  test-eq-joined-02
@@ -4643,42 +4644,43 @@
 ++  test-in-joined-03
   =|  run=@ud
   %-  exec-2-1
-  :*  run
-      [~2012.4.30 %sys "CREATE DATABASE db1"]
-      ::
-      [~2012.5.1 %db1 create-joined-tables]
-      ::
-      :+  ~2012.5.2
-          %db1
-          "INSERT INTO my-table".
-          " VALUES".
-          " ('Abby', ~1999.2.19)".
-          " ('Ace', ~2005.12.19)".
-          " ('Angel', ~2001.9.19); ".
-          "INSERT INTO my-table-2".
-          " VALUES".
-          " ('Abby', 'tricolor', 'row1')".
-          " ('Ace', 'ticolor', 'row2')".
-          " ('Angel', 'Angel', 'row3')"
-      ::
-      :+  ~2012.5.3
-          %db1
-          "FROM my-table T1 JOIN my-table-2 T2 ".
-          "WHERE t1.col1 IN ('widget', 'bam') SELECT T1.*, T2.col3, T2.col4"
-      ::
-      :-  %results
-          :~  [%message 'SELECT']
-              [%result-set ~]
-              [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%vector-count 0]
-              ==
-      ==
+  ::%-  debug-2-1
+    :*  run
+        [~2012.4.30 %sys "CREATE DATABASE db1"]
+        ::
+        [~2012.5.1 %db1 create-joined-tables]
+        ::
+        :+  ~2012.5.2
+            %db1
+            "INSERT INTO my-table".
+            " VALUES".
+            " ('Abby', ~1999.2.19)".
+            " ('Ace', ~2005.12.19)".
+            " ('Angel', ~2001.9.19); ".
+            "INSERT INTO my-table-2".
+            " VALUES".
+            " ('Abby', 'tricolor', 'row1')".
+            " ('Ace', 'ticolor', 'row2')".
+            " ('Angel', 'Angel', 'row3')"
+        ::
+        :+  ~2012.5.3
+            %db1
+            "FROM my-table T1 JOIN my-table-2 T2 ".
+            "WHERE t1.col1 IN ('widget', 'bam') SELECT T1.*, T2.col3, T2.col4"
+        ::
+        :-  %results
+            :~  [%message 'SELECT']
+                [%result-set ~]
+                [%server-time ~2012.5.3]
+                [%message 'db1.dbo.my-table']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%message 'db1.dbo.my-table-2']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%vector-count 0]
+                ==
+        ==
 ::
 ::  fail WHERE <column> IN (list @t) types differ joined
 ++  test-fail-in-joined-00
@@ -6781,50 +6783,51 @@
 ++  test-and-joined-01
   =|  run=@ud
   %-  exec-2-1
-  :*  run
-      [~2012.4.30 %sys "CREATE DATABASE db1"]
-      ::
-      [~2012.5.1 %db1 create-joined-tables]
-      ::
-      :+  ~2012.5.2
-          %db1
-          "INSERT INTO my-table".
-          " VALUES".
-          " ('Abby', ~1999.2.19)".
-          " ('Ace', ~2005.12.19)".
-          " ('Angel', ~2001.9.19); ".
-          "INSERT INTO my-table-2".
-          " VALUES".
-          " ('Abby', 'tricolor', 'row1')".
-          " ('Ace', 'ticolor', 'row2')".
-          " ('Angel', 'Angel', 'row3')"
-      ::
-      :+  ~2012.5.3
-          %db1
-          "FROM my-table T1 JOIN my-table-2 T2 ".
-          "WHERE t1.col1 = col3 AND col4='row3' ".
-          "SELECT T1.*, T2.col3, T2.col4"
-      ::
-      :-  %results
-          :~  [%message 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%col1 [~.t 'Angel']]
-                              [%col2 [~.da ~2001.9.19]]
-                              [%col3 [~.t 'Angel']]
-                              [%col4 [~.t 'row3']]
-                              ==
-                      ==
-              [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%vector-count 1]
-              ==
-      ==
+  ::%-  debug-2-1
+    :*  run
+        [~2012.4.30 %sys "CREATE DATABASE db1"]
+        ::
+        [~2012.5.1 %db1 create-joined-tables]
+        ::
+        :+  ~2012.5.2
+            %db1
+            "INSERT INTO my-table".
+            " VALUES".
+            " ('Abby', ~1999.2.19)".
+            " ('Ace', ~2005.12.19)".
+            " ('Angel', ~2001.9.19); ".
+            "INSERT INTO my-table-2".
+            " VALUES".
+            " ('Abby', 'tricolor', 'row1')".
+            " ('Ace', 'ticolor', 'row2')".
+            " ('Angel', 'Angel', 'row3')"
+        ::
+        :+  ~2012.5.3
+            %db1
+            "FROM my-table T1 JOIN my-table-2 T2 ".
+            "WHERE t1.col1 = col3 AND col4='row3' ".
+            "SELECT T1.*, T2.col3, T2.col4"
+        ::
+        :-  %results
+            :~  [%message 'SELECT']
+                :-  %result-set
+                    :~  :-  %vector
+                            :~  [%col1 [~.t 'Angel']]
+                                [%col2 [~.da ~2001.9.19]]
+                                [%col3 [~.t 'Angel']]
+                                [%col4 [~.t 'row3']]
+                                ==
+                        ==
+                [%server-time ~2012.5.3]
+                [%message 'db1.dbo.my-table']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%message 'db1.dbo.my-table-2']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%vector-count 1]
+                ==
+        ==
 ::
 ::  NOT
 ::

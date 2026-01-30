@@ -441,13 +441,14 @@
   :: literal only
   ?~  from.q  (select-literals state columns.select.q is-cte)
   :: no joins, it's a single relation
-  =/  f  (need from.q)
+  =/  f  (normalize-from (need from.q))
   ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
   ::
-  =/  =join-return  (join-all(state state, bowl bowl) q named-ctes)
-  =/  selected  columns.select.q
+  =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
+  =/  selected          (normalize-selected columns.select.q)
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
-  =.  selected  (qualify-unqualified columns.select.q qualifier-lookup)
+  =.  selected          (qualify-unqualified selected qualifier-lookup)
+  ::
   =/  filter=(unit $-(data-row ?))
     ?~  predicate.q  ~
     :-  ~
@@ -768,19 +769,28 @@
   |-
   ?~  ctes  nctes
   =/  =join-return  -:(do-query query.i.ctes nctes %.y)
-  =.  state           server.join-return   
+  =.  state           server.join-return
+  =/  set-tables  %^  cte-set-tables  name.i.ctes
+                                      columns.select.query.i.ctes
+                                      set-tables.join-return
+  ?~  set-tables  ~|("named-queries can't get here" !!)
+  =/  canonical-list  %-  flop  %+  murn  set-tables
+                                          |=  s=set-table
+                                          ?~  relation.s  ~
+                                          (some [(need relation.s) columns.s])
+  =/  canonical-map  (malt canonical-list)
+  =/  lookup  ;;(qualified-lookup-type lookup-type.join-return)
   %=  $
     nctes  %+  ~(put by nctes)
                name.i.ctes
                :^  %full-relation
-                   %^  cte-set-tables  name.i.ctes
-                                       columns.select.query.i.ctes
-                                       set-tables.join-return
-                   ?:  =(%qualified-lookup-type -.lookup-type.join-return)
-                       %+  qualified-lookup-type  %qualified-lookup-type
-                                                 +.lookup-type.join-return
-                     *qualified-lookup-type
-                   qualified-columns.join-return
+                   set-tables
+                   lookup
+                   %:  mk-cte-column-metas  columns.select.query.i.ctes
+                                            lookup
+                                            canonical-list
+                                            canonical-map
+                                            ==
     ctes   +.ctes
   ==
 ::
@@ -808,19 +818,94 @@
           a=selected-column:ast
           ==
   ^-  (list column:ast)
+  ~|  "failed lookup for column:  {<a>}"
   ?:  ?=(qualified-column a)
     ?~  alias.a
-      ~[[%column name.a (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
-    ~[[%column (need alias.a) (~(got bi:mip col-lookup) qualifier.a name.a) 0]]
+      ~[[%column name.a (~(got bi:mip col-lookup) (normalize-qt qualifier.a) name.a) 0]]
+    ~[[%column (need alias.a) (~(got bi:mip col-lookup) (normalize-qt qualifier.a) name.a) 0]]
   ?:  ?=(unqualified-column a)  ~|("can't be unqualified in join" !!)
   ?:  ?=(selected-aggregate a)  ~|("selected-aggregate not implemented" !!)
   ?:  ?=(selected-value a)      ~[[%column (need alias.a) p.value.a 0]]
   ?:  ?=(selected-all a)
     %-  flop
         %+  roll  st    :: to do: why (flop columns.a)?
-|=([a=set-table b=(list column:ast)] ?~(relation.a b (weld (flop columns.a) b)))
-  ?:  ?=(selected-all-table a)  (~(got by rel-col-lookup) qualified-table.a)
-  !!
+                  |=  [a=set-table b=(list column:ast)]
+                  ?~(relation.a b (weld (flop columns.a) b))
+  ?:  ?=(selected-all-table a)
+    (~(got by rel-col-lookup) (normalize-qt qualified-table.a))
+  !!  :: to do: message?
+::
+::  +mk-cte-column-metas
+++  mk-cte-column-metas
+  |=  $:  sel-cols=(list selected-column:ast)
+          lookup-type=qualified-lookup-type
+          canonical-list=(list [qualified-table (list column:ast)])
+          canonical-map=(map qualified-table (list column:ast))
+          ==
+  ^-  (list column-meta)
+  %-  zing
+    %+  turn  sel-cols
+              |=  c=selected-column:ast
+              ?-  c
+                qualified-column:ast
+                  :~  :+  :^  %qualified-column
+                              qualifier.c
+                              ?~(alias.c name.c (need alias.c))
+                              ?~(alias.c ~ [~ name.c])
+                          type:(~(got bi:mip +.lookup-type) (normalize-qt qualifier.c) name.c)
+                          (calc-cte-col-addr lookup-type (normalize-qt qualifier.c) name.c)
+                      ==
+                unqualified-column:ast
+                  ~|("not supported" !!)
+                selected-aggregate:ast
+                  ~|("not supported" !!)
+                selected-value:ast
+                  ~|("not supported" !!)
+                selected-all:ast
+                  :: :+  [%qualified-column *qualified-table:ast name.c ~]
+                  ::type.c
+                  ::addr.c
+                  ~|("not supported" !!)
+                selected-all-table:ast
+                  =/  qual  +.c
+                  =/  cols  (~(get by canonical-map) qual)
+                  ~|  "can't lookup {<qualified-table>}"
+                  (foo (~(got by canonical-map) qual) qual lookup-type)
+                ==
+::
+++  foo
+  |=  [columns=(list column:ast) =qualified-table:ast =qualified-lookup-type]
+  ^-  (list column-meta)
+  =/  metas  *(list column-meta)
+  |-
+  ?~  columns  (flop metas)
+  ~|  "can't lookup column {<(normalize-qt qualified-table)>} {<name.i.columns>}"
+  =/  typ-addr  %+  ~(got bi:mip +.qualified-lookup-type)  %-  normalize-qt
+                                                                qualified-table
+                                                           name.i.columns
+  %=  $
+    columns  t.columns
+    metas  :-  :+  :^  %qualified-column
+                        qualified-table
+                        name.i.columns
+                        ~
+                    type.typ-addr
+                    %^  calc-cte-col-addr  qualified-lookup-type
+                                           (normalize-qt qualified-table)
+                                           name.i.columns
+                metas
+  ==
+::
+++  calc-cte-col-addr
+  |=  $:  lookup=qualified-lookup-type
+          qual=qualified-table:ast
+          col=@tas
+          ==
+  ^-  @
+  =/  outer    +:(~(dig by +.lookup) (normalize-qt qual))
+  =/  columns  ;;((map @tas typ-addr) +:.*(+.lookup [%0 outer]))
+  =/  inner    +:(~(dig by columns) col)
+  (peg (add (mul 2 outer) 1) (add (mul 2 inner) 1))
 ::
 ++  mk-col-lookup
   |=  st=(list set-table)
@@ -831,7 +916,7 @@
   ?~  relation.i.st  $(st t.st)
   |-
   ?~  columns.i.st  ^$(st t.st)
-  =.  lookup  %^  ~(put bi:mip lookup)  (need relation.i.st)
+  =.  lookup  %^  ~(put bi:mip lookup)  (normalize-qt (need relation.i.st))
                                         name.i.columns.i.st
                                         type.i.columns.i.st
   $(columns.i.st t.columns.i.st)
@@ -845,7 +930,7 @@
   ?~  relation.i.st  $(st t.st)
   %=  $
     st      t.st
-    lookup  (~(put by lookup) (need relation.i.st) columns.i.st)
+    lookup  (~(put by lookup) (normalize-qt (need relation.i.st)) columns.i.st)
   ==
 ::
 ++  cte-col-dups

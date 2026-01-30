@@ -109,7 +109,7 @@
   $:  %unqualified-lookup-type
     (map @tas typ-addr)
     ==
-+$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
++$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)     ::to do: rename
 ::
 +$  joined-row
   $:  %joined-row
@@ -123,7 +123,7 @@
     =server
     set-tables=(list set-table)
     =lookup-type
-    qualified-columns=(list column-meta)
+    qualified-columns=(list column-meta)    ::to do: rename
     ==
 ::
 +$  joined-relat

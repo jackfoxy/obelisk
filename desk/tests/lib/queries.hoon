@@ -178,54 +178,55 @@
 ++  test-simple-query-04
   =|  run=@ud
   %-  exec-2-1
-  :*  run
-      [~2012.4.30 %sys "CREATE DATABASE db1"]
-      ::
-      :+  ~2012.5.1
-          %db1
-          "CREATE TABLE db1..my-table ".
-          "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-          "PRIMARY KEY (col1)"
-      ::
-      :+  ~2012.5.2
-          %db1
-          "INSERT INTO my-table".
-          " VALUES".
-          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
-          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-      ::
-      [~2012.5.3 %db1 "FROM my-table T1 SELECT T1.*"]
-      ::
-      :-  %results
-          :~  [%message 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%col1 [~.t 'Ace']]
-                              [%col2 [~.da ~2005.12.19]]
-                              [%col3 [~.t 'ticolor']]
-                              [%col4 [~.t 'row2']]
-                              ==
-                      :-  %vector
-                          :~  [%col1 [~.t 'Angel']]
-                              [%col2 [~.da ~2001.9.19]]
-                              [%col3 [~.t 'tuxedo']]
-                              [%col4 [~.t 'row3']]
-                              ==
-                      :-  %vector
-                          :~  [%col1 [~.t 'Abby']]
-                              [%col2 [~.da ~1999.2.19]]
-                              [%col3 [~.t 'tricolor']]
-                              [%col4 [~.t 'row1']]
-                              ==
-                      ==
-              [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
-              [%schema-time ~2012.5.1]
-              [%data-time ~2012.5.2]
-              [%vector-count 3]
-              ==
-      ==
+  ::%-  debug-2-1
+    :*  run
+        [~2012.4.30 %sys "CREATE DATABASE db1"]
+        ::
+        :+  ~2012.5.1
+            %db1
+            "CREATE TABLE db1..my-table ".
+            "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+            "PRIMARY KEY (col1)"
+        ::
+        :+  ~2012.5.2
+            %db1
+            "INSERT INTO my-table".
+            " VALUES".
+            " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+            " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+            " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+        ::
+        [~2012.5.3 %db1 "FROM my-table T1 SELECT T1.*"]
+        ::
+        :-  %results
+            :~  [%message 'SELECT']
+                :-  %result-set
+                    :~  :-  %vector
+                            :~  [%col1 [~.t 'Ace']]
+                                [%col2 [~.da ~2005.12.19]]
+                                [%col3 [~.t 'ticolor']]
+                                [%col4 [~.t 'row2']]
+                                ==
+                        :-  %vector
+                            :~  [%col1 [~.t 'Angel']]
+                                [%col2 [~.da ~2001.9.19]]
+                                [%col3 [~.t 'tuxedo']]
+                                [%col4 [~.t 'row3']]
+                                ==
+                        :-  %vector
+                            :~  [%col1 [~.t 'Abby']]
+                                [%col2 [~.da ~1999.2.19]]
+                                [%col3 [~.t 'tricolor']]
+                                [%col4 [~.t 'row1']]
+                                ==
+                        ==
+                [%server-time ~2012.5.3]
+                [%message 'db1.dbo.my-table']
+                [%schema-time ~2012.5.1]
+                [%data-time ~2012.5.2]
+                [%vector-count 3]
+                ==
+        ==
 ::
 ::  *, *
 ++  test-simple-query-05

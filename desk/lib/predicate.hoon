@@ -650,12 +650,12 @@
       ::?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
       ::  ?:  &(?!(l-exists) ?!(r-exists))  always-true
       ::  ?.  &(l-exists r-exists)  always-false
-      ::  ?:  %+  types-match  -:(~(got by type-lookup) [qualifier.l name.l])
-      ::                    -:(~(got by type-lookup) [qualifier.r name.r])
+      ::  ?:  %+  types-match  -:(~(got by type-lookup) [(normalize-qt qualifier.l) name.l])
+      ::                    -:(~(got by type-lookup) [(normalize-qt qualifier.r) name.r])
       ::    %+  bake  %+  cury
-      ::                  %+  cury  (cury eq-col-col [qualifier.l name.l])
-      ::                            [qualifier.r name.r]
-      ::                  -:(~(got by type-lookup) [qualifier.l name.l])
+      ::                  %+  cury  (cury eq-col-col [(normalize-qt qualifier.l) name.l])
+      ::                            [(normalize-qt qualifier.r) name.r]
+      ::                  -:(~(got by type-lookup) [(normalize-qt qualifier.l) name.l])
       ::              data-row
       ::  ~|  "comparing columns of different auras: ".
       ::      "{<name.l>} {<name.r>}"
@@ -663,9 +663,9 @@
       ::::
       ::?:  &(?=(qualified-column:ast l) ?=(dime r))
       ::  ?.  l-exists  always-false
-      ::  ?:  (types-match -:(~(got by type-lookup) [qualifier.l name.l]) -.r)
+      ::  ?:  (types-match -:(~(got by type-lookup) [(normalize-qt qualifier.l) name.l]) -.r)
       ::    %+  bake
-      ::          (cury (cury (cury eq-lit-col +.r) [qualifier.l name.l]) -.r)
+      ::          (cury (cury (cury eq-lit-col +.r) [(normalize-qt qualifier.l) name.l]) -.r)
       ::          data-row
       ::  ~|  "comparing column and literal of different auras: ".
       ::      "{<l>} {<r>}"
@@ -673,9 +673,9 @@
       ::::
       ::?:  &(?=(dime l) ?=(qualified-column:ast r))
       ::  ?.  r-exists  always-false
-      ::  ?:  (types-match -.l -:(~(got by type-lookup) [qualifier.r name.r]))
+      ::  ?:  (types-match -.l -:(~(got by type-lookup) [(normalize-qt qualifier.r) name.r]))
       ::    %+  bake
-      ::          (cury (cury (cury eq-lit-col +.l) [qualifier.r name.r]) -.l)
+      ::          (cury (cury (cury eq-lit-col +.l) [(normalize-qt qualifier.r) name.r]) -.l)
       ::          data-row
       ::  ~|  "comparing column and literal of different auras: ".
       ::      "{<l>} {<r>}"
@@ -719,7 +719,7 @@
     ?:  ?&  ?=(qualified-column:ast n.l.p)
             ?=(%qualified-lookup-type -.type-lookup)
             ==
-      -:(~(got bi:mip +.type-lookup) qualifier.n.l.p name.n.l.p)
+      -:(~(got bi:mip +.type-lookup) (normalize-qt qualifier.n.l.p) name.n.l.p)
     ?:  ?&  ?=(unqualified-column:ast n.l.p)
             ?=(%unqualified-lookup-type -.type-lookup)
             ==
@@ -732,7 +732,7 @@
                         in-list
               data-row
   ?:  ?=(qualified-column:ast n.l.p)
-    %+  bake  %+  cury  (cury list-pred [qualifier.n.l.p name.n.l.p])
+    %+  bake  %+  cury  (cury list-pred [(normalize-qt qualifier.n.l.p) name.n.l.p])
                         in-list
               data-row
   ?:  ?=(dime n.l.p)
@@ -776,38 +776,38 @@
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
-              -:(~(got bi:mip type-lookup) qualifier.l name.l)
-              -:(~(got bi:mip type-lookup) qualifier.r name.r)
+              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)
+              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)
       %+  bake  %+  cury
-                    %+  cury  (cury col-col [qualifier.l name.l])
-                              [qualifier.r name.r]
-                    -:(~(got bi:mip type-lookup) qualifier.l name.l)
+                    %+  cury  (cury col-col [(normalize-qt qualifier.l) name.l])
+                              [(normalize-qt qualifier.r) name.r]
+                    -:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)
                 data-row
     ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got bi:mip type-lookup) qualifier.l name.l)>} ".
+        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)>} ".
         "{<name.r>} ".
-        "{<-:(~(got bi:mip type-lookup) qualifier.r name.r)>}"
+        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
     ?:  %+  types-match
               -.l
-              -:(~(got bi:mip type-lookup) qualifier.r name.r)
-      %+  bake  (cury (cury (cury lit-col +.l) [qualifier.r name.r]) -.l)
+              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)
+      %+  bake  (cury (cury (cury lit-col +.l) [(normalize-qt qualifier.r) name.r]) -.l)
                 data-row
     ~|  "comparing literal to column of different aura: ".
         "{<l>} {<name.r>} ".
-        "{<-:(~(got bi:mip type-lookup) qualifier.r name.r)>}"
+        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
     ?:  %+  types-match  
-              -:(~(got bi:mip type-lookup) qualifier.l name.l)
+              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)
               -.r
-      %+  bake  (cury (cury (cury col-lit [qualifier.l name.l]) +.r) -.r)
+      %+  bake  (cury (cury (cury col-lit [(normalize-qt qualifier.l) name.l]) +.r) -.r)
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got bi:mip type-lookup) qualifier.l name.l)>} {<r>}"
+        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)>} {<r>}"
         !!
   ~|("datum-ops can't get here" !!)
 ::

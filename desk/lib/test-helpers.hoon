@@ -68,8 +68,23 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov2))
-
-
+::
+++  debug-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expect=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+                %obelisk-action
+                !>([%test db.resolve uql.resolve])
+::
 ++  exec-0-0c2
   |=  $:  run=@ud
           resolve-1=[tmsp=@da cmds=action]
@@ -113,22 +128,22 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov1))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov2))
 ::
-::
-++  debug-0-1
+++  debug-0-02
   |=  $:  run=@ud
-          init=[tmsp=@da db=@tas uql=tape]
-          resolve=[tmsp=@da db=@tas uql=tape]
-          expect=cmd-result
+          resolve-1=[tmsp=@da db=@tas uql=tape]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result
+          expect-2=cmd-result
           ==
   =^  mov1  agent
-  %+  ~(on-poke agent (bowl [run tmsp.init]))
+  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
       %obelisk-action
-      !>  [%tape2 db.init uql.init]
+      !>  [%tape2 db.resolve-1 uql.resolve-1]
   %+  expect-fail-message
         'placeholder for debugging'
-        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
                 %obelisk-action
-                !>([%test db.resolve uql.resolve])
+                !>([%test db.resolve-2 uql.resolve-2])
 ::
 ::  exec-0-ls: init +1 resolves → compare 2 results ((list cmd-result) & resolve)
 ++  exec-0-ls
@@ -348,6 +363,33 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov4))
+++  debug-2-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action-1=[tmsp=@da db=@tas uql=tape]
+          action-2=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expect=cmd-result
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-1]))
+      %obelisk-action
+      !>  [%tape2 db.action-1 uql.action-1]
+  =^  mov3  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action-2]))
+      %obelisk-action
+      !>  [%tape2 db.action-2 uql.action-2]
+  ::
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+                %obelisk-action
+                !>([%test db.resolve uql.resolve])
+
 ::
 ::  exec-2-2: init + 2 actions + 2 resolves → compare 2 results (resolve-1 & resolve-2)
 ++  exec-2-2

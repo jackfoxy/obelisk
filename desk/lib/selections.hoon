@@ -41,7 +41,7 @@
 ++  select-relation
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
-  =/  from          (need from.q)
+  =/  from          (normalize-from (need from.q))
   =/  query-source    ?:  ?=(qualified-table:ast relation.from)
                       relation.from
                     ~|("SELECT: not supported on %query-row" !!)
@@ -53,7 +53,7 @@
                                       *qualified-lookup-type
                                       ~
                                       ==
-  =/  selected      columns.select.q
+  =/  selected      (normalize-selected columns.select.q)
   =/  filter        ?~  predicate.q  ~
                     :-  ~
                         %^  pred-ops-and-conjs
@@ -73,8 +73,11 @@
           ==
       %:  table-result  filter
                         column-metas.the-relation
+                        ?:  is-cte  lookup-type.the-relation
                         lookup-type.i.set-tables.the-relation
-                        indexed-rows.i.set-tables.the-relation
+                        ?~  joined-rows.i.set-tables.the-relation
+                          indexed-rows.i.set-tables.the-relation
+                        joined-rows.i.set-tables.the-relation
                         selected
                         ==
 ::
@@ -197,9 +200,15 @@
   ^-  (list vector)
   ?:  =((lent rows) 0)  ~
   =/  out-rows   *(set vector)
+
+
+    ::~&  [%row -.rows]
+    ::~&  [%selected selected]
+    ::~&  [%qualified-columns qualified-columns]
+    ::~&  [%qualified-columns qualified-columns]
+
   =/  cells  %:  mk-rel-vect-templ  qualified-columns
                                     selected
-                                    ::;;(indexed-row -.rows)
                                     -.rows
                                     lookup-type
                                     ==
@@ -234,7 +243,7 @@
 ++  join-all  
   |=  [q=query:ast =named-ctes]
   ^-  join-return
-  =/  from  (need from.q)
+  =/  from  (normalize-from (need from.q))
   =/  joined-relations=(list joined-relat)
         %+  mk-joined-relations  :*  %joined-relat
                                      ~
@@ -339,7 +348,7 @@
           ==
       :-  %qualified-lookup-type
           %+  ~(put by *(map qualified-table (map @tas typ-addr)))
-                ts
+                (normalize-qt ts)
                 typ-addr-lookup.vw2
       (mk-qualified-columns ts qualified-columns columns.vw2)
 ::
@@ -359,7 +368,7 @@
   ?~  tbl  ~|  "SELECT: table {<database.query-obj>}.{<namespace.query-obj>}".
                ".{<name.query-obj>} does not exist at schema time ".
                "{<tmsp.schema>}"
-             `full-relation`(~(got by named-ctes) name.query-obj)
+           `full-relation`(~(got by named-ctes) name.query-obj)
   =/  tbl2=table  (need tbl)
   =/  file
         (get-content content.db sys-time [namespace.query-obj name.query-obj])
@@ -380,7 +389,7 @@
                          ==
           ==
       :-  %qualified-lookup-type
-          (~(put by +.type-lookup) query-obj typ-addr-lookup.tbl2)
+          (~(put by +.type-lookup) (normalize-qt query-obj) typ-addr-lookup.tbl2)
       (mk-qualified-columns query-obj qualified-columns columns.tbl2)
 ::
 ::  +mk-joined-relations:  [relation (list joined-relation:ast)]
@@ -399,7 +408,7 @@
       joins  t.joins
       cross-joins  :-  :*  %joined-relat
                            `join.i.joins
-                           relation.i.joins
+                           (normalize-relation relation.i.joins)
                            as-of.i.joins
                            predicate.i.joins
                            ==
@@ -408,30 +417,12 @@
     joins  t.joins
     joined-relations  :-  :*  %joined-relat
                               `join.i.joins
-                                relation.i.joins
+                                (normalize-relation relation.i.joins)
                                 as-of.i.joins
                                 predicate.i.joins
                               ==
                    joined-relations
   ==
-::
-++  mk-qualified-columns
-  |=  $:  query-obj=qualified-table:ast
-          qualified-columns=(list column-meta)
-          columns=(list column:ast)
-          ==
-  ^-  (list column-meta)
-  ?~  qualified-columns
-        %+  turn  columns
-                |=(a=column:ast (mk-qualified-column query-obj a))
-  %+  weld  qualified-columns
-                %+  turn  columns
-                |=(a=column:ast (mk-qualified-column query-obj a))
-::
-++  mk-qualified-column
-  |=  [query-obj=qualified-table:ast a=column:ast]
-  ^-  column-meta
-  [(qualified-column:ast %qualified-column query-obj name.a ~) type.a addr.a]
 ::
 ::  +got-view-cache:
 ::    [database schema view ns-rel-key (list selected-column:ast)]
@@ -489,7 +480,7 @@
     out-rows  :-  ?:  ?=(%joined-row -.i.a)
                     :+  %joined-row
                         ~
-                        (~(put by data.i.a) (need relation.this) data.i.b)
+                        (~(put by data.i.a) (normalize-qt (need relation.this)) data.i.b)
                   %:  joined-from-indexed  i.a
                                            (need relation.prior)
                                            i.b
@@ -611,7 +602,7 @@
   ?:  =(key.i.a key.i.b)
     %=  $ 
       c  ?:  ?=(%joined-row -.i.a) 
-        [[%joined-row key.i.a (~(put by data.i.a) b-qual data.i.b)] c]
+        [[%joined-row key.i.a (~(put by data.i.a) (normalize-qt b-qual) data.i.b)] c]
       [(joined-from-indexed i.a a-qual i.b b-qual) c]
       a  t.a
       b  t.b
@@ -631,9 +622,9 @@
   :+  %joined-row
       key.a
       %+  %~  put  by  %+  %~  put  by  *(map qualified-table:ast (map @tas @))
-                           a-qual
+                           (normalize-qt a-qual)
                            data.a
-          b-qual
+          (normalize-qt b-qual)
           data.b
 ::
 ::  +data-row-comp
