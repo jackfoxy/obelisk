@@ -14,18 +14,18 @@
               :: use only with unqualified tables, assume qualified columns
               :: that get here exist
               qualifier=(map @tas (list qualified-table:ast))
-              :: either %qualified-lookup-type or %unqualified-lookup-type
+              :: either %qualified-map-meta or %unqualified-map-meta
               :: assume it's correct
-              :: +$  qualified-lookup-type
-              ::   $:  %qualified-lookup-type
+              :: +$  qualified-map-meta
+              ::   $:  %qualified-map-meta
               ::     (map qualified-table (map @tas @ta))
               ::     ==
-              :: +$  unqualified-lookup-type
-              ::   $:  %unqualified-lookup-type
+              :: +$  unqualified-map-meta
+              ::   $:  %unqualified-map-meta
               ::     (map @tas @ta)
               ::     ==
-              :: +$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
-              type=lookup-type
+              :: +$  map-meta  $%(qualified-map-meta unqualified-map-meta)
+              type=map-meta
              ==
 ++  apply-scalar
     |=  [row=data-row scalar=$-(data-row dime)]
@@ -133,12 +133,12 @@
 ::    scalar-function
 ::    ==
 ++  get-qualified-col-type
-  |=  [type-lookup=qualified-lookup-type col=qualified-column:ast]
+  |=  [type-lookup=qualified-map-meta col=qualified-column:ast]
   ^-  @ta
   -:(~(got bi:mip +.type-lookup) qualifier.col name.col)
 
 ++  get-column-data
-   |=  [=data-row type-lookup=qualified-lookup-type col=qualified-column:ast]
+   |=  [=data-row type-lookup=qualified-map-meta col=qualified-column:ast]
    ^-  dime
    ?-    -.data-row
        %joined-row
@@ -170,7 +170,7 @@
 ::   ?:  ?=(qualified-column:ast datum)
 ::     :: todo: check that data-row contains column 
 ::     :: todo: verify type of column ==
-::     ?>  ?=(%qualified-lookup-type -.type.lookups)
+::     ?>  ?=(%qualified-map-meta -.type.lookups)
 ::     |=(=data-row (get-column-data data-row type.lookups datum))
 ::   ?:  ?=(unqualified-column:ast datum)
 ::     =/  maybe-table-list  (~(get by qualifier.lookups) name.datum)
@@ -183,7 +183,7 @@
 ::       [%qualified-column -.table-list name.datum ~]
 ::     :: not sure if this is good, like at some point i might also get an
 ::     :: unqualified lookup type
-::     ?>  ?=(%qualified-lookup-type -.type.lookups)
+::     ?>  ?=(%qualified-map-meta -.type.lookups)
 ::     |=(=data-row (get-column-data data-row type.lookups column))
 ::   ?:  ?=(literal-value:ast datum)
 ::     |=(r=data-row +.datum)
@@ -215,7 +215,7 @@
           scalars=(map @t scalar-function:ast)
         ==
     ^-  $-(data-row dime)
-    :: pred-ops-and-conjs switches on lookup-type to evaluate its arguments
+    :: pred-ops-and-conjs switches on map-meta to evaluate its arguments
     :: (so if it gets a qualified lookup type it will expect qualified
     :: columns, and same for unqual)  however we can have cases when we have
     :: a predicate with unqualified columns but scalar return values that
@@ -321,7 +321,7 @@
     ::$(fns-to-apply +.fns-to-apply)
 ::
 ++  get-column-data-coalesce
-   |=  [=data-row type-lookup=qualified-lookup-type col=qualified-column:ast]
+   |=  [=data-row type-lookup=qualified-map-meta col=qualified-column:ast]
    ^-  (unit dime)
    ?-    -.data-row
        %joined-row
@@ -361,7 +361,7 @@
     ::=/  datum  -.datums
     ::?:  ?=(qualified-column:ast datum)
     ::  ::
-    ::  ?>  ?=(%qualified-lookup-type -.type.lookups)
+    ::  ?>  ?=(%qualified-map-meta -.type.lookups)
     ::  |=  =data-row
     ::  =/  res  (get-column-data-coalesce data-row type.lookups datum)
     ::  ?~  res
@@ -377,7 +377,7 @@
     ::    $(datums +.datums) 
     ::  =/  column=qualified-column:ast
     ::    [%qualified-column -.table-list +<.datum ~]
-    ::  ?>  ?=(%qualified-lookup-type -.type.lookups)
+    ::  ?>  ?=(%qualified-map-meta -.type.lookups)
     ::  |=  =data-row
     ::  =/  res  (get-column-data-coalesce data-row type.lookups column)
     ::  ?~  res

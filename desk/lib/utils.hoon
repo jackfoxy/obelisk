@@ -168,7 +168,9 @@
 ++  mk-qualified-column
   |=  [=qualified-table:ast a=column:ast]
   ^-  column-meta
-  [(qualified-column:ast %qualified-column (normalize-qt qualified-table) name.a ~) type.a addr.a]
+  :+  [%qualified-column (normalize-qt qualified-table) name.a ~]
+      type.a
+      addr.a
 ::
 ++  normalize-qt
   |=  =qualified-table:ast
@@ -256,7 +258,7 @@
         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
 ::
 ::  +mk-rel-vect-templ:
-::    [(list column-meta) (list selected-column:ast) data-row lookup-type]
+::    [(list column-meta) (list selected-column:ast) data-row map-meta]
 ::    -> (list templ-cell)
 ::
 ::  leave output un-flopped so consuming arm does not flop
@@ -264,7 +266,7 @@
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
           row=data-row 
-          =lookup-type
+          =map-meta
           ==
   ^-  (list templ-cell)
   =/  is-join  =(%joined-row -.row)
@@ -277,11 +279,16 @@
     %=  $
       i         +(i)
       selected  t.selected
-      cells     %+  weld
-                    ?:  is-join
-                      (flop (turn cols (cury mk-templ-cell-joined +>:;;(joined-row row))))
-                    (flop (turn cols (cury mk-templ-cell-indexed +:;;(unqualified-lookup-type lookup-type))))
-                    cells
+      cells
+        %+  weld
+            ?:  is-join
+              %-  flop
+                  (turn cols (cury mk-templ-cell-joined +>:;;(joined-row row)))
+            %-  flop
+                %+  turn  cols
+                          %+  cury  mk-templ-cell-indexed
+                                    +:;;(unqualified-map-meta map-meta)
+            cells
     ==
   ?:  ?=(selected-all-table:ast i.selected)
     %=  $
@@ -295,7 +302,7 @@
                     cols
                   |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
               ?:  is-join  (cury mk-templ-cell-joined +>:;;(joined-row row))
-              (cury mk-templ-cell-indexed +:;;(unqualified-lookup-type lookup-type))
+              (cury mk-templ-cell-indexed +:;;(unqualified-map-meta map-meta))
           cells
     ==
   ?:  ?=(selected-value:ast i.selected)
@@ -313,55 +320,58 @@
     ==
   =/  typ-addr  ?:  ?=(qualified-column:ast i.selected)
                   ~|  "SELECT: column {<name.i.selected>} not found"
-                  (~(get by +.lookup-type) name.i.selected)
+                  (~(get by +.map-meta) name.i.selected)
                 ?:  ?=(unqualified-column:ast i.selected)
                   ~|  "SELECT: column {<name.i.selected>} not found"
-                  (~(get by +.lookup-type) name.i.selected)
+                  (~(get by +.map-meta) name.i.selected)
                 ~
   ?:  ?=(unqualified-column:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells  ~|  "SELECT: column {<name.i.selected>} not found"  
-             :-
-               %:  templ-cell
-                     %templ-cell
-                     :-  ~
-                         :^  %qualified-column
-                             *qualified-table:ast
-                             name.i.selected 
-                             alias.i.selected
-                     +:(need typ-addr)
-                     [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
-                     ==
-               cells
+      cells
+        ~|  "SELECT: column {<name.i.selected>} not found"  
+        :-
+          %:  templ-cell
+                %templ-cell
+                :-  ~
+                    :^  %qualified-column
+                        *qualified-table:ast
+                        name.i.selected 
+                        alias.i.selected
+                +:(need typ-addr)
+                [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
+                ==
+          cells
     ==
   ?:  ?=(qualified-column:ast i.selected)
     %=  $
       i         +(i)
       selected  t.selected
-      cells  ~|  "SELECT: column {<name.i.selected>} not found"
-             :-
-                ?:  is-join
-                  %:  templ-cell 
-                      %templ-cell
-                      [~ i.selected]
-                      %^  calc-joined-addr  data:;;(joined-row row)
-                                            qualifier.i.selected
-                                            name.i.selected
-                      :-  (heading i.selected name.i.selected)
-                          :-  %-  head  %+  ~(got bi:mip +:;;(qualified-lookup-type lookup-type))
-                                                qualifier.i.selected
-                                                name.i.selected
-                              0
-                      ==
-                %:  templ-cell  
-                    %templ-cell
-                    [~ i.selected]
-                    +:(need typ-addr)
-                    [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
-                    ==
-                cells
+      cells  
+        ~|  "SELECT: column {<name.i.selected>} not found"
+        :-
+          ?:  is-join
+            %:  templ-cell 
+                %templ-cell
+                [~ i.selected]
+                %^  calc-joined-addr  data:;;(joined-row row)
+                                      qualifier.i.selected
+                                      name.i.selected
+                :-  (heading i.selected name.i.selected)
+                    :-  %-  head
+                            %+  ~(got bi:mip +:;;(qualified-map-meta map-meta))
+                                qualifier.i.selected
+                                name.i.selected
+                        0
+                ==
+          %:  templ-cell  
+              %templ-cell
+              [~ i.selected]
+              +:(need typ-addr)
+              [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
+              ==
+          cells
     ==
   ~|("{<i.selected>} not supported" !!)
 ::
@@ -379,8 +389,12 @@
   :^  %templ-cell
       `-.a
       ?~  alias.qualified-column.a
-        (calc-joined-addr data qualifier.qualified-column.a name.qualified-column.a)
-      (calc-joined-addr data qualifier.qualified-column.a (need alias.qualified-column.a))
+        %^  calc-joined-addr  data
+                              qualifier.qualified-column.a
+                              name.qualified-column.a
+      %^  calc-joined-addr  data
+                            qualifier.qualified-column.a
+                            (need alias.qualified-column.a)
       `vector-cell`[name.qualified-column.a [type.a 0]]
 ::
 ++  mk-unqualified-typ-addr-lookup
@@ -390,10 +404,12 @@
 ::
 ++  mk-qualified-type-lookup
   |=  [kvp=(list [qualified-table:ast (list column:ast)])]
-  ^-  qualified-lookup-type
-  :-  %qualified-lookup-type
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
   %-  malt
-  (turn kvp |=(e=[qualified-table:ast (list column:ast)] [-.e (mk-unqualified-typ-addr-lookup +.e)]))
+      %+  turn  kvp
+                |=  e=[qualified-table:ast (list column:ast)]
+                [-.e (mk-unqualified-typ-addr-lookup +.e)]
 ::
 ++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)

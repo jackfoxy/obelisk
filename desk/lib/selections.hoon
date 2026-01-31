@@ -50,7 +50,7 @@
                                       as-of.from
                                       ~
                                       ~
-                                      *qualified-lookup-type
+                                      *qualified-map-meta
                                       ~
                                       ==
   =/  selected      (normalize-selected columns.select.q)
@@ -58,8 +58,8 @@
                     :-  ~
                         %^  pred-ops-and-conjs
                             (pred-unqualify-qualified predicate.q)
-                            :-  %unqualified-lookup-type
-                                %-  ~(got by +.lookup-type.the-relation)
+                            :-  %unqualified-map-meta
+                                %-  ~(got by +.map-meta.the-relation)
                                     query-source
                             ~
   ::
@@ -68,13 +68,13 @@
           state
           ?.  is-cte   set-tables.the-relation
               (select-for-cte q set-tables.the-relation filter)
-          lookup-type.the-relation
+          map-meta.the-relation
           column-metas.the-relation
           ==
       %:  table-result  filter
                         column-metas.the-relation
-                        ?:  is-cte  lookup-type.the-relation
-                        lookup-type.i.set-tables.the-relation
+                        ?:  is-cte  map-meta.the-relation
+                        map-meta.i.set-tables.the-relation
                         ?~  joined-rows.i.set-tables.the-relation
                           indexed-rows.i.set-tables.the-relation
                         joined-rows.i.set-tables.the-relation
@@ -92,7 +92,7 @@
 
 ::  4.5) schema-tmsp=(unit @da)
 ::      data-tmsp=(unit @da)
-::      =lookup-type  delete those that do not exist
+::      =map-meta  delete those that do not exist
 ::      pri-indx=(unit index)
 ::      =predicate
 ::      pri-indexed=(tree [(list @) (map @tas @)])
@@ -193,7 +193,7 @@
 ++  table-result
   |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list column-meta)
-          =lookup-type
+          =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
           ==
@@ -203,7 +203,7 @@
   =/  cells  %:  mk-rel-vect-templ  qualified-columns
                                     selected
                                     -.rows
-                                    lookup-type
+                                    map-meta
                                     ==
   |-
   ?~  rows  ~(tap in out-rows)
@@ -255,7 +255,7 @@
                                                      as-of.relat
                                                      ~
                                                      ~
-                                                     *qualified-lookup-type
+                                                     *qualified-map-meta
                                                      ~
                                                      ==
   =/  prior-join        -.set-tables.the-relation
@@ -264,7 +264,7 @@
   ?~  joined-relations  %:  join-return  %join-return
                                          state
                                          from-objects
-                                         lookup-type.the-relation
+                                         map-meta.the-relation
                                          column-metas.the-relation
                                          ==
   =.  query-source
@@ -276,7 +276,7 @@
                                        as-of.i.joined-relations
                                        join.i.joined-relations
                                        predicate.i.joined-relations
-                                       lookup-type.the-relation
+                                       map-meta.the-relation
                                        column-metas.the-relation
                                        ==
   =.  prior-join       (join-up prior-join -.set-tables.the-relation)
@@ -291,7 +291,7 @@
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
           =predicate
-          lookup-type=qualified-lookup-type
+          map-meta=qualified-map-meta
           qualified-columns=(list column-meta)
           ==
   ^-  full-relation
@@ -310,7 +310,7 @@
                           join
                           predicate
                           sys-time
-                          lookup-type
+                          map-meta
                           qualified-columns
                           ==
   =/  vw2=view  (need vw)
@@ -331,7 +331,7 @@
                          columns.vw2
                          predicate
                          rowcount.view-content
-                         [%unqualified-lookup-type typ-addr-lookup.vw2]
+                         [%unqualified-map-meta typ-addr-lookup.vw2]
                          ~
                          ~
                          %+  turn  rows.view-content
@@ -339,7 +339,7 @@
                          *(list joined-row)
                          ==
           ==
-      :-  %qualified-lookup-type
+      :-  %qualified-map-meta
           %+  ~(put by *(map qualified-table (map @tas typ-addr)))
                 ts
                 typ-addr-lookup.vw2
@@ -353,7 +353,7 @@
           join=(unit join-type:ast)
           =predicate
           sys-time=@da
-          type-lookup=qualified-lookup-type
+          type-lookup=qualified-map-meta
           qualified-columns=(list column-meta)
           ==
   ^-  full-relation
@@ -376,14 +376,14 @@
                          columns.tbl2
                          predicate
                          rowcount.file
-                         [%unqualified-lookup-type typ-addr-lookup.tbl2]
+                         [%unqualified-map-meta typ-addr-lookup.tbl2]
                          [~ pri-indx.tbl2]
                          pri-idx.file
                          indexed-rows.file
                          *(list joined-row)
                          ==
           ==
-      :-  %qualified-lookup-type
+      :-  %qualified-map-meta
           (~(put by +.type-lookup) qualified-table typ-addr-lookup.tbl2)
       (mk-qualified-columns qualified-table qualified-columns columns.tbl2)
 ::

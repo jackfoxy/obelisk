@@ -35,12 +35,12 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +mk-filter:  [predicate txn-meta lookup-type (list qualified-table)] 
+::  +mk-filter:  [predicate txn-meta map-meta (list qualified-table)] 
 ::               -> (unit $-(data-row ?))
 ++  mk-filter
   |=  $:  =predicate
           txn=txn-meta
-          type-lookup=lookup-type
+          =map-meta
           qs=(list qualified-table:ast)
           ==
   ^-  (unit $-(data-row ?))
@@ -52,7 +52,7 @@
             ::predicate
             %+  pred-qualify-unqualified  predicate
                                           qualifier-lookup
-            type-lookup
+            map-meta
             qualifier-lookup
             ==
 ::
@@ -527,7 +527,7 @@
 ::  +pred-ops-and-conjs
 ++  pred-ops-and-conjs
   |=  $:  p=predicate:ast
-          type-lookup=lookup-type
+          =map-meta
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
@@ -538,22 +538,22 @@
       ?~  l.p  ~|("can't get here" !!)
       ?~  r.p  ~|("can't get here" !!)
       =/  ll=$-(data-row ?)
-            (pred-binary-op l.p type-lookup qualifier-lookup)
+            (pred-binary-op l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)
-            (pred-binary-op r.p type-lookup qualifier-lookup)
+            (pred-binary-op r.p map-meta qualifier-lookup)
       ?:  =(%between n.p)
         (bake (cury (cury and ll) rr) data-row)
       (bake (cury (cury and-not ll) rr) data-row)
-    binary-op   (pred-binary-op p type-lookup qualifier-lookup)
-    unary-op    (pred-unary-op p type-lookup qualifier-lookup)
+    binary-op   (pred-binary-op p map-meta qualifier-lookup)
+    unary-op    (pred-unary-op p map-meta qualifier-lookup)
     all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
       ?~  l.p  ~|("can't get here" !!)
       ?~  r.p  ~|("can't get here" !!)
       =/  ll=$-(data-row ?)
-            (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
+            (pred-ops-and-conjs l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)
-            (pred-ops-and-conjs r.p type-lookup qualifier-lookup)
+            (pred-ops-and-conjs r.p map-meta qualifier-lookup)
       ?:  =(%and n.p)
         (bake (cury (cury and ll) rr) data-row)
       (bake (cury (cury or ll) rr) data-row)
@@ -561,7 +561,7 @@
 :: 
 ++  pred-unary-op
   |=  $:  p=predicate:ast
-          type-lookup=lookup-type
+          =map-meta
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
@@ -573,7 +573,7 @@
     %not
     :: this doesn't handle a qualified/unqualified column as argument
         =/  ll=$-(data-row ?)
-            (pred-ops-and-conjs l.p type-lookup qualifier-lookup)
+            (pred-ops-and-conjs l.p map-meta qualifier-lookup)
         (bake (cury not ll) data-row)
     %exists
       ~|("%exists not implemented" !!)
@@ -583,7 +583,7 @@
 :: 
 ++  pred-binary-op
   |=  $:  p=predicate:ast
-          type-lookup=lookup-type
+          =map-meta
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
@@ -602,10 +602,10 @@
                        ?:  ?=(qualified-column:ast n.r.p)   n.r.p
                        ?:  ?=(dime n.r.p)  n.r.p
                        ~|("can't get here" !!)
-      ?:  ?=(%qualified-lookup-type -.type-lookup)
+      ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  qualifier-lookup
                                  eq-lit-lit
                                  eq-col-col
@@ -614,7 +614,7 @@
                                  ==
       %:  datum-ops-unqualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  eq-lit-lit
                                  eq-col-col
                                  eq-col-lit
@@ -629,7 +629,7 @@
                        ?:  ?=(qualified-column:ast n.r.p)   n.r.p
                        ?:  ?=(dime n.r.p)  n.r.p
                        ~|("can't get here" !!)
-      (pred-inequality-op n.p l r type-lookup qualifier-lookup)
+      (pred-inequality-op n.p l r map-meta qualifier-lookup)
     %equiv
       :: to do: the commented code tests for existence in the wrong place
       ::        it needs to take place at run time and row-by-row
@@ -643,19 +643,19 @@
       ::             ?:  ?=(dime  n.r.p)   n.r.p
       ::             ~|("can't get here" !!::)
       ::=/  l-exists=?  ?:  ?=(dime l)  %.y
-      ::                (~(has by type-lookup) name.l)
+      ::                (~(has by map-meta) name.l)
       ::=/  r-exists=?  ?:  ?=(dime r)  %.y
-      ::                (~(has by type-lookup) name.r)
+      ::                (~(has by map-meta) name.r)
       ::::
       ::?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
       ::  ?:  &(?!(l-exists) ?!(r-exists))  always-true
       ::  ?.  &(l-exists r-exists)  always-false
-      ::  ?:  %+  types-match  -:(~(got by type-lookup) [(normalize-qt qualifier.l) name.l])
-      ::                    -:(~(got by type-lookup) [(normalize-qt qualifier.r) name.r])
+      ::  ?:  %+  types-match  -:(~(got by map-meta) [(normalize-qt qualifier.l) name.l])
+      ::                    -:(~(got by map-meta) [(normalize-qt qualifier.r) name.r])
       ::    %+  bake  %+  cury
       ::                  %+  cury  (cury eq-col-col [(normalize-qt qualifier.l) name.l])
       ::                            [(normalize-qt qualifier.r) name.r]
-      ::                  -:(~(got by type-lookup) [(normalize-qt qualifier.l) name.l])
+      ::                  -:(~(got by map-meta) [(normalize-qt qualifier.l) name.l])
       ::              data-row
       ::  ~|  "comparing columns of different auras: ".
       ::      "{<name.l>} {<name.r>}"
@@ -663,7 +663,7 @@
       ::::
       ::?:  &(?=(qualified-column:ast l) ?=(dime r))
       ::  ?.  l-exists  always-false
-      ::  ?:  (types-match -:(~(got by type-lookup) [(normalize-qt qualifier.l) name.l]) -.r)
+      ::  ?:  (types-match -:(~(got by map-meta) [(normalize-qt qualifier.l) name.l]) -.r)
       ::    %+  bake
       ::          (cury (cury (cury eq-lit-col +.r) [(normalize-qt qualifier.l) name.l]) -.r)
       ::          data-row
@@ -673,7 +673,7 @@
       ::::
       ::?:  &(?=(dime l) ?=(qualified-column:ast r))
       ::  ?.  r-exists  always-false
-      ::  ?:  (types-match -.l -:(~(got by type-lookup) [(normalize-qt qualifier.r) name.r]))
+      ::  ?:  (types-match -.l -:(~(got by map-meta) [(normalize-qt qualifier.r) name.r]))
       ::    %+  bake
       ::          (cury (cury (cury eq-lit-col +.l) [(normalize-qt qualifier.r) name.r]) -.l)
       ::          data-row
@@ -694,15 +694,15 @@
     %not-equiv
       ~|("%not-equiv not implemented" !!)
     %in
-      (common-list-pred p type-lookup in-col-list in-lit-list)
+      (common-list-pred p map-meta in-col-list in-lit-list)
     %not-in
-      (common-list-pred p type-lookup not-in-col-list not-in-lit-list)
+      (common-list-pred p map-meta not-in-col-list not-in-lit-list)
     ==
 ::
 ::
 ++  common-list-pred
   |=  $:  p=predicate:ast
-          type-lookup=lookup-type
+          =map-meta
           list-pred=$-([[qualified-table:ast @tas] (list @) =data-row] ?)
           lit-list-pred=$-([@ (list @) =data-row] ?)
           ==
@@ -717,13 +717,13 @@
   =/  typ
     ?:  ?=(dime:ast n.l.p)  -.n.l.p
     ?:  ?&  ?=(qualified-column:ast n.l.p)
-            ?=(%qualified-lookup-type -.type-lookup)
+            ?=(%qualified-map-meta -.map-meta)
             ==
-      -:(~(got bi:mip +.type-lookup) (normalize-qt qualifier.n.l.p) name.n.l.p)
+      -:(~(got bi:mip +.map-meta) (normalize-qt qualifier.n.l.p) name.n.l.p)
     ?:  ?&  ?=(unqualified-column:ast n.l.p)
-            ?=(%unqualified-lookup-type -.type-lookup)
+            ?=(%unqualified-map-meta -.map-meta)
             ==
-      -:(~(got by +.type-lookup) name.n.l.p)
+      -:(~(got by +.map-meta) name.n.l.p)
     ~|("can't get here" !!)
   ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
     ~|("type of IN list incorrect, should be {<typ>}" !!)
@@ -760,7 +760,7 @@
 ++  datum-ops-qualified
   |=  $:  l=datum:ast
           r=datum:ast
-          type-lookup=(mip:mip qualified-table @tas typ-addr)
+          map-meta=(mip:mip qualified-table @tas typ-addr)
           qualifier-lookup=(map @tas (list qualified-table:ast))
           lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
@@ -776,45 +776,45 @@
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
-              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)
-              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)
+              -:(~(got bi:mip map-meta) (normalize-qt qualifier.l) name.l)
+              -:(~(got bi:mip map-meta) (normalize-qt qualifier.r) name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col [(normalize-qt qualifier.l) name.l])
                               [(normalize-qt qualifier.r) name.r]
-                    -:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)
+                    -:(~(got bi:mip map-meta) (normalize-qt qualifier.l) name.l)
                 data-row
     ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)>} ".
+        "{<-:(~(got bi:mip map-meta) (normalize-qt qualifier.l) name.l)>} ".
         "{<name.r>} ".
-        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)>}"
+        "{<-:(~(got bi:mip map-meta) (normalize-qt qualifier.r) name.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
     ?:  %+  types-match
               -.l
-              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)
+              -:(~(got bi:mip map-meta) (normalize-qt qualifier.r) name.r)
       %+  bake  (cury (cury (cury lit-col +.l) [(normalize-qt qualifier.r) name.r]) -.l)
                 data-row
     ~|  "comparing literal to column of different aura: ".
         "{<l>} {<name.r>} ".
-        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.r) name.r)>}"
+        "{<-:(~(got bi:mip map-meta) (normalize-qt qualifier.r) name.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
     ?:  %+  types-match  
-              -:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)
+              -:(~(got bi:mip map-meta) (normalize-qt qualifier.l) name.l)
               -.r
       %+  bake  (cury (cury (cury col-lit [(normalize-qt qualifier.l) name.l]) +.r) -.r)
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got bi:mip type-lookup) (normalize-qt qualifier.l) name.l)>} {<r>}"
+        "{<-:(~(got bi:mip map-meta) (normalize-qt qualifier.l) name.l)>} {<r>}"
         !!
   ~|("datum-ops can't get here" !!)
 ::
 ++  datum-ops-unqualified
   |=  $:  l=datum:ast
           r=datum:ast
-          type-lookup=(map @tas typ-addr)
+          map-meta=(map @tas typ-addr)
           lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
           col-lit=$-([[qualified-table:ast @tas] @ @ta data-row] ?)
@@ -828,37 +828,37 @@
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
   ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
-    ?:  %+  types-match  -:(~(got by type-lookup) name.l)
-                         -:(~(got by type-lookup) name.r)
+    ?:  %+  types-match  -:(~(got by map-meta) name.l)
+                         -:(~(got by map-meta) name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col [*qualified-table:ast name.l])
                               [*qualified-table:ast name.r]
-                    -:(~(got by type-lookup) name.l)
+                    -:(~(got by map-meta) name.l)
                 data-row
     ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got by type-lookup) name.l)>} {<name.r>} ".
-        "{<-:(~(got by type-lookup) name.r)>}"
+        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(unqualified-column:ast r))
-    ?:  (types-match -.l -:(~(got by type-lookup) name.r))
+    ?:  (types-match -.l -:(~(got by map-meta) name.r))
       %+  bake  %+  cury
                     (cury (cury lit-col +.l) [*qualified-table:ast name.r])
                     -.l
                 data-row
     ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
-        "{<-:(~(got by type-lookup) name.r)>}"
+        "{<-:(~(got by map-meta) name.r)>}"
         !!
   ::  column = literal
   ?:  &(?=(unqualified-column:ast l) ?=(dime r))
-    ?:  (types-match -:(~(got by type-lookup) name.l) -.r)
+    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
       %+  bake  %+  cury  %+  cury
                               (cury col-lit [*qualified-table:ast name.l])
                                +.r
                           -.r
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got by type-lookup) name.l)>} {<r>}"
+        "{<-:(~(got by map-meta) name.l)>} {<r>}"
         !!
   ::
   ~|("datum-ops can't get here" !!)
@@ -867,16 +867,16 @@
   |=  $:  p=inequality-op
           l=datum:ast
           r=datum:ast
-          type-lookup=lookup-type
+          =map-meta
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
   ?-  p
     %neq
-      ?:  ?=(%qualified-lookup-type -.type-lookup)
+      ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  qualifier-lookup
                                  neq-lit-lit
                                  neq-col-col
@@ -885,17 +885,17 @@
                                  ==
       %:  datum-ops-unqualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  neq-lit-lit
                                  neq-col-col
                                  neq-col-lit
                                  neq-lit-col
                                  ==
     %gt
-      ?:  ?=(%qualified-lookup-type -.type-lookup)
+      ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  qualifier-lookup
                                  gt-lit-lit
                                  gt-col-col
@@ -904,17 +904,17 @@
                                  ==
       %:  datum-ops-unqualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  gt-lit-lit
                                  gt-col-col
                                  gt-col-lit
                                  gt-lit-col
                                  ==
     %gte
-      ?:  ?=(%qualified-lookup-type -.type-lookup)
+      ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  qualifier-lookup
                                  gte-lit-lit
                                  gte-col-col
@@ -923,17 +923,17 @@
                                  ==
       %:  datum-ops-unqualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  gte-lit-lit
                                  gte-col-col
                                  gte-col-lit
                                  gte-lit-col
                                  ==
     %lt
-      ?:  ?=(%qualified-lookup-type -.type-lookup)
+      ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  qualifier-lookup
                                  lt-lit-lit
                                  lt-col-col
@@ -942,17 +942,17 @@
                                  ==
       %:  datum-ops-unqualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  lt-lit-lit
                                  lt-col-col
                                  lt-col-lit
                                  lt-lit-col
                                  ==
     %lte
-      ?:  ?=(%qualified-lookup-type -.type-lookup)
+      ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  qualifier-lookup
                                  lte-lit-lit
                                  lte-col-col
@@ -961,7 +961,7 @@
                                  ==
       %:  datum-ops-unqualified  l
                                  r
-                                 +.type-lookup
+                                 +.map-meta
                                  lte-lit-lit
                                  lte-col-col
                                  lte-col-lit

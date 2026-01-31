@@ -260,7 +260,7 @@
   ::
   =/  filter=$-(data-row ?)  %^  pred-ops-and-conjs
                                  (pred-unqualify-qualified predicate.d)
-                                 :-  %unqualified-lookup-type
+                                 :-  %unqualified-map-meta
                                      typ-addr-lookup.table.txn
                                  ~
   =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
@@ -347,13 +347,13 @@
               :-  ~
                   %^  pred-ops-and-conjs  %-  pred-unqualify-qualified
                                               predicate.u
-                                          :-  %unqualified-lookup-type
+                                          :-  %unqualified-map-meta
                                               typ-addr-lookup.table.txn
                                           ~
   =/  updates  %:  mk-updates  table.u
                                columns.u
                                values.u
-                               :-  %unqualified-lookup-type
+                               :-  %unqualified-map-meta
                                    typ-addr-lookup.table.txn
                                ==
   ::  updating key column requires re-indexing
@@ -456,14 +456,14 @@
               %+  pred-qualify-unqualified
                     predicate.q
                     qualifier-lookup
-              lookup-type.join-return
+              map-meta.join-return
               qualifier-lookup
   ?:  is-cte  [join-return ~]
   ?~  set-tables.join-return  [join-return ~]
   :-  join-return
       %:  joined-result  filter
-                          qualified-columns.join-return
-                          lookup-type.join-return
+                          column-metas.join-return
+                          map-meta.join-return
                           joined-rows.i.set-tables.join-return
                           selected
                           ==
@@ -471,7 +471,7 @@
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list column-meta)
-          =lookup-type
+          =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
           ==
@@ -482,7 +482,7 @@
                                     selected
                                     ::;;(joined-row -.rows)
                                     -.rows
-                                    lookup-type
+                                    map-meta
                                     ==
   |-
   ?~  rows  ~(tap in out-rows)
@@ -618,14 +618,14 @@
                                 columns-out
                                 ~
                                 1
-                                *unqualified-lookup-type
+                                *unqualified-map-meta
                                 ~
                                 *(tree [(list @) (map @tas @)])
                                 ~[[%indexed-row ~ indexed-cols]]
                                 *(list joined-row)
                                 ==
                             ==
-                        *qualified-lookup-type
+                        *qualified-map-meta
                         ~
                         ==
                     ~
@@ -639,14 +639,14 @@
                     columns-out
                     ~
                     1
-                    *unqualified-lookup-type
+                    *unqualified-map-meta
                     ~
                     *(tree [(list @) (map @tas @)])
                     ~[[%indexed-row ~ indexed-cols]]
                     *(list joined-row)
                     ==
                 ==
-            *qualified-lookup-type
+            *qualified-map-meta
             ~
             ==
         :~  %+  mk-vect
@@ -727,7 +727,7 @@
   |=  $:  =qualified-table:ast
           columns=(list qualified-column:ast)
           values=(list *)   ::(list value-or-default:ast)
-          type-lookup=unqualified-lookup-type
+          type-lookup=unqualified-map-meta
           ==
   ^-  (list [@tas @])
   =/  updates  *(list [@tas @])
@@ -751,8 +751,8 @@
           ~|  "UPDATE: {<qualified-table>} not matched by column qualifier ".
               "{<qualifier.i.columns>}"
               !!
-        ?:  .=  p.i.values  ~|  "UPDATE: {<qualified-table>} does not have column ".
-                                "{<name.i.columns>}"
+        ?:  .=  p.i.values  ~|  "UPDATE: {<qualified-table>} does not have ".
+                                "column {<name.i.columns>}"
                                 -:(~(got by +.type-lookup) name.i.columns)
           [[name.i.columns +.i.values] updates]
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
@@ -778,7 +778,7 @@
                                           ?~  relation.s  ~
                                           (some [(need relation.s) columns.s])
   =/  canonical-map  (malt canonical-list)
-  =/  lookup  ;;(qualified-lookup-type lookup-type.join-return)
+  =/  lookup  ;;(qualified-map-meta map-meta.join-return)
   %=  $
     nctes  %+  ~(put by nctes)
                name.i.ctes
@@ -837,7 +837,7 @@
 ::  +mk-cte-column-metas
 ++  mk-cte-column-metas
   |=  $:  sel-cols=(list selected-column:ast)
-          lookup-type=qualified-lookup-type
+          map-meta=qualified-map-meta
           canonical-list=(list [qualified-table (list column:ast)])
           canonical-map=(map qualified-table (list column:ast))
           ==
@@ -851,8 +851,8 @@
                               qualifier.c
                               ?~(alias.c name.c (need alias.c))
                               ?~(alias.c ~ [~ name.c])
-                          type:(~(got bi:mip +.lookup-type) qualifier.c name.c)
-                          (calc-cte-col-addr lookup-type qualifier.c name.c)
+                          type:(~(got bi:mip +.map-meta) qualifier.c name.c)
+                          (calc-cte-col-addr map-meta qualifier.c name.c)
                       ==
                 unqualified-column:ast
                   ~|("not supported" !!)
@@ -869,19 +869,19 @@
                   =/  qual  +.c
                   =/  cols  (~(get by canonical-map) qual)
                   ~|  "can't lookup {<qualified-table>}"
-                  (foo (~(got by canonical-map) qual) qual lookup-type)
+                  (foo (~(got by canonical-map) qual) qual map-meta)
                 ==
 ::
 ++  foo
-  |=  [columns=(list column:ast) =qualified-table:ast =qualified-lookup-type]
+  |=  [columns=(list column:ast) =qualified-table:ast =qualified-map-meta]
   ^-  (list column-meta)
   =/  metas  *(list column-meta)
   |-
   ?~  columns  (flop metas)
   ~|  "can't lookup column {<qualified-table>} {<name.i.columns>}"
-  =/  typ-addr  %+  ~(got bi:mip +.qualified-lookup-type)  %-  normalize-qt
+  =/  typ-addr  %+  ~(got bi:mip +.qualified-map-meta)  %-  normalize-qt
                                                                 qualified-table
-                                                           name.i.columns
+                                                            name.i.columns
   %=  $
     columns  t.columns
     metas  :-  :+  :^  %qualified-column
@@ -889,14 +889,14 @@
                         name.i.columns
                         ~
                     type.typ-addr
-                    %^  calc-cte-col-addr  qualified-lookup-type
+                    %^  calc-cte-col-addr  qualified-map-meta
                                            qualified-table
                                            name.i.columns
                 metas
   ==
 ::
 ++  calc-cte-col-addr
-  |=  $:  lookup=qualified-lookup-type
+  |=  $:  lookup=qualified-map-meta
           =qualified-table:ast
           col=@tas
           ==

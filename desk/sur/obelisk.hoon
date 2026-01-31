@@ -89,7 +89,7 @@
     columns=(list column)
     =predicate
     rowcount=@
-    =lookup-type
+    =map-meta
     pri-indx=(unit index)
     pri-indexed=(tree [(list @) (map @tas @)])
     indexed-rows=(list indexed-row)
@@ -101,15 +101,15 @@
       type=@ta
       addr=@
       ==
-+$  qualified-lookup-type
-  $:  %qualified-lookup-type
++$  qualified-map-meta
+  $:  %qualified-map-meta
     (mip qualified-table @tas typ-addr)
     ==
-+$  unqualified-lookup-type
-  $:  %unqualified-lookup-type
++$  unqualified-map-meta
+  $:  %unqualified-map-meta
     (map @tas typ-addr)
     ==
-+$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)     ::to do: rename
++$  map-meta  $%(qualified-map-meta unqualified-map-meta)
 ::
 +$  joined-row
   $:  %joined-row
@@ -122,8 +122,8 @@
   $:  %join-return
     =server
     set-tables=(list set-table)
-    =lookup-type
-    qualified-columns=(list column-meta)    ::to do: rename
+    =map-meta
+    column-metas=(list column-meta)    ::to do: rename
     ==
 ::
 +$  joined-relat
@@ -137,7 +137,7 @@
 +$  full-relation
   $:  %full-relation
     set-tables=(list set-table)
-    lookup-type=qualified-lookup-type
+    map-meta=qualified-map-meta
     column-metas=(list column-meta)
     ==
 +$  named-ctes  (map @tas full-relation)
