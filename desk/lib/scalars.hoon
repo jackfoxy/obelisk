@@ -225,7 +225,7 @@
 
     !!
 
-    ::=/  qualified-if  (pred-qualify-unqualified if.scalar qualifier.lookups)
+    ::=/  qualified-if  (normalize-predicate if.scalar qualifier.lookups)
     ::=/  pred-result
     ::  (pred-ops-and-conjs qualified-if type.lookups qualifier.lookups)
     ::|=  d=data-row
@@ -265,7 +265,7 @@
     ::      :: need this so the proper type is inferred
     ::      ?.  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
     ::      =/  qualified-pred
-    ::           (pred-qualify-unqualified when.case qualifier.lookups)
+    ::           (normalize-predicate when.case qualifier.lookups)
     ::      =/  result
     ::        :-  %:  pred-ops-and-conjs
     ::              qualified-pred

@@ -453,9 +453,9 @@
     ?~  predicate.q  ~
     :-  ~
         %^  pred-ops-and-conjs
-              %+  pred-qualify-unqualified
-                    predicate.q
-                    qualifier-lookup
+              %+  normalize-predicate
+                  predicate.q
+                  qualifier-lookup
               map-meta.join-return
               qualifier-lookup
   ?:  is-cte  [join-return ~]
