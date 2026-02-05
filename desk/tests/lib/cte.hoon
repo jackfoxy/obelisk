@@ -60,86 +60,86 @@
   "       (~2012.2.29, 'rygged',~rus, 5,~2012.2.1); "
 ::
 ::  simple query of cte, SELECT *
-::::++  test-cte-00
-::::  =|  run=@ud
-::::  ::%-  exec-0-1
-::::  %-    debug-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-table
-::::                              insert-table
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM my-table ".
-::::                "      SELECT *) AS my-cte ".
-::::                "FROM my-cte SELECT * "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              :-  %result-set
-::::                                  :~
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2010.5.3]]
-::::                                            [%col1 [~.t 'cord']]
-::::                                            [%col2 [~.p ~nomryg-nilref]]
-::::                                            [%col3 [~.ud 20]]
-::::                                            [%col4 [~.da ~2000.1.1]]
-::::                                            ==
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2010.5.31]]
-::::                                            [%col1 [~.t 'Default']]
-::::                                            [%col2 [~.p ~zod]]
-::::                                            [%col3 [~.ud 0]]
-::::                                            [%col4 [~.da ~2000.1.1]]
-::::                                            ==
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2010.5.31]]
-::::                                            [%col1 [~.t 'Default']]
-::::                                            [%col2 [~.p ~nec]]
-::::                                            [%col3 [~.ud 1]]
-::::                                            [%col4 [~.da ~2000.1.1]]
-::::                                            ==
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2010.5.31]]
-::::                                            [%col1 [~.t 'Default']]
-::::                                            [%col2 [~.p ~bus]]
-::::                                            [%col3 [~.ud 2]]
-::::                                            [%col4 [~.da ~2000.1.1]]
-::::                                            ==
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2010.6.30]]
-::::                                            [%col1 [~.t 'zod man']]
-::::                                            [%col2 [~.p ~zod]]
-::::                                            [%col3 [~.ud 3]]
-::::                                            [%col4 [~.da ~2010.6.1]]
-::::                                            ==
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2010.3.23]]
-::::                                            [%col1 [~.t '~num galaxy']]
-::::                                            [%col2 [~.p ~num]]
-::::                                            [%col3 [~.ud 4]]
-::::                                            [%col4 [~.da ~2010.3.3]]
-::::                                            ==
-::::                                    :-  %vector
-::::                                        :~  [%col0 [~.da ~2012.2.29]]
-::::                                            [%col1 [~.t 'rygged']]
-::::                                            [%col2 [~.p ~rus]]
-::::                                            [%col3 [~.ud 5]]
-::::                                            [%col4 [~.da ~2012.2.1]]
-::::                                            ==
-::::
-::::                                    ==
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.my-table']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%vector-count 7]
-::::                              ==
-::::            ==
-::::::
+++  test-cte-00
+  =|  run=@ud
+  %-  exec-0-1
+  ::%-    debug-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM my-table ".
+                "      SELECT *) AS my-cte ".
+                "FROM my-cte SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'cord']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 20]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 1]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 2]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.6.30]]
+                                            [%col1 [~.t 'zod man']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 3]]
+                                            [%col4 [~.da ~2010.6.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.3.23]]
+                                            [%col1 [~.t '~num galaxy']]
+                                            [%col2 [~.p ~num]]
+                                            [%col3 [~.ud 4]]
+                                            [%col4 [~.da ~2010.3.3]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2012.2.29]]
+                                            [%col1 [~.t 'rygged']]
+                                            [%col2 [~.p ~rus]]
+                                            [%col3 [~.ud 5]]
+                                            [%col4 [~.da ~2012.2.1]]
+                                            ==
+
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%vector-count 7]
+                              ==
+            ==
+::
 ::  simple query of joined, filtered cte, SELECT *
 ++  test-cte-01
   =|  run=@ud
