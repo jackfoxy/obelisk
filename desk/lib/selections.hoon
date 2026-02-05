@@ -71,6 +71,7 @@
           map-meta.the-relation
           column-metas.the-relation
           ==
+      ?:  is-cte  *(list vector)
       %:  relation-vectors  filter
                             column-metas.the-relation
                             ?:  is-cte  map-meta.the-relation
@@ -177,11 +178,11 @@
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
-      ~|("not supported" !!)
+      ~|("{<selected-column>} not supported" !!)
     unqualified-column:ast
-      ~|("not supported" !!)
+      ~|("{<selected-column>} not supported" !!)
     selected-aggregate:ast
-      ~|("not supported" !!)
+      ~|("{<selected-column>} not supported" !!)
     selected-value:ast
       ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
     selected-all:ast

@@ -944,7 +944,7 @@
 ++  apply-ordering
     |=  v=view
     ^-  view
-    ?~  set-functions.selection.v  ~|("can't get here" !!)
+    ?~  set-functions.selection.v  ~|("apply-ordering can't get here" !!)
     =/  qsf=set-function:ast  `set-function:ast`n.set-functions.selection.v
     ?~  +>+>+>+.qsf  v  
     v(ordering (make-ordering columns.v +>+>+>+.qsf))

@@ -501,12 +501,12 @@
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
-  ?~  p  ~|("can't get here" !!) 
-  ?.  ?=(ops-and-conjs n.p)  ~|("can't get here" !!)
+  ?~  p  ~|("pred-ops-and-conjs can't get here" !!) 
+  ?.  ?=(ops-and-conjs n.p)  ~|("pred-ops-and-conjs can't get here" !!)
   ?-  n.p
     ternary-op
-      ?~  l.p  ~|("can't get here" !!)
-      ?~  r.p  ~|("can't get here" !!)
+      ?~  l.p  ~|("pred-ops-and-conjs can't get here" !!)
+      ?~  r.p  ~|("pred-ops-and-conjs can't get here" !!)
       =/  ll=$-(data-row ?)  (pred-binary-op l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)  (pred-binary-op r.p map-meta qualifier-lookup)
       ?:  =(%between n.p)
@@ -516,8 +516,8 @@
     unary-op    (pred-unary-op p map-meta qualifier-lookup)
     all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
-      ?~  l.p  ~|("can't get here" !!)
-      ?~  r.p  ~|("can't get here" !!)
+      ?~  l.p  ~|("pred-ops-and-conjs can't get here" !!)
+      ?~  r.p  ~|("pred-ops-and-conjs can't get here" !!)
       =/  ll=$-(data-row ?)  (pred-ops-and-conjs l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)  (pred-ops-and-conjs r.p map-meta qualifier-lookup)
       ?:  =(%and n.p)
@@ -531,9 +531,9 @@
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
-  ?~  p  ~|("can't get here" !!)
-  ?~  l.p  ~|("can't get here" !!)
-  ?.  ?=(unary-op n.p)  ~|("can't get here" !!)
+  ?~  p  ~|("pred-unary-op can't get here" !!)
+  ?~  l.p  ~|("pred-unary-op can't get here" !!)
+  ?.  ?=(unary-op n.p)  ~|("pred-unary-op can't get here" !!)
   ::
   ?-  n.p
     %not
@@ -552,21 +552,21 @@
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  $-(data-row ?)
-  ?~  p                  ~|("can't get here" !!)
-  ?.  ?=(binary-op n.p)  ~|("can't get here" !!)
-  ?~  l.p                ~|("can't get here" !!)
-  ?~  r.p                ~|("can't get here" !!)
+  ?~  p                  ~|("pred-binary-op can't get here" !!)
+  ?.  ?=(binary-op n.p)  ~|("pred-binary-op can't get here" !!)
+  ?~  l.p                ~|("pred-binary-op can't get here" !!)
+  ?~  r.p                ~|("pred-binary-op can't get here" !!)
   ::
   ?-  n.p
     %eq
       =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
                        ?:  ?=(qualified-column:ast n.l.p)  n.l.p
                        ?:  ?=(dime n.l.p)  n.l.p
-                       ~|("can't get here" !!)
+                       ~|("pred-binary-op can't get here" !!)
       =/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
                        ?:  ?=(qualified-column:ast n.r.p)   n.r.p
                        ?:  ?=(dime n.r.p)  n.r.p
-                       ~|("can't get here" !!)
+                       ~|("pred-binary-op can't get here" !!)
       ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
                                  r
@@ -589,11 +589,11 @@
       =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
                        ?:  ?=(qualified-column:ast n.l.p)  n.l.p
                        ?:  ?=(dime n.l.p)  n.l.p
-                       ~|("can't get here" !!)
+                       ~|("pred-binary-op can't get here" !!)
       =/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
                        ?:  ?=(qualified-column:ast n.r.p)   n.r.p
                        ?:  ?=(dime n.r.p)  n.r.p
-                       ~|("can't get here" !!)
+                       ~|("pred-binary-op can't get here" !!)
       (pred-inequality-op n.p l r map-meta qualifier-lookup)
     %equiv
       :: to do: the commented code tests for existence in the wrong place
@@ -602,11 +602,11 @@
       ::=/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
       ::             ?:  ?=(qualified-column:ast n.l.p)  n.l.p
       ::             ?:  ?=(dime n.l.p)  n.l.p
-      ::             ~|("can't get here" !!)
+      ::             ~|("pred-binary-op can't get here" !!)
       ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
       ::             ?:  ?=(qualified-column:ast  n.r.p)   n.r.p
       ::             ?:  ?=(dime  n.r.p)   n.r.p
-      ::             ~|("can't get here" !!::)
+      ::             ~|("pred-binary-op can't get here" !!::)
       ::=/  l-exists=?  ?:  ?=(dime l)  %.y
       ::                (~(has by map-meta) name.l)
       ::=/  r-exists=?  ?:  ?=(dime r)  %.y
@@ -654,7 +654,7 @@
       ::      "{<l>} {<r>}"
       ::      !!
       ::::
-      ::~|("can't get here" !!)
+      ::~|("pred-binary-op can't get here" !!)
       ~|("%equiv not implemented" !!)
     %not-equiv
       ~|("%not-equiv not implemented" !!)
@@ -672,11 +672,11 @@
           lit-list-pred=$-([@ (list @) =data-row] ?)
           ==
   ^-  $-(data-row ?)
-  ?~  p                  ~|("can't get here" !!)
-  ?~  l.p                ~|("can't get here" !!)
-  ?~  r.p                ~|("can't get here" !!)
+  ?~  p                  ~|("common-list-pred can't get here" !!)
+  ?~  l.p                ~|("common-list-pred can't get here" !!)
+  ?~  r.p                ~|("common-list-pred can't get here" !!)
   =/  r=value-literals  ?:  ?=(value-literals n.r.p)  n.r.p
-                        ~|("can't get here" !!)
+                        ~|("common-list-pred can't get here" !!)
   =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";") 
                          |=(a=tape (rash (crip a) dem))
   =/  typ
@@ -689,7 +689,7 @@
             ?=(%unqualified-map-meta -.map-meta)
             ==
       -:(~(got by +.map-meta) name.n.l.p)
-    ~|("can't get here" !!)
+    ~|("common-list-pred can't get here" !!)
   ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
     ~|("type of IN list incorrect, should be {<typ>}" !!)
   ?:  ?=(unqualified-column:ast n.l.p)
@@ -700,7 +700,7 @@
               data-row
   ?:  ?=(dime n.l.p)
     (bake (cury (cury lit-list-pred +.n.l.p) in-list) data-row)
-  ~|("can't get here" !!)
+  ~|("common-list-pred can't get here" !!)
 ::
 ++  get-qualifier
   |=  $:  col=qualified-column:ast

@@ -272,11 +272,6 @@
   =/  is-join  =(%joined-row -.row)
   =/  i  0
   =/  cells  *(list templ-cell)
-
-
-    ~&  [%map-meta map-meta]
-    ~&  [%row row]
-
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells

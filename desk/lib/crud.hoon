@@ -526,7 +526,7 @@
                                         *(set [qualified-table:ast @da @da])
                                         pick-from-object
                      order-results
-  ?~  set-tables.join-return  ~|("can't get here" !!)
+  ?~  set-tables.join-return  ~|("select-results can't get here" !!)
   |-
   ?~  raw  ?~  out
              :~  [%message 'SELECT']
@@ -670,7 +670,7 @@
   ^-  vector
   =/  vector-cells  *(list vector-cell)
   |-
-  ?~  columns  ?~  vector-cells  ~|("can't get here" !!)
+  ?~  columns  ?~  vector-cells  ~|("mk-vect can't get here" !!)
                [%vector `(lest vector-cell)`vector-cells]
   %=  $
     columns       t.columns
@@ -733,7 +733,7 @@
   =/  updates  *(list [@tas @])
   |-
   ?~  columns  updates
-  ?~  values  !!   :: can't get here
+  ?~  values  ~|("mk-updates can't get here" !!)
   ?:  ?=(%default i.values)
     %=  $
       columns   t.columns
@@ -803,7 +803,7 @@
 ++  cte-set-tables
   |=  [name=@tas columns=(list selected-column:ast) st=(list set-table)]
   ^-  (list set-table)
-  ?~  st  ~|("can't get here" !!)
+  ?~  st  ~|("cte-set-tables can't get here" !!)
   ?:  =(~ relation.i.st)  st
   =/  new  i.st
   =.  join.new        ~
@@ -869,16 +869,16 @@
                                                 name.c
                       ==
                 unqualified-column:ast
-                  ~|("not supported" !!)
+                  ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-aggregate:ast
-                  ~|("not supported" !!)
+                  ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
-                  ~|("not supported" !!)
+                  ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-all:ast
                   :: :+  [%qualified-column *qualified-table:ast name.c ~]
                   ::type.c
                   ::addr.c
-                  ~|("not supported" !!)
+                  ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-all-table:ast
                   =/  qual  +.c
                   =/  cols  (~(get by canonical-map) qual)
