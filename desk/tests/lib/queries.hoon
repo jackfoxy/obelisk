@@ -2153,6 +2153,7 @@
 ++  test-shrinking-06
   =|  run=@ud
   %-  exec-2-1
+  ::%-  debug-2-1
   :*  run
       [~2012.4.30 %sys "CREATE DATABASE db1"]
       ::

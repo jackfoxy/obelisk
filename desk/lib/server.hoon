@@ -88,12 +88,12 @@
       ?.  =(our.bowl src.bowl)
             ~|("database must be created by local agent" !!)
       =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
-            (new-database -.cmds next-schemas next-data)
+            (new-database i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results  [-.r results]
       ==
     %create-index
@@ -108,11 +108,11 @@
       ?:  query-has-run
         ~|("CREATE NAMESPACE: state change after query in script" !!)
       =/  r=[cmd-result (map @tas @da) server]
-            (create-ns(state state, bowl bowl) -.cmds next-schemas next-data)
+            (create-ns(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         state         +>.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %create-table
@@ -121,12 +121,12 @@
       ?:  query-has-run
         ~|("CREATE TABLE: state change after query in script" !!)
       =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
-            (create-tbl(state state, bowl bowl) -.cmds next-schemas next-data)
+            (create-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %create-view
@@ -140,14 +140,14 @@
       ::=/  ctes=(map @tas [@ud (list indexed-row)])
       ::      (named-queries ->-.cmds)
       =/  r=[(map @tas @da) server (list result)]
-            %^  do-delete(state state, bowl bowl)  -.cmds
+            %^  do-delete(state state, bowl bowl)  i.cmds
                                                    next-data
                                                    next-schemas
       %=  $
         query-has-run   %.n
         next-data       -.r
         state           +<.r
-        cmds            +.cmds
+        cmds            t.cmds
         results         [[%results +>.r] results]
       ==
     %drop-database
@@ -155,10 +155,10 @@
             ~|("DROP DATABASE: database must be dropped by local agent" !!)
       ?:  query-has-run
             ~|("DROP DATABASE: state change after query in script" !!)
-      =/  cmd=drop-database:ast  -.cmds
+      =/  cmd=drop-database:ast  i.cmds
       %=  $
         state         (drop-db cmd)
-        cmds          +.cmds
+        cmds          t.cmds
         results  :-
                    :-  %results
                        :~  [%message (crip "DROP DATABASE {<name.cmd>}")]
@@ -183,12 +183,12 @@
             ~|("DROP TABLE: table must be dropped by local agent" !!)
       ?:  query-has-run  ~|("DROP TABLE: state change after query in script" !!)
       =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
-            (drop-tbl(state state, bowl bowl) -.cmds next-schemas next-data)
+            (drop-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %drop-view
@@ -206,7 +206,7 @@
       ~|("%revoke not implemented" !!)
     %selection
       =/  r=[? [(map @tas @da) server (list result)]]
-            %:  do-selection(state state, bowl bowl)  -.cmds
+            %:  do-selection(state state, bowl bowl)  i.cmds
                                                       query-has-run
                                                       next-data
                                                       next-schemas
@@ -215,20 +215,20 @@
         query-has-run   ?:  query-has-run  %.y  -.r
         next-data       +<.r
         state           +>-.r
-        cmds            +.cmds
+        cmds            t.cmds
         results         [[%results +>+.r] results]
       ==
     %truncate-table
       ?:  query-has-run
         ~|("TRUNCATE TABLE: state change after query in script" !!)
-      =/  cmd=truncate-table:ast  -.cmds
+      =/  cmd=truncate-table:ast  i.cmds
       =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
             (truncate-tbl(state state, bowl bowl) cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %update
@@ -236,14 +236,14 @@
       ::=/  ctes=(map @tas [@ud (list indexed-row)])
       ::      (named-queries ->-.cmds)
       =/  r=[(map @tas @da) server (list result)]
-            %^  do-update(state state, bowl bowl)  -.cmds
+            %^  do-update(state state, bowl bowl)  i.cmds
                                                    next-data
                                                    next-schemas
       %=  $
         query-has-run   %.n
         next-data       -.r
         state           +<.r
-        cmds            +.cmds
+        cmds            t.cmds
         results         [[%results +>.r] results]
       ==
   ==

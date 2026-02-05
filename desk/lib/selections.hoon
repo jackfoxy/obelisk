@@ -71,15 +71,15 @@
           map-meta.the-relation
           column-metas.the-relation
           ==
-      %:  table-result  filter
-                        column-metas.the-relation
-                        ?:  is-cte  map-meta.the-relation
-                        map-meta.i.set-tables.the-relation
-                        ?~  joined-rows.i.set-tables.the-relation
-                          indexed-rows.i.set-tables.the-relation
-                        joined-rows.i.set-tables.the-relation
-                        selected
-                        ==
+      %:  relation-vectors  filter
+                            column-metas.the-relation
+                            ?:  is-cte  map-meta.the-relation
+                            map-meta.i.set-tables.the-relation
+                            ?~  joined-rows.i.set-tables.the-relation
+                              indexed-rows.i.set-tables.the-relation
+                            joined-rows.i.set-tables.the-relation
+                            selected
+                            ==
 ::
 ::  +select-for-cte:  [query:ast (unit $-(data-row ?))]
 ::                    -> (list set-table) 
@@ -190,7 +190,15 @@
       (flop columns)
     ==
 ::
-++  table-result
+::  +relation-vectors:  $:  (unit $-(data-row ?))
+::                          (list column-meta)
+::                          map-meta
+::                          (list data-row)
+::                          (list selected-column:ast)
+::                      ->  (list vector)
+::
+::  tree address of indexed/joined rows off by one
+++  relation-vectors
   |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list column-meta)
           =map-meta
@@ -198,13 +206,32 @@
           selected=(list selected-column:ast)
           ==
   ^-  (list vector)
-  ?:  =((lent rows) 0)  ~
+  ?~  rows         *(list vector)
+  =/  out-rows     *(set vector)
+  =/  templ-cells=(list templ-cell)  %:  mk-rel-vect-templ  qualified-columns
+                                          selected
+                                          -.rows
+                                          map-meta
+                                          ==
+  ::
+  ?~  templ-cells  ~|("relation-vectors can't get here" !!)
+  =/  non-lit  %-  |=  a=(list templ-cell)
+                   |-  ^-  (unit templ-cell) 
+                   ?~  a  ~
+                   ?~  column.i.a  $(a t.a)  [~ i.a]
+                   templ-cells
+  ?~  non-lit  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+  =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
+  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
+  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+::
+++  indexed-results
+  |=  $:  filter=(unit $-(data-row ?))
+          rows=(list indexed-row)
+          templ-cells=(list templ-cell)
+          ==
+  ^-  (list vector)
   =/  out-rows   *(set vector)
-  =/  cells  %:  mk-rel-vect-templ  qualified-columns
-                                    selected
-                                    -.rows
-                                    map-meta
-                                    ==
   |-
   ?~  rows  ~(tap in out-rows)
   =/  include-row=?
@@ -214,14 +241,14 @@
   ?.  include-row
     $(rows t.rows)
   =/  row                     *(list vector-cell)
-  =/  cols=(list templ-cell)  cells
+  =/  cols=(list templ-cell)  templ-cells
   |-
   ?~  cols
     %=  ^$
       out-rows  (~(put in out-rows) (vector %vector row))
       rows      t.rows
     ==
-  ?~  column.i.cols
+  ?~  column.i.cols    :: literal
     $(cols t.cols, row [vc.i.cols row])
   %=  $
     cols  t.cols
@@ -230,10 +257,42 @@
               row
   ==
 ::
+++  joined-results
+  |=  $:  filter=(unit $-(data-row ?))
+          rows=(list joined-row)
+          templ-cells=(list templ-cell)
+          ==
+  ^-  (list vector)
+  =/  out-rows   *(set vector)
+  |-
+  ?~  rows  ~(tap in out-rows)
+  =/  include-row=?
+    ?~  filter
+      %.y
+    ((need filter) i.rows)
+  ?.  include-row
+    $(rows t.rows)
+  =/  row                     *(list vector-cell)
+  =/  cols=(list templ-cell)  templ-cells
+  |-
+  ?~  cols
+    %=  ^$
+      out-rows  (~(put in out-rows) (vector %vector row))
+      rows      t.rows
+    ==
+  ?~  column.i.cols    :: literal
+    $(cols t.cols, row [vc.i.cols row])
+  %=  $
+    cols  t.cols
+    row   :-  :-  p.vc.i.cols
+                  [p.q.vc.i.cols ;;(@ .*(data.i.rows [%0 addr.i.cols]))]
+              row
+  ==
+::
 ::  +join-all  query:ast -> join-return
 :: 
 ::  server state returned because we may have updated the view cache
-++  join-all  
+++  join-all
   |=  [q=query:ast =named-ctes]
   ^-  join-return
   =/  from  (normalize-from (need from.q))

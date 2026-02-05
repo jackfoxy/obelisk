@@ -272,6 +272,11 @@
   =/  is-join  =(%joined-row -.row)
   =/  i  0
   =/  cells  *(list templ-cell)
+
+
+    ~&  [%map-meta map-meta]
+    ~&  [%row row]
+
   ::
   |-
   ?~  selected  ?~  cells  ~|("no cells" !!)  cells
@@ -286,8 +291,8 @@
                   (turn cols (cury mk-templ-cell-joined +>:;;(joined-row row)))
             %-  flop
                 %+  turn  cols
-                          %+  cury  mk-templ-cell-indexed
-                                    +:;;(unqualified-map-meta map-meta)
+                          %+  cury  mk-templ-cell-indexed                   
+                                    +:;;(unqualified-map-meta map-meta)          ::<==      
             cells
     ==
   ?:  ?=(selected-all-table:ast i.selected)
@@ -298,11 +303,10 @@
         %+  weld
           %-  flop
             %+  turn
-              %+  skim
-                    cols
-                  |=(a=column-meta =(qualifier.qualified-column.a +.i.selected))
-              ?:  is-join  (cury mk-templ-cell-joined +>:;;(joined-row row))
-              (cury mk-templ-cell-indexed +:;;(unqualified-map-meta map-meta))
+                %+  skim  cols  |=  a=column-meta
+                                =(qualifier.qualified-column.a +.i.selected)
+                ?:  is-join  (cury mk-templ-cell-joined +>:;;(joined-row row))
+                (cury mk-templ-cell-indexed +:;;(unqualified-map-meta map-meta))
           cells
     ==
   ?:  ?=(selected-value:ast i.selected)
