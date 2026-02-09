@@ -8,7 +8,7 @@ Features coming after v0.5 alpha release.
 
 * __Issue #1__ (complete in beta) -- NOT predicate operator not fully functional
 
-* __Common Table Expressions (CTE)__ -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
+* __Common Table Expressions (CTE)__ (complete in beta) -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
 * __JOIN ON__ -- JOIN ON `<predicate>`
 
@@ -21,6 +21,8 @@ Features coming after v0.5 alpha release.
 * __ORDER BY ...__ -- order result set
 
 * __path column type__ -- support path type as atom
+
+* __Scalar functions__ -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
 
 ## other functionality
 
@@ -46,7 +48,6 @@ Features coming after v0.5 alpha release.
 
 * __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will.
 
-* __Scalar functions__ -- functions on one row of a relation returning a noun. (A relation is a user-defined table, view, CTE, or join of any or all of the above.)
 
 * __GROUP BY...HAVING__ -- as in SQL.
 
