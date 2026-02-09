@@ -774,10 +774,10 @@
                                           selected
                                           set-tables.join-return
   ?~  set-tables      ~|("named-queries can't get here" !!)
-  =/  canonical-list  %-  flop  %+  murn  set-tables
-                                          |=  s=set-table
-                                          ?~  relation.s  ~
-                                          (some [(need relation.s) columns.s])
+  =/  canonical-list  %+  murn  set-tables
+                                |=  s=set-table
+                                ?~  relation.s  ~
+                                (some [(need relation.s) columns.s])
   =/  canonical-map   (malt canonical-list)
   =/  map-meta        ;;(qualified-map-meta map-meta.join-return)
   =/  data-row        ?~  joined-rows.i.set-tables
@@ -850,20 +850,31 @@
   |=  $:  sel-cols=(list selected-column:ast)
           =data-row
           map-meta=qualified-map-meta
-          canonical-list=(list [qualified-table (list column:ast)])
+          canonical-list=(list [qualified-table *])
           canonical-map=(map qualified-table (list column:ast))
           ==
   ^-  (list column-meta)
+  =/  f  |=  q=qualified-table:ast
+         ^-  (list column-meta)
+         ~|  "can't lookup {<q>}"
+         %:  cte-meta  (~(got by canonical-map) q)
+             data-row
+             q
+             map-meta
+             ==
+  ::
   %-  zing
     %+  turn  sel-cols
               |=  c=selected-column:ast
               ?-  c
                 qualified-column:ast
+                  =/  typ-addr  (~(got bi:mip +.map-meta) qualifier.c name.c)
                   :~  :+  :^  %qualified-column
                               qualifier.c
                               ?~(alias.c name.c (need alias.c))
                               ?~(alias.c ~ [~ name.c])
-                          type:(~(got bi:mip +.map-meta) qualifier.c name.c)
+                          type.typ-addr
+                          ?:  =(%indexed-row -.data-row)  addr.typ-addr
                           %^  calc-joined-addr  data:;;(joined-row data-row)
                                                 qualifier.c
                                                 name.c
@@ -875,19 +886,14 @@
                 selected-value:ast
                   ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-all:ast
-                  :: :+  [%qualified-column *qualified-table:ast name.c ~]
-                  ::type.c
-                  ::addr.c
-                  ~|("mk-cte-column-metas {<c>} not supported" !!)
+                  %+  roll  canonical-list
+                            |=  $:  qt=[q=qualified-table:ast z=*]
+                                    column-metas=(list column-meta)
+                                    ==
+                            ^-  (list column-meta)
+                            (weld column-metas (f q.qt))
                 selected-all-table:ast
-                  =/  qual  +.c
-                  =/  cols  (~(get by canonical-map) qual)
-                  ~|  "can't lookup {<qualified-table>}"
-                  %:  cte-meta  (~(got by canonical-map) qual)
-                                data-row
-                                qual
-                                map-meta
-                                ==
+                  (f +.c)
                 ==
 ::
 ++  cte-meta
@@ -911,6 +917,7 @@
                         name.i.columns
                         ~
                     type.typ-addr
+                    ?:  =(%indexed-row -.data-row)  addr.typ-addr
                     %^  calc-joined-addr  data:;;(joined-row data-row)
                                           qualified-table
                                           name.i.columns
