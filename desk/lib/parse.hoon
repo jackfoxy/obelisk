@@ -4,8 +4,8 @@
 :: use (parse:parse(default-database '<db>') "<script>")
 |_  default-database=@tas
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -37,8 +37,8 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +parse: parse urQL script, emitting list of high level AST structures
 ++  parse
+  ::  parse urQL script, emitting list of high level AST structures
   |=  raw-script=tape
   ~+
   ^-  (list command:ast)
@@ -3094,13 +3094,12 @@
                s-out
   ==
 ::
-::  +mk-alias-map:  from:ast -> (map @t qualified-table:ast)
-::
-:: map relation alias to qualified-table
-:: if db of qualified-table is default db
-:: and namespace is 'dbo'
-::
 ++  mk-alias-map
+  ::  from:ast -> (map @t qualified-table:ast)
+  ::
+  :: map relation alias to qualified-table
+  :: if db of qualified-table is default db
+  :: and namespace is 'dbo'
   |=  f=from:ast
   ~+
   ^-  (map @t qualified-table:ast)
@@ -3128,13 +3127,12 @@
     js  +.js
   ==
 ::
-::  +mk-obj-name-map:  from:ast -> (map @t qualified-table:ast)
-::
-:: map relation object name to qualified-table
-:: if db of qualified-table is default db
-:: and namespace is 'dbo'
-::
 ++  mk-obj-name-map
+  ::  from:ast -> (map @t qualified-table:ast)
+  ::
+  :: map relation object name to qualified-table
+  :: if db of qualified-table is default db
+  :: and namespace is 'dbo'
   |=  f=from:ast
   ~+
   ^-  (map @t qualified-table:ast)
@@ -3394,8 +3392,9 @@
 ++  whitespace  ~+  (star ;~(pose gah (just '\09') (just '\0d')))
 ++  prn-less-soz  ~+  ;~(less (just `@`39) (just `@`127) (shim 32 256))
 ::
-::  +when: replace when:so until https://github.com/urbit/urbit/issues/6870
-++  when  ~+
+++  when
+  ::  replace when:so until https://github.com/urbit/urbit/issues/6870
+  ~+
   ;~  plug
   %+  cook
       |=([a=@ b=?] [b a])
@@ -3419,9 +3418,9 @@
     ==
   ==
 ::
-::  +clip-cmnt: clip commented end of line
-::
-++  clip-cmnt  ~+
+++  clip-cmnt
+  ::  clip commented end of line
+  ~+
   |=  [p=tape q=(list @) r=(list @)]
   |-  ^-  tape
   ?~  q  p
@@ -3429,9 +3428,9 @@
     (scag i.q `tape`p)
   $(q t.q)
 ::
-::  +line-cmnts: strip line comments from tape of line
-::
-++  line-cmnts  ~+
+++  line-cmnts
+  ::  strip line comments from tape of line
+  ~+
   |=  p=tape
   =/  a=(list @)  (fand "::" p)
   |-  ^-  tape
@@ -3443,12 +3442,12 @@
   =/  c=(set @)   (silt (turn (fand "\\'" p) |=(a=@ +(a))))
   (clip-cmnt p a (sort ~(tap in (~(dif in (silt b)) c)) lth))
 ::
-::  +block-cmnts: strip block comments from tape
-::
-::  Crash
-::    comment block mismatch line <n>
-::
-++  block-cmnts  ~+
+++  block-cmnts
+  ::  strip block comments from tape
+  ::
+  ::  Crash
+  ::    comment block mismatch line <n>
+  ~+
   |=  p=tape
   =/  a=@  0
   =/  b=tape  ~
@@ -3489,8 +3488,9 @@
     c  t.c
   ==
 ::
-::  +crub-no-text: crub:so without text parsing
-++  crub-no-text  ~+
+++  crub-no-text
+  ::  crub:so without text parsing
+  ~+
   ;~  pose
     (cook |=(det=date `dime`[%da (year det)]) when) :: when:so
     %+  cook
@@ -3519,8 +3519,8 @@
     (stag %p fed:ag)
   ==
 ::
-::  +jester: match a cord, case agnostic, thanks ~tinnus-napbus
 ++  jester
+  ::  match a cord, case agnostic, thanks ~tinnus-napbus
   |=  daf=@t
   |=  tub=nail
   ~+
@@ -3542,16 +3542,16 @@
 ::  maximally qualified by @p.database.namespace
 ::  minimally qualified by namespace
 ::
-::  +cook-qualified-2object: namespace.object-name
 ++  cook-qualified-2object
+  ::  namespace.object-name
   |=  a=*
   ~+
   ?@  a
     (qualified-table:ast %qualified-table ~ default-database 'dbo' a ~)
   (qualified-table:ast %qualified-table ~ default-database -.a +.a ~)
 ::
-::  +cook-qualified-3object: database.namespace.object-name
 ++  cook-qualified-3object
+  ::  database.namespace.object-name
   |=  a=*
   ~+
   ?:  ?=([@ @ @] a)                                 :: db.ns.name
@@ -3564,8 +3564,8 @@
     (qualified-table:ast %qualified-table ~ default-database 'dbo' a ~)
   ~|("cannot parse qualified-table  {<a>}" !!)
 ::
-::  +cook-qualified-table: @p.database.namespace.object-name
 ++  cook-qualified-table
+  ::  @p.database.namespace.object-name
   |=  a=*
   ~+
   ?:  ?=([@ @ @ @] a)
@@ -3582,8 +3582,9 @@
   ?@  a                                             :: name
     (qualified-table:ast %qualified-table ~ default-database 'dbo' a ~)
   ~|("cannot parse qualified-table  {<a>}" !!)
-::  +qualified-namespace: database.namespace
+::
 ++  qualified-namespace
+  ::  database.namespace
   |=  [a=* default-database=@t]
   ~+
   ?:  ?=([@ @] [a])
@@ -3592,8 +3593,9 @@
 ++  parse-qualified-2-name  ~+
   ;~(pose ;~(pfix whitespace ;~((glue dot) sym sym)) parse-face)
 ::
-::  +parse-qualified-3: database.namespace.object-name
-++  parse-qualified-3  ~+
+++  parse-qualified-3
+  ::  database.namespace.object-name
+  ~+
   ;~  pose
     ;~((glue dot) sym sym sym)
     ;~(plug sym dot dot sym)
@@ -3919,11 +3921,12 @@
               ==
     face-list
   ==
-:: this version of parse-scalar-param sidesteps the unknown column/cte issue in
-:: qualified columns by parsing qualifiers into their own types
-:: <lowercase-name> unqualified-column
-:: <mixedcase-name> alias
-++  parse-scalar-param  ~+ 
+::
+++  parse-scalar-param  ~+
+  :: this version of parse-scalar-param sidesteps the unknown column/cte issue in
+  :: qualified columns by parsing qualifiers into their own types
+  :: <lowercase-name> unqualified-column
+  :: <mixedcase-name> alias
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
     %+  stag
@@ -4283,10 +4286,9 @@
   ?@  -.b  $(b +.b, columns [-.b columns])
   ~|("cannot make-query-object:  {<a>}" !!)
 ::
-::  column in "join on" or "where" predicate, qualified or aliased
-::  indeterminate qualification and aliasing is determined later
-::
 ++  cook-qualified-column
+  ::  column in "join on" or "where" predicate, qualified or aliased
+  ::  indeterminate qualification and aliasing is determined later
   |=  a=*
   ~+
   ?:  ?=([@ @ @ @ @] a) :: @p.db.ns.object.column
@@ -4477,56 +4479,55 @@
 ++  parse-predicate  ~+
   (star ;~(less predicate-stop predicate-part))
 ::
-::  when not qualified by () right conjunction takes precedence and "or"
-::  takes precedence over "and"
-::
-::  1=1 and 1=3 (false)
-::       /\
-::    1=1  11=3
-::
-::  1=1 and 1=3 and 1=4 (false)
-::               /\
-::              &  1=4
-::             /\
-::          1=1  1=3
-::
-::  1=2 and 3=3 and 1=4 or 1=1 (true)
-::                      /\
-::                     &  1=1
-::                    /\
-::                   &  1=4
-::                  /\
-::               1=1  3=3
-::
-::  1=2 and 3=3 and 1=4 or 1=1 and 1=4 (false)
-::                      /\
-::                     &  1=1 and 1=4
-::                    /\
-::                   &  1=4
-::                  /\
-::               1=2  3=3
-::
-::  1=2 and 3=3 and 1=4 or 1=1 and 1=4 or 2=2 (true)
-::                                     /\
-::                                    |  2=2
-::                                   /\
-::                                  &  1=1 and 1=4
-::                                 /\
-::                                &  1=4
-::                               /\
-::                            1=2  3=3
-::
-::  1=2 and 3=3 and 1=4 or 1=1 and 1=4 or 2=2 and 3=2 (false)
-::                                     /\
-::                                    |  2=2 and 3=2
-::                                   /\
-::                                  &  1=1 and 1=4
-::                                 /\
-::                                &  1=4
-::                               /\
-::                            1=2  3=3
-::
 ++  produce-predicate
+  ::  when not qualified by () right conjunction takes precedence and "or"
+  ::  takes precedence over "and"
+  ::
+  ::  1=1 and 1=3 (false)
+  ::       /\
+  ::    1=1  11=3
+  ::
+  ::  1=1 and 1=3 and 1=4 (false)
+  ::               /\
+  ::              &  1=4
+  ::             /\
+  ::          1=1  1=3
+  ::
+  ::  1=2 and 3=3 and 1=4 or 1=1 (true)
+  ::                      /\
+  ::                     &  1=1
+  ::                    /\
+  ::                   &  1=4
+  ::                  /\
+  ::               1=1  3=3
+  ::
+  ::  1=2 and 3=3 and 1=4 or 1=1 and 1=4 (false)
+  ::                      /\
+  ::                     &  1=1 and 1=4
+  ::                    /\
+  ::                   &  1=4
+  ::                  /\
+  ::               1=2  3=3
+  ::
+  ::  1=2 and 3=3 and 1=4 or 1=1 and 1=4 or 2=2 (true)
+  ::                                     /\
+  ::                                    |  2=2
+  ::                                   /\
+  ::                                  &  1=1 and 1=4
+  ::                                 /\
+  ::                                &  1=4
+  ::                               /\
+  ::                            1=2  3=3
+  ::
+  ::  1=2 and 3=3 and 1=4 or 1=1 and 1=4 or 2=2 and 3=2 (false)
+  ::                                     /\
+  ::                                    |  2=2 and 3=2
+  ::                                   /\
+  ::                                  &  1=1 and 1=4
+  ::                                 /\
+  ::                                &  1=4
+  ::                               /\
+  ::                            1=2  3=3
   |=  parsed=(list raw-pred-cmpnt)
   ~+
   ^-  predicate:ast
@@ -4583,7 +4584,6 @@
       [-.parsed ~ ~]
   ==
 ::
-::    +pred-folder  [raw-pred-cmpnt pred-folder-state] -> pred-folder-state
 ++  pred-folder
   |=  [pred-comp=raw-pred-cmpnt state=pred-folder-state]
   ~+
@@ -4661,13 +4661,11 @@
       (advance-pred-folder-state state)
   ==
 ::
-::    +split-at: [(list T) index:@] -> [(list T) (list T)]
 ++  split-at
   |*  [p=(list) i=@]
   ~+
   [(scag i p) (slag i p)]
 ::
-::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
 ++  fold
   |=  [a=(list raw-pred-cmpnt) b=pred-folder-state c=_pred-folder]
   ~+
@@ -5170,16 +5168,16 @@
     (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
   [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
 ::
-::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
 ++  parse-simple-case
+  ::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
   ;~  plug
     parse-scalar-param
     (star parse-when-then-datum)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
 ::
-::  CASE WHEN <pred> THEN <expr> [...] [ELSE <expr>]
 ++  parse-searched-case
+  ::  CASE WHEN <pred> THEN <expr> [...] [ELSE <expr>]
   ;~  plug
     (star parse-when-then-predicate)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
@@ -5203,8 +5201,9 @@
     (cold %coalesce (jester %coalesce))
     (parse-n-params ;~(pose parse-aggregate parse-scalar-param))
   ==
-:: used when recursing on %pal and %par
+::
 ++  handle-arithmetic-parens  ~+
+  :: used when recursing on %pal and %par
   |=  a=*
   ^-  [new-list=(list *) remaining=*]
   =/  state  [new-list=*(list *) remaining=a]
@@ -5219,8 +5218,9 @@
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
-:: cleans up %pal and %par from a parsed arithmetic expression
+::
 ++  arithmetic-list  ~+
+  :: cleans up %pal and %par from a parsed arithmetic expression
   |=  a=*
   ^-  *
   =/  state  [new-list=*(list *) remaining=a]
@@ -5286,8 +5286,9 @@
   ::    $(t r.t)
   ::  ==
   ::n.t
-:: process arithmetic list with precedence climbing
+::
 ++  process-arithmetic-list
+  :: process arithmetic list with precedence climbing
   |=  [ops=* min-prec=@ud aliases=alias-maps]
   ^-  [tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast)) remaining=*]
   =/  tr=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
@@ -5377,7 +5378,6 @@
   ==
 ++  scalar-stop
   ;~  pose
-::    ;~(plug whitespace (jest ')') whitespace)
     ;~(plug whitespace (jester 'where') whitespace)
     ;~(plug whitespace (jester 'select') whitespace)
     ;~(plug whitespace (jester 'else') whitespace)
