@@ -270,7 +270,8 @@
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov4))
 ::
 ++  exec-1-ls
-  ::  init + 1 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2)
+  ::  init + 1 action + 2 resolves
+  ::  → compare 2 results (resolve-1 (list cmd-result) & resolve-2)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -302,7 +303,9 @@
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov4))
 ::
 ++  exec-1-ll
-  ::  init + 1 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2 (list cmd-result))
+  ::  init + 1 action + 2 resolves
+  ::  → compare 2 results
+  ::    (resolve-1 (list cmd-result) & resolve-2 (list cmd-result))
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]

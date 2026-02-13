@@ -20,6 +20,7 @@
   $(results t.results, out-results [res out-results])
 ++  eval-results
   |=  [expected=cmd-result actual=cmd-result]
+  ^-  tang
   =/  expct-actual  (parse-results expected actual)
   %+    weld  %+  expect-eq
                 !>  -<.expct-actual
@@ -56,6 +57,7 @@
 ::
 ++  expect
   |=  actual=vase
+  ^-  tang
   (expect-eq !>(%.y) actual)
 ::  +expect-fail: kicks a trap, expecting crash. pretty-prints if succeeds
 ::

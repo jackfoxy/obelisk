@@ -203,20 +203,8 @@
                    ?~  a  ~
                    ?~  column.i.a  $(a t.a)  [~ i.a]
                    templ-cells
-
-
-    ::~&  [%column-metas column-metas]
-    ::~&  [%map-meta map-meta]
-    ::~&  [%row i.rows]
-    ::~&  [%non-lit non-lit]
-
-
-
   ?~  non-lit  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
-
-    ~&  [%x x]
-
   ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
   (indexed-results filter ;;((list indexed-row) rows) templ-cells)
 ::
@@ -547,6 +535,7 @@
 ::
 ++  reduce-ord-col
   |=  a=ordered-column:ast
+  ^-  @tas
   name.a
 ::
 ++  join-natural

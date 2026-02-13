@@ -39,6 +39,7 @@
 ::
 ++  types-match
   |=  [l=@ta r=@ta]
+  ^-  ?
   ?|  =(l r)
       ?&  =(l ~.t) 
           |(=(r ~.ta) =(r ~.tas))
@@ -70,12 +71,6 @@
           c=data-row
           ==
   ^-  ?
-
-    ::~&  '@@@@@@@@'
-    ::~&  [%a a]
-    ::~&  [%b b]
-    ::~&  [%row c]
-
   ?:  ?=(%joined-row -.c)  =((~(got bi:mip data.c) -.a +.a) b)
   =((~(got by data.c) +.a) b)
 ::

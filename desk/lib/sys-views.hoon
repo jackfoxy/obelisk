@@ -1150,8 +1150,14 @@
                 %~  val  by
                     (~(urn by files.a) |=([k=[@tas @tas] =file] [k file]))
                 |=(b=[k=[@tas @tas] =file] =(tmsp.a tmsp.file.b))
-  %+  turn  tbls
-   |=([k=[@tas @tas] =file] ~[tmsp.a ship.a (crip (spud provenance.a)) -.k +.k rowcount.file])
+  %+  turn  tbls  |=  [k=[@tas @tas] =file]
+                  :~  tmsp.a
+                      ship.a
+                      (crip (spud provenance.a))
+                      -.k
+                      +.k
+                      rowcount.file
+                      ==
 ::
 ++  sys-view-sys-log-tbl
   |=  a=schema

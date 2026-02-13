@@ -2843,7 +2843,8 @@
       ?~  maybe-alias
         `unqualified-column:ast`cooked-param
       =/  table-alias  (need maybe-alias)
-      =/  maybe-table  (~(get by table.aliases) (crip (cass (trip table-alias))))
+      =/  maybe-table
+            (~(get by table.aliases) (crip (cass (trip table-alias))))
       ?~  maybe-table
         ~|("table alias {<table-alias>} is not defined" !!)
       %:  qualified-column:ast
@@ -3923,8 +3924,8 @@
   ==
 ::
 ++  parse-scalar-param  ~+
-  :: this version of parse-scalar-param sidesteps the unknown column/cte issue in
-  :: qualified columns by parsing qualifiers into their own types
+  :: this version of parse-scalar-param sidesteps the unknown column/cte issue
+  :: in qualified columns by parsing qualifiers into their own types
   :: <lowercase-name> unqualified-column
   :: <mixedcase-name> alias
   ;~  pose
@@ -4799,82 +4800,100 @@
   ::  unary builtin functions
   ?:  =(%day fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  day:ast
     [%day finalized-first-param]
   ?:  =(%month fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  month:ast
     [%month finalized-first-param]
   ?:  =(%year fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  year:ast
     [%year finalized-first-param]
   ?:  =(%abs fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  abs:ast
     [%abs finalized-first-param]
   ?:  =(%floor fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  floor:ast
     [%floor finalized-first-param]
   ?:  =(%ceiling fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  ceiling:ast
     [%ceiling finalized-first-param]
   ?:  =(%sign fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  sign:ast
     [%sign finalized-first-param]
   ?:  =(%sqrt fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  sqrt:ast
     [%sqrt finalized-first-param]
   ?:  =(%len fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
     ^-  len:ast
     [%len finalized-first-param]
   ?:  =(%log fn-name)
     ?:  =(%one-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-first-param
+            (finalize-scalar-param cooked-first-param aliases)
       ^-  log:ast
       [%log finalized-first-param ~]
     ?:  =(%two-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+      =/  finalized-first-param
+            (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-second-param
+            (finalize-scalar-param cooked-second-param aliases)
       ^-  log:ast
       [%log finalized-first-param (some finalized-second-param)]
     !!
   ?:  =(%power fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param
+          (finalize-scalar-param cooked-second-param aliases)
     ^-  power:ast
     [%power finalized-first-param finalized-second-param]
   ?:  =(%left fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param
+          (finalize-scalar-param cooked-second-param aliases)
     ^-  left:ast
     [%left finalized-first-param finalized-second-param]
   ?:  =(%right fn-name)
     =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
     =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+    =/  finalized-first-param
+          (finalize-scalar-param cooked-first-param aliases)
+    =/  finalized-second-param
+          (finalize-scalar-param cooked-second-param aliases)
     ^-  right:ast
     [%right finalized-first-param finalized-second-param]
   ?:  =(%trim fn-name)
@@ -4886,8 +4905,10 @@
     ?:  =(%two-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
+      =/  finalized-first-param
+            (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-second-param
+            (finalize-scalar-param cooked-second-param aliases)
       ^-  trim:ast
       [%trim (some finalized-first-param) finalized-second-param]
     !!
@@ -4895,7 +4916,8 @@
     ?:  =(%two-param param-count)
       =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
       =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
+      =/  finalized-first-param
+            (finalize-scalar-param cooked-first-param aliases)
       =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
       ^-  round:ast
       [%round finalized-first-param finalized-second-param ~]

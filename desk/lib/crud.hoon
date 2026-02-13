@@ -1017,8 +1017,8 @@
   state
 ::
 ++  mk-qualifier-lookup
-  ::  Make lookup qualifier by column name for predicate processing when a column
-  ::  is unqualified.
+  ::  Make lookup qualifier by column name for predicate processing when a
+  ::  column is unqualified.
   |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
     ^-  (map @tas (list qualified-table:ast))
     =/  lookup  *(map @tas (list qualified-table:ast))

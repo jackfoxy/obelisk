@@ -45,6 +45,7 @@
   |_  index=(list [@ta ?])
   ++  order
     |=  [p=(list @) q=(list @)]
+    ^-  ?
     =/  k=(list [@ta ?])  index
     |-  ^-  ?
     ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
@@ -276,7 +277,7 @@
             %-  flop
                 %+  turn  cols
                           %+  cury  mk-templ-cell-indexed                   
-                                    +:;;(unqualified-map-meta map-meta)          ::<==      
+                                    +:;;(unqualified-map-meta map-meta)    
             cells
     ==
   ?:  ?=(selected-all-table:ast i.selected)
@@ -639,11 +640,11 @@
 ::
 ++  fold
   ::  Applies a function to each element of the list, threading an
-  ::  accumulator argument through the computation. Take the second argument, and
-  ::  apply the function to it and the first element of the list. Then feed this
-  ::  result into the function along with the second element and so on. Return the
-  ::  final result. If the input function is f and the elements are i0...iN then
-  ::  computes f (... (f s i0) i1 ...) iN.
+  ::  accumulator argument through the computation. Take the second argument,
+  ::  and apply the function to it and the first element of the list. Then feed
+  ::  this result into the function along with the second element and so on.
+  ::  Return the final result. If the input function is f and the elements are
+  ::  i0...iN then computes f (... (f s i0) i1 ...) iN.
   ::    Examples
   ::      > (fold (gulf 1 5) 0 |=([n=@ state=@] (add state (mul n n))))
   ::      55
