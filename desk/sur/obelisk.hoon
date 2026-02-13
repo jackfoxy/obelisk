@@ -136,6 +136,7 @@
 ::
 +$  full-relation
   $:  %full-relation
+    =qualified-table
     set-tables=(list set-table)
     map-meta=qualified-map-meta
     column-metas=(list column-meta)

@@ -168,11 +168,12 @@
 ++  mk-qualified-column
   |=  [=qualified-table:ast a=column:ast]
   ^-  column-meta
-  :+  [%qualified-column (normalize-qt qualified-table) name.a ~]
+  :+  [%qualified-column (normalize-qt-alias qualified-table) name.a ~]
       type.a
       addr.a
 ::
-++  normalize-qt
+++  normalize-qt-alias
+  :: set relation alias to lower case
   |=  =qualified-table:ast
   ^-  qualified-table:ast
   ?~  alias.qualified-table  qualified-table
@@ -182,7 +183,7 @@
   |=  =relation:ast
   ^-  relation:ast
   ?:  =(-.relation %qualified-table)
-    (normalize-qt ;;(qualified-table:ast relation))
+    (normalize-qt-alias ;;(qualified-table:ast relation))
   ?:  =(-.relation %cte-alias)
     [%cte-alias (crip (cass (trip alias:;;(cte-alias:ast relation))))]
   ~|("normalize-relation not implemented" !!)
@@ -202,6 +203,7 @@
                                 ==
 ::
 ++  normalize-selected
+  :: set all relation aliases to lower case
   |=  selected-columns=(list selected-column:ast)
   ^-  (list selected-column:ast)
   =/  out  *(list selected-column:ast)
@@ -211,7 +213,8 @@
     qualified-column:ast
       %=  $
         out               :-  :^  %qualified-column
-                                  (normalize-qt qualifier.i.selected-columns)
+                                  %-  normalize-qt-alias
+                                      qualifier.i.selected-columns
                                   name.i.selected-columns
                                   alias.i.selected-columns
                               out
@@ -228,25 +231,23 @@
     selected-all-table:ast
       %=  $
         out               :-  :-  %all-object
-                                  %-  normalize-qt
+                                  %-  normalize-qt-alias
                                         qualified-table.i.selected-columns
                               out
         selected-columns  t.selected-columns
       ==
     ==
 ::
-++  mk-qualified-columns
+++  mk-column-metas
   |=  $:  query-obj=qualified-table:ast
-          qualified-columns=(list column-meta)
+          column-metas=(list column-meta)
           columns=(list column:ast)
           ==
   ^-  (list column-meta)
-  ?~  qualified-columns
-        %+  turn  columns
-                |=(a=column:ast (mk-qualified-column query-obj a))
-  %+  weld  qualified-columns
-                %+  turn  columns
-                |=(a=column:ast (mk-qualified-column query-obj a))
+  ?~  column-metas
+        (turn columns |=(a=column:ast (mk-qualified-column query-obj a)))
+  %+  weld  column-metas
+            (turn columns |=(a=column:ast (mk-qualified-column query-obj a)))
 ::
 ++  addr-columns
   |=  columns=(list column:ast)
@@ -329,14 +330,34 @@
       i         +(i)
       selected  t.selected
       cells
-        ~|  "SELECT: column {<name.i.selected>} not found"  
+        ~|  "SELECT: column {<name.i.selected>} not found"
         :-
+          ?:  is-join
+            =/  matching
+                  %-  head  %+  skim  cols
+                                      |=  a=column-meta
+                                      =(name.qualified-column.a name.i.selected)
+            =/  lookup-name  ?~  alias.qualified-column.matching
+                               name.qualified-column.matching
+                             (need alias.qualified-column.matching)
+            %:  templ-cell
+                  %templ-cell
+                  :-  ~
+                      :^  %qualified-column
+                          *qualified-table:ast
+                          name.i.selected
+                          alias.i.selected
+                  %^  calc-joined-addr  data:;;(joined-row row)
+                                        qualifier.qualified-column.matching
+                                        lookup-name
+                  [(heading i.selected name.i.selected) [type.matching 0]]
+                  ==
           %:  templ-cell
                 %templ-cell
                 :-  ~
                     :^  %qualified-column
                         *qualified-table:ast
-                        name.i.selected 
+                        name.i.selected
                         alias.i.selected
                 +:(need typ-addr)
                 [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
@@ -409,6 +430,17 @@
       %+  turn  kvp
                 |=  e=[qualified-table:ast (list column:ast)]
                 [-.e (mk-unqualified-typ-addr-lookup +.e)]
+::
+++  mk-cte-qualified-table
+  |=  name=@tas
+  ^-  qualified-table:ast
+  :*  %qualified-table
+      [~ ~zod]
+      %cte
+      %cte
+      name
+      ~
+      ==
 ::
 ++  qualify-unqualified
   |=  $:  selected=(list selected-column:ast)

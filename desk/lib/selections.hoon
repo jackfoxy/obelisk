@@ -42,43 +42,43 @@
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (normalize-from (need from.q))
-  =/  query-source    ?:  ?=(qualified-table:ast relation.from)
+  =/  query-source  ?:  ?=(qualified-table:ast relation.from)
                       relation.from
                     ~|("SELECT: not supported on %query-row" !!)
-  =/  the-relation=full-relation  %:  got-relation  query-source
-                                      named-ctes
-                                      as-of.from
-                                      ~
-                                      ~
-                                      *qualified-map-meta
-                                      ~
-                                      ==
+  =/  =full-relation  %:  got-relation  query-source
+                                        named-ctes
+                                        as-of.from
+                                        ~
+                                        ~
+                                        *qualified-map-meta
+                                        ~
+                                        ==
   =/  selected      (normalize-selected columns.select.q)
   =/  filter        ?~  predicate.q  ~
                     :-  ~
                         %^  pred-ops-and-conjs
                             (pred-unqualify-qualified predicate.q)
                             :-  %unqualified-map-meta
-                                %-  ~(got by +.map-meta.the-relation)
-                                    query-source
+                                %-  ~(got by +.map-meta.full-relation)
+                                    qualified-table.full-relation
                             ~
   ::
-  ?~  set-tables.the-relation  ~|("select-relation can't get here" !!)
+  ?~  set-tables.full-relation  ~|("select-relation can't get here" !!)
   :-  :*  %join-return
           state
-          ?.  is-cte   set-tables.the-relation
-              (select-for-cte q set-tables.the-relation filter)
-          map-meta.the-relation
-          column-metas.the-relation
+          ?.  is-cte   set-tables.full-relation
+              (select-for-cte q set-tables.full-relation filter)
+          map-meta.full-relation
+          column-metas.full-relation
           ==
       ?:  is-cte  *(list vector)
       %:  relation-vectors  filter
-                            column-metas.the-relation
-                            ?:  is-cte  map-meta.the-relation
-                            map-meta.i.set-tables.the-relation
-                            ?~  joined-rows.i.set-tables.the-relation
-                              indexed-rows.i.set-tables.the-relation
-                            joined-rows.i.set-tables.the-relation
+                            column-metas.full-relation
+                            ?:  is-cte  map-meta.full-relation
+                            map-meta.i.set-tables.full-relation
+                            ?~  joined-rows.i.set-tables.full-relation
+                              indexed-rows.i.set-tables.full-relation
+                            joined-rows.i.set-tables.full-relation
                             selected
                             ==
 ::
@@ -121,7 +121,10 @@
   =.  pri-indx.st2    ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
                       ~
-  ?:  =(f ~)  [st2 set-tables]  :: to do: filtered CTE
+  ?~  f  [st2 set-tables]
+  =.  indexed-rows.st2  %+  skim  indexed-rows.st2
+                                   |=(a=indexed-row ((need f) a))
+  =.  rowcount.st2      (lent indexed-rows.st2)
   [st2 set-tables]
 ::
 ::  +count-keys:  
@@ -180,7 +183,7 @@
     qualified-column:ast
       ~|("{<selected-column>} not supported" !!)
     unqualified-column:ast
-      ~|("{<selected-column>} not supported" !!)
+      (murn columns |=(a=column:ast ?:(=(name.a name.selected-column) `a ~)))
     selected-aggregate:ast
       ~|("{<selected-column>} not supported" !!)
     selected-value:ast
@@ -199,9 +202,10 @@
 ::                      ->  (list vector)
 ::
 ::  tree address of indexed/joined rows off by one
+::  need sample column to determin path
 ++  relation-vectors
   |=  $:  filter=(unit $-(data-row ?))
-          qualified-columns=(list column-meta)
+          column-metas=(list column-meta)
           =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
@@ -209,7 +213,7 @@
   ^-  (list vector)
   ?~  rows         *(list vector)
   =/  out-rows     *(set vector)
-  =/  templ-cells=(list templ-cell)  %:  mk-rel-vect-templ  qualified-columns
+  =/  templ-cells=(list templ-cell)  %:  mk-rel-vect-templ  column-metas
                                           selected
                                           -.rows
                                           map-meta
@@ -221,8 +225,20 @@
                    ?~  a  ~
                    ?~  column.i.a  $(a t.a)  [~ i.a]
                    templ-cells
+
+
+    ::~&  [%column-metas column-metas]
+    ::~&  [%map-meta map-meta]
+    ::~&  [%row i.rows]
+    ::~&  [%non-lit non-lit]
+
+
+
   ?~  non-lit  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
+
+    ~&  [%x x]
+
   ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
   (indexed-results filter ;;((list indexed-row) rows) templ-cells)
 ::
@@ -310,60 +326,63 @@
                       relation.relat
                     ~|("SELECT: not supported on %query-row" !!)
   =.  joined-relations            +.joined-relations
-  =/  the-relation=full-relation  %:  got-relation  query-source
-                                                     named-ctes
-                                                     as-of.relat
-                                                     ~
-                                                     ~
-                                                     *qualified-map-meta
-                                                     ~
-                                                     ==
-  =/  prior-join        -.set-tables.the-relation
+  =/  =full-relation  %:  got-relation  query-source
+                                        named-ctes
+                                        as-of.relat
+                                        ~
+                                        ~
+                                        *qualified-map-meta
+                                        ~
+                                        ==
+  =/  prior-join        -.set-tables.full-relation
   =/  from-objects      (limo ~[prior-join])
   |-
   ?~  joined-relations  %:  join-return  %join-return
                                          state
                                          from-objects
-                                         map-meta.the-relation
-                                         column-metas.the-relation
+                                         map-meta.full-relation
+                                         column-metas.full-relation
                                          ==
   =.  query-source
         ?:  ?=(qualified-table:ast relation.i.joined-relations)
               relation.i.joined-relations
             ~|("SELECT: not supported on %query-row" !!)
-  =.  the-relation  %:  got-relation  query-source
+  =.  full-relation  %:  got-relation  query-source
                                        named-ctes
                                        as-of.i.joined-relations
                                        join.i.joined-relations
                                        predicate.i.joined-relations
-                                       map-meta.the-relation
-                                       column-metas.the-relation
+                                       map-meta.full-relation
+                                       column-metas.full-relation
                                        ==
-  =.  prior-join       (join-up prior-join -.set-tables.the-relation)
+  =.  prior-join       (join-up prior-join -.set-tables.full-relation)
   %=  $
     joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
   ==
 ::
 ++  got-relation
-  |=  $:  ts=qualified-table:ast
+  ::  branches to +from-table if not a view
+  |=  $:  =qualified-table:ast
           =named-ctes
           as-of=(unit as-of:ast)
           join=(unit join-type:ast)
           =predicate
           map-meta=qualified-map-meta
-          qualified-columns=(list column-meta)
+          column-metas=(list column-meta)
           ==
   ^-  full-relation
   =/  sys-time   (set-tmsp as-of now.bowl)
-  =/  db         ~|  "SELECT: database {<database.ts>} does not exist"
-                     (~(got by state) database.ts)
-  =/  =schema    ~|  "SELECT: database {<database.ts>} ".
+  =/  db         ~|  "SELECT: database {<database.qualified-table>} ".
+                      "does not exist"
+                     (~(got by state) database.qualified-table)
+  =/  =schema    ~|  "SELECT: database {<database.qualified-table>} ".
                      "doesn't exist at time {<sys-time>}"
                      (get-schema [sys.db sys-time])
-  =/  vw  %+  get-view  [namespace.ts name.ts sys-time]
-                        views.schema
-  ?~  vw  %:  from-table  ts
+  =/  vw  %+  get-view
+                [namespace.qualified-table name.qualified-table sys-time]
+                views.schema
+  ?~  vw  %:  from-table  qualified-table
                           named-ctes
                           db
                           schema
@@ -371,21 +390,28 @@
                           predicate
                           sys-time
                           map-meta
-                          qualified-columns
+                          column-metas
                           ==
   =/  vw2=view  (need vw)
   =/  r=[database cache]
-        (got-view-cache db schema vw2 [namespace.ts name.ts sys-time])
+        %:  got-view-cache  db
+                            schema
+                            vw2
+                            :+  namespace.qualified-table
+                                name.qualified-table
+                                sys-time
+                            ==
   =/  view-content  (need content.+.r)
   ::
   ::  database view cache may have been populated
   =.  state  ?.  =(db -.r)
                 (~(put by state) name.db -.r)
              state
-  :^  %full-relation  
+  :*  %full-relation
+      qualified-table
       :~  %:  set-table  %set-table
                          join
-                         [~ ts]
+                         [~ qualified-table]
                          [~ tmsp.schema]
                          [~ tmsp.+.r]
                          columns.vw2
@@ -400,12 +426,14 @@
                          ==
           ==
       :-  %qualified-map-meta
-          %+  ~(put by *(map qualified-table (map @tas typ-addr)))
-                ts
+          %+  ~(put by *(map qualified-table:ast (map @tas typ-addr)))
+                qualified-table
                 typ-addr-lookup.vw2
-      (mk-qualified-columns ts qualified-columns columns.vw2)
+      (mk-column-metas qualified-table column-metas columns.vw2)
+      ==
 ::
 ++  from-table
+  :: if table doesn't exist, it can only be a CTE
   |=  $:  =qualified-table:ast
           =named-ctes
           db=database
@@ -413,8 +441,8 @@
           join=(unit join-type:ast)
           =predicate
           sys-time=@da
-          type-lookup=qualified-map-meta
-          qualified-columns=(list column-meta)
+          map-meta=qualified-map-meta
+          column-metas=(list column-meta)
           ==
   ^-  full-relation
   =/  tbl  %-  ~(get by tables.schema)
@@ -422,12 +450,13 @@
   ?~  tbl  ~|  "SELECT: table {<database.qualified-table>}.".
                "{<namespace.qualified-table>}.{<name.qualified-table>} does ".
                "not exist at schema time {<tmsp.schema>}"
-           `full-relation`(~(got by named-ctes) name.qualified-table)
+           (~(got by named-ctes) name.qualified-table)
   =/  tbl2=table  (need tbl)
   =/  file  %^  get-content  content.db
                              sys-time
                              [namespace.qualified-table name.qualified-table]
-  :^  %full-relation
+  :*  %full-relation
+      qualified-table
       :~  %:  set-table  %set-table
                          join
                          [~ qualified-table]
@@ -444,8 +473,9 @@
                          ==
           ==
       :-  %qualified-map-meta
-          (~(put by +.type-lookup) qualified-table typ-addr-lookup.tbl2)
-      (mk-qualified-columns qualified-table qualified-columns columns.tbl2)
+          (~(put by +.map-meta) qualified-table typ-addr-lookup.tbl2)
+      (mk-column-metas qualified-table column-metas columns.tbl2)
+      ==
 ::
 ::  +mk-joined-relations:  [relation (list joined-relation:ast)]
 ::                         ->  (list joined-relat)

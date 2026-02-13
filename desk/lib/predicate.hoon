@@ -70,6 +70,12 @@
           c=data-row
           ==
   ^-  ?
+
+    ::~&  '@@@@@@@@'
+    ::~&  [%a a]
+    ::~&  [%b b]
+    ::~&  [%row c]
+
   ?:  ?=(%joined-row -.c)  =((~(got bi:mip data.c) -.a +.a) b)
   =((~(got by data.c) +.a) b)
 ::
@@ -462,13 +468,13 @@
   ?:  ?=(unqualified-column:ast a)             
     ?:  =((lent (~(got by qualifier-lookup) name.a)) 1)
       :^  %qualified-column
-          (normalize-qt -:(~(got by qualifier-lookup) name.a))
+          (normalize-qt-alias -:(~(got by qualifier-lookup) name.a))
           name.a
           alias.a
     ~|("undetermined qualifier for {<name.a>} in predicate" !!)
   ?:  ?=(qualified-column:ast a)
     :^  %qualified-column
-        (normalize-qt qualifier.a)
+        (normalize-qt-alias qualifier.a)
         name.a
         alias.a
   a

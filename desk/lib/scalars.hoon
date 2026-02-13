@@ -133,12 +133,12 @@
 ::    scalar-function
 ::    ==
 ++  get-qualified-col-type
-  |=  [type-lookup=qualified-map-meta col=qualified-column:ast]
+  |=  [map-meta=qualified-map-meta col=qualified-column:ast]
   ^-  @ta
-  -:(~(got bi:mip +.type-lookup) qualifier.col name.col)
+  -:(~(got bi:mip +.map-meta) qualifier.col name.col)
 
 ++  get-column-data
-   |=  [=data-row type-lookup=qualified-map-meta col=qualified-column:ast]
+   |=  [=data-row map-meta=qualified-map-meta col=qualified-column:ast]
    ^-  dime
    ?-    -.data-row
        %joined-row
@@ -148,14 +148,14 @@
      =/  value  (~(get by (need maybe-table)) name.col)
      ?~  value
        ~|("no col" !!)
-     =/  type  (get-qualified-col-type type-lookup col)
+     =/  type  (get-qualified-col-type map-meta col)
      [type (need value)]
      ::
        %indexed-row
      =/  value  (~(get by data.data-row) name.col)
      ?~  value
        ~|("no col" !!)
-     =/  type  (get-qualified-col-type type-lookup col)
+     =/  type  (get-qualified-col-type map-meta col)
      [type (need value)]
    ==
 
@@ -321,7 +321,7 @@
     ::$(fns-to-apply +.fns-to-apply)
 ::
 ++  get-column-data-coalesce
-   |=  [=data-row type-lookup=qualified-map-meta col=qualified-column:ast]
+   |=  [=data-row map-meta=qualified-map-meta col=qualified-column:ast]
    ^-  (unit dime)
    ?-    -.data-row
        %joined-row
@@ -331,14 +331,14 @@
      =/  value  (~(get by (need maybe-table)) name.col)
      ?~  value
        ~
-     =/  type  (get-qualified-col-type type-lookup col)
+     =/  type  (get-qualified-col-type map-meta col)
      (some [type (need value)])
      ::
        %indexed-row
      =/  value  (~(get by data.data-row) name.col)
      ?~  value
        ~
-     =/  type  (get-qualified-col-type type-lookup col)
+     =/  type  (get-qualified-col-type map-meta col)
      (some [type (need value)])
    ==
 ::

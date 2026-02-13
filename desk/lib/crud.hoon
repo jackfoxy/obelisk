@@ -458,7 +458,13 @@
                   qualifier-lookup
               map-meta.join-return
               qualifier-lookup
-  ?:  is-cte  [join-return ~]
+  ?:  is-cte
+    ?~  filter  [join-return ~]
+    ?~  set-tables.join-return  [join-return ~]
+    =.  joined-rows.i.set-tables.join-return
+      %+  skim  joined-rows.i.set-tables.join-return
+                |=(a=joined-row ((need filter) a))
+    [join-return ~]
   ?~  set-tables.join-return  [join-return ~]
   :-  join-return
       %:  joined-result  filter
@@ -727,7 +733,7 @@
   |=  $:  =qualified-table:ast
           columns=(list qualified-column:ast)
           values=(list *)   ::(list value-or-default:ast)
-          type-lookup=unqualified-map-meta
+          map-meta=unqualified-map-meta
           ==
   ^-  (list [@tas @])
   =/  updates  *(list [@tas @])
@@ -738,7 +744,7 @@
     %=  $
       columns   t.columns
       values    t.values
-      updates   ?:  =(~.da -:(~(got by +.type-lookup) name.i.columns))
+      updates   ?:  =(~.da -:(~(got by +.map-meta) name.i.columns))
                   [[name.i.columns *@da] updates]
                 [[name.i.columns 0] updates]
     ==
@@ -753,7 +759,7 @@
               !!
         ?:  .=  p.i.values  ~|  "UPDATE: {<qualified-table>} does not have ".
                                 "column {<name.i.columns>}"
-                                -:(~(got by +.type-lookup) name.i.columns)
+                                -:(~(got by +.map-meta) name.i.columns)
           [[name.i.columns +.i.values] updates]
         ~|("value type: {<-.i.values>} does not match column: {<i.columns>}" !!)
     ==
@@ -785,18 +791,43 @@
                           *indexed-row
                         i.indexed-rows.i.set-tables
                       i.joined-rows.i.set-tables
+
+  =/  column-metas  %:  mk-cte-column-metas
+                          selected
+                          data-row
+                          ;;(qualified-map-meta map-meta.join-return)
+                          canonical-list
+                          canonical-map
+                          ==
+
+  =/  cte-qualified-table  (mk-cte-qualified-table name.i.ctes)
+
+  =/  cte-map-meta
+    %+  roll  column-metas
+              |=  $:  =column-meta
+                      map-meta=qualified-map-meta
+                      ==
+              ^-  qualified-map-meta
+              :-  %qualified-map-meta
+                  %^  ~(put bi:mip +.map-meta)
+                        cte-qualified-table 
+                        name.qualified-column.column-meta
+                        [type.column-meta addr.column-meta]
+
+
+    ::  ~&  [%column-metas column-metas]
+    ::  ~&  [%canonical-list canonical-list]
+    ::~&  [%query-source query-source]
+
   ::
   %=  $
     nctes  %+  ~(put by nctes)  name.i.ctes
-                                :^  %full-relation
+                                :*  %full-relation
+                                    cte-qualified-table
                                     set-tables
-                                    map-meta
-                                    %:  mk-cte-column-metas  selected
-                                                              data-row 
-                                                              map-meta
-                                                              canonical-list
-                                                              canonical-map
-                                                              ==
+                                    cte-map-meta
+                                    column-metas
+                                    ==
     ctes   +.ctes
   ==
 ::
@@ -880,7 +911,18 @@
                                                 name.c
                       ==
                 unqualified-column:ast
-                  ~|("mk-cte-column-metas {<c>} not supported" !!)
+                  =/  qt        -<.canonical-list
+                  =/  typ-addr  (~(got bi:mip +.map-meta) qt name.c)
+                  :~  :+  :^  %qualified-column
+                              qt
+                              ?~(alias.c name.c (need alias.c))
+                              ?~(alias.c ~ [~ name.c])
+                          type.typ-addr
+                          ?:  =(%indexed-row -.data-row)  addr.typ-addr
+                          %^  calc-joined-addr  data:;;(joined-row data-row)
+                                                qt
+                                                name.c
+                      ==
                 selected-aggregate:ast
                   ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
@@ -907,7 +949,7 @@
   |-
   ?~  columns  (flop metas)
   ~|  "can't lookup column {<qualified-table>} {<name.i.columns>}"
-  =/  typ-addr  %+  ~(got bi:mip +.qualified-map-meta)  %-  normalize-qt
+  =/  typ-addr  %+  ~(got bi:mip +.qualified-map-meta)  %-  normalize-qt-alias
                                                                 qualified-table
                                                             name.i.columns
   %=  $

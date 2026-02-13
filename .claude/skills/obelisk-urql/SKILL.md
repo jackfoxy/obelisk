@@ -196,7 +196,7 @@ SELECT [ TOP <n> ]
 
 ### current implementation status
 
-- natural JOIN (inner, no ON predicate): supported
+- JOIN (inner, no ON predicate): supported
 - JOIN with ON predicate: supported in parser, not in engine
 - LEFT JOIN, RIGHT JOIN, OUTER JOIN: not yet supported
 - CROSS JOIN: supported
