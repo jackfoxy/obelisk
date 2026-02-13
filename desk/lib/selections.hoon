@@ -2,8 +2,8 @@
 /+  *sys-views, *utils, *predicate
 |_  [state=server =bowl:gall]
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -35,10 +35,8 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +select-relation:  [query:ast ? named-ctes] -> [join-return (list vector)]
-::
-::  selection from a single table without joins
 ++  select-relation
+  ::  selection from a single table without joins
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (normalize-from (need from.q))
@@ -82,24 +80,19 @@
                             selected
                             ==
 ::
-::  +select-for-cte:  [query:ast (unit $-(data-row ?))]
-::                    -> (list set-table) 
-::
-::  cons a set-table of the selection
-::  1) object=~
-::  2) new list of columns
-::  3) key preserved w/ updated names or not
-::  4) indexed-rows index preserved or not
-
-::  4.5) schema-tmsp=(unit @da)
-::      data-tmsp=(unit @da)
-::      =map-meta  delete those that do not exist
-::      pri-indx=(unit index)
-::      =predicate
-::      pri-indexed=(tree [(list @) (map @tas @)])
-
-::  5) row count
 ++  select-for-cte
+  ::  cons a set-table of the selection
+  ::  1) object=~
+  ::  2) new list of columns
+  ::  3) key preserved w/ updated names or not
+  ::  4) indexed-rows index preserved or not
+  ::  4.5) schema-tmsp=(unit @da)
+  ::      data-tmsp=(unit @da)
+  ::      =map-meta  delete those that do not exist
+  ::      pri-indx=(unit index)
+  ::      =predicate
+  ::      pri-indexed=(tree [(list @) (map @tas @)])
+  ::  5) row count
   |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?))]
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
@@ -127,13 +120,9 @@
   =.  rowcount.st2      (lent indexed-rows.st2)
   [st2 set-tables]
 ::
-::  +count-keys:  
-::    [(map @tas (pair @tas (unit @t))) key-column (pair @ud (list key-column))]
-::    -> (pair @ud (list key-column))
-::
-::  If key exists in selected columns then count, emit, and potentially rename
-::  to alias.
 ++  count-keys
+  ::  If key exists in selected columns then count, emit, and potentially rename
+  ::  to alias.
   |=  $:  key-lookup=(map @tas (pair @tas (unit @t)))
           a=key-column
           b=(pair @ud (list key-column))
@@ -144,13 +133,9 @@
   ?~  q.found2  [+(p.b) [a q.b]]
   [+(p.b) [[%key-column (need q.found2) aura.a ascending.a] q.b]]
 ::
-::  +selected-table-cols:
-::    [(list column:ast) selected-column:ast (map @tas [@tas (unit @t)])]
-::    ->  (map @tas [@tas (unit @t)])
-::
-::  Create look-up from original table column name to name or alias in SELECT,
-::  used in deciding if key is preserved and renaming key columns.
 ++  selected-table-cols
+  ::  Create look-up from original table column name to name or alias in SELECT,
+  ::  used in deciding if key is preserved and renaming key columns.
   |=  $:  all-cols=(list column:ast)
           a=selected-column:ast
           b=(map @tas [@tas (unit @t)])
@@ -194,16 +179,9 @@
       (flop columns)
     ==
 ::
-::  +relation-vectors:  $:  (unit $-(data-row ?))
-::                          (list column-meta)
-::                          map-meta
-::                          (list data-row)
-::                          (list selected-column:ast)
-::                      ->  (list vector)
-::
-::  tree address of indexed/joined rows off by one
-::  need sample column to determin path
 ++  relation-vectors
+  ::  tree address of indexed/joined rows off by one
+  ::  need sample column to determin path
   |=  $:  filter=(unit $-(data-row ?))
           column-metas=(list column-meta)
           =map-meta
@@ -306,10 +284,8 @@
               row
   ==
 ::
-::  +join-all  query:ast -> join-return
-:: 
-::  server state returned because we may have updated the view cache
 ++  join-all
+  ::  server state returned because we may have updated the view cache
   |=  [q=query:ast =named-ctes]
   ^-  join-return
   =/  from  (normalize-from (need from.q))
@@ -477,11 +453,8 @@
       (mk-column-metas qualified-table column-metas columns.tbl2)
       ==
 ::
-::  +mk-joined-relations:  [relation (list joined-relation:ast)]
-::                         ->  (list joined-relat)
-::
-::  put all cross joins at the end of the list
 ++  mk-joined-relations
+  ::  put all cross joins at the end of the list
   |=  [relat=joined-relat joins=(list joined-relation:ast)]
   ^-  (list joined-relat)
   =/  joined-relations=(list joined-relat)    ~[relat]
@@ -509,9 +482,6 @@
                    joined-relations
   ==
 ::
-::  +got-view-cache:
-::    [database schema view ns-rel-key (list selected-column:ast)]
-::    -> [database cache]
 ++  got-view-cache
   |=  [db=database =schema vw=view key=ns-rel-key]
   ^-  [database cache]
@@ -546,7 +516,6 @@
       (cross-join prior this)
   ==
 ::
-::  +cross-join:  [set-table set-table] -> set-table
 ++  cross-join
   |=  [prior=set-table this=set-table]
   ^-  set-table
@@ -580,7 +549,6 @@
   |=  a=ordered-column:ast
   name.a
 ::
-::  +join-natural:  [set-table set-table] -> set-table
 ++  join-natural
   |=  [prior=set-table this=set-table]
   ^-  set-table
@@ -653,7 +621,6 @@
   ::
   (joined-set-table this -.count-and-rows +.count-and-rows)
 ::
-::  +joined-set-table:  [set-table @ud (list joined-row)] -> set-table
 ++  joined-set-table
   |=  [st=set-table row-count=@ud joined-rows=(list joined-row)]
   ^-  set-table
@@ -661,16 +628,8 @@
   =.  joined-rows.st  joined-rows
   st
 ::
-::  +join-pri-key:  $:  (list data-row)
-::                      qualified-table:ast
-::                      (list indexed-row)
-::                      qualified-table:ast
-::                      (list key-column)
-::                      ==
-::                  ->  [@ud (list joined-row)]
-::
-::  joins the data of two tables having the same key
 ++  join-pri-key
+  ::  joins the data of two tables having the same key
   |=  $:  a=(list data-row)
           a-qual=qualified-table:ast
           b=(list indexed-row)
@@ -712,10 +671,9 @@
           b-qual
           data.b
 ::
-::  +data-row-comp
-::
-::  comparator for index mops
 ++  data-row-comp
+  ::
+  ::  comparator for index mops
   |_  index=(list [@tas ?])
   ++  order
     |=  [a=[data-row] b=[data-row]]
@@ -742,7 +700,6 @@
     ~|("view {<ns.key>}.{<rel.key>} does not exist from time {<time.key>}" !!)
   ->.vw
 ::
-::  +put-view-cache
 ++  put-view-cache
   |=  [db=database value=cache key=ns-rel-key]
   ^-  database

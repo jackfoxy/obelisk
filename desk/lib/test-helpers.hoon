@@ -4,8 +4,8 @@
 /=  agent  /app/obelisk
 |%
 ::
-::  Build an example bowl manually
 ++  bowl
+  ::  Build an example bowl manually
   |=  [run=@ud now=@da]
   ^-  bowl:gall
   :*  [~zod ~zod %obelisk `path`(limo `path`/test-agent)]  :: (our src dap sap)
@@ -22,9 +22,8 @@
 --
 |%
 ::
-::
-::  exec-0-r: init/resolve → compare cmd-result only
 ++  exec-0-r
+  ::  init/resolve → compare cmd-result only
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           expect=cmd-result
@@ -36,8 +35,8 @@
   ::
   (eval-results expect ;;(cmd-result ->+>+>+>+>+<.mov1))
 ::
-::  exec-0-l: init/resolve → compare 1 results
 ++  exec-0-l
+  ::  init/resolve → compare 1 results
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           expect=(list cmd-result)
@@ -51,8 +50,8 @@
     !>  expect
     !>  ;;((list cmd-result) ->+>+>+.mov1)
 ::
-::  exec-0-1: init + 1 resolve → compare 1 results
 ++  exec-0-1
+  ::  init + 1 resolve → compare 1 results
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           resolve=[tmsp=@da db=@tas uql=tape]
@@ -108,8 +107,8 @@
 
 
 ::
-::  exec-0-02: init + 2 resolve
 ++  exec-0-02
+  ::  init + 2 resolve
   |=  $:  run=@ud
           resolve-1=[tmsp=@da db=@tas uql=tape]
           resolve-2=[tmsp=@da db=@tas uql=tape]
@@ -145,8 +144,8 @@
                 %obelisk-action
                 !>([%test db.resolve-2 uql.resolve-2])
 ::
-::  exec-0-ls: init +1 resolves → compare 2 results ((list cmd-result) & resolve)
-++  exec-0-ls
+++  exec-0-ls 
+  ::  init +1 resolves → compare 2 results ((list cmd-result) & resolve)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           resolve=[tmsp=@da db=@tas uql=tape]
@@ -167,8 +166,8 @@
                 !>  ;;((list cmd-result) ->+>+>+.mov1)
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov2))
 ::
-::  exec-0-2: init + 2 resolve → compare 2 results
 ++  exec-0-2
+  ::  init + 2 resolve → compare 2 results
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           resolve-1=[tmsp=@da db=@tas uql=tape]
@@ -192,8 +191,8 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov2))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov3))
 ::
-::  exec-1-1: init + 1 action + 1 resolve → compare  result
 ++  exec-1-1
+  ::  init + 1 action + 1 resolve → compare  result
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -215,8 +214,8 @@
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov3))
 ::
-::  exec-1-l: init + 1 action + 1 resolves → compare 1 result (list cmd-result)
 ++  exec-1-l
+  ::  init + 1 action + 1 resolves → compare 1 result (list cmd-result)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -240,8 +239,8 @@
     !>  expect
     !>  ;;((list cmd-result) ->+>+>+.mov3)
 ::
-::  exec-1-2: init + 1 action + 2 resolves → compare 2 results (resolve-1 & resolve-2)
 ++  exec-1-2
+  ::  init + 1 action + 2 resolves → compare 2 results (resolve-1 & resolve-2)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -270,8 +269,8 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov3))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov4))
 ::
-::  exec-1-ls: init + 1 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2)
 ++  exec-1-ls
+  ::  init + 1 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -302,8 +301,8 @@
                 !>  ;;((list cmd-result) ->+>+>+.mov3)
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov4))
 ::
-::  exec-1-ll: init + 1 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2 (list cmd-result))
 ++  exec-1-ll
+  ::  init + 1 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2 (list cmd-result))
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -336,8 +335,8 @@
                 !>  expect-2
                 !>  ;;((list cmd-result) ->+>+>+.mov4)
 ::
-::  exec-2-1: init + 2 actions + 1 resolves → compare 1 result
 ++  exec-2-1
+  ::  init + 2 actions + 1 resolves → compare 1 result
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -363,6 +362,7 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov4))
+::
 ++  debug-2-1
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -391,8 +391,8 @@
                 !>([%test db.resolve uql.resolve])
 
 ::
-::  exec-2-2: init + 2 actions + 2 resolves → compare 2 results (resolve-1 & resolve-2)
 ++  exec-2-2
+  ::  init + 2 actions + 2 resolves → compare 2 results (resolve-1 & resolve-2)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -427,8 +427,8 @@
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov5))
 
 ::
-::  exec-2-ls: init + 2 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2)
 ++  exec-2-ls
+  ::  init + 2 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result) & resolve-2)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -463,11 +463,10 @@
                 !>  expect-1
                 !>  ;;((list cmd-result) ->+>+>+.mov4)
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov5))
-::
 
 ::
-::  exec-3-1: init + 3 actions + 1 resolves → compare 1 result
 ++  exec-3-1
+  ::  init + 3 actions + 1 resolves → compare 1 result
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -499,8 +498,8 @@
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov5))
 ::
-::  exec-3-2: init + 4 actions + 2 resolves
 ++  exec-3-2
+  ::  init + 4 actions + 2 resolves
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -539,8 +538,8 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov5))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov6))
 ::
-::  exec-4-2: init + 4 actions + 2 resolves
 ++  exec-4-2
+  ::  init + 4 actions + 2 resolves
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -584,8 +583,8 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov6))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov7))
 ::
-::  exec-5-1: init + 5 actions + 1 resolve
 ++  exec-5-1
+  ::  init + 5 actions + 1 resolve
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -627,8 +626,8 @@
   ::
   (eval-results expect ;;(cmd-result ->+>+>+<.mov7))
 ::
-::  exec-5-2: init + 5 actions + 2 resolve
 ++  exec-5-2
+  ::  init + 5 actions + 2 resolve
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -677,9 +676,9 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov7))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov8))
 ::
-::  exec-5-2-68: init + 5 actions + 2 resolve
-::  note resolve is on mov6 & mov8
 ++  exec-5-2-68
+  ::  init + 5 actions + 2 resolve
+  ::  note resolve is on mov6 & mov8
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -728,8 +727,8 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov6))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov8))
 ::
-::  exec-5-2xx: init + 5 actions + 2 resolve
 ++  exec-5-2xx
+  ::  init + 5 actions + 2 resolve
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -780,7 +779,6 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov7))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov8))
 ::
-::  exec-6-2: 
 ++  exec-6-2
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -835,7 +833,6 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov8))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov9))
 ::
-::  exec-6-4: 
 ++  exec-6-4
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -905,7 +902,6 @@
                 (eval-results expect-4 ;;(cmd-result ->+>+>+<.mov11))
                 ==
 ::
-::  exec-7-2: 
 ++  exec-7-2
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -965,7 +961,6 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov9))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov10))
 ::
-::  exec-7-6: 
 ++  exec-7-6
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -1054,7 +1049,6 @@
                 (eval-results expect-6 ;;(cmd-result ->+>+>+<.mov14))
                 ==
 ::
-::  exec-8-2: 
 ++  exec-8-2
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -1119,7 +1113,6 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov10))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov11))
 ::
-::  exec-9-2: 
 ++  exec-9-2
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
@@ -1189,9 +1182,8 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result ->+>+>+<.mov11))
             (eval-results expect-2 ;;(cmd-result ->+>+>+<.mov12))
 ::
-::
-::  failon: init
 ++  failon-0
+  ::  failon: init
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           expect=@t
@@ -1203,8 +1195,8 @@
               %obelisk-action
               !>  [%test db.init uql.init]
 ::
-::  failon: init + fail on 1st action
 ++  failon-1
+  ::  failon: init + fail on 1st action
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da db=@tas uql=tape]
@@ -1221,8 +1213,8 @@
               %obelisk-action
               !>  [%test db.action uql.action]
 ::
-::  failon: initc + failc on 1st action
 ++  failon-1c
+  ::  failon: initc + failc on 1st action
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da cmds=action]
@@ -1239,8 +1231,8 @@
               %obelisk-action
               !>  cmds.action
 ::
-::  failon: initc + failc on 1st action
 ++  failon-1cc
+  ::  failon: initc + failc on 1st action
   |=  $:  run=@ud
           init=[tmsp=@da cmds=action]
           action=[tmsp=@da cmds=action]
@@ -1257,8 +1249,8 @@
               %obelisk-action
               !>  cmds.action
 ::
-::  failon-c: init + 1 action (action) that should fail
 ++  failon-c
+  ::  init + 1 action (action) that should fail
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action=[tmsp=@da =action]
@@ -1275,8 +1267,8 @@
               %obelisk-action
               !>  action.action
 ::
-::  failon-2: init + fail on 2nd action
 ++  failon-2
+  ::  init + fail on 2nd action
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -1298,8 +1290,8 @@
               %obelisk-action
               !>  [%test db.action-2 uql.action-2]
 ::
-::  failon-2c: initc + failc on 2nd action
 ++  failon-2c
+  ::  initc + failc on 2nd action
   |=  $:  run=@ud
           init=[tmsp=@da cmds=action]
           action-1=[tmsp=@da cmds=action]
@@ -1321,8 +1313,8 @@
               %obelisk-action
               !>  cmds.action-2
 ::
-::  failon-3: init + fail on 2nd action
 ++  failon-3
+  ::  init + fail on 2nd action
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -1349,8 +1341,8 @@
               %obelisk-action
               !>  [%test db.action-3 uql.action-3]
 ::
-::  failon-3c: init + fail on 2nd action
 ++  failon-3c
+  ::  init + fail on 2nd action
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]
@@ -1377,8 +1369,8 @@
               %obelisk-action
               !>  cmds.action-3
 ::
-::  failon-4: init + fail on 2nd action
 ++  failon-4
+  ::  init + fail on 2nd action
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]

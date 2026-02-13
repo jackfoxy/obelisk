@@ -2,8 +2,8 @@
 /+  *utils
 |_  [state=server =bowl:gall]
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -36,9 +36,6 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ::
-::  +create-ns:
-::    [create-namespace:ast (map @tas @da) (map @tas @da)]
-::    -> [cmd-result (map @tas @da) server]
 ++  create-ns
   |=  $:  =create-namespace:ast
           next-schemas=(map @tas @da)
@@ -87,9 +84,6 @@
       (~(put by next-schemas) database-name.create-namespace sys-time)
       (~(put by state) name.db db)
 ::
-::  +create-tbl:
-::    [create-table:ast (map @tas @da) (map @tas @da)]
-::    -> [cmd-result (map @tas @da) (map @tas @da) server]
 ++  create-tbl
   |=  $:  =create-table:ast
           next-schemas=(map @tas @da)
@@ -199,8 +193,6 @@
       (~(put by next-data) database.table.create-table sys-time)
       (~(put by state) name.db db)
 ::
-::  +drop-tbl:
-::    [drop-table:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  drop-tbl
   |=  $:  d=drop-table:ast
           next-schemas=(map @tas @da)
@@ -285,8 +277,6 @@
   ?:  (~(has by m) key)  (~(del by m) key)
   ~|("deletion key does not exist: {<key>}" !!)
 ::
-::  +mk-key-column:  [column-lookup (list ordered-column:ast)]
-::                   -> (list key-column)
 ++  mk-key-column
   |=  [=column-lookup pri-indx=(list ordered-column:ast)]
   ^-  (list key-column)

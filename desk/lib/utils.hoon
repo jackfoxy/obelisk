@@ -2,8 +2,8 @@
 /+  mip
 |%
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -35,16 +35,13 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +reduce-key:  (list key-column) -> (list [@ta ?])
 ++  reduce-key
   |=  key=(list key-column)
   ^-  (list [@ta ?])
   (turn key |=(a=key-column [aura.a ascending.a]))
 ::
-::  +idx-comp
-::
-::  comparator for index mops
 ++  idx-comp
+  ::  comparator for index mops
   |_  index=(list [@ta ?])
   ++  order
     |=  [p=(list @) q=(list @)]
@@ -61,15 +58,14 @@
   =/  comparator  ~(order idx-comp (reduce-key key))
   ((on (list [@tas ?]) (map @tas @)) comparator)
 ::
-::  gets the schema with matching or next subsequent time
 ++  schema-key  ((on @da schema) gth)
+  ::  gets the schema with matching or next subsequent time
 ::
-::  +get-next-schema
-::  gets the schema with the highest timestamp for mutation
-::  if schema is already mutated
-::    then sys-time may = tmsp.schema  !!!!!!
-::  else sys-time must be > tmsp.schema
 ++  get-next-schema
+  ::  gets the schema with the highest timestamp for mutation
+  ::  if schema is already mutated
+  ::    then sys-time may = tmsp.schema  !!!!!!
+  ::  else sys-time must be > tmsp.schema
   |=  $:  sys=((mop @da schema) gth)
           next-schemas=(map @tas @da)
           sys-time=@da
@@ -83,11 +79,11 @@
     !!
   nxt-schema
 ::
-::  gets the data with matching or highest timestamp prior to
 ++  data-key  ((on @da data) gth)
+  ::  gets the data with matching or highest timestamp prior to
 ::
-::  gets the data with the highest timestamp for schema mutation
 ++  get-next-data
+  ::  gets the data with the highest timestamp for schema mutation
   |=  $:  content=((mop @da data) gth)
           next-data=(map @tas @da)
           sys-time=@da
@@ -101,8 +97,8 @@
     !!
   nxt-data
 ::
-::  gets the data with the highest timestamp for data mutation
 ++  get-data-next
+  ::  gets the data with the highest timestamp for data mutation
   |=  $:  content=((mop @da data) gth)
           sys-time=@da
       ==
@@ -111,14 +107,13 @@
   ?:  (lth sys-time tmsp.nxt-data)  !!
   nxt-data
 ::
-::  +  get-view:  [ns-rel-key views] -> (unit view)
-::
-::  get view with current or most recent previous time
-::
-::  because ns-rel-comp orders on gth, tab logic requires +1 to include
-::  exact match
 ++  view-key  ((on ns-rel-key view) ns-rel-comp)
+::
 ++  get-view
+  ::  get view with current or most recent previous time
+  ::
+  ::  because ns-rel-comp orders on gth, tab logic requires +1 to include
+  ::  exact match
   |=  [key=ns-rel-key =views]
   ^-  (unit view)
   =/  vw  (tab:view-key views `[ns.key rel.key `@da`(add `@`time.key 1)] 1)
@@ -127,14 +122,12 @@
   ?:  &(=(ns.returned-key ns.key) =(rel.returned-key rel.key))  `->.vw
   ~
 ::
-::  +get-view-cache:  [ns-rel-key ((mop ns-rel-key cache) ns-rel-comp)]
-::                    -> (unit cache)
 ++  view-cache-key  ((on ns-rel-key cache) ns-rel-comp)
+  ::  [ns-rel-key ((mop ns-rel-key cache) ns-rel-comp)]
+  ::  -> (unit cache)
 ::
-::  +heading:  [=selected-column:ast @tas] -> @tas
-::
-::  aliases may be mixed case
 ++  heading
+  ::  aliases may be mixed case
   |=  [=selected-column:ast default=@tas]
   ^-  @tas
   ?:  ?=(qualified-column:ast selected-column)
@@ -148,11 +141,10 @@
         (crip (cass (trip (need alias.selected-column))))
   ~|("{<selected-column>} not supported" !!)
 ::
-::  +mk-col-lu-data:  [=column:ast a=@] -> [[@tas [@tas @ud]] @ud]
 ++  mk-col-lu-data
-    |=  [=column:ast a=@]
-    ^-  [[@tas [@tas @ud]] @ud]
-    [[name.column [type.column a]] +(a)]
+  |=  [=column:ast a=@]
+  ^-  [[@tas [@tas @ud]] @ud]
+  [[name.column [type.column a]] +(a)]
 ::
 ++  calc-joined-addr
   |=  $:  data=(mip:mip qualified-table:ast @tas @)
@@ -258,12 +250,8 @@
         columns
         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
 ::
-::  +mk-rel-vect-templ:
-::    [(list column-meta) (list selected-column:ast) data-row map-meta]
-::    -> (list templ-cell)
-::
-::  leave output un-flopped so consuming arm does not flop
 ++  mk-rel-vect-templ
+  ::  leave output un-flopped so consuming arm does not flop
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
           row=data-row 
@@ -469,7 +457,6 @@
                       selected-out
   ==
 ::
-::    +set-tmsp: [(unit as-of:ast) @da] -> @da
 ++  set-tmsp
   |=  [p=(unit as-of:ast) q=@da]
   ^-  @da
@@ -510,14 +497,12 @@
                     t=[d=d.t.dt h=h.t.dt m=m.t.dt s=s.t.dt f=f.t.dt]
   ==
 ::
-::    +to-column: [@t (map @tas [aura @])] -> column:ast
 ++  to-column
   |=  [p=@t q=(map @tas [aura @])]
   ^-  column:ast
   ~|  "INSERT: invalid column: {<p>}"
   (column:ast %column p -:(~(got by q) p) 0)
 ::
-::  +update-sys:  [server @da] -> server
 ++  update-sys
   |=  [state=server sys-time=@da]
   ^-  server
@@ -526,11 +511,8 @@
         (upd-view-caches state sys-db sys-time ~ %create-database)
   (~(put by state) %sys sys-db)
 ::
-::  +upd-view-caches:  [server database @da (unit (list [@tas @tas])) db-cmd]
-::                     -> server
-::
-::  state needed for cross-db view changes
 ++  upd-view-caches
+  ::  state needed for cross-db view changes
   |=  $:  state=server      
           db=database
           sys-time=@da
@@ -597,7 +579,6 @@
                                     ==
   ==
 ::
-::  +next-view-cache-keys:  [database @da (list [@tas @tas])] -> view-cache
 ++  next-view-cache-keys
   |=  [db=database sys-time=@da sys-vws=(list [@tas @tas])]
   ^-  view-cache
@@ -607,15 +588,11 @@
               sys-vws
               |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
 ::
-::  +common-txn
-::    [tape server @da qualified-table:ast (unit as-of:ast) (map @tas @da)]
-::    -> txn-meta
-::
-::  source-content-time is the data state time against which to apply the
-::  change. It is the closest available table state = or < than requested
-::  as-of time.
-::  The resulting data state time will always be NOW.
 ++  common-txn
+  ::  source-content-time is the data state time against which to apply the
+  ::  change. It is the closest available table state = or < than requested
+  ::  as-of time.
+  ::  The resulting data state time will always be NOW.
   |=  $:  txn=tape
           state=server
           now=@da
@@ -651,8 +628,8 @@
       tmsp.f
       ==
 ::
-::  +get-content:  [((mop @da data) gth) @da [@tas @tas]] -> file
 ++  content-key  ((on @da data) gth)
+::
 ++  get-content
   |=  [content=((mop @da data) gth) sys-time=@da tbl-key=[@tas @tas]]
   ^-  file
@@ -660,28 +637,25 @@
   =/  d=data  ->:(tab:content-key content ``@da`(add `@`sys-time 1) 1)
   (~(got by files.d) tbl-key)
 ::
-::    +fold: [(list T1) state:T2 folder:$-([T1 T2] T2)] -> T2
-::
-::  Applies a function to each element of the list, threading an
-::  accumulator argument through the computation. Take the second argument, and
-::  apply the function to it and the first element of the list. Then feed this
-::  result into the function along with the second element and so on. Return the
-::  final result. If the input function is f and the elements are i0...iN then
-::  computes f (... (f s i0) i1 ...) iN.
-::    Examples
-::      > (fold (gulf 1 5) 0 |=([n=@ state=@] (add state (mul n n))))
-::      55
-::    Source
 ++  fold
+  ::  Applies a function to each element of the list, threading an
+  ::  accumulator argument through the computation. Take the second argument, and
+  ::  apply the function to it and the first element of the list. Then feed this
+  ::  result into the function along with the second element and so on. Return the
+  ::  final result. If the input function is f and the elements are i0...iN then
+  ::  computes f (... (f s i0) i1 ...) iN.
+  ::    Examples
+  ::      > (fold (gulf 1 5) 0 |=([n=@ state=@] (add state (mul n n))))
+  ::      55
+  ::    Source
   |*  [a=(list) b=* c=_|=(^ [** +<+])]
   |-  ^-  _b
   ?~  a  b
   $(a t.a, b (c i.a b))
 ::
-::  +alpha
-::
-::  alphabetically order cords
 ++  alpha
+  ::
+  ::  alphabetically order cords
   |=  [a=cord b=cord]
   ~+  :: keep, makes big difference inserting large @t
   ^-  ?

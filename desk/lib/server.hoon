@@ -2,8 +2,8 @@
 /+  *sys-views, *ddl, *crud, parse
 |_  [state=server =bowl:gall]
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -35,13 +35,11 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +parse-urql:  [@tas tape] -> (list command:ast)
 ++  parse-urql
   |=  [db=@tas script=tape]
   ^-  (list command:ast)
   (parse:parse(default-database db) script)
 ::
-::  +process-cmds:  [(list command:ast)] -> [(list cmd-result) server]
 ++  process-cmds
   |=  cmds=(list command:ast)
   ~+
@@ -248,7 +246,6 @@
       ==
   ==
 ::
-::  +new-database:  [create-database:ast] -> [cmd-result server]
 ++  new-database
   |=  $:  c=create-database:ast
           next-schemas=(map @tas @da)
@@ -304,7 +301,6 @@
           (~(put by next-data) name.c sys-time)
           (~(put by state) name.c (mk-db name.c ns sys-time db-views))
 ::
-::  +mk-db:  [@tas namespaces @da (list [p=ns-rel-key q=view])] -> database
 ++  mk-db
   |=  $:  name=@tas
           =namespaces
@@ -345,10 +341,8 @@
                 vw-cache
               ==
 ::
-::  +drop-db:  drop-database:ast -> server
-::
-::  clear content of %sys view keys caches
 ++  drop-db
+  ::  clear content of %sys view keys caches
   |=  drop=drop-database:ast
   ^-  server
   ?:  =(%sys name.drop)  ~|("database %sys cannot be dropped" !!)
@@ -363,7 +357,6 @@
                                                      |=(a=cache [%cache +<.a ~])
   (~(del by (~(put by state) %sys sys-db)) name.drop)
 ::
-::  +is-content-populated:  [database @da] -> ?
 ++  is-content-populated
   |=  [=database sys-time=@da]
   ^-  ?

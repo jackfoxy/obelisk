@@ -2,8 +2,8 @@
 /+  *utils, *selections, *predicate, mip
 |_  [state=server =bowl:gall]
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -36,13 +36,10 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 
 ::
-::  +truncate-tbl:
-::    [truncate-table:ast (map @tas @da) (map @tas @da)] -> table-return
-::
-::  Unlike the other data manipulation functions (INSERT, DELETE, UPDATE),
-::  TRUNCATE TABLE can future date its action. This however effectively locks
-::  the database for data updates until that time.
 ++  truncate-tbl
+  ::  Unlike the other data manipulation functions (INSERT, DELETE, UPDATE),
+  ::  TRUNCATE TABLE can future date its action. This however effectively locks
+  ::  the database for data updates until that time.
   |=  $:  d=truncate-table:ast
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
@@ -119,9 +116,6 @@
       (~(put by next-data) database.table.d sys-time)
       (~(put by state) name.db db)
 ::
-::  +do-selection:
-::    [selection:ast ? (map @tas @da) (map @tas @da)]
-::    -> [? [(map @tas @da) server (list result)]]
 ++  do-selection
   |=  $:  =selection:ast
           query-has-run=?
@@ -149,8 +143,6 @@
       !!
     ==
 ::
-::  +do-insert:  [insert:ast (map @tas @da) (map @tas @da)]
-::               -> [(map @tas @da) server (list result)]
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
     :: to do: aura validation? (isn't this covered in testing? see roadmap)
@@ -234,8 +226,6 @@
                         (put:primary-key pri-idx.file.txn row-key file-row)
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ::
-::  +do-delete:
-::    [delete:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  do-delete
   |=  [d=delete:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
   ^-  [(map @tas @da) server (list result)]
@@ -317,8 +307,6 @@
           [%vector-count rowcount.file.txn]
           ==
 ::
-::  +do-update:
-::    [update:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  do-update
   |=  [u=update:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
   ^-  [(map @tas @da) server (list result)]
@@ -431,11 +419,9 @@
           [%vector-count rowcount.file.txn]
           ==
 ::
-::  +do-query:  [query:ast ?] -> [join-return (list vector)]
-::
-::  state may be updated by insertion into view-cache, which does not effect
-::  any other part of the state
 ++  do-query
+  ::  state may be updated by insertion into view-cache, which does not effect
+  ::  any other part of the state
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  [join-return (list vector)]
   :: literal only
@@ -516,8 +502,6 @@
               row
   ==
 ::
-::  +select-results:  [named-ctes server (list set-table) (list vector)]
-::                    -> (list result)
 ++  select-results
   |=  $:  =named-ctes
           =join-return
@@ -564,7 +548,6 @@
              out
   ==
 ::
-::  +order-results
 ++  order-results
   |=  $:  p=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
           q=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
@@ -599,11 +582,8 @@
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
 ::
-::  +select-literals:  [server (list selected-column:ast) ?]
-::                     -> [join-return (list vector)]
-::
-::  selection of literals only, no from clause
 ++  select-literals
+  ::  selection of literals only, no from clause
   |=  [=server columns=(list selected-column:ast) is-cte=?]
   ^-  [join-return (list vector)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
@@ -765,10 +745,9 @@
     ==
   ~|("value type not supported: {<i.values>}" !!)
 ::
-::  +named-queries:  (list cte:ast) -> named-ctes
-::  resolve CTEs
-::  state is recycled because view cache could have been updated
 ++  named-queries
+  ::  resolve CTEs
+  ::  state is recycled because view cache could have been updated
   |=  [ctes=(list cte:ast) nctes=named-ctes]
   ^-  named-ctes
   |-
@@ -876,8 +855,8 @@
       (~(got by rel-col-lookup) qualified-table.a)
     ==
 ::
-::  +mk-cte-column-metas
 ++  mk-cte-column-metas
+  ::  mk-cte-column-metas
   |=  $:  sel-cols=(list selected-column:ast)
           =data-row
           map-meta=qualified-map-meta
@@ -1023,12 +1002,11 @@
                           (trip name.qualified-table)
                           ==
 ::
-::  +upd-indices-views:  [server qualified-table @da =views] -> server
-::
-::  post- insert, update, delete, truncate procedure to create new view
-::  and index instances for effected tables
-::  =views passes effected sys views
-++  upd-indices-views    :: to do: revisit when there are views & indices
+++  upd-indices-views
+  ::  post- insert, update, delete, truncate procedure to create new view
+  ::  and index instances for effected tables
+  ::  =views passes effected sys views
+  :: to do: revisit when there are views & indices
   |=  $:  state=server
           sys-time=@da
           objs=(list qualified-table:ast)
@@ -1038,13 +1016,10 @@
   :: to do: iterate through objects
   state
 ::
-::  +mk-qualifier-lookup:  [(list set-table) (list selected-column:ast)]
-::                         -> (map @tas (list qualified-table:ast))
-::
-::  Make lookup qualifier by column name for predicate processing when a column
-::  is unqualified.
 ++  mk-qualifier-lookup
-    |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
+  ::  Make lookup qualifier by column name for predicate processing when a column
+  ::  is unqualified.
+  |=  [sources=(list set-table) selected-columns=(list selected-column:ast)]
     ^-  (map @tas (list qualified-table:ast))
     =/  lookup  *(map @tas (list qualified-table:ast))
     |-
@@ -1076,11 +1051,8 @@
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
-::  +row-cells:
-::    [(list value-or-default:ast) (list column:ast)] -> (map @tas @)
-::
-::  Create the saved row-wise file data.
 ++  row-cells
+  ::  Create the saved row-wise file data.
   |=  [p=(list value-or-default:ast) q=(list column:ast)]
   ^-  (map @tas @)
   =/  cells  *(list [@tas @])

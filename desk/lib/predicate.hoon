@@ -2,8 +2,8 @@
 /+  *utils, mip   :: *mip does not build
 |%
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -444,11 +444,8 @@
   ^-  ?
   |((l c) (r c))
 ::
-::  +normalize-predicate:
-::    [predicate:ast (map @tas (list qualified-table:ast))] -> predicate:ast
-::
-::  fail if column name available for multiple qualifiers
 ++  normalize-predicate
+  ::  fail if column name available for multiple qualifiers
   |=  $:  p=predicate:ast
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
@@ -457,9 +454,6 @@
   ?~  p  ~
   p(n (normalize-leaf n.p qualifier-lookup), l $(p l.p), r $(p r.p))
 ::
-::  +normalize-leaf:
-::    [predicate-component:ast (map @tas (list qualified-table:ast))]
-::    -> predicate-component:ast
 ++  normalize-leaf
   |=  $:  a=predicate-component:ast
           qualifier-lookup=(map @tas (list qualified-table:ast))
@@ -479,17 +473,14 @@
         alias.a
   a
 ::
-::  +pred-unqualify-qualified:  predicate:ast -> predicate:ast
-::
-::  single table predicate must have unqualified-column
 ++  pred-unqualify-qualified
+  ::  single table predicate must have unqualified-column
   |=  p=predicate:ast
   ^-  predicate:ast
   |-
   ?~  p  ~
   p(n (unqualify-leaf n.p), l $(p l.p), r $(p r.p))
 ::
-::  +unqualify-leaf:  predicate-component:ast -> predicate-component:ast
 ++  unqualify-leaf
   |=  a=predicate-component:ast
   ^-  predicate-component:ast
@@ -500,8 +491,8 @@
                               alias.a
                               ==
 ::
-::  +pred-ops-and-conjs
 ++  pred-ops-and-conjs
+  ::  pred-ops-and-conjs
   |=  $:  p=predicate:ast
           =map-meta
           qualifier-lookup=(map @tas (list qualified-table:ast))
@@ -930,14 +921,13 @@
                                  lte-lit-col
                                  ==
     ==
-::    +split-all: [(list T) sep:(list t)] -> (list (list T))
 ::
-::  Splits a list into multiple lists, delimited by another list.
-::    Examples
-::      > (split-all "abcdefabhijkablmn" "ab")
-::      ~[~ "cdef" "hijk" "lmn"]
-::    Source
 ++  split-all
+  ::  Splits a list into multiple lists, delimited by another list.
+  ::    Examples
+  ::      > (split-all "abcdefabhijkablmn" "ab")
+  ::      ~[~ "cdef" "hijk" "lmn"]
+  ::    Source
   |*  [p=(list) sep=(list)]
   =/  c=(list (list _?>(?=(^ p) i.p)))  ~
   =/  len  (lent sep)
