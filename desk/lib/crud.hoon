@@ -435,15 +435,14 @@
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
   =.  selected          (qualify-unqualified selected qualifier-lookup)
   ::
-  =/  filter=(unit $-(data-row ?))
-    ?~  predicate.q  ~
-    :-  ~
-        %^  pred-ops-and-conjs
-              %+  normalize-predicate
-                  predicate.q
-                  qualifier-lookup
-              map-meta.join-return
-              qualifier-lookup
+  =/  filter=(unit $-(data-row ?))  ?~  predicate.q  ~
+                                    :-  ~
+                                        %^  pred-ops-and-conjs
+                                              %+  normalize-predicate
+                                                  predicate.q
+                                                  qualifier-lookup
+                                              map-meta.join-return
+                                              qualifier-lookup
   ?:  is-cte
     ?~  filter  [join-return ~]
     ?~  set-tables.join-return  [join-return ~]
