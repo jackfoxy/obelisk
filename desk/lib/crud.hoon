@@ -471,7 +471,6 @@
   =/  out-rows   *(set vector)
   =/  cells  %:  mk-rel-vect-templ  qualified-columns
                                     selected
-                                    ::;;(joined-row -.rows)
                                     -.rows
                                     map-meta
                                     ==

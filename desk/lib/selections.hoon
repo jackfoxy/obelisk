@@ -272,6 +272,41 @@
               row
   ==
 ::
+::  recalculate addr for joined data structure
+++  foo
+  |=  [=set-table =full-relation from-objects=(list set-table)]
+  ?~  joined-rows.set-table
+    %:  join-return  %join-return
+                      state
+                      from-objects
+                      map-meta.full-relation
+                      column-metas.full-relation
+                      ==
+  =/  sample-data  data.i.joined-rows.set-table
+  =/  recalc-metas=(list column-meta)
+    %+  turn  column-metas.full-relation
+              |=  =column-meta
+              %=  column-meta
+                addr  %^  calc-joined-addr  sample-data
+                                            qualifier.qualified-column.column-meta
+                                            name.qualified-column.column-meta
+              ==
+  =/  recalc-map-meta=qualified-map-meta
+    %+  roll  recalc-metas
+              |=  [=column-meta mm=qualified-map-meta]
+              ^-  qualified-map-meta
+              :-  %qualified-map-meta
+                  %^  ~(put bi:mip +.mm)
+                        qualifier.qualified-column.column-meta
+                        name.qualified-column.column-meta
+                        [type.column-meta addr.column-meta]
+  %:  join-return  %join-return
+                    state
+                    from-objects
+                    recalc-map-meta
+                    recalc-metas
+                    ==
+::
 ++  join-all
   ::  server state returned because we may have updated the view cache
   |=  [q=query:ast =named-ctes]
@@ -301,12 +336,9 @@
   =/  prior-join        -.set-tables.full-relation
   =/  from-objects      (limo ~[prior-join])
   |-
-  ?~  joined-relations  %:  join-return  %join-return
-                                         state
-                                         from-objects
-                                         map-meta.full-relation
-                                         column-metas.full-relation
-                                         ==
+  ?~  joined-relations  (foo prior-join full-relation from-objects) 
+    
+    
   =.  query-source
         ?:  ?=(qualified-table:ast relation.i.joined-relations)
               relation.i.joined-relations

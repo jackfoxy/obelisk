@@ -273,7 +273,7 @@
         %+  weld
             ?:  is-join
               %-  flop
-                  (turn cols (cury mk-templ-cell-joined +>:;;(joined-row row)))
+                  (turn cols mk-templ-cell-joined)
             %-  flop
                 %+  turn  cols
                           %+  cury  mk-templ-cell-indexed                   
@@ -290,7 +290,7 @@
             %+  turn
                 %+  skim  cols  |=  a=column-meta
                                 =(qualifier.qualified-column.a +.i.selected)
-                ?:  is-join  (cury mk-templ-cell-joined +>:;;(joined-row row))
+                ?:  is-join  mk-templ-cell-joined
                 (cury mk-templ-cell-indexed +:;;(unqualified-map-meta map-meta))
           cells
     ==
@@ -326,9 +326,6 @@
                   %-  head  %+  skim  cols
                                       |=  a=column-meta
                                       =(name.qualified-column.a name.i.selected)
-            =/  lookup-name  ?~  alias.qualified-column.matching
-                               name.qualified-column.matching
-                             (need alias.qualified-column.matching)
             %:  templ-cell
                   %templ-cell
                   :-  ~
@@ -336,9 +333,7 @@
                           *qualified-table:ast
                           name.i.selected
                           alias.i.selected
-                  %^  calc-joined-addr  data:;;(joined-row row)
-                                        qualifier.qualified-column.matching
-                                        lookup-name
+                  addr.matching
                   [(heading i.selected name.i.selected) [type.matching 0]]
                   ==
           %:  templ-cell
@@ -361,18 +356,14 @@
         ~|  "SELECT: column {<name.i.selected>} not found"
         :-
           ?:  is-join
-            %:  templ-cell 
+            =/  typ-addr  %+  ~(got bi:mip +:;;(qualified-map-meta map-meta))
+                              qualifier.i.selected
+                              name.i.selected
+            %:  templ-cell
                 %templ-cell
                 [~ i.selected]
-                %^  calc-joined-addr  data:;;(joined-row row)
-                                      qualifier.i.selected
-                                      name.i.selected
-                :-  (heading i.selected name.i.selected)
-                    :-  %-  head
-                            %+  ~(got bi:mip +:;;(qualified-map-meta map-meta))
-                                qualifier.i.selected
-                                name.i.selected
-                        0
+                addr.typ-addr
+                [(heading i.selected name.i.selected) [type.typ-addr 0]]
                 ==
           %:  templ-cell  
               %templ-cell
@@ -393,17 +384,11 @@
       [name.qualified-column.a [type.a 0]]
 ::
 ++  mk-templ-cell-joined
-  |=  [data=(mip:mip qualified-table:ast @tas @) a=column-meta]
+  |=  a=column-meta
   ^-  templ-cell
   :^  %templ-cell
       `-.a
-      ?~  alias.qualified-column.a
-        %^  calc-joined-addr  data
-                              qualifier.qualified-column.a
-                              name.qualified-column.a
-      %^  calc-joined-addr  data
-                            qualifier.qualified-column.a
-                            (need alias.qualified-column.a)
+      addr.a
       `vector-cell`[name.qualified-column.a [type.a 0]]
 ::
 ++  mk-unqualified-typ-addr-lookup
