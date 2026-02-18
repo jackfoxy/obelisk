@@ -130,23 +130,23 @@
                        ?:  ?=(dime n.r.p)  n.r.p
                        ~|("pred-binary-op can't get here" !!)
       ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified  l
-                                 r
-                                 +.map-meta
-                                 qualifier-lookup
-                                 eq-lit-lit
-                                 eq-col-col
-                                 eq-col-lit
-                                 eq-lit-col
-                                 ==
-      %:  datum-ops-unqualified  l
-                                 r
-                                 +.map-meta
-                                 eq-lit-lit
-                                 eq-col-col
-                                 eq-col-lit
-                                 eq-lit-col
-                                 ==
+        %:  datum-ops-qualified-eq  l
+                                    r
+                                    +.map-meta
+                                    qualifier-lookup
+                                    eq-lit-lit
+                                    eq-col-col
+                                    eq-col-lit
+                                    eq-lit-col
+                                    ==
+      %:  datum-ops-unqualified-eq  l
+                                    r
+                                    +.map-meta
+                                    eq-lit-lit
+                                    eq-col-col
+                                    eq-col-lit
+                                    eq-lit-col
+                                    ==
     inequality-op
       =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
                        ?:  ?=(qualified-column:ast n.l.p)  n.l.p
@@ -340,6 +340,54 @@
         !!
   ~|("datum-ops can't get here" !!)
 ::
+++  datum-ops-qualified-eq
+  |=  $:  l=datum:ast
+          r=datum:ast
+          map-meta=(mip:mip qualified-table @tas typ-addr)
+          qualifier-lookup=(map @tas (list qualified-table:ast))
+          lit-lit=$-([@ @ data-row] ?)
+          col-col=$-([@ @ data-row] ?)
+          col-lit=$-([@ @ data-row] ?)
+          lit-col=$-([@ @ data-row] ?)
+          ==
+  ^-  $-(data-row ?)
+  ::  literal = literal
+  ?:  &(?=(dime l) ?=(dime r))
+    ?:  (types-match -.l -.r)
+      (bake (cury (cury lit-lit +.l) +.r) data-row)
+    ~|("comparing column literals of different auras:  {<l>} {<r>}" !!)
+  ::  column = column
+  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
+    ?:  %+  types-match
+              -:(~(got bi:mip map-meta) qualifier.l name.l)
+              -:(~(got bi:mip map-meta) qualifier.r name.r)
+      %+  bake  %+  cury
+                    (cury col-col +:(~(got bi:mip map-meta) qualifier.l name.l))
+                    +:(~(got bi:mip map-meta) qualifier.r name.r)
+                data-row
+    ~|  "comparing columns of different auras: {<name.l>} ".
+        "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<name.r>} ".
+        "{<-:(~(got bi:mip map-meta) qualifier.r name.r)>}"
+        !!
+  ::  literal = column
+  ?:  &(?=(dime l) ?=(qualified-column:ast r))
+    ?:  (types-match -.l -:(~(got bi:mip map-meta) qualifier.r name.r))
+      %+  bake  (cury (cury lit-col +.l) +:(~(got bi:mip map-meta) qualifier.r name.r))
+                data-row
+    ~|  "comparing literal to column of different aura: ".
+        "{<l>} {<name.r>} ".
+        "{<-:(~(got bi:mip map-meta) qualifier.r name.r)>}"
+        !!
+  ::  column = literal
+  ?:  &(?=(qualified-column:ast l) ?=(dime r))
+    ?:  (types-match -:(~(got bi:mip map-meta) qualifier.l name.l) -.r)
+      %+  bake  (cury (cury col-lit +:(~(got bi:mip map-meta) qualifier.l name.l)) +.r)
+                data-row
+    ~|  "comparing column to literal of different aura: {<name.l>} ".
+        "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
+        !!
+  ~|("datum-ops can't get here" !!)
+::
 ++  datum-ops-unqualified
   |=  $:  l=datum:ast
           r=datum:ast
@@ -391,6 +439,52 @@
   ::
   ~|("datum-ops can't get here" !!)
 ::
+++  datum-ops-unqualified-eq
+  |=  $:  l=datum:ast
+          r=datum:ast
+          map-meta=(map @tas typ-addr)
+          lit-lit=$-([@ @ data-row] ?)
+          col-col=$-([@ @ data-row] ?)
+          col-lit=$-([@ @ data-row] ?)
+          lit-col=$-([@ @ data-row] ?)
+          ==
+  ^-  $-(data-row ?)
+::  literal = literal
+  ?:  &(?=(dime l) ?=(dime r))
+    ?:  (types-match -.l -.r)
+      (bake (cury (cury lit-lit +.l) +.r) data-row)
+    ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
+  ::  column = column
+  ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
+    ?:  %+  types-match  -:(~(got by map-meta) name.l)
+                         -:(~(got by map-meta) name.r)
+      %+  bake  %+  cury
+                    (cury col-col +:(~(got by map-meta) name.l))
+                    +:(~(got by map-meta) name.r)
+                data-row
+    ~|  "comparing columns of different auras: {<name.l>} ".
+        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
+        !!
+  ::  literal = column
+  ?:  &(?=(dime l) ?=(unqualified-column:ast r))
+    ?:  (types-match -.l -:(~(got by map-meta) name.r))
+      %+  bake  (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
+                data-row
+    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
+        !!
+  ::  column = literal
+  ?:  &(?=(unqualified-column:ast l) ?=(dime r))
+    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
+      %+  bake  (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
+                data-row
+    ~|  "comparing column to literal of different aura: {<name.l>} ".
+        "{<-:(~(got by map-meta) name.l)>} {<r>}"
+        !!
+  ::
+  ~|("datum-ops can't get here" !!)
+::
 ++  pred-inequality-op
   |=  $:  p=inequality-op
           l=datum:ast
@@ -402,23 +496,23 @@
   ?-  p
     %neq
       ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified  l
-                                 r
-                                 +.map-meta
-                                 qualifier-lookup
-                                 neq-lit-lit
-                                 neq-col-col
-                                 neq-col-lit
-                                 neq-lit-col
-                                 ==
-      %:  datum-ops-unqualified  l
-                                 r
-                                 +.map-meta
-                                 neq-lit-lit
-                                 neq-col-col
-                                 neq-col-lit
-                                 neq-lit-col
-                                 ==
+        %:  datum-ops-qualified-eq  l
+                                    r
+                                    +.map-meta
+                                    qualifier-lookup
+                                    neq-lit-lit
+                                    neq-col-col
+                                    neq-col-lit
+                                    neq-lit-col
+                                    ==
+      %:  datum-ops-unqualified-eq  l
+                                    r
+                                    +.map-meta
+                                    neq-lit-lit
+                                    neq-col-col
+                                    neq-col-lit
+                                    neq-lit-col
+                                    ==
     %gt
       ?:  ?=(%qualified-map-meta -.map-meta)
         %:  datum-ops-qualified  l
@@ -538,19 +632,19 @@
 ::  eq
 ::
 ++  eq-lit-col
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 b])
   =(a ?@(x x ;;(@ +.x)))
 ::
 ++  eq-col-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =(?@(x x ;;(@ +.x)) b)
 ::
 ++  eq-col-col
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  y  .*(data.c [%0 b])
@@ -558,26 +652,26 @@
   =(;;(@ +.x) ;;(@ +.y))
 ::
 ++  eq-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =(a b)
 ::
 ::  neq
 ::
 ++  neq-lit-col
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 b])
   ?!(=(a ?@(x x ;;(@ +.x))))
 ::
 ++  neq-col-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   ?!(=(?@(x x ;;(@ +.x)) b))
 ::
 ++  neq-col-col
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  y  .*(data.c [%0 b])
@@ -585,7 +679,7 @@
   ?!(=(;;(@ +.x) ;;(@ +.y)))
 ::
 ++  neq-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ c=data-row]
   ^-  ?
   ?!(=(a b))
 ::
