@@ -374,306 +374,310 @@
             ==
 ::
 ::  CTE with JOIN, outer SELECT with WHERE predicate on CTE columns
-::::++  test-cte-06
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%day-name [~.t 'Monday']]
-::::                    [%date [~.da ~2024.1.1]]
-::::                    [%us-federal-holiday [~.t 'New Years Day']]
-::::                    ==
-::::            ==
-::::  ::%-  exec-0-1
-::::  %-  debug-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              create-holiday-calendar
-::::                              insert-holiday-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar T1 ".
-::::                      "JOIN holiday-calendar T2 ".
-::::                      "SELECT T1.day-name, T2.date, T2.us-federal-holiday) ".
-::::                      "AS my-cte ".
-::::                "FROM my-cte ".
-::::                "WHERE us-federal-holiday = 'New Years Day' ".
-::::                "SELECT * "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%message msg='db1.dbo.holiday-calendar']
-::::                              [%schema-time date=~2012.4.30]
-::::                              [%data-time date=~2012.4.30]
-::::                              [%vector-count 1]
-::::                              ==
-::::            ==
-::::::
-::::::  CTE with JOIN + aliases, outer SELECT specific columns + predicate
-::::++  test-cte-07
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%holiday [~.t 'Christmas Day']]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              create-holiday-calendar
-::::                              insert-holiday-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar T1 ".
-::::                      "JOIN holiday-calendar T2 ".
-::::                      "SELECT T1.day-name, T2.date, ".
-::::                            "T2.us-federal-holiday AS holiday) ".
-::::                      "AS my-cte ".
-::::                "FROM my-cte ".
-::::                "WHERE date = ~2023.12.25 ".
-::::                "SELECT holiday "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%message msg='db1.dbo.holiday-calendar']
-::::                              [%schema-time date=~2012.4.30]
-::::                              [%data-time date=~2012.4.30]
-::::                              [%vector-count 1]
-::::                              ==
-::::            ==
-::::::
-::::::  single-table CTE with specific columns, outer SELECT *
-::::++  test-cte-08
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%date [~.da ~2023.12.25]]
-::::                    [%us-federal-holiday [~.t 'Christmas Day']]
-::::                    ==
-::::            :-  %vector
-::::                :~  [%date [~.da ~2024.1.1]]
-::::                    [%us-federal-holiday [~.t 'New Years Day']]
-::::                    ==
-::::            :-  %vector
-::::                :~  [%date [~.da ~2024.1.15]]
-::::                    [%us-federal-holiday [~.t 'Birthday of Martin Luther King Jr.']]
-::::                    ==
-::::            :-  %vector
-::::                :~  [%date [~.da ~2023.11.23]]
-::::                    [%us-federal-holiday [~.t 'Thanksgiving Day']]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-holiday-calendar
-::::                              insert-holiday-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM holiday-calendar ".
-::::                      "SELECT date, us-federal-holiday) ".
-::::                      "AS hol-cte ".
-::::                "FROM hol-cte SELECT * "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.holiday-calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%vector-count 4]
-::::                              ==
-::::            ==
-::::::
-::::::  single-table CTE with WHERE, outer SELECT *
-::::++  test-cte-09
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%date [~.da ~2023.12.25]]
-::::                    [%day-name [~.t 'Monday']]
-::::                    [%month-name [~.t 'December']]
-::::                    ==
-::::            :-  %vector
-::::                :~  [%date [~.da ~2024.1.1]]
-::::                    [%day-name [~.t 'Monday']]
-::::                    [%month-name [~.t 'January']]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar ".
-::::                      "WHERE day-name = 'Monday' ".
-::::                      "SELECT date, day-name, month-name) ".
-::::                      "AS cal-cte ".
-::::                "FROM cal-cte SELECT * "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%vector-count 2]
-::::                              ==
-::::            ==
-::::::
-::::::  CTE with JOIN, outer SELECT with multiple predicates (AND)
-::::++  test-cte-10
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%day-name [~.t 'Monday']]
-::::                    [%date [~.da ~2023.12.25]]
-::::                    [%us-federal-holiday [~.t 'Christmas Day']]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              create-holiday-calendar
-::::                              insert-holiday-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar T1 ".
-::::                      "JOIN holiday-calendar T2 ".
-::::                      "SELECT T1.day-name, T2.date, ".
-::::                            "T2.us-federal-holiday) ".
-::::                      "AS my-cte ".
-::::                "FROM my-cte ".
-::::                "WHERE day-name = 'Monday' ".
-::::                "  AND date = ~2023.12.25 ".
-::::                "SELECT * "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%message msg='db1.dbo.holiday-calendar']
-::::                              [%schema-time date=~2012.4.30]
-::::                              [%data-time date=~2012.4.30]
-::::                              [%vector-count 1]
-::::                              ==
-::::            ==
-::::::
-::::::  single-table CTE with WHERE, outer SELECT specific columns + predicate
-::::++  test-cte-11
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%col1 [~.t 'cord']]
-::::                    [%col3 [~.ud 20]]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-table
-::::                              insert-table
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM my-table ".
-::::                      "WHERE col3 > 3 ".
-::::                      "SELECT col1, col3) ".
-::::                      "AS filtered-cte ".
-::::                "FROM filtered-cte ".
-::::                "WHERE col3 > 4 ".
-::::                "SELECT col1, col3 "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.my-table']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%vector-count 1]
-::::                              ==
-::::            ==
-::::::
-::::::  chained CTEs: second CTE references first CTE
-::::++  test-cte-12
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%date [~.da ~2024.1.1]]
-::::                    [%day-name [~.t 'Monday']]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar ".
-::::                      "WHERE day-name = 'Monday' ".
-::::                      "SELECT date, day-name, month-name) ".
-::::                      "AS cal-cte, ".
-::::                     "(FROM cal-cte ".
-::::                      "WHERE month-name = 'January' ".
-::::                      "SELECT date, day-name) ".
-::::                      "AS filtered-cte ".
-::::                "FROM filtered-cte SELECT * "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%vector-count 1]
-::::                              ==
-::::            ==
-::::::
+++  test-cte-06
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "SELECT T1.day-name, T2.date, T2.us-federal-holiday) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "WHERE us-federal-holiday = 'New Years Day' ".
+                "SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%message msg='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 1]
+                              ==
+            ==
+::
+::  CTE with JOIN + aliases, outer SELECT specific columns + predicate
+++  test-cte-07
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%holiday [~.t 'Christmas Day']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "SELECT T1.day-name, T2.date, ".
+                            "T2.us-federal-holiday AS holiday) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "WHERE date = ~2023.12.25 ".
+                "SELECT holiday "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%message msg='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 1]
+                              ==
+            ==
+::
+::  single-table CTE with specific columns, outer SELECT *
+++  test-cte-08
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            :-  %vector
+                :~  [%date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            :-  %vector
+                :~  [%date [~.da ~2024.1.15]]
+                    [%us-federal-holiday [~.t 'Birthday of Martin Luther King Jr.']]
+                    ==
+            :-  %vector
+                :~  [%date [~.da ~2023.11.23]]
+                    [%us-federal-holiday [~.t 'Thanksgiving Day']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM holiday-calendar ".
+                      "SELECT date, us-federal-holiday) ".
+                      "AS hol-cte ".
+                "FROM hol-cte SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.holiday-calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%vector-count 4]
+                              ==
+            ==
+::
+::  single-table CTE with WHERE, outer SELECT *
+++  test-cte-09
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%date [~.da ~2023.12.25]]
+                    [%day-name [~.t 'Monday']]
+                    [%month-name [~.t 'December']]
+                    ==
+            :-  %vector
+                :~  [%date [~.da ~2024.1.1]]
+                    [%day-name [~.t 'Monday']]
+                    [%month-name [~.t 'January']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar ".
+                      "WHERE day-name = 'Monday' ".
+                      "SELECT date, day-name, month-name) ".
+                      "AS cal-cte ".
+                "FROM cal-cte SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%vector-count 2]
+                              ==
+            ==
+::
+::  CTE with JOIN, outer SELECT with multiple predicates (AND)
+++  test-cte-10
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%day-name [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "SELECT T1.day-name, T2.date, ".
+                            "T2.us-federal-holiday) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "WHERE day-name = 'Monday' ".
+                "  AND date = ~2023.12.25 ".
+                "SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%message msg='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 1]
+                              ==
+            ==
+::
+::  single-table CTE with WHERE, outer SELECT specific columns + predicate
+++  test-cte-11
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%col1 [~.t 'rygged']]
+                    [%col3 [~.ud q=5]]
+                    ==
+            :-  %vector
+                :~  [%col1 [~.t 'cord']]
+                    [%col3 [~.ud 20]]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM my-table ".
+                      "WHERE col3 > 3 ".
+                      "SELECT col1, col3) ".
+                      "AS filtered-cte ".
+                "FROM filtered-cte ".
+                "WHERE col3 > 4 ".
+                "SELECT col1, col3 "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%vector-count 2]
+                              ==
+            ==
+::
+::  chained CTEs: second CTE references first CTE
+++  test-cte-12
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%date [~.da ~2024.1.1]]
+                    [%day-name [~.t 'Monday']]
+                    ==
+            ==
+  %-  exec-0-1
+  ::%-  debug-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar ".
+                      "WHERE day-name = 'Monday' ".
+                      "SELECT date, day-name, month-name) ".
+                      "AS cal-cte, ".
+                     "(FROM cal-cte ".
+                      "WHERE month-name = 'January' ".
+                      "SELECT date, day-name) ".
+                      "AS filtered-cte ".
+                "FROM filtered-cte SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%vector-count 1]
+                              ==
+            ==
+::
 ::::::  CTE alias defined upper case, outer SELECT qualifies with differing case
 ::::++  test-cte-13
 ::::  =|  run=@ud
@@ -689,7 +693,8 @@
 ::::                    [%us-federal-holiday [~.t 'New Years Day']]
 ::::                    ==
 ::::            ==
-::::  %-  exec-0-1
+::::  ::%-  exec-0-1
+::::  %-  debug-0-1
 ::::        :*  run
 ::::            :+  ~2012.4.30
 ::::                %db1
@@ -722,8 +727,8 @@
 ::::                              [%vector-count 2]
 ::::                              ==
 ::::            ==
-::::::
-::::::  CTE alias defined lower case, outer SELECT uses upper case alias.*
+::::::::::
+::::::::::  CTE alias defined lower case, outer SELECT uses upper case alias.*
 ::::++  test-cte-14
 ::::  =|  run=@ud
 ::::  =/  expected-rows

@@ -273,7 +273,7 @@
   ==
 ::
 ::  recalculate addr for joined data structure
-++  foo
+++  recalc-addr
   |=  [=set-table =full-relation from-objects=(list set-table)]
   ?~  joined-rows.set-table
     %:  join-return  %join-return
@@ -336,9 +336,7 @@
   =/  prior-join        -.set-tables.full-relation
   =/  from-objects      (limo ~[prior-join])
   |-
-  ?~  joined-relations  (foo prior-join full-relation from-objects) 
-    
-    
+  ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
   =.  query-source
         ?:  ?=(qualified-table:ast relation.i.joined-relations)
               relation.i.joined-relations
@@ -443,10 +441,12 @@
   ^-  full-relation
   =/  tbl  %-  ~(get by tables.schema)
                [namespace.qualified-table name.qualified-table]
-  ?~  tbl  ~|  "SELECT: table {<database.qualified-table>}.".
-               "{<namespace.qualified-table>}.{<name.qualified-table>} does ".
-               "not exist at schema time {<tmsp.schema>}"
-           (~(got by named-ctes) name.qualified-table)
+  ?~  tbl  %:  from-cte  qualified-table
+                         named-ctes
+                         schema
+                         map-meta
+                         column-metas
+                         ==
   =/  tbl2=table  (need tbl)
   =/  file  %^  get-content  content.db
                              sys-time
@@ -471,6 +471,41 @@
       :-  %qualified-map-meta
           (~(put by +.map-meta) qualified-table typ-addr-lookup.tbl2)
       (mk-column-metas qualified-table column-metas columns.tbl2)
+      ==
+::
+++  from-cte
+  ::  wrap a CTE as an opaque relation so its internal
+  ::  source tables don't leak into canonical-list
+  |=  $:  =qualified-table:ast
+          =named-ctes
+          =schema
+          map-meta=qualified-map-meta
+          column-metas=(list column-meta)
+          ==
+  ^-  full-relation
+  =/  cte-fr  ~|  "SELECT: table {<database.qualified-table>}.".
+                  "{<namespace.qualified-table>}.{<name.qualified-table>} does ".
+                  "not exist at schema time {<tmsp.schema>}"
+              (~(got by named-ctes) name.qualified-table)
+  ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
+  =/  cte-st  i.set-tables.cte-fr
+  =.  relation.cte-st  [~ qualified-table.cte-fr]
+  :*  %full-relation
+      qualified-table.cte-fr
+      [cte-st ~]
+      :-  %qualified-map-meta
+          (~(uni by +.map-meta) +.map-meta.cte-fr)
+      ::  use CTE's original column-metas (correct addr from
+      ::  calc-joined-addr for JOINs) rebranded to CTE qualified-table
+      %+  weld  column-metas
+      %+  turn  column-metas.cte-fr
+      |=  cm=column-meta
+      :+  :^  %qualified-column
+              (normalize-qt-alias qualified-table.cte-fr)
+              name.qualified-column.cm
+              alias.qualified-column.cm
+          type.cm
+          addr.cm
       ==
 ::
 ++  mk-joined-relations

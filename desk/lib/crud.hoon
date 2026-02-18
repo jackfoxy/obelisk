@@ -537,6 +537,9 @@
                   :~  [%vector-count (lent vectors)]
                       ==
                   ==
+  ?:  .=  [[~ ~zod] %cte %cte]
+          [ship database namespace]:-.i.raw
+    $(raw t.raw)
   %=  $
     raw  t.raw
     out  :-  :~  [%message (qualified-table-to-cord -.i.raw)]
@@ -790,12 +793,6 @@
                         cte-qualified-table 
                         name.qualified-column.column-meta
                         [type.column-meta addr.column-meta]
-
-
-    ::  ~&  [%column-metas column-metas]
-    ::  ~&  [%canonical-list canonical-list]
-    ::~&  [%query-source query-source]
-
   ::
   %=  $
     nctes  %+  ~(put by nctes)  name.i.ctes
@@ -846,7 +843,7 @@
       ~[[%column (need alias.a) p.value.a 0]]
     selected-all
     %-  flop
-        %+  roll  st    :: to do: why (flop columns.a)?
+        %+  roll  st
                   |=  [a=set-table b=(list column:ast)]
                   ?~(relation.a b (weld (flop columns.a) b))
     selected-all-table
@@ -854,7 +851,6 @@
     ==
 ::
 ++  mk-cte-column-metas
-  ::  mk-cte-column-metas
   |=  $:  sel-cols=(list selected-column:ast)
           =data-row
           map-meta=qualified-map-meta
