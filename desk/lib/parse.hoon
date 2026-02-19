@@ -3929,7 +3929,7 @@
   :: <lowercase-name> unqualified-column
   :: <mixedcase-name> alias
   ;~  pose
-    ;~(pose ;~(pfix whitespace parse-qualifier) parse-qualifier)
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     %+  stag
       %alias
     ;~(pose ;~(pfix whitespace parse-scalar-alias) parse-scalar-alias)
@@ -4288,53 +4288,47 @@
   ~|("cannot make-query-object:  {<a>}" !!)
 ::
 ++  cook-qualified-column
-  ::  column in "join on" or "where" predicate, qualified or aliased
+  ::  column in predicate or scalar, qualified or aliased
   ::  indeterminate qualification and aliasing is determined later
+  ::  input is normalized: ~ for missing ship/database/namespace
   |=  a=*
   ~+
-  ?:  ?=([@ @ @ @ @] a) :: @p.db.ns.object.column
+  ?:  ?=([@ @ @ @ @] a)   :: @p.db.ns.object.column (ns may be ~)
     %:  qualified-column:ast
       %qualified-column
-      (qualified-table:ast %qualified-table `-.a +<.a +>-.a +>+<.a ~)
+      %:  qualified-table:ast
+        %qualified-table
+        `-.a
+        +<.a
+        ?~(+>-.a 'dbo' +>-.a)
+        +>+<.a
+        ~
+      ==
       +>+>.a
       ~
     ==
-  ?:  ?=([@ @ @ @ @ @] a) :: @p.db..object.column
+  ?:  ?=([@ @ @ @] a)     :: db.ns.object.column (db or ns may be ~)
     %:  qualified-column:ast
       %qualified-column
-      (qualified-table:ast %qualified-table `-.a +<.a 'dbo' +>+>-.a ~)
-      +>+>+.a
-      ~
-    ==
-  ?:  ?=([@ @ @ @] a)   :: db..object.column; db.ns.object.column
-    ?:  =(+<.a '.')
-      %:  qualified-column:ast
-        %qualified-column
-        (qualified-table:ast %qualified-table ~ -.a 'dbo' +>-.a ~)
-        +>+.a
+      %:  qualified-table:ast
+        %qualified-table
+        ~
+        ?~(-.a default-database -.a)
+        ?~(+<.a 'dbo' +<.a)
+        +>-.a
         ~
       ==
-    %:  qualified-column:ast
-      %qualified-column
-      (qualified-table:ast %qualified-table ~ -.a +<.a +>-.a ~)
       +>+.a
       ~
     ==
-  ?:  ?=([@ @ @] a)     :: ns.object.column
-    %:  qualified-column:ast
-      %qualified-column
-      (qualified-table:ast %qualified-table ~ default-database -.a +<.a ~)
-      +>.a
-      ~
-    ==
-  ?:  ?=([@ @] a)       :: something.column (could be table, table alias or cte)
+  ?:  ?=([@ @] a)          :: something.column (table, table alias or cte)
     %:  qualified-column:ast
       %qualified-column
       (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN' -.a ~)
       +.a
       ~
     ==
-  ?@  a                 :: column, column alias, or cte
+  ?@  a                    :: column, column alias, or cte
     %:  qualified-column:ast
       %qualified-column
       (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN-OR-CTE' a ~)
@@ -4344,50 +4338,28 @@
   ~|("cannot parse qualified-column  {<a>}" !!)
 ++  parse-column  ~+
   ;~  pose
-    ;~((glue dot) parse-ship sym sym sym sym)
-    ;~(plug parse-ship ;~(pfix dot sym) dot dot sym ;~(pfix dot sym))
-    ;~((glue dot) sym sym sym sym)
-    ;~(plug sym dot ;~(pfix dot sym) ;~(pfix dot sym))
-    ;~((glue dot) sym sym sym)
-    ;~(plug mixed-case-symbol ;~(pfix dot sym))
-    sym
-  ==
-++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
-++  parse-qualifier  ~+
-  :: to do: (someday) parse 4 & 5 directly into qualified-column
-  ::        clean-up parse-qualifier, parse-qualified-column, parse-column,
-  ::        cook-qualified-column
-  ::        can probably be one ;~ pose
-  ;~  pose
-    ::
-    ::  five-item qualified-column
     ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
     ;~((glue dot) parse-ship sym sym sym sym)
     ::  @p.<database>..<table-or-view>.<column-name>
     ;~  plug
-      parse-ship 
+      parse-ship
       ;~(pfix dot sym)
       (cold ~ dot)
       ;~(pfix dot sym)
       ;~(pfix dot sym)
     ==
-    ::  four-item qualified-column
     ::  <database>.<namespace>.<table-or-view>.<column-name>
     ;~((glue dot) sym sym sym sym)
     ::  <database>..<table-or-view>.<column-name>
     ;~(plug sym (cold ~ dot) ;~(pfix dot sym) ;~(pfix dot sym))
     ::  <namespace>.<table-or-view>.<column-name>
     (stag ~ ;~((glue dot) sym sym sym))
-    ::
-    ::  two-item-qualifier
     ::  <alias>.<column-name>
     ;~(plug mixed-case-symbol ;~(pfix dot sym))
-    ::
-    ::  one-item-qualifier
     ::  <column-name>
     sym
-    ::
   ==
+++  parse-qualified-column  ~+  (cook cook-qualified-column parse-column)
 ::
 ::  predicate
 ::
@@ -5055,45 +5027,21 @@
     [%unknown-alias (cook-scalar-alias +.parsed)]
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
-  ?:  ?=(@ parsed)  [%unqualified-column name=parsed alias=~]
-    :::*  %one-item-qualifier
-    ::  column=parsed
-    ::==
-  ?:  ?=([@ @] parsed)
-    %:  unqualified-column:ast
-        %unqualified-column
-        name=`@tas`+.parsed
-        alias=(some -.parsed)
-    ==
-  ?:  ?=([@ @ @ @] parsed)
-      %:  qualified-column:ast
-          %qualified-column
-          %:  qualified-table:ast
-              %qualified-table
-              ship=~
-              database=?~(-.parsed default-database -.parsed)
-              namespace=?~(+<.parsed %dbo +<.parsed)
-              table=+>-.parsed
-              alias=~
-              ==
-          column=+>+.parsed
-          alias=~
-          ==
-  ?:  ?=([@ @ @ @ @] parsed)
-    %:  qualified-column:ast
-        %qualified-column
-        %:  qualified-table:ast
-            %qualified-table
-            ship=(some -.parsed)
-            database=?~(+<.parsed default-database +<.parsed)
-            namespace=?~(+>-.parsed %dbo +>-.parsed)
-            table=+>+<.parsed
-            alias=~
-            ==
-        column=+>+>.parsed
-        alias=~
-        ==
-  !!  :: this should never be reached
+  ::  remaining cases are qualified-column:ast from parse-qualified-column
+  ::  check for unqualified sentinel values
+  ?:  ?=([%qualified-column *] parsed)
+    =/  col  +>-.parsed
+    =/  tbl  +<+>+>-.parsed
+    ?>  ?=(@ col)
+    ?>  ?=(@ tbl)
+    ?:  =('UNKNOWN' +<+>-.parsed)
+      ?:  =('COLUMN-OR-CTE' +<+>+<.parsed)
+        ::  bare column name
+        [%unqualified-column name=col alias=~]
+      ::  alias.column
+      [%unqualified-column name=col alias=(some tbl)]
+    ;;(qualified-column:ast parsed)
+  ~|("cannot cook-scalar-param  {<parsed>}" !!)
 ++  get-datum-for-predicate
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
@@ -5103,8 +5051,7 @@
   ==
 ++  get-scalar-param  ~+
   ;~  pose
-    ;~(sfix parse-qualifier whitespace)
-    ::;~(sfix parse-qualified-column whitespace)
+    ;~(sfix parse-qualified-column whitespace)
     (stag %literal ;~(sfix parse-value-literal whitespace))
     (stag %alias ;~(sfix mixed-case-symbol whitespace))
     ;~(sfix parse-scalar-param whitespace)

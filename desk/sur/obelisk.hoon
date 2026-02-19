@@ -143,7 +143,7 @@
     ==
 +$  named-ctes  (map @tas full-relation)
 ::
-::  template for selected column from qualified ocolumnbjects
+::  template for selected column from qualified-column objects
 +$  templ-cell
   $:  %templ-cell
     column=(unit qualified-column)
