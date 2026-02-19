@@ -403,8 +403,8 @@
     function=@t
     source=aggregate-source
     ==
-+$  aggregate-source     $%(qualified-column)
-+$  grouping-column      ?(qualified-column @ud)
++$  aggregate-source     $%(qualified-column unqualified-column)
++$  grouping-column      ?(qualified-column unqualified-column @ud)
 +$  ordering-column
   $:  %ordering-column
     column=grouping-column

@@ -2391,8 +2391,8 @@
 ::
 ::  group and order by
 ::
-++  group-by  ~[[%qualified-column qualifier=[%qualified-table ship=~ database='db' namespace='ns' name='table' alias=~] column='col' alias=~] [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] 3 4]
-++  order-by  ~[[%ordering-column [%qualified-column qualifier=[%qualified-table ship=~ database='db' namespace='ns' name='table' alias=~] column='col' alias=~] is-ascending=%.y] [%ordering-column [%qualified-column qualifier=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN' name='T1' alias=~] column='foo' alias=~] is-ascending=%.n] [%ordering-column 3 is-ascending=%.y] [%ordering-column 4 is-ascending=%.n]]
+++  group-by  ~[[%qualified-column qualifier=[%qualified-table ship=~ database='db' namespace='ns' name='table' alias=~] column='col' alias=~] [%unqualified-column name='foo' alias=[~ 'T1']] 3 4]
+++  order-by  ~[[%ordering-column [%qualified-column qualifier=[%qualified-table ship=~ database='db' namespace='ns' name='table' alias=~] column='col' alias=~] is-ascending=%.y] [%ordering-column [%unqualified-column name='foo' alias=[~ 'T1']] is-ascending=%.n] [%ordering-column 3 is-ascending=%.y] [%ordering-column 4 is-ascending=%.n]]
 ::
 ::  group by
 ++  test-group-by-01

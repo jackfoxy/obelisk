@@ -2283,10 +2283,7 @@
   |=  [a=predicate-component:ast obj=qualified-table:ast]
   ~+
   ^-  predicate-component:ast
-  ?.  ?&  ?=(qualified-column:ast a)
-          =('UNKNOWN' database.qualifier.a)
-          =('COLUMN-OR-CTE' namespace.qualifier.a)
-          ==
+  ?.  ?=(unqualified-column:ast a)
     a
   %:  qualified-column:ast  %qualified-column
                             obj
@@ -2987,24 +2984,17 @@
     ops-and-conjs:ast
       a
     qualified-column:ast
-      ?:  ?&  =('UNKNOWN' database.qualifier.a)
-              =('COLUMN-OR-CTE' namespace.qualifier.a)
-              ==
-        %^  unqualified-column:ast  %unqualified-column
-                                    name.a
-                                    alias.a
-      ?:  ?&  =('UNKNOWN' database.qualifier.a)
-              =('COLUMN' namespace.qualifier.a)
-              ==
-        %:  qualified-column:ast  %qualified-column
-                                  %-  ~(got by alias-map)
-                                      (crip (cass (trip name.qualifier.a)))
-                                  name.a
-                                  alias.a
-                                  ==
       a
     unqualified-column:ast
-      a
+      ?~  alias.a
+        a
+      ::  alias.column: look up alias in alias-map
+      %:  qualified-column:ast  %qualified-column
+                                %-  ~(got by alias-map)
+                                    (crip (cass (trip (need alias.a))))
+                                name.a
+                                ~
+                                ==
     dime:ast
       a
     value-literals:ast
@@ -3069,27 +3059,12 @@
     s      t.s
     s-out  :-  ?.  ?=(qualified-column:ast i.s)
                  i.s
-               ?:  ?&  =('UNKNOWN' database.qualifier.i.s)
-                       =('COLUMN' namespace.qualifier.i.s)
-                       ==
-                  (mk-qualified-table i.s alias-map)
-               ?:  ?&  =('UNKNOWN' database.qualifier.i.s)
-                       =('COLUMN-OR-CTE' namespace.qualifier.i.s)
-                       =('ALL' name.i.s)
-                       ==
-                  (mk-all-object i.s alias-map) 
                ?:  ?&  =('ALL' name.i.s)
                        !=(name.qualifier.i.s name.i.s)
                        ==
                   %+  selected-all-table:ast
                       %all-object
                       qualifier.i.s
-               ?:  ?&  =('UNKNOWN' database.qualifier.i.s)
-                       =('COLUMN-OR-CTE' namespace.qualifier.i.s)
-                       ==
-                  %^  unqualified-column:ast  %unqualified-column
-                                              name.i.s
-                                              alias.i.s
                i.s
                ::
                s-out
@@ -3252,6 +3227,30 @@
             [(selected-value:ast %selected-value -.a ~) columns]
           a        +.a
         ==
+    ?:  ?=([unqualified-column:ast %as @] -.a)
+      =/  uqc  ;;(unqualified-column:ast -<.a)
+      =/  as-alias  ->+.a
+      ?~  alias.uqc
+        ::  bare column with AS alias
+        %=  $
+          columns  [(unqualified-column:ast %unqualified-column name.uqc `as-alias) columns]
+          a  +.a
+        ==
+      ::  table.column with AS alias: resolve table, produce qualified-column
+      =/  tbl  (need alias.uqc)
+      =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
+      %=  $
+        columns
+          :-  %:  qualified-column:ast  %qualified-column
+                  ?~  resolved
+                    (qualified-table:ast %qualified-table ~ default-database 'dbo' tbl ~)
+                  (need resolved)
+                  name.uqc
+                  `as-alias
+                  ==
+              columns
+        a  +.a
+      ==
     ?:  ?=([qualified-column:ast %as @] -.a)
       %=  $
         columns
@@ -3280,6 +3279,25 @@
               ==
               columns
         a        +.a
+      ==
+    ?:  ?=(unqualified-column:ast -.a)
+      =/  uqc  ;;(unqualified-column:ast -.a)
+      ?~  alias.uqc
+        $(columns [uqc columns], a +.a)
+      ::  table.column: resolve table alias
+      =/  tbl  (need alias.uqc)
+      =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
+      %=  $
+        columns
+          :-  %:  qualified-column:ast  %qualified-column
+                  ?~  resolved
+                    (qualified-table:ast %qualified-table ~ default-database 'dbo' tbl ~)
+                  (need resolved)
+                  name.uqc
+                  ~
+                  ==
+              columns
+        a  +.a
       ==
     ?>  ?=(qualified-column:ast -.a)  $(columns [-.a columns], a +.a)
 ++  produce-update
@@ -3377,14 +3395,7 @@
                                              ~
                                              ==
                    columns
-      values   ?.  ?=(qualified-column:ast +.b)
-                 [;;(value-or-default:ast +.b) values]
-               ?:  ?&  =('UNKNOWN' database.qualifier.+.b)
-                      =('COLUMN-OR-CTE' namespace.qualifier.+.b)
-                      ==
-                 :-  (unqualified-column:ast %unqualified-column name.+.b ~)
-                     values
-               [;;(value-or-default:ast +.b) values]
+      values   [;;(value-or-default:ast +.b) values]
       a        +.a
   ==
 ::
@@ -4321,20 +4332,10 @@
       +>+.a
       ~
     ==
-  ?:  ?=([@ @] a)          :: something.column (table, table alias or cte)
-    %:  qualified-column:ast
-      %qualified-column
-      (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN' -.a ~)
-      +.a
-      ~
-    ==
-  ?@  a                    :: column, column alias, or cte
-    %:  qualified-column:ast
-      %qualified-column
-      (qualified-table:ast %qualified-table ~ 'UNKNOWN' 'COLUMN-OR-CTE' a ~)
-      a
-      ~
-    ==
+  ?:  ?=([@ @] a)          :: alias.column (table alias or cte)
+    (unqualified-column:ast %unqualified-column +.a (some -.a))
+  ?@  a                    :: bare column name
+    (unqualified-column:ast %unqualified-column a ~)
   ~|("cannot parse qualified-column  {<a>}" !!)
 ++  parse-column  ~+
   ;~  pose
@@ -4412,6 +4413,8 @@
     $(new-list [i=`ops-and-conjs:ast`-.a t=new-list], a +.a)
   ?:  ?=(qualified-column:ast -.a)
     $(new-list [i=`qualified-column:ast`-.a t=new-list], a +.a)
+  ?:  ?=(unqualified-column:ast -.a)
+    $(new-list [i=`unqualified-column:ast`-.a t=new-list], a +.a)
   ?:  ?=(dime -.a)
     $(new-list [i=`dime`-.a t=new-list], a +.a)
   ?:  ?=(value-literals:ast -.a)
@@ -4422,6 +4425,16 @@
         :-  %:  aggregate:ast   %aggregate
                                (aggregate-name ->-.a)
                                `qualified-column:ast`->+.a
+                               ==
+            new-list
+      a  +.a
+    ==
+  ?:  ?&(=(%aggregate:ast -<.a) ?=(@ ->-.a) ?=(unqualified-column:ast ->+.a))
+    %=  $
+      new-list
+        :-  %:  aggregate:ast   %aggregate
+                               (aggregate-name ->-.a)
+                               `unqualified-column:ast`->+.a
                                ==
             new-list
       a  +.a
@@ -4548,6 +4561,8 @@
     ~|("unknown predicate node {<-.parsed>}" !!)
   ?+  -.parsed  ~|("unknown predicate leaf {<-.parsed>}" !!)
     qualified-column:ast
+      [-.parsed ~ ~]
+    unqualified-column:ast
       [-.parsed ~ ~]
     dime
       [-.parsed ~ ~]
@@ -5027,19 +5042,11 @@
     [%unknown-alias (cook-scalar-alias +.parsed)]
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
-  ::  remaining cases are qualified-column:ast from parse-qualified-column
-  ::  check for unqualified sentinel values
+  ::  remaining cases are qualified-column or unqualified-column
+  ::  from parse-qualified-column
+  ?:  ?=([%unqualified-column *] parsed)
+    ;;(unqualified-column:ast parsed)
   ?:  ?=([%qualified-column *] parsed)
-    =/  col  +>-.parsed
-    =/  tbl  +<+>+>-.parsed
-    ?>  ?=(@ col)
-    ?>  ?=(@ tbl)
-    ?:  =('UNKNOWN' +<+>-.parsed)
-      ?:  =('COLUMN-OR-CTE' +<+>+<.parsed)
-        ::  bare column name
-        [%unqualified-column name=col alias=~]
-      ::  alias.column
-      [%unqualified-column name=col alias=(some tbl)]
     ;;(qualified-column:ast parsed)
   ~|("cannot cook-scalar-param  {<parsed>}" !!)
 ++  get-datum-for-predicate
@@ -5453,6 +5460,8 @@
 ++  cook-ordering-column
   |=  parsed=*
   ?:  ?=(qualified-column:ast parsed)
+    (ordering-column:ast %ordering-column parsed %.y)
+  ?:  ?=(unqualified-column:ast parsed)
     (ordering-column:ast %ordering-column parsed %.y)
   ?@  parsed  (ordering-column:ast %ordering-column parsed %.y)
   ?:  =(+.parsed %asc)  (ordering-column:ast %ordering-column -.parsed %.y)

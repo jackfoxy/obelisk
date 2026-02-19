@@ -141,16 +141,7 @@
 ++  aggregate-count-foobar
   :+  %aggregate
       function='count'
-      :^  %qualified-column
-          :*  %qualified-table
-              ship=~
-              database='UNKNOWN'
-              namespace='COLUMN-OR-CTE'
-              name='foobar'
-              alias=~
-              ==
-          column='foobar'
-          alias=~
+      [%unqualified-column name='foobar' alias=~]
 ++  literal-10           [[%ud 10] ~ ~]
 ::
 ::  re-used simple predicates
