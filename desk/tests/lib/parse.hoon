@@ -99,8 +99,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "  \0d alter INDEX ns.my-index ".
-        "ON ns.table (col1, col2 desc, col3 asc);"
+        "  \0d alter INDEX ns.my-index ON ns.table (col1, col2 desc, col3 asc);"
 ::
 :: alter index table no columns, action only
 ++  test-alter-index-4
@@ -614,8 +613,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "alter table table alter column ".
-        "(col1 @t, col2 @p) as of now"
+        "alter table table alter column (col1 @t, col2 @p) as of now"
 ::
 :: alter column as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-13
@@ -672,8 +670,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "alter table table drop column ".
-        "(col1, col2) as of now"
+        "alter table table drop column (col1, col2) as of now"
 ::
 :: drop column as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-16
@@ -708,8 +705,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "alter table table drop column ".
-        "(col1, col2, col3) as of 5 days ago"
+        "alter table table drop column (col1, col2, col3) as of 5 days ago"
 ::
 :: add 2 foreign keys as of now
 ++  test-alter-table-18
@@ -878,8 +874,7 @@
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
-        "alter  table  mytable  drop  foreign ".
-        " key  ( fk1,  fk2 ) as of now"
+        "alter  table  mytable  drop  foreign  key  ( fk1,  fk2 ) as of now"
 ::
 :: drop 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-22
@@ -1415,23 +1410,15 @@
         cols  pidx  ~[fk2]  ~
         ==
   =/  urql1
-    "crEate  taBle  db.ns.my-table  ".
-    "( col1  @t ,  col2  @p ,  ".
-    "col3  @ud )  pRimary  kEy  ".
-    "( col1 ,  col2 )  foReign  KeY  ".
-    "fk  ( col1 ,  col2  desc )  ".
-    "reFerences  fk-table  ".
-    "( col19 ,  col20 )  On  dELETE  ".
-    "CAsCADE  oN  UPdATE  CAScADE "
+    "crEate  taBle  db.ns.my-table  ( col1  @t ,  col2  @p ,  ".
+    "col3  @ud )  pRimary  kEy  ( col1 ,  col2 )  foReign  KeY  ".
+    "fk  ( col1 ,  col2  desc )  reFerences  fk-table  ".
+    "( col19 ,  col20 )  On  dELETE  CAsCADE  oN  UPdATE  CAScADE "
   =/  urql2
-    "crEate  taBle  db..my-table  ".
-    "( col1  @t ,  col2  @p ,  ".
-    "col3  @ud )  pRimary  kEy  ".
-    "( col1 ,  col2 )  foReign  KeY  ".
-    "fk  ( col1 ,  col2  desc )  ".
-    "reFerences  fk-table  ".
-    "( col19 ,  col20 )  On  UPdATE  ".
-    "CAsCADE  oN  dELETE  CAScADE "
+    "crEate  taBle  db..my-table  ( col1  @t ,  col2  @p ,  ".
+    "col3  @ud )  pRimary  kEy  ( col1 ,  col2 )  foReign  KeY  ".
+    "fk  ( col1 ,  col2  desc )  reFerences  fk-table  ".
+    "( col19 ,  col20 )  On  UPdATE  CAsCADE  oN  dELETE  CAScADE "
   %+  expect-eq
     !>  ~[expected1 expected2]
     !>  %-  parse:parse(default-database 'db1')
@@ -1561,12 +1548,9 @@
         ~
         ==
   =/  urql
-    "create table my-table ".
-    "(col1 @t,col2 @p,col3 @ud) ".
-    "primary key (col1, col2) ".
-    "foreign key fk (col1,col2 desc) ".
-    "reFerences fk-table (col19, col20) ".
-    "on update cascade on delete no action"
+    "create table my-table (col1 @t,col2 @p,col3 @ud) ".
+    "primary key (col1, col2) foreign key fk (col1,col2 desc) ".
+    "reFerences fk-table (col19, col20) on update cascade on delete no action"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
@@ -1669,9 +1653,7 @@
         ~
         ==
   =/  urql
-    "create table my-table ".
-    "(col1 @t,col2 @p,col3 @ud) ".
-    "primary key (col1,col2)"
+    "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2)"
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') urql)
