@@ -5598,4 +5598,168 @@
       ::
       'SELECT: table %db1.%dbo.%my-table does not exist at schema time ~2012.4.30'
       ==
+::
+::  fail on bad column name in WHERE bad column = literal
+++  test-fail-select-04
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..my-table "
+                        "(col1 @t, col2 @da, col3 @t, col4 @t) "
+                        "PRIMARY KEY (col1);"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE bad-col = 'row1' SELECT col1"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in WHERE literal = bad column
+++  test-fail-select-05
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..my-table "
+                        "(col1 @t, col2 @da, col3 @t, col4 @t) "
+                        "PRIMARY KEY (col1);"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE 'row1' = bad-col SELECT col1"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in WHERE bad column = good column
+++  test-fail-select-06
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..my-table "
+                        "(col1 @t, col2 @da, col3 @t, col4 @t) "
+                        "PRIMARY KEY (col1);"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE bad-col = col1 SELECT col1"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in WHERE good column = bad column
+++  test-fail-select-07
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE db1..my-table "
+                        "(col1 @t, col2 @da, col3 @t, col4 @t) "
+                        "PRIMARY KEY (col1);"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col1 = bad-col SELECT col1"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in join WHERE bad column = literal
+++  test-fail-join-03
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tbl1
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM db1..tbl1 T1 ".
+          "JOIN db1..tbl1 T2 ".
+          "WHERE bad-col = 'January' ".
+          "SELECT T1.year"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in join WHERE literal = bad column
+++  test-fail-join-04
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tbl1
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM db1..tbl1 T1 ".
+          "JOIN db1..tbl1 T2 ".
+          "WHERE 'January' = bad-col ".
+          "SELECT T1.year"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in join WHERE bad column = good column
+++  test-fail-join-05
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tbl1
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM db1..tbl1 T1 ".
+          "JOIN db1..tbl1 T2 ".
+          "WHERE bad-col = T1.month-name ".
+          "SELECT T1.year"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on bad column name in join WHERE good column = bad column
+++  test-fail-join-06
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tbl1
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM db1..tbl1 T1 ".
+          "JOIN db1..tbl1 T2 ".
+          "WHERE T1.month-name = bad-col ".
+          "SELECT T1.year"
+      ::
+      'column %bad-col does not exist'
+      ==
 --

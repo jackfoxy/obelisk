@@ -647,4 +647,84 @@
       ::
       'DELETE: state change after query in script'
       ==
+::
+::  fail on unknown column name in WHERE bad column = literal
+++  test-fail-delete-02
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-calendar
+                        insert-calendar
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "DELETE FROM calendar ".
+          "WHERE bad-col = 'Monday'"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on unknown column name in WHERE literal = bad column
+++  test-fail-delete-03
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-calendar
+                        insert-calendar
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "DELETE FROM calendar ".
+          "WHERE 'Monday' = bad-col"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on unknown column name in WHERE bad column left param
+++  test-fail-delete-04
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-calendar
+                        insert-calendar
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "DELETE FROM calendar ".
+          "WHERE bad-col = date"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on unknown column name in WHERE bad column right param
+++  test-fail-delete-05
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-calendar
+                        insert-calendar
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "DELETE FROM calendar ".
+          "WHERE date = bad-col"
+      ::
+      'column %bad-col does not exist'
+      ==
 --

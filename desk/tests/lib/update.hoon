@@ -1486,4 +1486,84 @@
       ::
       'UPDATE: state change after query in script'
       ==
+::
+::  fail on unknown column name in WHERE bad column = literal
+++  test-fail-update-07
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-table
+                        insert-table
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "UPDATE my-table SET col1='hello' ".
+          "WHERE bad-col = 'hello'"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on unknown column name in WHERE literal = bad column
+++  test-fail-update-08
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-table
+                        insert-table
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "UPDATE my-table SET col1='hello' ".
+          "WHERE 'hello' = bad-col"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on unknown column name in WHERE bad column = good column
+++  test-fail-update-09
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-table
+                        insert-table
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "UPDATE my-table SET col1='hello' ".
+          "WHERE bad-col = col1"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  fail on unknown column name in WHERE good column = bad column
+++  test-fail-update-10
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-table
+                        insert-table
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "UPDATE my-table SET col1='hello' ".
+          "WHERE col1 = bad-col"
+      ::
+      'column %bad-col does not exist'
+      ==
 --

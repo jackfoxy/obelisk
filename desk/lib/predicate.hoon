@@ -306,7 +306,9 @@
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
+              ~|  "column {<name.l>} does not exist"
               -:(~(got bi:mip map-meta) qualifier.l name.l)
+              ~|  "column {<name.r>} does not exist"
               -:(~(got bi:mip map-meta) qualifier.r name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col +:(~(got bi:mip map-meta) qualifier.l name.l))
@@ -319,6 +321,7 @@
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
+    ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got bi:mip map-meta) qualifier.r name.r))
       %+  bake  %+  cury
                     (cury (cury lit-col +.l) +:(~(got bi:mip map-meta) qualifier.r name.r))
@@ -330,6 +333,7 @@
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
+    ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got bi:mip map-meta) qualifier.l name.l) -.r)
       %+  bake  %+  cury
                     (cury (cury col-lit +:(~(got bi:mip map-meta) qualifier.l name.l)) +.r)
@@ -359,7 +363,9 @@
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
     ?:  %+  types-match
+              ~|  "column {<name.l>} does not exist"
               -:(~(got bi:mip map-meta) qualifier.l name.l)
+              ~|  "column {<name.r>} does not exist"
               -:(~(got bi:mip map-meta) qualifier.r name.r)
       %+  bake  %+  cury
                     (cury col-col +:(~(got bi:mip map-meta) qualifier.l name.l))
@@ -371,6 +377,7 @@
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(qualified-column:ast r))
+    ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got bi:mip map-meta) qualifier.r name.r))
       %+  bake  (cury (cury lit-col +.l) +:(~(got bi:mip map-meta) qualifier.r name.r))
                 data-row
@@ -380,6 +387,7 @@
         !!
   ::  column = literal
   ?:  &(?=(qualified-column:ast l) ?=(dime r))
+    ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got bi:mip map-meta) qualifier.l name.l) -.r)
       %+  bake  (cury (cury col-lit +:(~(got bi:mip map-meta) qualifier.l name.l)) +.r)
                 data-row
@@ -398,14 +406,16 @@
           lit-col=$-([@ @ @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
-::  literal = literal
+  ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
     ?:  (types-match -.l -.r)
       (bake (cury (cury (cury lit-lit +.l) +.r) -.l) data-row)
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
   ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
-    ?:  %+  types-match  -:(~(got by map-meta) name.l)
+    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
+                         -:(~(got by map-meta) name.l)
+                         ~|  "column {<name.r>} does not exist"
                          -:(~(got by map-meta) name.r)
       %+  bake  %+  cury
                     %+  cury  (cury col-col +:(~(got by map-meta) name.l))
@@ -418,6 +428,7 @@
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(unqualified-column:ast r))
+    ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got by map-meta) name.r))
       %+  bake  %+  cury
                     (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
@@ -428,6 +439,7 @@
         !!
   ::  column = literal
   ?:  &(?=(unqualified-column:ast l) ?=(dime r))
+    ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got by map-meta) name.l) -.r)
       %+  bake  %+  cury
                     (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
@@ -449,14 +461,16 @@
           lit-col=$-([@ @ data-row] ?)
           ==
   ^-  $-(data-row ?)
-::  literal = literal
+  ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
     ?:  (types-match -.l -.r)
       (bake (cury (cury lit-lit +.l) +.r) data-row)
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
   ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
-    ?:  %+  types-match  -:(~(got by map-meta) name.l)
+    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
+                         -:(~(got by map-meta) name.l)
+                         ~|  "column {<name.r>} does not exist"
                          -:(~(got by map-meta) name.r)
       %+  bake  %+  cury
                     (cury col-col +:(~(got by map-meta) name.l))
@@ -468,6 +482,7 @@
         !!
   ::  literal = column
   ?:  &(?=(dime l) ?=(unqualified-column:ast r))
+    ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got by map-meta) name.r))
       %+  bake  (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
                 data-row
@@ -476,6 +491,7 @@
         !!
   ::  column = literal
   ?:  &(?=(unqualified-column:ast l) ?=(dime r))
+    ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got by map-meta) name.l) -.r)
       %+  bake  (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
                 data-row
@@ -935,7 +951,8 @@
           qualifier-lookup=(map @tas (list qualified-table:ast))
           ==
   ^-  predicate-component:ast
-  ?:  ?=(unqualified-column:ast a)             
+  ?:  ?=(unqualified-column:ast a)
+    ~|  "column {<name.a>} does not exist"
     ?:  =((lent (~(got by qualifier-lookup) name.a)) 1)
       :^  %qualified-column
           (normalize-qt-alias -:(~(got by qualifier-lookup) name.a))
