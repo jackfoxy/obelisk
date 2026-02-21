@@ -1071,9 +1071,9 @@
 ::      [%literal-value [~.t 'bar']]
 ::      [~.t 'foo']
 ::    ==
-::    :-  %scalar-alias
+::    :-  %scalar-name
 ::    :*  true-predicate
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      q-col-2
 ::      [~.ud 3]
 ::    ==
@@ -1119,10 +1119,10 @@
 ::      [%literal-value [~.t 'bar']]
 ::      [~.t 'bar']
 ::    ==
-::    :-  %scalar-alias
+::    :-  %scalar-name
 ::    :*  false-predicate
 ::      q-col-2
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      [~.ud 3]
 ::    ==
 ::    :-  %embedded-scalar

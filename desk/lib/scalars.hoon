@@ -52,11 +52,11 @@
         %arithmetic
       (prepare-arithmetic scalar named-ctes lookups scalars)
     ::
-        %scalar-alias
-      =/  resolved  (~(get by scalars) alias.scalar)
+        %scalar-name
+      =/  resolved  (~(get by scalars) name.scalar)
       ?~  resolved
         |=  *
-        ~|("no scalar with name: {<alias.scalar>}" !!)
+        ~|("no scalar with name: {<name.scalar>}" !!)
       (prepare-scalar (need resolved) named-ctes lookups scalars)
     ::
         %getutcdate
@@ -129,7 +129,7 @@
 ::    qualified-column
 ::    unqualified-column
 ::    literal-value
-::    cte-alias
+::    cte-name
 ::    scalar-function
 ::    ==
 ++  get-qualified-col-type
@@ -187,7 +187,7 @@
 ::     |=(=data-row (get-column-data data-row type.lookups column))
 ::   ?:  ?=(literal-value:ast datum)
 ::     |=(r=data-row +.datum)
-::   ?:  ?=(%cte-alias -.datum)
+::   ?:  ?=(%cte-name -.datum)
 ::     ~|("unimplemented" !!)
 ::   :: we can't ?=(scalar-function:ast datum), it crashes with a %fish-loop
 ::   :: because it's a recursive type. However since we're switching on
@@ -195,8 +195,8 @@
 ::   :: end of the switch it can only be a scalar function. we bind it to
 ::   :: the 'scalar' face to add a type guard
 ::   =/  scalar=scalar-function:ast  datum
-::   ?:  ?=(scalar-alias:ast scalar)
-::     =/  maybe-resolved-scalar  (~(get by scalars) alias.scalar)
+::   ?:  ?=(scalar-name:ast scalar)
+::     =/  maybe-resolved-scalar  (~(get by scalars) name.scalar)
 ::     ?~  maybe-resolved-scalar
 ::       ~|("no scalar found!" !!)
 ::     %:  evaluate-datum-or-scalar

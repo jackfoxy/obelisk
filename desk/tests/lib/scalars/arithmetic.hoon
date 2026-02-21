@@ -171,9 +171,9 @@
 ::      literal-value-1
 ::      [~.ud 5]
 ::    ==
-::    :-  %addition-scalar-alias-literal
+::    :-  %addition-scalar-name-literal
 ::    :*  %lus
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      literal-value-1
 ::      [~.ud 4]
 ::    ==
@@ -195,10 +195,10 @@
 ::      arithmetic-u-col-4
 ::      [~.ud 5]
 ::    ==
-::    :-  %addition-literal-scalar-alias
+::    :-  %addition-literal-scalar-name
 ::    :*  %lus
 ::      literal-value-1
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      [~.ud 4]
 ::    ==
 ::    :-  %addition-literal-embedded-scalar
@@ -226,9 +226,9 @@
 ::      literal-value-1
 ::      [~.ud 4]
 ::    ==
-::    :-  %subtraction-scalar-alias-literal
+::    :-  %subtraction-scalar-name-literal
 ::    :*  %hep
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      literal-value-1
 ::      [~.ud 2]
 ::    ==
@@ -250,10 +250,10 @@
 ::      arithmetic-u-col-5
 ::      [~.ud 4]
 ::    ==
-::    :-  %subtraction-literal-scalar-alias
+::    :-  %subtraction-literal-scalar-name
 ::    :*  %hep
 ::      [%literal-value [~.ud 5]]
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      [~.ud 2]
 ::    ==
 ::    :-  %subtraction-literal-embedded-scalar
@@ -281,9 +281,9 @@
 ::      literal-value-1
 ::      [~.ud 5]
 ::    ==
-::    :-  %multiplication-scalar-alias-literal
+::    :-  %multiplication-scalar-name-literal
 ::    :*  %tar
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      literal-value-1
 ::      [~.ud 3]
 ::    ==
@@ -305,10 +305,10 @@
 ::      arithmetic-u-col-5
 ::      [~.ud 5]
 ::    ==
-::    :-  %multiplication-literal-scalar-alias
+::    :-  %multiplication-literal-scalar-name
 ::    :*  %tar
 ::      literal-value-1
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      [~.ud 3]
 ::    ==
 ::    :-  %multiplication-literal-embedded-scalar
@@ -336,9 +336,9 @@
 ::      literal-value-1
 ::      [~.ud 5]
 ::    ==
-::    :-  %division-scalar-alias-literal
+::    :-  %division-scalar-name-literal
 ::    :*  %fas
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      literal-value-1
 ::      [~.ud 3]
 ::    ==
@@ -360,10 +360,10 @@
 ::      arithmetic-u-col-5
 ::      [~.ud 0]
 ::    ==
-::    :-  %division-literal-scalar-alias
+::    :-  %division-literal-scalar-name
 ::    :*  %fas
 ::      literal-value-1
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      [~.ud 0]
 ::    ==
 ::    :-  %division-literal-embedded-scalar
@@ -391,9 +391,9 @@
 ::      literal-value-2
 ::      [~.ud 25]
 ::    ==
-::    :-  %exponentiation-scalar-alias-literal
+::    :-  %exponentiation-scalar-name-literal
 ::    :*  %ket
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      literal-value-2
 ::      [~.ud 9]
 ::    ==
@@ -415,10 +415,10 @@
 ::      arithmetic-u-col-5
 ::      [~.ud 32]
 ::    ==
-::    :-  %exponentiation-literal-scalar-alias
+::    :-  %exponentiation-literal-scalar-name
 ::    :*  %ket
 ::      literal-value-2
-::      [%scalar-alias %scalar1]
+::      [%scalar-name %scalar1]
 ::      [~.ud 8]
 ::    ==
 ::    :-  %exponentiation-literal-embedded-scalar

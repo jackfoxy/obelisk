@@ -2855,11 +2855,11 @@
   :: - if the cooked-param is an unknown alias and there is a
   ::   scalar by the same name, then resolve the scalar
   :: - if the cooked-param is an unknown alias and there isn't
-  ::   scalar by the same name, then cast to cte-alias
+  ::   scalar by the same name, then cast to cte-name
   ?:  ?=(unknown-alias cooked-param)
     =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
     ?~  maybe-scalar
-      (cte-alias:ast %cte-alias name.cooked-param)
+      (cte-name:ast %cte-name name.cooked-param)
     ::(need maybe-scalar)
     !!
   cooked-param
@@ -2953,17 +2953,17 @@
     ?~  scalars
       ~
     =/  parsed-scalar  -.scalars
-    =/  scalar-alias  (cook-scalar-alias -.parsed-scalar)
+    =/  scalar-name  (cook-scalar-name -.parsed-scalar)
     =/  fn-name  (@tas +<.parsed-scalar)
     =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
       (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
-    ?:  (~(has by scalar-map) scalar-alias)
-      ~|("there is already a scalar named {<scalar-alias>}" !!)
-    =/  scalar  [%scalar scalar=scalar-function alias=scalar-alias]
+    ?:  (~(has by scalar-map) scalar-name)
+      ~|("there is already a scalar named {<scalar-name>}" !!)
+    =/  scalar  [%scalar scalar=scalar-function alias=scalar-name]
       :-  scalar
       %=  $
-        scalar-map  (~(put by scalar-map) scalar-alias scalar-function)
+        scalar-map  (~(put by scalar-map) scalar-name scalar-function)
         scalars     +.scalars
       ==
   finalized-scalars
@@ -3943,7 +3943,7 @@
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     %+  stag
       %alias
-    ;~(pose ;~(pfix whitespace parse-scalar-alias) parse-scalar-alias)
+    ;~(pose ;~(pfix whitespace parse-scalar-name) parse-scalar-name)
     %+  stag
       %literal
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
@@ -5039,7 +5039,7 @@
   |=  parsed=*
   ^-  scalar-param
   ?:  ?=([%alias *] parsed)
-    [%unknown-alias (cook-scalar-alias +.parsed)]
+    [%unknown-alias (cook-scalar-name +.parsed)]
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
   ::  remaining cases are qualified-column or unqualified-column
@@ -5370,7 +5370,7 @@
     parse-arithmetic
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
-++  cook-scalar-alias
+++  cook-scalar-name
   |=  parsed=*
   ?:  ?=([%lower-case @] parsed)
     `@t`+.parsed
@@ -5378,16 +5378,16 @@
     =/  sanitized  (crip (cass (trip +.parsed)))
     ?:  ((sane %t) sanitized)
       `@t`sanitized
-    ~|("cook-scalar-alias: can't cast {<sanitized>} to @t" !!)
+    ~|("cook-scalar-name: can't cast {<sanitized>} to @t" !!)
   !!
-++  parse-scalar-alias  ~+
+++  parse-scalar-name  ~+
   ;~  pose
     (stag %lower-case ;~(pfix whitespace sym))
     (stag %mixed-case ;~(pfix whitespace mixed-case-symbol))
   ==
 ++  parse-scalar
   ;~  plug
-      parse-scalar-alias        :: scalar alias
+      parse-scalar-name        :: scalar alias
       scalar-body               :: scalar function invocation
   ==
 ++  parse-scalars

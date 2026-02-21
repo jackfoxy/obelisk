@@ -156,9 +156,9 @@
 ::
 ::
 :: scala-alias tests
-::++  test-scalar-alias
+::++  test-scalar-name
 ::  =/  lookups  [qualifier-lookup qual-type-lookup]
-::  =/  expr=scalar-alias:ast  [%scalar-alias alias=%scalar1]
+::  =/  expr=scalar-name:ast  [%scalar-name alias=%scalar1]
 ::  =/  scalar-to-apply
 ::      (prepare-scalar expr table-named-ctes lookups table-scalars)
 ::  %+  expect-eq
@@ -166,9 +166,9 @@
 ::    !>  (apply-scalar table-row scalar-to-apply)
 ::::
 :::: test what happens if no column matches
-::++  test-fail-scalar-alias-01
+::++  test-fail-scalar-name-01
 ::  =/  lookups  [qualifier-lookup qual-type-lookup]
-::  =/  expr=scalar-alias:ast  [%scalar-alias alias=%scalarfoo]
+::  =/  expr=scalar-name:ast  [%scalar-name alias=%scalarfoo]
 ::  =/  scalar-to-apply
 ::      (prepare-scalar expr table-named-ctes lookups table-scalars)
 ::  %+  expect-fail-message

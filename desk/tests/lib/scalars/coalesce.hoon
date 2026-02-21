@@ -191,10 +191,10 @@
 ::    'coalesce: couldn\'t resolve any column'
 ::    |.  (apply-scalar table-row scalar-to-apply)
 ::::
-:::: test with scalar-alias
+:::: test with scalar-name
 ::++  test-fail-coalesce-02
 ::  ::
-::  =/  datums  ~[[%scalar-alias %scalar1]]
+::  =/  datums  ~[[%scalar-name %scalar1]]
 ::  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
 ::  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums]
 ::  =/  scalar-to-apply

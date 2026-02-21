@@ -134,8 +134,8 @@
     unqualified-column
     dime
     value-literals
-    cte-alias
-    scalar-alias
+    cte-name
+    scalar-name
     aggregate
     ==
 +$  predicate     (tree predicate-component)
@@ -288,7 +288,7 @@
     case
     coalesce
     arithmetic
-    scalar-alias
+    scalar-name
     :: builtin functions
     getutcdate
     day
@@ -310,15 +310,15 @@
     concat
     ==
 +$  literal-value  $:(%literal-value =dime)
-+$  cte-alias      $:(%cte-alias alias=@t)
-+$  scalar-alias   $:(%scalar-alias alias=@t)
-++  datum-or-scalar  
++$  cte-name      $:(%cte-name name=@tas)
++$  scalar-name   $:(%scalar-name name=@tas)
++$  datum-or-scalar  
   $%
     qualified-column
     unqualified-column
     literal-value
-    cte-alias
-    scalar-alias
+    cte-name
+    scalar-name
     ==
 ::
 ::  query
@@ -351,7 +351,7 @@
     ==
 ::
 ::  $relation:
-+$  relation  $%(qualified-table cte-alias query-row)
++$  relation  $%(qualified-table cte-name query-row)
 ::
 +$  query-row     ::  parses, not used for now, may never be used
   $:  %query-row

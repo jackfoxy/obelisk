@@ -793,9 +793,9 @@
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-dime-when-scalar-alias
+::    :-  %simple-case-target-dime-when-scalar-name
 ::    :*  (some [%literal-value [~.ud 3]])
-::      [%case-when-then [%scalar-alias %scalar1] q-col-1]
+::      [%case-when-then [%scalar-name %scalar1] q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
@@ -824,9 +824,9 @@
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-qualified-when-scalar-alias
+::    :-  %simple-case-target-qualified-when-scalar-name
 ::    :*  (some q-col-3)
-::      [%case-when-then [%scalar-alias %scalar1] q-col-1]
+::      [%case-when-then [%scalar-name %scalar1] q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
@@ -855,9 +855,9 @@
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-unqualified-when-scalar-alias
+::    :-  %simple-case-target-unqualified-when-scalar-name
 ::    :*  (some u-col-4)
-::      [%case-when-then [%scalar-alias %scalar2] u-col-4]
+::      [%case-when-then [%scalar-name %scalar2] u-col-4]
 ::      ~
 ::      [~.ud 4]
 ::    ==
@@ -868,32 +868,32 @@
 ::      [~.ud 4]
 ::    ==
 ::    ::  target = scalar alias
-::    :-  %simple-case-target-scalar-alias-when-dime
-::    :*  (some [%scalar-alias %scalar1])
+::    :-  %simple-case-target-scalar-name-when-dime
+::    :*  (some [%scalar-name %scalar1])
 ::      [%case-when-then [%literal-value [~.ud 3]] q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-scalar-alias-when-qualified-column
-::    :*  (some [%scalar-alias %scalar1])
+::    :-  %simple-case-target-scalar-name-when-qualified-column
+::    :*  (some [%scalar-name %scalar1])
 ::      [%case-when-then q-col-3 q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-scalar-alias-when-unqualified-column
-::    :*  (some [%scalar-alias %scalar2])
+::    :-  %simple-case-target-scalar-name-when-unqualified-column
+::    :*  (some [%scalar-name %scalar2])
 ::      [%case-when-then u-col-4 q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-scalar-alias-when-scalar-alias
-::    :*  (some [%scalar-alias %scalar1])
-::      [%case-when-then [%scalar-alias %scalar1] q-col-1]
+::    :-  %simple-case-target-scalar-name-when-scalar-name
+::    :*  (some [%scalar-name %scalar1])
+::      [%case-when-then [%scalar-name %scalar1] q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-scalar-alias-when-embedded-scalar
-::    :*  (some [%scalar-alias %scalar1])
+::    :-  %simple-case-target-scalar-name-when-embedded-scalar
+::    :*  (some [%scalar-name %scalar1])
 ::      [%case-when-then (~(got by embedded-scalars) %scalar1) q-col-1]
 ::      ~
 ::      literal-1
@@ -917,9 +917,9 @@
 ::      ~
 ::      literal-1
 ::    ==
-::    :-  %simple-case-target-embedded-scalar-when-scalar-alias
+::    :-  %simple-case-target-embedded-scalar-when-scalar-name
 ::    :*  (some (~(got by embedded-scalars) %scalar1))
-::      [%case-when-then [%scalar-alias %scalar1] q-col-1]
+::      [%case-when-then [%scalar-name %scalar1] q-col-1]
 ::      ~
 ::      literal-1
 ::    ==
@@ -959,8 +959,8 @@
 ::      ~
 ::      [~.ud 4]
 ::    ==
-::    :-  %scalar-alias
-::    :*  (some [%scalar-alias %scalar1])
+::    :-  %scalar-name
+::    :*  (some [%scalar-name %scalar1])
 ::      [%case-when-then [%literal-value [~.ud 3]] q-col-1]
 ::      ~
 ::      [~.ud 1]
@@ -1009,9 +1009,9 @@
 ::      ~
 ::      [~.t 'foo']
 ::    ==
-::    :-  %searched-scalar-alias
+::    :-  %searched-scalar-name
 ::    :*  ~
-::      [%case-when-then true-predicate [%scalar-alias %scalar1]]
+::      [%case-when-then true-predicate [%scalar-name %scalar1]]
 ::      ~
 ::      [~.ud 3]
 ::    ==
@@ -1039,9 +1039,9 @@
 ::      ~
 ::      [~.t 'foo']
 ::    ==
-::    :-  %simple-scalar-alias
+::    :-  %simple-scalar-name
 ::    :*  (some q-col-1)
-::      [%case-when-then literal-value-1 [%scalar-alias %scalar1]]
+::      [%case-when-then literal-value-1 [%scalar-name %scalar1]]
 ::      ~
 ::      [~.ud 3]
 ::    ==
@@ -1085,10 +1085,10 @@
 ::      (some [%literal-value [~.t 'bar']])
 ::      [~.t 'bar']
 ::    ==
-::    :-  %searched-scalar-alias
+::    :-  %searched-scalar-name
 ::    :*  ~
 ::      [%case-when-then false-predicate q-col-2]
-::      (some [%scalar-alias %scalar1])
+::      (some [%scalar-name %scalar1])
 ::      [~.ud 3]
 ::    ==
 ::    :-  %searched-embedded-scalar
@@ -1115,10 +1115,10 @@
 ::      (some [%literal-value [~.t 'bar']])
 ::      [~.t 'bar']
 ::    ==
-::    :-  %simple-scalar-alias
+::    :-  %simple-scalar-name
 ::    :*  (some q-col-1)
 ::      [%case-when-then literal-value-2 q-col-2]
-::      (some [%scalar-alias %scalar1])
+::      (some [%scalar-name %scalar1])
 ::      [~.ud 3]
 ::    ==
 ::    :-  %simple-embedded-scalar

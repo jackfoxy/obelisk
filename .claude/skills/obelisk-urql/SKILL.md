@@ -273,7 +273,7 @@ WITH ( <selection> ) [ AS ] <alias>
 - CTEs produce a relation for further use by other CTEs, JOINs, SELECT, or predicates
 - always referenced by alias, never inlined
 - multiple CTEs can be chained
-- predicates can reference CTEs (e.g., WHERE col IN cte-alias)
+- predicates can reference CTEs (e.g., WHERE col IN cte-name)
 
 ## scalar functions (under development, not yet available in engine)
 

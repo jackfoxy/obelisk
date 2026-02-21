@@ -336,7 +336,7 @@ SELECT CONCAT('hello', ' ', 'world')
 <expression> ::=
   <column-reference>
   | <literal-value>
-  | <scalar-alias>
+  | <scalar-name>
   | <builtin-function>
   | ( <expression> )
 ```

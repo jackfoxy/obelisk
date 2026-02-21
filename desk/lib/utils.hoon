@@ -177,8 +177,8 @@
   ^-  relation:ast
   ?:  =(-.relation %qualified-table)
     (normalize-qt-alias ;;(qualified-table:ast relation))
-  ?:  =(-.relation %cte-alias)
-    [%cte-alias (crip (cass (trip alias:;;(cte-alias:ast relation))))]
+  ?:  =(-.relation %cte-name)
+    [%cte-name (crip (cass (trip name:;;(cte-name:ast relation))))]
   ~|("normalize-relation not implemented" !!)
 ::
 ++  normalize-from

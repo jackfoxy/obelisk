@@ -126,114 +126,114 @@
 ::  generic scalar-agnostic tests
 ::
 ::  test defining scalars in lowercase, uppercase, mixed-case
-::++  test-scalars-01
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS foo-co COALESCE(foo3,~zod,1,foo3)".
-::    "        bar-co coalesce(foo3,~zod,1,foo3)".
-::    "        baz-co CoaLeSce(foo3,~zod,1,foo3)".
-::    "        baz-if IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
-::    "        bar-if if 1 = 1 then foo3 else foo2 endif ".
-::    "        foo-if If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
-::    "        baz-ca CASE WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
-::    "        bar-ca case when 1 = 1 then foo3 else foo2 end ".
-::    "        foo-ca CasE WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce
-::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-::  =/  if
-::    :*  %if-then-else
-::      if=simple-true-pred
-::      then=[unqualified-col-1]
-::      else=[unqualified-col-2]
-::    ==
-::  =/  case
-::    :*
-::      %case
-::      target=~
-::      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
-::      else=(some unqualified-col-2)
-::    ==
-::  =/  scalars
-::    :~
-::      [%scalar coalesce 'foo-co']
-::      [%scalar coalesce 'bar-co']
-::      [%scalar coalesce 'baz-co']
-::      [%scalar if 'baz-if']
-::      [%scalar if 'bar-if']
-::      [%scalar if 'foo-if']
-::      [%scalar case 'baz-ca']
-::      [%scalar case 'bar-ca']
-::      [%scalar case 'foo-ca']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-::::  test defining scalars with aliases in one case and referencing in another
-::++  test-scalars-02
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar2 COALESCE(BAR1,~zod,1,foo3) ".
-::    "        BAR3 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar4 COALESCE(bar3,~zod,1,foo3) ".
-::    "        bar5 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar6 COALESCE(BAr5,~zod,1,foo3) ".
-::    "        Bar7 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar8 COALESCE(bar7,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  coalesce-1
-::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-::  =/  coalesce-2
-::    ~[%coalesce coalesce-1 literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'bar1']
-::      [%scalar coalesce-2 'bar2']
-::      [%scalar coalesce-1 'bar3']
-::      [%scalar coalesce-2 'bar4']
-::      [%scalar coalesce-1 'bar5']
-::      [%scalar coalesce-2 'bar6']
-::      [%scalar coalesce-1 'bar7']
-::      [%scalar coalesce-2 'bar8']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-::::  test-scalars-03 test cte-aliases (just that they are parsed correctly)
-::++  test-scalars-03
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar2 COALESCE(Foo1,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  =/  cte-alias
-::    [%cte-alias alias='foo1']
-::  =/  coalesce-1
-::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
-::  =/  coalesce-2
-::    ~[%coalesce cte-alias literal-zod literal-1 unqualified-col-1]
-::  =/  scalars
-::    :~
-::      [%scalar coalesce-1 'bar1']
-::      [%scalar coalesce-2 'bar2']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
-::::
-:::: one of these makes it type crash
-::::  test mixing arithmetic with builtin functions
-::::     not sure if we want this to work
-::::    "        sc8 BEGIN POWER(CEILING(1.5), ABS(-2)) END ".
+::::++  test-scalars-01
+::::  =/  query-string
+::::    "FROM foo ".
+::::    "SCALARS foo-co COALESCE(foo3,~zod,1,foo3)".
+::::    "        bar-co coalesce(foo3,~zod,1,foo3)".
+::::    "        baz-co CoaLeSce(foo3,~zod,1,foo3)".
+::::    "        baz-if IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+::::    "        bar-if if 1 = 1 then foo3 else foo2 endif ".
+::::    "        foo-if If 1 = 1 TheN foo3 ElsE foo2 EndiF ".
+::::    "        baz-ca CASE WHEN 1 = 1 THEN foo3 ELSE foo2 END ".
+::::    "        bar-ca case when 1 = 1 then foo3 else foo2 end ".
+::::    "        foo-ca CasE WheN 1 = 1 TheN foo3 ElsE foo2 EnD ".
+::::    "SELECT foo2,foo3"
+::::  ::
+::::  =/  coalesce
+::::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+::::  =/  if
+::::    :*  %if-then-else
+::::      if=simple-true-pred
+::::      then=[unqualified-col-1]
+::::      else=[unqualified-col-2]
+::::    ==
+::::  =/  case
+::::    :*
+::::      %case
+::::      target=~
+::::      cases=~[[%case-when-then simple-true-pred unqualified-col-1]]
+::::      else=(some unqualified-col-2)
+::::    ==
+::::  =/  scalars
+::::    :~
+::::      [%scalar coalesce 'foo-co']
+::::      [%scalar coalesce 'bar-co']
+::::      [%scalar coalesce 'baz-co']
+::::      [%scalar if 'baz-if']
+::::      [%scalar if 'bar-if']
+::::      [%scalar if 'foo-if']
+::::      [%scalar case 'baz-ca']
+::::      [%scalar case 'bar-ca']
+::::      [%scalar case 'foo-ca']
+::::    ==
+::::  =/  expected  (mk-selection scalars ~)
+::::  %+  expect-eq
+::::    !>  expected
+::::    !>  (parse:parse(default-database default-db) query-string)
+::::::
+::::::  test defining scalars with aliases in one case and referencing in another
+::::++  test-scalars-02
+::::  =/  query-string
+::::    "FROM foo ".
+::::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar2 COALESCE(BAR1,~zod,1,foo3) ".
+::::    "        BAR3 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar4 COALESCE(bar3,~zod,1,foo3) ".
+::::    "        bar5 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar6 COALESCE(BAr5,~zod,1,foo3) ".
+::::    "        Bar7 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar8 COALESCE(bar7,~zod,1,foo3) ".
+::::    "SELECT foo2,foo3"
+::::  ::
+::::  =/  coalesce-1
+::::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+::::  =/  coalesce-2
+::::    ~[%coalesce coalesce-1 literal-zod literal-1 unqualified-col-1]
+::::  =/  scalars
+::::    :~
+::::      [%scalar coalesce-1 'bar1']
+::::      [%scalar coalesce-2 'bar2']
+::::      [%scalar coalesce-1 'bar3']
+::::      [%scalar coalesce-2 'bar4']
+::::      [%scalar coalesce-1 'bar5']
+::::      [%scalar coalesce-2 'bar6']
+::::      [%scalar coalesce-1 'bar7']
+::::      [%scalar coalesce-2 'bar8']
+::::    ==
+::::  =/  expected  (mk-selection scalars ~)
+::::  %+  expect-eq
+::::    !>  expected
+::::    !>  (parse:parse(default-database default-db) query-string)
+::::::
+::::::  test-scalars-03 test cte-namees (just that they are parsed correctly)
+::::++  test-scalars-03
+::::  =/  query-string
+::::    "FROM foo ".
+::::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar2 COALESCE(Foo1,~zod,1,foo3) ".
+::::    "SELECT foo2,foo3"
+::::  ::
+::::  =/  cte-name
+::::    [%cte-name alias='foo1']
+::::  =/  coalesce-1
+::::    ~[%coalesce unqualified-col-1 literal-zod literal-1 unqualified-col-1]
+::::  =/  coalesce-2
+::::    ~[%coalesce cte-name literal-zod literal-1 unqualified-col-1]
+::::  =/  scalars
+::::    :~
+::::      [%scalar coalesce-1 'bar1']
+::::      [%scalar coalesce-2 'bar2']
+::::    ==
+::::  =/  expected  (mk-selection scalars ~)
+::::  %+  expect-eq
+::::    !>  expected
+::::    !>  (parse:parse(default-database default-db) query-string)
+::::::
+:::::: one of these makes it type crash
+::::::  test mixing arithmetic with builtin functions
+::::::     not sure if we want this to work
+::::::    "        sc8 BEGIN POWER(CEILING(1.5), ABS(-2)) END ".
 ::::++  test-scalars-4
 ::::  =/  query-string
 ::::    "FROM foo ".
@@ -252,129 +252,129 @@
 ::::  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
 ::::  =/  literal-28             [%literal-value dime=[p=~.rs q=.2.8]]
 ::::  =/  literal-12             [%literal-value dime=[p=~.rs q=.1.2]]
-::  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
-::  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-::  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-::  =/  literal-10             [%literal-value dime=[p=~.ud q=10]]
-::  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
-::  =/  literal-37             [%literal-value dime=[p=~.rs q=.3.7]]
-::  =/  literal-0              [%literal-value dime=[p=~.ud q=0]]
-::  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
-::  =/  literal-date1          [%literal-value dime=[p=~.da q=~2023.1.15]]
-::  =/  literal-neg3           [%literal-value dime=[p=~.sd q=-3]]
-::  =/  literal-29             [%literal-value dime=[p=~.rs q=.2.9]]
-::  =/  literal-16             [%literal-value dime=[p=~.ud q=16]]
-::  =/  literal-15             [%literal-value dime=[p=~.rs q=.1.5]]
-::  =/  literal-neg2           [%literal-value dime=[p=~.sd q=-2]]
-::  =/  literal-date2          [%literal-value dime=[p=~.da q=~2023.6.20]]
-::  =/  literal-100            [%literal-value dime=[p=~.ud q=100]]
-::  =/  literal-9              [%literal-value dime=[p=~.ud q=9]]
-::  ::
-::  =/  sc1
-::    [%arithmetic operator=%lus left=[%abs literal-neg5] right=literal-1]
-::  =/  sc2
-::    :*
-::      %arithmetic
-::      operator=%hep
-::      left=[%floor literal-28]
-::      right=[%ceiling literal-12]
-::    ==
-::  =/  sc3
-::    :*
-::      %arithmetic
-::      operator=%tar
-::      left=[%sqrt literal-4]
-::      right=[%power literal-2 literal-3]
-::    ==
-::  =/  sc4
-::    :*
-::      %arithmetic
-::      operator=%fas
-::      left=[%log literal-10 ~]
-::      right=[%abs literal-neg5]
-::    ==
-::  =/  sc5
-::    :*
-::      %arithmetic
-::      operator=%ket
-::      left=[%round literal-37 literal-0 ~]
-::      right=literal-2
-::    ==
-::  =/  sc6
-::    :*
-::      %arithmetic
-::      operator=%lus
-::      left=[%len literal-hello]
-::      right=[%day literal-date1]
-::    ==
-::  =/  sc7
-::    :*
-::      %arithmetic
-::      operator=%tar
-::      left=[%arithmetic operator=%lus left=[%abs literal-neg3] right=[%floor literal-29]]
-::      right=[%sqrt literal-16]
-::    ==
-::  =/  sc8
-::    [%power [%ceiling literal-15] [%abs literal-neg2]]
-::  =/  sc9
-::    :*
-::      %arithmetic
-::      operator=%hep
-::      left=[%year literal-date2]
-::      right=[%month literal-date2]
-::    ==
-::  =/  sc10
-::    :*
-::      %arithmetic
-::      operator=%fas
-::      left=[%arithmetic operator=%lus left=[%log literal-100 ~] right=[%sign literal-neg5]]
-::      right=[%arithmetic operator=%hep left=[%sqrt literal-9] right=literal-1]
-::    ==
-::  =/  scalars
-::    :~
-::      [%scalar sc1 'sc1']
-::      [%scalar sc2 'sc2']
-::      [%scalar sc3 'sc3']
-::      [%scalar sc4 'sc4']
-::      [%scalar sc5 'sc5']
-::      [%scalar sc6 'sc6']
-::      [%scalar sc7 'sc7']
-::::      [%scalar `scalar-function:ast`sc8 'sc8']
-::      [%scalar sc9 'sc9']
-::      [%scalar sc10 'sc10']
-::    ==
-::  =/  expected  (mk-selection scalars ~)
-::  %+  expect-eq
-::    !>  expected
-::    !>  (parse:parse(default-database default-db) query-string)
+::::  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
+::::  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
+::::  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
+::::  =/  literal-10             [%literal-value dime=[p=~.ud q=10]]
+::::  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+::::  =/  literal-37             [%literal-value dime=[p=~.rs q=.3.7]]
+::::  =/  literal-0              [%literal-value dime=[p=~.ud q=0]]
+::::  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
+::::  =/  literal-date1          [%literal-value dime=[p=~.da q=~2023.1.15]]
+::::  =/  literal-neg3           [%literal-value dime=[p=~.sd q=-3]]
+::::  =/  literal-29             [%literal-value dime=[p=~.rs q=.2.9]]
+::::  =/  literal-16             [%literal-value dime=[p=~.ud q=16]]
+::::  =/  literal-15             [%literal-value dime=[p=~.rs q=.1.5]]
+::::  =/  literal-neg2           [%literal-value dime=[p=~.sd q=-2]]
+::::  =/  literal-date2          [%literal-value dime=[p=~.da q=~2023.6.20]]
+::::  =/  literal-100            [%literal-value dime=[p=~.ud q=100]]
+::::  =/  literal-9              [%literal-value dime=[p=~.ud q=9]]
+::::  ::
+::::  =/  sc1
+::::    [%arithmetic operator=%lus left=[%abs literal-neg5] right=literal-1]
+::::  =/  sc2
+::::    :*
+::::      %arithmetic
+::::      operator=%hep
+::::      left=[%floor literal-28]
+::::      right=[%ceiling literal-12]
+::::    ==
+::::  =/  sc3
+::::    :*
+::::      %arithmetic
+::::      operator=%tar
+::::      left=[%sqrt literal-4]
+::::      right=[%power literal-2 literal-3]
+::::    ==
+::::  =/  sc4
+::::    :*
+::::      %arithmetic
+::::      operator=%fas
+::::      left=[%log literal-10 ~]
+::::      right=[%abs literal-neg5]
+::::    ==
+::::  =/  sc5
+::::    :*
+::::      %arithmetic
+::::      operator=%ket
+::::      left=[%round literal-37 literal-0 ~]
+::::      right=literal-2
+::::    ==
+::::  =/  sc6
+::::    :*
+::::      %arithmetic
+::::      operator=%lus
+::::      left=[%len literal-hello]
+::::      right=[%day literal-date1]
+::::    ==
+::::  =/  sc7
+::::    :*
+::::      %arithmetic
+::::      operator=%tar
+::::      left=[%arithmetic operator=%lus left=[%abs literal-neg3] right=[%floor literal-29]]
+::::      right=[%sqrt literal-16]
+::::    ==
+::::  =/  sc8
+::::    [%power [%ceiling literal-15] [%abs literal-neg2]]
+::::  =/  sc9
+::::    :*
+::::      %arithmetic
+::::      operator=%hep
+::::      left=[%year literal-date2]
+::::      right=[%month literal-date2]
+::::    ==
+::::  =/  sc10
+::::    :*
+::::      %arithmetic
+::::      operator=%fas
+::::      left=[%arithmetic operator=%lus left=[%log literal-100 ~] right=[%sign literal-neg5]]
+::::      right=[%arithmetic operator=%hep left=[%sqrt literal-9] right=literal-1]
+::::    ==
+::::  =/  scalars
+::::    :~
+::::      [%scalar sc1 'sc1']
+::::      [%scalar sc2 'sc2']
+::::      [%scalar sc3 'sc3']
+::::      [%scalar sc4 'sc4']
+::::      [%scalar sc5 'sc5']
+::::      [%scalar sc6 'sc6']
+::::      [%scalar sc7 'sc7']
+::::::      [%scalar `scalar-function:ast`sc8 'sc8']
+::::      [%scalar sc9 'sc9']
+::::      [%scalar sc10 'sc10']
+::::    ==
+::::  =/  expected  (mk-selection scalars ~)
+::::  %+  expect-eq
+::::    !>  expected
+::::    !>  (parse:parse(default-database default-db) query-string)
+::::::
+::::::  test-fail-scalars-01 tests that parsing fails when there are two scalars
+::::::  with the same alias
+::::++  test-fail-scalars-01
+::::  =/  query-string
+::::    "FROM foo ".
+::::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar1 COALESCE(Foo1,~zod,1,foo3) ".
+::::    "SELECT foo2,foo3"
+::::  ::
+::::  %+  expect-fail-message
+::::    'there is already a scalar named \'bar1\''
+::::    |.  (parse:parse(default-database default-db) query-string)
+::::::  test-fail-scalars-02 tests that parsing fails when scalars are defined
+::::::  without a select statement after
+::::++  test-fail-scalars-02
+::::  =/  query-string
+::::    "FROM foo ".
+::::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
+::::    "        bar1 COALESCE(Foo1,~zod,1,foo3) "
+::::  ::
+::::  %+  expect-fail-message
+::::    'PARSER: '
+::::    |.  (parse:parse(default-database default-db) query-string)
+::::::
 ::::
-::::  test-fail-scalars-01 tests that parsing fails when there are two scalars
-::::  with the same alias
-::++  test-fail-scalars-01
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar1 COALESCE(Foo1,~zod,1,foo3) ".
-::    "SELECT foo2,foo3"
-::  ::
-::  %+  expect-fail-message
-::    'there is already a scalar named \'bar1\''
-::    |.  (parse:parse(default-database default-db) query-string)
-::::  test-fail-scalars-02 tests that parsing fails when scalars are defined
-::::  without a select statement after
-::++  test-fail-scalars-02
-::  =/  query-string
-::    "FROM foo ".
-::    "SCALARS bar1 COALESCE(foo3,~zod,1,foo3) ".
-::    "        bar1 COALESCE(Foo1,~zod,1,foo3) "
-::  ::
-::  %+  expect-fail-message
-::    'PARSER: '
-::    |.  (parse:parse(default-database default-db) query-string)
-::::
-::
-::::  builtin scalar functions
-::::  spaces after parameters, also test for optional parameters
+::::::  builtin scalar functions
+::::::  spaces after parameters, also test for optional parameters
 ::::++  test-builtins-01
 ::::::  randomized spacing
 ::::  =/  query-string
