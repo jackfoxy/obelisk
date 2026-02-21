@@ -842,6 +842,16 @@
 ::              %db1
 ::              "CREATE NAMESPACE ns1"
 ::
+::  fail on attempt to create namespace in sys database
+++  test-fail-create-namespace-08
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      [~2000.1.1 %sys "CREATE NAMESPACE sys.ns1"]
+      ::
+      'cannot create namespace in sys database'
+      ==
+::
 ::  CREATE TABLE
 ::
 ::  Create table, not default DB
@@ -1259,6 +1269,18 @@
           "CREATE TABLE db1..my-table-2 (col1 @t) PRIMARY KEY (col1) "
       ::
       'CREATE TABLE: state change after query in script'
+      ==
+::
+::  fail on attempt to create table in sys database
+++  test-fail-create-table-15
+  =|  run=@ud
+  %-  failon-0
+  :*  run
+      :+  ~2000.1.1
+          %sys
+          "CREATE TABLE sys.sys.my-table (col1 @t) PRIMARY KEY (col1)"
+      ::
+      'cannot create table in %sys database'
       ==
 ::
 ::  Drop table

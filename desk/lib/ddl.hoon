@@ -42,6 +42,8 @@
           next-data=(map @tas @da)
       ==
   ^-  [cmd-result (map @tas @da) server]
+  ?:  =(database-name.create-namespace %sys)
+        ~|("cannot create namespace in sys database" !!)
   =/  db  ~|  "CREATE NAMESPACE: database {<database-name.create-namespace>} ".
               "does not exist"
                  (~(got by state) database-name.create-namespace)
@@ -82,7 +84,7 @@
               [%schema-time sys-time]
               ==
       (~(put by next-schemas) database-name.create-namespace sys-time)
-      (~(put by state) name.db db)
+      (~(put by state) name.db db) 
 ::
 ++  create-tbl
   |=  $:  =create-table:ast
@@ -90,6 +92,8 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result (map @tas @da) (map @tas @da) server]
+  ?:  =(database.table.create-table %sys)
+        ~|("cannot create table in %sys database" !!)
   =/  db  ~|  "CREATE TABLE: database {<database.table.create-table>} ".
               "does not exist"
               (~(got by state) database.table.create-table)
