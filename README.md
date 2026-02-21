@@ -36,8 +36,10 @@ To interact with Obelisk from %hawk:
 
 - Ensure you have %hawk installed
   `|install ~dister-migrev-dolseg %hawk`
-- Create a file in your hawk namespace
-- Get the latest Obelisk UI template from https://hawk.computer/~~/templates/. Paste the contents into into the hawk file. (templates/hawk.txt in this repo is not necessarily current)
+- Create an obelisk file sibling to the manual in your hawk namespace.
+- Get the latest Obelisk UI template from https://hawk.computer/~~/templates/ or templates/hawk.txt in this repo. Paste the contents into the obelisk hawk file.
+
+Now clicking the Obelisk landscape tile will take you to the Obelisk UI, with UX similar to SQL Studio.
 
 ### Alpha release
 
