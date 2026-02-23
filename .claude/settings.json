@@ -2,6 +2,9 @@
   "permissions": {
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"
+    ],
+    "allow": [
+      "Read(//mnt/mars/gitrepos/obelisk/**)"
     ]
   }
 }

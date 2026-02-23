@@ -2824,6 +2824,10 @@
   ==
 +$  alias-maps
   [table=(map @t qualified-table:ast) scalar=(map @t scalar-function:ast)]
+++  fold-key
+  |=  a=@t
+  ^-  @t
+  (crip (cass (trip a)))
 ++  finalize-scalar-param
   :: - if the cooked-param is a unqualified, but there is a
   ::   scalar by the same name, then resolve the scalar
@@ -2837,7 +2841,7 @@
   ?.  ?=(unqualified-column:ast cooked-param)  !!
   =/  maybe-table
         ?~  alias.cooked-param  ~
-        (~(get by table.aliases) (crip (cass (trip (need alias.cooked-param)))))
+        (~(get by table.aliases) (fold-key (need alias.cooked-param)))
   =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
   ?~  maybe-table
     ?~  maybe-scalar  
@@ -2941,11 +2945,11 @@
     =/  scalar-name  ?:  ?=(@tas -.parsed-scalar)  -.parsed-scalar
                      ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
     =/  fn-name  (@tas +<.parsed-scalar)
-    =/  raw-body  +>.parsed-scalar 
-    =/  scalar-function
-      (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
+    =/  raw-body  +>.parsed-scalar
     ?:  (~(has by scalar-map) scalar-name)
       ~|("there is already a scalar named {<scalar-name>}" !!)
+    =/  scalar-function
+      (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
     =/  scalar  [%scalar name=scalar-name scalar=scalar-function]
       :-  scalar
       %=  $
@@ -2977,7 +2981,7 @@
       ::  alias.column: look up alias in alias-map
       %:  qualified-column:ast  %qualified-column
                                 %-  ~(got by alias-map)
-                                    (crip (cass (trip (need alias.a))))
+                                    (fold-key (need alias.a))
                                 name.a
                                 ~
                                 ==
@@ -2988,50 +2992,6 @@
     aggregate:ast
       a
     ==
-::
-::
-++  mk-all-object
-  |=  [=qualified-column:ast alias-map=(map @t qualified-table:ast)]
-  ~+
-  ^-  selected-all-table:ast
-  =/  object  %-  ~(get by alias-map)
-                  (crip (cass (trip name.qualifier.qualified-column)))
-  ?~  object
-    %+  selected-all-table:ast  %all-object
-                                 %:  qualified-table:ast
-                                      %qualified-table
-                                      ~ 
-                                      default-database
-                                      %dbo
-                                      name.qualifier.qualified-column
-                                      ==
-  (selected-all-table:ast %all-object (need object))
-::
-++  mk-qualified-table
-  |=  [a=qualified-column:ast alias-map=(map @t qualified-table:ast)]
-  ~+
-  ^-  qualified-column:ast
-  =/  object  %-  ~(get by alias-map)
-                  (crip (cass (trip name.qualifier.a)))
-  ?~  object
-    %:  qualified-column:ast  %qualified-column
-                              %:  qualified-table:ast
-                                  %qualified-table
-                                  ship.qualifier.a
-                                  default-database
-                                  %dbo
-                                  name.qualifier.a
-                                  alias.qualifier.a
-                                  ==
-                              name.a
-                              alias.a
-                              ==
-  %:  qualified-column:ast
-      %qualified-column
-      (need object)
-      name.a
-      alias.a
-      ==
 ::
 ++  finalize-select
   |=  [s=(list selected-column:ast) alias-map=(map @t qualified-table:ast)]
@@ -3070,7 +3030,7 @@
     ~|("not implemented {<relation.f>}" !!)
   ?~  alias.relation.f
     n
-  %+  ~(put by n)  (crip (cass (trip (need alias.relation.f))))
+  %+  ~(put by n)  (fold-key (need alias.relation.f))
                    relation.f
 ::
 ++  mk-alias-map-joins
@@ -3084,7 +3044,7 @@
     ~|("not implemented {<relation.j>}" !!)
   %=  $
     m   ?~  alias.relation.j  m
-        %+  ~(put by m)  (crip (cass (trip (need alias.relation.j))))
+        %+  ~(put by m)  (fold-key (need alias.relation.j))
                          relation.j
     js  +.js
   ==
@@ -3101,7 +3061,7 @@
   =/  n  (mk-obj-name-map-joins ~ joins.f)
   ?.  ?=(qualified-table:ast relation.f)
     ~|("not implemented {<relation.f>}" !!)
-  %+  ~(put by n)  (crip (cass (trip name.relation.f)))
+  %+  ~(put by n)  (fold-key name.relation.f)
                    relation.f
 ::
 ++  mk-obj-name-map-joins
@@ -3114,7 +3074,7 @@
   ?.  ?=(qualified-table:ast relation.j)
     ~|("not implemented {<relation.j>}" !!)
   %=  $
-    m   %+  ~(put by m)  (crip (cass (trip name.relation.j)))
+    m   %+  ~(put by m)  (fold-key name.relation.j)
                          relation.j
     js  +.js
   ==
@@ -3987,15 +3947,7 @@
   ?@  -.a
     (interim-key %interim-key +.a)
   (interim-key %interim-key a)
-++  cook-foreign-key
-  |=  a=*
-  :: foreign key ns.table ... references fk-table ... on action on action
-  ?:  ?=([[@ * * [@ @] *] *] [a])
-    (foreign-key:ast %foreign-key -<.a ->-.a ->+<-.a ->+<+.a ->+>.a +.a)
-  :: foreign key table ... references fk-table ... on action on action
-  ?:  ?=([[@ [[@ @ @] %~] @ [@ %~]] *] [a])
-    (foreign-key:ast %foreign-key -<.a ->-.a ->+<-.a 'dbo' ->+.a +.a)
-  ~|("cannot parse foreign-key  {<a>}" !!)
+::
 ++  build-foreign-keys
   |=  a=*  ::a=[table=qualified-table:ast f-keys=*]
   =/  f-keys  +.a
@@ -4668,45 +4620,27 @@
 ::
 ::  helper wet gates for scalar functions
 ::
-++  cook-builtin-fn-parameter
-  |=  parsed=*
-  ^-  scalar-param
-  (cook-scalar-param parsed)
-  
-++  cook-builtin-fn-optional-parameter
-  |=  parsed=*
-  ^-  (unit scalar-param)
-  ?~  parsed
-    ~
-  (some (cook-builtin-fn-parameter parsed))
+++  finalize-param
+  |=  [raw=* aliases=alias-maps]
+  ^-  datum-or-scalar:ast
+  (finalize-scalar-param (cook-scalar-param raw) aliases)
+::
 ++  parse-no-params
   |*  [a=*]
     ;~  pfix
       whitespace 
       (ifix [pal par] (easy ~))
     ==
-++  parse-nullary-scalar-fn
-  |*  [fn-name=@tas]
-  ;~  plug
-    (stag fn-name (cold %one-param (jester fn-name)))
-    (parse-no-params ~)
-  ==
+::
 ++  parse-one-param
   |*  [first-param=rule]
     ;~  pfix
-      whitespace 
+      whitespace
       %+  ifix
         [pal par]
-        ;~  (glue com)
-          ;~(pfix whitespace ;~(sfix first-param whitespace))
-        ==
+        ;~(pfix whitespace ;~(sfix first-param whitespace))
     ==
-++  parse-unary-scalar-fn
-  |*  [fn-name=@tas first-param=rule]
-  ;~  plug
-    (stag fn-name (cold %one-param (jester fn-name)))
-    (parse-one-param first-param)
-  ==
+::
 ++  parse-two-params
   |*  [first-param=rule second-param=rule]
     ;~  pfix
@@ -4718,12 +4652,7 @@
           ;~(pfix whitespace ;~(sfix second-param whitespace)) 
         ==
     ==
-++  parse-binary-scalar-fn
-  |*  [fn-name=@tas first-param=rule second-param=rule]
-  ;~  plug
-    (stag fn-name (cold %two-param (jester fn-name)))
-    (parse-two-params first-param second-param)
-  ==
+::
 ++  parse-three-params
   |*  [first-param=rule second-param=rule third-param=rule]
     ;~  pfix
@@ -4736,12 +4665,7 @@
           ;~(pfix whitespace ;~(sfix third-param whitespace)) 
         ==
     ==
-++  parse-ternary-scalar-fn
-  |*  [fn-name=@tas first-param=rule second-param=rule third-param=rule]
-  ;~  plug
-    (stag fn-name (cold %three-param (jester fn-name)))
-    (parse-three-params first-param second-param third-param)
-  ==
+::
 ++  parse-n-params
   |*  [parse-params=rule]
     ;~  pfix
@@ -4750,14 +4674,7 @@
         [pal par]
       (more com ;~(pfix whitespace ;~(sfix parse-params whitespace)))
     ==
-++  parse-n-ary-scalar-fn
-  |*  [fn-name=@tas parse-params=rule]
-  ;~  plug
-    (stag %n-param (jester fn-name))
-    (parse-n-params parse-params)
-  ==
 ::
-++  parse-quoted-string  (ifix [soq soq] (star mixed-case-symbol))
 ++  cook-and-finalize-builtin-scalar-fn
   |=  [parsed=* aliases=alias-maps]
   =/  fn-name  -.parsed
@@ -4769,159 +4686,83 @@
       [%getutcdate ~]
   ::  unary builtin functions
   ?:  =(%day fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  day:ast
-    [%day finalized-first-param]
+    [%day (finalize-param raw-scalar-body aliases)]
   ?:  =(%month fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  month:ast
-    [%month finalized-first-param]
+    [%month (finalize-param raw-scalar-body aliases)]
   ?:  =(%year fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  year:ast
-    [%year finalized-first-param]
+    [%year (finalize-param raw-scalar-body aliases)]
   ?:  =(%abs fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  abs:ast
-    [%abs finalized-first-param]
+    [%abs (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  floor:ast
-    [%floor finalized-first-param]
+    [%floor (finalize-param raw-scalar-body aliases)]
   ?:  =(%ceiling fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  ceiling:ast
-    [%ceiling finalized-first-param]
+    [%ceiling (finalize-param raw-scalar-body aliases)]
   ?:  =(%sign fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  sign:ast
-    [%sign finalized-first-param]
+    [%sign (finalize-param raw-scalar-body aliases)]
   ?:  =(%sqrt fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  sqrt:ast
-    [%sqrt finalized-first-param]
+    [%sqrt (finalize-param raw-scalar-body aliases)]
   ?:  =(%len fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
     ^-  len:ast
-    [%len finalized-first-param]
+    [%len (finalize-param raw-scalar-body aliases)]
   ?:  =(%log fn-name)
     ?:  =(%one-param param-count)
-      =/  cooked-first-param  (cook-builtin-fn-parameter raw-scalar-body)
-      =/  finalized-first-param
-            (finalize-scalar-param cooked-first-param aliases)
       ^-  log:ast
-      [%log finalized-first-param ~]
+      [%log (finalize-param raw-scalar-body aliases) ~]
     ?:  =(%two-param param-count)
-      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  finalized-first-param
-            (finalize-scalar-param cooked-first-param aliases)
-      =/  finalized-second-param
-            (finalize-scalar-param cooked-second-param aliases)
       ^-  log:ast
-      [%log finalized-first-param (some finalized-second-param)]
+      [%log (finalize-param -.raw-scalar-body aliases) (some (finalize-param +.raw-scalar-body aliases))]
     !!
   ?:  =(%power fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-    =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param
-          (finalize-scalar-param cooked-second-param aliases)
     ^-  power:ast
-    [%power finalized-first-param finalized-second-param]
+    [%power (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
   ?:  =(%left fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-    =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param
-          (finalize-scalar-param cooked-second-param aliases)
     ^-  left:ast
-    [%left finalized-first-param finalized-second-param]
+    [%left (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
   ?:  =(%right fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-    =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-    =/  finalized-first-param
-          (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param
-          (finalize-scalar-param cooked-second-param aliases)
     ^-  right:ast
-    [%right finalized-first-param finalized-second-param]
+    [%right (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
   ?:  =(%trim fn-name)
     ?:  =(%one-param param-count)
-      =/  cooked-param  (cook-builtin-fn-parameter raw-scalar-body)
-      =/  finalized-param  (finalize-scalar-param cooked-param aliases)
       ^-  trim:ast
-      [%trim ~ finalized-param]
+      [%trim ~ (finalize-param raw-scalar-body aliases)]
     ?:  =(%two-param param-count)
-      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  finalized-first-param
-            (finalize-scalar-param cooked-first-param aliases)
-      =/  finalized-second-param
-            (finalize-scalar-param cooked-second-param aliases)
       ^-  trim:ast
-      [%trim (some finalized-first-param) finalized-second-param]
+      [%trim (some (finalize-param -.raw-scalar-body aliases)) (finalize-param +.raw-scalar-body aliases)]
     !!
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
-      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +.raw-scalar-body)
-      =/  finalized-first-param
-            (finalize-scalar-param cooked-first-param aliases)
-      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
       ^-  round:ast
-      [%round finalized-first-param finalized-second-param ~]
+      [%round (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases) ~]
     ?:  =(%three-param param-count)
-      =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
-      =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
-      =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-      =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
-      =/  finalized-third-param  (finalize-scalar-param cooked-third-param aliases)
       ^-  round:ast
-      [%round finalized-first-param finalized-second-param (some finalized-third-param)]
+      :*  %round
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +<.raw-scalar-body aliases)
+          (some (finalize-param +>.raw-scalar-body aliases))
+      ==
     !!
   ?:  =(%substring fn-name)
-    =/  cooked-first-param  (cook-builtin-fn-parameter -.raw-scalar-body)
-    =/  cooked-second-param  (cook-builtin-fn-parameter +<.raw-scalar-body)
-    =/  cooked-third-param  (cook-builtin-fn-parameter +>.raw-scalar-body)
-    =/  finalized-first-param  (finalize-scalar-param cooked-first-param aliases)
-    =/  finalized-second-param  (finalize-scalar-param cooked-second-param aliases)
-    =/  finalized-third-param  (finalize-scalar-param cooked-third-param aliases)
     ^-  substring:ast
-    [%substring finalized-first-param finalized-second-param finalized-third-param]
+    :*  %substring
+        (finalize-param -.raw-scalar-body aliases)
+        (finalize-param +<.raw-scalar-body aliases)
+        (finalize-param +>.raw-scalar-body aliases)
+    ==
   ::  n-ary builtin functions
   ?:  =(%concat fn-name)
-    =/  finalized-params=(list datum-or-scalar:ast)
-      |-
-      ?~  raw-scalar-body
-        ~
-      =/  cooked  (cook-builtin-fn-parameter -.raw-scalar-body)
-      =/  finalized  (finalize-scalar-param cooked aliases)
-      :-  finalized
-      $(raw-scalar-body +.raw-scalar-body)
     ^-  concat:ast
-    [%concat finalized-params]
+    :-  %concat
+    %+  turn
+      ;;((list *) raw-scalar-body)
+    |=(raw=* (finalize-param raw aliases))
   ~|("unknown builtin scalar fn {<fn-name>}" !!)
 :: TODO: replace params with parse-scalar-param
 ++  parse-builtin-scalar-fn
@@ -4970,7 +4811,7 @@
       ==
       ;~  plug
         (cold %log (jester %log))
-        (stag %one-param (parse-one-param parse-scalar-param))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
       ==
       ;~  plug
         (cold %log (jester %log))
@@ -4978,10 +4819,18 @@
       ==
       ;~  plug
         (cold %trim (jester %trim))
+        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %trim (jester %trim))
         (stag %one-param (parse-one-param parse-scalar-param))
       ==
       ;~  plug
-        (cold %log (jester %log))
+        (cold %round (jester %round))
+        (stag %three-param (parse-three-params parse-scalar-param parse-scalar-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %round (jester %round))
         (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
       ==
       ;~  plug
@@ -4995,18 +4844,6 @@
       ;~  plug
         (cold %right (jester %right))
         (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %trim (jester %trim))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %round (jester %round))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %round (jester %round))
-        (stag %three-param (parse-three-params parse-scalar-param parse-scalar-param parse-scalar-param))
       ==
       ;~  plug
         (cold %substring (jester %substring))
@@ -5061,9 +4898,9 @@
   ;~  plug
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-scalar-param)
+    parse-scalar-param
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pose parse-scalar-param)
+    parse-scalar-param
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
 ++  parse-when-then-datum
@@ -5102,7 +4939,7 @@
       [(some (cook-scalar-param +>-.rest)) +>.rest]
     ~|("cannot cook else: unexpected atom: {<+<.rest>}" !!)
   ?:  =(+.rest %end)
-    (case-helper %case-helper cooked-target (flop cases) cooked-else)
+    (case-helper %case-helper cooked-target cases cooked-else)
   ~|("cannot cook case: unexpected atom: {<+.rest>}" !!)
 ::
 ++  cook-case-when-then-list
@@ -5147,8 +4984,8 @@
                        ?~  parsed
                          ~
                        [(cook-scalar-param -.parsed) $(parsed +.parsed)]
-  ?:  (lth (lent coalesce-params) 2)
-    ~|("COALESCE requires at least 2 parameters" !!)
+  ?~  coalesce-params  ~|("COALESCE requires at least 2 parameters" !!)
+  ?~  t.coalesce-params  ~|("COALESCE requires at least 2 parameters" !!)
   %:  coalesce-helper
     %coalesce-helper
     data=coalesce-params
@@ -5342,18 +5179,18 @@
 ++  parse-scalar-body
   ;~  pose
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
-    ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
+    ;~  pfix
+      (jester 'case')
+      ;~  pose
+        (stag %simple-case parse-simple-case)
+        (stag %searched-case parse-searched-case)
+      ==
+    ==
     parse-coalesce
     parse-builtin-scalar-fn
     parse-arithmetic
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
-++  parse-scalar-name  ~+
-  ;~  pose
-    (stag %lower-case ;~(pfix whitespace sym))
-    (stag %mixed-case ;~(pfix whitespace mixed-case-symbol))
-  ==
 ++  parse-scalar
   ;~  plug
       ;~(pfix whitespace sym)   :: scalar name

@@ -276,8 +276,8 @@
 ++  concat-signature  [params=~.t ret=~.t]
 +$  concat
   $+  concat
-  :: TODO: wierd: if we remove this bucpat the type checker loops
-  :: infinitely
+  :: if we remove this bucpat the type checker loops infinitely
+  :: scalar-function -> concat -> datum-or-scalar -> scalar-function
   $:  %concat
     args=$@(~ (list datum-or-scalar))
   ==
@@ -294,7 +294,6 @@
     unqualified-column
     literal-value
     cte-name
-    ::scalar-name
     scalar-function
     ==
 ::
