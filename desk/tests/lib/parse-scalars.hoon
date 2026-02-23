@@ -142,7 +142,7 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce
-    ~[%coalesce unqualified-foo-3 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[unqualified-foo-3 literal-zod literal-1 unqualified-foo-3]]
   =/  if
     :*  %if-then-else
       if=simple-true-pred
@@ -182,9 +182,9 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce unqualified-foo-3 literal-zod literal-1 unqualified-foo-2]
+    [%coalesce ~[unqualified-foo-3 literal-zod literal-1 unqualified-foo-2]]
   =/  coalesce-2
-    ~[%coalesce unqualified-foo-2 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[unqualified-foo-2 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'bar1' coalesce-1]
@@ -276,7 +276,10 @@
     :*
       %arithmetic
       operator=%tar
-      left=[%arithmetic operator=%lus left=[%abs literal-neg3] right=[%floor literal-29]]
+      :^  %arithmetic
+          operator=%lus
+          left=[%abs literal-neg3]
+          right=[%floor literal-29]
       right=[%sqrt literal-16]
     ==
   =/  sc8
@@ -292,7 +295,10 @@
     :*
       %arithmetic
       operator=%fas
-      left=[%arithmetic operator=%lus left=[%log literal-100 ~] right=[%sign literal-neg5]]
+      :^  %arithmetic
+          operator=%lus
+          left=[%log literal-100 ~]
+          right=[%sign literal-neg5]
       right=[%arithmetic operator=%hep left=[%sqrt literal-9] right=literal-1]
     ==
   =/  scalars
@@ -427,8 +433,8 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-::::
-::::  spaces before parameters
+::
+::  spaces before parameters
 ++  test-builtins-02
   =/  query-string
     "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
@@ -700,7 +706,7 @@
   "SELECT foo2,foo3"
 ::
 =/  coalesce-1
-  ~[%coalesce unqualified-foo-2 literal-zod literal-1 unqualified-foo-3]
+  [%coalesce ~[unqualified-foo-2 literal-zod literal-1 unqualified-foo-3]]
 =/  scalars
   :~
     [%scalar 'foo' coalesce-1]
@@ -720,7 +726,7 @@
   "SELECT foo2,foo3"
 ::
 =/  coalesce-1
-  ~[%coalesce unqualified-foo-2 literal-zod literal-1 unqualified-foo-3]
+  [%coalesce ~[unqualified-foo-2 literal-zod literal-1 unqualified-foo-3]]
 =/  scalars
   :~
     [%scalar 'foo' coalesce-1]
@@ -759,7 +765,7 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce qualified-col-2 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[qualified-col-2 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'foo' coalesce-1]
@@ -778,7 +784,7 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce qualified-col-3 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[qualified-col-3 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'foo' coalesce-1]
@@ -797,7 +803,7 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce qualified-col-4 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[qualified-col-4 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'foo' coalesce-1]
@@ -816,7 +822,7 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce qualified-col-5 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[qualified-col-5 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'foo' coalesce-1]
@@ -843,7 +849,7 @@
       alias=[~ 'MyTable']
     ==
   =/  coalesce-1
-    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[qualified-col-6 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'foo' coalesce-1]
@@ -871,8 +877,12 @@
       then=[unqualified-foo-3]
       else=[unqualified-foo-2]
     ==
-  =/  coalesce-1
-    ~[%coalesce [%scalar-name name=%foo] unqualified-foo-2 literal-1 unqualified-foo-3]
+  =/  coalesce-1  :-  %coalesce
+                      :~  [%scalar-name name=%foo]
+                          unqualified-foo-2
+                          literal-1
+                          unqualified-foo-3
+                          ==
   =/  scalars
     :~
       [%scalar 'foo' naked-if]
@@ -892,10 +902,16 @@
     "        bar COALESCE(foo,foo2,1,foo3) ".
     "SELECT foo2,foo3"
   ::
-  =/  naked-case
-    [%case (some unqualified-foo-3) ~[[%case-when-then literal-1 unqualified-foo-3]] ~]
-  =/  coalesce-1
-    ~[%coalesce [%scalar-name name=%foo] unqualified-foo-2 literal-1 unqualified-foo-3]
+  =/  naked-case  :^  %case
+                      (some unqualified-foo-3)
+                      ~[[%case-when-then literal-1 unqualified-foo-3]]
+                      ~
+  =/  coalesce-1  :-  %coalesce
+                      :~  [%scalar-name name=%foo]
+                          unqualified-foo-2
+                          literal-1
+                          unqualified-foo-3
+                          ==
   =/  scalars
     :~
       [%scalar 'foo' naked-case]
@@ -916,9 +932,13 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
-    ~[%coalesce literal-zod unqualified-foo-2 literal-1 unqualified-foo-3]
-  =/  coalesce-1
-    ~[%coalesce [%scalar-name name=%foo] unqualified-foo-2 literal-1 unqualified-foo-3]
+    [%coalesce ~[literal-zod unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  coalesce-1  :-  %coalesce
+                      :~  [%scalar-name name=%foo]
+                          unqualified-foo-2
+                          literal-1
+                          unqualified-foo-3
+                          ==
   =/  scalars
     :~
       [%scalar 'foo' naked-coalesce]
@@ -940,11 +960,19 @@
     "SELECT foo2,foo3"
   ::
   =/  second-coalesce
-    ~[%coalesce literal-zod unqualified-foo-2 literal-1 unqualified-foo-3]
-  =/  first-coalesce
-    ~[%coalesce [%scalar-name name=%baz] unqualified-foo-2 literal-1 unqualified-foo-3]
-  =/  coalesce-1
-    ~[%coalesce [%scalar-name name=%bar] unqualified-foo-2 literal-1 unqualified-foo-3]
+    [%coalesce ~[literal-zod unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  first-coalesce  :-  %coalesce
+                          :~  [%scalar-name name=%baz]
+                              unqualified-foo-2
+                              literal-1
+                              unqualified-foo-3
+                              ==
+  =/  coalesce-1  :-  %coalesce
+                      :~  [%scalar-name name=%bar]
+                          unqualified-foo-2
+                          literal-1
+                          unqualified-foo-3
+                          ==
   =/  scalars
     :~
       [%scalar 'baz' second-coalesce]
@@ -965,10 +993,33 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce unqualified-foo-3 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[unqualified-foo-3 literal-zod literal-1 unqualified-foo-3]]
   =/  scalars
     :~
       [%scalar 'foo' coalesce-1]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce with last element as scalar-name
+++  test-coalesce-14
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(~zod,1,foo3) ".
+    "        bar COALESCE(foo2,1,foo) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    [%coalesce ~[literal-zod literal-1 unqualified-foo-3]]
+  =/  coalesce-1
+    [%coalesce ~[unqualified-foo-2 literal-1 [%scalar-name name=%foo]]]
+  =/  scalars
+    :~
+      [%scalar 'foo' naked-coalesce]
+      [%scalar 'bar' coalesce-1]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -984,7 +1035,7 @@
     "SELECT foo2,foo3"
   ::
   =/  coalesce-1
-    ~[%coalesce qualified-col-6 literal-zod literal-1 unqualified-foo-3]
+    [%coalesce ~[qualified-col-6 literal-zod literal-1 unqualified-foo-3]]
   %+  expect-fail-message
     'table alias \'MyTable\' is not defined'
     |.  (parse:parse(default-database default-db) query-string)
@@ -1234,7 +1285,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
-    ~[%coalesce unqualified-foo-2 literal-1 unqualified-foo-2]
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-2]]
   =/  if-1
     :*
       %if-then-else
@@ -1353,6 +1404,39 @@
       [%scalar 'baz' second-if]
       [%scalar 'bar' first-if]
       [%scalar 'foo' if-1]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test if with scalar-name as else element
+++  test-if-13
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "        bar IF 1 = 1 THEN foo3 ELSE foo ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-foo-3]
+      else=[unqualified-foo-2]
+    ==
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-foo-3]
+      else=[%scalar-name name=%foo]
+    ==
+  =/  scalars
+    :~
+      [%scalar 'foo' naked-if]
+      [%scalar 'bar' if-1]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -1649,7 +1733,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
-    ~[%coalesce unqualified-foo-2 literal-1 unqualified-foo-2]
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-2]]
   =/  case-1
     :*
       %case
@@ -1769,6 +1853,67 @@
       [%scalar 'baz' second-case]
       [%scalar 'bar' first-case]
       [%scalar 'foo' case-1]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with scalar-name as else element
+++  test-case-simple-15
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CASE foo3 WHEN 1 THEN foo3 END ".
+    "        bar CASE foo3 WHEN 1 THEN foo3 ELSE foo END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-case
+    :*
+      %case
+      target=(some unqualified-foo-3)
+      cases=~[[%case-when-then literal-1 unqualified-foo-3]]
+      else=~
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-foo-3)
+      cases=~[[%case-when-then literal-1 unqualified-foo-3]]
+      else=(some [%scalar-name name=%foo])
+    ==
+  =/  scalars
+    :~
+      [%scalar 'foo' naked-case]
+      [%scalar 'bar' case-1]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: test case with scalar-name as target element
+++  test-case-simple-16
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo2,1,foo3) ".
+    "        bar CASE foo WHEN 1 THEN foo3 ELSE foo2 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  case-1
+    :*
+      %case
+      target=(some [%scalar-name name=%foo])
+      cases=~[[%case-when-then literal-1 unqualified-foo-3]]
+      else=(some unqualified-foo-2)
+    ==
+  =/  scalars
+    :~
+      [%scalar 'foo' naked-coalesce]
+      [%scalar 'bar' case-1]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -1930,7 +2075,7 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
-::::
+::
 :: searched case expression: qualified column case scalar
 :: with database.namespace.table.column
 ++  test-case-searched-07
@@ -2053,7 +2198,7 @@
     "SELECT foo2,foo3"
   ::
   =/  naked-coalesce
-    ~[%coalesce unqualified-foo-2 literal-1 unqualified-foo-2]
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-2]]
   =/  case-1
     :*
       %case
