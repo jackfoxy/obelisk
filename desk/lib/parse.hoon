@@ -2825,44 +2825,29 @@
 +$  alias-maps
   [table=(map @t qualified-table:ast) scalar=(map @t scalar-function:ast)]
 ++  finalize-scalar-param
+  :: - if the cooked-param is a unqualified, but there is a
+  ::   scalar by the same name, then resolve the scalar
+  :: - if the cooked-param is a unqualified-, and ther isn't a
+  ::   scalar by the same name, then pass it down to finalize qualifier
   |=  [cooked-param=scalar-param aliases=alias-maps]
   ^-  datum-or-scalar:ast
   ?:  ?=([%literal *] cooked-param)
     %:(literal-value:ast %literal-value dime=+.cooked-param)
-    :: - if the cooked-param is a one-item-qualifier, but there is a
-    ::   scalar by the same name, then resolve the scalar
-    :: - if the cooked-param is a one-item-qualifier, and ther isn't a
-    ::   scalar by the same name, then pass it down to finalize qualifier
-  ?:  ?=(unqualified-column:ast cooked-param)
-    =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
-    =/  maybe-alias  alias.cooked-param 
-    ?~  maybe-scalar
-      ?~  maybe-alias
-        `unqualified-column:ast`cooked-param
-      =/  table-alias  (need maybe-alias)
-      =/  maybe-table
-            (~(get by table.aliases) (crip (cass (trip table-alias))))
-      ?~  maybe-table
-        ~|("table alias {<table-alias>} is not defined" !!)
-      %:  qualified-column:ast
-          %qualified-column
-          (need maybe-table)
-          column=name.cooked-param
-          alias=~
-      ==
-    ::(need maybe-scalar)
-    !!
-  :: - if the cooked-param is an unknown alias and there is a
-  ::   scalar by the same name, then resolve the scalar
-  :: - if the cooked-param is an unknown alias and there isn't
-  ::   scalar by the same name, then cast to cte-name
-  ?:  ?=(unknown-alias cooked-param)
-    =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
-    ?~  maybe-scalar
-      (cte-name:ast %cte-name name.cooked-param)
-    ::(need maybe-scalar)
-    !!
-  cooked-param
+  ?:  ?=(qualified-column:ast cooked-param)  cooked-param
+  ?.  ?=(unqualified-column:ast cooked-param)  !!
+  =/  maybe-table
+        ?~  alias.cooked-param  ~
+        (~(get by table.aliases) (crip (cass (trip (need alias.cooked-param)))))
+  =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
+  ?~  maybe-table
+    ?~  maybe-scalar  
+      ?~  alias.cooked-param  cooked-param
+      ~|("table alias {<(need alias.cooked-param)>} is not defined" !!)
+    [%scalar-name name.cooked-param]
+  :^  %qualified-column
+      (need maybe-table)
+      column=name.cooked-param
+      alias=~
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
@@ -2914,8 +2899,8 @@
   =/  finalized-data
     %+  turn
       data.cooked-coalesce
-    |=  param=scalar-param
-    (finalize-scalar-param param aliases)
+      |=  param=scalar-param
+      (finalize-scalar-param param aliases)
   %:  coalesce:ast
     %coalesce
     data=finalized-data
@@ -2953,14 +2938,15 @@
     ?~  scalars
       ~
     =/  parsed-scalar  -.scalars
-    =/  scalar-name  (cook-scalar-name -.parsed-scalar)
+    =/  scalar-name  ?:  ?=(@tas -.parsed-scalar)  -.parsed-scalar
+                     ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
     =/  fn-name  (@tas +<.parsed-scalar)
     =/  raw-body  +>.parsed-scalar 
     =/  scalar-function
       (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
     ?:  (~(has by scalar-map) scalar-name)
       ~|("there is already a scalar named {<scalar-name>}" !!)
-    =/  scalar  [%scalar scalar=scalar-function alias=scalar-name]
+    =/  scalar  [%scalar name=scalar-name scalar=scalar-function]
       :-  scalar
       %=  $
         scalar-map  (~(put by scalar-map) scalar-name scalar-function)
@@ -3941,9 +3927,6 @@
   :: <mixedcase-name> alias
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
-    %+  stag
-      %alias
-    ;~(pose ;~(pfix whitespace parse-scalar-name) parse-scalar-name)
     %+  stag
       %literal
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
@@ -5035,11 +5018,9 @@
       ==
     ==
 ::
-++  cook-scalar-param
+++  cook-scalar-param   :: to do: suspect...rewrite?
   |=  parsed=*
   ^-  scalar-param
-  ?:  ?=([%alias *] parsed)
-    [%unknown-alias (cook-scalar-name +.parsed)]
   ?:  ?=([%literal [@ @]] parsed)
     [%literal `dime`+.parsed]
   ::  remaining cases are qualified-column or unqualified-column
@@ -5060,7 +5041,6 @@
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
     (stag %literal ;~(sfix parse-value-literal whitespace))
-    (stag %alias ;~(sfix mixed-case-symbol whitespace))
     ;~(sfix parse-scalar-param whitespace)
     parse-scalar-param
   ==
@@ -5162,12 +5142,13 @@
 ++  cook-coalesce
   |=  parsed=*
   ^-  coalesce-helper
-  =/  coalesce-params
-    |-
-    ^-  (list scalar-param)
-    ?~  parsed
-      ~
-    [(cook-scalar-param -.parsed) $(parsed +.parsed)]
+  =/  coalesce-params  |-
+                       ^-  (list scalar-param)
+                       ?~  parsed
+                         ~
+                       [(cook-scalar-param -.parsed) $(parsed +.parsed)]
+  ?:  (lth (lent coalesce-params) 2)
+    ~|("COALESCE requires at least 2 parameters" !!)
   %:  coalesce-helper
     %coalesce-helper
     data=coalesce-params
@@ -5251,17 +5232,16 @@
 ++  tree-to-arithmetic
   |=  t=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
   ^-  datum-or-scalar:ast
-  !!
-  ::?@  t
-  ::  ~|("tree-to-arithmetic: received ~ tree" !!)
-  ::?:  ?=(arithmetic-op:ast n.t)
-  ::  %:  arithmetic:ast
-  ::    %arithmetic
-  ::    n.t
-  ::    $(t l.t)
-  ::    $(t r.t)
-  ::  ==
-  ::n.t
+  ?@  t
+    ~|("tree-to-arithmetic: received ~ tree" !!)
+  ?:  ?=(arithmetic-op:ast n.t)
+    %:  arithmetic:ast
+      %arithmetic
+      n.t
+      $(t l.t)
+      $(t r.t)
+    ==
+  n.t
 ::
 ++  process-arithmetic-list
   :: process arithmetic list with precedence climbing
@@ -5271,8 +5251,7 @@
     ?:  ?=([%literal *] -.ops)
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
-      ::[(check-cook-and-finalize-builtin-fn ->.ops aliases) ~ ~]
-      !!
+      [(check-cook-and-finalize-builtin-fn ->.ops aliases) ~ ~]
     =/  nested  (process-arithmetic-list -.ops 0 aliases)
     tree.nested
   |-
@@ -5370,16 +5349,6 @@
     parse-arithmetic
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
-++  cook-scalar-name
-  |=  parsed=*
-  ?:  ?=([%lower-case @] parsed)
-    `@t`+.parsed
-  ?:  ?=([%mixed-case @] parsed)
-    =/  sanitized  (crip (cass (trip +.parsed)))
-    ?:  ((sane %t) sanitized)
-      `@t`sanitized
-    ~|("cook-scalar-name: can't cast {<sanitized>} to @t" !!)
-  !!
 ++  parse-scalar-name  ~+
   ;~  pose
     (stag %lower-case ;~(pfix whitespace sym))
@@ -5387,7 +5356,7 @@
   ==
 ++  parse-scalar
   ;~  plug
-      parse-scalar-name        :: scalar alias
+      ;~(pfix whitespace sym)   :: scalar name
       scalar-body               :: scalar function invocation
   ==
 ++  parse-scalars
@@ -5558,8 +5527,7 @@
         @
         ==
   ==
-+$  unknown-alias  $:(%unknown-alias name=@t)
-+$  scalar-param   $%(qualifier-or-literal qualifier unknown-alias)
++$  scalar-param   $%(qualifier-or-literal qualifier)
 +$  qualifier-or-literal
   $%  qualifier
       $:(%literal dime)

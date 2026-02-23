@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/mnt/mars/gitrepos/obelisk/desk/tests/lib"
+    ]
+  }
+}

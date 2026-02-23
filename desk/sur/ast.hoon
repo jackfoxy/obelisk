@@ -279,8 +279,24 @@
   :: TODO: wierd: if we remove this bucpat the type checker loops
   :: infinitely
   $:  %concat
-    (list datum-or-scalar)
+    args=$@(~ (list datum-or-scalar))
   ==
+::
++$  scalar
+  $:  %scalar
+    name=@tas
+    scalar=scalar-function
+    ==
+::
++$  datum-or-scalar  
+  $%
+    qualified-column
+    unqualified-column
+    literal-value
+    cte-name
+    ::scalar-name
+    scalar-function
+    ==
 ::
 +$  scalar-function
   $%
@@ -312,14 +328,6 @@
 +$  literal-value  $:(%literal-value =dime)
 +$  cte-name      $:(%cte-name name=@tas)
 +$  scalar-name   $:(%scalar-name name=@tas)
-+$  datum-or-scalar  
-  $%
-    qualified-column
-    unqualified-column
-    literal-value
-    cte-name
-    scalar-name
-    ==
 ::
 ::  query
 ::
@@ -387,11 +395,6 @@
   $:  %selected-aggregate
     aggregate=aggregate
     alias=(unit @t)
-    ==
-+$  scalar
-  $:  %scalar
-    scalar=scalar-function
-    alias=@t
     ==
 +$  selected-value
   $:  %selected-value

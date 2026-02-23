@@ -339,6 +339,63 @@ Almost all urQL commands support an optional AS OF clause:
 - WARNING: future dating locks the database until that future time
 - DROP DATABASE leaves no trace for time travel
 
+## query results
+
+All commands return a `cmd-result` (`sur/obelisk.hoon:71`):
+
+```hoon
++$  cmd-result  [%results (list result)]
++$  result
+  $%
+    [%message msg=@t]          :: informational string
+    [%vector-count count=@ud]  :: number of rows affected or returned
+    [%server-time date=@da]    :: current server wall-clock time
+    [%security-time date=@da]  :: security timestamp
+    [%schema-time date=@da]    :: schema (DDL) timestamp for queried objects
+    [%data-time date=@da]      :: data (DML) timestamp for queried objects
+    [%result-set (list vector)] :: rows returned by a SELECT
+    ==
+```
+
+A `vector` is one result row: a non-empty list of `vector-cell` (`sur/obelisk.hoon:154`):
+
+```hoon
++$  vector-cell  [p=@tas q=dime]   :: p=column-name, q=[aura atom]
++$  vector       $:  %vector  (lest vector-cell)  ==
+```
+
+### SELECT result sequence
+
+`select-results` (`lib/crud.hoon:503`) assembles the `(list result)` for a query. The sequence depends on whether CTEs or joins are present.
+
+**Simple query (no CTEs / single relation):**
+
+```
+[%message 'SELECT']
+[%result-set (list vector)]
+[%server-time @da]
+[%schema-time @da]
+[%data-time @da]
+[%vector-count @ud]
+```
+
+**Query with CTEs or joins** — each source table is listed first (sorted by ship, database, namespace, name, then timestamps), followed by the main SELECT block:
+
+```
+:: per source table (non-CTE, non-sys):
+[%message <database>.<namespace>.<table>]
+[%schema-time @da]
+[%data-time @da]
+
+:: then the SELECT block:
+[%message 'SELECT']
+[%result-set (list vector)]
+[%server-time @da]
+[%vector-count @ud]
+```
+
+Internal CTE tables (ship=`~`, database=`%cte`, namespace=`%cte`) are skipped in the result header output.
+
 ## system views
 
 Available for introspection queries:
