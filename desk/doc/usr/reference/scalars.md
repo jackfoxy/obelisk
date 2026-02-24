@@ -12,7 +12,7 @@ NOTE: scalar and aggregate functions are currently under development and not ava
 <scalar-function> ::=
   IF <predicate> THEN { <expression> | <named-scalar> }
                  ELSE { <expression> | <named-scalar> } ENDIF
-  | CASE <expression>
+  | CASE [ <expression> ]
     WHEN { <expression> | <predicate> }
 	  THEN { <expression> | <named-scalar> } [ ...n ]
      [ ELSE { <expression> | <named-scalar> } ]
@@ -22,14 +22,54 @@ NOTE: scalar and aggregate functions are currently under development and not ava
   | <builtin-function>
 ```
 
-If a `CASE` expression uses `<predicate>`, the expected boolean (or loobean) logic applies. If it uses `<expression>` `@`0 is treated as false and any other value as true (not loobean). (NOTE: This is preliminary design subject to change.)
+## CASE
 
-`COALESCE` returns the first `<expression>` in the list that exists. Non-existence occurs when a selected `<expression>` value is not returned due to an outer join not matching or `<scalar-query>` not returning rows.
+`CASE` evaluates a list of conditions and returns the first matching
+result. Two forms are supported:
+
+**Simple form** — compares a single leading expression against a set of
+values:
+
+```
+CASE <expression>
+  WHEN <expression> THEN { <expression> | <named-scalar> } [ ...n ]
+  [ ELSE { <expression> | <named-scalar> } ]
+END
+```
+
+The leading `<expression>` is evaluated once. Each `WHEN` value is
+compared against it in order; the first match determines the result.
+`@`0 is treated as false and any other value as true (not loobean).
+
+**Searched form** — omits the leading expression; each `WHEN` clause is
+evaluated as an independent predicate:
+
+```
+CASE
+  WHEN <predicate> THEN { <expression> | <named-scalar> } [ ...n ]
+  [ ELSE { <expression> | <named-scalar> } ]
+END
+```
+
+The expected boolean (or loobean) logic applies to each predicate. The
+first branch whose predicate is true determines the result.
+
+In both forms, `ELSE` is optional. If no `WHEN` branch matches and no
+`ELSE` clause is present, the query crashes with an informative message.
+
+(NOTE: This is preliminary design subject to change.)
+
+## COALESCE
+
+`COALESCE` returns the first `<expression>` in the list that exists.
+Non-existence occurs when a selected `<expression>` value is not
+returned due to an outer join not matching or `<scalar-query>` not
+returning rows.
 
 ## Arithmetic Operations
 
 ```
-<operator> ::= + | - | * | / | ^
+<operator> ::= + | - | * | / | % | ^
 <operand>  ::= <expression> | <named-scalar> 
 <arithmetic> ::=
   <operand> <operator> <operand>
@@ -51,7 +91,7 @@ Arithmetic operators follow standard mathematical conventions for precedence and
 
 **Precedence** (which operations group together first):
 - Exponentiation (`^`) has highest precedence
-- Multiplication (`*`) and Division (`/`) have intermediate precedence
+- Multiplication (`*`), Division (`/`), and Modulo (`%`) have intermediate precedence
 - Addition (`+`) and Subtraction (`-`) have lowest precedence
 
 **Associativity** (how operators of equal precedence group):
@@ -80,6 +120,7 @@ YEAR(~2023.6.20) - MONTH(~2023.6.20)  :: datetime functions in arithmetic
 2 ^ 3 ^ 2       :: right-associative: 2 ^ (3 ^ 2) = 2 ^ 9 = 512
 10 - 5 - 2      :: left-associative: (10 - 5) - 2 = 5 - 2 = 3
 8 / 4 / 2       :: left-associative: (8 / 4) / 2 = 2 / 2 = 1
+10 % 3          :: modulo: remainder of 10 / 3 = 1
 ```
 
 ## Builtin Functions

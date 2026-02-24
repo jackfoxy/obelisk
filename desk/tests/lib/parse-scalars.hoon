@@ -2349,6 +2349,7 @@
     "        foo3 BEGIN 1 / 1 END ".
     "        foo4 BEGIN 1 * 1 END ".
     "        foo5 BEGIN 1 ^ 1 END ".
+    "        foo6 BEGIN 1 % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  scalars
@@ -2358,6 +2359,7 @@
      [%scalar 'foo3' [%arithmetic operator=%fas left=literal-1 right=literal-1]]
      [%scalar 'foo4' [%arithmetic operator=%tar left=literal-1 right=literal-1]]
      [%scalar 'foo5' [%arithmetic operator=%ket left=literal-1 right=literal-1]]
+     [%scalar 'foo6' [%arithmetic operator=%cen left=literal-1 right=literal-1]]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -2374,6 +2376,7 @@
     "        foo3 BEGIN (1 / 1) / 1 END ".
     "        foo4 BEGIN (1 * 1) * 1 END ".
     "        foo5 BEGIN (1 ^ 1) ^ 1 END ".
+    "        foo6 BEGIN (1 % 1) % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
@@ -2411,6 +2414,13 @@
       left=[%arithmetic operator=%ket left=literal-1 right=literal-1]
       right=literal-1
     ==
+  =/  modulo
+    :*
+      %arithmetic
+      operator=%cen
+      left=[%arithmetic operator=%cen left=literal-1 right=literal-1]
+      right=literal-1
+    ==
   =/  scalars
     :~
       [%scalar 'foo1' addition]
@@ -2418,6 +2428,7 @@
       [%scalar 'foo3' division]
       [%scalar 'foo4' multiplication]
       [%scalar 'foo5' exponentiation]
+      [%scalar 'foo6' modulo]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -2434,6 +2445,7 @@
     "        foo3 BEGIN 1 / (1 / 1) END ".
     "        foo4 BEGIN 1 * (1 * 1) END ".
     "        foo5 BEGIN 1 ^ (1 ^ 1) END ".
+    "        foo6 BEGIN 1 % (1 % 1) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
@@ -2471,6 +2483,13 @@
       left=literal-1
       right=[%arithmetic operator=%ket left=literal-1 right=literal-1]
     ==
+  =/  modulo
+    :*
+      %arithmetic
+      operator=%cen
+      left=literal-1
+      right=[%arithmetic operator=%cen left=literal-1 right=literal-1]
+    ==
   =/  scalars
     :~
       [%scalar 'foo1' addition]
@@ -2478,6 +2497,7 @@
       [%scalar 'foo3' division]
       [%scalar 'foo4' multiplication]
       [%scalar 'foo5' exponentiation]
+      [%scalar 'foo6' modulo]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -2494,6 +2514,7 @@
     "        foo3 BEGIN ((1 - 1) * 1) / 1 END ".
     "        foo4 BEGIN ((1 / 1) + 1) * 1 END ".
     "        foo5 BEGIN ((1 ^ 1) / 1) ^ 1 END ".
+    "        foo6 BEGIN ((1 % 1) % 1) % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  inner-multiplication
@@ -2551,6 +2572,17 @@
       left=middle-division
       right=literal-1
     ==
+  =/  modulo
+    :*
+      %arithmetic
+      operator=%cen
+      :*  %arithmetic
+          operator=%cen
+          left=[%arithmetic operator=%cen left=literal-1 right=literal-1]
+          right=literal-1
+          ==
+      right=literal-1
+    ==
   =/  scalars
     :~
       [%scalar 'foo1' addition]
@@ -2558,6 +2590,7 @@
       [%scalar 'foo3' division]
       [%scalar 'foo4' multiplication]
       [%scalar 'foo5' exponentiation]
+      [%scalar 'foo6' modulo]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -2574,6 +2607,7 @@
     "        foo3 BEGIN 1 / (1 * (1 - 1)) END ".
     "        foo4 BEGIN 1 * (1 + (1 / 1)) END ".
     "        foo5 BEGIN 1 ^ (1 / (1 ^ 1)) END ".
+    "        foo6 BEGIN 1 % (1 % (1 % 1)) END ".
     "SELECT foo2,foo3"
   ::
   =/  inner-multiplication
@@ -2631,6 +2665,17 @@
       left=literal-1
       right=middle-division
     ==
+  =/  modulo
+    :*
+      %arithmetic
+      operator=%cen
+      left=literal-1
+      :*  %arithmetic
+          operator=%cen
+          left=literal-1
+          right=[%arithmetic operator=%cen left=literal-1 right=literal-1]
+          ==
+      ==
   =/  scalars
     :~
       [%scalar 'foo1' addition]
@@ -2638,6 +2683,7 @@
       [%scalar 'foo3' division]
       [%scalar 'foo4' multiplication]
       [%scalar 'foo5' exponentiation]
+      [%scalar 'foo6' modulo]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
@@ -2791,6 +2837,15 @@
     "        foo21 BEGIN 2 ^ 3 * 4 END ".
     "        foo22 BEGIN 2 + 3 - 4 * 5 / 2 END ".
     "        foo23 BEGIN 2 ^ 3 + 4 * 5 - 6 / 2 END ".
+    "        foo24 BEGIN 2 % 3 % 4 END ".
+    "        foo25 BEGIN 2 % (3 % 4) END ".
+    "        foo26 BEGIN (2 % 3) % 4 END ".
+    "        foo27 BEGIN 2 + 3 % 4 END ".
+    "        foo28 BEGIN 2 % 3 + 4 END ".
+    "        foo29 BEGIN 2 * 3 % 4 END ".
+    "        foo30 BEGIN 2 % 3 * 4 END ".
+    "        foo31 BEGIN 2 ^ 3 % 4 END ".
+    "        foo32 BEGIN 2 % 3 ^ 4 END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
@@ -3048,6 +3103,105 @@
         literal-2
       ==
     ==
+  ::  modulo associativity: 2 % 3 % 4 -> (2 % 3) % 4
+  =/  modulo-left-assoc
+    :*  %arithmetic
+      %cen
+      :*  %arithmetic
+        %cen
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  ::  modulo explicit right-assoc: 2 % (3 % 4)
+  =/  modulo-right-assoc
+    :*  %arithmetic
+      %cen
+      literal-2
+      :*  %arithmetic
+        %cen
+        literal-3
+        literal-4
+      ==
+    ==
+  ::  modulo explicit left-assoc: (2 % 3) % 4 -- same AST as implicit
+  =/  modulo-left-assoc-explicit
+    :*  %arithmetic
+      %cen
+      :*  %arithmetic
+        %cen
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  ::  2 + 3 % 4 -> 2 + (3 % 4)  (% higher precedence than +)
+  =/  mixed-modulo-1
+    :*  %arithmetic
+      %lus
+      literal-2
+      :*  %arithmetic
+        %cen
+        literal-3
+        literal-4
+      ==
+    ==
+  ::  2 % 3 + 4 -> (2 % 3) + 4
+  =/  mixed-modulo-2
+    :*  %arithmetic
+      %lus
+      :*  %arithmetic
+        %cen
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  ::  2 * 3 % 4 -> (2 * 3) % 4  (same precedence, left-assoc)
+  =/  mixed-modulo-3
+    :*  %arithmetic
+      %cen
+      :*  %arithmetic
+        %tar
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  ::  2 % 3 * 4 -> (2 % 3) * 4  (same precedence, left-assoc)
+  =/  mixed-modulo-4
+    :*  %arithmetic
+      %tar
+      :*  %arithmetic
+        %cen
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  ::  2 ^ 3 % 4 -> (2 ^ 3) % 4  (^ higher precedence than %)
+  =/  mixed-modulo-5
+    :*  %arithmetic
+      %cen
+      :*  %arithmetic
+        %ket
+        literal-2
+        literal-3
+      ==
+      literal-4
+    ==
+  ::  2 % 3 ^ 4 -> 2 % (3 ^ 4)  (^ higher precedence than %)
+  =/  mixed-modulo-6
+    :*  %arithmetic
+      %cen
+      literal-2
+      :*  %arithmetic
+        %ket
+        literal-3
+        literal-4
+      ==
+    ==
   =/  scalars
     :~
       [%scalar 'foo1' exponentiation-1]
@@ -3073,6 +3227,15 @@
       [%scalar 'foo21' mixed-precedence-6]
       [%scalar 'foo22' mixed-precedence-7]
       [%scalar 'foo23' mixed-precedence-8]
+      [%scalar 'foo24' modulo-left-assoc]
+      [%scalar 'foo25' modulo-right-assoc]
+      [%scalar 'foo26' modulo-left-assoc-explicit]
+      [%scalar 'foo27' mixed-modulo-1]
+      [%scalar 'foo28' mixed-modulo-2]
+      [%scalar 'foo29' mixed-modulo-3]
+      [%scalar 'foo30' mixed-modulo-4]
+      [%scalar 'foo31' mixed-modulo-5]
+      [%scalar 'foo32' mixed-modulo-6]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq

@@ -140,7 +140,7 @@
     ==
 +$  predicate     (tree predicate-component)
 +$  datum         $%(qualified-column unqualified-column dime)
-+$  arithmetic-op     ?(%lus %tar %hep %fas %ket)
++$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
 +$  arithmetic
   $:  %arithmetic

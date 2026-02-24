@@ -5051,6 +5051,7 @@
     %lus  1
     %hep  1
     %fas  2
+    %cen  2
     %tar  2
     %ket  3
   ==
@@ -5148,6 +5149,8 @@
     (cold %tar tar)
     (cold %fas ;~(plug whitespace fas))
     (cold %fas fas)
+    (cold %cen ;~(plug whitespace cen))
+    (cold %cen cen)
     (cold %ket ;~(plug whitespace ket))
     (cold %ket ket)
     ;~(pfix whitespace parse-scalar-param)
