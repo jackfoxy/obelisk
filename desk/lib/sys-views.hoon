@@ -1043,7 +1043,6 @@
                     rslt
           udata  +.udata
         ==
-  ::to do: test cases for sys ahead and behind of udata
       ?~  udata
         ?>  !=(~ rslt)
         %=  $

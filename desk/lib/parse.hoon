@@ -3160,7 +3160,6 @@
                            %all-object
                            ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
                              (~(got by alias-map) (crip (cass (trip ->.a))))
-                           :: to do: if does not resolve try CTEs next
                            ~|  "cannot resolve {<->.a>}"
                                %-  ~(got by (mk-obj-name-map (need f)))
                                    ->.a
@@ -3626,12 +3625,7 @@
     ;~(pose non-numeric-parser (cook cook-numbers numeric-characters))
   ==
 ++  get-value-literal  ~+
-  ;~  pose :: changing to ifix here slowed down test cases
-    ;~(sfix ;~(pfix whitespace parse-value-literal) whitespace)
-    ;~(pfix whitespace parse-value-literal)
-    ;~(sfix parse-value-literal whitespace)
-    parse-value-literal
-  ==
+  ;~(sfix ;~(pfix whitespace parse-value-literal) whitespace)
 ++  cook-literal-list
   ::  1. all literal types must be the same
   ::
@@ -4855,7 +4849,7 @@
       ==
     ==
 ::
-++  cook-scalar-param   :: to do: suspect...rewrite?
+++  cook-scalar-param
   |=  parsed=*
   ^-  scalar-param
   ?:  ?=([%literal [@ @]] parsed)
