@@ -7362,63 +7362,50 @@
 ::  to do: implement name qualified in parse
 ::
 ::  alias qualified single table
-::++  test-qualified-01
-::  =|  run=@ud
-::  =/  expected-rows
-::        :~
-::          :-  %vector
-::              :~  [%col1 [~.t 'Ace']]
-::                  [%col2 [~.da ~2005.12.19]]
-::                  [%col3 [~.t 'ticolor']]
-::                  [%col4 [~.t 'row2']]
-::                  ==
-::          :-  %vector
-::              :~  [%col1 [~.t 'Abby']]
-::                  [%col2 [~.da ~1999.2.19]]
-::                  [%col3 [~.t 'tricolor']]
-::                  [%col4 [~.t 'row1']]
-::                  ==
-::          ==
-::  =/  expected  :~  %results
-::                    [%message 'SELECT']
-::                    [%result-set expected-rows]
-::                    [%server-time ~2012.5.3]
-::                    [%message 'db1.dbo.my-table']
-::                    [%schema-time ~2012.5.1]
-::                    [%data-time ~2012.5.2]
-::                    [%vector-count 2]
-::                ==
-::  =^  mov1  agent
-::    %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-::        %obelisk-action
-::        !>([%tape2 %sys "CREATE DATABASE db1"])
-::  =.  run  +(run)
-::  =^  mov2  agent
-::    %+  ~(on-poke agent (bowl [run ~2012.5.1]))
-::        %obelisk-action
-::        !>  :+  %tape2
-::                %db1
-::                create-mytable
-::  =.  run  +(run)
-::  =^  mov3  agent
-::    %+  ~(on-poke agent (bowl [run ~2012.5.2]))
-::        %obelisk-action
-::        !>  :+  %tape2
-::                %db1
-::                "INSERT INTO my-table".
-::                " VALUES".
-::                " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
-::                " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
-::                " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
-::  =.  run  +(run)
-::  =^  mov4  agent
-::    %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-::        %obelisk-action
-::        !>  :+  %tape2
-::                %db1
-::                "FROM my-table T1".
-::                "WHERE (t1.col3 = 'ticolor' AND col4='row2') ".
-::                "OR (col3='tricolor' AND T1.col4='row1') SELECT *"
-::  ::
-::  (eval-results expected ;;(cmd-result ->+>+>+<.mov4))
+++  test-qualified-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table T1 ".
+          "WHERE (t1.col3 = 'ticolor' AND col4='row2') ".
+             "OR (col3='tricolor' AND T1.col4='row1') ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              [%col3 [~.t 'ticolor']]
+                              [%col4 [~.t 'row2']]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              [%col3 [~.t 'tricolor']]
+                              [%col4 [~.t 'row1']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
 --
