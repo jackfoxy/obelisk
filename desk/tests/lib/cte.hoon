@@ -678,103 +678,117 @@
                               ==
             ==
 ::
-::::::  CTE alias defined upper case, outer SELECT qualifies with differing case
-::::++  test-cte-13
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%day-name [~.t 'Monday']]
-::::                    [%date [~.da ~2023.12.25]]
-::::                    [%us-federal-holiday [~.t 'Christmas Day']]
-::::                    ==
-::::            :-  %vector
-::::                :~  [%day-name [~.t 'Monday']]
-::::                    [%date [~.da ~2024.1.1]]
-::::                    [%us-federal-holiday [~.t 'New Years Day']]
-::::                    ==
-::::            ==
-::::  ::%-  exec-0-1
-::::  %-  debug-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              create-holiday-calendar
-::::                              insert-holiday-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar T1 ".
-::::                      "JOIN holiday-calendar T2 ".
-::::                      "SELECT T1.day-name, T2.date, ".
-::::                            "T2.us-federal-holiday) ".
-::::                      "AS MY-CTE ".
-::::                "FROM my-cte SELECT my-cte.day-name, My-Cte.date, ".
-::::                      "MY-CTE.us-federal-holiday "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%message msg='db1.dbo.holiday-calendar']
-::::                              [%schema-time date=~2012.4.30]
-::::                              [%data-time date=~2012.4.30]
-::::                              [%vector-count 2]
-::::                              ==
-::::            ==
-::::::::::
-::::::::::  CTE alias defined lower case, outer SELECT uses upper case alias.*
-::::++  test-cte-14
-::::  =|  run=@ud
-::::  =/  expected-rows
-::::        :~  :-  %vector
-::::                :~  [%day-name [~.t 'Monday']]
-::::                    [%date [~.da ~2023.12.25]]
-::::                    [%us-federal-holiday [~.t 'Christmas Day']]
-::::                    ==
-::::            :-  %vector
-::::                :~  [%day-name [~.t 'Monday']]
-::::                    [%date [~.da ~2024.1.1]]
-::::                    [%us-federal-holiday [~.t 'New Years Day']]
-::::                    ==
-::::            ==
-::::  %-  exec-0-1
-::::        :*  run
-::::            :+  ~2012.4.30
-::::                %db1
-::::                %-  zing  :~  "CREATE DATABASE db1;"
-::::                              create-calendar
-::::                              insert-calendar
-::::                              create-holiday-calendar
-::::                              insert-holiday-calendar
-::::                              ==
-::::            ::
-::::            :+  ~2012.5.3
-::::                %db1
-::::                "WITH (FROM calendar T1 ".
-::::                      "JOIN holiday-calendar T2 ".
-::::                      "SELECT T1.day-name, T2.date, ".
-::::                            "T2.us-federal-holiday) ".
-::::                      "AS my-cte ".
-::::                "FROM My-Cte SELECT MY-CTE.* "
-::::            ::
-::::            :-  %results  :~  [%message 'SELECT']
-::::                              [%result-set expected-rows]
-::::                              [%server-time ~2012.5.3]
-::::                              [%message 'db1.dbo.calendar']
-::::                              [%schema-time ~2012.4.30]
-::::                              [%data-time ~2012.4.30]
-::::                              [%message msg='db1.dbo.holiday-calendar']
-::::                              [%schema-time date=~2012.4.30]
-::::                              [%data-time date=~2012.4.30]
-::::                              [%vector-count 2]
-::::                              ==
-::::            ==
+::  joined CTE selecting same column multiple times with different aliases,
+::  outer SELECT reads both aliased columns from CTE
+++  test-cte-13
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%cal-date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date-copy [~.da ~2023.12.25]]
+                    [%weekday [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    ==
+            :-  %vector
+                :~  [%cal-date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date-copy [~.da ~2024.1.1]]
+                    [%weekday [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "WHERE T1.day-name = 'Monday' ".
+                      "SELECT T1.date AS cal-date, T2.us-federal-holiday, ".
+                            "T1.date AS date-copy, T1.day-name AS weekday, ".
+                            "T1.date) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "SELECT cal-date, us-federal-holiday, date-copy, weekday, date "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%message msg='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 2]
+                              ==
+            ==
+::
+::  joined CTE selecting same column multiple times with different aliases,
+::  outer SELECT * is in canonical order
+++  test-cte-14
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%cal-date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    [%date-copy [~.da ~2023.12.25]]
+                    [%weekday [~.t 'Monday']]
+                    [%date [~.da ~2023.12.25]]
+                    ==
+            :-  %vector
+                :~  [%cal-date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    [%date-copy [~.da ~2024.1.1]]
+                    [%weekday [~.t 'Monday']]
+                    [%date [~.da ~2024.1.1]]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "WHERE T1.day-name = 'Monday' ".
+                      "SELECT T1.date AS cal-date, T2.us-federal-holiday, ".
+                            "T1.date AS date-copy, T1.day-name AS weekday, ".
+                            "T1.date) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "SELECT * "
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%message msg='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 2]
+                              ==
+            ==
 ::
 ::  fail on duplicate column name
 ++  test-fail-cte-00
@@ -928,4 +942,34 @@
                     %-  crip  "SELECT: table %db1.%dbo.%no-such-cte does ".
                               "not exist at schema time ~2012.4.30"
                     ==
+::
+::  fail CTE with literals in inner SELECT
+++  test-fail-cte-06
+  =|  run=@ud
+  %-  failon-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "WHERE T1.day-name = 'Monday' ".
+                      "SELECT T1.date, T2.us-federal-holiday, ".
+                            "'US' AS country, 1 AS is-holiday) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "SELECT date, us-federal-holiday, country, is-holiday "
+            ::
+            %-  crip  "mk-cte-column-metas [%selected-value ".
+                      "value=[p=~.t q=21.333] alias=[~ 'country']] ".
+                      "not supported"
+            ==
 --
