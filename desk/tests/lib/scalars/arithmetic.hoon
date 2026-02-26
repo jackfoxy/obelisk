@@ -45,7 +45,7 @@
 ::
 ::  table testing harness
 ::
-++  type-lookup  %-  mk-qualified-type-lookup
+++  map-meta  %-  mk-qualified-map-meta
                           :~  :-  qualified-table-1
                                   %-  addr-columns
                                       :~  [%column %col1 ~.ud 0]
@@ -97,7 +97,7 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  when-lookups  [qualifier-lookup type-lookup]
+  =/  when-lookups  [qualifier-lookup map-meta]
   =/  expr=arithmetic:ast  :*  %arithmetic
                              operator=operator.row
                              left=left.row

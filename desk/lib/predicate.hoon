@@ -58,10 +58,7 @@
   ::    - conjunction: AND/OR (recursively combines left and right predicates)
   ::    - all-any-op: ALL/ANY (not yet implemented)
   ::
-  |=  $:  p=predicate:ast
-          =map-meta
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [p=predicate:ast =map-meta =qualifier-lookup]
   ^-  $-(data-row ?)
   ?~  p  ~|("pred-ops-and-conjs can't get here" !!) 
   ?.  ?=(ops-and-conjs n.p)  ~|("pred-ops-and-conjs can't get here" !!)
@@ -88,10 +85,7 @@
     ==
 :: 
 ++  pred-unary-op
-  |=  $:  p=predicate:ast
-          =map-meta
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [p=predicate:ast =map-meta =qualifier-lookup]
   ^-  $-(data-row ?)
   ?~  p  ~|("pred-unary-op can't get here" !!)
   ?~  l.p  ~|("pred-unary-op can't get here" !!)
@@ -109,10 +103,7 @@
     ==
 :: 
 ++  pred-binary-op
-  |=  $:  p=predicate:ast
-          =map-meta
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [p=predicate:ast =map-meta =qualifier-lookup]
   ^-  $-(data-row ?)
   ?~  p                  ~|("pred-binary-op can't get here" !!)
   ?.  ?=(binary-op n.p)  ~|("pred-binary-op can't get here" !!)
@@ -270,9 +261,7 @@
   ~|("common-list-pred can't get here" !!)
 ::
 ++  get-qualifier
-  |=  $:  col=qualified-column:ast
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [col=qualified-column:ast =qualifier-lookup]
   ^-  qualified-table:ast
   =/  quals=(list qualified-table:ast)
         ~|  "{<name.qualifier.col>} in predicate ".
@@ -291,7 +280,7 @@
   |=  $:  l=datum:ast
           r=datum:ast
           map-meta=(mip:mip qualified-table @tas typ-addr)
-          qualifier-lookup=(map @tas (list qualified-table:ast))
+          =qualifier-lookup
           lit-lit=$-([@ @ @ta data-row] ?)
           col-col=column-column
           col-lit=$-([@ @ @ta data-row] ?)
@@ -348,7 +337,7 @@
   |=  $:  l=datum:ast
           r=datum:ast
           map-meta=(mip:mip qualified-table @tas typ-addr)
-          qualifier-lookup=(map @tas (list qualified-table:ast))
+          =qualifier-lookup
           lit-lit=$-([@ @ data-row] ?)
           col-col=$-([@ @ data-row] ?)
           col-lit=$-([@ @ data-row] ?)
@@ -502,12 +491,7 @@
   ~|("datum-ops can't get here" !!)
 ::
 ++  pred-inequality-op
-  |=  $:  p=inequality-op
-          l=datum:ast
-          r=datum:ast
-          =map-meta
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [p=inequality-op l=datum:ast r=datum:ast =map-meta =qualifier-lookup]
   ^-  $-(data-row ?)
   ?-  p
     %neq
@@ -938,18 +922,14 @@
 ::
 ++  normalize-predicate
   ::  fail if column name available for multiple qualifiers
-  |=  $:  p=predicate:ast
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [p=predicate:ast =qualifier-lookup]
   ^-  predicate:ast
   |-
   ?~  p  ~
   p(n (normalize-leaf n.p qualifier-lookup), l $(p l.p), r $(p r.p))
 ::
 ++  normalize-leaf
-  |=  $:  a=predicate-component:ast
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [a=predicate-component:ast =qualifier-lookup]
   ^-  predicate-component:ast
   ?:  ?=(unqualified-column:ast a)
     ~|  "column {<name.a>} does not exist"

@@ -396,7 +396,7 @@
   ^-  (map @tas typ-addr)
   (malt (turn a |=(a=column:ast [name.a [type.a addr.a]])))
 ::
-++  mk-qualified-type-lookup
+++  mk-qualified-map-meta
   |=  [kvp=(list [qualified-table:ast (list column:ast)])]
   ^-  qualified-map-meta
   :-  %qualified-map-meta
@@ -417,9 +417,7 @@
       ==
 ::
 ++  qualify-unqualified
-  |=  $:  selected=(list selected-column:ast)
-          qualifier-lookup=(map @tas (list qualified-table:ast))
-          ==
+  |=  [selected=(list selected-column:ast) =qualifier-lookup]
   =/  selected-out  *(list selected-column:ast)
   |-
   ?~  selected  (flop selected-out)

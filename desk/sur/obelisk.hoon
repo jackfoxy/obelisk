@@ -111,6 +111,8 @@
     ==
 +$  map-meta  $%(qualified-map-meta unqualified-map-meta)
 ::
++$  qualifier-lookup  (map @tas (list qualified-table))
+::
 +$  joined-row
   $:  %joined-row
     key=(list @)

@@ -70,7 +70,7 @@
 ++  u-col-5           [%unqualified-column %col5 ~]
 ++  u-col-6           [%unqualified-column %col6 ~]
 ::
-++  qual-type-lookup  %-  mk-qualified-type-lookup
+++  qual-type-lookup  %-  mk-qualified-map-meta
                           :~  :-  qualified-table-1
                                   %-  addr-columns
                                       :~  [%column %col1 ~.ud 0]
