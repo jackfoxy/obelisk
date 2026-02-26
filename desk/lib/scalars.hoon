@@ -13,24 +13,33 @@
     ^-  dime
     (scalar row)
 ++  prepare-scalar
-  |=  $:  scalar=scalar-function:ast
+  |=  $:  =scalar:ast ::scalar=scalar-function:ast
           =named-ctes
           =qualifier-lookup
           =map-meta
           scalars=(map @t scalar-function:ast)
           ==
   ^-  $-(data-row dime)
-  ?-  -.scalar
+  ?-  -.scalar.scalar
     %if-then-else
-      (prepare-if-then-else scalar named-ctes qualifier-lookup map-meta scalars)
+      %:  prepare-if-then-else  scalar.scalar
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                scalars
+                                ==
   ::
     %case
       ::(prepare-case scalar named-ctes qualifier-lookup map-meta scalars)
       !!
   ::
     %coalesce
-      ::(prepare-coalesce scalar named-ctes qualifier-lookup map-meta scalars)
-      !!
+      %:  prepare-coalesce  scalar.scalar
+                            named-ctes
+                            qualifier-lookup
+                            map-meta
+                            scalars
+                            ==
   ::
     %arithmetic
       ::(prepare-arithmetic scalar named-ctes qualifier-lookup map-meta scalars)
@@ -57,16 +66,17 @@
       !!
   ::
     %abs
-      |=  =data-row
-      =/  expr  %-  %:  evaluate-datum-or-scalar
-                        numeric-expression.scalar
-                        named-ctes
-                        qualifier-lookup
-                        map-meta
-                        scalars
-                        ==
-                    data-row
-      [~.u (abs:si +.expr)]
+      ::|=  =data-row
+      ::=/  expr  %-  %:  evaluate-datum-or-scalar
+      ::                  numeric-expression.scalar
+      ::                  named-ctes
+      ::                  qualifier-lookup
+      ::                  map-meta
+      ::                  scalars
+      ::                  ==
+      ::              data-row
+      ::[~.u (abs:si +.expr)]
+      !!
   ::
     %log
       !!
@@ -165,20 +175,18 @@
   ?:  =(%literal-value -.datum)
     |=(r=data-row ;;(dime +.datum))
   ?:  =(%cte-name -.datum)
-    ~|("unimplemented" !!)
-  ?:  =(%scalar-name -.datum)
-    =/  maybe-resolved-scalar  (~(get by scalars) name:;;(scalar-name datum))
-    ?~  maybe-resolved-scalar
-      ~|("no scalar found!" !!)
-    %:  evaluate-datum-or-scalar
-      (need maybe-resolved-scalar)
-      named-ctes
-      qualifier-lookup
-      map-meta
-      scalars
-    ==
-  ::(prepare-scalar scalar named-ctes qualifier-lookup map-meta scalars)
-  ~|("to do" !!)
+    ~|("to do: lookup cte-name not implemented" !!)
+  ?.  =(%scalar-name -.datum)  ~|("evaluate-datum-or-scalar: can't get here" !!)
+  =/  maybe-resolved-scalar  (~(get by scalars) name:;;(scalar-name datum))
+  ?~  maybe-resolved-scalar
+    ~|("no scalar found!" !!)
+  %:  evaluate-datum-or-scalar
+    (need maybe-resolved-scalar)
+    named-ctes
+    qualifier-lookup
+    map-meta
+    scalars
+  ==
 ::
 ++  prepare-if-then-else
   |=  $:  scalar=if-then-else:ast
@@ -198,10 +206,22 @@
   =/  qualified-if  (normalize-predicate if.scalar qualifier-lookup)
   =/  pred-result
     (pred-ops-and-conjs qualified-if map-meta qualifier-lookup)
-  |=  d=data-row
-  ?:  =((pred-result d) %.y)
-    ((evaluate-datum-or-scalar then.scalar named-ctes qualifier-lookup map-meta scalars) d)
-    ((evaluate-datum-or-scalar else.scalar named-ctes qualifier-lookup map-meta scalars) d)
+  |=  =data-row
+  ?:  =((pred-result data-row) %.y)
+    %-  %:  evaluate-datum-or-scalar  then.scalar
+                                      named-ctes
+                                      qualifier-lookup
+                                      map-meta
+                                      scalars
+                                      ==
+        data-row
+  %-  %:  evaluate-datum-or-scalar  else.scalar
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    scalars
+                                    ==
+      data-row
 ::
 ++  prepare-case
   |=  $:  scalar=case:ast
@@ -325,44 +345,39 @@
           scalars=(map @t scalar-function:ast)
           ==
   ^-  $-(data-row dime)
-
-    ~|("coalesce: not implemented" !!)
-
-  ::::=/  datums  data.scalar
-  ::::|-
-  ::::::^-  $-(=data-row dime)
-  ::::?~  datums
-  ::::  ::|=  *
-  ::::  ~|("coalesce: couldn't resolve any column" !!)
-  ::::=/  datum  -.datums
-  ::::?:  ?&  ?=(qualified-column:ast datum)
-  ::::        ?=(%qualified-map-meta -.map-meta)
-  ::::        ==
-  ::::  |=  =data-row
-  ::::  =/  res  (get-column-data-coalesce data-row map-meta datum)
-  ::::  ?~  res
-  ::::    (^$(datums +.datums) data-row)
-  ::::  (need res)
-  ::::?.  ?=(unqualified-column:ast datum)
-  ::::  ~|("coalesce: can only use columns" !!)
-  ::::  :: for some reason name.datum doesn't work
-  ::::  =/  maybe-table-list  (~(get by qualifier-lookup) +<.datum)
-  ::::  ?~  maybe-table-list
-  ::::    $(datums +.datums)
-  ::::  =/  table-list  (need maybe-table-list)
-  ::::  ?:  (gth (lent table-list) 1)
-  ::::    $(datums +.datums) 
-  ::::  =/  column=qualified-column:ast
-  ::::    [%qualified-column -.table-list +<.datum ~]
-  ::::  ::?>  ?=(%qualified-map-meta -.map-meta)
-  ::::  ::|=  =data-row
-  ::::  ::=/  res  (get-column-data-coalesce data-row map-meta column)
-  ::::  ::?~  res
-  ::::  ::  (^$(datums +.datums) data-row)
-  ::::  ::(need res)
-  ::::  !!
-  ::::::|=  *
-  ::::::~|("coalesce: can only use columns" !!)
+  =/  datums  data.scalar
+  |-
+  ::^-  $-(=data-row dime)
+  ?~  datums
+    ~|("coalesce: couldn't resolve any column" !!)
+  =/  datum  -.datums
+  ?:  ?&  =(%qualified-column -.datum)
+          =(%qualified-map-meta -.map-meta)
+          ==
+    |=  =data-row
+    =/  res  %^  get-column-data-coalesce  data-row
+                                           ;;(qualified-map-meta map-meta)
+                                           ;;(qualified-column:ast datum)
+    ?~  res
+      (^$(datums +.datums) data-row)
+    (need res)
+  ?:  =(%unqualified-column:ast -.datum)
+    :: for some reason name.datum doesn't work
+    =/  maybe-table-list  (~(get by qualifier-lookup) name:;;(unqualified-column datum))
+    ?~  maybe-table-list
+      $(datums +.datums)
+    =/  table-list  (need maybe-table-list)
+    ?:  (gth (lent table-list) 1)
+      $(datums +.datums) 
+    =/  column=qualified-column:ast
+      [%qualified-column -.table-list name:;;(unqualified-column datum) ~]
+    ?>  ?=(%qualified-map-meta -.map-meta)
+    |=  =data-row
+    =/  res  (get-column-data-coalesce data-row map-meta column)
+    ?~  res
+      (^$(datums +.datums) data-row)
+    (need res)
+  ~|("coalesce: can only use columns" !!)
 ::
 ::::++  prepare-arithmetic
 ::::    |=  $:

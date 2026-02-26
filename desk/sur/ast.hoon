@@ -294,7 +294,7 @@
     unqualified-column
     literal-value
     cte-name
-    scalar-function
+    scalar-function   ::to do: swap out for scalar-name, depending on arithmetic?
     ==
 ::
 +$  scalar-function
