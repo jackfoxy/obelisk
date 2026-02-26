@@ -142,11 +142,27 @@
 +$  datum         $%(qualified-column unqualified-column dime)
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
++$  arithmetic-node  $%  datum-or-scalar
+                         arithmetic
+                         abs
+                         ceiling
+                         day
+                         floor
+                         len
+                         log
+                         month
+                         power
+                         round
+                         sign
+                         sqrt
+                         year
+                         ==
+                         
 +$  arithmetic
   $:  %arithmetic
     operator=arithmetic-op
-    left=datum-or-scalar
-    right=datum-or-scalar
+    left=arithmetic-node
+    right=arithmetic-node
     ==
 +$  if-then-else
   $:  %if-then-else
@@ -294,7 +310,8 @@
     unqualified-column
     literal-value
     cte-name
-    scalar-function   ::to do: swap out for scalar-name, depending on arithmetic?
+    scalar-name
+    ::::scalar-function   ::to do: swap out for scalar-name, depending on arithmetic?
     ==
 ::
 +$  scalar-function
@@ -303,7 +320,7 @@
     case
     coalesce
     arithmetic
-    scalar-name
+    ::::scalar-name
     :: builtin functions
     getutcdate
     day

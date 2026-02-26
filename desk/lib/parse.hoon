@@ -5062,8 +5062,8 @@
     (compute-precedence %ket)
   (add (compute-precedence op) 1)
 ++  tree-to-arithmetic
-  |=  t=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
-  ^-  datum-or-scalar:ast
+  |=  t=(tree $?(arithmetic-op:ast arithmetic-node:ast))
+  ^-  arithmetic-node:ast
   ?@  t
     ~|("tree-to-arithmetic: received ~ tree" !!)
   ?:  ?=(arithmetic-op:ast n.t)
@@ -5078,8 +5078,8 @@
 ++  process-arithmetic-list
   :: process arithmetic list with precedence climbing
   |=  [ops=* min-prec=@ud aliases=alias-maps]
-  ^-  [tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast)) remaining=*]
-  =/  tr=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
+  ^-  [tree=(tree $?(arithmetic-op:ast arithmetic-node:ast)) remaining=*]
+  =/  tr=(tree $?(arithmetic-op:ast arithmetic-node:ast))
     ?:  ?=([%literal *] -.ops)
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
@@ -5097,7 +5097,7 @@
   ?:  (gte current-op-prec min-prec)
     =/  next-min-prec  (calculate-min-precedence next-operator)
     =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec aliases)
-    =/  new-tree=(tree $?(arithmetic-op:ast datum-or-scalar:ast))
+    =/  new-tree=(tree $?(arithmetic-op:ast arithmetic-node:ast))
       [next-operator tr tree.expr-to-the-right]
     $(tr new-tree, ops remaining.expr-to-the-right)
   [tr ops]
