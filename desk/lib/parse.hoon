@@ -5023,27 +5023,64 @@
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
-++  check-cook-and-finalize-builtin-fn
+++  finalize-math-builtin-fn
   |=  [builtin-fn=[@tas *] aliases=alias-maps]
-  ?:  ?!  ?|  =(-.builtin-fn %abs)
-              =(-.builtin-fn %ceiling)
-              =(-.builtin-fn %day)
-              =(-.builtin-fn %floor)
-              =(-.builtin-fn %len)
-              =(-.builtin-fn %log)
-              =(-.builtin-fn %month)
-              =(-.builtin-fn %power)
-              =(-.builtin-fn %round)
-              =(-.builtin-fn %sign)
-              =(-.builtin-fn %sqrt)
-              =(-.builtin-fn %year)
-          ==
-    =/  error-message
-      "cannot use scalar {<`@tas`-.builtin-fn>} in arithmetic ".
-      "expression, allowed scalars: %abs %ceiling %day %floor ".
-      "%len %log %month %power %round %sign %sqrt %year" 
-    ~|(error-message !!)
-  (cook-and-finalize-builtin-scalar-fn builtin-fn aliases)
+  ^-  arithmetic-node:ast
+  =/  fn-name  -.builtin-fn
+  =/  param-count  +<.builtin-fn
+  =/  raw-scalar-body  +>.builtin-fn
+  ?:  =(%abs fn-name)
+    ^-  abs:ast
+    [%abs (finalize-param raw-scalar-body aliases)]
+  ?:  =(%ceiling fn-name)
+    ^-  ceiling:ast
+    [%ceiling (finalize-param raw-scalar-body aliases)]
+  ?:  =(%day fn-name)
+    ^-  day:ast
+    [%day (finalize-param raw-scalar-body aliases)]
+  ?:  =(%floor fn-name)
+    ^-  floor:ast
+    [%floor (finalize-param raw-scalar-body aliases)]
+  ?:  =(%len fn-name)
+    ^-  len:ast
+    [%len (finalize-param raw-scalar-body aliases)]
+  ?:  =(%log fn-name)
+    ?:  =(%one-param param-count)
+      ^-  log:ast
+      [%log (finalize-param raw-scalar-body aliases) ~]
+    ?:  =(%two-param param-count)
+      ^-  log:ast
+      [%log (finalize-param -.raw-scalar-body aliases) (some (finalize-param +.raw-scalar-body aliases))]
+    ~|("finalize-math-builtin-fn: %log requires one or two params" !!)
+  ?:  =(%month fn-name)
+    ^-  month:ast
+    [%month (finalize-param raw-scalar-body aliases)]
+  ?:  =(%power fn-name)
+    ^-  power:ast
+    [%power (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
+  ?:  =(%round fn-name)
+    ?:  =(%two-param param-count)
+      ^-  round:ast
+      [%round (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases) ~]
+    ?:  =(%three-param param-count)
+      ^-  round:ast
+      :*  %round
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +<.raw-scalar-body aliases)
+          (some (finalize-param +>.raw-scalar-body aliases))
+      ==
+    ~|("finalize-math-builtin-fn: %round requires two or three params" !!)
+  ?:  =(%sign fn-name)
+    ^-  sign:ast
+    [%sign (finalize-param raw-scalar-body aliases)]
+  ?:  =(%sqrt fn-name)
+    ^-  sqrt:ast
+    [%sqrt (finalize-param raw-scalar-body aliases)]
+  ?:  =(%year fn-name)
+    ^-  year:ast
+    [%year (finalize-param raw-scalar-body aliases)]
+  ~|  "finalize-math-builtin-fn: cannot use {<fn-name>} in arithmetic expression"
+  !!
 ++  compute-precedence
   |=  op=arithmetic-op:ast
   ^-  @ud
@@ -5083,7 +5120,7 @@
     ?:  ?=([%literal *] -.ops)
       [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
-      [(check-cook-and-finalize-builtin-fn ->.ops aliases) ~ ~]
+      [(finalize-math-builtin-fn ->.ops aliases) ~ ~]
     =/  nested  (process-arithmetic-list -.ops 0 aliases)
     tree.nested
   |-

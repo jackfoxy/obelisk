@@ -52,22 +52,22 @@
 ++  u-col-5           [%unqualified-column %col5 ~]
 ++  u-col-6           [%unqualified-column %col6 ~]
 ::
-++  qual-type-lookup  %-  mk-qualified-map-meta
-                          :~  :-  qualified-table-1
-                                  %-  addr-columns  :~  [%column %col1 ~.ud 0]
-                                                        [%column %col2 ~.ud 0]
-                                                        [%column %col3 ~.ud 0]
-                                                        [%column %col4 ~.ud 0]
-                                                        [%column %col5 ~.ud 0]
-                                                        [%column %col6 ~.ud 0]
-                                                        ==
-                              ==
+++  qual-map-meta  %-  mk-qualified-map-meta
+                       :~  :-  qualified-table-1
+                               %-  addr-columns  :~  [%column %col1 ~.ud 0]
+                                                     [%column %col2 ~.ud 0]
+                                                     [%column %col3 ~.ud 0]
+                                                     [%column %col4 ~.ud 0]
+                                                     [%column %col5 ~.ud 0]
+                                                     [%column %col6 ~.ud 0]
+                                                     ==
+                           ==
 ::
-++  unqual-type-lookup  %-  mk-unqualified-typ-addr-lookup
-                            %-  addr-columns  :~  [%column %col4 ~.ud 0]
-                                                  [%column %col5 ~.ud 0]
-                                                  [%column %col6 ~.ud 0]
-                                                  ==
+++  unqual-map-meta  %-  mk-unqualified-typ-addr-lookup
+                         %-  addr-columns  :~  [%column %col4 ~.ud 0]
+                                               [%column %col5 ~.ud 0]
+                                               [%column %col6 ~.ud 0]
+                                               ==
 ::
 ++  qualifier-lookup  %-  malt
                            %-  limo
@@ -113,10 +113,9 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  coalesce-lookups  [qualifier-lookup qual-type-lookup]
-  =/  coalesce-expr=coalesce:ast  [%coalesce data=datums.row]
+  =/  coalesce-expr  [%scalar %my-scalar [%coalesce data=datums.row]]
   =/  scalar-to-apply
-      (prepare-scalar coalesce-expr table-named-ctes coalesce-lookups table-scalars)
+      (prepare-scalar coalesce-expr table-named-ctes qualifier-lookup qual-map-meta table-scalars)
   %+  expect-eq
     !>  expected.row
     !>  (apply-scalar table-row scalar-to-apply)
@@ -157,7 +156,7 @@
 ::
 :: scala-alias tests
 ::++  test-scalar-name
-::  =/  lookups  [qualifier-lookup qual-type-lookup]
+::  =/  lookups  [qualifier-lookup qual-map-meta]
 ::  =/  expr=scalar-name:ast  [%scalar-name alias=%scalar1]
 ::  =/  scalar-to-apply
 ::      (prepare-scalar expr table-named-ctes lookups table-scalars)
@@ -167,7 +166,7 @@
 ::::
 :::: test what happens if no column matches
 ::++  test-fail-scalar-name-01
-::  =/  lookups  [qualifier-lookup qual-type-lookup]
+::  =/  lookups  [qualifier-lookup qual-map-meta]
 ::  =/  expr=scalar-name:ast  [%scalar-name alias=%scalarfoo]
 ::  =/  scalar-to-apply
 ::      (prepare-scalar expr table-named-ctes lookups table-scalars)

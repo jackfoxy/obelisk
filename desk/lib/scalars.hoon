@@ -180,13 +180,14 @@
   =/  maybe-resolved-scalar  (~(get by scalars) name:;;(scalar-name datum))
   ?~  maybe-resolved-scalar
     ~|("no scalar found!" !!)
-  %:  evaluate-datum-or-scalar
-    (need maybe-resolved-scalar)
-    named-ctes
-    qualifier-lookup
-    map-meta
-    scalars
-  ==
+  ::::%:  evaluate-datum-or-scalar
+  ::::  (need maybe-resolved-scalar)
+  ::::  named-ctes
+  ::::  qualifier-lookup
+  ::::  map-meta
+  ::::  scalars
+  ::::==
+  !!
 ::
 ++  prepare-if-then-else
   |=  $:  scalar=if-then-else:ast

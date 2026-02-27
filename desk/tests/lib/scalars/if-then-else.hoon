@@ -52,10 +52,9 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  pred-lookups  [qualifier-lookup qual-type-lookup]
-  =/  if-expr       [%if-then-else if=pred.row then=then.row else=else.row]
+  =/  if-expr  [%scalar %my-scalar [%if-then-else if=pred.row then=then.row else=else.row]]
   =/  scalar-to-apply
-    (prepare-scalar if-expr table-named-ctes pred-lookups embedded-scalars)
+    (prepare-scalar if-expr table-named-ctes qualifier-lookup qual-map-meta embedded-scalars)
   %+  expect-eq
     !>  expected.row
     !>  (apply-scalar table-row scalar-to-apply)
@@ -68,24 +67,24 @@
 ++  u-col-5             [%unqualified-column %col5 ~]
 ++  u-col-6             [%unqualified-column %col6 ~]
 ::
-++  qual-type-lookup  %-  mk-qualified-map-meta
-                          :~  :-  qualified-table-1
-                              %-  addr-columns  :~  [%column %col1 ~.ud 0]
-                                                    [%column %col2 ~.ud 0]
-                                                    [%column %col3 ~.ud 0]
-                                                    [%column %col4 ~.ud 0]
-                                                    [%column %col5 ~.ud 0]
-                                                    [%column %col6 ~.ud 0]
-                                                    ==
-                              ==
+++  qual-map-meta  %-  mk-qualified-map-meta
+                       :~  :-  qualified-table-1
+                           %-  addr-columns  :~  [%column %col1 ~.ud 0]
+                                                 [%column %col2 ~.ud 0]
+                                                 [%column %col3 ~.ud 0]
+                                                 [%column %col4 ~.ud 0]
+                                                 [%column %col5 ~.ud 0]
+                                                 [%column %col6 ~.ud 0]
+                                                 ==
+                           ==
 ::
-++  unqual-type-lookup  :-  %unqualified-lookup-type
-                            %-  mk-unqualified-typ-addr-lookup
-                                %-  addr-columns
-                                    :~  [%column %col4 ~.ud 0]
-                                        [%column %col5 ~.ud 0]
-                                        [%column %col6 ~.ud 0]
-                                        ==
+++  unqual-map-meta  :-  %unqualified-lookup-type
+                         %-  mk-unqualified-typ-addr-lookup
+                             %-  addr-columns
+                                 :~  [%column %col4 ~.ud 0]
+                                     [%column %col5 ~.ud 0]
+                                     [%column %col6 ~.ud 0]
+                                     ==
 ::
 ++  qualifier-lookup  %-  malt
                            %-  limo

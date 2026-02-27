@@ -46,16 +46,16 @@
 ::  table testing harness
 ::
 ++  map-meta  %-  mk-qualified-map-meta
-                          :~  :-  qualified-table-1
-                                  %-  addr-columns
-                                      :~  [%column %col1 ~.ud 0]
-                                          [%column %col2 ~.ud 0]
-                                          [%column %col3 ~.ud 0]
-                                          [%column %col4 ~.ud 0]
-                                          [%column %col5 ~.ud 0]
-                                          [%column %col6 ~.ud 0]
-                                          ==
-                              ==
+                  :~  :-  qualified-table-1
+                          %-  addr-columns
+                              :~  [%column %col1 ~.ud 0]
+                                  [%column %col2 ~.ud 0]
+                                  [%column %col3 ~.ud 0]
+                                  [%column %col4 ~.ud 0]
+                                  [%column %col5 ~.ud 0]
+                                  [%column %col6 ~.ud 0]
+                                  ==
+                      ==
 ::
 ++  qualifier-lookup  %-  malt
                            %-  limo
@@ -97,14 +97,14 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  when-lookups  [qualifier-lookup map-meta]
-  =/  expr=arithmetic:ast  :*  %arithmetic
+  =/  expr  :+  %scalar  %my-scalar
+                         :*  %arithmetic
                              operator=operator.row
                              left=left.row
                              right=right.row
-                           ==
+                             ==
   =/  scalar-to-apply
-    (prepare-scalar expr ctes when-lookups scalars)
+    (prepare-scalar expr ctes qualifier-lookup map-meta scalars)
   %+  expect-eq
     !>  expected.row
     !>  (apply-scalar table-row scalar-to-apply)
@@ -139,13 +139,13 @@
 ::
 ::  set up some costant context for tests
 ::
-++  arithmetic-q-col-1                  [%qualified-column qualified-table-1 %col1 ~]
-++  arithmetic-q-col-2                  [%qualified-column qualified-table-1 %col2 ~]
-++  arithmetic-q-col-3                  [%qualified-column qualified-table-1 %col3 ~]
+++  arithmetic-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  arithmetic-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  arithmetic-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
 ::
-++  arithmetic-u-col-4                  [%unqualified-column %col4 ~]
-++  arithmetic-u-col-5                  [%unqualified-column %col5 ~]
-++  arithmetic-u-col-6                  [%unqualified-column %col6 ~]
+++  arithmetic-u-col-4  [%unqualified-column %col4 ~]
+++  arithmetic-u-col-5  [%unqualified-column %col5 ~]
+++  arithmetic-u-col-6  [%unqualified-column %col6 ~]
 ::
 ::
 ::

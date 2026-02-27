@@ -3271,8 +3271,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
-    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    'finalize-math-builtin-fn: cannot use %concat in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function LEFT with subtraction operator
@@ -3284,8 +3283,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
-    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    'finalize-math-builtin-fn: cannot use %left in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function RIGHT with multiplication operator
@@ -3297,8 +3295,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %right in arithmetic expression, allowed scalars: %abs\
-    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    'finalize-math-builtin-fn: cannot use %right in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function SUBSTRING with division operator
@@ -3310,9 +3307,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %substring in arithmetic expression, allowed scalars:\
-    / %abs %ceiling %day %floor %len %log %month %power %round %sign %sqrt\
-    / %year'
+    'finalize-math-builtin-fn: cannot use %substring in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function TRIM with exponentiation operator
@@ -3324,8 +3319,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %trim in arithmetic expression, allowed scalars: %abs\
-    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    'finalize-math-builtin-fn: cannot use %trim in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing date function GETUTCDATE with addition operator
@@ -3337,9 +3331,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %getutcdate in arithmetic expression, allowed scalars:\
-    / %abs %ceiling %day %floor %len %log %month %power %round %sign %sqrt\
-    / %year'
+    'finalize-math-builtin-fn: cannot use %getutcdate in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string on both sides of operator
@@ -3351,8 +3343,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %left in arithmetic expression, allowed scalars: %abs\
-    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    'finalize-math-builtin-fn: cannot use %left in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test nested arithmetic with string function
@@ -3364,8 +3355,7 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'cannot use scalar %concat in arithmetic expression, allowed scalars: %abs\
-    / %ceiling %day %floor %len %log %month %power %round %sign %sqrt %year'
+    'finalize-math-builtin-fn: cannot use %concat in arithmetic expression'
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test single operand in arithmetic expression
