@@ -2090,7 +2090,7 @@
   ==
 ++  parse-with  ~+
   ;~  plug
-    parse-ctes
+    (more com ;~(pose with-stop parse-cte))
     ;~  pose
       ;~  plug
         (cold %delete ;~(plug (jester 'delete') whitespace (jester 'from')))
@@ -2144,8 +2144,6 @@
       ==
     ;~(pose ;~(sfix parse-alias whitespace) parse-alias)
   ==
-++  parse-ctes  ~+
-  (more com ;~(pose with-stop parse-cte))
 ++  parse-revoke  ~+
   ;~  plug
     :: permission
@@ -2175,24 +2173,24 @@
                     ==
           ==
     :: revoke-objects
-    parse-revoke-objects
-    ;~(sfix parse-grant-duration end-or-next-command)
-  ==
-++  parse-revoke-objects
-  ;~  pfix
-    whitespace
     ;~  pfix
-      (jester 'on')
-      %+  more  com  
-                ;~  pose  ;~  pfix  whitespace
-                                    ;~(sfix parse-revoke-object whitespace)
-                                    ==
-                          ;~(pfix whitespace parse-revoke-object)
-                          ;~(sfix parse-revoke-object whitespace)
-                          parse-revoke-object
-                          ==
-    ==
-  ==
+          whitespace
+          ;~  pfix
+            (jester 'on')
+            %+  more  com  
+                      ;~  pose  ;~  pfix  whitespace
+                                          ;~  sfix  parse-revoke-object 
+                                                    whitespace
+                                                    ==
+                                          ==
+                                ;~(pfix whitespace parse-revoke-object)
+                                ;~(sfix parse-revoke-object whitespace)
+                                parse-revoke-object
+                                ==
+          ==
+        ==
+    ;~(sfix parse-grant-duration end-or-next-command)
+  == 
 ++  parse-revoke-object
   ;~  pose  (jester 'all')
             (jester 'server')
@@ -3347,7 +3345,6 @@
 ::  parser rules and helpers
 ::
 ++  whitespace  ~+  (star ;~(pose gah (just '\09') (just '\0d')))
-++  prn-less-soz  ~+  ;~(less (just `@`39) (just `@`127) (shim 32 256))
 ::
 ++  when
   ::  replace when:so until https://github.com/urbit/urbit/issues/6870
@@ -3572,10 +3569,6 @@
 ::
 ::  working with atomic value literals
 ::
-++  cord-literal  ~+
-  %:  cook  |=(a=(list @t) [%t (crip a)])
-        (ifix [soq soq] (star ;~(pose (cold '\'' (jest '\\\'')) prn-less-soz)))
-            ==
 ++  numeric-parser  ~+
   ;~  pose
     (stag %ud (full dem:ag))                      :: formatted @ud
@@ -3589,15 +3582,19 @@
   ==
 ++  non-numeric-parser  ~+
   ;~  pose
-    cord-literal
+    :: cord literal
+    %:  cook  |=(a=(list @t) [%t (crip a)])
+              %+  ifix  [soq soq]
+              %-  star
+              ;~  pose  (cold '\'' (jest '\\\''))
+                        ;~(less (just `@`39) (just `@`127) (shim 32 256))
+                        ==
+              ==
     ;~(pose ;~(pfix sig crub-no-text) crub-no-text)  :: @da, @dr, @p
     (stag %f ;~(pose (cold & (jester 'y')) (cold | (jester 'n'))))  :: @if
     (stag %is ;~(pfix (just '.') bip:ag))            :: @is
     (stag %if ;~(pfix (just '.') lip:ag))            :: @if
   ==
-++  cook-numbers  ~+                               :: works for insert values
-  |=  a=(list @t)
-  ~|("error on numeric parser {<a>} " (scan a numeric-parser))
 ++  sear-numbers  ~+                               :: works for predicate values
   |=  a=(list @t)
   =/  parsed  (numeric-parser [[1 1] a])      :: to do: this is inside-out
@@ -3622,7 +3619,12 @@
 ++  insert-value  ~+
   ;~  pose
     (cold %default (jester 'default'))  :: \/ to do: inside-out
-    ;~(pose non-numeric-parser (cook cook-numbers numeric-characters))
+    ;~  pose  non-numeric-parser
+              %+  cook  |=  a=(list @t)
+                            ~|  "error on numeric parser {<a>} "
+                                (scan a numeric-parser)
+                        numeric-characters
+              ==
   ==
 ++  get-value-literal  ~+
   ;~(sfix ;~(pfix whitespace parse-value-literal) whitespace)
@@ -4110,11 +4112,6 @@
       (cold %outer-join ;~(plug (jester 'outer') whitespace (jester 'join')))
     ==
   ==
-++  parse-cross-join-type  ~+
-  ;~  pfix
-    whitespace
-    (cold %cross-join ;~(plug (jester 'cross') whitespace (jester 'join')))
-  ==
 ++  build-query-object  ~+
   |=  parsed=*
   ^-  $?  relation:ast
@@ -4181,8 +4178,6 @@
     whitespace
     (cook build-query-object query-object)
   ==
-++  parse-cross-join-obj  ~+
-  ;~(plug parse-cross-join-type parse-query-object)
 ++  parse-natural-join  ~+
   ;~  plug
     ;~  pfix  whitespace
@@ -4199,7 +4194,19 @@
 ++  parse-object-and-joins  ~+
   ;~  plug
     parse-query-object
-    (star ;~(pose parse-join-obj parse-natural-join parse-cross-join-obj))
+    %-  star  ;~  pose  parse-join-obj
+                        parse-natural-join
+                        ;~  plug
+                          ;~  pfix  whitespace
+                                    %+  cold  %cross-join
+                                              ;~  plug  (jester 'cross')
+                                                        whitespace
+                                                        (jester 'join')
+                                                        ==
+                                    ==
+                          parse-query-object
+                          ==
+                        ==
   ==
 ++  make-query-object
   |=  a=*
@@ -5238,10 +5245,6 @@
 ::
 ::  select
 ::
-++  parse-alias-all  ~+
-  (stag %all-columns ;~(sfix parse-alias ;~(plug dot tar)))
-++  parse-object-all  ~+
-  (stag %all-columns ;~(sfix parse-qualified-table ;~(plug dot tar)))
 ++  parse-selection  ~+
   ;~  pose
     ;~  plug
@@ -5250,8 +5253,8 @@
       ;~(pfix whitespace alias)
     ==
     parse-selected-aggregate
-    parse-alias-all
-    parse-object-all
+    (stag %all-columns ;~(sfix parse-alias ;~(plug dot tar)))
+    (stag %all-columns ;~(sfix parse-qualified-table ;~(plug dot tar)))
     ;~  plug
       ;~(sfix ;~(pose parse-qualified-column parse-value-literal) whitespace)
       (cold %as (jester 'as'))
@@ -5288,14 +5291,13 @@
 ::
 ::  group and order by
 ::
-++  parse-grouping-column
-  (ifix [whitespace whitespace] ;~(pose parse-qualified-column dem))
 ++  parse-group-by
   ;~  plug
     %:  cold  %group-by
               ;~(plug whitespace (jester 'group') whitespace (jester 'by'))
               ==
-    (more com parse-grouping-column)
+    %+  more  com 
+              (ifix [whitespace whitespace] ;~(pose parse-qualified-column dem))
   ==
 ++  cook-ordering-column
   |=  parsed=*
