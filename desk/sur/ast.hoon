@@ -140,171 +140,8 @@
     ==
 +$  predicate     (tree predicate-component)
 +$  datum         $%(qualified-column unqualified-column dime)
-+$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
-+$  arithmetic-token  ?(%pal %par arithmetic-op)
-+$  arithmetic-node  $%  datum-or-scalar
-                         arithmetic
-                         abs
-                         ceiling
-                         day
-                         floor
-                         len
-                         log
-                         month
-                         power
-                         round
-                         sign
-                         sqrt
-                         year
-                         ==
-                         
-+$  arithmetic
-  $:  %arithmetic
-    operator=arithmetic-op
-    left=arithmetic-node
-    right=arithmetic-node
-    ==
-+$  if-then-else
-  $:  %if-then-else
-    if=predicate                         :: predicate | datum
-    then=datum-or-scalar
-    else=datum-or-scalar
-    ==
-+$  case-when-then
-  $:  %case-when-then
-    when=$%(predicate datum-or-scalar)                       :: predicate | datum
-    then=datum-or-scalar
-    ==
-+$  case
-  $:  %case
-    target=(unit datum-or-scalar)
-    cases=(list case-when-then)
-    else=(unit datum-or-scalar)
-    ==
-+$  coalesce
-  $+  coalesce
-  $:  %coalesce
-    data=(list datum-or-scalar)
-    ==
 ::
-::  datetime functions
-::
-++  getutcdate-signature  [params=~ ret=~.da]
-+$  getutcdate
-  $:  %getutcdate
-    ~
-  ==
-++  day-signature  [params=~[~.da] ret=~.ud]
-+$  day
-  $:  %day
-    date=datum-or-scalar
-  ==
-++  month-signature  [params=~[~.da] ret=~.ud]
-+$  month
-  $:  %month
-    date=datum-or-scalar
-  ==
-++  year-signature  [params=~[~.da] ret=~.ud]
-+$  year
-  $:  %year
-    date=datum-or-scalar
-  ==
-::
-::  mathematical functions
-::
-++  abs-signature  [params=~[~[~.sb ~.sd ~.si ~.sv ~.sw ~.sx]] ret=~.u]
-+$  abs
-  $:  %abs
-    numeric-expression=datum-or-scalar
-  ==
-++  log-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.sd]]
-+$  log
-  $:  %log
-    float-expression=datum-or-scalar
-    base=(unit datum-or-scalar)
-  ==
-++  floor-signature  [params=~[~.rs] ret=~.rs]
-+$  floor
-  $:  %floor
-    numeric-expression=datum-or-scalar
-  ==
-++  power-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.ud]]
-+$  power
-  $:  %power
-    float-expression=datum-or-scalar
-    exponent=datum-or-scalar
-  ==
-++  ceiling-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
-+$  ceiling
-  $:  %ceiling
-    numeric-expression=datum-or-scalar
-  ==
-++  round-signature  [params=~[~.rs ~.ud ~.ud] ret=~.rs]
-+$  round      
-  $:  %round
-    numeric-expression=datum-or-scalar
-    length=datum-or-scalar
-    function=(unit datum-or-scalar)
-    ==
-++  sign-signature  [params=~[~.sd] ret=~.sd]
-+$  sign
-  $:  %sign
-    numeric-expression=datum-or-scalar
-  ==
-++  sqrt-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.ud]]
-+$  sqrt
-  $:  %sqrt
-    float-expression=datum-or-scalar
-  ==
-::
-::  string functions
-::
-++  len-signature  [params=~[~.t] ret=~.ud]
-+$  len
-  $:  %len
-    string-expression=datum-or-scalar
-  ==
-++  left-signature  [params=~[~.t ~.ud] ret=~.t]
-+$  left
-  $:  %left
-    character-expression=datum-or-scalar
-    integer-expression=datum-or-scalar
-  ==
-++  right-signature  [params=~[~.t ~.ud] ret=~.t]
-+$  right
-  $:  %right
-    character-expression=datum-or-scalar
-    integer-expression=datum-or-scalar
-  ==
-++  substring-signature  [params=~[~.t ~.ud ~.ud] ret=~.t]
-+$  substring  
-  $:  %substring
-    string-expression=datum-or-scalar
-    start=datum-or-scalar
-    length=datum-or-scalar
-    ==
-++  trim-signature  [params=~[~.t ~.t] ret=~.t]
-+$  trim
-  $:  %trim
-    characters=(unit datum-or-scalar)
-    string=datum-or-scalar
-  ==
-++  concat-signature  [params=~.t ret=~.t]
-+$  concat
-  $+  concat
-  :: if we remove this bucpat the type checker loops infinitely
-  :: scalar-function -> concat -> datum-or-scalar -> scalar-function
-  $:  %concat
-    args=$@(~ (list datum-or-scalar))
-  ==
-::
-+$  scalar
-  $:  %scalar
-    name=@tas
-    scalar=scalar-function
-    ==
-::
-+$  datum-or-scalar  
++$  datum-or-scalar
   $%
     qualified-column
     unqualified-column
@@ -314,36 +151,8 @@
     ::::scalar-function   ::to do: swap out for scalar-name, depending on arithmetic?
     ==
 ::
-+$  scalar-function
-  $%
-    if-then-else
-    case
-    coalesce
-    arithmetic
-    ::::scalar-name
-    :: builtin functions
-    getutcdate
-    day
-    month
-    year
-    abs
-    log
-    floor
-    power
-    ceiling
-    round
-    sign
-    sqrt
-    len
-    left
-    right
-    substring
-    trim
-    concat
-    ==
 +$  literal-value  $:(%literal-value =dime)
 +$  cte-name      $:(%cte-name name=@tas)
-+$  scalar-name   $:(%scalar-name name=@tas)
 ::
 ::  query
 ::
@@ -682,7 +491,7 @@
 ::
 ::  $grantee: ?(%parent %siblings %moons %our @p)
 ::            $dime
-+$  grantee  
++$  grantee
   $?
     [@ta %parent]
     [@ta %siblings]
@@ -695,7 +504,7 @@
 +$  revoke-from          ?(%parent %siblings %moons %all)
 ::
 ::  $grant-object: ?(%server %database %namespace %table %table-column)
-+$  grant-object  
++$  grant-object
   $%
     [%server %server]
     [%database @tas]
@@ -742,7 +551,7 @@
     [%table-column path]
     ==
 ::ela
-::  $revoke:  permission=revoke-permission from=revoke-from 
+::  $revoke:  permission=revoke-permission from=revoke-from
 ::            revoke-target=revoke-object
 +$  revoke
   $:  %revoke
@@ -753,7 +562,7 @@
     ==
 ::
 ::  $security-group
-+$  security-group 
++$  security-group
   $:  %security-group
     grantees=(list [dime (unit path)])
     ==
@@ -763,4 +572,219 @@
   $:  %security-target
     grant-objects=(list grant-object)
     ==
+::
+::  SCALARS
+::
++$  scalar
+  $:  %scalar
+    name=@tas
+    scalar=scalar-function
+    ==
+::
++$  scalar-function
+  $%
+    if-then-else
+    case
+    coalesce
+    arithmetic
+    ::::scalar-name
+    :: builtin functions
+    getutcdate
+    day
+    month
+    year
+    abs
+    log
+    floor
+    power
+    ceiling
+    round
+    sign
+    sqrt
+    len
+    left
+    right
+    substring
+    trim
+    concat
+    ==
+::
++$  scalar-name   $:(%scalar-name name=@tas)
+::
++$  arithmetic
+  $:  %arithmetic
+    operator=arithmetic-op
+    left=arithmetic-node
+    right=arithmetic-node
+    ==
+::
++$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
++$  arithmetic-token  ?(%pal %par arithmetic-op)
++$  arithmetic-node  $%  datum-or-scalar
+                         arithmetic
+                         abs
+                         ceiling
+                         day
+                         floor
+                         len
+                         log
+                         month
+                         power
+                         round
+                         sign
+                         sqrt
+                         year
+                         ==
+::
++$  if-then-else
+  $:  %if-then-else
+    if=predicate
+    then=datum-or-scalar
+    else=datum-or-scalar
+    ==
+::
++$  case-when-then
+  $:  %case-when-then
+    when=$%(predicate datum-or-scalar)
+    then=datum-or-scalar
+    ==
+::
++$  case
+  $:  %case
+    target=(unit datum-or-scalar)
+    cases=(list case-when-then)
+    else=(unit datum-or-scalar)
+    ==
+::
++$  coalesce
+  $+  coalesce
+  $:  %coalesce
+    data=(list datum-or-scalar)
+    ==
+::
+::  datetime functions
+::
+++  getutcdate-signature  [params=~ ret=~.da]
++$  getutcdate
+  $:  %getutcdate
+    ~
+  ==
+::
+++  day-signature  [params=~[~.da] ret=~.ud]
++$  day
+  $:  %day
+    date=datum-or-scalar
+  ==
+::
+++  month-signature  [params=~[~.da] ret=~.ud]
++$  month
+  $:  %month
+    date=datum-or-scalar
+  ==
+::
+++  year-signature  [params=~[~.da] ret=~.ud]
++$  year
+  $:  %year
+    date=datum-or-scalar
+  ==
+::
+::  mathematical functions
+::
+++  abs-signature  [params=~[~[~.sb ~.sd ~.si ~.sv ~.sw ~.sx]] ret=~.u]
++$  abs
+  $:  %abs
+    numeric-expression=datum-or-scalar
+  ==
+::
+++  log-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.sd]]
++$  log
+  $:  %log
+    float-expression=datum-or-scalar
+    base=(unit datum-or-scalar)
+  ==
+::
+++  floor-signature  [params=~[~.rs] ret=~.rs]
++$  floor
+  $:  %floor
+    numeric-expression=datum-or-scalar
+  ==
+::
+++  power-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.ud]]
++$  power
+  $:  %power
+    float-expression=datum-or-scalar
+    exponent=datum-or-scalar
+  ==
+::
+++  ceiling-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
++$  ceiling
+  $:  %ceiling
+    numeric-expression=datum-or-scalar
+  ==
+::
+++  round-signature  [params=~[~.rs ~.ud ~.ud] ret=~.rs]
++$  round
+  $:  %round
+    numeric-expression=datum-or-scalar
+    length=datum-or-scalar
+    function=(unit datum-or-scalar)
+    ==
+::
+++  sign-signature  [params=~[~.sd] ret=~.sd]
++$  sign
+  $:  %sign
+    numeric-expression=datum-or-scalar
+  ==
+::
+++  sqrt-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.ud]]
++$  sqrt
+  $:  %sqrt
+    float-expression=datum-or-scalar
+  ==
+::
+::  string functions
+::
+++  len-signature  [params=~[~.t] ret=~.ud]
++$  len
+  $:  %len
+    string-expression=datum-or-scalar
+  ==
+::
+++  left-signature  [params=~[~.t ~.ud] ret=~.t]
++$  left
+  $:  %left
+    character-expression=datum-or-scalar
+    integer-expression=datum-or-scalar
+  ==
+::
+++  right-signature  [params=~[~.t ~.ud] ret=~.t]
++$  right
+  $:  %right
+    character-expression=datum-or-scalar
+    integer-expression=datum-or-scalar
+  ==
+::
+++  substring-signature  [params=~[~.t ~.ud ~.ud] ret=~.t]
++$  substring
+  $:  %substring
+    string-expression=datum-or-scalar
+    start=datum-or-scalar
+    length=datum-or-scalar
+    ==
+::
+++  trim-signature  [params=~[~.t ~.t] ret=~.t]
++$  trim
+  $:  %trim
+    characters=(unit datum-or-scalar)
+    string=datum-or-scalar
+  ==
+::
+++  concat-signature  [params=~.t ret=~.t]
++$  concat
+  $+  concat
+  :: if we remove this bucpat the type checker loops infinitely
+  :: scalar-function -> concat -> datum-or-scalar -> scalar-function
+  $:  %concat
+    args=$@(~ (list datum-or-scalar))
+  ==
 --
