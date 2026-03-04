@@ -1,6 +1,6 @@
 :: this file  will contain code that handles scalars in the engine
 /-  ast, *obelisk
-/+  *predicate, utils, mip
+/+  *predicate, *utils, mip
 |%
 :: inventory:
 :: - we know the qualified table (or tables in case of a join) we're acting on;
@@ -13,28 +13,29 @@
     ^-  dime
     (scalar row)
 ++  prepare-scalar
-  |=  $:  =scalar:ast ::scalar=scalar-function:ast
+  |=  $:  scalar=scalar-function:ast
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @t scalar-function:ast)
+          scalars=(map @tas resolved-scalar)
           ==
-  ^-  $-(data-row dime)
-  ?-  -.scalar.scalar
+  ^-  resolved-scalar
+  ?-  -.scalar
     %if-then-else
-      %:  prepare-if-then-else  scalar.scalar
-                                named-ctes
-                                qualifier-lookup
-                                map-meta
-                                scalars
-                                ==
+      ::::%:  prepare-if-then-else  scalar
+      ::::                          named-ctes
+      ::::                          qualifier-lookup
+      ::::                          map-meta
+      ::::                          scalars
+      ::::                          ==
+      !!
   ::
     %case
       ::(prepare-case scalar named-ctes qualifier-lookup map-meta scalars)
       !!
   ::
     %coalesce
-      %:  prepare-coalesce  scalar.scalar
+      %:  prepare-coalesce  scalar
                             named-ctes
                             qualifier-lookup
                             map-meta
@@ -118,30 +119,23 @@
       !!
   ::
   ==
-++  get-qualified-col-type
+++  got-qualified-col-type
   |=  [=qualified-map-meta col=qualified-column:ast]
   ^-  @ta
   -:(~(got bi:mip +.qualified-map-meta) qualifier.col name.col)
 
-++  get-column-data
+++  got-column-data
   |=  [=qualified-map-meta col=qualified-column:ast =data-row] 
   ^-  dime
+  ~|  "got-column-data: failed for {<col>}"
   ?-  -.data-row
       %joined-row
-        =/  maybe-table  (~(get by data.data-row) qualifier.col)
-        ?~  maybe-table
-          ~|("no table" !!)
-        =/  value  (~(get by (need maybe-table)) name.col)
-        ?~  value
-          ~|("no col" !!)
-        =/  type  (get-qualified-col-type qualified-map-meta col)
-        [type (need value)]
+        :-  (got-qualified-col-type qualified-map-meta col)
+            (~(got bi:mip data.data-row) qualifier.col name.col)
+      ::
       %indexed-row
-        =/  value  (~(get by data.data-row) name.col)
-        ?~  value
-          ~|("no col" !!)
-        =/  type  (get-qualified-col-type qualified-map-meta col)
-        [type (need value)]
+        :-  (got-qualified-col-type qualified-map-meta col)
+            (~(got by data.data-row) name.col)
       ==
 ::
 ++  evaluate-datum-or-scalar
@@ -149,54 +143,44 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas scalar-function:ast)
+          scalars=(map @tas resolved-scalar)
           ==
-  ^-  $-(data-row dime)
-  ?:  =(%qualified-column:ast -.datum)
-    :: to do: check that data-row contains column 
-    :: to do: verify type of column ==
-    ?>  =(%qualified-map-meta -.map-meta)
-    |=  =data-row  %^  get-column-data  ;;(qualified-map-meta map-meta)
-                                        ;;(qualified-column:ast datum)
-                                        data-row
-  ?:  ?=(unqualified-column:ast datum)
-    =/  maybe-table-list  (~(get by qualifier-lookup) name.datum)
-    ?~  maybe-table-list
-      ~|("no table!" !!)
-    =/  table-list  (need maybe-table-list)
-    ?:  (gth (lent table-list) 1)
-      ~|("too many tables!" !!)
-    =/  column=qualified-column:ast
-      [%qualified-column -.table-list name.datum ~]
-    :: not sure if this is good, like at some point i might also get an
-    :: unqualified lookup type
-    ?>  =(%qualified-map-meta -.map-meta)
-    |=(=data-row (get-column-data ;;(qualified-map-meta map-meta) column data-row))
-  ?:  =(%literal-value -.datum)
-    |=(r=data-row ;;(dime +.datum))
+  ^-  resolved-scalar
+  ~|  "evaluate-datum-or-scalar: failed {<datum>}"
+  ?:  =(%literal-value -.datum)  ;;(literal-value:ast datum)
+  ?:  =(%scalar-name -.datum)
+    ~|  "scalar {<name:;;(scalar-name datum)>} not found"
+        (~(got by scalars) name:;;(scalar-name datum))
   ?:  =(%cte-name -.datum)
-    ~|("to do: lookup cte-name not implemented" !!)
-  ?.  =(%scalar-name -.datum)  ~|("evaluate-datum-or-scalar: can't get here" !!)
-  =/  maybe-resolved-scalar  (~(get by scalars) name:;;(scalar-name datum))
-  ?~  maybe-resolved-scalar
-    ~|("no scalar found!" !!)
-  ::::%:  evaluate-datum-or-scalar
-  ::::  (need maybe-resolved-scalar)
-  ::::  named-ctes
-  ::::  qualifier-lookup
-  ::::  map-meta
-  ::::  scalars
-  ::::==
-  !!
+    (cte-to-literal named-ctes datum)
+  ?:  =(%qualified-column:ast -.datum)
+    :+  %fn
+        %+  got-qualified-col-type  ;;(qualified-map-meta map-meta)
+                                    ;;(qualified-column:ast datum)
+        |=  =data-row
+        %^  got-column-data  ;;(qualified-map-meta map-meta)
+                             ;;(qualified-column:ast datum)
+                             data-row
+  :: it must be unqualified-column
+  =/  table-list
+        (~(got by qualifier-lookup) name:;;(unqualified-column:ast datum))
+  ?~  table-list  ~|("no table!" !!)
+  ?:  (gth (lent table-list) 1)  ~|("too many tables!" !!)
+  =/  column=qualified-column:ast
+    [%qualified-column -.table-list name:;;(unqualified-column:ast datum) ~]
+  :+  %fn
+      (got-qualified-col-type ;;(qualified-map-meta map-meta) column)
+      |=  =data-row
+      (got-column-data ;;(qualified-map-meta map-meta) column data-row)
 ::
 ++  prepare-if-then-else
   |=  $:  scalar=if-then-else:ast
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @t scalar-function:ast)
+          scalars=(map @tas resolved-scalar)
           ==
-  ^-  $-(data-row dime)
+  ^-  resolved-scalar
   :: pred-ops-and-conjs switches on map-meta to evaluate its arguments
   :: (so if it gets a qualified lookup type it will expect qualified
   :: columns, and same for unqual)  however we can have cases when we have
@@ -204,34 +188,36 @@
   :: are qualified, thus this function would need to have two lookup
   :: types? one for the predicate and one for the arguments. To simplify
   :: for now we always raise the predicates to qualified columns
-  =/  qualified-if  (normalize-predicate if.scalar qualifier-lookup)
-  =/  pred-result
-    (pred-ops-and-conjs qualified-if map-meta qualifier-lookup)
-  |=  =data-row
-  ?:  =((pred-result data-row) %.y)
-    %-  %:  evaluate-datum-or-scalar  then.scalar
-                                      named-ctes
-                                      qualifier-lookup
-                                      map-meta
-                                      scalars
-                                      ==
-        data-row
-  %-  %:  evaluate-datum-or-scalar  else.scalar
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    scalars
-                                    ==
-      data-row
+  !!
+  ::::=/  qualified-if  (normalize-predicate if.scalar qualifier-lookup)
+  ::::=/  pred-result
+  ::::  (pred-ops-and-conjs qualified-if map-meta qualifier-lookup)
+  :::::-  %fn  
+  ::::    |=  =data-row
+  ::::    ?:  =((pred-result data-row) %.y)
+  ::::      %-  %:  evaluate-datum-or-scalar  then.scalar
+  ::::                                        named-ctes
+  ::::                                        qualifier-lookup
+  ::::                                        map-meta
+  ::::                                        scalars
+  ::::                                        ==
+  ::::          data-row
+  ::::    %-  %:  evaluate-datum-or-scalar  else.scalar
+  ::::                                      named-ctes
+  ::::                                      qualifier-lookup
+  ::::                                      map-meta
+  ::::                                      scalars
+  ::::                                      ==
+  ::::        data-row
 ::
 ++  prepare-case
   |=  $:  scalar=case:ast
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @t scalar-function:ast)
+          scalars=(map @tas resolved-scalar)
           ==
-  ^-  $-(data-row dime)
+  ^-  resolved-scalar
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
   =/  is-searched-case
@@ -316,7 +302,7 @@
 ::::      data-row
 ::::  $(fns-to-apply +.fns-to-apply)
 ::
-++  get-column-data-coalesce
+++  got-column-data-coalesce
   |=  [=data-row =qualified-map-meta col=qualified-column:ast]
   ^-  (unit dime)
   ?-    -.data-row
@@ -327,14 +313,14 @@
     =/  value  (~(get by (need maybe-table)) name.col)
     ?~  value
       ~
-    =/  type  (get-qualified-col-type qualified-map-meta col)
+    =/  type  (got-qualified-col-type qualified-map-meta col)
     (some [type (need value)])
     ::
       %indexed-row
     =/  value  (~(get by data.data-row) name.col)
     ?~  value
       ~
-    =/  type  (get-qualified-col-type qualified-map-meta col)
+    =/  type  (got-qualified-col-type qualified-map-meta col)
     (some [type (need value)])
   ==
 ::
@@ -343,42 +329,131 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @t scalar-function:ast)
+          scalars=(map @tas resolved-scalar)
           ==
-  ^-  $-(data-row dime)
-  =/  datums  data.scalar
-  |-
-  ::^-  $-(=data-row dime)
-  ?~  datums
-    ~|("coalesce: couldn't resolve any column" !!)
-  =/  datum  -.datums
-  ?:  ?&  =(%qualified-column -.datum)
-          =(%qualified-map-meta -.map-meta)
-          ==
-    |=  =data-row
-    =/  res  %^  get-column-data-coalesce  data-row
-                                           ;;(qualified-map-meta map-meta)
-                                           ;;(qualified-column:ast datum)
-    ?~  res
-      (^$(datums +.datums) data-row)
-    (need res)
-  ?:  =(%unqualified-column:ast -.datum)
-    :: for some reason name.datum doesn't work
-    =/  maybe-table-list  (~(get by qualifier-lookup) name:;;(unqualified-column datum))
-    ?~  maybe-table-list
-      $(datums +.datums)
+  ^-  resolved-scalar
+  =/  [typ=@ta validated=(list datum-or-scalar:ast)]
+    %:  check-consistent-types
+        data.scalar
+        ~
+        map-meta
+        scalars
+        named-ctes
+        ==
+  ::  first item is a concrete value: return it immediately as resolved-scalar
+  ?~  validated  ~|("no non-null value found in row" !!)
+  ?:  =(%literal-value -.i.validated)  ;;(literal-value:ast i.validated)
+  ::  otherwise build a %fn that walks validated at runtime per data-row,
+  ::  returning the first non-null value; the list-walk is captured in the gate
+  =/  fn
+    |=  [datums=(list datum-or-scalar:ast) =data-row]
+    :: to do: once outer joins implemented must test columns for existence
+    ::        in data-row
+    ^-  dime
+    |-
+    ?~  datums  ~|("coalesce: no non-null value found in row" !!)
+    =/  datum  i.datums
+    ::  literal-value is always exists
+    ?:  =(%literal-value -.datum)  dime:;;(literal-value:ast datum)
+    ?:  ?&  =(%qualified-column -.datum)
+            =(%qualified-map-meta -.map-meta)
+            ==
+      %-  need
+        %^  got-column-data-coalesce  data-row
+                                      ;;(qualified-map-meta map-meta)
+                                      ;;(qualified-column:ast datum)
+    :: otherwise can only be unqualified-column
+    =/  maybe-table-list
+      (~(get by qualifier-lookup) name:;;(unqualified-column datum))
+    ?~  maybe-table-list  $(datums t.datums)
     =/  table-list  (need maybe-table-list)
-    ?:  (gth (lent table-list) 1)
-      $(datums +.datums) 
+    ?:  (gth (lent table-list) 1)  $(datums t.datums)
     =/  column=qualified-column:ast
       [%qualified-column -.table-list name:;;(unqualified-column datum) ~]
     ?>  ?=(%qualified-map-meta -.map-meta)
-    |=  =data-row
-    =/  res  (get-column-data-coalesce data-row map-meta column)
-    ?~  res
-      (^$(datums +.datums) data-row)
+    =/  res  (got-column-data-coalesce data-row map-meta column)
+    ?~  res  $(datums t.datums)
     (need res)
-  ~|("coalesce: can only use columns" !!)
+  [%fn typ ;;($-(data-row dime) (cury fn validated))]
+::
+++  check-consistent-types
+  ::  validate that all datum-or-scalar items share a common aura type,
+  ::  and (if allowed is non-empty) that type is in the allowed list.
+  ::  returns [common-type list] with any cte-name or unqualified-column
+  ::  resolved via cte-to-literal replaced by their literal-value.
+  ::  crashes on empty dos.
+  |=  $:  dos=(list datum-or-scalar:ast)
+          allowed=(list @ta)
+          =map-meta
+          scalars=(map @tas resolved-scalar)
+          =named-ctes
+          ==
+  ^-  [@ta (list datum-or-scalar:ast)]
+  ::  resolve type and possibly substitute item; returns [type resolved-item]
+  =/  resolve-item
+    |=  item=datum-or-scalar:ast
+    ^-  [@ta datum-or-scalar:ast]
+    ?-  item
+      literal-value:ast
+        [-.dime.item item]
+    ::
+      qualified-column:ast
+        ~|  "check-consistent-types: qualified-column {<name.item>} ".
+            "requires qualified map-meta"
+        :-  (got-qualified-col-type ;;(qualified-map-meta map-meta) item)
+            ;;(qualified-column:ast item)
+    ::
+      unqualified-column:ast
+        =/  maybe-ta
+          ?.  =(%unqualified-map-meta -.map-meta)  ~
+          (~(get by +:;;(unqualified-map-meta map-meta)) name.item)
+        ?~  maybe-ta
+          ::  not in unqualified-map-meta: attempt CTE lookup by column name
+          =/  lit=literal-value:ast
+            (cte-to-literal named-ctes item)
+          [p.dime.lit lit]
+        [type.u.maybe-ta ;;(unqualified-column:ast item)]
+    ::
+      cte-name:ast
+        =/  lit=literal-value:ast
+          (cte-to-literal named-ctes ;;(cte-name:ast item))
+        [p.dime.lit lit]
+    ::
+      scalar-name:ast
+        ~|  "check-consistent-types: scalar {<name.item>} not found"
+        =/  res  (~(got by scalars) name.item)
+        ?-  -.res
+            %fn           [type.res item]
+            %literal-value  [p.dime.res item]
+        ==
+    ==
+  ::  walk the list, tracking expected type, verifying consistency,
+  ::  and accumulating the (possibly-substituted) output list
+  =/  expected=(unit @ta)  ~
+  =/  out=(list datum-or-scalar:ast)  ~
+  =/  items  dos
+  |-  ^-  [@ta (list datum-or-scalar:ast)]
+  ?~  items
+    ?~  expected
+      ~|("check-consistent-types: empty argument list" !!)
+    ?~  allowed
+      [u.expected (flop out)]  ::  no type constraint
+    ~|  %+  weld  "check-consistent-types: type {<u.expected>} "
+              "not in allowed types {<allowed>}"
+    ?>
+      =/  ck  `(list @ta)`allowed
+      |-  ^-  ?
+      ?~  ck  |
+      ?:  =(i.ck u.expected)  &
+      $(ck t.ck)
+    [u.expected (flop out)]
+  =/  [t=@ta sub=datum-or-scalar:ast]  (resolve-item i.items)
+  ?~  expected
+    $(expected `t, out [sub out], items t.items)
+  ~|  "check-consistent-types: inconsistent types, expected {<u.expected>} ".
+      "but got {<t>} at {<-.i.items>}"
+  ?>  =(u.expected t)
+  $(out [sub out], items t.items)
 ::
 ::::++  prepare-arithmetic
 ::::    |=  $:
@@ -386,9 +461,9 @@
 ::::          =named-ctes
 ::::          =qualifier-lookup
 ::::          =map-meta
-::::          scalars=(map @t scalar-function:ast)
+::::          scalars=(map @tas resolved-scalar)
 ::::        ==
-::::    ^-  $-(data-row dime)
+::::    ^-  resolved-scalar
 ::::    ?-    operator.scalar
 ::::        %lus
 ::::      |=  =data-row

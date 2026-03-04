@@ -650,6 +650,39 @@
   ?.  =(a-cass b-cass)  (aor a-cass b-cass)
   (aor a b)
 ::
+++  cte-to-literal
+  ::  resolve datum-or-scalar of cte-name or unqualified-column to literal-value
+  ::  the referenced cte must contain exactly one row and one column
+  |=  [=named-ctes dos=datum-or-scalar:ast]
+  ^-  literal-value:ast
+  =/  name=@tas
+    ?:  ?=(cte-name:ast dos)            name.dos
+    ?:  ?=(unqualified-column:ast dos)  name.dos
+    ~|("{<-.dos>} not supported in dos-to-literal" !!)
+  =/  fr=full-relation
+    ~|  "dos-to-literal: cte {<name>} not found"
+    (~(got by named-ctes) name)
+  ?~  column-metas.fr
+    ~|("dos-to-literal: cte {<name>} must have exactly one column" !!)
+  ?.  =(~ t.column-metas.fr)
+    ~|("dos-to-literal: cte {<name>} must have exactly one column" !!)
+  =/  cm=column-meta  i.column-metas.fr
+  ?~  set-tables.fr  ~|("dos-to-literal: cte {<name>} has no data" !!)
+  =/  st=set-table  i.set-tables.fr
+  =/  col-name=@tas  name.qualified-column.cm
+  ?~  joined-rows.st
+    ?~  indexed-rows.st
+      ~|("dos-to-literal: cte {<name>} must have exactly one row" !!)
+    ?.  =(~ t.indexed-rows.st)
+      ~|("dos-to-literal: cte {<name>} must have exactly one row" !!)
+    =/  irow=indexed-row  i.indexed-rows.st
+    [%literal-value [type.cm (~(got by data.irow) col-name)]]
+  ?.  =(~ t.joined-rows.st)
+    ~|("dos-to-literal: cte {<name>} must have exactly one row" !!)
+  =/  jrow=joined-row  i.joined-rows.st
+  =/  val=@  (~(got bi:mip data.jrow) qualifier.qualified-column.cm col-name)
+  [%literal-value [type.cm val]]
+::
 ::  tree engine
 ::
 ++  of

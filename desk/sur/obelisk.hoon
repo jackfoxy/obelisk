@@ -143,7 +143,12 @@
     map-meta=qualified-map-meta
     column-metas=(list column-meta)
     ==
+::
 +$  named-ctes  (map @tas full-relation)
+::
++$  resolved-scalar  $%  [%fn type=@ta f=$-(data-row dime)]
+                         literal-value
+                         ==
 ::
 ::  template for selected column from qualified-column objects
 +$  templ-cell
