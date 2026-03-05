@@ -52,7 +52,7 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  case-expr  [%scalar %my-scalar [%case target=target.row cases=~[case.row] else=else.row]]
+  =/  case-expr  [%case target=target.row cases=~[case.row] else=else.row]
   =/  scalar-to-apply
     (prepare-scalar case-expr table-named-ctes qualifier-lookup qual-map-meta embedded-scalars)
   %+  expect-eq
@@ -111,22 +111,22 @@
                              [%col6 6]
                            ==
 ::
-++  embedded-scalars           %-  malt
-                           %-  limo
-                           :~
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[q-col-3]
-                               else=[q-col-2]
-                             ==
-                             :-  %scalar2
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[u-col-4]
-                               else=[u-col-5]
-                             ==
-                           ==
+++  embedded-scalars  *(map @tas resolved-scalar)     ::    %-  malt
+                           ::%-  limo
+                           :::~
+                           ::  :-  %scalar1
+                           ::  :*  %if-then-else
+                           ::    if=true-predicate
+                           ::    then=[q-col-3]
+                           ::    else=[q-col-2]
+                           ::  ==
+                           ::  :-  %scalar2
+                           ::  :*  %if-then-else
+                           ::    if=true-predicate
+                           ::    then=[u-col-4]
+                           ::    else=[u-col-5]
+                           ::  ==
+                           ::==
 ::
 ::  row structure:
 ::  [@tas(test-name) [predicate then-branch else-branch expected]]

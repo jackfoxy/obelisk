@@ -89,22 +89,22 @@
                              [%col6 6]
                            ==
 ::
-++  table-scalars          %-  malt
-                              %-  limo
-                              :~
-                                :-  %scalar1
-                                :*  %if-then-else
-                                  if=true-predicate
-                                  then=[q-col-3]
-                                  else=[q-col-2]
-                                ==
-                                :-  %scalar2
-                                :*  %if-then-else
-                                  if=true-predicate
-                                  then=[literal-value-1]
-                                  else=[literal-value-2]
-                                ==
-                              ==
+++  table-scalars    *(map @tas resolved-scalar)   ::       %-  malt
+                              ::%-  limo
+                              :::~
+                              ::  :-  %scalar1
+                              ::  :*  %if-then-else
+                              ::    if=true-predicate
+                              ::    then=[q-col-3]
+                              ::    else=[q-col-2]
+                              ::  ==
+                              ::  :-  %scalar2
+                              ::  :*  %if-then-else
+                              ::    if=true-predicate
+                              ::    then=[literal-value-1]
+                              ::    else=[literal-value-2]
+                              ::  ==
+                              ::==
 ::
 ::  table testing harness
 +$  table-test-row  $:  datums=(list datum-or-scalar:ast)
@@ -113,7 +113,7 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  coalesce-expr  [%scalar %my-scalar [%coalesce data=datums.row]]
+  =/  coalesce-expr  [%coalesce data=datums.row]
   =/  scalar-to-apply
       (prepare-scalar coalesce-expr table-named-ctes qualifier-lookup qual-map-meta table-scalars)
   %+  expect-eq

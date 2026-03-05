@@ -77,17 +77,17 @@
                              [%col6 6]
                            ==
 ::
-++  scalars           %-  malt
-                           %-  limo
-                           :~
-                             :: evals to 3
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[arithmetic-q-col-3]
-                               else=[arithmetic-q-col-2]
-                             ==
-                           ==
+++  scalars  *(map @tas resolved-scalar)    ::     %-  malt
+                          :: %-  limo
+                          :: :~
+                          ::   :: evals to 3
+                          ::   :-  %scalar1
+                          ::   :*  %if-then-else
+                          ::     if=true-predicate
+                          ::     then=[arithmetic-q-col-3]
+                          ::     else=[arithmetic-q-col-2]
+                          ::   ==
+                          :: ==
 ::
 +$  table-test-row  $:  operator=arithmetic-op:ast
                       left=datum-or-scalar:ast
@@ -97,12 +97,11 @@
 ::
 ++  table-test-helper
   |=  [row=table-test-row]
-  =/  expr  :+  %scalar  %my-scalar
-                         :*  %arithmetic
-                             operator=operator.row
-                             left=left.row
-                             right=right.row
-                             ==
+  =/  expr  :*  %arithmetic
+                operator=operator.row
+                left=left.row
+                right=right.row
+                ==
   =/  scalar-to-apply
     (prepare-scalar expr ctes qualifier-lookup map-meta scalars)
   %+  expect-eq

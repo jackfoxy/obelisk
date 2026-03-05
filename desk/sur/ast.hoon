@@ -148,7 +148,6 @@
     literal-value
     cte-name
     scalar-name
-    ::::scalar-function   ::to do: swap out for scalar-name, depending on arithmetic?
     ==
 ::
 +$  literal-value  $:(%literal-value =dime)
@@ -587,7 +586,6 @@
     case
     coalesce
     arithmetic
-    ::::scalar-name
     :: builtin functions
     getutcdate
     day

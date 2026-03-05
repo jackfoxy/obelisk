@@ -95,7 +95,7 @@
                            ==
 ::
 ::  table testing harness
-+$  table-test-row  $:  fn=scalar:ast
++$  table-test-row  $:  fn=scalar-function:ast
                      expected=dime
                    ==
 ::
@@ -107,22 +107,22 @@
     !>  expected.row
     !>  (apply-scalar table-row scalar-to-apply)
 ::
-++  embedded-scalars           %-  malt
-                           %-  limo
-                           :~
-                             :-  %scalar1
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[q-col-3]
-                               else=[q-col-2]
-                             ==
-                             :-  %scalar2
-                             :*  %if-then-else
-                               if=true-predicate
-                               then=[u-col-4]
-                               else=[u-col-5]
-                             ==
-                           ==
+++  embedded-scalars  *(map @tas resolved-scalar)     ::    %-  malt
+                           ::%-  limo
+                           :::~
+                           ::  :-  %scalar1
+                           ::  :*  %if-then-else
+                           ::    if=true-predicate
+                           ::    then=[q-col-3]
+                           ::    else=[q-col-2]
+                           ::  ==
+                           ::  :-  %scalar2
+                           ::  :*  %if-then-else
+                           ::    if=true-predicate
+                           ::    then=[u-col-4]
+                           ::    else=[u-col-5]
+                           ::  ==
+                           ::==
 ::
 ::  row structure:
 ::  [@tas(test-name) [predicate then-branch else-branch expected]]
