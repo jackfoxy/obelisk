@@ -148,22 +148,22 @@
 ::
 ::
 ::
-::++  test-arithmetic
-::  %-  run-tests
-::  :~
-::    ::  addition tests
-::    :-  %addition-literal-literal
-::    :*  %lus
-::      literal-value-1
-::      literal-value-1
-::      [~.ud 2]
-::    ==
-::    :-  %addition-qualified-col-literal
-::    :*  %lus
-::      arithmetic-q-col-1
-::      literal-value-1
-::      [~.ud 2]
-::    ==
+++  test-arithmetic
+  %-  run-tests
+  :~
+    ::  addition tests
+    :-  %addition-literal-literal
+    :*  %lus
+      literal-value-1
+      literal-value-1
+      [~.ud 2]
+    ==
+    :-  %addition-qualified-col-literal
+    :*  %lus
+      arithmetic-q-col-1
+      literal-value-1
+      [~.ud 2]
+    ==
 ::    :-  %addition-unqualified-col-literal
 ::    :*  %lus
 ::      arithmetic-u-col-4
@@ -182,12 +182,12 @@
 ::      literal-value-1
 ::      [~.ud 4]
 ::    ==
-::    :-  %addition-literal-qualified-col
-::    :*  %lus
-::      literal-value-1
-::      arithmetic-q-col-1
-::      [~.ud 2]
-::    ==
+    :-  %addition-literal-qualified-col
+    :*  %lus
+      literal-value-1
+      arithmetic-q-col-1
+      [~.ud 2]
+    ==
 ::    :-  %addition-literal-unqualified-col
 ::    :*  %lus
 ::      literal-value-1
@@ -207,18 +207,18 @@
 ::      [~.ud 4]
 ::    ==
 ::    ::  subtraction tests
-::    :-  %subtraction-literal-literal
-::    :*  %hep
-::      literal-value-2
-::      literal-value-1
-::      [~.ud 1]
-::    ==
-::    :-  %subtraction-qualified-col-literal
-::    :*  %hep
-::      arithmetic-q-col-1
-::      literal-value-1
-::      [~.ud 0]
-::    ==
+    :-  %subtraction-literal-literal
+    :*  %hep
+      literal-value-2
+      literal-value-1
+      [~.ud 1]
+    ==
+    :-  %subtraction-qualified-col-literal
+    :*  %hep
+      arithmetic-q-col-1
+      literal-value-1
+      [~.ud 0]
+    ==
 ::    :-  %subtraction-unqualified-col-literal
 ::    :*  %hep
 ::      arithmetic-u-col-5
@@ -237,12 +237,12 @@
 ::      literal-value-1
 ::      [~.ud 2]
 ::    ==
-::    :-  %subtraction-literal-qualified-col
-::    :*  %hep
-::      literal-value-1
-::      arithmetic-q-col-1
-::      [~.ud 0]
-::    ==
+    :-  %subtraction-literal-qualified-col
+    :*  %hep
+      literal-value-1
+      arithmetic-q-col-1
+      [~.ud 0]
+    ==
 ::    :-  %subtraction-literal-unqualified-col
 ::    :*  %hep
 ::      [%literal-value [~.ud 9]]
@@ -262,18 +262,18 @@
 ::      [~.ud 2]
 ::    ==
 ::    ::  multiplication tests
-::    :-  %multiplication-literal-literal
-::    :*  %tar
-::      literal-value-2
-::      literal-value-2
-::      [~.ud 4]
-::    ==
-::    :-  %multiplication-qualified-col-literal
-::    :*  %tar
-::      arithmetic-q-col-2
-::      literal-value-1
-::      [~.ud 2]
-::    ==
+    :-  %multiplication-literal-literal
+    :*  %tar
+      literal-value-2
+      literal-value-2
+      [~.ud 4]
+    ==
+    :-  %multiplication-qualified-col-literal
+    :*  %tar
+      arithmetic-q-col-2
+      literal-value-1
+      [~.ud 2]
+    ==
 ::    :-  %multiplication-unqualified-col-literal
 ::    :*  %tar
 ::      arithmetic-u-col-5
@@ -292,18 +292,18 @@
 ::      literal-value-1
 ::      [~.ud 3]
 ::    ==
-::    :-  %multiplication-literal-qualified-col
-::    :*  %tar
-::      literal-value-1
-::      arithmetic-q-col-2
-::      [~.ud 2]
-::    ==
-::    :-  %multiplication-literal-unqualified-col
-::    :*  %tar
-::      literal-value-1
-::      arithmetic-u-col-5
-::      [~.ud 5]
-::    ==
+    :-  %multiplication-literal-qualified-col
+    :*  %tar
+      literal-value-1
+      arithmetic-q-col-2
+      [~.ud 2]
+    ==
+    :-  %multiplication-literal-unqualified-col
+    :*  %tar
+      literal-value-1
+      arithmetic-u-col-5
+      [~.ud 5]
+    ==
 ::    :-  %multiplication-literal-scalar-name
 ::    :*  %tar
 ::      literal-value-1
@@ -317,18 +317,18 @@
 ::      [~.ud 3]
 ::    ==
 ::    ::  division tests
-::    :-  %division-literal-literal
-::    :*  %fas
-::      literal-value-2
-::      literal-value-2
-::      [~.ud 1]
-::    ==
-::    :-  %division-qualified-col-literal
-::    :*  %fas
-::      arithmetic-q-col-2
-::      literal-value-1
-::      [~.ud 2]
-::    ==
+    :-  %division-literal-literal
+    :*  %fas
+      literal-value-2
+      literal-value-2
+      [~.ud 1]
+    ==
+    :-  %division-qualified-col-literal
+    :*  %fas
+      arithmetic-q-col-2
+      literal-value-1
+      [~.ud 2]
+    ==
 ::    :-  %division-unqualified-col-literal
 ::    :*  %fas
 ::      arithmetic-u-col-5
@@ -347,12 +347,12 @@
 ::      literal-value-1
 ::      [~.ud 3]
 ::    ==
-::    :-  %division-literal-qualified-col
-::    :*  %fas
-::      literal-value-1
-::      arithmetic-q-col-2
-::      [~.ud 0]
-::    ==
+    :-  %division-literal-qualified-col
+    :*  %fas
+      literal-value-1
+      arithmetic-q-col-2
+      [~.ud 0]
+    ==
 ::    :-  %division-literal-unqualified-col
 ::    :*  %fas
 ::      literal-value-1
@@ -372,18 +372,18 @@
 ::      [~.ud 0]
 ::    ==
 ::    ::  exponentiation tests
-::    :-  %exponentiation-literal-literal
-::    :*  %ket
-::      [%literal-value [~.ud 3]]
-::      literal-value-2
-::      [~.ud 9]
-::    ==
-::    :-  %exponentiation-qualified-col-literal
-::    :*  %ket
-::      arithmetic-q-col-2
-::      literal-value-1
-::      [~.ud 2]
-::    ==
+    :-  %exponentiation-literal-literal
+    :*  %ket
+      [%literal-value [~.ud 3]]
+      literal-value-2
+      [~.ud 9]
+    ==
+    :-  %exponentiation-qualified-col-literal
+    :*  %ket
+      arithmetic-q-col-2
+      literal-value-1
+      [~.ud 2]
+    ==
 ::    :-  %exponentiation-unqualified-col-literal
 ::    :*  %ket
 ::      arithmetic-u-col-5
@@ -402,12 +402,12 @@
 ::      literal-value-2
 ::      [~.ud 9]
 ::    ==
-::    :-  %exponentiation-literal-qualified-col
-::    :*  %ket
-::      literal-value-2
-::      arithmetic-q-col-2
-::      [~.ud 4]
-::    ==
+    :-  %exponentiation-literal-qualified-col
+    :*  %ket
+      literal-value-2
+      arithmetic-q-col-2
+      [~.ud 4]
+    ==
 ::    :-  %exponentiation-literal-unqualified-col
 ::    :*  %ket
 ::      literal-value-2
@@ -426,5 +426,5 @@
 ::      (~(got by scalars) %scalar1)
 ::      [~.ud 8]
 ::    ==
-::  ==
+  ==
 --

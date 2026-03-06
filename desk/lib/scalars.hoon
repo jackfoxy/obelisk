@@ -48,16 +48,7 @@
                             ==
   ::
     %arithmetic
-      ::(prepare-arithmetic scalar named-ctes qualifier-lookup map-meta scalars)
-      !!
-  ::
-    %scalar-name
-      ::=/  resolved  (~(get by scalars) name.scalar)
-      ::?~  resolved
-      ::  |=  *
-      ::  ~|("no scalar with name: {<name.scalar>}" !!)
-      ::(prepare-scalar (need resolved) named-ctes qualifier-lookup map-meta scalars)
-      !!
+      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta scalars)
   ::
     %getutcdate
       !!
@@ -444,82 +435,167 @@
     (got-column-dime map-meta column data-row)
   [%fn typ |=(=data-row (fn validated data-row))]
 ::
-::::++  prepare-arithmetic
-::::    |=  $:
-::::          scalar=arithmetic:ast
-::::          =named-ctes
-::::          =qualifier-lookup
-::::          =map-meta
-::::          scalars=(map @tas resolved-scalar)
-::::        ==
-::::    ^-  resolved-scalar
-::::    ?-    operator.scalar
-::::        %lus
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (add +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %hep
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (sub +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %tar
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (mul +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %fas
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (div +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %ket
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (pow +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::    ==
+++  prepare-arithmetic
+    |=  $:
+          scalar=arithmetic:ast
+          =named-ctes
+          =qualifier-lookup
+          =map-meta
+          scalars=(map @tas resolved-scalar)
+        ==
+    ^-  resolved-scalar
+    ?-  operator.scalar
+      %lus
+        :+  %fn
+            ~.ud  ::typ
+            |=  =data-row
+            ^-  dime
+            =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+            =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta
+                                                           scalars
+                                                           ==
+            ::
+            :-  ~.ud  ::typ
+                %+  add  ?:  ?=(literal-value:ast evald-left)
+                           +>.evald-left
+                         +:(f.evald-left data-row)
+                         ?:  ?=(literal-value:ast evald-right)
+                           +>.evald-right
+                         +:(f.evald-right data-row)
+    ::
+      %hep
+        :+  %fn
+            ~.ud  ::typ
+            |=  =data-row
+            ^-  dime
+            =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+            =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta
+                                                           scalars
+                                                           ==
+            :-  ~.ud  ::typ
+                %+  sub  ?:  ?=(literal-value:ast evald-left)
+                           +>.evald-left
+                         +:(f.evald-left data-row)
+                         ?:  ?=(literal-value:ast evald-right)
+                           +>.evald-right
+                         +:(f.evald-right data-row)
+    ::
+      %tar
+        :+  %fn
+            ~.ud  ::typ
+            |=  =data-row
+            ^-  dime
+            =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+            =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta
+                                                           scalars
+                                                           ==
+            :-  ~.ud  ::typ
+                %+  mul  ?:  ?=(literal-value:ast evald-left)
+                           +>.evald-left
+                         +:(f.evald-left data-row)
+                         ?:  ?=(literal-value:ast evald-right)
+                           +>.evald-right
+                         +:(f.evald-right data-row)
+    ::
+      %fas
+        :+  %fn
+            ~.ud  ::typ
+            |=  =data-row
+            ^-  dime
+            =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+            =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta
+                                                           scalars
+                                                           ==
+            :-  ~.ud  ::typ
+                %+  div  ?:  ?=(literal-value:ast evald-left)
+                           +>.evald-left
+                         +:(f.evald-left data-row)
+                         ?:  ?=(literal-value:ast evald-right)
+                           +>.evald-right
+                         +:(f.evald-right data-row)
+    ::
+      %ket
+        :+  %fn
+            ~.ud  ::typ
+            |=  =data-row
+            ^-  dime
+            =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+            =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta
+                                                           scalars
+                                                           ==
+            :-  ~.ud  ::typ
+                %+  pow  ?:  ?=(literal-value evald-left)
+                           +>.evald-left
+                         +:(f.evald-left data-row)
+                         ?:  ?=(literal-value evald-right)
+                           +>.evald-right
+                         +:(f.evald-right data-row)
+      %cen
+        :+  %fn
+            ~.ud  ::typ
+            |=  =data-row
+            ^-  dime
+            =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+            =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta
+                                                           scalars
+                                                           ==
+            :-  ~.ud  ::typ
+                %+  mod  ?:  ?=(literal-value evald-left)
+                           +>.evald-left
+                         +:(f.evald-left data-row)
+                         ?:  ?=(literal-value evald-right)
+                           +>.evald-right
+                         +:(f.evald-right data-row)
+    ::
+    ==
 ::
 ++  check-consistent-types
   ::  validate that all datum-or-scalar items share a common aura type,
@@ -620,7 +696,7 @@
       ==
 ::
 ++  evaluate-datum-or-scalar
-  |=  $:  datum=datum-or-scalar:ast
+  |=  $:  datum=?(datum-or-scalar:ast scalar-function:ast)
           =named-ctes
           =qualifier-lookup
           =map-meta
@@ -628,7 +704,13 @@
           ==
   ^-  resolved-scalar
   ~|  "evaluate-datum-or-scalar: failed {<datum>}"
-  ?-  datum
+  ?+  datum  %:  prepare-scalar  ;;(scalar-function:ast datum)
+                                 named-ctes
+                                 qualifier-lookup
+                                 map-meta
+                                 scalars
+                                 ==
+    ::
     literal-value:ast
       datum
     ::
