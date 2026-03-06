@@ -176,6 +176,30 @@
       ~|("if-then-else: can't get here" !!)
 ::
 ++  prepare-case
+  ::  dispatch to searched or simple form based on target presence
+  |=  $:  scalar=case:ast
+          =named-ctes
+          =qualifier-lookup
+          =map-meta
+          scalars=(map @tas resolved-scalar)
+          ==
+  ^-  resolved-scalar
+  ?~  target.scalar
+    %:  prepare-case-searched  scalar
+                               named-ctes
+                               qualifier-lookup
+                               map-meta
+                               scalars
+                               ==
+  %:  prepare-case-simple  scalar
+                           named-ctes
+                           qualifier-lookup
+                           map-meta
+                           scalars
+                           ==
+::
+++  prepare-case-searched
+  ::  searched form: CASE WHEN <predicate> THEN ... END
   |=  $:  scalar=case:ast
           =named-ctes
           =qualifier-lookup
@@ -185,87 +209,195 @@
   ^-  resolved-scalar
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
-  =/  is-searched-case
-    ::?=(predicate-component:ast -.when.i.cases)
-    ?=(ops-and-conjs:ast -.when.i.cases)
-
-  !!
-::::  =/  is-searched-case-list
-::::    %:  fold:utils
-::::      cases
-::::      is-searched-case
-::::      |=  [case=case-when-then:ast state=?]
-::::      ::?&(state ?=(predicate-component:ast when.case))
-::::      ?&(state ?=(ops-and-conjs:ast when.case))
-::::    ==
-::::  =/  fns-to-apply=(list [$-(data-row ?) datum-or-scalar:ast])
-::::    ?:  is-searched-case
-::::        :: predicates
-::::        |-
-::::        ?~  cases
-::::          ::~
-::::          *(list [$-(data-row ?) datum-or-scalar:ast])
-::::        =/  case  i.cases
-::::        :: need this so the proper type is inferred
-::::        ?.  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
-::::        =/  qualified-pred
-::::              (normalize-predicate when.case qualifier-lookup)
-::::        =/  result
-::::          :-  %:  pred-ops-and-conjs
-::::                qualified-pred
-::::                map-meta
-::::                qualifier-lookup
-::::              ==
-::::          then.case
-::::        [result $(cases +.cases)]
-::::        ::
-::::    ::  datums
-::::    =/  target-fn  
-::::      %:  evaluate-datum-or-scalar
-::::        (need target.scalar)
-::::        named-ctes
-::::        qualifier-lookup
-::::        map-meta
-::::        scalars
-::::      ==
-::::    |-
-::::    ?~  cases
-::::      ~
-::::    =/  case  i.cases
-::::    :: need this so the proper type is inferred
-::::    ?:  ?=(predicate-component:ast -.when.case)  ~|("unreachable" !!)
-::::    =/  when-fn
-::::      (evaluate-datum-or-scalar when.case named-ctes qualifier-lookup map-meta scalars)
-::::    =/  result
-::::      :-  |=(=data-row =((target-fn data-row) (when-fn data-row)))
-::::      then.case
-::::    [result $(cases +.cases)]
-::::    ::
-::::  |=  =data-row
-::::  ^-  dime
-::::  |-
-::::  ?~  fns-to-apply
-::::    ?:  !=(else.scalar ~)
-::::      %-  %:  evaluate-datum-or-scalar
-::::            (need else.scalar)
-::::            named-ctes
-::::            qualifier-lookup
-::::            map-meta
-::::            scalars
-::::          ==
-::::      data-row
-::::    ~|("no case matched" !!)
-::::  =/  fn-datum  -.fns-to-apply
-::::  ?:  (-.fn-datum data-row)
-::::      %-  %:  evaluate-datum-or-scalar
-::::            +.fn-datum
-::::            named-ctes
-::::            qualifier-lookup
-::::            map-meta
-::::            scalars
-::::          ==
-::::      data-row
-::::  $(fns-to-apply +.fns-to-apply)
+  ::  check that all then-values and else share a common type; capture return type
+  =/  then-dos=(list datum-or-scalar:ast)
+    %+  turn  cases
+    |=  cwt=case-when-then:ast
+    then.cwt
+  =/  [typ=@ta validated=(list datum-or-scalar:ast)]
+    %:  check-consistent-types
+      ?~(else.scalar then-dos [(need else.scalar) then-dos])
+      ~
+      map-meta
+      scalars
+      named-ctes
+      ==
+  =/  fns-to-apply  %:  case-searched-fns  scalar
+                                           named-ctes
+                                           qualifier-lookup
+                                           map-meta
+                                           scalars
+                                           ==
+  :+  %fn
+      typ
+      |=  =data-row
+      ^-  dime
+      |-
+      ?~  fns-to-apply  ~|("no case matched" !!)
+      =/  fn-datum  -.fns-to-apply
+      ?:  (-.fn-datum data-row)
+        (apply-scalar data-row +.fn-datum)
+      $(fns-to-apply +.fns-to-apply)
+::
+++  prepare-case-simple
+  ::  simple form: CASE <expression> WHEN <expression> THEN ... END
+  |=  $:  scalar=case:ast
+          =named-ctes
+          =qualifier-lookup
+          =map-meta
+          scalars=(map @tas resolved-scalar)
+          ==
+  ^-  resolved-scalar
+  =/  cases  cases.scalar
+  ?~  cases  ~|("cases can't be empty" !!)
+  ::  check that target and all when-values share a common type
+  =/  when-dos=(list datum-or-scalar:ast)
+    %+  turn  cases
+    |=  cwt=case-when-then:ast
+    ?:  ?=(predicate-component:ast -.when.cwt)  ~|("unreachable" !!)
+    when.cwt
+  =/  [cmp-typ=@ta cmp-valid=(list datum-or-scalar:ast)]
+    %:  check-consistent-types
+      [(need target.scalar) when-dos]
+      ~
+      map-meta
+      scalars
+      named-ctes
+      ==
+  ::  check that all then-values and else share a common type; capture return type
+  =/  then-dos=(list datum-or-scalar:ast)
+    %+  turn  cases
+    |=  cwt=case-when-then:ast
+    then.cwt
+  =/  [typ=@ta validated=(list datum-or-scalar:ast)]
+    %:  check-consistent-types
+      ?~(else.scalar then-dos [(need else.scalar) then-dos])
+      ~
+      map-meta
+      scalars
+      named-ctes
+      ==
+  =/  fns-to-apply  %:  case-simple-fns  scalar
+                                         named-ctes
+                                         qualifier-lookup
+                                         map-meta
+                                         scalars
+                                         ==
+  :+  %fn
+      typ
+      |=  =data-row
+      ^-  dime
+      |-
+      ?~  fns-to-apply  ~|("no case matched" !!)
+      =/  fn-datum  -.fns-to-apply
+      ?:  (-.fn-datum data-row)
+        (apply-scalar data-row +.fn-datum)
+      $(fns-to-apply +.fns-to-apply)
+::
+++  case-searched-fns
+  ::  build (predicate resolved-scalar) pairs for the simple CASE form;
+  ::  each predicate compares target against a when-value at runtime.
+  ::  if else.scalar is present, appends a catch-all entry whose predicate
+  ::  always returns %.y.
+  |=  $:  scalar=case:ast
+          =named-ctes
+          =qualifier-lookup
+          =map-meta
+          scalars=(map @tas resolved-scalar)
+          ==
+  ^-  (list [$-(data-row ?) resolved-scalar])
+  =/  fns=(list [$-(data-row ?) resolved-scalar])
+        %+  turn  cases.scalar
+                  |=  cwt=case-when-then:ast
+                  =/  qualified-pred
+                        %+  normalize-predicate  ;;(predicate:ast when.cwt)
+                                                 qualifier-lookup
+                  :-  %:  pred-ops-and-conjs  qualified-pred
+                                              map-meta
+                                              qualifier-lookup
+                                              ==
+                      %:  evaluate-datum-or-scalar  then.cwt
+                                                    named-ctes
+                                                    qualifier-lookup
+                                                    map-meta
+                                                    scalars
+                                                    ==
+  ?~  else.scalar  fns
+  =/  else-rs  %:  evaluate-datum-or-scalar  (need else.scalar)
+                                             named-ctes
+                                             qualifier-lookup
+                                             map-meta
+                                             scalars
+                                             ==
+  %+  weld  fns
+  ^-  (list [$-(data-row ?) resolved-scalar])
+      ~[[|=(=data-row %.y) else-rs]]
+::
+++  case-simple-fns
+  ::  build (predicate resolved-scalar) pairs for the simple CASE form;
+  ::  each predicate takes [data-row target when] and tests target == when.
+  ::  if else.scalar is present, appends a catch-all that always succeeds.
+  |=  $:  scalar=case:ast
+          =named-ctes
+          =qualifier-lookup
+          =map-meta
+          scalars=(map @tas resolved-scalar)
+          ==
+  ^-  (list [$-(data-row ?) resolved-scalar])
+  =/  eq-pred    ::=$-([data-row datum-or-scalar:ast datum-or-scalar:ast] ?)
+    |=  [target=datum-or-scalar:ast when=datum-or-scalar:ast =data-row]
+    ^-  ?
+    =/  target-val
+          %+  apply-scalar  data-row
+                            %:  evaluate-datum-or-scalar  target
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+    =/  when-val
+          %+  apply-scalar  data-row
+                            %:  evaluate-datum-or-scalar  when
+                                                          named-ctes
+                                                          qualifier-lookup
+                                                          map-meta
+                                                          scalars
+                                                          ==
+    =(target-val when-val)
+  =/  fns=(list [$-(data-row ?) resolved-scalar])
+        %+  turn  cases.scalar
+                  |=  cwt=case-when-then:ast
+                      :: to do: implement predicate
+                  :-  ?:  ?=(datum-or-scalar:ast when.cwt)
+                      |=  =data-row
+                      %^  eq-pred  (need target.scalar)
+                                   ;;(datum-or-scalar:ast when.cwt)
+                                   data-row
+                      ~|("when predicate not implemented" !!)
+                      ::|=  =data-row
+                      ::=/  qualified-pred
+                      ::  %+  normalize-predicate  ;;(predicate:ast when.cwt)
+                      ::                           qualifier-lookup
+                      ::%:  pred-ops-and-conjs  qualified-pred
+                      ::                        map-meta
+                      ::                        qualifier-lookup
+                      ::                        ==
+                      %:  evaluate-datum-or-scalar  then.cwt
+                                                    named-ctes
+                                                    qualifier-lookup
+                                                    map-meta
+                                                    scalars
+                                                    ==
+  ?~  else.scalar  fns
+  =/  else-rs  %:  evaluate-datum-or-scalar  (need else.scalar)
+                                             named-ctes
+                                             qualifier-lookup
+                                             map-meta
+                                             scalars
+                                             ==
+  %+  weld  fns
+  ^-  (list [$-(data-row ?) resolved-scalar])
+      ~[[|=(=data-row %.y) else-rs]]
 ::
 ++  prepare-coalesce
   |=  $:  scalar=coalesce:ast

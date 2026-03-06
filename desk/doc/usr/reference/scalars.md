@@ -39,7 +39,6 @@ END
 
 The leading `<expression>` is evaluated once. Each `WHEN` value is
 compared against it in order; the first match determines the result.
-`@`0 is treated as false and any other value as true (not loobean).
 
 **Searched form** — omits the leading expression; each `WHEN` clause is
 evaluated as an independent predicate:
