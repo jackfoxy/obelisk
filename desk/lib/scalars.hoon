@@ -37,8 +37,7 @@
                                 ==
   ::
     %case
-      ::(prepare-case scalar named-ctes qualifier-lookup map-meta scalars)
-      !!
+      (prepare-case scalar named-ctes qualifier-lookup map-meta scalars)
   ::
     %coalesce
       %:  prepare-coalesce  scalar
