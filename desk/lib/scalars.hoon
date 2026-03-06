@@ -209,7 +209,7 @@
   ^-  resolved-scalar
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
-  ::  check that all then-values and else share a common type; capture return type
+  ::  check all then-values and else share a common type; capture return type
   =/  then-dos=(list datum-or-scalar:ast)
     %+  turn  cases
     |=  cwt=case-when-then:ast
@@ -264,7 +264,7 @@
       scalars
       named-ctes
       ==
-  ::  check that all then-values and else share a common type; capture return type
+  ::  check all then-values and else share a common type; capture return type
   =/  then-dos=(list datum-or-scalar:ast)
     %+  turn  cases
     |=  cwt=case-when-then:ast
@@ -344,7 +344,7 @@
           scalars=(map @tas resolved-scalar)
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
-  =/  eq-pred    ::=$-([data-row datum-or-scalar:ast datum-or-scalar:ast] ?)
+  =/  eq-pred
     |=  [target=datum-or-scalar:ast when=datum-or-scalar:ast =data-row]
     ^-  ?
     =/  target-val
@@ -364,30 +364,27 @@
                                                           scalars
                                                           ==
     =(target-val when-val)
-  =/  fns=(list [$-(data-row ?) resolved-scalar])
-        %+  turn  cases.scalar
-                  |=  cwt=case-when-then:ast
-                      :: to do: implement predicate
-                  :-  ?:  ?=(datum-or-scalar:ast when.cwt)
-                      |=  =data-row
-                      %^  eq-pred  (need target.scalar)
-                                   ;;(datum-or-scalar:ast when.cwt)
-                                   data-row
-                      ~|("when predicate not implemented" !!)
-                      ::|=  =data-row
-                      ::=/  qualified-pred
-                      ::  %+  normalize-predicate  ;;(predicate:ast when.cwt)
-                      ::                           qualifier-lookup
-                      ::%:  pred-ops-and-conjs  qualified-pred
-                      ::                        map-meta
-                      ::                        qualifier-lookup
-                      ::                        ==
-                      %:  evaluate-datum-or-scalar  then.cwt
-                                                    named-ctes
-                                                    qualifier-lookup
-                                                    map-meta
-                                                    scalars
-                                                    ==
+  =/  fns  %+  turn  cases.scalar
+                     |=  cwt=case-when-then:ast
+                     :-  ?:  ?=(datum-or-scalar:ast when.cwt)
+                         |=  =data-row
+                         %^  eq-pred  (need target.scalar)
+                                     ;;(datum-or-scalar:ast when.cwt)
+                                     data-row
+                         |=  =data-row
+                         =/  qualified-pred
+                           %+  normalize-predicate  ;;(predicate:ast when.cwt)
+                                                   qualifier-lookup
+                         %-  %^  pred-ops-and-conjs  qualified-pred
+                                                     map-meta
+                                                     qualifier-lookup
+                             data-row
+                         %:  evaluate-datum-or-scalar  then.cwt
+                                                       named-ctes
+                                                       qualifier-lookup
+                                                       map-meta
+                                                       scalars
+                                                       ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum-or-scalar  (need else.scalar)
                                              named-ctes
@@ -447,6 +444,83 @@
     ?>  ?=(%qualified-map-meta -.map-meta)
     (got-column-dime map-meta column data-row)
   [%fn typ |=(=data-row (fn validated data-row))]
+::
+::::++  prepare-arithmetic
+::::    |=  $:
+::::          scalar=arithmetic:ast
+::::          =named-ctes
+::::          =qualifier-lookup
+::::          =map-meta
+::::          scalars=(map @tas resolved-scalar)
+::::        ==
+::::    ^-  resolved-scalar
+::::    ?-    operator.scalar
+::::        %lus
+::::      |=  =data-row
+::::      =/  evald-left  
+::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      =/  evald-right  
+::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      ?:  =(-.evald-left -.evald-right)
+::::        [-.evald-left (add +.evald-left +.evald-right)]
+::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+::::          !!
+::::    ::
+::::        %hep
+::::      |=  =data-row
+::::      =/  evald-left  
+::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      =/  evald-right  
+::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      ?:  =(-.evald-left -.evald-right)
+::::        [-.evald-left (sub +.evald-left +.evald-right)]
+::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+::::          !!
+::::    ::
+::::        %tar
+::::      |=  =data-row
+::::      =/  evald-left  
+::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      =/  evald-right  
+::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      ?:  =(-.evald-left -.evald-right)
+::::        [-.evald-left (mul +.evald-left +.evald-right)]
+::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+::::          !!
+::::    ::
+::::        %fas
+::::      |=  =data-row
+::::      =/  evald-left  
+::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      =/  evald-right  
+::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      ?:  =(-.evald-left -.evald-right)
+::::        [-.evald-left (div +.evald-left +.evald-right)]
+::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+::::          !!
+::::    ::
+::::        %ket
+::::      |=  =data-row
+::::      =/  evald-left  
+::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      =/  evald-right  
+::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
+::::        data-row
+::::      ?:  =(-.evald-left -.evald-right)
+::::        [-.evald-left (pow +.evald-left +.evald-right)]
+::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
+::::          !!
+::::    ::
+::::    ==
 ::
 ++  check-consistent-types
   ::  validate that all datum-or-scalar items share a common aura type,
@@ -527,87 +601,11 @@
   ?>  =(u.expected t)
   $(out [sub out], items t.items)
 ::
-::::++  prepare-arithmetic
-::::    |=  $:
-::::          scalar=arithmetic:ast
-::::          =named-ctes
-::::          =qualifier-lookup
-::::          =map-meta
-::::          scalars=(map @tas resolved-scalar)
-::::        ==
-::::    ^-  resolved-scalar
-::::    ?-    operator.scalar
-::::        %lus
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (add +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %hep
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (sub +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %tar
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (mul +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %fas
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (div +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::        %ket
-::::      |=  =data-row
-::::      =/  evald-left  
-::::        %-  (evaluate-datum-or-scalar left.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      =/  evald-right  
-::::        %-  (evaluate-datum-or-scalar right.scalar named-ctes qualifier-lookup map-meta scalars)
-::::        data-row
-::::      ?:  =(-.evald-left -.evald-right)
-::::        [-.evald-left (pow +.evald-left +.evald-right)]
-::::      ~|  "operands not of the sime type: {<-.evald-left>}, {<-.evald-right>}"
-::::          !!
-::::    ::
-::::    ==
 ++  got-qualified-col-type
   |=  [=qualified-map-meta col=qualified-column:ast]
   ^-  @ta
   -:(~(got bi:mip +.qualified-map-meta) qualifier.col name.col)
-
+::
 ++  got-column-dime
   |=  [=qualified-map-meta col=qualified-column:ast =data-row] 
   ^-  dime
