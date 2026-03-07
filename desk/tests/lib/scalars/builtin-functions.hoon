@@ -151,13 +151,13 @@
 ::
 ::  %abs tests
 ::
-::++  test-case-when-searched-eq
-::  %-  run-tests
-::  :~
-::    :-  %abs
-::    :*  [%abs [%literal-value [~.sd `@`-1]]]
-::      [~.u 1]
-::    ==
-::  ==
+++  test-case-when-searched-eq
+  %-  run-tests
+  :~
+    :-  %abs
+    :*  [%abs [%literal-value [~.sd `@`-1]]]
+      [~.u 1]
+    ==
+  ==
 ::
 --

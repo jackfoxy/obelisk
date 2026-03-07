@@ -149,6 +149,7 @@
 ::
 ::
 ++  test-arithmetic
+  :: to do: add modulo tests
   %-  run-tests
   :~
     ::  addition tests
