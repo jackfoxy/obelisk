@@ -155,8 +155,8 @@
   %-  run-tests
   :~
     :-  %abs
-    :*  [%abs [%literal-value [~.sd `@`-1]]]
-      [~.u 1]
+    :*  [%abs [%literal-value [~.sd -1]]]
+      [~.sd 1]
     ==
   ==
 ::

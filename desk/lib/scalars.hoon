@@ -66,16 +66,18 @@
       :+  %fn
         ~.sd  ::typ
         |=  =data-row
-        =/  expr  %:  evaluate-datum-or-scalar
+        ^-  dime
+        =/  expr=resolved-scalar  %:  evaluate-datum-or-scalar
                       numeric-expression:;;(abs:ast scalar)
                       named-ctes
                       qualifier-lookup
                       map-meta
                       scalars
                       ==
-        ?=(literal-value:ast expr)
-          (abs:si `@s`+>.expr)
-        (abs:si `@s`+:(f.expr data-row))
+        :-  %sd
+            ?:  ?=(literal-value:ast expr)
+              (abs:si +>.expr)
+            (abs:si +:(f.expr data-row))
   ::
     %log
       !!
