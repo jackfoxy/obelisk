@@ -1,6 +1,6 @@
 ::
 /-  ast, *obelisk, *server-state
-/+  *test
+/+  *test, *scalars
 /=  agent  /app/obelisk
 |%
 ::
@@ -1404,6 +1404,52 @@
       |.  %+  ~(on-poke agent (bowl [run tmsp.action-4]))
               %obelisk-action
               !>  [%test db.action-4 uql.action-4]
+::
+::  scalar test helpers
+::
++$  table-test-row  $:  fn=scalar-function:ast
+                        expected=dime
+                        ==
+::
+++  scalar-test-helper
+  |=  $:  =named-ctes
+          =qualifier-lookup
+          =map-meta
+          resolved-scalars=(map @tas resolved-scalar)
+          =data-row
+          row=table-test-row
+         ==
+  =/  scalar-to-apply
+    (prepare-scalar fn.row named-ctes qualifier-lookup map-meta resolved-scalars)
+  %+  expect-eq
+    !>  expected.row
+    !>  (apply-scalar data-row scalar-to-apply)
+::
+::  row structure:
+::  [@tas(test-name) [fn expected]]
+::
+++  run-scalar-tests
+  |=  $:  =named-ctes
+          =qualifier-lookup
+          =map-meta
+          resolved-scalars=(map @tas resolved-scalar)
+          =data-row
+          rows=(list [@tas table-test-row])
+         ==
+  ^-  tang
+  %-  zing
+  |-
+  ?~  rows
+    ~
+  =/  row  -.rows
+  ::  category to prepend the test name in case of result mismatch
+  ::  the ~| to prepend test name in case of crash
+  =/  result
+    %+  category
+      (trip -.row)
+    ~|((weld "CRASH - " (trip -.row)) (scalar-test-helper named-ctes qualifier-lookup map-meta resolved-scalars data-row +.row))
+  :-  result
+  $(rows +.rows)
 ::
 ::  create and populate test tables
 ::

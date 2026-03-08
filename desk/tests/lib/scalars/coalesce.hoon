@@ -1,5 +1,5 @@
-/-  ast
-/+  *scalars, *test, *server, *utils
+/-  ast, *obelisk
+/+  *scalars, *test, *server, *utils,  *test-helpers
 ::
 |%
 ::
@@ -69,7 +69,7 @@
                             %-  addr-columns  :~  [%column %col4 ~.ud 0]
                                                   ==
 ::
-++  qualifier-lookup  %-  malt
+++  qual-lookup  %-  malt
                                %-  limo
                                :~
                                  [%col4 ~[qualified-table-1]]
@@ -83,67 +83,39 @@
                              [%col4 4]
                            ==
 ::
-++  table-scalars          %-  malt
-                              %-  limo
-                              :~
-                                :-  %scalar1
-                                :*  %if-then-else
-                                  if=true-predicate
-                                  then=[q-col-3]
-                                  else=[q-col-2]
-                                ==
-                                :-  %scalar2
-                                :*  %if-then-else
-                                  if=true-predicate
-                                  then=[literal-value-1]
-                                  else=[literal-value-2]
-                                ==
-                              ==
-::
-::  table testing harness
-+$  table-test-row  $:  datums=(list datum-or-scalar:ast)
-                     expected=dime
-                   ==
-::
-++  table-test-helper
-  |=  [row=table-test-row]
-  =/  coalesce-expr  [%coalesce data=datums.row]
-  =/  scalar-to-apply
-      %:  prepare-scalar  coalesce-expr
-                          table-named-ctes
-                          qualifier-lookup
-                          qual-map-meta
-                          *(map @tas resolved-scalar)  ::table-scalars
+++  resolved-scalars
+  ^-  (map @tas resolved-scalar)
+  %-  malt  %-  limo  :~  :-  %scalar1
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[%literal-value [~.ud 3]]
+                                      else=[%literal-value [~.ud 2]]
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    ==
+                          :-  %scalar2
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=literal-value-1
+                                      else=literal-value-2
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    ==
                           ==
-  %+  expect-eq
-    !>  expected.row
-    !>  (apply-scalar table-row scalar-to-apply)
-::
-::  row structure:
-::  [@tas(test-name) [predicate then-branch else-branch expected]]
-::
-++  run-tests
-  |=  [rows=(list [@tas table-test-row])]
-  ^-  tang
-  %-  zing
-  |-
-  ?~  rows
-    ~
-  =/  row  -.rows
-  ::  category to prepend the test name in case of result mismatch
-  ::  the ~| to prepend test name in case of crash
-  =/  result
-    %+  category
-      (trip -.row)
-    ~|((weld "CRASH - " (trip -.row)) (table-test-helper +.row))
-  :-  result
-  $(rows +.rows)
-
-
 ::  tests
 ::  - DONE:             %eq %neq %gte %gt %lte %lt %in %not-in %between
-::                      %not-between %and %or 
-::  - MISSING:          
+::                      %not-between %and %or
+::  - MISSING:
 ::  - ???:              %not (doesn't work for qualified/unqualified col)
 ::  - NOT IMPLEMENTED:  %equiv %not-equiv %exists %not-%exists %all %any
 ::
@@ -154,12 +126,16 @@
 ::
 :: coalesce tests
 ++  test-coalesce
-  %-  run-tests
-  :~
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %qualified-column
-    :*  ~[q-col-1]
+    :-  [%coalesce ~[q-col-1]]
       [~.ud 1]
-    ==
     :::::-  %unqualified-column
     :::::*  ~[u-col-4]
     ::::  [~.ud 4]
@@ -173,6 +149,7 @@
     ::::  [~.ud 1]
     ::::==
   ==
+  ==
 ::::::
 :::::: test what happens if no column matches
 ::::++  test-fail-coalesce-01
@@ -181,7 +158,7 @@
 ::::  =/  coalesce-expr  [%coalesce data=datums]
 ::::  =/  scalar-to-apply  %:  prepare-scalar  coalesce-expr
 ::::                                           table-named-ctes
-::::                                           qualifier-lookup
+::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           *(map @tas resolved-scalar)  ::
 ::::                                           ==
@@ -196,7 +173,7 @@
 ::::  =/  coalesce-expr  [%coalesce data=datums]
 ::::  =/  scalar-to-apply  %:  prepare-scalar  coalesce-expr
 ::::                                           table-named-ctes
-::::                                           qualifier-lookup
+::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           table-scalars
 ::::                                           ==
@@ -211,7 +188,7 @@
 ::::  =/  coalesce-expr  [%coalesce data=datums]
 ::::  =/  scalar-to-apply  %:  prepare-scalar  coalesce-expr
 ::::                                           table-named-ctes
-::::                                           qualifier-lookup
+::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           table-scalars
 ::::                                           ==
@@ -226,7 +203,7 @@
 ::::  =/  coalesce-expr  [%coalesce data=datums]
 ::::  =/  scalar-to-apply  %:  prepare-scalar  coalesce-expr
 ::::                                           table-named-ctes
-::::                                           qualifier-lookup
+::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           table-scalars
 ::::                                           ==

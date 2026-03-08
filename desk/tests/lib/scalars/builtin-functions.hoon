@@ -1,5 +1,5 @@
-/-  ast
-/+  *scalars,  *test,  *server
+/-  ast, *obelisk
+/+  *scalars,  *test,  *server,  *test-helpers
 ::
 |%
 ::
@@ -73,7 +73,7 @@
                                                    [%column %col6 ~.ud 0]
                                                    ==
 ::
-++  qualifier-lookup  %-  malt
+++  qual-lookup  %-  malt
                            %-  limo
                            :~
                              [%col4 ~[qualified-table-1]]
@@ -94,55 +94,35 @@
                              [%col6 6]
                            ==
 ::
-::  table testing harness
-+$  table-test-row  $:  fn=scalar-function:ast
-                     expected=dime
-                   ==
-::
-++  table-test-helper
-  |=  [row=table-test-row]
-  =/  scalar-to-apply
-    (prepare-scalar fn.row table-named-ctes qualifier-lookup qual-map-meta embedded-scalars)
-  %+  expect-eq
-    !>  expected.row
-    !>  (apply-scalar table-row scalar-to-apply)
-::
-++  embedded-scalars  *(map @tas resolved-scalar)     ::    %-  malt
-                           ::%-  limo
-                           :::~
-                           ::  :-  %scalar1
-                           ::  :*  %if-then-else
-                           ::    if=true-predicate
-                           ::    then=[q-col-3]
-                           ::    else=[q-col-2]
-                           ::  ==
-                           ::  :-  %scalar2
-                           ::  :*  %if-then-else
-                           ::    if=true-predicate
-                           ::    then=[u-col-4]
-                           ::    else=[u-col-5]
-                           ::  ==
-                           ::==
-::
-::  row structure:
-::  [@tas(test-name) [predicate then-branch else-branch expected]]
-::
-++  run-tests
-  |=  [rows=(list [@tas table-test-row])]
-  ^-  tang
-  %-  zing
-  |-
-  ?~  rows
-    ~
-  =/  row  -.rows
-  ::  category to prepend the test name in case of result mismatch
-  ::  the ~| to prepend test name in case of crash
-  =/  result
-    %+  category
-      (trip -.row)
-    ~|((weld "CRASH - " (trip -.row)) (table-test-helper +.row))
-  :-  result
-  $(rows +.rows)
+++  resolved-scalars
+  ^-  (map @tas resolved-scalar)
+  %-  malt  %-  limo  :~  :-  %scalar1
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=q-col-3
+                                      else=q-col-2
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    ==
+                          :-  %scalar2
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[%literal-value [~.ud 4]]
+                                      else=[%literal-value [~.ud 5]]
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    ==
+                          ==
 ::
 ::
 ::  :::::::::::::::::::::::::::
@@ -152,12 +132,18 @@
 ::  %abs tests
 ::
 ++  test-case-when-searched-eq
-  %-  run-tests
-  :~
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %abs
     :*  [%abs [%literal-value [~.sd -1]]]
       [~.sd 1]
     ==
+  ==
   ==
 ::
 --
