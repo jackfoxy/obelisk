@@ -563,7 +563,7 @@
       qualified-column:ast
         ~|  "check-consistent-types: qualified-column {<name.item>} ".
             "requires qualified map-meta"
-        :-  (got-qualified-col-type ;;(qualified-map-meta map-meta) item)
+        :-  (got-qualified-col-type map-meta item)
             ;;(qualified-column:ast item)
     ::
       unqualified-column:ast
@@ -619,21 +619,23 @@
   $(out [sub out], items t.items)
 ::
 ++  got-qualified-col-type
-  |=  [=qualified-map-meta col=qualified-column:ast]
+  |=  [=map-meta col=qualified-column:ast]
   ^-  @ta
-  -:(~(got bi:mip +.qualified-map-meta) qualifier.col name.col)
+  ?:  =(%qualified-map-meta -.map-meta)
+    -:(~(got bi:mip +:;;(qualified-map-meta map-meta)) qualifier.col name.col)
+  -:(~(got by +:;;(unqualified-map-meta map-meta)) name.col)
 ::
 ++  got-column-dime
-  |=  [=qualified-map-meta col=qualified-column:ast =data-row] 
+  |=  [=map-meta col=qualified-column:ast =data-row] 
   ^-  dime
   ~|  "got-column-dime: failed for {<col>}"
   ?-  -.data-row
       %joined-row
-        :-  (got-qualified-col-type qualified-map-meta col)
+        :-  (got-qualified-col-type map-meta col)
             (~(got bi:mip data.data-row) qualifier.col name.col)
       ::
       %indexed-row
-        :-  (got-qualified-col-type qualified-map-meta col)
+        :-  (got-qualified-col-type map-meta col)
             (~(got by data.data-row) name.col)
       ==
 ::
@@ -665,10 +667,10 @@
     ::
     qualified-column:ast
       :+  %fn
-          %+  got-qualified-col-type  ;;(qualified-map-meta map-meta)
+          %+  got-qualified-col-type  map-meta
                                       ;;(qualified-column:ast datum)
           |=  =data-row
-            %^  got-column-dime  ;;(qualified-map-meta map-meta)
+            %^  got-column-dime  map-meta
                                 ;;(qualified-column:ast datum)
                                 data-row
     ::
@@ -680,8 +682,8 @@
       =/  column=qualified-column:ast
         [%qualified-column -.table-list name:;;(unqualified-column:ast datum) ~]
       :+  %fn
-          (got-qualified-col-type ;;(qualified-map-meta map-meta) column)
+          (got-qualified-col-type map-meta column)
           |=  =data-row
-              (got-column-dime ;;(qualified-map-meta map-meta) column data-row)
+              (got-column-dime map-meta column data-row)
     ==
 --

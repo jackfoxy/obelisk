@@ -51,11 +51,15 @@
                               :~  [%column %col1 ~.ud 0]
                                   [%column %col2 ~.ud 0]
                                   [%column %col3 ~.ud 0]
-                                  [%column %col4 ~.ud 0]
-                                  [%column %col5 ~.ud 0]
-                                  [%column %col6 ~.ud 0]
                                   ==
                       ==
+::
+++  unqual-map-meta  :-  %unqualified-map-meta
+                         %-  mk-unqualified-typ-addr-lookup
+                             %-  addr-columns  :~  [%column %col4 ~.ud 0]
+                                                   [%column %col5 ~.ud 0]
+                                                   [%column %col6 ~.ud 0]
+                                                   ==
 ::
 ++  qual-lookup  %-  malt
                            %-  limo
@@ -115,8 +119,7 @@
 ::
 ::
 ::
-++  test-arithmetic
-  :: to do: add modulo tests
+++  test-qual-arithmetic
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -139,13 +142,6 @@
           literal-value-1
         ==
       [~.ud 2]
-::    :-  %addition-unqualified-col-literal
-::    :-  :*  %arithmetic
-::          %lus
-::          arithmetic-u-col-4
-::          literal-value-1
-::        ==
-::      [~.ud 5]
     :-  %addition-scalar-name-literal
     :-  :*  %arithmetic
           %lus
@@ -167,13 +163,6 @@
           arithmetic-q-col-1
         ==
       [~.ud 2]
-::    :-  %addition-literal-unqualified-col
-::    :-  :*  %arithmetic
-::          %lus
-::          literal-value-1
-::          arithmetic-u-col-4
-::        ==
-::      [~.ud 5]
     :-  %addition-literal-scalar-name
     :-  :*  %arithmetic
           %lus
@@ -203,13 +192,6 @@
           literal-value-1
         ==
       [~.ud 0]
-::    :-  %subtraction-unqualified-col-literal
-::    :-  :*  %arithmetic
-::          %hep
-::          arithmetic-u-col-5
-::          literal-value-1
-::        ==
-::      [~.ud 4]
     :-  %subtraction-scalar-name-literal
     :-  :*  %arithmetic
           %hep
@@ -231,13 +213,6 @@
           arithmetic-q-col-1
         ==
       [~.ud 0]
-::    :-  %subtraction-literal-unqualified-col
-::    :-  :*  %arithmetic
-::          %hep
-::          [%literal-value [~.ud 9]]
-::          arithmetic-u-col-5
-::        ==
-::      [~.ud 4]
     :-  %subtraction-literal-scalar-name
     :-  :*  %arithmetic
           %hep
@@ -267,13 +242,6 @@
           literal-value-1
         ==
       [~.ud 2]
-::    :-  %multiplication-unqualified-col-literal
-::    :-  :*  %arithmetic
-::          %tar
-::          arithmetic-u-col-5
-::          literal-value-1
-::        ==
-::      [~.ud 5]
     :-  %multiplication-scalar-name-literal
     :-  :*  %arithmetic
           %tar
@@ -295,13 +263,6 @@
           arithmetic-q-col-2
         ==
       [~.ud 2]
-    :-  %multiplication-literal-unqualified-col
-    :-  :*  %arithmetic
-          %tar
-          literal-value-1
-          arithmetic-u-col-5
-        ==
-      [~.ud 5]
     :-  %multiplication-literal-scalar-name
     :-  :*  %arithmetic
           %tar
@@ -331,13 +292,6 @@
           literal-value-1
         ==
       [~.ud 2]
-::    :-  %division-unqualified-col-literal
-::    :-  :*  %arithmetic
-::          %fas
-::          arithmetic-u-col-5
-::          literal-value-1
-::        ==
-::      [~.ud 5]
     :-  %division-scalar-name-literal
     :-  :*  %arithmetic
           %fas
@@ -359,13 +313,6 @@
           arithmetic-q-col-2
         ==
       [~.ud 0]
-::    :-  %division-literal-unqualified-col
-::    :-  :*  %arithmetic
-::          %fas
-::          literal-value-1
-::          arithmetic-u-col-5
-::        ==
-::      [~.ud 0]
     :-  %division-literal-scalar-name
     :-  :*  %arithmetic
           %fas
@@ -395,13 +342,6 @@
           literal-value-1
         ==
       [~.ud 2]
-::    :-  %exponentiation-unqualified-col-literal
-::    :-  :*  %arithmetic
-::          %ket
-::          arithmetic-u-col-5
-::          literal-value-2
-::        ==
-::      [~.ud 25]
     :-  %exponentiation-scalar-name-literal
     :-  :*  %arithmetic
           %ket
@@ -423,13 +363,6 @@
           arithmetic-q-col-2
         ==
       [~.ud 4]
-::    :-  %exponentiation-literal-unqualified-col
-::    :-  :*  %arithmetic
-::          %ket
-::          literal-value-2
-::          arithmetic-u-col-5
-::        ==
-::      [~.ud 32]
     :-  %exponentiation-literal-scalar-name
     :-  :*  %arithmetic
           %ket
@@ -444,6 +377,92 @@
 ::          (~(got by scalars) %scalar1)
 ::        ==
 ::      [~.ud 8]
+  ==
+  ==
+::
+++  test-unqual-arithmetic
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  addition tests
+    :-  %addition-unqualified-col-literal
+    :-  :*  %arithmetic
+          %lus
+          arithmetic-u-col-4
+          literal-value-1
+        ==
+      [~.ud 5]
+    :-  %addition-literal-unqualified-col
+    :-  :*  %arithmetic
+          %lus
+          literal-value-1
+          arithmetic-u-col-4
+        ==
+      [~.ud 5]
+    ::  subtraction tests
+    :-  %subtraction-unqualified-col-literal
+    :-  :*  %arithmetic
+          %hep
+          arithmetic-u-col-5
+          literal-value-1
+        ==
+      [~.ud 4]
+    :-  %subtraction-literal-unqualified-col
+    :-  :*  %arithmetic
+          %hep
+          [%literal-value [~.ud 9]]
+          arithmetic-u-col-5
+        ==
+      [~.ud 4]
+    ::  multiplication tests
+    :-  %multiplication-unqualified-col-literal
+    :-  :*  %arithmetic
+          %tar
+          arithmetic-u-col-5
+          literal-value-1
+        ==
+      [~.ud 5]
+    :-  %multiplication-literal-unqualified-col
+    :-  :*  %arithmetic
+          %tar
+          literal-value-1
+          arithmetic-u-col-5
+        ==
+      [~.ud 5]
+    ::  division tests
+    :-  %division-unqualified-col-literal
+    :-  :*  %arithmetic
+          %fas
+          arithmetic-u-col-5
+          literal-value-1
+        ==
+      [~.ud 5]
+    :-  %division-literal-unqualified-col
+    :-  :*  %arithmetic
+          %fas
+          literal-value-1
+          arithmetic-u-col-5
+        ==
+      [~.ud 0]
+    ::  exponentiation tests
+    :-  %exponentiation-unqualified-col-literal
+    :-  :*  %arithmetic
+          %ket
+          arithmetic-u-col-5
+          literal-value-2
+        ==
+      [~.ud 25]
+    :-  %exponentiation-literal-unqualified-col
+    :-  :*  %arithmetic
+          %ket
+          literal-value-2
+          arithmetic-u-col-5
+        ==
+      [~.ud 32]
   ==
   ==
 --

@@ -46,7 +46,7 @@
 ::  make an unqualified-type-lookup
 ++  mk-unqualified-type-lookup
   |=  [kvp=(lest [@tas @ta])]
-  :-  %unqualified-lookup-type
+  :-  %unqualified-map-meta
   (malt kvp)
 ::
 ++  q-col-1           [%qualified-column qualified-table-1 %col1 ~]
@@ -65,9 +65,11 @@
                                                         ==
                               ==
 ::
-++  unqual-map-meta  %-  mk-unqualified-typ-addr-lookup
-                            %-  addr-columns  :~  [%column %col4 ~.ud 0]
-                                                  ==
+++  unqual-map-meta  :-  %unqualified-map-meta
+                         %-  mk-unqualified-typ-addr-lookup
+                             %-  addr-columns  :~  [%column %col1 ~.ud 0]
+                                                   [%column %col4 ~.ud 0]
+                                                   ==
 ::
 ++  qual-lookup  %-  malt
                                %-  limo

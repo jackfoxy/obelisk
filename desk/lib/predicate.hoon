@@ -60,12 +60,12 @@
   ::
   |=  [p=predicate:ast =map-meta =qualifier-lookup]
   ^-  $-(data-row ?)
-  ?~  p  ~|("pred-ops-and-conjs can't get here" !!) 
-  ?.  ?=(ops-and-conjs n.p)  ~|("pred-ops-and-conjs can't get here" !!)
+  ?~  p  ~|("pred-ops-and-conjs can't get here 1" !!) 
+  ?.  ?=(ops-and-conjs n.p)  ~|("pred-ops-and-conjs can't get here 2" !!)
   ?-  n.p
     ternary-op
-      ?~  l.p  ~|("pred-ops-and-conjs can't get here" !!)
-      ?~  r.p  ~|("pred-ops-and-conjs can't get here" !!)
+      ?~  l.p  ~|("pred-ops-and-conjs can't get here 3" !!)
+      ?~  r.p  ~|("pred-ops-and-conjs can't get here 4" !!)
       =/  ll=$-(data-row ?)  (pred-binary-op l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)  (pred-binary-op r.p map-meta qualifier-lookup)
       ?:  =(%between n.p)
@@ -75,8 +75,8 @@
     unary-op    (pred-unary-op p map-meta qualifier-lookup)
     all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
-      ?~  l.p  ~|("pred-ops-and-conjs can't get here" !!)
-      ?~  r.p  ~|("pred-ops-and-conjs can't get here" !!)
+      ?~  l.p  ~|("pred-ops-and-conjs can't get here 5" !!)
+      ?~  r.p  ~|("pred-ops-and-conjs can't get here 6" !!)
       =/  ll=$-(data-row ?)  (pred-ops-and-conjs l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)  (pred-ops-and-conjs r.p map-meta qualifier-lookup)
       ?:  =(%and n.p)
@@ -224,11 +224,11 @@
           lit-list-pred=$-([@ (list @) =data-row] ?)
           ==
   ^-  $-(data-row ?)
-  ?~  p                  ~|("common-list-pred can't get here" !!)
-  ?~  l.p                ~|("common-list-pred can't get here" !!)
-  ?~  r.p                ~|("common-list-pred can't get here" !!)
+  ?~  p                  ~|("common-list-pred can't get here 1" !!)
+  ?~  l.p                ~|("common-list-pred can't get here 2" !!)
+  ?~  r.p                ~|("common-list-pred can't get here 3" !!)
   =/  r=value-literals  ?:  ?=(value-literals n.r.p)  n.r.p
-                        ~|("common-list-pred can't get here" !!)
+                        ~|("common-list-pred can't get here 4" !!)
   =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";")
                          |=(a=tape (rash (crip a) dem))
   =/  typ
@@ -241,7 +241,11 @@
             ?=(%unqualified-map-meta -.map-meta)
             ==
       -:(~(got by +.map-meta) name.n.l.p)
-    ~|("common-list-pred can't get here" !!)
+    ?:  ?&  ?=(qualified-column:ast n.l.p)
+            ?=(%unqualified-map-meta -.map-meta)
+            ==
+      -:(~(got by +.map-meta) name.n.l.p)
+    ~|("common-list-pred can't get here 5" !!)
   ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
     ~|("type of IN list incorrect, should be {<typ>}" !!)
   ?:  ?&  ?=(unqualified-column:ast n.l.p)
@@ -256,9 +260,14 @@
                   (cury list-pred +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p))
                   in-list
               data-row
+  ?:  ?&  ?=(qualified-column:ast n.l.p)
+          ?=(%unqualified-map-meta -.map-meta)
+          ==
+    %+  bake  (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) in-list)
+              data-row
   ?:  ?=(dime n.l.p)
     (bake (cury (cury lit-list-pred +.n.l.p) in-list) data-row)
-  ~|("common-list-pred can't get here" !!)
+  ~|("common-list-pred can't get here 6" !!)
 ::
 ++  get-qualifier
   |=  [col=qualified-column:ast =qualifier-lookup]
@@ -331,7 +340,7 @@
     ~|  "comparing column to literal of different aura: {<name.l>} ".
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
         !!
-  ~|("datum-ops can't get here" !!)
+  ~|("datum-ops-qualified can't get here" !!)
 ::
 ++  datum-ops-qualified-eq
   |=  $:  l=datum:ast
@@ -383,7 +392,7 @@
     ~|  "comparing column to literal of different aura: {<name.l>} ".
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
         !!
-  ~|("datum-ops can't get here" !!)
+  ~|("datum-ops-qualified-eq can't get here" !!)
 ::
 ++  datum-ops-unqualified
   |=  $:  l=datum:ast
@@ -401,6 +410,20 @@
       (bake (cury (cury (cury lit-lit +.l) +.r) -.l) data-row)
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
+  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
+    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
+                         -:(~(got by map-meta) name.l)
+                         ~|  "column {<name.r>} does not exist"
+                         -:(~(got by map-meta) name.r)
+      %+  bake  %+  cury
+                    %+  cury  (cury col-col +:(~(got by map-meta) name.l))
+                              +:(~(got by map-meta) name.r)
+                    -:(~(got by map-meta) name.l)
+                data-row
+    ~|  "comparing columns of different auras: {<name.l>} ".
+        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
+        !!
   ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
     ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
                          -:(~(got by map-meta) name.l)
@@ -416,6 +439,16 @@
         "{<-:(~(got by map-meta) name.r)>}"
         !!
   ::  literal = column
+  ?:  &(?=(dime l) ?=(qualified-column:ast r))
+    ~|  "column {<name.r>} does not exist"
+    ?:  (types-match -.l -:(~(got by map-meta) name.r))
+      %+  bake  %+  cury
+                    (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
+                    -.l
+                data-row
+    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
+        !!
   ?:  &(?=(dime l) ?=(unqualified-column:ast r))
     ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got by map-meta) name.r))
@@ -427,6 +460,16 @@
         "{<-:(~(got by map-meta) name.r)>}"
         !!
   ::  column = literal
+  ?:  &(?=(qualified-column:ast l) ?=(dime r))
+    ~|  "column {<name.l>} does not exist"
+    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
+      %+  bake  %+  cury
+                    (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
+                    -.r
+                data-row
+    ~|  "comparing column to literal of different aura: {<name.l>} ".
+        "{<-:(~(got by map-meta) name.l)>} {<r>}"
+        !!
   ?:  &(?=(unqualified-column:ast l) ?=(dime r))
     ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got by map-meta) name.l) -.r)
@@ -438,7 +481,7 @@
         "{<-:(~(got by map-meta) name.l)>} {<r>}"
         !!
   ::
-  ~|("datum-ops can't get here" !!)
+  ~|("datum-ops-unqualified can't get here" !!)
 ::
 ++  datum-ops-unqualified-eq
   |=  $:  l=datum:ast
@@ -456,6 +499,19 @@
       (bake (cury (cury lit-lit +.l) +.r) data-row)
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
+  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
+    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
+                         -:(~(got by map-meta) name.l)
+                         ~|  "column {<name.r>} does not exist"
+                         -:(~(got by map-meta) name.r)
+      %+  bake  %+  cury
+                    (cury col-col +:(~(got by map-meta) name.l))
+                    +:(~(got by map-meta) name.r)
+                data-row
+    ~|  "comparing columns of different auras: {<name.l>} ".
+        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
+        !!
   ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
     ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
                          -:(~(got by map-meta) name.l)
@@ -470,6 +526,14 @@
         "{<-:(~(got by map-meta) name.r)>}"
         !!
   ::  literal = column
+  ?:  &(?=(dime l) ?=(qualified-column:ast r))
+    ~|  "column {<name.r>} does not exist"
+    ?:  (types-match -.l -:(~(got by map-meta) name.r))
+      %+  bake  (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
+                data-row
+    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
+        "{<-:(~(got by map-meta) name.r)>}"
+        !!
   ?:  &(?=(dime l) ?=(unqualified-column:ast r))
     ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got by map-meta) name.r))
@@ -479,6 +543,14 @@
         "{<-:(~(got by map-meta) name.r)>}"
         !!
   ::  column = literal
+  ?:  &(?=(qualified-column:ast l) ?=(dime r))
+    ~|  "column {<name.l>} does not exist"
+    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
+      %+  bake  (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
+                data-row
+    ~|  "comparing column to literal of different aura: {<name.l>} ".
+        "{<-:(~(got by map-meta) name.l)>} {<r>}"
+        !!
   ?:  &(?=(unqualified-column:ast l) ?=(dime r))
     ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got by map-meta) name.l) -.r)
@@ -488,7 +560,7 @@
         "{<-:(~(got by map-meta) name.l)>} {<r>}"
         !!
   ::
-  ~|("datum-ops can't get here" !!)
+  ~|("datum-ops-unqualified-eq can't get here" !!)
 ::
 ++  pred-inequality-op
   |=  [p=inequality-op l=datum:ast r=datum:ast =map-meta =qualifier-lookup]

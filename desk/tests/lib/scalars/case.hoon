@@ -63,13 +63,16 @@
                                        [%column %other-col4 ~.ud 0]
                                        [%column %col5 ~.ud 0]
                                        [%column %col6 ~.ud 0]
-                                       [%column %col7 ~.ud 0]
                                        ==
                            ==
 ::
-++  unqual-map-meta  :-  %unqualified-lookup-type
+++  unqual-map-meta  :-  %unqualified-map-meta
                          %-  mk-unqualified-typ-addr-lookup
-                             %-  addr-columns  :~  [%column %col4 ~.ud 0]
+                             %-  addr-columns  :~  [%column %col1 ~.ud 0]
+                                                   [%column %col2 ~.ud 0]
+                                                   [%column %col3 ~.ud 0]
+                                                   [%column %col4 ~.ud 0]
+                                                   [%column %other-col4 ~.ud 0]
                                                    [%column %col5 ~.ud 0]
                                                    [%column %col6 ~.ud 0]
                                                    ==
@@ -142,7 +145,7 @@
 ::
 ::  %eq tests
 ::
-++  test-case-when-searched-eq
+++  test-qual-case-when-searched-eq
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -171,26 +174,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-eq-unqualified-col-dime
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%eq [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-eq-dime-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%eq [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %neq tests
 ::::
-++  test-case-when-searched-neq
+++  test-qual-case-when-searched-neq
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -226,33 +215,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-neq-unqualified-columns
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%neq [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-neq-unqualified-col-dime
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%neq [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-neq-dime-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%neq [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %gte tests
 ::::
-++  test-case-when-searched-gte
+++  test-qual-case-when-searched-gte
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -316,54 +284,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-gte-unqualified-columns-gt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gte [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gte-unqualified-columns-eq
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gte-unqualified-col-dime-gt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gte [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gte-unqualified-col-dime-eq
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gte-dime-unqualified-col-gt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gte [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gte-dime-unqualified-col-eq
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %gt tests
 ::::
-++  test-case-when-searched-gt
+++  test-qual-case-when-searched-gt
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -399,33 +325,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-gt-unqualified-columns-gt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gt [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gt-unqualified-col-dime-gt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gt [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-gt-dime-unqualified-col-gt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%gt [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %lte tests
 ::::
-++  test-case-when-searched-lte
+++  test-qual-case-when-searched-lte
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -489,54 +394,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-lte-unqualified-columns-lt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lte [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lte-unqualified-columns-eq
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lte-unqualified-col-dime-lt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lte [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lte-unqualified-col-dime-eq
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lte-dime-unqualified-col-lt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lte [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lte-dime-unqualified-col-eq
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %lt tests
 ::::
-++  test-case-when-searched-lt
+++  test-qual-case-when-searched-lt
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -572,33 +435,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-lt-unqualified-columns-lt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lt [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lt-unqualified-col-dime-lt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lt [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-lt-dime-unqualified-col-lt
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%lt [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %in tests
 ::::
-++  test-case-when-searched-in
+++  test-qual-case-when-searched-in
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -620,19 +462,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-in-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %not-in tests
 ::::
-++  test-case-when-searched-not-in
+++  test-qual-case-when-searched-not-in
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -654,19 +489,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-not-in-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then [%not-in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %between tests
 ::::
-++  test-case-when-searched-between
+++  test-qual-case-when-searched-between
   =/  mk-between-pred
     |*  [val-to-test=* lower-bound=* upper-bound=*]
     :+  %between
@@ -714,40 +542,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-between-unqualified-col-unqualified-cols
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-between-pred u-col-5 u-col-4 u-col-6) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-between-unqualified-col-dime-and-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-between-pred u-col-5 [~.ud 4] u-col-6) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-between-unqualified-col-unqualified-col-and-dime
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-between-pred u-col-5 u-col-4 [~.ud 6]) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-between-unqualified-col-dimes
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-between-pred u-col-5 [~.ud 4] [~.ud 6]) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %not-between tests
 ::::
-++  test-case-when-searched-not-between
+++  test-qual-case-when-searched-not-between
   =/  mk-not-between-pred
     |*  [val-to-test=* lower-bound=* upper-bound=*]
     :+  %not-between
@@ -795,40 +595,12 @@
           ~
         ==
       literal-1
-::    :-  %searched-not-between-unqualified-col-unqualified-cols
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-not-between-pred u-col-4 u-col-5 u-col-6) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-not-between-unqualified-col-dime-and-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-not-between-pred u-col-4 [~.ud 5] u-col-6) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-not-between-unqualified-col-unqualified-col-and-dime
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-not-between-pred u-col-4 u-col-5 [~.ud 6]) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %searched-not-between-unqualified-col-dimes
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then (mk-not-between-pred u-col-4 [~.ud 5] [~.ud 7]) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
   ==
   ==
 ::::
 ::::  %and tests
 ::::
-++  test-case-when-searched-and
+++  test-qual-case-when-searched-and
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -848,7 +620,7 @@
 ::::
 ::::  %or tests
 ::::
-++  test-case-when-searched-or
+++  test-qual-case-when-searched-or
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -882,7 +654,7 @@
 ::::
 ::::  %not tests
 ::::
-++  test-case-when-searched-not
+++  test-qual-case-when-searched-not
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -913,7 +685,7 @@
 ::
 ::::  simple case expression tests
 ::::
-++  test-case-when-simple
+++  test-qual-case-when-simple
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -936,13 +708,6 @@
           ~
         ==
       literal-1
-::    :-  %simple-case-target-dime-when-unqualified-column
-::    :-  :*  %case
-::          (some [%literal-value [~.ud 4]])
-::          ~[[%case-when-then u-col-4 q-col-1]]
-::          ~
-::        ==
-::      literal-1
     :-  %simple-case-target-dime-when-scalar-name
     :-  :*  %case
           (some [%literal-value [~.ud 3]])
@@ -972,13 +737,13 @@
           ~
         ==
       literal-1
-::    :-  %simple-case-target-qualified-when-unqualified-column
-::    :-  :*  %case
-::          (some q-col-1)
-::          ~[[%case-when-then [%literal-value [~.ud 1]] q-col-1]]
-::          ~
-::        ==
-::      literal-1
+    :-  %simple-case-target-qualified-when-unqualified-column
+    :-  :*  %case
+          (some q-col-1)
+          ~[[%case-when-then [%literal-value [~.ud 1]] q-col-1]]
+          ~
+        ==
+      literal-1
     :-  %simple-case-target-qualified-when-scalar-name
     :-  :*  %case
           (some q-col-3)
@@ -993,42 +758,6 @@
 ::          ~
 ::        ==
 ::      literal-1
-::    ::  target = unqualified column
-::    :-  %simple-case-target-unqualified-when-dime
-::    :-  :*  %case
-::          (some u-col-4)
-::          ~[[%case-when-then [%literal-value [~.ud 4]] q-col-1]]
-::          ~
-::        ==
-::      literal-1
-::    :-  %simple-case-target-unqualified-when-qualified-column
-::    :-  :*  %case
-::          (some u-col-4)
-::          ~[[%case-when-then q-col-4 q-col-1]]
-::          ~
-::        ==
-::      literal-1
-::    :-  %simple-case-target-unqualified-when-unqualified-column
-::    :-  :*  %case
-::          (some u-col-4)
-::          ~[[%case-when-then u-col-4 q-col-1]]
-::          ~
-::        ==
-::      literal-1
-::    :-  %simple-case-target-unqualified-when-scalar-name
-::    :-  :*  %case
-::          (some u-col-4)
-::          ~[[%case-when-then [%scalar-name %scalar2] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
-::    :-  %simple-case-target-unqualified-when-embedded-scalar
-::    :-  :*  %case
-::          (some u-col-4)
-::          ~[[%case-when-then (~(got by embedded-scalars) %scalar2) u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
 ::    ::  target = scalar alias
     :-  %simple-case-target-scalar-name-when-dime
     :-  :*  %case
@@ -1044,13 +773,6 @@
           ~
         ==
       literal-1
-::    :-  %simple-case-target-scalar-name-when-unqualified-column
-::    :-  :*  %case
-::          (some [%scalar-name %scalar2])
-::          ~[[%case-when-then u-col-4 q-col-1]]
-::          ~
-::        ==
-::      literal-1
     :-  %simple-case-target-scalar-name-when-scalar-name
     :-  :*  %case
           (some [%scalar-name %scalar1])
@@ -1111,7 +833,7 @@
 ::::
 ::::  set up some costant context for tests
 ::::
-++  test-case-target
+++  test-qual-case-target
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -1133,13 +855,6 @@
           ~
         ==
       [~.ud 1]
-::    :-  %unqualified-col
-::    :-  :*  %case
-::          (some u-col-4)
-::          ~[[%case-when-then [%literal-value [~.ud 4]] u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
     :-  %scalar-name
     :-  :*  %case
           (some [%scalar-name %scalar1])
@@ -1172,7 +887,7 @@
 ::::    - scalar alias: no scalar with alias
 ::::    - embedded scalar: no scalar with alias
 ::::
-++  test-case-then
+++  test-qual-case-then
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -1187,13 +902,6 @@
           ~
         ==
       [~.ud 1]
-::    :-  %searched-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then true-predicate u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
     :-  %searched-literal-value
     :-  :*  %case
           ~
@@ -1222,13 +930,6 @@
           ~
         ==
       [~.ud 1]
-::    :-  %simple-unqualified-col
-::    :-  :*  %case
-::          (some q-col-1)
-::          ~[[%case-when-then literal-value-1 u-col-4]]
-::          ~
-::        ==
-::      [~.ud 4]
     :-  %simple-literal-value
     :-  :*  %case
           (some q-col-1)
@@ -1264,7 +965,7 @@
 ::::    - scalar alias: no scalar with alias
 ::::    - embedded scalar: no scalar with alias
 ::::
-++  test-case-else
+++  test-qual-case-else
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -1279,13 +980,6 @@
           (some q-col-2)
         ==
       [~.ud 2]
-::    :-  %searched-unqualified-col
-::    :-  :*  %case
-::          ~
-::          ~[[%case-when-then false-predicate u-col-4]]
-::          (some u-col-5)
-::        ==
-::      [~.ud 5]
     :-  %searched-literal-value
     :-  :*  %case
           ~
@@ -1314,13 +1008,6 @@
           (some q-col-2)
         ==
       [~.ud 2]
-::    :-  %simple-unqualified-col
-::    :-  :*  %case
-::          (some q-col-1)
-::          ~[[%case-when-then literal-value-2 u-col-4]]
-::          (some u-col-5)
-::        ==
-::      [~.ud 5]
     :-  %simple-literal-value
     :-  :*  %case
           (some q-col-1)
@@ -1342,6 +1029,493 @@
 ::          (some (~(got by embedded-scalars) %scalar1))
 ::        ==
 ::      [~.ud 3]
+  ==
+  ==
+::
+::  %eq unqualified tests
+++  test-unqual-case-when-searched-eq
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-eq-unqualified-col-dime
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%eq [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-eq-dime-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%eq [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %neq unqualified tests
+++  test-unqual-case-when-searched-neq
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-neq-unqualified-columns
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%neq [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-neq-unqualified-col-dime
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%neq [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-neq-dime-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%neq [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %gte unqualified tests
+++  test-unqual-case-when-searched-gte
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-gte-unqualified-columns-gt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gte [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gte-unqualified-columns-eq
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gte-unqualified-col-dime-gt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gte [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gte-unqualified-col-dime-eq
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gte-dime-unqualified-col-gt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gte [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gte-dime-unqualified-col-eq
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %gt unqualified tests
+++  test-unqual-case-when-searched-gt
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-gt-unqualified-columns-gt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gt [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gt-unqualified-col-dime-gt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gt [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-gt-dime-unqualified-col-gt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%gt [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %lte unqualified tests
+++  test-unqual-case-when-searched-lte
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-lte-unqualified-columns-lt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lte [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lte-unqualified-columns-eq
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lte-unqualified-col-dime-lt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lte [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lte-unqualified-col-dime-eq
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lte-dime-unqualified-col-lt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lte [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lte-dime-unqualified-col-eq
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %lt unqualified tests
+++  test-unqual-case-when-searched-lt
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-lt-unqualified-columns-lt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lt [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lt-unqualified-col-dime-lt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lt [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-lt-dime-unqualified-col-lt
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%lt [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %in unqualified tests
+++  test-unqual-case-when-searched-in
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-in-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %not-in unqualified tests
+++  test-unqual-case-when-searched-not-in
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-not-in-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then [%not-in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %between unqualified tests
+++  test-unqual-case-when-searched-between
+  =/  mk-between-pred
+    |*  [val-to-test=* lower-bound=* upper-bound=*]
+    :+  %between
+      [%gte [val-to-test ~ ~] [lower-bound ~ ~]]
+    [%lte [val-to-test ~ ~] [upper-bound ~ ~]]
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-between-unqualified-col-unqualified-cols
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-between-pred u-col-5 u-col-4 u-col-6) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-between-unqualified-col-dime-and-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-between-pred u-col-5 [~.ud 4] u-col-6) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-between-unqualified-col-unqualified-col-and-dime
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-between-pred u-col-5 u-col-4 [~.ud 6]) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-between-unqualified-col-dimes
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-between-pred u-col-5 [~.ud 4] [~.ud 6]) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  %not-between unqualified tests
+++  test-unqual-case-when-searched-not-between
+  =/  mk-not-between-pred
+    |*  [val-to-test=* lower-bound=* upper-bound=*]
+    :+  %not-between
+      [%gte [val-to-test ~ ~] [lower-bound ~ ~]]
+    [%lte [val-to-test ~ ~] [upper-bound ~ ~]]
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-not-between-unqualified-col-unqualified-cols
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-not-between-pred u-col-4 u-col-5 u-col-6) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-not-between-unqualified-col-dime-and-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-not-between-pred u-col-4 [~.ud 5] u-col-6) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-not-between-unqualified-col-unqualified-col-and-dime
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-not-between-pred u-col-4 u-col-5 [~.ud 6]) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %searched-not-between-unqualified-col-dimes
+    :-  :*  %case
+          ~
+          ~[[%case-when-then (mk-not-between-pred u-col-4 [~.ud 5] [~.ud 7]) u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  simple case unqualified tests
+++  test-unqual-case-when-simple
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %simple-case-target-dime-when-unqualified-column
+    :-  :*  %case
+          (some [%literal-value [~.ud 4]])
+          ~[[%case-when-then u-col-4 q-col-1]]
+          ~
+        ==
+      literal-1
+    ::  target = unqualified column
+    :-  %simple-case-target-unqualified-when-dime
+    :-  :*  %case
+          (some u-col-4)
+          ~[[%case-when-then [%literal-value [~.ud 4]] q-col-1]]
+          ~
+        ==
+      literal-1
+    :-  %simple-case-target-unqualified-when-qualified-column
+    :-  :*  %case
+          (some u-col-4)
+          ~[[%case-when-then q-col-4 q-col-1]]
+          ~
+        ==
+      literal-1
+    :-  %simple-case-target-unqualified-when-unqualified-column
+    :-  :*  %case
+          (some u-col-4)
+          ~[[%case-when-then u-col-4 q-col-1]]
+          ~
+        ==
+      literal-1
+    :-  %simple-case-target-unqualified-when-scalar-name
+    :-  :*  %case
+          (some u-col-4)
+          ~[[%case-when-then [%scalar-name %scalar2] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %simple-case-target-scalar-name-when-unqualified-column
+    :-  :*  %case
+          (some [%scalar-name %scalar2])
+          ~[[%case-when-then u-col-4 q-col-1]]
+          ~
+        ==
+      literal-1
+  ==
+  ==
+::
+::  case target unqualified tests
+++  test-unqual-case-target
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %unqualified-col
+    :-  :*  %case
+          (some u-col-4)
+          ~[[%case-when-then [%literal-value [~.ud 4]] u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  case then unqualified tests
+++  test-unqual-case-then
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then true-predicate u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+    :-  %simple-unqualified-col
+    :-  :*  %case
+          (some q-col-1)
+          ~[[%case-when-then literal-value-1 u-col-4]]
+          ~
+        ==
+      [~.ud 4]
+  ==
+  ==
+::
+::  case else unqualified tests
+++  test-unqual-case-else
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %searched-unqualified-col
+    :-  :*  %case
+          ~
+          ~[[%case-when-then false-predicate u-col-4]]
+          (some u-col-5)
+        ==
+      [~.ud 5]
+    :-  %simple-unqualified-col
+    :-  :*  %case
+          (some q-col-1)
+          ~[[%case-when-then literal-value-2 u-col-4]]
+          (some u-col-5)
+        ==
+      [~.ud 5]
   ==
   ==
 --

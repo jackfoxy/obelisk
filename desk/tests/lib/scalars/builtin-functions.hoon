@@ -66,7 +66,7 @@
                                        ==
                            ==
 ::
-++  unqual-map-meta  :-  %unqualified-lookup-type
+++  unqual-map-meta  :-  %unqualified-map-meta
                          %-  mk-unqualified-typ-addr-lookup
                              %-  addr-columns  :~  [%column %col4 ~.ud 0]
                                                    [%column %col5 ~.ud 0]
