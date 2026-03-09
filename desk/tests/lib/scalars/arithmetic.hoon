@@ -129,254 +129,184 @@
     :~
     ::  addition tests
     :-  %addition-literal-literal
-    :-  :*  %arithmetic
-          %lus
-          literal-value-1
-          literal-value-1
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              literal-value-1
+              ==
+            [~.ud 2]
     :-  %addition-qualified-col-literal
-    :-  :*  %arithmetic
-          %lus
-          arithmetic-q-col-1
-          literal-value-1
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-q-col-1
+              literal-value-1
+              ==
+            [~.ud 2]
     :-  %addition-scalar-name-literal
-    :-  :*  %arithmetic
-          %lus
-          [%scalar-name %scalar1]
-          literal-value-1
-        ==
-      [~.ud 4]
-::    :-  %addition-embedded-scalar-literal
-::    :-  :*  %arithmetic
-::          %lus
-::          (~(got by scalars) %scalar1)
-::          literal-value-1
-::        ==
-::      [~.ud 4]
+        :-  :*  %arithmetic
+              %lus
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 4]
     :-  %addition-literal-qualified-col
-    :-  :*  %arithmetic
-          %lus
-          literal-value-1
-          arithmetic-q-col-1
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              arithmetic-q-col-1
+              ==
+            [~.ud 2]
     :-  %addition-literal-scalar-name
-    :-  :*  %arithmetic
-          %lus
-          literal-value-1
-          [%scalar-name %scalar1]
-        ==
-      [~.ud 4]
-::    :-  %addition-literal-embedded-scalar
-::    :-  :*  %arithmetic
-::          %lus
-::          literal-value-1
-::          (~(got by scalars) %scalar1)
-::        ==
-::      [~.ud 4]
-::    ::  subtraction tests
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 4]
+    ::  subtraction tests
     :-  %subtraction-literal-literal
-    :-  :*  %arithmetic
-          %hep
-          literal-value-2
-          literal-value-1
-        ==
-      [~.ud 1]
+        :-  :*  %arithmetic
+              %hep
+              literal-value-2
+              literal-value-1
+              ==
+            [~.ud 1]
     :-  %subtraction-qualified-col-literal
-    :-  :*  %arithmetic
-          %hep
-          arithmetic-q-col-1
-          literal-value-1
-        ==
-      [~.ud 0]
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-q-col-1
+              literal-value-1
+              ==
+            [~.ud 0]
     :-  %subtraction-scalar-name-literal
-    :-  :*  %arithmetic
-          %hep
-          [%scalar-name %scalar1]
-          literal-value-1
-        ==
-      [~.ud 2]
-::    :-  %subtraction-embedded-scalar-literal
-::    :-  :*  %arithmetic
-::          %hep
-::          (~(got by scalars) %scalar1)
-::          literal-value-1
-::        ==
-::      [~.ud 2]
+        :-  :*  %arithmetic
+              %hep
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 2]
     :-  %subtraction-literal-qualified-col
-    :-  :*  %arithmetic
-          %hep
-          literal-value-1
-          arithmetic-q-col-1
-        ==
-      [~.ud 0]
+        :-  :*  %arithmetic
+              %hep
+              literal-value-1
+              arithmetic-q-col-1
+              ==
+            [~.ud 0]
     :-  %subtraction-literal-scalar-name
-    :-  :*  %arithmetic
-          %hep
-          [%literal-value [~.ud 5]]
-          [%scalar-name %scalar1]
-        ==
-      [~.ud 2]
-::    :-  %subtraction-literal-embedded-scalar
-::    :-  :*  %arithmetic
-::          %hep
-::          [%literal-value [~.ud 5]]
-::          (~(got by scalars) %scalar1)
-::        ==
-::      [~.ud 2]
-::    ::  multiplication tests
+        :-  :*  %arithmetic
+              %hep
+              [%literal-value [~.ud 5]]
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 2]
+    ::  multiplication tests
     :-  %multiplication-literal-literal
-    :-  :*  %arithmetic
-          %tar
-          literal-value-2
-          literal-value-2
-        ==
-      [~.ud 4]
+        :-  :*  %arithmetic
+              %tar
+              literal-value-2
+              literal-value-2
+              ==
+            [~.ud 4]
     :-  %multiplication-qualified-col-literal
-    :-  :*  %arithmetic
-          %tar
-          arithmetic-q-col-2
-          literal-value-1
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-q-col-2
+              literal-value-1
+              ==
+            [~.ud 2]
     :-  %multiplication-scalar-name-literal
-    :-  :*  %arithmetic
-          %tar
-          [%scalar-name %scalar1]
-          literal-value-1
-        ==
-      [~.ud 3]
-::    :-  %multiplication-embedded-scalar-literal
-::    :-  :*  %arithmetic
-::          %tar
-::          (~(got by scalars) %scalar1)
-::          literal-value-1
-::        ==
-::      [~.ud 3]
+        :-  :*  %arithmetic
+              %tar
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 3]
     :-  %multiplication-literal-qualified-col
-    :-  :*  %arithmetic
-          %tar
-          literal-value-1
-          arithmetic-q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              arithmetic-q-col-2
+              ==
+            [~.ud 2]
     :-  %multiplication-literal-scalar-name
-    :-  :*  %arithmetic
-          %tar
-          literal-value-1
-          [%scalar-name %scalar1]
-        ==
-      [~.ud 3]
-::    :-  %multiplication-literal-embedded-scalar
-::    :-  :*  %arithmetic
-::          %tar
-::          literal-value-1
-::          (~(got by scalars) %scalar1)
-::        ==
-::      [~.ud 3]
-::    ::  division tests
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 3]
+    ::  division tests
     :-  %division-literal-literal
-    :-  :*  %arithmetic
-          %fas
-          literal-value-2
-          literal-value-2
-        ==
-      [~.ud 1]
+        :-  :*  %arithmetic
+              %fas
+              literal-value-2
+              literal-value-2
+              ==
+            [~.ud 1]
     :-  %division-qualified-col-literal
-    :-  :*  %arithmetic
-          %fas
-          arithmetic-q-col-2
-          literal-value-1
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-q-col-2
+              literal-value-1
+              ==
+            [~.ud 2]
     :-  %division-scalar-name-literal
-    :-  :*  %arithmetic
-          %fas
-          [%scalar-name %scalar1]
-          literal-value-1
-        ==
-      [~.ud 3]
-::    :-  %division-embedded-scalar-literal
-::    :-  :*  %arithmetic
-::          %fas
-::          (~(got by scalars) %scalar1)
-::          literal-value-1
-::        ==
-::      [~.ud 3]
+        :-  :*  %arithmetic
+              %fas
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 3]
     :-  %division-literal-qualified-col
-    :-  :*  %arithmetic
-          %fas
-          literal-value-1
-          arithmetic-q-col-2
-        ==
-      [~.ud 0]
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              arithmetic-q-col-2
+              ==
+            [~.ud 0]
     :-  %division-literal-scalar-name
-    :-  :*  %arithmetic
-          %fas
-          literal-value-1
-          [%scalar-name %scalar1]
-        ==
-      [~.ud 0]
-::    :-  %division-literal-embedded-scalar
-::    :-  :*  %arithmetic
-::          %fas
-::          literal-value-1
-::          (~(got by scalars) %scalar1)
-::        ==
-::      [~.ud 0]
-::    ::  exponentiation tests
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 0]
+    ::  exponentiation tests
     :-  %exponentiation-literal-literal
-    :-  :*  %arithmetic
-          %ket
-          [%literal-value [~.ud 3]]
-          literal-value-2
-        ==
-      [~.ud 9]
+        :-  :*  %arithmetic
+              %ket
+              [%literal-value [~.ud 3]]
+              literal-value-2
+              ==
+            [~.ud 9]
     :-  %exponentiation-qualified-col-literal
-    :-  :*  %arithmetic
-          %ket
-          arithmetic-q-col-2
-          literal-value-1
-        ==
-      [~.ud 2]
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-q-col-2
+              literal-value-1
+              ==
+            [~.ud 2]
     :-  %exponentiation-scalar-name-literal
-    :-  :*  %arithmetic
-          %ket
-          [%scalar-name %scalar1]
-          literal-value-2
-        ==
-      [~.ud 9]
-::    :-  %exponentiation-embedded-scalar-literal
-::    :-  :*  %arithmetic
-::          %ket
-::          (~(got by scalars) %scalar1)
-::          literal-value-2
-::        ==
-::      [~.ud 9]
+        :-  :*  %arithmetic
+              %ket
+              [%scalar-name %scalar1]
+              literal-value-2
+              ==
+            [~.ud 9]
     :-  %exponentiation-literal-qualified-col
-    :-  :*  %arithmetic
-          %ket
-          literal-value-2
-          arithmetic-q-col-2
-        ==
-      [~.ud 4]
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              arithmetic-q-col-2
+              ==
+            [~.ud 4]
     :-  %exponentiation-literal-scalar-name
-    :-  :*  %arithmetic
-          %ket
-          literal-value-2
-          [%scalar-name %scalar1]
-        ==
-      [~.ud 8]
-::    :-  %exponentiation-literal-embedded-scalar
-::    :-  :*  %arithmetic
-::          %ket
-::          literal-value-2
-::          (~(got by scalars) %scalar1)
-::        ==
-::      [~.ud 8]
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 8]
   ==
   ==
 ::
@@ -390,79 +320,165 @@
     :~
     ::  addition tests
     :-  %addition-unqualified-col-literal
-    :-  :*  %arithmetic
-          %lus
-          arithmetic-u-col-4
-          literal-value-1
-        ==
-      [~.ud 5]
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-u-col-4
+              literal-value-1
+              ==
+            [~.ud 5]
     :-  %addition-literal-unqualified-col
-    :-  :*  %arithmetic
-          %lus
-          literal-value-1
-          arithmetic-u-col-4
-        ==
-      [~.ud 5]
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              arithmetic-u-col-4
+              ==
+            [~.ud 5]
     ::  subtraction tests
     :-  %subtraction-unqualified-col-literal
-    :-  :*  %arithmetic
-          %hep
-          arithmetic-u-col-5
-          literal-value-1
-        ==
-      [~.ud 4]
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-u-col-5
+              literal-value-1
+              ==
+            [~.ud 4]
     :-  %subtraction-literal-unqualified-col
-    :-  :*  %arithmetic
-          %hep
-          [%literal-value [~.ud 9]]
-          arithmetic-u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %arithmetic
+              %hep
+              [%literal-value [~.ud 9]]
+              arithmetic-u-col-5
+              ==
+            [~.ud 4]
     ::  multiplication tests
     :-  %multiplication-unqualified-col-literal
-    :-  :*  %arithmetic
-          %tar
-          arithmetic-u-col-5
-          literal-value-1
-        ==
-      [~.ud 5]
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-u-col-5
+              literal-value-1
+              ==
+            [~.ud 5]
     :-  %multiplication-literal-unqualified-col
-    :-  :*  %arithmetic
-          %tar
-          literal-value-1
-          arithmetic-u-col-5
-        ==
-      [~.ud 5]
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              arithmetic-u-col-5
+              ==
+            [~.ud 5]
     ::  division tests
     :-  %division-unqualified-col-literal
-    :-  :*  %arithmetic
-          %fas
-          arithmetic-u-col-5
-          literal-value-1
-        ==
-      [~.ud 5]
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-u-col-5
+              literal-value-1
+              ==
+            [~.ud 5]
     :-  %division-literal-unqualified-col
-    :-  :*  %arithmetic
-          %fas
-          literal-value-1
-          arithmetic-u-col-5
-        ==
-      [~.ud 0]
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              arithmetic-u-col-5
+              ==
+            [~.ud 0]
     ::  exponentiation tests
     :-  %exponentiation-unqualified-col-literal
-    :-  :*  %arithmetic
-          %ket
-          arithmetic-u-col-5
-          literal-value-2
-        ==
-      [~.ud 25]
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-u-col-5
+              literal-value-2
+              ==
+            [~.ud 25]
     :-  %exponentiation-literal-unqualified-col
-    :-  :*  %arithmetic
-          %ket
-          literal-value-2
-          arithmetic-u-col-5
-        ==
-      [~.ud 32]
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              arithmetic-u-col-5
+              ==
+            [~.ud 32]
   ==
   ==
+::
+::++  test-embedded-arithmetic
+::  %:  run-scalar-tests
+::    ctes
+::    qual-lookup
+::    qual-map-meta
+::    resolved-scalars
+::    table-row
+::    :~
+::    ::  addition tests
+::    :-  %addition-embedded-scalar-literal
+::        :-  :*  %arithmetic
+::              %lus
+::              (~(got by scalars) %scalar1)
+::              literal-value-1
+::              ==
+::            [~.ud 4]
+::    :-  %addition-literal-embedded-scalar
+::        :-  :*  %arithmetic
+::              %lus
+::              literal-value-1
+::              (~(got by scalars) %scalar1)
+::              ==
+::            [~.ud 4]
+::    ::  subtraction tests
+::    :-  %subtraction-embedded-scalar-literal
+::        :-  :*  %arithmetic
+::              %hep
+::              (~(got by scalars) %scalar1)
+::              literal-value-1
+::              ==
+::            [~.ud 2]
+::    :-  %subtraction-literal-embedded-scalar
+::        :-  :*  %arithmetic
+::              %hep
+::              [%literal-value [~.ud 5]]
+::              (~(got by scalars) %scalar1)
+::              ==
+::            [~.ud 2]
+::    ::  multiplication tests
+::    :-  %multiplication-embedded-scalar-literal
+::        :-  :*  %arithmetic
+::              %tar
+::              (~(got by scalars) %scalar1)
+::              literal-value-1
+::              ==
+::            [~.ud 3]
+::    :-  %multiplication-literal-embedded-scalar
+::        :-  :*  %arithmetic
+::              %tar
+::              literal-value-1
+::              (~(got by scalars) %scalar1)
+::              ==
+::            [~.ud 3]
+::    ::  division tests
+::    :-  %division-embedded-scalar-literal
+::        :-  :*  %arithmetic
+::              %fas
+::              (~(got by scalars) %scalar1)
+::              literal-value-1
+::              ==
+::            [~.ud 3]
+::    :-  %division-literal-embedded-scalar
+::        :-  :*  %arithmetic
+::              %fas
+::              literal-value-1
+::              (~(got by scalars) %scalar1)
+::              ==
+::            [~.ud 0]
+::    ::  exponentiation tests
+::    :-  %exponentiation-embedded-scalar-literal
+::        :-  :*  %arithmetic
+::              %ket
+::              (~(got by scalars) %scalar1)
+::              literal-value-2
+::              ==
+::            [~.ud 9]
+::    :-  %exponentiation-literal-embedded-scalar
+::        :-  :*  %arithmetic
+::              %ket
+::              literal-value-2
+::              (~(got by scalars) %scalar1)
+::              ==
+::            [~.ud 8]
+::  ==
+::  ==
 --

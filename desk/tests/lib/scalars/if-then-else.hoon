@@ -135,17 +135,17 @@
     table-row
     :~
     :-  %eq-dimes
-    :-  [%if-then-else [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %eq-qualified-columns
-    :-  [%if-then-else [%eq [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%eq [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %eq-qualified-column-and-dime
-    :-  [%if-then-else [%eq [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%eq [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %eq-dime-and-qualified-column
-    :-  [%if-then-else [%eq [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%eq [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
   ==
   ==
 ::
@@ -159,17 +159,17 @@
     table-row
     :~
     :-  %neq-dimes
-    :-  [%if-then-else [%neq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%neq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %neq-qualified-columns
-    :-  [%if-then-else [%neq [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%neq [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %neq-qualified-column-and-dime
-    :-  [%if-then-else [%neq [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%neq [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %neq-dime-and-qualified-column
-    :-  [%if-then-else [%neq [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%neq [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -183,41 +183,41 @@
     table-row
     :~
     :-  %gte-dimes-gt
-    :-  [%if-then-else [%gte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-dimes-eq
-    :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-dimes-false
-    :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %gte-qualified-columns-gt
-    :-  [%if-then-else [%gte [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-qualified-columns-eq
-    :-  [%if-then-else [%gte [q-col-1 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [q-col-1 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-qualified-columns-false
-    :-  [%if-then-else [%gte [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gte [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %gte-qualified-column-and-dime-gt
-    :-  [%if-then-else [%gte [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-qualified-column-and-dime-eq
-    :-  [%if-then-else [%gte [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-qualified-column-and-dime-false
-    :-  [%if-then-else [%gte [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gte [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %gte-dime-and-qualified-column-gt
-    :-  [%if-then-else [%gte [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-dime-and-qualified-column-eq
-    :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gte-dime-and-qualified-column-false
-    :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gte [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -231,29 +231,29 @@
     table-row
     :~
     :-  %gt-dimes-gt
-    :-  [%if-then-else [%gt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gt-dimes-false
-    :-  [%if-then-else [%gt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %gt-qualified-columns-gt
-    :-  [%if-then-else [%gt [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gt [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gt-qualified-columns-false
-    :-  [%if-then-else [%gt [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gt [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %gt-qualified-column-and-dime-gt
-    :-  [%if-then-else [%gt [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gt [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gt-qualified-column-and-dime-false
-    :-  [%if-then-else [%gt [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gt [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %gt-dime-and-qualified-column-gt
-    :-  [%if-then-else [%gt [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%gt [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %gt-dime-and-qualified-column-false
-    :-  [%if-then-else [%gt [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%gt [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -267,41 +267,41 @@
     table-row
     :~
     :-  %lte-dimes-lt
-    :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-dimes-eq
-    :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-dimes-false
-    :-  [%if-then-else [%lte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lte [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %lte-qualified-columns-lt
-    :-  [%if-then-else [%lte [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-qualified-columns-eq
-    :-  [%if-then-else [%lte [q-col-1 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [q-col-1 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-qualified-columns-false
-    :-  [%if-then-else [%lte [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lte [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %lte-qualified-column-and-dime-lt
-    :-  [%if-then-else [%lte [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-qualified-column-and-dime-eq
-    :-  [%if-then-else [%lte [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [q-col-1 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-qualified-column-and-dime-false
-    :-  [%if-then-else [%lte [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lte [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %lte-dime-and-qualified-column-lt
-    :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-dime-and-qualified-column-eq
-    :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lte [[~.ud 1] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lte-dime-and-qualified-column-false
-    :-  [%if-then-else [%lte [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lte [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -315,29 +315,29 @@
     table-row
     :~
     :-  %lt-dimes-lt
-    :-  [%if-then-else [%lt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lt [[~.ud 1] ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lt-dimes-false
-    :-  [%if-then-else [%lt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lt [[~.ud 2] ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %lt-qualified-columns-lt
-    :-  [%if-then-else [%lt [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lt [q-col-1 ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lt-qualified-columns-false
-    :-  [%if-then-else [%lt [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lt [q-col-2 ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %lt-qualified-column-and-dime-lt
-    :-  [%if-then-else [%lt [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lt [q-col-1 ~ ~] [[~.ud 2] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lt-qualified-column-and-dime-false
-    :-  [%if-then-else [%lt [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lt [q-col-2 ~ ~] [[~.ud 1] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %lt-dime-and-qualified-column-lt
-    :-  [%if-then-else [%lt [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%lt [[~.ud 1] ~ ~] [q-col-2 ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %lt-dime-and-qualified-column-false
-    :-  [%if-then-else [%lt [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%lt [[~.ud 2] ~ ~] [q-col-1 ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -351,17 +351,17 @@
     table-row
     :~
     :-  %in-dime
-    :-  [%if-then-else [%in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %in-dime-false
-    :-  [%if-then-else [%in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %in-qualified-column
-    :-  [%if-then-else [%in [q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%in [q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %in-qualified-column-false
-    :-  [%if-then-else [%in [q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%in [q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -375,17 +375,17 @@
     table-row
     :~
     :-  %not-in-dime
-    :-  [%if-then-else [%not-in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%not-in [[~.ud 3] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %not-in-dime-false
-    :-  [%if-then-else [%not-in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%not-in [[~.ud 1] ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %not-in-qualified-column
-    :-  [%if-then-else [%not-in [q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%not-in [q-col-3 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 1]
     :-  %not-in-qualified-column-false
-    :-  [%if-then-else [%not-in [q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%not-in [q-col-1 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] q-col-1 q-col-2]
+            [~.ud 2]
   ==
   ==
 ::
@@ -404,54 +404,54 @@
     table-row
     :~
     :-  %between-dime-dimes
-    :-  :*  %if-then-else
-          (mk-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %between-qualified-column-qualified-columns
-    :-  :*  %if-then-else
-          (mk-between-pred q-col-2 q-col-1 q-col-3)
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-between-pred q-col-2 q-col-1 q-col-3)
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %between-qualified-column-dime-and-qualified-column
-    :-  :*  %if-then-else
-          (mk-between-pred q-col-2 [~.ud 1] q-col-3)
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-between-pred q-col-2 [~.ud 1] q-col-3)
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %between-qualified-column-qualified-column-and-dime
-    :-  :*  %if-then-else
-          (mk-between-pred q-col-2 q-col-1 [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-between-pred q-col-2 q-col-1 [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %between-qualified-column-dimes
-    :-  :*  %if-then-else
-          (mk-between-pred q-col-2 [~.ud 1] [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-between-pred q-col-2 [~.ud 1] [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %between-dime-dimes-false
-    :-  :*  %if-then-else
-          (mk-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %if-then-else
+              (mk-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 2]
     :-  %between-qualified-column-dimes-false
-    :-  :*  %if-then-else
-          (mk-between-pred q-col-1 [~.ud 2] [~.ud 4])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %if-then-else
+              (mk-between-pred q-col-1 [~.ud 2] [~.ud 4])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 2]
   ==
   ==
 ::
@@ -470,54 +470,54 @@
     table-row
     :~
     :-  %not-between-dime-dimes
-    :-  :*  %if-then-else
-          (mk-not-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-not-between-pred [~.ud 5] [~.ud 1] [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %not-between-qualified-column-qualified-columns
-    :-  :*  %if-then-else
-          (mk-not-between-pred q-col-1 q-col-2 q-col-3)
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-not-between-pred q-col-1 q-col-2 q-col-3)
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %not-between-qualified-column-dime-and-qualified-column
-    :-  :*  %if-then-else
-          (mk-not-between-pred q-col-1 [~.ud 2] q-col-3)
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-not-between-pred q-col-1 [~.ud 2] q-col-3)
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %not-between-qualified-column-qualified-column-and-dime
-    :-  :*  %if-then-else
-          (mk-not-between-pred q-col-1 q-col-2 [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-not-between-pred q-col-1 q-col-2 [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %not-between-qualified-column-dimes
-    :-  :*  %if-then-else
-          (mk-not-between-pred q-col-1 [~.ud 2] [~.ud 4])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              (mk-not-between-pred q-col-1 [~.ud 2] [~.ud 4])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %not-between-dime-dimes-false
-    :-  :*  %if-then-else
-          (mk-not-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %if-then-else
+              (mk-not-between-pred [~.ud 2] [~.ud 1] [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 2]
     :-  %not-between-qualified-column-dimes-false
-    :-  :*  %if-then-else
-          (mk-not-between-pred q-col-2 [~.ud 1] [~.ud 3])
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %if-then-else
+              (mk-not-between-pred q-col-2 [~.ud 1] [~.ud 3])
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 2]
   ==
   ==
 ::
@@ -531,23 +531,23 @@
     table-row
     :~
     :-  %and-true
-    :-  :*  %if-then-else
-          :+  %and
-            [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-          [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              :+  %and
+                [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
+              [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %and-false
-    :-  :*  %if-then-else
-          :+  %and
-            [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-          [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %if-then-else
+              :+  %and
+                [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
+              [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 2]
   ==
   ==
 ::
@@ -561,32 +561,32 @@
     table-row
     :~
     :-  %or-true-true
-    :-  :*  %if-then-else
-          :+  %or
-            [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-          [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              :+  %or
+                [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
+              [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %or-true-false
-    :-  :*  %if-then-else
-          :+  %or
-            [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
-          [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 1]
+        :-  :*  %if-then-else
+              :+  %or
+                [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
+              [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]]
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 1]
     :-  %or-false-false
-    :-  :*  %if-then-else
-          :+  %or
-            [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
-          [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
-          q-col-1
-          q-col-2
-        ==
-      [~.ud 2]
+        :-  :*  %if-then-else
+              :+  %or
+                [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
+              [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]]
+              q-col-1
+              q-col-2
+              ==
+            [~.ud 2]
   ==
   ==
 ::
@@ -600,11 +600,11 @@
     table-row
     :~
     :-  %not-true-expression
-    :-  [%if-then-else [%not [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] ~] q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else [%not [%eq [[~.ud 1] ~ ~] [[~.ud 1] ~ ~]] ~] q-col-1 q-col-2]
+            [~.ud 2]
     :-  %not-false-expression
-    :-  [%if-then-else [%not [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]] ~] q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else [%not [%eq [[~.ud 0] ~ ~] [[~.ud 1] ~ ~]] ~] q-col-1 q-col-2]
+            [~.ud 1]
   ==
   ==
 ::::
@@ -630,17 +630,14 @@
     table-row
     :~
     :-  %qualified-col
-    :-  [%if-then-else true-predicate q-col-1 q-col-2]
-      [~.ud 1]
+        :-  [%if-then-else true-predicate q-col-1 q-col-2]
+            [~.ud 1]
     :-  %literal-value
-    :-  [%if-then-else true-predicate [%literal-value [~.t 'foo']] [%literal-value [~.t 'bar']]]
-      [~.t 'foo']
+        :-  [%if-then-else true-predicate [%literal-value [~.t 'foo']] [%literal-value [~.t 'bar']]]
+            [~.t 'foo']
     :-  %scalar-name
-    :-  [%if-then-else true-predicate [%scalar-name %scalar1] q-col-2]
-      [~.ud 3]
-::    :-  %embedded-scalar
-::    :-  [%if-then-else true-predicate (~(got by embedded-scalars) %scalar1) q-col-2]
-::      [~.ud 3]
+        :-  [%if-then-else true-predicate [%scalar-name %scalar1] q-col-2]
+            [~.ud 3]
   ==
   ==
 ::::
@@ -666,17 +663,14 @@
     table-row
     :~
     :-  %qualified-col
-    :-  [%if-then-else false-predicate q-col-1 q-col-2]
-      [~.ud 2]
+        :-  [%if-then-else false-predicate q-col-1 q-col-2]
+            [~.ud 2]
     :-  %literal-value
-    :-  [%if-then-else false-predicate [%literal-value [~.t 'foo']] [%literal-value [~.t 'bar']]]
-      [~.t 'bar']
+        :-  [%if-then-else false-predicate [%literal-value [~.t 'foo']] [%literal-value [~.t 'bar']]]
+            [~.t 'bar']
     :-  %scalar-name
-    :-  [%if-then-else false-predicate q-col-2 [%scalar-name %scalar1]]
-      [~.ud 3]
-::    :-  %embedded-scalar
-::    :-  [%if-then-else false-predicate q-col-2 (~(got by embedded-scalars) %scalar1)]
-::      [~.ud 3]
+        :-  [%if-then-else false-predicate q-col-2 [%scalar-name %scalar1]]
+            [~.ud 3]
   ==
   ==
 ::
@@ -690,14 +684,14 @@
     table-row
     :~
     :-  %eq-unqualified-columns
-    :-  [%if-then-else [%eq [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%eq [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %eq-unqualified-column-and-dime
-    :-  [%if-then-else [%eq [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%eq [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %eq-dime-and-unqualified-column
-    :-  [%if-then-else [%eq [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%eq [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
   ==
   ==
 ::
@@ -711,14 +705,14 @@
     table-row
     :~
     :-  %neq-unqualified-columns
-    :-  [%if-then-else [%neq [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%neq [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %neq-unqualified-column-and-dime
-    :-  [%if-then-else [%neq [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%neq [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %neq-dime-and-unqualified-column
-    :-  [%if-then-else [%neq [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%neq [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -732,32 +726,32 @@
     table-row
     :~
     :-  %gte-unqualified-columns-gt
-    :-  [%if-then-else [%gte [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gte [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gte-unqualified-columns-eq
-    :-  [%if-then-else [%gte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gte-unqualified-columns-false
-    :-  [%if-then-else [%gte [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%gte [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %gte-unqualified-column-and-dime-gt
-    :-  [%if-then-else [%gte [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gte [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gte-unqualified-column-and-dime-eq
-    :-  [%if-then-else [%gte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gte-unqualified-column-and-dime-false
-    :-  [%if-then-else [%gte [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%gte [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %gte-dime-and-unqualified-column-gt
-    :-  [%if-then-else [%gte [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gte [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gte-dime-and-unqualified-column-eq
-    :-  [%if-then-else [%gte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gte-dime-and-unqualified-column-false
-    :-  [%if-then-else [%gte [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%gte [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -771,23 +765,23 @@
     table-row
     :~
     :-  %gt-unqualified-columns-gt
-    :-  [%if-then-else [%gt [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gt [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gt-unqualified-columns-false
-    :-  [%if-then-else [%gt [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%gt [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %gt-unqualified-column-and-dime-gt
-    :-  [%if-then-else [%gt [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gt [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gt-unqualified-column-and-dime-false
-    :-  [%if-then-else [%gt [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%gt [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %gt-dime-and-unqualified-column-gt
-    :-  [%if-then-else [%gt [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%gt [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %gt-dime-and-unqualified-column-false
-    :-  [%if-then-else [%gt [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%gt [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -801,32 +795,32 @@
     table-row
     :~
     :-  %lte-unqualified-columns-lt
-    :-  [%if-then-else [%lte [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lte [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lte-unqualified-columns-eq
-    :-  [%if-then-else [%lte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lte [u-col-4 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lte-unqualified-columns-false
-    :-  [%if-then-else [%lte [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%lte [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %lte-unqualified-column-and-dime-lt
-    :-  [%if-then-else [%lte [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lte [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lte-unqualified-column-and-dime-eq
-    :-  [%if-then-else [%lte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lte [u-col-4 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lte-unqualified-column-and-dime-false
-    :-  [%if-then-else [%lte [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%lte [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %lte-dime-and-unqualified-column-lt
-    :-  [%if-then-else [%lte [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lte [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lte-dime-and-unqualified-column-eq
-    :-  [%if-then-else [%lte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lte [[~.ud 4] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lte-dime-and-unqualified-column-false
-    :-  [%if-then-else [%lte [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%lte [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -840,23 +834,23 @@
     table-row
     :~
     :-  %lt-unqualified-columns-lt
-    :-  [%if-then-else [%lt [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lt [u-col-4 ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lt-unqualified-columns-false
-    :-  [%if-then-else [%lt [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%lt [u-col-5 ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %lt-unqualified-column-and-dime-lt
-    :-  [%if-then-else [%lt [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lt [u-col-4 ~ ~] [[~.ud 5] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lt-unqualified-column-and-dime-false
-    :-  [%if-then-else [%lt [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%lt [u-col-5 ~ ~] [[~.ud 4] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
     :-  %lt-dime-and-unqualified-column-lt
-    :-  [%if-then-else [%lt [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%lt [[~.ud 4] ~ ~] [u-col-5 ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %lt-dime-and-unqualified-column-false
-    :-  [%if-then-else [%lt [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%lt [[~.ud 5] ~ ~] [u-col-4 ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -870,11 +864,11 @@
     table-row
     :~
     :-  %in-unqualified-column
-    :-  [%if-then-else [%in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %in-unqualified-column-false
-    :-  [%if-then-else [%in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -888,11 +882,11 @@
     table-row
     :~
     :-  %not-in-unqualified-column
-    :-  [%if-then-else [%not-in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else [%not-in [u-col-6 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
+            [~.ud 4]
     :-  %not-in-unqualified-column-false
-    :-  [%if-then-else [%not-in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else [%not-in [u-col-4 ~ ~] [[%value-literals [~.ud '1;2;4;5']] ~ ~]] u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -911,40 +905,40 @@
     table-row
     :~
     :-  %between-unqualified-column-unqualified-columns
-    :-  :*  %if-then-else
-          (mk-between-pred u-col-5 u-col-4 u-col-6)
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-between-pred u-col-5 u-col-4 u-col-6)
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %between-unqualified-column-dime-and-unqualified-column
-    :-  :*  %if-then-else
-          (mk-between-pred u-col-5 [~.ud 4] u-col-6)
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-between-pred u-col-5 [~.ud 4] u-col-6)
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %between-unqualified-column-unqualified-column-and-dime
-    :-  :*  %if-then-else
-          (mk-between-pred u-col-5 u-col-4 [~.ud 6])
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-between-pred u-col-5 u-col-4 [~.ud 6])
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %between-unqualified-column-dimes
-    :-  :*  %if-then-else
-          (mk-between-pred u-col-5 [~.ud 4] [~.ud 6])
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-between-pred u-col-5 [~.ud 4] [~.ud 6])
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %between-unqualified-column-dimes-false
-    :-  :*  %if-then-else
-          (mk-between-pred u-col-4 [~.ud 5] [~.ud 7])
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 5]
+        :-  :*  %if-then-else
+              (mk-between-pred u-col-4 [~.ud 5] [~.ud 7])
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 5]
   ==
   ==
 ::
@@ -963,40 +957,40 @@
     table-row
     :~
     :-  %not-between-unqualified-column-unqualified-columns
-    :-  :*  %if-then-else
-          (mk-not-between-pred u-col-4 u-col-5 u-col-6)
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-not-between-pred u-col-4 u-col-5 u-col-6)
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %not-between-unqualified-column-dime-and-unqualified-column
-    :-  :*  %if-then-else
-          (mk-not-between-pred u-col-4 [~.ud 5] u-col-6)
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-not-between-pred u-col-4 [~.ud 5] u-col-6)
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %not-between-unqualified-column-unqualified-column-and-dime
-    :-  :*  %if-then-else
-          (mk-not-between-pred u-col-4 u-col-5 [~.ud 6])
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-not-between-pred u-col-4 u-col-5 [~.ud 6])
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %not-between-unqualified-column-dimes
-    :-  :*  %if-then-else
-          (mk-not-between-pred u-col-4 [~.ud 5] [~.ud 7])
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 4]
+        :-  :*  %if-then-else
+              (mk-not-between-pred u-col-4 [~.ud 5] [~.ud 7])
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 4]
     :-  %not-between-unqualified-column-dimes-false
-    :-  :*  %if-then-else
-          (mk-not-between-pred u-col-5 [~.ud 4] [~.ud 6])
-          u-col-4
-          u-col-5
-        ==
-      [~.ud 5]
+        :-  :*  %if-then-else
+              (mk-not-between-pred u-col-5 [~.ud 4] [~.ud 6])
+              u-col-4
+              u-col-5
+              ==
+            [~.ud 5]
   ==
   ==
 ::
@@ -1010,8 +1004,8 @@
     table-row
     :~
     :-  %unqualified-col
-    :-  [%if-then-else true-predicate u-col-4 u-col-5]
-      [~.ud 4]
+        :-  [%if-then-else true-predicate u-col-4 u-col-5]
+            [~.ud 4]
   ==
   ==
 ::
@@ -1024,8 +1018,27 @@
     table-row
     :~
     :-  %unqualified-col
-    :-  [%if-then-else false-predicate u-col-4 u-col-5]
-      [~.ud 5]
+        :-  [%if-then-else false-predicate u-col-4 u-col-5]
+            [~.ud 5]
   ==
   ==
+::
+::++  test-embedded-if-then-else
+::  %:  run-scalar-tests
+::    table-named-ctes
+::    qual-lookup
+::    qual-map-meta
+::    resolved-scalars
+::    table-row
+::    :~
+::    ::  then - embedded scalar
+::    :-  %embedded-scalar
+::        :-  [%if-then-else true-predicate (~(got by embedded-scalars) %scalar1) q-col-2]
+::            [~.ud 3]
+::    ::  else - embedded scalar
+::    :-  %embedded-scalar
+::        :-  [%if-then-else false-predicate q-col-2 (~(got by embedded-scalars) %scalar1)]
+::            [~.ud 3]
+::  ==
+::  ==
 --
