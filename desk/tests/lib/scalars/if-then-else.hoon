@@ -1023,7 +1023,7 @@
   ==
   ==
 ::
-++  test-embedded-if-then-else
+++  test-embedded-by-name-if
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -1038,6 +1038,74 @@
     ::  else - embedded scalar
     :-  %embedded-scalar
         :-  [%if-then-else false-predicate q-col-2 [%scalar-name %scalar1]]
+            [~.ud 3]
+  ==
+  ==
+++  test-embedded-by-node-if
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  then - embedded scalar
+    :-  %embedded-scalar
+        :-  :*  %if-then-else
+              true-predicate
+              :^  %if-then-else
+                  if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              q-col-2
+              ==
+            [~.ud 3]
+    ::  else - embedded scalar
+    :-  %embedded-scalar
+        :-  :*  %if-then-else
+              false-predicate
+              q-col-2
+              :^  %if-then-else
+                  if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              ==
             [~.ud 3]
   ==
   ==

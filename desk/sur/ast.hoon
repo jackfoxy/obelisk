@@ -629,8 +629,8 @@
 +$  if-then-else
   $:  %if-then-else
     if=predicate
-    then=datum-or-scalar
-    else=datum-or-scalar
+    then=scalar-node
+    else=scalar-node
     ==
 ::
 +$  case-when-then

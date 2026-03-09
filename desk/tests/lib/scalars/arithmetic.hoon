@@ -396,7 +396,7 @@
   ==
   ==
 ::
-++  test-embedded-arithmetic
+++  test-embedded-by-name-arithmetic
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -480,5 +480,300 @@
               ==
             [~.ud 8]
   ==
+  ==
+++  test-embedded-by-node-arithmetic
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  addition tests
+    :-  %addition-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %lus
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              literal-value-1
+              ==
+            [~.ud 4]
+    :-  %addition-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              ==
+            [~.ud 4]
+    ::  subtraction tests
+    :-  %subtraction-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %hep
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              literal-value-1
+              ==
+            [~.ud 2]
+    :-  %subtraction-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %hep
+              [%literal-value [~.ud 5]]
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              ==
+            [~.ud 2]
+    ::  multiplication tests
+    :-  %multiplication-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %tar
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %multiplication-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              ==
+            [~.ud 3]
+    ::  division tests
+    :-  %division-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %fas
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %division-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              ==
+            [~.ud 0]
+    ::  exponentiation tests
+    :-  %exponentiation-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %ket
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              literal-value-2
+              ==
+            [~.ud 9]
+    :-  %exponentiation-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              :^  %if-then-else
+                  if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col3
+                      ~
+                  :^  %qualified-column
+                      :*  %qualified-table
+                           ship=(some ~sampel-palnet)
+                           database=%db2
+                           namespace=%dba
+                           name=%table1
+                           alias=~
+                           ==
+                      %col2
+                      ~
+              ==
+            [~.ud 8]
+    ==
   ==
 --

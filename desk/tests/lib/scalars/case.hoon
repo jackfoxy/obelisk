@@ -1427,7 +1427,7 @@
   ==
   ==
 ::
-++  test-qual-embedded-case
+++  test-qual-embedded-by-name-case
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
@@ -1528,7 +1528,7 @@
   ==
   ==
 ::
-++  test-unqual-embedded-case
+++  test-unqual-embedded-by-name-case
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
