@@ -118,12 +118,12 @@
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
                                       if=true-predicate
-                                      then=[%literal-value [~.ud 4]]
-                                      else=[%literal-value [~.ud 5]]
+                                      then=u-col-4
+                                      else=u-col-5
                                     ==
                                     table-named-ctes
                                     qual-lookup
-                                    qual-map-meta
+                                    unqual-map-meta
                                     *(map @tas resolved-scalar)
                                     ==
                           ==
@@ -1427,111 +1427,122 @@
   ==
   ==
 ::
-::++  test-embedded-case
-::  %:  run-scalar-tests
-::    table-named-ctes
-::    qual-lookup
-::    qual-map-meta
-::    resolved-scalars
-::    table-row
-::    :~
-::    ::  simple case when - embedded scalar in when position
-::    :-  %simple-case-target-dime-when-embedded-scalar
-::        :-  :*  %case
-::              (some [%literal-value [~.ud 3]])
-::              ~[[%case-when-then (~(got by embedded-scalars) %scalar1) q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    :-  %simple-case-target-qualified-when-embedded-scalar
-::        :-  :*  %case
-::              (some q-col-3)
-::              ~[[%case-when-then (~(got by embedded-scalars) %scalar1) q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    :-  %simple-case-target-scalar-name-when-embedded-scalar
-::        :-  :*  %case
-::              (some [%scalar-name %scalar1])
-::              ~[[%case-when-then (~(got by embedded-scalars) %scalar1) q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    ::  simple case when - embedded scalar as target
-::    ::  target = embedded scalar
-::    :-  %simple-case-target-embedded-scalar-when-dime
-::        :-  :*  %case
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    :-  %simple-case-target-embedded-scalar-when-qualified-column
-::        :-  :*  %case
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ~[[%case-when-then q-col-3 q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    :-  %simple-case-target-embedded-scalar-when-unqualified-column
-::        :-  :*  %case
-::              (some (~(got by embedded-scalars) %scalar2))
-::              ~[[%case-when-then u-col-4 q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    :-  %simple-case-target-embedded-scalar-when-scalar-name
-::        :-  :*  %case
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    :-  %simple-case-target-embedded-scalar-when-embedded-scalar
-::        :-  :*  %case
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ~[[%case-when-then (~(got by embedded-scalars) %scalar1) q-col-1]]
-::              ~
-::              ==
-::            literal-1
-::    ::  target - embedded scalar
-::    :-  %embedded-scalar
-::        :-  :*  %case
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-2]]
-::              ~
-::              ==
-::            [~.ud 2]
-::    ::  then - embedded scalar
-::    :-  %searched-embedded-scalar
-::        :-  :*  %case
-::              ~
-::              ~[[%case-when-then true-predicate (~(got by embedded-scalars) %scalar1)]]
-::              ~
-::              ==
-::            [~.ud 3]
-::    :-  %simple-embedded-scalar
-::        :-  :*  %case
-::              (some q-col-1)
-::              ~[[%case-when-then literal-value-1 (~(got by embedded-scalars) %scalar1)]]
-::              ~
-::              ==
-::            [~.ud 3]
-::    ::  else - embedded scalar
-::    :-  %searched-embedded-scalar
-::        :-  :*  %case
-::              ~
-::              ~[[%case-when-then false-predicate q-col-2]]
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ==
-::            [~.ud 3]
-::    :-  %simple-embedded-scalar
-::        :-  :*  %case
-::              (some q-col-1)
-::              ~[[%case-when-then literal-value-2 q-col-2]]
-::              (some (~(got by embedded-scalars) %scalar1))
-::              ==
-::            [~.ud 3]
-::  ==
-::  ==
+++  test-qual-embedded-case
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  simple case when - embedded scalar in when position
+    :-  %simple-case-target-dime-when-embedded-scalar
+        :-  :*  %case
+              (some [%literal-value [~.ud 3]])
+              ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-qualified-when-embedded-scalar
+        :-  :*  %case
+              (some q-col-3)
+              ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-scalar-name-when-embedded-scalar
+        :-  :*  %case
+              (some [%scalar-name %scalar1])
+              ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
+              ~
+              ==
+            literal-1
+    ::  simple case when - embedded scalar as target
+    ::  target = embedded scalar
+    :-  %simple-case-target-embedded-scalar-when-dime
+        :-  :*  %case
+              (some [%scalar-name %scalar1])
+              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-scalar-when-qualified-column
+        :-  :*  %case
+              (some [%scalar-name %scalar1])
+              ~[[%case-when-then q-col-3 q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-scalar-when-scalar-name
+        :-  :*  %case
+              (some [%scalar-name %scalar1])
+              ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-scalar-when-embedded-scalar
+        :-  :*  %case
+              (some [%scalar-name %scalar1])
+              ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
+              ~
+              ==
+            literal-1
+    ::  target - embedded scalar
+    :-  %embedded-scalar
+        :-  :*  %case
+              (some [%scalar-name %scalar1])
+              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-2]]
+              ~
+              ==
+            [~.ud 2]
+    ::  then - embedded scalar
+    :-  %searched-embedded-scalar
+        :-  :*  %case
+              ~
+              ~[[%case-when-then true-predicate [%scalar-name %scalar1]]]
+              ~
+              ==
+            [~.ud 3]
+    :-  %simple-embedded-scalar
+        :-  :*  %case
+              (some q-col-1)
+              ~[[%case-when-then literal-value-1 [%scalar-name %scalar1]]]
+              ~
+              ==
+            [~.ud 3]
+    ::  else - embedded scalar
+    :-  %searched-embedded-scalar
+        :-  :*  %case
+              ~
+              ~[[%case-when-then false-predicate q-col-2]]
+              (some [%scalar-name %scalar1])
+              ==
+            [~.ud 3]
+    :-  %simple-embedded-scalar
+        :-  :*  %case
+              (some q-col-1)
+              ~[[%case-when-then literal-value-2 q-col-2]]
+              (some [%scalar-name %scalar1])
+              ==
+            [~.ud 3]
+  ==
+  ==
+::
+++  test-unqual-embedded-case
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %simple-case-target-embedded-scalar-when-unqualified-column
+        :-  :*  %case
+              (some [%scalar-name %scalar2])
+              ~[[%case-when-then u-col-4 q-col-1]]
+              ~
+              ==
+            literal-1
+    ==
+    ==
 --

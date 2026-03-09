@@ -1023,22 +1023,22 @@
   ==
   ==
 ::
-::++  test-embedded-if-then-else
-::  %:  run-scalar-tests
-::    table-named-ctes
-::    qual-lookup
-::    qual-map-meta
-::    resolved-scalars
-::    table-row
-::    :~
-::    ::  then - embedded scalar
-::    :-  %embedded-scalar
-::        :-  [%if-then-else true-predicate (~(got by embedded-scalars) %scalar1) q-col-2]
-::            [~.ud 3]
-::    ::  else - embedded scalar
-::    :-  %embedded-scalar
-::        :-  [%if-then-else false-predicate q-col-2 (~(got by embedded-scalars) %scalar1)]
-::            [~.ud 3]
-::  ==
-::  ==
+++  test-embedded-if-then-else
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  then - embedded scalar
+    :-  %embedded-scalar
+        :-  [%if-then-else true-predicate [%scalar-name %scalar1] q-col-2]
+            [~.ud 3]
+    ::  else - embedded scalar
+    :-  %embedded-scalar
+        :-  [%if-then-else false-predicate q-col-2 [%scalar-name %scalar1]]
+            [~.ud 3]
+  ==
+  ==
 --

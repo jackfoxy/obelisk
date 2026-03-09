@@ -607,32 +607,24 @@
     concat
     ==
 ::
-+$  scalar-name   $:(%scalar-name name=@tas)
++$  scalar-name
+  $:  %scalar-name
+      name=@tas
+      ==
+::
++$  scalar-node  $%  datum-or-scalar
+                     scalar-function
+                     ==
 ::
 +$  arithmetic
   $:  %arithmetic
     operator=arithmetic-op
-    left=arithmetic-node
-    right=arithmetic-node
+    left=scalar-node
+    right=scalar-node
     ==
 ::
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
-+$  arithmetic-node  $%  datum-or-scalar
-                         arithmetic
-                         abs
-                         ceiling
-                         day
-                         floor
-                         len
-                         log
-                         month
-                         power
-                         round
-                         sign
-                         sqrt
-                         year
-                         ==
 ::
 +$  if-then-else
   $:  %if-then-else

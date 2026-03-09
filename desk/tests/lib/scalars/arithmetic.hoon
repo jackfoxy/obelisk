@@ -396,89 +396,89 @@
   ==
   ==
 ::
-::++  test-embedded-arithmetic
-::  %:  run-scalar-tests
-::    ctes
-::    qual-lookup
-::    qual-map-meta
-::    resolved-scalars
-::    table-row
-::    :~
-::    ::  addition tests
-::    :-  %addition-embedded-scalar-literal
-::        :-  :*  %arithmetic
-::              %lus
-::              (~(got by scalars) %scalar1)
-::              literal-value-1
-::              ==
-::            [~.ud 4]
-::    :-  %addition-literal-embedded-scalar
-::        :-  :*  %arithmetic
-::              %lus
-::              literal-value-1
-::              (~(got by scalars) %scalar1)
-::              ==
-::            [~.ud 4]
-::    ::  subtraction tests
-::    :-  %subtraction-embedded-scalar-literal
-::        :-  :*  %arithmetic
-::              %hep
-::              (~(got by scalars) %scalar1)
-::              literal-value-1
-::              ==
-::            [~.ud 2]
-::    :-  %subtraction-literal-embedded-scalar
-::        :-  :*  %arithmetic
-::              %hep
-::              [%literal-value [~.ud 5]]
-::              (~(got by scalars) %scalar1)
-::              ==
-::            [~.ud 2]
-::    ::  multiplication tests
-::    :-  %multiplication-embedded-scalar-literal
-::        :-  :*  %arithmetic
-::              %tar
-::              (~(got by scalars) %scalar1)
-::              literal-value-1
-::              ==
-::            [~.ud 3]
-::    :-  %multiplication-literal-embedded-scalar
-::        :-  :*  %arithmetic
-::              %tar
-::              literal-value-1
-::              (~(got by scalars) %scalar1)
-::              ==
-::            [~.ud 3]
-::    ::  division tests
-::    :-  %division-embedded-scalar-literal
-::        :-  :*  %arithmetic
-::              %fas
-::              (~(got by scalars) %scalar1)
-::              literal-value-1
-::              ==
-::            [~.ud 3]
-::    :-  %division-literal-embedded-scalar
-::        :-  :*  %arithmetic
-::              %fas
-::              literal-value-1
-::              (~(got by scalars) %scalar1)
-::              ==
-::            [~.ud 0]
-::    ::  exponentiation tests
-::    :-  %exponentiation-embedded-scalar-literal
-::        :-  :*  %arithmetic
-::              %ket
-::              (~(got by scalars) %scalar1)
-::              literal-value-2
-::              ==
-::            [~.ud 9]
-::    :-  %exponentiation-literal-embedded-scalar
-::        :-  :*  %arithmetic
-::              %ket
-::              literal-value-2
-::              (~(got by scalars) %scalar1)
-::              ==
-::            [~.ud 8]
-::  ==
-::  ==
+++  test-embedded-arithmetic
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  addition tests
+    :-  %addition-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %lus
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 4]
+    :-  %addition-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 4]
+    ::  subtraction tests
+    :-  %subtraction-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %hep
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 2]
+    :-  %subtraction-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %hep
+              [%literal-value [~.ud 5]]
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 2]
+    ::  multiplication tests
+    :-  %multiplication-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %tar
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %multiplication-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 3]
+    ::  division tests
+    :-  %division-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %fas
+              [%scalar-name %scalar1]
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %division-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 0]
+    ::  exponentiation tests
+    :-  %exponentiation-embedded-scalar-literal
+        :-  :*  %arithmetic
+              %ket
+              [%scalar-name %scalar1]
+              literal-value-2
+              ==
+            [~.ud 9]
+    :-  %exponentiation-literal-embedded-scalar
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              [%scalar-name %scalar1]
+              ==
+            [~.ud 8]
+  ==
+  ==
 --
