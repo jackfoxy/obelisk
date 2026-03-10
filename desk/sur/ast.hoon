@@ -649,7 +649,7 @@
 +$  coalesce
   $+  coalesce
   $:  %coalesce
-    data=(list datum-or-scalar)
+    data=(list scalar-node)
     ==
 ::
 ::  datetime functions

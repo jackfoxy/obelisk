@@ -1546,6 +1546,181 @@
     ==
     ==
 ::
+++  test-qual-embedded-by-node-case
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  simple case when - embedded scalar in when position
+    :-  %simple-case-target-dime-when-embedded-scalar
+        :-  :*  %case
+              (some [%literal-value [~.ud 3]])
+              :~  :+  %case-when-then
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                      q-col-1
+                  ==
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-qualified-when-embedded-scalar
+        :-  :*  %case
+              (some q-col-3)
+              :~  :+  %case-when-then
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                      q-col-1
+                  ==
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-scalar-name-when-embedded-scalar
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              :~  :+  %case-when-then
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                      q-col-1
+                  ==
+              ~
+              ==
+            literal-1
+    ::  simple case when - embedded scalar as target
+    ::  target = embedded scalar
+    :-  %simple-case-target-embedded-scalar-when-dime
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-scalar-when-qualified-column
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              ~[[%case-when-then q-col-3 q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-scalar-when-scalar-name
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              :~  :+  %case-when-then
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                      q-col-1
+                  ==
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-scalar-when-embedded-scalar
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              :~  :+  %case-when-then
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                      q-col-1
+                  ==
+              ~
+              ==
+            literal-1
+    ::  target - embedded scalar
+    :-  %embedded-scalar
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-2]]
+              ~
+              ==
+            [~.ud 2]
+    ::  then - embedded scalar
+    :-  %searched-embedded-scalar
+        :-  :*  %case
+              ~
+              :~  :+  %case-when-then
+                      true-predicate
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                  ==
+              ~
+              ==
+            [~.ud 3]
+    :-  %simple-embedded-scalar
+        :-  :*  %case
+              (some q-col-1)
+              :~  :+  %case-when-then
+                      literal-value-1
+                      :^  %if-then-else
+                          if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                          then=q-col-3
+                          else=q-col-2
+                  ==
+              ~
+              ==
+            [~.ud 3]
+    ::  else - embedded scalar
+    :-  %searched-embedded-scalar
+        :-  :*  %case
+              ~
+              ~[[%case-when-then false-predicate q-col-2]]
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              ==
+            [~.ud 3]
+    :-  %simple-embedded-scalar
+        :-  :*  %case
+              (some q-col-1)
+              ~[[%case-when-then literal-value-2 q-col-2]]
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=q-col-3
+                      else=q-col-2
+              ==
+            [~.ud 3]
+  ==
+  ==
+::
 ++  test-unqual-embedded-by-node-case
   %:  run-scalar-tests
     table-named-ctes

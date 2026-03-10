@@ -67,7 +67,7 @@
         ~.sd  ::typ
         |=  =data-row
         ^-  dime
-        =/  expr=resolved-scalar  %:  evaluate-datum-or-scalar
+        =/  expr=resolved-scalar  %:  evaluate-datum
                       numeric-expression:;;(abs:ast scalar)
                       named-ctes
                       qualifier-lookup
@@ -135,18 +135,18 @@
   :: are qualified, thus this function would need to have two lookup
   :: types? one for the predicate and one for the arguments. To simplify
   :: for now we always raise the predicates to qualified columns
-  =/  then  %:  evaluate-datum-or-scalar  then.scalar
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          scalars
-                                          ==
-  =/  else  %:  evaluate-datum-or-scalar  else.scalar
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          scalars
-                                          ==
+  =/  then  %:  evaluate-datum  then.scalar
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                scalars
+                                ==
+  =/  else  %:  evaluate-datum  else.scalar
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                scalars
+                                ==
   =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
     %:  check-consistent-types
         ~[then else]
@@ -205,13 +205,25 @@
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
   ::  check all then-values and else share a common type; capture return type
-  =/  then-dos=(list datum-or-scalar:ast)
+  =/  then-dos
     %+  turn  cases
     |=  cwt=case-when-then:ast
-    then.cwt
+    %:  evaluate-datum  then.cwt
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        scalars
+                        ==
   =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
     %:  check-consistent-types
-      ?~(else.scalar then-dos [(need else.scalar) then-dos])
+      ?~  else.scalar  then-dos
+      :-  %:  evaluate-datum  (need else.scalar)
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              scalars
+                              ==
+          then-dos
       ~
       map-meta
       scalars
@@ -246,27 +258,51 @@
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
   ::  check that target and all when-values share a common type
-  =/  when-dos=(list datum-or-scalar:ast)
+  =/  when-dos
     %+  turn  cases
     |=  cwt=case-when-then:ast
-    ?:  ?=(predicate-component:ast -.when.cwt)  ~|("unreachable" !!)
-    when.cwt
+    ?:  ?=(ops-and-conjs:ast -.when.cwt)
+      ~|("when predicate not allowed in simple case" !!)
+    %:  evaluate-datum  ;;(scalar-node when.cwt)
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        scalars
+                        ==
+  =/  target  %:  evaluate-datum  (need target.scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  scalars
+                                  ==
   =/  [cmp-typ=@ta cmp-valid=(list ?(datum-or-scalar:ast resolved-scalar))]
     %:  check-consistent-types
-      [(need target.scalar) when-dos]
+      [target when-dos]
       ~
       map-meta
       scalars
       named-ctes
       ==
   ::  check all then-values and else share a common type; capture return type
-  =/  then-dos=(list datum-or-scalar:ast)
+  =/  then-dos
     %+  turn  cases
     |=  cwt=case-when-then:ast
-    then.cwt
-  =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
+    %:  evaluate-datum  then.cwt
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        scalars
+                        ==
+  =/  [typ=@ta validated=(list ?(scalar-node:ast resolved-scalar))]
     %:  check-consistent-types
-      ?~(else.scalar then-dos [(need else.scalar) then-dos])
+      ?~  else.scalar  then-dos
+      :-  %:  evaluate-datum  (need else.scalar)
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              scalars
+                              ==
+          then-dos
       ~
       map-meta
       scalars
@@ -311,14 +347,14 @@
                                               map-meta
                                               qualifier-lookup
                                               ==
-                      %:  evaluate-datum-or-scalar  then.cwt
+                      %:  evaluate-datum  then.cwt
                                                     named-ctes
                                                     qualifier-lookup
                                                     map-meta
                                                     scalars
                                                     ==
   ?~  else.scalar  fns
-  =/  else-rs  %:  evaluate-datum-or-scalar  (need else.scalar)
+  =/  else-rs  %:  evaluate-datum  (need else.scalar)
                                              named-ctes
                                              qualifier-lookup
                                              map-meta
@@ -340,11 +376,11 @@
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  eq-pred
-    |=  [target=datum-or-scalar:ast when=datum-or-scalar:ast =data-row]
+    |=  [target=scalar-node:ast when=scalar-node:ast =data-row]
     ^-  ?
     =/  target-val
           %+  apply-scalar  data-row
-                            %:  evaluate-datum-or-scalar  target
+                            %:  evaluate-datum  target
                                                           named-ctes
                                                           qualifier-lookup
                                                           map-meta
@@ -352,7 +388,7 @@
                                                           ==
     =/  when-val
           %+  apply-scalar  data-row
-                            %:  evaluate-datum-or-scalar  when
+                            %:  evaluate-datum  when
                                                           named-ctes
                                                           qualifier-lookup
                                                           map-meta
@@ -361,32 +397,33 @@
     =(target-val when-val)
   =/  fns  %+  turn  cases.scalar
                      |=  cwt=case-when-then:ast
-                     :-  ?:  ?=(datum-or-scalar:ast when.cwt)
-                         |=  =data-row
-                         %^  eq-pred  (need target.scalar)
-                                     ;;(datum-or-scalar:ast when.cwt)
-                                     data-row
-                         |=  =data-row
-                         =/  qualified-pred
-                           %+  normalize-predicate  ;;(predicate:ast when.cwt)
-                                                   qualifier-lookup
-                         %-  %^  pred-ops-and-conjs  qualified-pred
-                                                     map-meta
-                                                     qualifier-lookup
-                             data-row
-                         %:  evaluate-datum-or-scalar  then.cwt
-                                                       named-ctes
-                                                       qualifier-lookup
+                     :-  ?:  ?=(ops-and-conjs:ast -.when.cwt)
+                           |=  =data-row
+                           =/  qualified-pred
+                             %+  normalize-predicate  ;;(predicate:ast when.cwt)
+                                                      qualifier-lookup
+                           %-  %^  pred-ops-and-conjs  qualified-pred
                                                        map-meta
-                                                       scalars
-                                                       ==
+                                                       qualifier-lookup
+                               data-row
+                         |=  =data-row
+                          %^  eq-pred  (need target.scalar)
+                                      ;;(scalar-node:ast when.cwt)
+                                      data-row
+                         ::
+                         %:  evaluate-datum  then.cwt
+                                              named-ctes
+                                              qualifier-lookup
+                                              map-meta
+                                              scalars
+                                              ==
   ?~  else.scalar  fns
-  =/  else-rs  %:  evaluate-datum-or-scalar  (need else.scalar)
-                                             named-ctes
-                                             qualifier-lookup
-                                             map-meta
-                                             scalars
-                                             ==
+  =/  else-rs  %:  evaluate-datum  (need else.scalar)
+                                   named-ctes
+                                   qualifier-lookup
+                                   map-meta
+                                   scalars
+                                   ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
       ~[[|=(=data-row %.y) else-rs]]
@@ -400,13 +437,19 @@
           ==
   ^-  resolved-scalar
   =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
-    %:  check-consistent-types
-        data.scalar
-        ~
-        map-meta
-        scalars
-        named-ctes
-        ==
+    %:  check-consistent-types  %+  turn  data.scalar
+                                          |=  item=scalar-node:ast
+                                          %:  evaluate-datum  item
+                                                              named-ctes
+                                                              qualifier-lookup
+                                                              map-meta
+                                                              scalars
+                                                              ==
+                                  ~
+                                  map-meta
+                                  scalars
+                                  named-ctes
+                                  ==
   ::  first item is a concrete value: return it immediately as resolved-scalar
   ?~  validated  ~|("no non-null value found in row" !!)
   ?:  =(%literal-value -.i.validated)  ;;(literal-value:ast i.validated)
@@ -520,13 +563,13 @@
         ~.ud  ::typ
         |=  =data-row
         ^-  dime
-        =/  evald-left  %:  evaluate-datum-or-scalar  left.scalar
+        =/  evald-left  %:  evaluate-datum  left.scalar
                                                       named-ctes
                                                       qualifier-lookup
                                                       map-meta
                                                       scalars
                                                       ==
-        =/  evald-right  %:  evaluate-datum-or-scalar  right.scalar
+        =/  evald-right  %:  evaluate-datum  right.scalar
                                                         named-ctes
                                                         qualifier-lookup
                                                         map-meta
@@ -644,15 +687,15 @@
             (~(got by data.data-row) name.col)
       ==
 ::
-++  evaluate-datum-or-scalar
-  |=  $:  datum=?(datum-or-scalar:ast scalar-function:ast)
+++  evaluate-datum
+  |=  $:  datum=scalar-node
           =named-ctes
           =qualifier-lookup
           =map-meta
           scalars=(map @tas resolved-scalar)
           ==
   ^-  resolved-scalar
-  ~|  "evaluate-datum-or-scalar: failed {<datum>}"
+  ~|  "evaluate-datum: failed {<datum>}"
   ?+  datum  %:  prepare-scalar  ;;(scalar-function:ast datum)
                                  named-ctes
                                  qualifier-lookup
