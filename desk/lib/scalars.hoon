@@ -147,7 +147,7 @@
                                 map-meta
                                 scalars
                                 ==
-  =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
+  =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
         ~[then else]
         ~
@@ -214,7 +214,7 @@
                         map-meta
                         scalars
                         ==
-  =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
+  =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
       ?~  else.scalar  then-dos
       :-  %:  evaluate-datum  (need else.scalar)
@@ -275,7 +275,7 @@
                                   map-meta
                                   scalars
                                   ==
-  =/  [cmp-typ=@ta cmp-valid=(list ?(datum-or-scalar:ast resolved-scalar))]
+  =/  [cmp-typ=@ta cmp-valid=(list resolved-scalar)]
     %:  check-consistent-types
       [target when-dos]
       ~
@@ -293,7 +293,7 @@
                         map-meta
                         scalars
                         ==
-  =/  [typ=@ta validated=(list ?(scalar-node:ast resolved-scalar))]
+  =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
       ?~  else.scalar  then-dos
       :-  %:  evaluate-datum  (need else.scalar)
@@ -436,7 +436,7 @@
           scalars=(map @tas resolved-scalar)
           ==
   ^-  resolved-scalar
-  =/  [typ=@ta validated=(list ?(datum-or-scalar:ast resolved-scalar))]
+  =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types  %+  turn  data.scalar
                                           |=  item=scalar-node:ast
                                           %:  evaluate-datum  item
@@ -456,31 +456,14 @@
   ::  otherwise build a %fn that walks validated at runtime per data-row,
   ::  returning the first non-null value; the list-walk is captured in the gate
   =/  fn
-    |=  [datums=(list ?(datum-or-scalar:ast resolved-scalar)) =data-row]
+    |=  [datums=(list resolved-scalar) =data-row]
     :: to do: once outer joins implemented must test columns for existence
     ::        in data-row
     ^-  dime
     |-
     ?~  datums  ~|("coalesce: no non-null value found in row" !!)
-    =/  datum  i.datums
-    ::  literal-value is always exists
-    ?:  =(%literal-value -.datum)  dime:;;(literal-value:ast datum)
-    ?:  ?&  =(%qualified-column -.datum)
-            =(%qualified-map-meta -.map-meta)
-            ==
-      %^  got-column-dime  ;;(qualified-map-meta map-meta)
-                           ;;(qualified-column:ast datum)
-                           data-row
-    :: otherwise can only be unqualified-column
-    =/  maybe-table-list
-      (~(get by qualifier-lookup) name:;;(unqualified-column datum))
-    ?~  maybe-table-list  $(datums t.datums)
-    =/  table-list  (need maybe-table-list)
-    ?:  (gth (lent table-list) 1)  $(datums t.datums)
-    =/  column=qualified-column:ast
-      [%qualified-column -.table-list name:;;(unqualified-column datum) ~]
-    ?>  ?=(%qualified-map-meta -.map-meta)
-    (got-column-dime map-meta column data-row)
+    ?:  ?=(literal-value i.datums)  dime.i.datums
+    (f.i.datums data-row)
   [%fn typ |=(=data-row (fn validated data-row))]
 ::
 ++  prepare-arithmetic
@@ -589,61 +572,25 @@
   ::  returns [common-type list] with any cte-name or unqualified-column
   ::  resolved via cte-to-literal replaced by their literal-value.
   ::  crashes on empty dos.
-  |=  $:  dos=(list ?(datum-or-scalar:ast resolved-scalar))
+  |=  $:  dos=(list resolved-scalar)
           allowed=(list @ta)
           =map-meta
           scalars=(map @tas resolved-scalar)
           =named-ctes
           ==
-  ^-  [@ta (list ?(datum-or-scalar:ast resolved-scalar))]
+  ^-  [@ta (list resolved-scalar)]
   ::  resolve type and possibly substitute item; returns [type resolved-item]
-  =/  resolve-item
-    |=  item=?(datum-or-scalar:ast resolved-scalar)
-    ^-  [@ta ?(datum-or-scalar:ast resolved-scalar)]
-    ?-  -.item
-      %literal-value
-        [-.dime.item item]
-    ::
-      %qualified-column
-        ~|  "check-consistent-types: qualified-column {<name.item>} ".
-            "requires qualified map-meta"
-        :-  (got-qualified-col-type map-meta ;;(qualified-column:ast item))
-            ;;(qualified-column:ast item)
-    ::
-      %unqualified-column
-        =/  maybe-ta
-          ?.  =(%unqualified-map-meta -.map-meta)  ~
-          %-  ~(get by +:;;(unqualified-map-meta map-meta))
-                name:;;(unqualified-column:ast item)
-        ?~  maybe-ta
-          ::  not in unqualified-map-meta: attempt CTE lookup by column name
-          =/  lit=literal-value:ast
-            (cte-to-literal named-ctes ;;(unqualified-column:ast item))
-          [p.dime.lit lit]
-        [type.u.maybe-ta ;;(unqualified-column:ast item)]
-    ::
-      %cte-name
-        =/  lit=literal-value:ast
-          (cte-to-literal named-ctes ;;(cte-name:ast item))
-        [p.dime.lit lit]
-    ::
-      %scalar-name
-        ~|  "check-consistent-types: scalar {<name.item>} not found"
-        =/  res  (~(got by scalars) name:;;(scalar-name:ast item))
-        ?-  -.res
-            %fn           [type.res ;;(scalar-name:ast item)]
-            %literal-value  [p.dime.res ;;(scalar-name:ast item)]
-        ==
-    ::
-      %fn
-        [+<.item ;;(resolved-scalar item)]
-    ==
+  =/  resolve-item  |=  item=resolved-scalar
+                    ^-  [@ta resolved-scalar]
+                    ?:  ?=(literal-value:ast item)
+                      [-.dime.item item]
+                    [+<.item item]
   ::  walk the list, tracking expected type, verifying consistency,
   ::  and accumulating the (possibly-substituted) output list
-  =/  expected=(unit @ta)  ~
-  =/  out=(list ?(datum-or-scalar:ast resolved-scalar))  ~
+  =/  expected  *(unit @ta)
+  =/  out       *(list resolved-scalar)
   =/  items  dos
-  |-  ^-  [@ta (list ?(datum-or-scalar:ast resolved-scalar))]
+  |-  ^-  [@ta (list resolved-scalar)]
   ?~  items
     ?~  expected
       ~|("check-consistent-types: empty argument list" !!)
@@ -658,7 +605,7 @@
       ?:  =(i.ck u.expected)  &
       $(ck t.ck)
     [u.expected (flop out)]
-  =/  [t=@ta sub=?(datum-or-scalar:ast resolved-scalar)]  (resolve-item i.items)
+  =/  [t=@ta sub=resolved-scalar]  (resolve-item i.items)
   ?~  expected
     $(expected `t, out [sub out], items t.items)
   ~|  "check-consistent-types: inconsistent types, expected {<u.expected>} ".
