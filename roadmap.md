@@ -10,6 +10,8 @@ Features coming after v0.5 alpha release.
 
 * __Common Table Expressions (CTE)__ (complete in beta) -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
+* __Scalar functions__ -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
+
 * __JOIN ON__ -- JOIN ON `<predicate>`
 
 * __partial pri key natural join__ -- natural join on beginning of primary key
@@ -21,8 +23,6 @@ Features coming after v0.5 alpha release.
 * __ORDER BY ...__ -- order result set
 
 * __path column type__ -- support path type as atom
-
-* __Scalar functions__ -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
 
 ## other functionality
 

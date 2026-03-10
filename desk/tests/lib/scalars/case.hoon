@@ -1545,4 +1545,26 @@
             literal-1
     ==
     ==
+::
+++  test-unqual-embedded-by-node-case
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %simple-case-target-embedded-scalar-when-unqualified-column
+        :-  :*  %case
+              :-  ~
+                  :^  %if-then-else
+                      if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
+                      then=[%unqualified-column %col4 ~]
+                      else=[%unqualified-column %col5 ~]             
+              ~[[%case-when-then u-col-4 q-col-1]]
+              ~
+              ==
+            literal-1
+    ==
+    ==
 --

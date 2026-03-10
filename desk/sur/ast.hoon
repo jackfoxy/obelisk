@@ -635,15 +635,15 @@
 ::
 +$  case-when-then
   $:  %case-when-then
-    when=$%(predicate datum-or-scalar)
-    then=datum-or-scalar
+    when=$%(predicate scalar-node)
+    then=scalar-node
     ==
 ::
 +$  case
   $:  %case
-    target=(unit datum-or-scalar)
+    target=(unit scalar-node)
     cases=(list case-when-then)
-    else=(unit datum-or-scalar)
+    else=(unit scalar-node)
     ==
 ::
 +$  coalesce
