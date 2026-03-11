@@ -130,16 +130,19 @@
 +$  predicate-component
   $?
     ops-and-conjs
-    qualified-column
-    unqualified-column
-    dime
+    datum
     value-literals
-    cte-name
-    scalar-name
     aggregate
     ==
 +$  predicate     (tree predicate-component)
-+$  datum         $%(qualified-column unqualified-column dime)
++$  datum 
+  $%
+    qualified-column
+    unqualified-column
+    dime
+    cte-name
+    scalar-name
+    ==
 ::
 +$  datum-or-scalar
   $%
