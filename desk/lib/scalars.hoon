@@ -128,7 +128,7 @@
           scalars=(map @tas resolved-scalar)
           ==
   ^-  resolved-scalar
-  :: pred-ops-and-conjs switches on map-meta to evaluate its arguments
+  :: prepare-predicate switches on map-meta to evaluate its arguments
   :: (so if it gets a qualified lookup type it will expect qualified
   :: columns, and same for unqual)  however we can have cases when we have
   :: a predicate with unqualified columns but scalar return values that
@@ -156,7 +156,7 @@
         named-ctes
         ==
   =/  pred-result
-        %^  pred-ops-and-conjs  %+  normalize-predicate  if.scalar
+        %^  prepare-predicate  %+  normalize-predicate  if.scalar
                                                          qualifier-lookup
                                 map-meta
                                 qualifier-lookup
@@ -343,7 +343,7 @@
                   =/  qualified-pred
                         %+  normalize-predicate  ;;(predicate:ast when.cwt)
                                                  qualifier-lookup
-                  :-  %:  pred-ops-and-conjs  qualified-pred
+                  :-  %:  prepare-predicate  qualified-pred
                                               map-meta
                                               qualifier-lookup
                                               ==
@@ -402,7 +402,7 @@
                            =/  qualified-pred
                              %+  normalize-predicate  ;;(predicate:ast when.cwt)
                                                       qualifier-lookup
-                           %-  %^  pred-ops-and-conjs  qualified-pred
+                           %-  %^  prepare-predicate  qualified-pred
                                                        map-meta
                                                        qualifier-lookup
                                data-row

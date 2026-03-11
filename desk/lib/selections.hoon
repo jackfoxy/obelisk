@@ -54,7 +54,7 @@
   =/  selected      (normalize-selected columns.select.q)
   =/  filter        ?~  predicate.q  ~
                     :-  ~
-                        %^  pred-ops-and-conjs
+                        %^  prepare-predicate
                             (pred-unqualify-qualified predicate.q)
                             :-  %unqualified-map-meta
                                 %-  ~(got by +.map-meta.full-relation)

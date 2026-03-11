@@ -248,7 +248,7 @@
             [%message 'no rows deleted']
             ==
   ::
-  =/  filter=$-(data-row ?)  %^  pred-ops-and-conjs
+  =/  filter=$-(data-row ?)  %^  prepare-predicate
                                  (pred-unqualify-qualified predicate.d)
                                  :-  %unqualified-map-meta
                                      typ-addr-lookup.table.txn
@@ -333,7 +333,7 @@
     ~|("UPDATE: columns and values mismatch" !!)
   =/  filter  ?~  predicate.u  ~
               :-  ~
-                  %^  pred-ops-and-conjs  %-  pred-unqualify-qualified
+                  %^  prepare-predicate  %-  pred-unqualify-qualified
                                               predicate.u
                                           :-  %unqualified-map-meta
                                               typ-addr-lookup.table.txn
@@ -437,7 +437,7 @@
   ::
   =/  filter=(unit $-(data-row ?))  ?~  predicate.q  ~
                                     :-  ~
-                                        %^  pred-ops-and-conjs
+                                        %^  prepare-predicate
                                               %+  normalize-predicate
                                                   predicate.q
                                                   qualifier-lookup

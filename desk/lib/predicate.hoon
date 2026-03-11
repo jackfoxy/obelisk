@@ -35,7 +35,7 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-++  pred-ops-and-conjs
+++  prepare-predicate
   ::  Main entry point for converting a predicate AST into an executable gate.
   ::
   ::  Takes a parsed predicate tree and compiles it into a gate that evaluates
@@ -60,12 +60,12 @@
   ::
   |=  [p=predicate:ast =map-meta =qualifier-lookup]
   ^-  $-(data-row ?)
-  ?~  p  ~|("pred-ops-and-conjs can't get here 1" !!) 
-  ?.  ?=(ops-and-conjs n.p)  ~|("pred-ops-and-conjs can't get here 2" !!)
+  ?~  p  ~|("prepare-predicate can't get here 1" !!) 
+  ?.  ?=(ops-and-conjs n.p)  ~|("prepare-predicate can't get here 2" !!)
   ?-  n.p
     ternary-op
-      ?~  l.p  ~|("pred-ops-and-conjs can't get here 3" !!)
-      ?~  r.p  ~|("pred-ops-and-conjs can't get here 4" !!)
+      ?~  l.p  ~|("prepare-predicate can't get here 3" !!)
+      ?~  r.p  ~|("prepare-predicate can't get here 4" !!)
       =/  ll=$-(data-row ?)  (pred-binary-op l.p map-meta qualifier-lookup)
       =/  rr=$-(data-row ?)  (pred-binary-op r.p map-meta qualifier-lookup)
       ?:  =(%between n.p)
@@ -75,10 +75,10 @@
     unary-op    (pred-unary-op p map-meta qualifier-lookup)
     all-any-op  ~|("%all and %any not implemented" !!)
     conjunction
-      ?~  l.p  ~|("pred-ops-and-conjs can't get here 5" !!)
-      ?~  r.p  ~|("pred-ops-and-conjs can't get here 6" !!)
-      =/  ll=$-(data-row ?)  (pred-ops-and-conjs l.p map-meta qualifier-lookup)
-      =/  rr=$-(data-row ?)  (pred-ops-and-conjs r.p map-meta qualifier-lookup)
+      ?~  l.p  ~|("prepare-predicate can't get here 5" !!)
+      ?~  r.p  ~|("prepare-predicate can't get here 6" !!)
+      =/  ll=$-(data-row ?)  (prepare-predicate l.p map-meta qualifier-lookup)
+      =/  rr=$-(data-row ?)  (prepare-predicate r.p map-meta qualifier-lookup)
       ?:  =(%and n.p)
         (bake (cury (cury and ll) rr) data-row)
       (bake (cury (cury or ll) rr) data-row)
@@ -94,7 +94,7 @@
   ?-  n.p
     %not
     :: this doesn't handle a qualified/unqualified column as argument
-      =/  ll=$-(data-row ?)  (pred-ops-and-conjs l.p map-meta qualifier-lookup)
+      =/  ll=$-(data-row ?)  (prepare-predicate l.p map-meta qualifier-lookup)
       (bake (cury not ll) data-row)
     %exists
       ~|("%exists not implemented" !!)
