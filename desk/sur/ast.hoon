@@ -139,9 +139,9 @@
   $%
     qualified-column
     unqualified-column
-    dime
     cte-name
     scalar-name
+    dime
     ==
 ::
 +$  cte-name      $:(%cte-name name=@tas)
