@@ -58,11 +58,17 @@
   ::    - conjunction: AND/OR (recursively combines left and right predicates)
   ::    - all-any-op: ALL/ANY (not yet implemented)
   ::
-  |=  [p=predicate:ast =map-meta =qualifier-lookup]
+  |=  $:  p=predicate:ast
+          =map-meta
+          =qualifier-lookup
+          =named-ctes
+          =resolved-scalars
+          ==
   ^-  $-(data-row ?)
   ?~  p  ~|("prepare-predicate can't get here 1" !!) 
   ?.  ?=(ops-and-conjs n.p)  ~|("prepare-predicate can't get here 2" !!)
   ?-  n.p
+    ::
     ternary-op
       ?~  l.p  ~|("prepare-predicate can't get here 3" !!)
       ?~  r.p  ~|("prepare-predicate can't get here 4" !!)
@@ -71,21 +77,43 @@
       ?:  =(%between n.p)
         (bake (cury (cury and ll) rr) data-row)
       (bake (cury (cury and-not ll) rr) data-row)
-    binary-op   (pred-binary-op p map-meta qualifier-lookup)
-    unary-op    (pred-unary-op p map-meta qualifier-lookup)
-    all-any-op  ~|("%all and %any not implemented" !!)
+    ::
+    binary-op
+      (pred-binary-op p map-meta qualifier-lookup)
+    ::
+    unary-op
+      (pred-unary-op p map-meta qualifier-lookup named-ctes resolved-scalars)
+    ::
+    all-any-op
+      ~|("%all and %any not implemented" !!)
+    ::
     conjunction
       ?~  l.p  ~|("prepare-predicate can't get here 5" !!)
       ?~  r.p  ~|("prepare-predicate can't get here 6" !!)
-      =/  ll=$-(data-row ?)  (prepare-predicate l.p map-meta qualifier-lookup)
-      =/  rr=$-(data-row ?)  (prepare-predicate r.p map-meta qualifier-lookup)
+      =/  ll=$-(data-row ?)  %:  prepare-predicate  l.p
+                                                    map-meta
+                                                    qualifier-lookup
+                                                    named-ctes
+                                                    resolved-scalars
+                                                    ==
+      =/  rr=$-(data-row ?)  %:  prepare-predicate  r.p
+                                                    map-meta
+                                                    qualifier-lookup
+                                                    named-ctes
+                                                    resolved-scalars
+                                                    ==
       ?:  =(%and n.p)
         (bake (cury (cury and ll) rr) data-row)
       (bake (cury (cury or ll) rr) data-row)
     ==
 :: 
 ++  pred-unary-op
-  |=  [p=predicate:ast =map-meta =qualifier-lookup]
+  |=  $:  p=predicate:ast
+          =map-meta
+          =qualifier-lookup
+          =named-ctes
+          =resolved-scalars
+          ==
   ^-  $-(data-row ?)
   ?~  p  ~|("pred-unary-op can't get here" !!)
   ?~  l.p  ~|("pred-unary-op can't get here" !!)
@@ -94,7 +122,12 @@
   ?-  n.p
     %not
     :: this doesn't handle a qualified/unqualified column as argument
-      =/  ll=$-(data-row ?)  (prepare-predicate l.p map-meta qualifier-lookup)
+      =/  ll=$-(data-row ?)  %:  prepare-predicate  l.p
+                                                    map-meta
+                                                    qualifier-lookup
+                                                    named-ctes
+                                                    resolved-scalars
+                                                    ==
       (bake (cury not ll) data-row)
     %exists
       ~|("%exists not implemented" !!)

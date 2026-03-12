@@ -150,6 +150,8 @@
                          dime
                          ==
 ::
++$  resolved-scalars  (map @tas resolved-scalar)
+::
 ::  template for selected column from qualified-column objects
 +$  templ-cell
   $:  %templ-cell

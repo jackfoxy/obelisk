@@ -54,12 +54,15 @@
   =/  selected      (normalize-selected columns.select.q)
   =/  filter        ?~  predicate.q  ~
                     :-  ~
-                        %^  prepare-predicate
+                        %:  prepare-predicate
                             (pred-unqualify-qualified predicate.q)
                             :-  %unqualified-map-meta
                                 %-  ~(got by +.map-meta.full-relation)
                                     qualified-table.full-relation
                             ~
+                            named-ctes
+                            *resolved-scalars
+                            ==
   ::
   ?~  set-tables.full-relation  ~|("select-relation can't get here" !!)
   :-  :*  %join-return

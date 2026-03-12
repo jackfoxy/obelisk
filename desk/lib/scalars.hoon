@@ -20,7 +20,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   ?-  -.scalar
@@ -29,22 +29,22 @@
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
-                                scalars
+                                resolved-scalars
                                 ==
   ::
     %case
-      (prepare-case scalar named-ctes qualifier-lookup map-meta scalars)
+      (prepare-case scalar named-ctes qualifier-lookup map-meta resolved-scalars)
   ::
     %coalesce
       %:  prepare-coalesce  scalar
                             named-ctes
                             qualifier-lookup
                             map-meta
-                            scalars
+                            resolved-scalars
                             ==
   ::
     %arithmetic
-      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta scalars)
+      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta resolved-scalars)
   ::
     %getutcdate
       !!
@@ -68,7 +68,7 @@
                       named-ctes
                       qualifier-lookup
                       map-meta
-                      scalars
+                      resolved-scalars
                       ==
         :-  %sd
             ?:  ?=(dime expr)
@@ -121,7 +121,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   :: prepare-predicate switches on map-meta to evaluate its arguments
@@ -135,27 +135,30 @@
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
-                                scalars
+                                resolved-scalars
                                 ==
   =/  else  %:  evaluate-datum  else.scalar
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
-                                scalars
+                                resolved-scalars
                                 ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
         ~[then else]
         ~
-        map-meta
-        scalars
         named-ctes
+        map-meta
+        resolved-scalars
         ==
   =/  pred-result
-        %^  prepare-predicate  %+  normalize-predicate  if.scalar
+        %:  prepare-predicate  %+  normalize-predicate  if.scalar
                                                          qualifier-lookup
                                 map-meta
                                 qualifier-lookup
+                                named-ctes
+                                resolved-scalars
+                                ==
   :+  %fn
       typ
       |=  =data-row
@@ -172,7 +175,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   ?~  target.scalar
@@ -180,13 +183,13 @@
                                named-ctes
                                qualifier-lookup
                                map-meta
-                               scalars
+                               resolved-scalars
                                ==
   %:  prepare-case-simple  scalar
                            named-ctes
                            qualifier-lookup
                            map-meta
-                           scalars
+                           resolved-scalars
                            ==
 ::
 ++  prepare-case-searched
@@ -195,7 +198,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   =/  cases  cases.scalar
@@ -208,7 +211,7 @@
                         named-ctes
                         qualifier-lookup
                         map-meta
-                        scalars
+                        resolved-scalars
                         ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
@@ -217,19 +220,19 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               ==
           then-dos
       ~
-      map-meta
-      scalars
       named-ctes
+      map-meta
+      resolved-scalars
       ==
   =/  fns-to-apply  %:  case-searched-fns  scalar
                                            named-ctes
                                            qualifier-lookup
                                            map-meta
-                                           scalars
+                                           resolved-scalars
                                            ==
   :+  %fn
       typ
@@ -248,7 +251,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   =/  cases  cases.scalar
@@ -263,21 +266,21 @@
                         named-ctes
                         qualifier-lookup
                         map-meta
-                        scalars
+                        resolved-scalars
                         ==
   =/  target  %:  evaluate-datum  (need target.scalar)
                                   named-ctes
                                   qualifier-lookup
                                   map-meta
-                                  scalars
+                                  resolved-scalars
                                   ==
   =/  [cmp-typ=@ta cmp-valid=(list resolved-scalar)]
     %:  check-consistent-types
       [target when-dos]
       ~
-      map-meta
-      scalars
       named-ctes
+      map-meta
+      resolved-scalars
       ==
   ::  check all then-values and else share a common type; capture return type
   =/  then-dos
@@ -287,7 +290,7 @@
                         named-ctes
                         qualifier-lookup
                         map-meta
-                        scalars
+                        resolved-scalars
                         ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
@@ -296,19 +299,19 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               ==
           then-dos
       ~
-      map-meta
-      scalars
       named-ctes
+      map-meta
+      resolved-scalars
       ==
   =/  fns-to-apply  %:  case-simple-fns  scalar
                                          named-ctes
                                          qualifier-lookup
                                          map-meta
-                                         scalars
+                                         resolved-scalars
                                          ==
   :+  %fn
       typ
@@ -330,7 +333,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  fns=(list [$-(data-row ?) resolved-scalar])
@@ -342,19 +345,21 @@
                   :-  %:  prepare-predicate  qualified-pred
                                               map-meta
                                               qualifier-lookup
+                                              named-ctes
+                                              resolved-scalars
                                               ==
                       %:  evaluate-datum  then.cwt
                                                     named-ctes
                                                     qualifier-lookup
                                                     map-meta
-                                                    scalars
+                                                    resolved-scalars
                                                     ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum  (need else.scalar)
                                              named-ctes
                                              qualifier-lookup
                                              map-meta
-                                             scalars
+                                             resolved-scalars
                                              ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
@@ -368,7 +373,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  eq-pred
@@ -380,7 +385,7 @@
                                                           named-ctes
                                                           qualifier-lookup
                                                           map-meta
-                                                          scalars
+                                                          resolved-scalars
                                                           ==
     =/  when-val
           %+  apply-scalar  data-row
@@ -388,7 +393,7 @@
                                                           named-ctes
                                                           qualifier-lookup
                                                           map-meta
-                                                          scalars
+                                                          resolved-scalars
                                                           ==
     =(target-val when-val)
   =/  fns  %+  turn  cases.scalar
@@ -398,9 +403,12 @@
                            =/  qualified-pred
                              %+  normalize-predicate  ;;(predicate:ast when.cwt)
                                                       qualifier-lookup
-                           %-  %^  prepare-predicate  qualified-pred
-                                                       map-meta
-                                                       qualifier-lookup
+                           %-  %:  prepare-predicate  qualified-pred
+                                                      map-meta
+                                                      qualifier-lookup
+                                                      named-ctes
+                                                      resolved-scalars
+                                                      ==
                                data-row
                          |=  =data-row
                           %^  eq-pred  (need target.scalar)
@@ -411,14 +419,14 @@
                                               named-ctes
                                               qualifier-lookup
                                               map-meta
-                                              scalars
+                                              resolved-scalars
                                               ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum  (need else.scalar)
                                    named-ctes
                                    qualifier-lookup
                                    map-meta
-                                   scalars
+                                   resolved-scalars
                                    ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
@@ -429,7 +437,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   =/  [typ=@ta validated=(list resolved-scalar)]
@@ -439,12 +447,12 @@
                                                               named-ctes
                                                               qualifier-lookup
                                                               map-meta
-                                                              scalars
+                                                              resolved-scalars
                                                               ==
                                   ~
-                                  map-meta
-                                  scalars
                                   named-ctes
+                                  map-meta
+                                  resolved-scalars
                                   ==
   ::  first item is a concrete value: return it immediately as resolved-scalar
   ?~  validated  ~|("no non-null value found in row" !!)
@@ -468,7 +476,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
         ==
     ^-  resolved-scalar
     ?-  operator.scalar
@@ -478,7 +486,7 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               add
                               ==
       ::
@@ -487,7 +495,7 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               sub
                               ==
       ::
@@ -496,7 +504,7 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               mul
                               ==
       ::
@@ -505,7 +513,7 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               div
                               ==
       ::
@@ -514,7 +522,7 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               pow
                               ==
       ::
@@ -523,7 +531,7 @@
                               named-ctes
                               qualifier-lookup
                               map-meta
-                              scalars
+                              resolved-scalars
                               mod
                               ==
     ==
@@ -534,7 +542,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           operator=$-([@ud @ud] @ud)
         ==
     ^-  resolved-scalar
@@ -546,13 +554,13 @@
                                                       named-ctes
                                                       qualifier-lookup
                                                       map-meta
-                                                      scalars
+                                                      resolved-scalars
                                                       ==
         =/  evald-right  %:  evaluate-datum  right.scalar
                                                         named-ctes
                                                         qualifier-lookup
                                                         map-meta
-                                                        scalars
+                                                        resolved-scalars
                                                         ==
         :-  ~.ud  ::typ
             %+  operator  ?:  ?=(dime evald-left)
@@ -570,9 +578,9 @@
   ::  crashes on empty dos.
   |=  $:  dos=(list resolved-scalar)
           allowed=(list @ta)
-          =map-meta
-          scalars=(map @tas resolved-scalar)
           =named-ctes
+          =map-meta
+          =resolved-scalars          
           ==
   ^-  [@ta (list resolved-scalar)]
   ::  resolve type and possibly substitute item; returns [type resolved-item]
@@ -635,7 +643,7 @@
           =named-ctes
           =qualifier-lookup
           =map-meta
-          scalars=(map @tas resolved-scalar)
+          =resolved-scalars
           ==
   ^-  resolved-scalar
   ~|  "evaluate-datum: failed {<datum>}"
@@ -643,12 +651,12 @@
                                  named-ctes
                                  qualifier-lookup
                                  map-meta
-                                 scalars
+                                 resolved-scalars
                                  ==
     ::
     scalar-name:ast    :: must be before dime
       ~|  "scalar {<name.datum>} not found"
-          (~(got by scalars) name.datum)
+          (~(got by resolved-scalars) name.datum)
     ::
     cte-name:ast
       (cte-to-literal named-ctes datum)

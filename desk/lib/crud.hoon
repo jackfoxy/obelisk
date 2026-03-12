@@ -248,11 +248,14 @@
             [%message 'no rows deleted']
             ==
   ::
-  =/  filter=$-(data-row ?)  %^  prepare-predicate
+  =/  filter=$-(data-row ?)  %:  prepare-predicate
                                  (pred-unqualify-qualified predicate.d)
                                  :-  %unqualified-map-meta
                                      typ-addr-lookup.table.txn
                                  ~
+                                 *named-ctes
+                                 *resolved-scalars
+                                 ==
   =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
                                        |=(a=indexed-row !(filter a))
   :: 
@@ -333,11 +336,14 @@
     ~|("UPDATE: columns and values mismatch" !!)
   =/  filter  ?~  predicate.u  ~
               :-  ~
-                  %^  prepare-predicate  %-  pred-unqualify-qualified
+                  %:  prepare-predicate  %-  pred-unqualify-qualified
                                               predicate.u
                                           :-  %unqualified-map-meta
                                               typ-addr-lookup.table.txn
                                           ~
+                                          *named-ctes
+                                          *resolved-scalars
+                                          ==
   =/  updates  %:  mk-updates  table.u
                                columns.u
                                values.u
@@ -437,12 +443,15 @@
   ::
   =/  filter=(unit $-(data-row ?))  ?~  predicate.q  ~
                                     :-  ~
-                                        %^  prepare-predicate
+                                        %:  prepare-predicate
                                               %+  normalize-predicate
                                                   predicate.q
                                                   qualifier-lookup
                                               map-meta.join-return
                                               qualifier-lookup
+                                              named-ctes
+                                              *resolved-scalars
+                                              ==
   ?:  is-cte
     ?~  filter  [join-return ~]
     ?~  set-tables.join-return  [join-return ~]
