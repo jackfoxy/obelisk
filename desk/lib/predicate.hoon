@@ -160,53 +160,13 @@
   ::
   ?-  n.p
     %eq
-      =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
-                       ?:  ?=(qualified-column:ast n.l.p)  n.l.p
-                       ?:  ?=(cte-name:ast n.l.p)  n.l.p
-                       ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-                       ?:  ?=(dime n.l.p)  n.l.p
-                       ~|("pred-binary-op can't get here" !!)
-      =/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
-                       ?:  ?=(qualified-column:ast n.r.p)   n.r.p
-                       ?:  ?=(cte-name:ast n.l.p)  n.l.p
-                       ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-                       ?:  ?=(dime n.r.p)  n.r.p
-                       ~|("pred-binary-op can't get here" !!)
-      ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified-eq  l
-                                    r
-                                    +.map-meta
-                                    qualifier-lookup
-                                    named-ctes
-                                    resolved-scalars
-                                    eq-lit-lit
-                                    eq-col-col
-                                    eq-col-lit
-                                    eq-lit-col
-                                    ==
-      %:  datum-ops-unqualified-eq  l
-                                    r
-                                    +.map-meta
-                                    named-ctes
-                                    resolved-scalars
-                                    eq-lit-lit
-                                    eq-col-col
-                                    eq-col-lit
-                                    eq-lit-col
-                                    ==
+      =/  l=datum:ast  (get-datum n.l.p)
+      =/  r=datum:ast  (get-datum n.r.p)
+      %:  apply-datum-op  l  r  map-meta  qualifier-lookup  named-ctes  resolved-scalars
+                          eq-lit-lit  eq-col-col  eq-col-lit  eq-lit-col  ==
     inequality-op
-      =/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
-                       ?:  ?=(qualified-column:ast n.l.p)  n.l.p
-                       ?:  ?=(cte-name:ast n.l.p)  n.l.p
-                       ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-                       ?:  ?=(dime n.l.p)  n.l.p
-                       ~|("pred-binary-op can't get here" !!)
-      =/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
-                       ?:  ?=(qualified-column:ast n.r.p)   n.r.p
-                       ?:  ?=(cte-name:ast n.l.p)  n.l.p
-                       ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-                       ?:  ?=(dime n.r.p)  n.r.p
-                       ~|("pred-binary-op can't get here" !!)
+      =/  l=datum:ast  (get-datum n.l.p)
+      =/  r=datum:ast  (get-datum n.r.p)
       %:  pred-inequality-op  n.p
                               l
                               r
@@ -441,64 +401,24 @@
         !!
   ~|("datum-ops-qualified can't get here" !!)
 ::
-++  datum-ops-qualified-eq
-  |=  $:  l=datum:ast
-          r=datum:ast
-          map-meta=(mip:mip qualified-table @tas typ-addr)
-          =qualifier-lookup
-          =named-ctes
-          =resolved-scalars
-          lit-lit=$-([@ @ data-row] ?)
-          col-col=$-([@ @ data-row] ?)
-          col-lit=$-([@ @ data-row] ?)
-          lit-col=$-([@ @ data-row] ?)
-          ==
-  ^-  $-(data-row ?)
-  ::  literal = literal
-  ?:  &(?=(dime l) ?=(dime r))
-    ?:  (types-match -.l -.r)
-      (bake (cury (cury lit-lit +.l) +.r) data-row)
-    ~|("comparing column literals of different auras:  {<l>} {<r>}" !!)
-  ::  column = column
-  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    ?:  %+  types-match
-              ~|  "column {<name.l>} does not exist"
-              -:(~(got bi:mip map-meta) qualifier.l name.l)
-              ~|  "column {<name.r>} does not exist"
-              -:(~(got bi:mip map-meta) qualifier.r name.r)
-      %+  bake  %+  cury
-                    (cury col-col +:(~(got bi:mip map-meta) qualifier.l name.l))
-                    +:(~(got bi:mip map-meta) qualifier.r name.r)
-                data-row
-    ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<name.r>} ".
-        "{<-:(~(got bi:mip map-meta) qualifier.r name.r)>}"
-        !!
-  ::  literal = column
-  ?:  &(?=(dime l) ?=(qualified-column:ast r))
-    ~|  "column {<name.r>} does not exist"
-    ?:  (types-match -.l -:(~(got bi:mip map-meta) qualifier.r name.r))
-      %+  bake
-            %+  cury  (cury lit-col +.l)
-                      +:(~(got bi:mip map-meta) qualifier.r name.r)
-            data-row
-    ~|  "comparing literal to column of different aura: ".
-        "{<l>} {<name.r>} ".
-        "{<-:(~(got bi:mip map-meta) qualifier.r name.r)>}"
-        !!
-  ::  column = literal
-  ?:  &(?=(qualified-column:ast l) ?=(dime r))
-    ~|  "column {<name.l>} does not exist"
-    ?:  (types-match -:(~(got bi:mip map-meta) qualifier.l name.l) -.r)
-      %+  bake
-            %+  cury  
-                  (cury col-lit +:(~(got bi:mip map-meta) qualifier.l name.l))
-                  +.r
-            data-row
-    ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
-        !!
-  ~|("datum-ops-qualified-eq can't get here" !!)
+++  col-name
+  ::  extract name from either qualified or unqualified column
+  |=  d=datum:ast
+  ^-  @tas
+  ?:  ?=(qualified-column:ast d)    name.d
+  ?:  ?=(unqualified-column:ast d)  name.d
+  ~|("col-name: not a column" !!)
+::
+++  get-datum
+  ::  cast a predicate-component to datum:ast
+  |=  c=predicate-component:ast
+  ^-  datum:ast
+  ?:  ?=(unqualified-column:ast c)  c
+  ?:  ?=(qualified-column:ast c)    c
+  ?:  ?=(cte-name:ast c)            c
+  ?:  ?=(scalar-name:ast c)         c
+  ?:  ?=(dime c)                    c
+  ~|("get-datum: not a datum" !!)
 ::
 ++  datum-ops-unqualified
   |=  $:  l=datum:ast
@@ -518,159 +438,88 @@
       (bake (cury (cury (cury lit-lit +.l) +.r) -.l) data-row)
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
-  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
-                         -:(~(got by map-meta) name.l)
-                         ~|  "column {<name.r>} does not exist"
-                         -:(~(got by map-meta) name.r)
+  ?:  ?&  ?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l))
+          ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r))
+          ==
+    =/  ln  (col-name l)
+    =/  rn  (col-name r)
+    ?:  %+  types-match  ~|  "column {<ln>} does not exist"
+                         -:(~(got by map-meta) ln)
+                         ~|  "column {<rn>} does not exist"
+                         -:(~(got by map-meta) rn)
       %+  bake  %+  cury
-                    %+  cury  (cury col-col +:(~(got by map-meta) name.l))
-                              +:(~(got by map-meta) name.r)
-                    -:(~(got by map-meta) name.l)
+                    %+  cury  (cury col-col +:(~(got by map-meta) ln))
+                              +:(~(got by map-meta) rn)
+                    -:(~(got by map-meta) ln)
                 data-row
-    ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
-        !!
-  ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
-    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
-                         -:(~(got by map-meta) name.l)
-                         ~|  "column {<name.r>} does not exist"
-                         -:(~(got by map-meta) name.r)
-      %+  bake  %+  cury
-                    %+  cury  (cury col-col +:(~(got by map-meta) name.l))
-                              +:(~(got by map-meta) name.r)
-                    -:(~(got by map-meta) name.l)
-                data-row
-    ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
+    ~|  "comparing columns of different auras: {<ln>} ".
+        "{<-:(~(got by map-meta) ln)>} {<rn>} ".
+        "{<-:(~(got by map-meta) rn)>}"
         !!
   ::  literal = column
-  ?:  &(?=(dime l) ?=(qualified-column:ast r))
-    ~|  "column {<name.r>} does not exist"
-    ?:  (types-match -.l -:(~(got by map-meta) name.r))
+  ?:  &(?=(dime l) ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r)))
+    =/  rn  (col-name r)
+    ~|  "column {<rn>} does not exist"
+    ?:  (types-match -.l -:(~(got by map-meta) rn))
       %+  bake  %+  cury
-                    (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
+                    (cury (cury lit-col +.l) +:(~(got by map-meta) rn))
                     -.l
                 data-row
-    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
-        !!
-  ?:  &(?=(dime l) ?=(unqualified-column:ast r))
-    ~|  "column {<name.r>} does not exist"
-    ?:  (types-match -.l -:(~(got by map-meta) name.r))
-      %+  bake  %+  cury
-                    (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
-                    -.l
-                data-row
-    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
+    ~|  "comparing literal to column of different aura: {<l>} {<rn>} ".
+        "{<-:(~(got by map-meta) rn)>}"
         !!
   ::  column = literal
-  ?:  &(?=(qualified-column:ast l) ?=(dime r))
-    ~|  "column {<name.l>} does not exist"
-    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
+  ?:  &(?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l)) ?=(dime r))
+    =/  ln  (col-name l)
+    ~|  "column {<ln>} does not exist"
+    ?:  (types-match -:(~(got by map-meta) ln) -.r)
       %+  bake  %+  cury
-                    (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
+                    (cury (cury col-lit +:(~(got by map-meta) ln)) +.r)
                     -.r
                 data-row
-    ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<r>}"
-        !!
-  ?:  &(?=(unqualified-column:ast l) ?=(dime r))
-    ~|  "column {<name.l>} does not exist"
-    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
-      %+  bake  %+  cury
-                    (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
-                    -.r
-                data-row
-    ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<r>}"
+    ~|  "comparing column to literal of different aura: {<ln>} ".
+        "{<-:(~(got by map-meta) ln)>} {<r>}"
         !!
   ::
   ~|("datum-ops-unqualified can't get here" !!)
 ::
-++  datum-ops-unqualified-eq
+++  apply-datum-op
+  ::  dispatch to datum-ops-qualified 
+  ::  or datum-ops-unqualified based on map-meta tag
   |=  $:  l=datum:ast
           r=datum:ast
-          map-meta=(map @tas typ-addr)
+          =map-meta
+          =qualifier-lookup
           =named-ctes
           =resolved-scalars
-          lit-lit=$-([@ @ data-row] ?)
-          col-col=$-([@ @ data-row] ?)
-          col-lit=$-([@ @ data-row] ?)
-          lit-col=$-([@ @ data-row] ?)
+          lit-lit=$-([@ @ @ta data-row] ?)
+          col-col=column-column
+          col-lit=$-([@ @ @ta data-row] ?)
+          lit-col=$-([@ @ @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
-  ::  literal = literal
-  ?:  &(?=(dime l) ?=(dime r))
-    ?:  (types-match -.l -.r)
-      (bake (cury (cury lit-lit +.l) +.r) data-row)
-    ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
-  ::  column = column
-  ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
-    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
-                         -:(~(got by map-meta) name.l)
-                         ~|  "column {<name.r>} does not exist"
-                         -:(~(got by map-meta) name.r)
-      %+  bake  %+  cury
-                    (cury col-col +:(~(got by map-meta) name.l))
-                    +:(~(got by map-meta) name.r)
-                data-row
-    ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
-        !!
-  ?:  &(?=(unqualified-column:ast l) ?=(unqualified-column:ast r))
-    ?:  %+  types-match  ~|  "column {<name.l>} does not exist"
-                         -:(~(got by map-meta) name.l)
-                         ~|  "column {<name.r>} does not exist"
-                         -:(~(got by map-meta) name.r)
-      %+  bake  %+  cury
-                    (cury col-col +:(~(got by map-meta) name.l))
-                    +:(~(got by map-meta) name.r)
-                data-row
-    ~|  "comparing columns of different auras: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
-        !!
-  ::  literal = column
-  ?:  &(?=(dime l) ?=(qualified-column:ast r))
-    ~|  "column {<name.r>} does not exist"
-    ?:  (types-match -.l -:(~(got by map-meta) name.r))
-      %+  bake  (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
-                data-row
-    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
-        !!
-  ?:  &(?=(dime l) ?=(unqualified-column:ast r))
-    ~|  "column {<name.r>} does not exist"
-    ?:  (types-match -.l -:(~(got by map-meta) name.r))
-      %+  bake  (cury (cury lit-col +.l) +:(~(got by map-meta) name.r))
-                data-row
-    ~|  "comparing literal to column of different aura: {<l>} {<name.r>} ".
-        "{<-:(~(got by map-meta) name.r)>}"
-        !!
-  ::  column = literal
-  ?:  &(?=(qualified-column:ast l) ?=(dime r))
-    ~|  "column {<name.l>} does not exist"
-    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
-      %+  bake  (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
-                data-row
-    ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<r>}"
-        !!
-  ?:  &(?=(unqualified-column:ast l) ?=(dime r))
-    ~|  "column {<name.l>} does not exist"
-    ?:  (types-match -:(~(got by map-meta) name.l) -.r)
-      %+  bake  (cury (cury col-lit +:(~(got by map-meta) name.l)) +.r)
-                data-row
-    ~|  "comparing column to literal of different aura: {<name.l>} ".
-        "{<-:(~(got by map-meta) name.l)>} {<r>}"
-        !!
-  ::
-  ~|("datum-ops-unqualified-eq can't get here" !!)
+  ?:  ?=(%qualified-map-meta -.map-meta)
+    %:  datum-ops-qualified  l
+                             r
+                             +.map-meta
+                             qualifier-lookup
+                             named-ctes
+                             resolved-scalars
+                             lit-lit
+                             col-col
+                             col-lit
+                             lit-col
+                             ==
+  %:  datum-ops-unqualified  l
+                             r
+                             +.map-meta
+                             named-ctes
+                             resolved-scalars
+                             lit-lit
+                             col-col
+                             col-lit
+                             lit-col
+                             ==
 ::
 ++  pred-inequality-op
   |=  $:  p=inequality-op
@@ -684,120 +533,65 @@
   ^-  $-(data-row ?)
   ?-  p
     %neq
-      ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified-eq  l
-                                    r
-                                    +.map-meta
-                                    qualifier-lookup
-                                    named-ctes
-                                    resolved-scalars
-                                    neq-lit-lit
-                                    neq-col-col
-                                    neq-col-lit
-                                    neq-lit-col
-                                    ==
-      %:  datum-ops-unqualified-eq  l
-                                    r
-                                    +.map-meta
-                                    named-ctes
-                                    resolved-scalars
-                                    neq-lit-lit
-                                    neq-col-col
-                                    neq-col-lit
-                                    neq-lit-col
-                                    ==
+      %:  apply-datum-op  l
+                          r
+                          map-meta
+                          qualifier-lookup
+                          named-ctes
+                          resolved-scalars
+                          neq-lit-lit
+                          neq-col-col
+                          neq-col-lit
+                          neq-lit-col
+                          ==
     %gt
-      ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified  l
-                                 r
-                                 +.map-meta
-                                 qualifier-lookup
-                                 named-ctes
-                                 resolved-scalars
-                                 gt-lit-lit
-                                 gt-col-col
-                                 gt-col-lit
-                                 gt-lit-col
-                                 ==
-      %:  datum-ops-unqualified  l
-                                 r
-                                 +.map-meta
-                                 named-ctes
-                                 resolved-scalars
-                                 gt-lit-lit
-                                 gt-col-col
-                                 gt-col-lit
-                                 gt-lit-col
-                                 ==
+      %:  apply-datum-op  l
+                          r
+                          map-meta
+                          qualifier-lookup
+                          named-ctes
+                          resolved-scalars
+                          gt-lit-lit
+                          gt-col-col
+                          gt-col-lit
+                          gt-lit-col
+                          ==
     %gte
-      ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified  l
-                                 r
-                                 +.map-meta
-                                 qualifier-lookup
-                                 named-ctes
-                                 resolved-scalars
-                                 gte-lit-lit
-                                 gte-col-col
-                                 gte-col-lit
-                                 gte-lit-col
-                                 ==
-      %:  datum-ops-unqualified  l
-                                 r
-                                 +.map-meta
-                                 named-ctes
-                                 resolved-scalars
-                                 gte-lit-lit
-                                 gte-col-col
-                                 gte-col-lit
-                                 gte-lit-col
-                                 ==
+      %:  apply-datum-op  l
+                          r
+                          map-meta
+                          qualifier-lookup
+                          named-ctes
+                          resolved-scalars
+                          gte-lit-lit
+                          gte-col-col
+                          gte-col-lit
+                          gte-lit-col
+                          ==
     %lt
-      ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified  l
-                                 r
-                                 +.map-meta
-                                 qualifier-lookup
-                                 named-ctes
-                                 resolved-scalars
-                                 lt-lit-lit
-                                 lt-col-col
-                                 lt-col-lit
-                                 lt-lit-col
-                                 ==
-      %:  datum-ops-unqualified  l
-                                 r
-                                 +.map-meta
-                                 named-ctes
-                                 resolved-scalars
-                                 lt-lit-lit
-                                 lt-col-col
-                                 lt-col-lit
-                                 lt-lit-col
-                                 ==
+      %:  apply-datum-op  l
+                          r
+                          map-meta
+                          qualifier-lookup
+                          named-ctes
+                          resolved-scalars
+                          lt-lit-lit
+                          lt-col-col
+                          lt-col-lit
+                          lt-lit-col
+                          ==
     %lte
-      ?:  ?=(%qualified-map-meta -.map-meta)
-        %:  datum-ops-qualified  l
-                                 r
-                                 +.map-meta
-                                 qualifier-lookup
-                                 named-ctes
-                                 resolved-scalars
-                                 lte-lit-lit
-                                 lte-col-col
-                                 lte-col-lit
-                                 lte-lit-col
-                                 ==
-      %:  datum-ops-unqualified  l
-                                 r
-                                 +.map-meta
-                                 named-ctes
-                                 resolved-scalars
-                                 lte-lit-lit
-                                 lte-col-col
-                                 lte-col-lit
-                                 lte-lit-col
-                                 ==
+      %:  apply-datum-op  l
+                          r
+                          map-meta
+                          qualifier-lookup
+                          named-ctes
+                          resolved-scalars
+                          lte-lit-lit
+                          lte-col-col
+                          lte-col-lit
+                          lte-lit-col
+                          ==
     ==
 ::
 ++  split-all
@@ -841,19 +635,19 @@
 ::  eq
 ::
 ++  eq-lit-col
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 b])
   =(a ?@(x x ;;(@ +.x)))
 ::
 ++  eq-col-lit
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =(?@(x x ;;(@ +.x)) b)
 ::
 ++  eq-col-col
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  y  .*(data.c [%0 b])
@@ -861,26 +655,26 @@
   =(;;(@ +.x) ;;(@ +.y))
 ::
 ++  eq-lit-lit
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =(a b)
 ::
 ::  neq
 ::
 ++  neq-lit-col
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 b])
   ?!(=(a ?@(x x ;;(@ +.x))))
 ::
 ++  neq-col-lit
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   ?!(=(?@(x x ;;(@ +.x)) b))
 ::
 ++  neq-col-col
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  y  .*(data.c [%0 b])
@@ -888,7 +682,7 @@
   ?!(=(;;(@ +.x) ;;(@ +.y)))
 ::
 ++  neq-lit-lit
-  |=  [a=@ b=@ c=data-row]
+  |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   ?!(=(a b))
 ::
