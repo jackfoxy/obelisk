@@ -53,8 +53,8 @@
   ::  Handles all predicate operations recursively:
   ::    - ternary-op: BETWEEN/NOT BETWEEN (combines two binary predicates)
   ::    - binary-op: =, !=, >, <, >=, <=, IN, NOT IN
-  ::        (delegates to pred-binary-op)
-  ::    - unary-op: NOT, EXISTS, NOT EXISTS (delegates to pred-unary-op)
+  ::        (delegates to prepare-binary-op)
+  ::    - unary-op: NOT, EXISTS, NOT EXISTS (delegates to prepare-unary-op)
   ::    - conjunction: AND/OR (recursively combines left and right predicates)
   ::    - all-any-op: ALL/ANY (not yet implemented)
   ::
@@ -72,13 +72,13 @@
     ternary-op
       ?~  l.p  ~|("prepare-predicate can't get here 3" !!)
       ?~  r.p  ~|("prepare-predicate can't get here 4" !!)
-      =/  ll=$-(data-row ?)  %:  pred-binary-op  l.p
+      =/  ll=$-(data-row ?)  %:  prepare-binary-op  l.p
                                                  map-meta
                                                  qualifier-lookup
                                                  named-ctes
                                                  resolved-scalars
                                                  ==
-      =/  rr=$-(data-row ?)  %:  pred-binary-op  r.p
+      =/  rr=$-(data-row ?)  %:  prepare-binary-op  r.p
                                                  map-meta
                                                  qualifier-lookup
                                                  named-ctes
@@ -89,10 +89,10 @@
       (bake (cury (cury and-not ll) rr) data-row)
     ::
     binary-op
-      (pred-binary-op p map-meta qualifier-lookup named-ctes resolved-scalars)
+      (prepare-binary-op p map-meta qualifier-lookup named-ctes resolved-scalars)
     ::
     unary-op
-      (pred-unary-op p map-meta qualifier-lookup named-ctes resolved-scalars)
+      (prepare-unary-op p map-meta qualifier-lookup named-ctes resolved-scalars)
     ::
     all-any-op
       ~|("%all and %any not implemented" !!)
@@ -117,7 +117,7 @@
       (bake (cury (cury or ll) rr) data-row)
     ==
 :: 
-++  pred-unary-op
+++  prepare-unary-op
   |=  $:  p=predicate:ast
           =map-meta
           =qualifier-lookup
@@ -125,9 +125,9 @@
           =resolved-scalars
           ==
   ^-  $-(data-row ?)
-  ?~  p  ~|("pred-unary-op can't get here" !!)
-  ?~  l.p  ~|("pred-unary-op can't get here" !!)
-  ?.  ?=(unary-op n.p)  ~|("pred-unary-op can't get here" !!)
+  ?~  p  ~|("prepare-unary-op can't get here" !!)
+  ?~  l.p  ~|("prepare-unary-op can't get here" !!)
+  ?.  ?=(unary-op n.p)  ~|("prepare-unary-op can't get here" !!)
   ::
   ?-  n.p
     %not
@@ -145,7 +145,7 @@
       ~|("%not-exists not implemented" !!)
     ==
 :: 
-++  pred-binary-op
+++  prepare-binary-op
   |=  $:  p=predicate:ast
           =map-meta
           =qualifier-lookup
@@ -153,28 +153,37 @@
           =resolved-scalars
           ==
   ^-  $-(data-row ?)
-  ?~  p                  ~|("pred-binary-op can't get here" !!)
-  ?.  ?=(binary-op n.p)  ~|("pred-binary-op can't get here" !!)
-  ?~  l.p                ~|("pred-binary-op can't get here" !!)
-  ?~  r.p                ~|("pred-binary-op can't get here" !!)
+  ?~  p                  ~|("prepare-binary-op can't get here" !!)
+  ?.  ?=(binary-op n.p)  ~|("prepare-binary-op can't get here" !!)
+  ?~  l.p                ~|("prepare-binary-op can't get here" !!)
+  ?~  r.p                ~|("prepare-binary-op can't get here" !!)
   ::
   ?-  n.p
     %eq
       =/  l=datum:ast  (get-datum n.l.p)
       =/  r=datum:ast  (get-datum n.r.p)
-      %:  apply-datum-op  l  r  map-meta  qualifier-lookup  named-ctes  resolved-scalars
-                          eq-lit-lit  eq-col-col  eq-col-lit  eq-lit-col  ==
+      %:  apply-datum-op  l
+                          r
+                          map-meta
+                          qualifier-lookup
+                          named-ctes
+                          resolved-scalars
+                          eq-lit-lit
+                          eq-col-col
+                          eq-col-lit
+                          eq-lit-col
+                          ==
     inequality-op
       =/  l=datum:ast  (get-datum n.l.p)
       =/  r=datum:ast  (get-datum n.r.p)
-      %:  pred-inequality-op  n.p
-                              l
-                              r
-                              map-meta
-                              qualifier-lookup
-                              named-ctes
-                              resolved-scalars
-                              ==
+      %:  prepare-inequality-op  n.p
+                                 l
+                                 r
+                                 map-meta
+                                 qualifier-lookup
+                                 named-ctes
+                                 resolved-scalars
+                                 ==
     %equiv
       :: to do: the commented code tests for existence in the wrong place
       ::        it needs to take place at run time and row-by-row
@@ -184,13 +193,13 @@
       ::             ?:  ?=(cte-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(dime n.l.p)  n.l.p
-      ::             ~|("pred-binary-op can't get here" !!)
+      ::             ~|("prepare-binary-op can't get here" !!)
       ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
       ::             ?:  ?=(qualified-column:ast  n.r.p)   n.r.p
       ::             ?:  ?=(cte-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(dime  n.r.p)   n.r.p
-      ::             ~|("pred-binary-op can't get here" !!::)
+      ::             ~|("prepare-binary-op can't get here" !!::)
       ::=/  l-exists=?  ?:  ?=(dime l)  %.y
       ::                (~(has by map-meta) name.l)
       ::=/  r-exists=?  ?:  ?=(dime r)  %.y
@@ -238,29 +247,29 @@
       ::      "{<l>} {<r>}"
       ::      !!
       ::::
-      ::~|("pred-binary-op can't get here" !!)
+      ::~|("prepare-binary-op can't get here" !!)
       ~|("%equiv not implemented" !!)
     %not-equiv
       ~|("%not-equiv not implemented" !!)
     %in
-      %:  common-list-pred  p
-                            map-meta
-                            named-ctes
-                            resolved-scalars
-                            in-col-list
-                            in-lit-list
-                            ==
+      %:  prepare-common-list  p
+                               map-meta
+                               named-ctes
+                               resolved-scalars
+                               in-col-list
+                               in-lit-list
+                               ==
     %not-in
-      %:  common-list-pred  p
-                            map-meta
-                            named-ctes
-                            resolved-scalars
-                            not-in-col-list
-                            not-in-lit-list
-                            ==
+      %:  prepare-common-list  p
+                               map-meta
+                               named-ctes
+                               resolved-scalars
+                               not-in-col-list
+                               not-in-lit-list
+                               ==
     ==
 ::
-++  common-list-pred
+++  prepare-common-list
   |=  $:  p=predicate:ast
           =map-meta
           =named-ctes
@@ -269,11 +278,11 @@
           lit-list-pred=$-([@ (list @) =data-row] ?)
           ==
   ^-  $-(data-row ?)
-  ?~  p                  ~|("common-list-pred can't get here 1" !!)
-  ?~  l.p                ~|("common-list-pred can't get here 2" !!)
-  ?~  r.p                ~|("common-list-pred can't get here 3" !!)
+  ?~  p                  ~|("prepare-common-list can't get here 1" !!)
+  ?~  l.p                ~|("prepare-common-list can't get here 2" !!)
+  ?~  r.p                ~|("prepare-common-list can't get here 3" !!)
   =/  r=value-literals  ?:  ?=(value-literals n.r.p)  n.r.p
-                        ~|("common-list-pred can't get here 4" !!)
+                        ~|("prepare-common-list can't get here 4" !!)
   =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";")
                          |=(a=tape (rash (crip a) dem))
   =/  typ
@@ -290,7 +299,7 @@
             ?=(%unqualified-map-meta -.map-meta)
             ==
       -:(~(got by +.map-meta) name.n.l.p)
-    ~|("common-list-pred can't get here 5" !!)
+    ~|("prepare-common-list can't get here 5" !!)
   ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
     ~|("type of IN list incorrect, should be {<typ>}" !!)
   ?:  ?&  ?=(unqualified-column:ast n.l.p)
@@ -316,7 +325,7 @@
           data-row
   ?:  ?=(dime n.l.p)
     (bake (cury (cury lit-list-pred +.n.l.p) in-list) data-row)
-  ~|("common-list-pred can't get here 6" !!)
+  ~|("prepare-common-list can't get here 6" !!)
 ::
 ++  get-qualifier
   |=  [col=qualified-column:ast =qualifier-lookup]
@@ -334,7 +343,7 @@
 +$  column-column
   $-([@ @ @ta data-row] ?)
 ::
-++  datum-ops-qualified
+++  prepare-qualified
   |=  $:  l=datum:ast
           r=datum:ast
           map-meta=(mip:mip qualified-table @tas typ-addr)
@@ -399,7 +408,7 @@
     ~|  "comparing column to literal of different aura: {<name.l>} ".
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
         !!
-  ~|("datum-ops-qualified can't get here" !!)
+  ~|("prepare-qualified can't get here" !!)
 ::
 ++  col-name
   ::  extract name from either qualified or unqualified column
@@ -420,7 +429,7 @@
   ?:  ?=(dime c)                    c
   ~|("get-datum: not a datum" !!)
 ::
-++  datum-ops-unqualified
+++  prepare-unqualified
   |=  $:  l=datum:ast
           r=datum:ast
           map-meta=(map @tas typ-addr)
@@ -481,11 +490,11 @@
         "{<-:(~(got by map-meta) ln)>} {<r>}"
         !!
   ::
-  ~|("datum-ops-unqualified can't get here" !!)
+  ~|("prepare-unqualified can't get here" !!)
 ::
 ++  apply-datum-op
-  ::  dispatch to datum-ops-qualified 
-  ::  or datum-ops-unqualified based on map-meta tag
+  ::  dispatch to prepare-qualified 
+  ::  or prepare-unqualified based on map-meta tag
   |=  $:  l=datum:ast
           r=datum:ast
           =map-meta
@@ -499,29 +508,29 @@
           ==
   ^-  $-(data-row ?)
   ?:  ?=(%qualified-map-meta -.map-meta)
-    %:  datum-ops-qualified  l
-                             r
-                             +.map-meta
-                             qualifier-lookup
-                             named-ctes
-                             resolved-scalars
-                             lit-lit
-                             col-col
-                             col-lit
-                             lit-col
-                             ==
-  %:  datum-ops-unqualified  l
-                             r
-                             +.map-meta
-                             named-ctes
-                             resolved-scalars
-                             lit-lit
-                             col-col
-                             col-lit
-                             lit-col
-                             ==
+    %:  prepare-qualified  l
+                           r
+                           +.map-meta
+                           qualifier-lookup
+                           named-ctes
+                           resolved-scalars
+                           lit-lit
+                           col-col
+                           col-lit
+                           lit-col
+                           ==
+  %:  prepare-unqualified  l
+                           r
+                           +.map-meta
+                           named-ctes
+                           resolved-scalars
+                           lit-lit
+                           col-col
+                           col-lit
+                           lit-col
+                           ==
 ::
-++  pred-inequality-op
+++  prepare-inequality-op
   |=  $:  p=inequality-op
           l=datum:ast
           r=datum:ast
