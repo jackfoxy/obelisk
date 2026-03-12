@@ -144,16 +144,6 @@
     scalar-name
     ==
 ::
-+$  datum-or-scalar
-  $%
-    qualified-column
-    unqualified-column
-    literal-value
-    cte-name
-    scalar-name
-    ==
-::
-+$  literal-value  $:(%literal-value =dime)
 +$  cte-name      $:(%cte-name name=@tas)
 ::
 ::  query
@@ -580,7 +570,7 @@
 +$  scalar
   $:  %scalar
     name=@tas
-    scalar=scalar-function
+    f=scalar-function
     ==
 ::
 +$  scalar-function
@@ -615,8 +605,8 @@
       name=@tas
       ==
 ::
-+$  scalar-node  $%  datum-or-scalar
-                     scalar-function
++$  scalar-node  $%  scalar-function
+                     datum
                      ==
 ::
 +$  arithmetic
@@ -666,19 +656,19 @@
 ++  day-signature  [params=~[~.da] ret=~.ud]
 +$  day
   $:  %day
-    date=datum-or-scalar
+    date=datum
   ==
 ::
 ++  month-signature  [params=~[~.da] ret=~.ud]
 +$  month
   $:  %month
-    date=datum-or-scalar
+    date=datum
   ==
 ::
 ++  year-signature  [params=~[~.da] ret=~.ud]
 +$  year
   $:  %year
-    date=datum-or-scalar
+    date=datum
   ==
 ::
 ::  mathematical functions
@@ -686,53 +676,53 @@
 ++  abs-signature  [params=~[~[~.sb ~.sd ~.si ~.sv ~.sw ~.sx]] ret=~.u]
 +$  abs
   $:  %abs
-    numeric-expression=datum-or-scalar
+    numeric-expression=datum
   ==
 ::
 ++  log-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.sd]]
 +$  log
   $:  %log
-    float-expression=datum-or-scalar
-    base=(unit datum-or-scalar)
+    float-expression=datum
+    base=(unit datum)
   ==
 ::
 ++  floor-signature  [params=~[~.rs] ret=~.rs]
 +$  floor
   $:  %floor
-    numeric-expression=datum-or-scalar
+    numeric-expression=datum
   ==
 ::
 ++  power-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.ud]]
 +$  power
   $:  %power
-    float-expression=datum-or-scalar
-    exponent=datum-or-scalar
+    float-expression=datum
+    exponent=datum
   ==
 ::
 ++  ceiling-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
 +$  ceiling
   $:  %ceiling
-    numeric-expression=datum-or-scalar
+    numeric-expression=datum
   ==
 ::
 ++  round-signature  [params=~[~.rs ~.ud ~.ud] ret=~.rs]
 +$  round
   $:  %round
-    numeric-expression=datum-or-scalar
-    length=datum-or-scalar
-    function=(unit datum-or-scalar)
+    numeric-expression=datum
+    length=datum
+    function=(unit datum)
     ==
 ::
 ++  sign-signature  [params=~[~.sd] ret=~.sd]
 +$  sign
   $:  %sign
-    numeric-expression=datum-or-scalar
+    numeric-expression=datum
   ==
 ::
 ++  sqrt-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.ud]]
 +$  sqrt
   $:  %sqrt
-    float-expression=datum-or-scalar
+    float-expression=datum
   ==
 ::
 ::  string functions
@@ -740,44 +730,44 @@
 ++  len-signature  [params=~[~.t] ret=~.ud]
 +$  len
   $:  %len
-    string-expression=datum-or-scalar
+    string-expression=datum
   ==
 ::
 ++  left-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  left
   $:  %left
-    character-expression=datum-or-scalar
-    integer-expression=datum-or-scalar
+    character-expression=datum
+    integer-expression=datum
   ==
 ::
 ++  right-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  right
   $:  %right
-    character-expression=datum-or-scalar
-    integer-expression=datum-or-scalar
+    character-expression=datum
+    integer-expression=datum
   ==
 ::
 ++  substring-signature  [params=~[~.t ~.ud ~.ud] ret=~.t]
 +$  substring
   $:  %substring
-    string-expression=datum-or-scalar
-    start=datum-or-scalar
-    length=datum-or-scalar
+    string-expression=datum
+    start=datum
+    length=datum
     ==
 ::
 ++  trim-signature  [params=~[~.t ~.t] ret=~.t]
 +$  trim
   $:  %trim
-    characters=(unit datum-or-scalar)
-    string=datum-or-scalar
+    characters=(unit datum)
+    string=datum
   ==
 ::
 ++  concat-signature  [params=~.t ret=~.t]
 +$  concat
   $+  concat
   :: if we remove this bucpat the type checker loops infinitely
-  :: scalar-function -> concat -> datum-or-scalar -> scalar-function
+  :: scalar-function -> concat -> datum -> scalar-function
   $:  %concat
-    args=$@(~ (list datum-or-scalar))
+    args=$@(~ (list datum))
   ==
 --

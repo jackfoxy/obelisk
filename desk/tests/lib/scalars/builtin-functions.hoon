@@ -23,8 +23,8 @@
 ++  true-predicate         [n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
 ++  false-predicate         [n=%eq [n=literal-1 ~ ~] [n=[~.ud 0] ~ ~]]
 ::
-++  literal-value-1             [%literal-value literal-1]
-++  literal-value-2             [%literal-value literal-2]
+++  literal-value-1             literal-1
+++  literal-value-2             literal-2
 ::
 ++  literal-1             [~.ud 1]
 ++  literal-2             [~.ud 2]
@@ -114,8 +114,8 @@
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
                                       if=true-predicate
-                                      then=[%literal-value [~.ud 4]]
-                                      else=[%literal-value [~.ud 5]]
+                                      then=[~.ud 4]
+                                      else=[~.ud 5]
                                     ==
                                     table-named-ctes
                                     qual-lookup
@@ -140,7 +140,7 @@
     table-row
     :~
     :-  %abs
-    :*  [%abs [%literal-value [~.sd -1]]]
+    :*  [%abs [~.sd -1]]
       [~.sd 1]
     ==
   ==

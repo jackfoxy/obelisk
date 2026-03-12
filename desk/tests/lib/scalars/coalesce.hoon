@@ -23,8 +23,8 @@
 ++  true-predicate         [n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
 ++  false-predicate         [n=%eq [n=literal-1 ~ ~] [n=[~.ud 0] ~ ~]]
 ::
-++  literal-value-1             [%literal-value literal-1]
-++  literal-value-2             [%literal-value literal-2]
+++  literal-value-1             literal-1
+++  literal-value-2             literal-2
 ::
 ++  literal-1             [~.ud 1]
 ++  literal-2             [~.ud 2]
@@ -92,8 +92,8 @@
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
                                       if=true-predicate
-                                      then=[%literal-value [~.ud 3]]
-                                      else=[%literal-value [~.ud 2]]
+                                      then=[~.ud 3]
+                                      else=[~.ud 2]
                                     ==
                                     table-named-ctes
                                     qual-lookup
@@ -201,7 +201,7 @@
 :::::: test with literal-value
 ::::++  test-fail-coalesce-04
 ::::  ::
-::::  =/  datums  ~[[%literal-value [~.ud 1]]]
+::::  =/  datums  ~[[~.ud 1]]
 ::::  =/  coalesce-expr  [%coalesce data=datums]
 ::::  =/  scalar-to-apply  %:  prepare-scalar  coalesce-expr
 ::::                                           table-named-ctes

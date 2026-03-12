@@ -11,14 +11,10 @@
 ++  apply-scalar
     |=  [row=data-row =resolved-scalar]
     ^-  dime
-    ?-  -.resolved-scalar
-      %fn
-        =/  f=$-(data-row dime)  +>.resolved-scalar
-        (f row)
-      ::
-      %literal-value
-        dime.resolved-scalar
-      ==
+    ?:  ?=(dime resolved-scalar)
+      resolved-scalar
+    =/  f=$-(data-row dime)  +>.resolved-scalar
+    (f row)
 ++  prepare-scalar
   |=  $:  scalar=scalar-function:ast
           =named-ctes
@@ -75,8 +71,8 @@
                       scalars
                       ==
         :-  %sd
-            ?:  ?=(literal-value:ast expr)
-              (abs:si +>.expr)
+            ?:  ?=(dime expr)
+              (abs:si +.expr)
             (abs:si +:(f.expr data-row))
   ::
     %log
@@ -165,7 +161,7 @@
       |=  =data-row
       ^-  dime
       =/  resolved  ?:((pred-result data-row) then else)
-      ?:  ?=(literal-value:ast resolved)  dime.resolved
+      ?:  ?=(dime resolved)  resolved
       ?:  =(%fn -.resolved)
         (f.resolved data-row)
       ~|("if-then-else: can't get here" !!)
@@ -452,7 +448,7 @@
                                   ==
   ::  first item is a concrete value: return it immediately as resolved-scalar
   ?~  validated  ~|("no non-null value found in row" !!)
-  ?:  =(%literal-value -.i.validated)  ;;(literal-value:ast i.validated)
+  ?:  ?=(dime i.validated)  i.validated
   ::  otherwise build a %fn that walks validated at runtime per data-row,
   ::  returning the first non-null value; the list-walk is captured in the gate
   =/  fn
@@ -462,7 +458,7 @@
     ^-  dime
     |-
     ?~  datums  ~|("coalesce: no non-null value found in row" !!)
-    ?:  ?=(literal-value i.datums)  dime.i.datums
+    ?:  ?=(dime i.datums)  i.datums
     (f.i.datums data-row)
   [%fn typ |=(=data-row (fn validated data-row))]
 ::
@@ -559,18 +555,18 @@
                                                         scalars
                                                         ==
         :-  ~.ud  ::typ
-            %+  operator  ?:  ?=(literal-value:ast evald-left)
-                              +>.evald-left
+            %+  operator  ?:  ?=(dime evald-left)
+                              +.evald-left
                             +:(f.evald-left data-row)
-                            ?:  ?=(literal-value:ast evald-right)
-                              +>.evald-right
+                            ?:  ?=(dime evald-right)
+                              +.evald-right
                             +:(f.evald-right data-row)
 ::
 ++  check-consistent-types
-  ::  validate that all datum-or-scalar items share a common aura type,
+  ::  validate that all datum items share a common aura type,
   ::  and (if allowed is non-empty) that type is in the allowed list.
   ::  returns [common-type list] with any cte-name or unqualified-column
-  ::  resolved via cte-to-literal replaced by their literal-value.
+  ::  resolved via cte-to-literal replaced by their dime.
   ::  crashes on empty dos.
   |=  $:  dos=(list resolved-scalar)
           allowed=(list @ta)
@@ -582,8 +578,8 @@
   ::  resolve type and possibly substitute item; returns [type resolved-item]
   =/  resolve-item  |=  item=resolved-scalar
                     ^-  [@ta resolved-scalar]
-                    ?:  ?=(literal-value:ast item)
-                      [-.dime.item item]
+                    ?:  ?=(dime item)
+                      [-.item item]
                     [+<.item item]
   ::  walk the list, tracking expected type, verifying consistency,
   ::  and accumulating the (possibly-substituted) output list
@@ -650,15 +646,15 @@
                                  scalars
                                  ==
     ::
-    literal-value:ast
-      datum
-    ::
-    scalar-name:ast
+    scalar-name:ast    :: must be before dime
       ~|  "scalar {<name.datum>} not found"
           (~(got by scalars) name.datum)
     ::
     cte-name:ast
       (cte-to-literal named-ctes datum)
+    ::
+    dime
+      datum
     ::
     qualified-column:ast
       :+  %fn

@@ -23,8 +23,8 @@
 ++  true-predicate         [n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
 ++  false-predicate         [n=%eq [n=literal-1 ~ ~] [n=[~.ud 0] ~ ~]]
 ::
-++  literal-value-1             [%literal-value literal-1]
-++  literal-value-2             [%literal-value literal-2]
+++  literal-value-1             literal-1
+++  literal-value-2             literal-2
 ::
 ++  literal-1             [~.ud 1]
 ++  literal-2             [~.ud 2]
@@ -195,7 +195,7 @@
     :-  %subtraction-literal-scalar-name
         :-  :*  %arithmetic
               %hep
-              [%literal-value [~.ud 5]]
+              [~.ud 5]
               [%scalar-name %scalar1]
               ==
             [~.ud 2]
@@ -275,7 +275,7 @@
     :-  %exponentiation-literal-literal
         :-  :*  %arithmetic
               %ket
-              [%literal-value [~.ud 3]]
+              [~.ud 3]
               literal-value-2
               ==
             [~.ud 9]
@@ -344,7 +344,7 @@
     :-  %subtraction-literal-unqualified-col
         :-  :*  %arithmetic
               %hep
-              [%literal-value [~.ud 9]]
+              [~.ud 9]
               arithmetic-u-col-5
               ==
             [~.ud 4]
@@ -430,7 +430,7 @@
     :-  %subtraction-literal-embedded-scalar
         :-  :*  %arithmetic
               %hep
-              [%literal-value [~.ud 5]]
+              [~.ud 5]
               [%scalar-name %scalar1]
               ==
             [~.ud 2]
@@ -578,7 +578,7 @@
     :-  %subtraction-literal-embedded-scalar
         :-  :*  %arithmetic
               %hep
-              [%literal-value [~.ud 5]]
+              [~.ud 5]
               :^  %if-then-else
                   if=[n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
                   :^  %qualified-column

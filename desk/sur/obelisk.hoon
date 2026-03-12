@@ -147,7 +147,7 @@
 +$  named-ctes  (map @tas full-relation)
 ::
 +$  resolved-scalar  $%  [%fn type=@ta f=$-(data-row dime)]
-                         literal-value
+                         dime
                          ==
 ::
 ::  template for selected column from qualified-column objects

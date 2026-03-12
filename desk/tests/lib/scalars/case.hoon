@@ -23,8 +23,8 @@
 ++  true-predicate         [n=%eq [n=literal-1 ~ ~] [n=literal-1 ~ ~]]
 ++  false-predicate         [n=%eq [n=literal-1 ~ ~] [n=[~.ud 0] ~ ~]]
 ::
-++  literal-value-1             [%literal-value literal-1]
-++  literal-value-2             [%literal-value literal-2]
+++  literal-value-1             literal-1
+++  literal-value-2             literal-2
 ::
 ++  literal-1             [~.ud 1]
 ++  literal-2             [~.ud 2]
@@ -710,7 +710,7 @@
             literal-1
     :-  %simple-case-target-dime-when-scalar-name
         :-  :*  %case
-              (some [%literal-value [~.ud 3]])
+              (some [~.ud 3])
               ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
               ~
               ==
@@ -733,7 +733,7 @@
     :-  %simple-case-target-qualified-when-unqualified-column
         :-  :*  %case
               (some q-col-1)
-              ~[[%case-when-then [%literal-value [~.ud 1]] q-col-1]]
+              ~[[%case-when-then [~.ud 1] q-col-1]]
               ~
               ==
             literal-1
@@ -748,7 +748,7 @@
     :-  %simple-case-target-scalar-name-when-dime
         :-  :*  %case
               (some [%scalar-name %scalar1])
-              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
+              ~[[%case-when-then [~.ud 3] q-col-1]]
               ~
               ==
             literal-1
@@ -784,24 +784,24 @@
     resolved-scalars
     table-row
     :~
-    :-  %literal-value
+    :-  %dime
         :-  :*  %case
-              (some [%literal-value [~.ud 1]])
-              ~[[%case-when-then [%literal-value [~.ud 1]] q-col-1]]
+              (some [~.ud 1])
+              ~[[%case-when-then [~.ud 1] q-col-1]]
               ~
               ==
             [~.ud 1]
     :-  %qualified-col
         :-  :*  %case
               (some q-col-1)
-              ~[[%case-when-then [%literal-value [~.ud 1]] q-col-1]]
+              ~[[%case-when-then [~.ud 1] q-col-1]]
               ~
               ==
             [~.ud 1]
     :-  %scalar-name
         :-  :*  %case
               (some [%scalar-name %scalar1])
-              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
+              ~[[%case-when-then [~.ud 3] q-col-1]]
               ~
               ==
             [~.ud 1]
@@ -841,7 +841,7 @@
     :-  %searched-literal-value
         :-  :*  %case
               ~
-              ~[[%case-when-then true-predicate [%literal-value [~.t 'foo']]]]
+              ~[[%case-when-then true-predicate [~.t 'foo']]]
               ~
               ==
             [~.t 'foo']
@@ -862,7 +862,7 @@
     :-  %simple-literal-value
         :-  :*  %case
               (some q-col-1)
-              ~[[%case-when-then literal-value-1 [%literal-value [~.t 'foo']]]]
+              ~[[%case-when-then literal-value-1 [~.t 'foo']]]
               ~
               ==
             [~.t 'foo']
@@ -905,8 +905,8 @@
     :-  %searched-literal-value
         :-  :*  %case
               ~
-              ~[[%case-when-then false-predicate [%literal-value [~.t 'foo']]]]
-              (some [%literal-value [~.t 'bar']])
+              ~[[%case-when-then false-predicate [~.t 'foo']]]
+              (some [~.t 'bar'])
               ==
             [~.t 'bar']
     :-  %searched-scalar-name
@@ -926,8 +926,8 @@
     :-  %simple-literal-value
         :-  :*  %case
               (some q-col-1)
-              ~[[%case-when-then literal-value-2 [%literal-value [~.t 'foo']]]]
-              (some [%literal-value [~.t 'bar']])
+              ~[[%case-when-then literal-value-2 [~.t 'foo']]]
+              (some [~.t 'bar'])
               ==
             [~.t 'bar']
     :-  %simple-scalar-name
@@ -1312,7 +1312,7 @@
     :~
     :-  %simple-case-target-dime-when-unqualified-column
         :-  :*  %case
-              (some [%literal-value [~.ud 4]])
+              (some [~.ud 4])
               ~[[%case-when-then u-col-4 q-col-1]]
               ~
               ==
@@ -1321,7 +1321,7 @@
     :-  %simple-case-target-unqualified-when-dime
         :-  :*  %case
               (some u-col-4)
-              ~[[%case-when-then [%literal-value [~.ud 4]] q-col-1]]
+              ~[[%case-when-then [~.ud 4] q-col-1]]
               ~
               ==
             literal-1
@@ -1368,7 +1368,7 @@
     :-  %unqualified-col
         :-  :*  %case
               (some u-col-4)
-              ~[[%case-when-then [%literal-value [~.ud 4]] u-col-4]]
+              ~[[%case-when-then [~.ud 4] u-col-4]]
               ~
               ==
             [~.ud 4]
@@ -1438,7 +1438,7 @@
     ::  simple case when - embedded scalar in when position
     :-  %simple-case-target-dime-when-embedded-scalar
         :-  :*  %case
-              (some [%literal-value [~.ud 3]])
+              (some [~.ud 3])
               ~[[%case-when-then [%scalar-name %scalar1] q-col-1]]
               ~
               ==
@@ -1462,7 +1462,7 @@
     :-  %simple-case-target-embedded-scalar-when-dime
         :-  :*  %case
               (some [%scalar-name %scalar1])
-              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
+              ~[[%case-when-then [~.ud 3] q-col-1]]
               ~
               ==
             literal-1
@@ -1491,7 +1491,7 @@
     :-  %embedded-scalar
         :-  :*  %case
               (some [%scalar-name %scalar1])
-              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-2]]
+              ~[[%case-when-then [~.ud 3] q-col-2]]
               ~
               ==
             [~.ud 2]
@@ -1557,7 +1557,7 @@
     ::  simple case when - embedded scalar in when position
     :-  %simple-case-target-dime-when-embedded-scalar
         :-  :*  %case
-              (some [%literal-value [~.ud 3]])
+              (some [~.ud 3])
               :~  :+  %case-when-then
                       :^  %if-then-else
                           if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
@@ -1607,7 +1607,7 @@
                       if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
                       then=q-col-3
                       else=q-col-2
-              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-1]]
+              ~[[%case-when-then [~.ud 3] q-col-1]]
               ~
               ==
             literal-1
@@ -1664,7 +1664,7 @@
                       if=[n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
                       then=q-col-3
                       else=q-col-2
-              ~[[%case-when-then [%literal-value [~.ud 3]] q-col-2]]
+              ~[[%case-when-then [~.ud 3] q-col-2]]
               ~
               ==
             [~.ud 2]

@@ -651,10 +651,10 @@
   (aor a b)
 ::
 ++  cte-to-literal
-  ::  resolve datum-or-scalar of cte-name or unqualified-column to literal-value
+  ::  resolve datum of cte-name or unqualified-column to dime
   ::  the referenced cte must contain exactly one row and one column
-  |=  [=named-ctes dos=datum-or-scalar:ast]
-  ^-  literal-value:ast
+  |=  [=named-ctes dos=datum:ast]
+  ^-  dime
   =/  name=@tas
     ?:  ?=(cte-name:ast dos)            name.dos
     ?:  ?=(unqualified-column:ast dos)  name.dos
@@ -676,12 +676,12 @@
     ?.  =(~ t.indexed-rows.st)
       ~|("dos-to-literal: cte {<name>} must have exactly one row" !!)
     =/  irow=indexed-row  i.indexed-rows.st
-    [%literal-value [type.cm (~(got by data.irow) col-name)]]
+    [type.cm (~(got by data.irow) col-name)]
   ?.  =(~ t.joined-rows.st)
     ~|("dos-to-literal: cte {<name>} must have exactly one row" !!)
   =/  jrow=joined-row  i.joined-rows.st
   =/  val=@  (~(got bi:mip data.jrow) qualifier.qualified-column.cm col-name)
-  [%literal-value [type.cm val]]
+  [type.cm val]
 ::
 ::  tree engine
 ::

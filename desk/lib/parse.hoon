@@ -1274,9 +1274,9 @@
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
           %=  $
             script    q.q.u.+3.q:nail
-            commands  :-  %^  selection:ast  %selection
-                                             ~
-                                             [(produce-query parsed) ~ ~]
+            commands  :-  :+  %selection
+                              ~
+                              [(produce-query parsed) ~ ~]
                           commands
           ==
     %revoke
@@ -2576,16 +2576,13 @@
   =/  alias-map  *(map @t qualified-table:ast)
   |-
   ?~  a  ~|("cannot parse query  {<a>}" !!)
-
   =.  alias-map  ?~   alias-map
                    ?~   from  ~
                    (mk-alias-map (need from))
                  alias-map 
-
-  ?~  -.a                     $(a +.a) :: discard nulls from optional parsers
-  ?:  =(-.a %query)           $(a +.a)
-  ?:  =(-.a %end-command)    %:  query:ast
-                                %query
+  ?~  -.a                   $(a +.a) :: discard nulls from optional parsers
+  ?:  =(-.a %query)         $(a +.a)
+  ?:  =(-.a %end-command)   :*  %query
                                 ?~  from  ~
                                   `(finalize-predicates (need from) alias-map)
                                 scalars
@@ -2596,12 +2593,12 @@
                                 (need select)
                                 order-by
                                 ==
-  ?:  =(-<.a %scalars)        $(a +.a, scalars (produce-scalars -.a alias-map))
-  ?:  =(-<.a %where)          %=  $
-                                a          +.a
-                                predicate  %-  produce-predicate
-                                               (predicate-list ->.a)
-                              ==
+  ?:  =(-<.a %scalars)      $(a +.a, scalars (produce-scalars -.a alias-map))
+  ?:  =(-<.a %where)        %=  $
+                              a          +.a
+                              predicate  %-  produce-predicate
+                                             (predicate-list ->.a)
+                            ==
   ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
@@ -2832,9 +2829,9 @@
   :: - if the cooked-param is a unqualified-, and ther isn't a
   ::   scalar by the same name, then pass it down to finalize qualifier
   |=  [cooked-param=scalar-param aliases=alias-maps]
-  ^-  datum-or-scalar:ast
-  ?:  ?=([%literal *] cooked-param)
-    %:(literal-value:ast %literal-value dime=+.cooked-param)
+  ^-  datum:ast
+  ?:  ?=(dime cooked-param)
+    cooked-param
   ?:  ?=(qualified-column:ast cooked-param)  cooked-param
   ?.  ?=(unqualified-column:ast cooked-param)  !!
   =/  maybe-table
@@ -3176,7 +3173,7 @@
       ?~  alias.uqc
         ::  bare column with AS alias
         %=  $
-          columns  [(unqualified-column:ast %unqualified-column name.uqc `as-alias) columns]
+          columns  [[%unqualified-column name.uqc `as-alias] columns]
           a  +.a
         ==
       ::  table.column with AS alias: resolve table, produce qualified-column
@@ -3186,7 +3183,7 @@
         columns
           :-  %:  qualified-column:ast  %qualified-column
                   ?~  resolved
-                    (qualified-table:ast %qualified-table ~ default-database 'dbo' tbl ~)
+                    [%qualified-table ~ default-database 'dbo' tbl ~]
                   (need resolved)
                   name.uqc
                   `as-alias
@@ -3234,7 +3231,7 @@
         columns
           :-  %:  qualified-column:ast  %qualified-column
                   ?~  resolved
-                    (qualified-table:ast %qualified-table ~ default-database 'dbo' tbl ~)
+                    [%qualified-table ~ default-database 'dbo' tbl ~]
                   (need resolved)
                   name.uqc
                   ~
@@ -3883,8 +3880,6 @@
   :: <mixedcase-name> alias
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
-    %+  stag
-      %literal
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
   ==
 ++  parse-datum-for-predicate  ~+
@@ -4623,7 +4618,7 @@
 ::
 ++  finalize-param
   |=  [raw=* aliases=alias-maps]
-  ^-  datum-or-scalar:ast
+  ^-  datum:ast
   (finalize-scalar-param (cook-scalar-param raw) aliases)
 ::
 ++  parse-no-params
@@ -4687,63 +4682,52 @@
       [%getutcdate ~]
   ::  unary builtin functions
   ?:  =(%day fn-name)
-    ^-  day:ast
     [%day (finalize-param raw-scalar-body aliases)]
   ?:  =(%month fn-name)
-    ^-  month:ast
     [%month (finalize-param raw-scalar-body aliases)]
   ?:  =(%year fn-name)
-    ^-  year:ast
     [%year (finalize-param raw-scalar-body aliases)]
   ?:  =(%abs fn-name)
-    ^-  abs:ast
     [%abs (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
-    ^-  floor:ast
     [%floor (finalize-param raw-scalar-body aliases)]
   ?:  =(%ceiling fn-name)
-    ^-  ceiling:ast
     [%ceiling (finalize-param raw-scalar-body aliases)]
   ?:  =(%sign fn-name)
-    ^-  sign:ast
     [%sign (finalize-param raw-scalar-body aliases)]
   ?:  =(%sqrt fn-name)
-    ^-  sqrt:ast
     [%sqrt (finalize-param raw-scalar-body aliases)]
   ?:  =(%len fn-name)
-    ^-  len:ast
     [%len (finalize-param raw-scalar-body aliases)]
   ?:  =(%log fn-name)
     ?:  =(%one-param param-count)
-      ^-  log:ast
       [%log (finalize-param raw-scalar-body aliases) ~]
     ?:  =(%two-param param-count)
-      ^-  log:ast
-      [%log (finalize-param -.raw-scalar-body aliases) (some (finalize-param +.raw-scalar-body aliases))]
+      :+  %log  (finalize-param -.raw-scalar-body aliases)
+                (some (finalize-param +.raw-scalar-body aliases))
     !!
   ?:  =(%power fn-name)
-    ^-  power:ast
-    [%power (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
+    :+  %power  (finalize-param -.raw-scalar-body aliases)
+                (finalize-param +.raw-scalar-body aliases)
   ?:  =(%left fn-name)
-    ^-  left:ast
-    [%left (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
+    :+  %left  (finalize-param -.raw-scalar-body aliases)
+               (finalize-param +.raw-scalar-body aliases)
   ?:  =(%right fn-name)
-    ^-  right:ast
-    [%right (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
+    :+  %right  (finalize-param -.raw-scalar-body aliases)
+                (finalize-param +.raw-scalar-body aliases)
   ?:  =(%trim fn-name)
     ?:  =(%one-param param-count)
-      ^-  trim:ast
       [%trim ~ (finalize-param raw-scalar-body aliases)]
     ?:  =(%two-param param-count)
-      ^-  trim:ast
-      [%trim (some (finalize-param -.raw-scalar-body aliases)) (finalize-param +.raw-scalar-body aliases)]
+      :+  %trim  (some (finalize-param -.raw-scalar-body aliases))
+                 (finalize-param +.raw-scalar-body aliases)
     !!
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
-      ^-  round:ast
-      [%round (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases) ~]
+      :^  %round  (finalize-param -.raw-scalar-body aliases)
+                  (finalize-param +.raw-scalar-body aliases)
+                  ~
     ?:  =(%three-param param-count)
-      ^-  round:ast
       :*  %round
           (finalize-param -.raw-scalar-body aliases)
           (finalize-param +<.raw-scalar-body aliases)
@@ -4812,7 +4796,8 @@
       ==
       ;~  plug
         (cold %log (jester %log))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %log (jester %log))
@@ -4820,7 +4805,8 @@
       ==
       ;~  plug
         (cold %trim (jester %trim))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %trim (jester %trim))
@@ -4828,27 +4814,37 @@
       ==
       ;~  plug
         (cold %round (jester %round))
-        (stag %three-param (parse-three-params parse-scalar-param parse-scalar-param parse-scalar-param))
+        %+  stag  %three-param
+                  %^  parse-three-params  parse-scalar-param
+                                          parse-scalar-param
+                                          parse-scalar-param
       ==
       ;~  plug
         (cold %round (jester %round))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %power (jester %power))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %left (jester %left))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %right (jester %right))
-        (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %substring (jester %substring))
-        (stag %three-param (parse-three-params parse-scalar-param parse-scalar-param parse-scalar-param))
+        %+  stag  %three-param
+                  %^  parse-three-params  parse-scalar-param
+                                          parse-scalar-param
+                                          parse-scalar-param
       ==
       ;~  plug
         (cold %concat (jester %concat))
@@ -4859,8 +4855,8 @@
 ++  cook-scalar-param
   |=  parsed=*
   ^-  scalar-param
-  ?:  ?=([%literal [@ @]] parsed)
-    [%literal `dime`+.parsed]
+  ?:  ?=(dime parsed)
+    parsed
   ::  remaining cases are qualified-column or unqualified-column
   ::  from parse-qualified-column
   ?:  ?=([%unqualified-column *] parsed)
@@ -4878,7 +4874,7 @@
 ++  get-scalar-param  ~+
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
-    (stag %literal ;~(sfix parse-value-literal whitespace))
+    ;~(sfix parse-value-literal whitespace)
     ;~(sfix parse-scalar-param whitespace)
     parse-scalar-param
   ==
@@ -4940,7 +4936,7 @@
       [(some (cook-scalar-param +>-.rest)) +>.rest]
     ~|("cannot cook else: unexpected atom: {<+<.rest>}" !!)
   ?:  =(+.rest %end)
-    (case-helper %case-helper cooked-target cases cooked-else)
+    [%case-helper cooked-target cases cooked-else]
   ~|("cannot cook case: unexpected atom: {<+.rest>}" !!)
 ::
 ++  cook-case-when-then-list
@@ -4959,7 +4955,7 @@
     ~|("unknown case type {<case-type>}" !!)
   =/  cooked-then  (cook-scalar-param raw-then)
   =/  cooked-case-when-then
-    (case-when-then-helper %case-when-then-helper cooked-when cooked-then)
+    [%case-when-then-helper cooked-when cooked-then]
   [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
 ::
 ++  parse-simple-case
@@ -4980,13 +4976,13 @@
 ++  cook-coalesce
   |=  parsed=*
   ^-  coalesce-helper
-  =/  coalesce-params  |-
-                       ^-  (list scalar-param)
-                       ?~  parsed
-                         ~
-                       [(cook-scalar-param -.parsed) $(parsed +.parsed)]
-  ?~  coalesce-params  ~|("COALESCE requires at least 2 parameters" !!)
-  ?~  t.coalesce-params  ~|("COALESCE requires at least 2 parameters" !!)
+  =/  coalesce-params     |-
+                          ^-  (list scalar-param)
+                          ?~  parsed
+                            ~
+                          [(cook-scalar-param -.parsed) $(parsed +.parsed)]
+  ?~  coalesce-params     ~|("COALESCE requires at least 2 parameters" !!)
+  ?~  t.coalesce-params   ~|("COALESCE requires at least 2 parameters" !!)
   %:  coalesce-helper
     %coalesce-helper
     data=coalesce-params
@@ -5030,6 +5026,7 @@
       $(state [[-.remaining.state new-list.state] +.remaining.state])
     ~|("arithmetic list problem with noun: {<a>}" !!)
   $(state [[-.remaining.state new-list.state] +.remaining.state])
+::
 ++  finalize-math-builtin-fn
   |=  [builtin-fn=[@tas *] aliases=alias-maps]
   ^-  scalar-node:ast
@@ -5037,45 +5034,40 @@
   =/  param-count  +<.builtin-fn
   =/  raw-scalar-body  +>.builtin-fn
   ?:  =(%abs fn-name)
-    ^-  abs:ast
     [%abs (finalize-param raw-scalar-body aliases)]
   ?:  =(%ceiling fn-name)
-    ^-  ceiling:ast
     [%ceiling (finalize-param raw-scalar-body aliases)]
   ?:  =(%day fn-name)
-    ^-  day:ast
     [%day (finalize-param raw-scalar-body aliases)]
   ?:  =(%floor fn-name)
-    ^-  floor:ast
     [%floor (finalize-param raw-scalar-body aliases)]
   ?:  =(%len fn-name)
-    ^-  len:ast
     [%len (finalize-param raw-scalar-body aliases)]
   ?:  =(%log fn-name)
     ?:  =(%one-param param-count)
-      ^-  log:ast
       [%log (finalize-param raw-scalar-body aliases) ~]
     ?:  =(%two-param param-count)
-      ^-  log:ast
-      [%log (finalize-param -.raw-scalar-body aliases) (some (finalize-param +.raw-scalar-body aliases))]
+      :+  %log
+          (finalize-param -.raw-scalar-body aliases)
+          (some (finalize-param +.raw-scalar-body aliases))
     ~|("finalize-math-builtin-fn: %log requires one or two params" !!)
   ?:  =(%month fn-name)
-    ^-  month:ast
     [%month (finalize-param raw-scalar-body aliases)]
   ?:  =(%power fn-name)
-    ^-  power:ast
-    [%power (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases)]
+    :+  %power
+        (finalize-param -.raw-scalar-body aliases)
+        (finalize-param +.raw-scalar-body aliases)
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
-      ^-  round:ast
-      [%round (finalize-param -.raw-scalar-body aliases) (finalize-param +.raw-scalar-body aliases) ~]
+      :^  %round
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +.raw-scalar-body aliases)
+          ~
     ?:  =(%three-param param-count)
-      ^-  round:ast
-      :*  %round
+      :^  %round
           (finalize-param -.raw-scalar-body aliases)
           (finalize-param +<.raw-scalar-body aliases)
           (some (finalize-param +>.raw-scalar-body aliases))
-      ==
     ~|("finalize-math-builtin-fn: %round requires two or three params" !!)
   ?:  =(%sign fn-name)
     ^-  sign:ast
@@ -5086,7 +5078,8 @@
   ?:  =(%year fn-name)
     ^-  year:ast
     [%year (finalize-param raw-scalar-body aliases)]
-  ~|  "finalize-math-builtin-fn: cannot use {<fn-name>} in arithmetic expression"
+  ~|  "finalize-math-builtin-fn: cannot use {<fn-name>} ".
+      "in arithmetic expression"
   !!
 ++  compute-precedence
   |=  op=arithmetic-op:ast
@@ -5111,12 +5104,10 @@
   ?@  t
     ~|("tree-to-arithmetic: received ~ tree" !!)
   ?:  ?=(arithmetic-op:ast n.t)
-    %:  arithmetic:ast
-      %arithmetic
-      n.t
-      $(t l.t)
-      $(t r.t)
-    ==
+    :^  %arithmetic
+        n.t
+        $(t l.t)
+        $(t r.t)
   n.t
 ::
 ++  process-arithmetic-list
@@ -5124,8 +5115,8 @@
   |=  [ops=* min-prec=@ud aliases=alias-maps]
   ^-  [tree=(tree $?(arithmetic-op:ast scalar-node:ast)) remaining=*]
   =/  tr=(tree $?(arithmetic-op:ast scalar-node:ast))
-    ?:  ?=([%literal *] -.ops)
-      [%:(literal-value:ast %literal-value dime=->.ops) ~ ~]
+    ?:  ?=(dime -.ops)
+      [-.ops ~ ~]
     ?:  ?=([%builtin-fn [@tas *]] -.ops)
       [(finalize-math-builtin-fn ->.ops aliases) ~ ~]
     =/  nested  (process-arithmetic-list -.ops 0 aliases)
@@ -5145,6 +5136,7 @@
       [next-operator tr tree.expr-to-the-right]
     $(tr new-tree, ops remaining.expr-to-the-right)
   [tr ops]
+::
 ++  cook-and-finalize-arithmetic
   |=  [parsed=* aliases=alias-maps]
   ^-  arithmetic:ast
@@ -5153,15 +5145,13 @@
   =/  op-tree  tree.nested
   ?@  op-tree
     !!
-  :: i don't think it's possible to get a ~ tree here
   ?:  ?=(arithmetic-op:ast n.op-tree)
-    %:  arithmetic:ast
-      %arithmetic
-      n.op-tree
-      (tree-to-arithmetic l.op-tree)
-      (tree-to-arithmetic r.op-tree)
-    ==
+    :^  %arithmetic
+        n.op-tree
+        (tree-to-arithmetic l.op-tree)
+        (tree-to-arithmetic r.op-tree)
   ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
+::
 ++  arithmetic-token
   ;~  pose
     ;~(pfix whitespace (cold %end (jester 'end')))
@@ -5200,6 +5190,7 @@
     ;~(pfix whitespace parse-scalar-param)
     parse-scalar-param
   ==
+::
 ++  parse-arithmetic
   ;~  plug
     (cold %arithmetic (jester 'begin'))
@@ -5209,6 +5200,7 @@
       ;~(pfix whitespace (jester 'end'))
     ==
   ==
+::
 ++  scalar-stop
   ;~  pose
     ;~(plug whitespace (jester 'where') whitespace)
@@ -5400,15 +5392,7 @@
         @
         ==
   ==
-+$  scalar-param   $%(qualifier-or-literal qualifier)
-+$  qualifier-or-literal
-  $%  qualifier
-      $:(%literal dime)
-  ==
-+$   qualifier
-  $%  qualified-column:ast
-      unqualified-column:ast
-  ==
++$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast)
 +$  scalar-helper
   $%  coalesce-helper
      if-then-else-helper

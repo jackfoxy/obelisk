@@ -121,8 +121,8 @@
 ++  simple-true-pred       [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=1] ~ ~]]
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
 ::
-++  literal-zod            [%literal-value dime=[p=%p q=0]]
-++  literal-1              [%literal-value dime=[p=~.ud q=1]]
+++  literal-zod            [p=%p q=0]
+++  literal-1              [p=~.ud q=1]
 ::
 ::  generic scalar-agnostic tests
 ::
@@ -213,27 +213,27 @@
     "        sc10 BEGIN (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-05             [%literal-value dime=[p=~.rs q=.5]]
-  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
-  =/  literal-28             [%literal-value dime=[p=~.rs q=.2.8]]
-  =/  literal-12             [%literal-value dime=[p=~.rs q=.1.2]]
-  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
-  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-  =/  literal-10             [%literal-value dime=[p=~.ud q=10]]
-  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
-  =/  literal-37             [%literal-value dime=[p=~.rs q=.3.7]]
-  =/  literal-0              [%literal-value dime=[p=~.ud q=0]]
-  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
-  =/  literal-date1          [%literal-value dime=[p=~.da q=~2023.1.15]]
-  =/  literal-neg3           [%literal-value dime=[p=~.sd q=-3]]
-  =/  literal-29             [%literal-value dime=[p=~.rs q=.2.9]]
-  =/  literal-16             [%literal-value dime=[p=~.ud q=16]]
-  =/  literal-15             [%literal-value dime=[p=~.rs q=.1.5]]
-  =/  literal-neg2           [%literal-value dime=[p=~.sd q=-2]]
-  =/  literal-date2          [%literal-value dime=[p=~.da q=~2023.6.20]]
-  =/  literal-100            [%literal-value dime=[p=~.ud q=100]]
-  =/  literal-9              [%literal-value dime=[p=~.ud q=9]]
+  =/  literal-05             [p=~.rs q=.5]
+  =/  literal-1              [p=~.ud q=1]
+  =/  literal-28             [p=~.rs q=.2.8]
+  =/  literal-12             [p=~.rs q=.1.2]
+  =/  literal-4              [p=~.ud q=4]
+  =/  literal-2              [p=~.ud q=2]
+  =/  literal-3              [p=~.ud q=3]
+  =/  literal-10             [p=~.ud q=10]
+  =/  literal-neg5           [p=~.sd q=-5]
+  =/  literal-37             [p=~.rs q=.3.7]
+  =/  literal-0              [p=~.ud q=0]
+  =/  literal-hello          [p=~.t q='hello']
+  =/  literal-date1          [p=~.da q=~2023.1.15]
+  =/  literal-neg3           [p=~.sd q=-3]
+  =/  literal-29             [p=~.rs q=.2.9]
+  =/  literal-16             [p=~.ud q=16]
+  =/  literal-15             [p=~.rs q=.1.5]
+  =/  literal-neg2           [p=~.sd q=-2]
+  =/  literal-date2          [p=~.da q=~2023.6.20]
+  =/  literal-100            [p=~.ud q=100]
+  =/  literal-9              [p=~.ud q=9]
   ::
   =/  sc1
     [%arithmetic operator=%lus left=[%abs literal-neg5] right=literal-1]
@@ -383,16 +383,16 @@
     "        ls1 LEN( st1   ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
-  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
-  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+  =/  literal-date           [p=~.da q=~2023.1.15]
+  =/  literal-float          [p=~.rs q=.5]
+  =/  literal-float2         [p=~.rs q=.2]
+  =/  literal-2              [p=~.ud q=2]
+  =/  literal-3              [p=~.ud q=3]
+  =/  literal-1              [p=~.ud q=1]
+  =/  literal-hello          [p=~.t q='hello']
+  =/  literal-world          [p=~.t q='world']
+  =/  literal-space          [p=~.t q=' ']
+  =/  literal-neg5           [p=~.sd q=-5]
   ::              
   =/  scalars
     :~
@@ -467,16 +467,16 @@
     "        ps1 POWER(  mt4 ,  2   ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
-  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
-  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+  =/  literal-date           [p=~.da q=~2023.1.15]
+  =/  literal-float          [p=~.rs q=.5]
+  =/  literal-float2         [p=~.rs q=.2]
+  =/  literal-2              [p=~.ud q=2]
+  =/  literal-3              [p=~.ud q=3]
+  =/  literal-1              [p=~.ud q=1]
+  =/  literal-hello          [p=~.t q='hello']
+  =/  literal-world          [p=~.t q='world']
+  =/  literal-space          [p=~.t q=' ']
+  =/  literal-neg5           [p=~.sd q=-5]
   ::
   =/  scalars
     :~
@@ -554,16 +554,16 @@
     "        rs1 ROUND(mt6, 2, 1) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
-  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
-  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+  =/  literal-date           [p=~.da q=~2023.1.15]
+  =/  literal-float          [p=~.rs q=.5]
+  =/  literal-float2         [p=~.rs q=.2]
+  =/  literal-2              [p=~.ud q=2]
+  =/  literal-3              [p=~.ud q=3]
+  =/  literal-1              [p=~.ud q=1]
+  =/  literal-hello          [p=~.t q='hello']
+  =/  literal-world          [p=~.t q='world']
+  =/  literal-space          [p=~.t q=' ']
+  =/  literal-neg5           [p=~.sd q=-5]
   ::
   =/  scalars
     :~
@@ -641,16 +641,16 @@
     "        lfs1 LEFT(  st2   ,   3   ) ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-date           [%literal-value dime=[p=~.da q=~2023.1.15]]
-  =/  literal-float          [%literal-value dime=[p=~.rs q=.5]]
-  =/  literal-float2         [%literal-value dime=[p=~.rs q=.2]]
-  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-  =/  literal-1              [%literal-value dime=[p=~.ud q=1]]
-  =/  literal-hello          [%literal-value dime=[p=~.t q='hello']]
-  =/  literal-world          [%literal-value dime=[p=~.t q='world']]
-  =/  literal-space          [%literal-value dime=[p=~.t q=' ']]
-  =/  literal-neg5           [%literal-value dime=[p=~.sd q=-5]]
+  =/  literal-date           [p=~.da q=~2023.1.15]
+  =/  literal-float          [p=~.rs q=.5]
+  =/  literal-float2         [p=~.rs q=.2]
+  =/  literal-2              [p=~.ud q=2]
+  =/  literal-3              [p=~.ud q=3]
+  =/  literal-1              [p=~.ud q=1]
+  =/  literal-hello          [p=~.t q='hello']
+  =/  literal-world          [p=~.t q='world']
+  =/  literal-space          [p=~.t q=' ']
+  =/  literal-neg5           [p=~.sd q=-5]
   ::
   =/  scalars
     :~
@@ -2848,11 +2848,11 @@
     "        foo32 BEGIN 2 % 3 ^ 4 END ".
     "SELECT foo2,foo3"
   ::
-  =/  literal-2              [%literal-value dime=[p=~.ud q=2]]
-  =/  literal-3              [%literal-value dime=[p=~.ud q=3]]
-  =/  literal-4              [%literal-value dime=[p=~.ud q=4]]
-  =/  literal-5              [%literal-value dime=[p=~.ud q=5]]
-  =/  literal-6              [%literal-value dime=[p=~.ud q=6]]
+  =/  literal-2              [p=~.ud q=2]
+  =/  literal-3              [p=~.ud q=3]
+  =/  literal-4              [p=~.ud q=4]
+  =/  literal-5              [p=~.ud q=5]
+  =/  literal-6              [p=~.ud q=6]
   =/  exponentiation-1
     :*  %arithmetic
       %ket
@@ -3368,6 +3368,6 @@
   ::
   %+  expect-fail-message
     'can\'t do arithmetic with only a single operand:\
-    / [%literal-value dime=[p=~.ud q=42]]'
+    / [p=~.ud q=42]'
     |.  (parse:parse(default-database default-db) query-string)
 --

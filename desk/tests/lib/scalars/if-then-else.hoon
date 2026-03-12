@@ -22,8 +22,8 @@
 ++  unqualified-col-1   [%unqualified-column name=%foo3 alias=~]
 ++  unqualified-col-2   [%unqualified-column name=%foo2 alias=~]
 ::
-++  literal-zod            [%literal-value dime=[p=%p q=0]]
-++  literal-1              [%literal-value dime=[p=~.ud q=1]]
+++  literal-zod            [p=%p q=0]
+++  literal-1              [p=~.ud q=1]
 ::
 ++  true-predicate         [n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 1] ~ ~]]
 ++  false-predicate         [n=%eq [n=[~.ud 1] ~ ~] [n=[~.ud 0] ~ ~]]
@@ -632,8 +632,8 @@
     :-  %qualified-col
         :-  [%if-then-else true-predicate q-col-1 q-col-2]
             [~.ud 1]
-    :-  %literal-value
-        :-  [%if-then-else true-predicate [%literal-value [~.t 'foo']] [%literal-value [~.t 'bar']]]
+    :-  %dime
+        :-  [%if-then-else true-predicate [~.t 'foo'] [~.t 'bar']]
             [~.t 'foo']
     :-  %scalar-name
         :-  [%if-then-else true-predicate [%scalar-name %scalar1] q-col-2]
@@ -665,8 +665,8 @@
     :-  %qualified-col
         :-  [%if-then-else false-predicate q-col-1 q-col-2]
             [~.ud 2]
-    :-  %literal-value
-        :-  [%if-then-else false-predicate [%literal-value [~.t 'foo']] [%literal-value [~.t 'bar']]]
+    :-  %dime
+        :-  [%if-then-else false-predicate [~.t 'foo'] [~.t 'bar']]
             [~.t 'bar']
     :-  %scalar-name
         :-  [%if-then-else false-predicate q-col-2 [%scalar-name %scalar1]]
