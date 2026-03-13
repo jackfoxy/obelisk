@@ -89,7 +89,12 @@
       (bake (cury (cury and-not ll) rr) data-row)
     ::
     binary-op
-      (prepare-binary-op p map-meta qualifier-lookup named-ctes resolved-scalars)
+      %:  prepare-binary-op  p
+                             map-meta
+                             qualifier-lookup
+                             named-ctes
+                             resolved-scalars
+                             ==
     ::
     unary-op
       (prepare-unary-op p map-meta qualifier-lookup named-ctes resolved-scalars)

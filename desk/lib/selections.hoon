@@ -43,9 +43,18 @@
   =/  query-source  ?:  ?=(qualified-table:ast relation.from)
                       relation.from
                     ~|("SELECT: not supported on %query-row" !!)
+  =/  sys-time=@da  (set-tmsp as-of.from now.bowl)
+  =/  db=database   ~|  "SELECT: database {<database.query-source>} ".
+                         "does not exist"
+                        (~(got by state) database.query-source)
+  =/  =schema       ~|  "SELECT: database {<database.query-source>} ".
+                        "doesn't exist at time {<sys-time>}"
+                        (get-schema [sys.db sys-time])
   =/  =full-relation  %:  got-relation  query-source
                                         named-ctes
                                         as-of.from
+                                        db
+                                        schema
                                         ~
                                         ~
                                         *qualified-map-meta
@@ -279,35 +288,32 @@
 ++  recalc-addr
   |=  [=set-table =full-relation from-objects=(list set-table)]
   ?~  joined-rows.set-table
-    %:  join-return  %join-return
+    :*  %join-return
                       state
                       from-objects
                       map-meta.full-relation
                       column-metas.full-relation
                       ==
-  =/  sample-data  data.i.joined-rows.set-table
-  =/  recalc-metas=(list column-meta)
-    %+  turn  column-metas.full-relation
-              |=  =column-meta
-              %=  column-meta
-                addr  %^  calc-joined-addr  sample-data
-                                            qualifier.qualified-column.column-meta
-                                            name.qualified-column.column-meta
-              ==
-  =/  recalc-map-meta=qualified-map-meta
-    %+  roll  recalc-metas
+  =/  r=[(list column-meta) qualified-map-meta]
+    %^  spin  column-metas.full-relation
+              *qualified-map-meta
               |=  [=column-meta mm=qualified-map-meta]
-              ^-  qualified-map-meta
-              :-  %qualified-map-meta
-                  %^  ~(put bi:mip +.mm)
-                        qualifier.qualified-column.column-meta
-                        name.qualified-column.column-meta
-                        [type.column-meta addr.column-meta]
-  %:  join-return  %join-return
+              =/  new-addr
+                    %^  calc-joined-addr  data.i.joined-rows.set-table
+                                          qualifier.qualified-column.column-meta
+                                          name.qualified-column.column-meta
+              =.  addr.column-meta  new-addr
+              :-  column-meta
+                  :-  %qualified-map-meta
+                      %^  ~(put bi:mip +.mm)
+                            qualifier.qualified-column.column-meta
+                            name.qualified-column.column-meta
+                            [type.column-meta new-addr]
+  :*  %join-return
                     state
                     from-objects
-                    recalc-map-meta
-                    recalc-metas
+                    +.r
+                    -.r
                     ==
 ::
 ++  join-all
@@ -324,29 +330,54 @@
                                      ==
                                  joins.from
   =/  relat=joined-relat  -.joined-relations
-  =/  query-source  ?:  ?=(qualified-table:ast relation.relat)
-                      relation.relat
-                    ~|("SELECT: not supported on %query-row" !!)
-  =.  joined-relations            +.joined-relations
+  =/  query-source        ?:  ?=(qualified-table:ast relation.relat)
+                            relation.relat
+                          ~|("SELECT: not supported on %query-row" !!)
+  =.  joined-relations    +.joined-relations
+  =/  sys-time            (set-tmsp as-of.relat now.bowl)
+  =/  db=database         ~|  "SELECT: database {<database.query-source>} ".
+                              "does not exist"
+                          (~(got by state) database.query-source)
+  =/  =schema             ~|  "SELECT: database {<database.query-source>} ".
+                              "doesn't exist at time {<sys-time>}"
+                          (get-schema [sys.db sys-time])
   =/  =full-relation  %:  got-relation  query-source
                                         named-ctes
                                         as-of.relat
+                                        db
+                                        schema
                                         ~
                                         ~
                                         *qualified-map-meta
                                         ~
                                         ==
-  =/  prior-join        -.set-tables.full-relation
-  =/  from-objects      (limo ~[prior-join])
+  =/  prior-join          -.set-tables.full-relation
+  =/  from-objects        (limo ~[prior-join])
+  =/  prev-as-of          as-of.relat
+  =/  prev-db-name=@tas   database.query-source
   |-
   ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
-  =.  query-source
-        ?:  ?=(qualified-table:ast relation.i.joined-relations)
-              relation.i.joined-relations
-            ~|("SELECT: not supported on %query-row" !!)
+  =.  query-source      ?:  ?=(qualified-table:ast relation.i.joined-relations)
+                          relation.i.joined-relations
+                        ~|("SELECT: not supported on %query-row" !!)
+  =/  needs-refresh     ?|  !=(as-of.i.joined-relations prev-as-of)
+                            !=(database.query-source prev-db-name)
+                             ==
+  =/  new-db=database   ?.  needs-refresh  db
+                        ~|  "SELECT: database {<database.query-source>} ".
+                            "does not exist"
+                        (~(got by state) database.query-source)
+  =/  new-schema=_schema
+        ?.  needs-refresh  schema
+        ~|  "SELECT: database {<database.query-source>} ".
+            "doesn't exist at time ".
+            "{<(set-tmsp as-of.i.joined-relations now.bowl)>}"
+        (get-schema [sys.new-db (set-tmsp as-of.i.joined-relations now.bowl)])
   =.  full-relation  %:  got-relation  query-source
                                        named-ctes
                                        as-of.i.joined-relations
+                                       new-db
+                                       new-schema
                                        join.i.joined-relations
                                        predicate.i.joined-relations
                                        map-meta.full-relation
@@ -356,6 +387,10 @@
   %=  $
     joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
+    prev-as-of         as-of.i.joined-relations
+    prev-db-name       database.query-source
+    db                 new-db
+    schema             new-schema
   ==
 ::
 ++  got-relation
@@ -363,6 +398,8 @@
   |=  $:  =qualified-table:ast
           =named-ctes
           as-of=(unit as-of:ast)
+          db=database
+          =schema
           join=(unit join-type:ast)
           =predicate
           map-meta=qualified-map-meta
@@ -370,12 +407,6 @@
           ==
   ^-  full-relation
   =/  sys-time   (set-tmsp as-of now.bowl)
-  =/  db         ~|  "SELECT: database {<database.qualified-table>} ".
-                      "does not exist"
-                     (~(got by state) database.qualified-table)
-  =/  =schema    ~|  "SELECT: database {<database.qualified-table>} ".
-                     "doesn't exist at time {<sys-time>}"
-                     (get-schema [sys.db sys-time])
   =/  vw  %+  get-view
                 [namespace.qualified-table name.qualified-table sys-time]
                 views.schema
@@ -390,7 +421,7 @@
                           column-metas
                           ==
   =/  vw2=view  (need vw)
-  =/  r=[database cache]
+  =/  r=[? database cache]
         %:  got-view-cache  db
                             schema
                             vw2
@@ -398,11 +429,11 @@
                                 name.qualified-table
                                 sys-time
                             ==
-  =/  view-content  (need content.+.r)
+  =/  view-content  (need content.+>.r)
   ::
   ::  database view cache may have been populated
-  =.  state  ?.  =(db -.r)
-                (~(put by state) name.db -.r)
+  =.  state  ?:  -.r
+                (~(put by state) name.db +<.r)
              state
   :*  %full-relation
       qualified-table
@@ -542,9 +573,9 @@
 ::
 ++  got-view-cache
   |=  [db=database =schema vw=view key=ns-rel-key]
-  ^-  [database cache]
+  ^-  [? database cache]
   =/  vw-cache=cache  (get-view-cache key view-cache.db)
-  ?.  =(content.vw-cache ~)  [db vw-cache]
+  ?.  =(content.vw-cache ~)  [%.n db vw-cache]
   =.  content.vw-cache  ?:  =(ns.key 'sys')
                               :-  ~
                                   %:  populate-system-view  state
@@ -555,7 +586,7 @@
                                                             tmsp.vw-cache
                                                             ==
                                 !!  :: : implement view refresh for non-sys
-  [(put-view-cache db vw-cache key) vw-cache]
+  [%.y (put-view-cache db vw-cache key) vw-cache]
 ::
 ++  join-up
   |=  [prior=set-table this=set-table]

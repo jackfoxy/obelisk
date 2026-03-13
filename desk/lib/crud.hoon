@@ -135,7 +135,7 @@
     %query
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects
-          ~>  %bout.[0 %select]
+          ::~>  %bout.[0 %select]
           =/  rt  (do-query -.rtree named-ctes %.n)
           [next-data ->-.rt (select-results named-ctes -.rt +.rt)]
     %merge
@@ -436,8 +436,8 @@
   =/  f  (normalize-from (need from.q))
   ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
   ::
-  =/  =join-return      ~>  %bout.[0 %join-all]  (join-all(state state, bowl bowl) q named-ctes)
-  =/  selected          ~>  %bout.[0 %normalize-selected]  (normalize-selected columns.select.q)
+  =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
+  =/  selected          (normalize-selected columns.select.q)
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
   =.  selected          (qualify-unqualified selected qualifier-lookup)
   ::
@@ -460,7 +460,6 @@
                 |=(a=joined-row ((need filter) a))
     [join-return ~]
   ?~  set-tables.join-return  [join-return ~]
-  ~>  %bout.[0 %join-return]
   :-  join-return
       %:  joined-result  filter
                           column-metas.join-return
