@@ -976,8 +976,5 @@
   ^-  predicate-component:ast
   ?.  ?=(qualified-column:ast a)  a
   ::
-  %:  unqualified-column:ast  %unqualified-column
-                              name.a
-                              alias.a
-                              ==
+  [%unqualified-column name.a alias.a]
 --

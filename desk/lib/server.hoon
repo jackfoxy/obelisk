@@ -313,33 +313,28 @@
         %+  gas:view-cache-key
               *((mop ns-rel-key cache) ns-rel-comp)
               %+  turn  db-views
-                        |=([p=ns-rel-key q=view] [p (cache %cache time.p ~)])
+                        |=([p=ns-rel-key q=view] [p [%cache time.p ~]])
   ::
-  %:  database  %database
-                name
-                sap.bowl
-                sys-time
-                :+  :-  sys-time
-                        %:  schema  %schema
-                                    sap.bowl
-                                    sys-time
-                                    namespaces
-                                    ~
-                                    vws
-                        ==
-                    ~
-                    ~
-                :+  :-  sys-time
-                        %:  data  %data
-                                  src.bowl
-                                  sap.bowl
-                                  sys-time
-                                  ~
-                        ==
-                    ~
-                    ~
-                vw-cache
-              ==
+  :*  %database
+      name
+      sap.bowl
+      sys-time
+      :+  :-  sys-time
+              :*  %schema
+                  sap.bowl
+                  sys-time
+                  namespaces
+                  ~
+                  vws
+                  ==
+          ~
+          ~
+      :+  :-  sys-time
+              [%data src.bowl sap.bowl sys-time ~]
+          ~
+          ~
+      vw-cache
+      ==
 ::
 ++  drop-db
   ::  clear content of %sys view keys caches

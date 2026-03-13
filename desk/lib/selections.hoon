@@ -437,21 +437,21 @@
              state
   :*  %full-relation
       qualified-table
-      :~  %:  set-table  %set-table
-                         join
-                         [~ qualified-table]
-                         [~ tmsp.schema]
-                         [~ tmsp.+.r]
-                         columns.vw2
-                         predicate
-                         rowcount.view-content
-                         [%unqualified-map-meta typ-addr-lookup.vw2]
-                         ~
-                         ~
-                         %+  turn  rows.view-content
-                              |=(a=(map @tas @) (indexed-row %indexed-row ~ a))
-                         *(list joined-row)
-                         ==
+      :~  :*  %set-table
+              join
+              [~ qualified-table]
+              [~ tmsp.schema]
+              [~ tmsp.+.r]
+              columns.vw2
+              predicate
+              rowcount.view-content
+              [%unqualified-map-meta typ-addr-lookup.vw2]
+              ~
+              ~
+              %+  turn  rows.view-content
+                   |=(a=(map @tas @) [%indexed-row ~ a])
+              *(list joined-row)
+              ==
           ==
       :-  %qualified-map-meta
           %+  ~(put by *(map qualified-table:ast (map @tas typ-addr)))
@@ -487,20 +487,20 @@
                              [namespace.qualified-table name.qualified-table]
   :*  %full-relation
       qualified-table
-      :~  %:  set-table  %set-table
-                         join
-                         [~ qualified-table]
-                         [~ tmsp.tbl2]
-                         [~ tmsp.file]
-                         columns.tbl2
-                         predicate
-                         rowcount.file
-                         [%unqualified-map-meta typ-addr-lookup.tbl2]
-                         [~ pri-indx.tbl2]
-                         pri-idx.file
-                         indexed-rows.file
-                         *(list joined-row)
-                         ==
+      :~  :*  %set-table
+              join
+              [~ qualified-table]
+              [~ tmsp.tbl2]
+              [~ tmsp.file]
+              columns.tbl2
+              predicate
+              rowcount.file
+              [%unqualified-map-meta typ-addr-lookup.tbl2]
+              [~ pri-indx.tbl2]
+              pri-idx.file
+              indexed-rows.file
+              *(list joined-row)
+              ==
           ==
       :-  %qualified-map-meta
           (~(put by +.map-meta) qualified-table typ-addr-lookup.tbl2)

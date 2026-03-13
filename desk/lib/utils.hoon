@@ -299,12 +299,11 @@
       i         +(i)
       selected  t.selected
       cells
-        :-  %:  templ-cell  %templ-cell
-                            ~
-                            0  :: addr
-                            :-  (heading i.selected (crip "literal-{<i>}"))
-                                [p=+<-.i.selected q=+<+.i.selected]
-                            ==
+        :-  :^  %templ-cell
+                ~
+                0  :: addr
+                :-  (heading i.selected (crip "literal-{<i>}"))
+                    [p=+<-.i.selected q=+<+.i.selected]
             cells
     ==
   =/  typ-addr  ?:  ?=(qualified-column:ast i.selected)
@@ -327,25 +326,25 @@
                                       |=  a=column-meta
                                       =(name.qualified-column.a name.i.selected)
             %:  templ-cell
-                  %templ-cell
-                  :-  ~
-                      :^  %qualified-column
-                          *qualified-table:ast
-                          name.i.selected
-                          alias.i.selected
-                  addr.matching
-                  [(heading i.selected name.i.selected) [type.matching 0]]
-                  ==
-          %:  templ-cell
                 %templ-cell
                 :-  ~
                     :^  %qualified-column
                         *qualified-table:ast
                         name.i.selected
                         alias.i.selected
-                +:(need typ-addr)
-                [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
+                addr.matching
+                [(heading i.selected name.i.selected) [type.matching 0]]
                 ==
+          %:  templ-cell
+              %templ-cell
+              :-  ~
+                  :^  %qualified-column
+                      *qualified-table:ast
+                      name.i.selected
+                      alias.i.selected
+              +:(need typ-addr)
+              [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
+              ==
           cells
     ==
   ?:  ?=(qualified-column:ast i.selected)
@@ -360,17 +359,17 @@
                               qualifier.i.selected
                               name.i.selected
             %:  templ-cell
+                  %templ-cell
+                  [~ i.selected]
+                  addr.typ-addr
+                  [(heading i.selected name.i.selected) [type.typ-addr 0]]
+                  ==
+          %:  templ-cell
                 %templ-cell
                 [~ i.selected]
-                addr.typ-addr
-                [(heading i.selected name.i.selected) [type.typ-addr 0]]
+                +:(need typ-addr)
+                [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
                 ==
-          %:  templ-cell  
-              %templ-cell
-              [~ i.selected]
-              +:(need typ-addr)
-              [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
-              ==
           cells
     ==
   ~|("{<i.selected>} not supported" !!)
@@ -485,7 +484,7 @@
   |=  [p=@t q=(map @tas [aura @])]
   ^-  column:ast
   ~|  "INSERT: invalid column: {<p>}"
-  (column:ast %column p -:(~(got by q) p) 0)
+  [%column p -:(~(got by q) p) 0]
 ::
 ++  update-sys
   |=  [state=server sys-time=@da]
@@ -570,7 +569,7 @@
         view-cache.db
         %+  turn
               sys-vws
-              |=([p=[@tas @tas]] [[-.p +.p sys-time] (cache %cache sys-time ~)])
+              |=([p=[@tas @tas]] [[-.p +.p sys-time] [%cache sys-time ~]])
 ::
 ++  common-txn
   ::  source-content-time is the data state time against which to apply the

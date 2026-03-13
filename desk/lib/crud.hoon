@@ -656,7 +656,7 @@
   %=  $
     i             +(i)
     columns       +.columns
-    columns-out   :-  (column:ast %column column-name p.value.i.columns 0)
+    columns-out   :-  [%column column-name p.value.i.columns 0]
                       columns-out
     indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
   ==

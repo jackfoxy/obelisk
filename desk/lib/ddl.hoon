@@ -135,20 +135,15 @@
   =/  column-look-up  (malt (spun columns.create-table mk-col-lu-data))
   ::
   =/  table
-        %:  table
-            %table
+        :*  %table
             sap.bowl
             sys-time
             column-look-up
             (mk-unqualified-typ-addr-lookup (addr-columns columns.create-table))
-            %:  index
-                %index
-                %.y
-                (mk-key-column column-look-up pri-indx.create-table)
-            ==
+            [%index %.y (mk-key-column column-look-up pri-indx.create-table)]
             (addr-columns columns.create-table)
             ~
-        ==
+            ==
   =/  tables
     ~|  "CREATE TABLE: {<name.table.create-table>} ".
         "exists in {<namespace.table.create-table>}"
@@ -161,15 +156,14 @@
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
   ::
-  =/  file  %:  file
-                %file
+  =/  file  :*  %file
                 src.bowl
                 sap.bowl
                 sys-time
                 0
                 ~
                 ~
-            ==
+                ==
   =/  files
     ~|  "CREATE TABLE: {<name.table.create-table>} ".
         "exists in {<namespace.table.create-table>}"
@@ -289,11 +283,10 @@
   ?~  pri-indx  (flop key)
   %=  $
     pri-indx  t.pri-indx
-    key       :-  %:  key-column  %key-column
-                                  name.i.pri-indx
-                                  -:(~(got by column-lookup) name.i.pri-indx)
-                                  ascending.i.pri-indx
-                                  ==
+    key       :-  :^  %key-column
+                      name.i.pri-indx
+                      -:(~(got by column-lookup) name.i.pri-indx)
+                      ascending.i.pri-indx
                   key
   ==
 ::
