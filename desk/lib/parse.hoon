@@ -2261,7 +2261,7 @@
     %:  delete:ast  %delete
                     ctes
                     -.a
-                    [~ (as-of-offset:ast %as-of-offset +<+<.a +<+>-.a)]
+                    [~ [%as-of-offset +<+<.a +<+>-.a]]
                     %+  qualify-predicate
                         (produce-predicate (predicate-list +>+<.a))
                         -.a
@@ -2283,11 +2283,7 @@
   ^-  predicate-component:ast
   ?.  ?=(unqualified-column:ast a)
     a
-  %:  qualified-column:ast  %qualified-column
-                            obj
-                            name.a
-                            alias.a
-                            ==
+  [%qualified-column obj name.a alias.a]
 ::
 ++  produce-insert
   |=  a=*
@@ -2298,67 +2294,59 @@
   ::
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
     %:  insert:ast  %insert
-
                     table
                     ~
                     ~
-                    (insert-values:ast %data +>.c)
+                    [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @] %values *] c)  :: insert rows as of date
     %:  insert:ast  %insert
-
                     table
                     [~ ->.c]
                     ~
-                    (insert-values:ast %data +>.c)
+                    [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @ @] %values *] c)  :: insert rows as of offset
     %:  insert:ast  %insert
-
                     table
-                    [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
+                    [~ [%as-of-offset ->-.c ->+<.c]]
                     ~
-                    (insert-values:ast %data +>.c)
+                    [%data +>.c]
                     ==
   ?:  ?=([[%as-of %now] [* %values] *] c) :: insert columns rows as of now
     %:  insert:ast  %insert
-
                     table
                     ~
                     `+<-.c
-                    (insert-values:ast %data +>.c)
+                    [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @] [* %values] *] c) :: insert cols rows as of date
     %:  insert:ast  %insert
-
                     table
                     [~ ->.c]
                     `+<-.c
-                    (insert-values:ast %data +>.c)
+                    [%data +>.c]
                     ==
   ?:  ?=([[%as-of @ @ @] [* %values] *] c) :: insert cols rows as of offset
     %:  insert:ast  %insert
-
                     table
-                    [~ (as-of-offset:ast %as-of-offset ->-.c ->+<.c)]
+                    [~ [%as-of-offset ->-.c ->+<.c]]
                     `+<-.c
-                    (insert-values:ast %data +>.c)
+                    [%data +>.c]
                     ==
   ?:  ?=([%values *] c)            :: insert rows
     %:  insert:ast  %insert
-
                     table
                     ~
                     ~
-                    (insert-values:ast %data +.c)
+                    [%data +.c]
                     ==
   ?:  ?=([[* %values] *] c)        :: insert column names rows
     %:  insert:ast  %insert
-
                     table
                     ~
                     `-<.c
-                    (insert-values:ast %data +.c)
+                    [%data +.c]
                     ==
   ~|("Cannot parse insert {<a>}" !!)
 ++  produce-matching-profile
@@ -2370,11 +2358,7 @@
   ?:  ?=([@ %qualified-column qualified-table:ast @ ~] -.a)
     %=  $
       profile  :-  :-  -<.a
-                      %:  qualified-column:ast  %qualified-column
-                                                `qualified-table:ast`->+<.a
-                                                ->+>-.a
-                                                ~
-                                                ==
+                      [%qualified-column `qualified-table:ast`->+<.a ->+>-.a ~]
                    profile
       a  +.a
     ==
@@ -2406,30 +2390,27 @@
       ?:  ?=([%matched @ *] -.a)
         %=  $
           matched
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
+            :-  %^  matching:ast  %matching
+                                  ~
+                                  [->-.a (produce-matching-profile ->+.a)]
                 matched
           a  +.a
         ==
       ?:  =(%unmatch-target -<.a)
         %=  $
           not-matched-by-target
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
+            :-  %^  matching:ast  %matching
+                                  ~
+                                  [->-.a (produce-matching-profile ->+.a)]
                 not-matched-by-target
           a  +.a
         ==
       ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
         %=  $
           matched
-            :-  %:  matching:ast  %matching
-                      predicate=(produce-predicate (predicate-list -<+>.a))
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
+            :-  %^  matching:ast  %matching
+                                  (produce-predicate (predicate-list -<+>.a))
+                                  [->-.a (produce-matching-profile ->+.a)]
                 matched
           a  +.a
         ==
@@ -2438,21 +2419,19 @@
       ?:  ?=([%matched @ *] -.a)
         %=  $
           matched
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
+            :-  %^  matching:ast  %matching
+                                  ~
+                                  [->-.a (produce-matching-profile ->+.a)]
                 matched
           a  +.a
         ==
       ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
         %=  $
           matched
-            :-  %:  matching:ast  %matching
-                      predicate=(produce-predicate (predicate-list -<+>.a))
-                      matching-profile=[->-.a (produce-matching-profile ->+.a)]
-                                  ==
-                      matched
+            :-  %^  matching:ast  %matching
+                                  (produce-predicate (predicate-list -<+>.a))
+                                  [->-.a (produce-matching-profile ->+.a)]
+                matched
           a  +.a
         ==
       ~|("merge update can't get here:  {<-.a>}" !!)
@@ -2460,30 +2439,23 @@
       ?:  ?=([%matched @ *] -.a)
         %=  $
           matched
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                                  matching-profile=%delete
-                                  ==
+            :-  [%matching ~ %delete]
                 matched
           a  +.a
         ==
       ?:  =(%unmatch-target -<.a)
         %=  $
           not-matched-by-target
-            :-  %:  matching:ast  %matching
-                                  predicate=~
-                                  matching-profile=%delete
-                                  ==
+            :-  [%matching ~ %delete]
                 not-matched-by-target
           a  +.a
         ==
       ?:  ?&(=(%matched -<-.a) =(%predicate -<+<.a))
         %=  $
           matched
-            :-  %:  matching:ast  %matching
+            :-  %^  matching:ast  %matching
                                   (produce-predicate (predicate-list -<+>.a))
-                                  matching-profile=%delete
-                                  ==
+                                  %delete
                 matched
           a  +.a
         ==
@@ -2501,16 +2473,16 @@
   |-
   ?~  a  ?:  ?&(=(target-table ~) =(source-table ~))
     ~|("target and source tables cannot both be pass through" !!)
-  %:  merge:ast  %merge
-                (need target-table)
-                new-table
-                (need source-table)
-                predicate
-                matched=matched.matching
-                unmatched-by-target=not-target.matching
-                unmatched-by-source=not-source.matching
-                ~
-                ==
+  :*  %merge
+      (need target-table)
+      new-table
+      (need source-table)
+      predicate
+      matched=matched.matching
+      unmatched-by-target=not-target.matching
+      unmatched-by-source=not-source.matching
+      ~
+      ==
   ?:  ?=(qualified-table:ast -.a)
     %=  $
       a  +.a
@@ -2621,7 +2593,7 @@
   =/  joined-relations  *(list joined-relation:ast)
   |-
   ?:  =(raw-joined-relations ~)
-    (from:ast %from from-object from-as-of (flop joined-relations))
+    [%from from-object from-as-of (flop joined-relations)]
   =/  raw-join  -.raw-joined-relations
   ::cross join
   ?:  ?=  $:  %cross-join
@@ -2630,7 +2602,7 @@
           raw-join
       %=  $
         joined-relations
-          :-  %:  joined-relation:ast  %joined-relation
+          :-  :*  %joined-relation
                                      %cross-join
                                      +.raw-join
                                      ~
@@ -2648,11 +2620,11 @@
       %=  $
         joined-relations
           :-  %:  joined-relation:ast  %joined-relation
-                                     %cross-join
-                                     +<.raw-join
-                                     `+>.raw-join
-                                     ~
-                                     ==
+                                        %cross-join
+                                        +<.raw-join
+                                        `+>.raw-join
+                                        ~
+                                        ==
               joined-relations
         raw-joined-relations  +.raw-joined-relations
       ==
@@ -2670,11 +2642,11 @@
       %=  $
         joined-relations
           :-  %:  joined-relation:ast  %joined-relation
-                                     %cross-join
-                                     +<.raw-join
-                                     `;;(as-of:ast [+>-.raw-join +>+.raw-join])
-                                     ~
-                                     ==
+                                        %cross-join
+                                        +<.raw-join
+                                      `;;(as-of:ast [+>-.raw-join +>+.raw-join])
+                                        ~
+                                        ==
               joined-relations
         raw-joined-relations  +.raw-joined-relations
       ==
@@ -2704,8 +2676,7 @@
     %=  $
       joined-relations
         :-
-          %:  joined-relation:ast
-            %joined-relation
+          :*  %joined-relation
             %join
             ::  object
             ?:  ?=  $:  %join
@@ -2754,22 +2725,22 @@
         joined-relations
           :-
             %:  joined-relation:ast
-              %joined-relation
-              :: join-type
-              -.raw-join
-              ::  object
-              +<-.raw-join
-              :: as-of
-              ?:  ?=  [%as-of-offset *]
-                      +<+.raw-join
-                [~ +<+.raw-join]
-              ?:  ?=  [@ @]
-                      +<+.raw-join
-                [~ ;;(as-of:ast +<+.raw-join)]
-              ~
-              :: predicate
-            (produce-predicate (predicate-list +>.raw-join))
-            ==
+                  %joined-relation
+                  :: join-type
+                  -.raw-join
+                  ::  object
+                  +<-.raw-join
+                  :: as-of
+                  ?:  ?=  [%as-of-offset *]
+                          +<+.raw-join
+                    [~ +<+.raw-join]
+                  ?:  ?=  [@ @]
+                          +<+.raw-join
+                    [~ ;;(as-of:ast +<+.raw-join)]
+                  ~
+                  :: predicate
+                (produce-predicate (predicate-list +>.raw-join))
+                ==
             joined-relations
         raw-joined-relations    +.raw-joined-relations
       ==
@@ -2778,8 +2749,7 @@
       %=  $
         joined-relations
           :-
-            %:  joined-relation:ast
-              %joined-relation
+            :*  %joined-relation
               :: join-type
               -.raw-join
               ::  object
@@ -2803,12 +2773,11 @@
   =/  js   *(list joined-relation:ast)
   |-
   ?~  jss
-    (from:ast %from relation.f as-of.f (flop js))
+    [%from relation.f as-of.f (flop js)]
   =/  j=joined-relation:ast  -.jss
   %=  $
     js   :-  ?~  predicate.j  j
-             %:  joined-relation:ast
-                   %joined-relation
+             :*  %joined-relation
                    join.j
                    relation.j
                    as-of.j
@@ -2843,10 +2812,7 @@
       ?~  alias.cooked-param  cooked-param
       ~|("table alias {<(need alias.cooked-param)>} is not defined" !!)
     [%scalar-name name.cooked-param]
-  :^  %qualified-column
-      (need maybe-table)
-      column=name.cooked-param
-      alias=~
+  [%qualified-column (need maybe-table) column=name.cooked-param alias=~]
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
@@ -2854,12 +2820,7 @@
     (finalize-scalar-param then.cooked-if aliases)
   =/  finalized-else
     (finalize-scalar-param else.cooked-if aliases)
-  %:  if-then-else:ast
-    %if-then-else
-    if=if.cooked-if
-    then=finalized-then
-    else=finalized-else
-  ==
+  [%if-then-else if.cooked-if finalized-then finalized-else]
 ++  finalize-case
   |=  [cooked-case=case-helper aliases=alias-maps]
   ^-  case:ast
@@ -2878,20 +2839,15 @@
       when.i.cases.cooked-case
     =/  finalized-case-when-then
       :+  %case-when-then
-         finalized-when
-      (finalize-scalar-param then.i.cases.cooked-case aliases)
+          finalized-when
+          (finalize-scalar-param then.i.cases.cooked-case aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
     |=  else=scalar-param
     (some (finalize-scalar-param else aliases))
-  %:  case:ast
-    %case
-    target=finalized-target
-    cases=finalized-cases
-    else=finalized-else
-  ==
+  [%case finalized-target finalized-cases finalized-else]
 ++  finalize-coalesce
   |=  [cooked-coalesce=coalesce-helper aliases=alias-maps]
   ^-  coalesce:ast
@@ -2900,10 +2856,8 @@
       data.cooked-coalesce
       |=  param=scalar-param
       (finalize-scalar-param param aliases)
-  %:  coalesce:ast
-    %coalesce
-    data=finalized-data
-  ==
+  :-  %coalesce
+      finalized-data
 ++  produce-scalar-fn
   |=  [fn-name=@tas raw-scalar-body=* aliases=alias-maps]
   ^-  scalar-function:ast
@@ -2974,12 +2928,11 @@
       ?~  alias.a
         a
       ::  alias.column: look up alias in alias-map
-      %:  qualified-column:ast  %qualified-column
-                                %-  ~(got by alias-map)
-                                    (fold-key (need alias.a))
-                                name.a
-                                ~
-                                ==
+      :^  %qualified-column
+          %-  ~(got by alias-map)
+              (fold-key (need alias.a))
+          name.a
+          ~
     dime:ast
       a
     value-literals:ast
@@ -3003,8 +2956,7 @@
                ?:  ?&  =('ALL' name.i.s)
                        !=(name.qualifier.i.s name.i.s)
                        ==
-                  %+  selected-all-table:ast
-                      %all-object
+                  :-  %all-object
                       qualifier.i.s
                i.s
                ::
@@ -3083,15 +3035,15 @@
     ?~  a
       ?~  columns  ~|('no columns selected' !!)
       ?~  f
-        (select:ast %select top (flop columns))
-      (select:ast %select top (finalize-select (flop columns) alias-map))
+        [%select top (flop columns)]
+      [%select top (finalize-select (flop columns) alias-map)]
     ?@  -.a
       ?+  -.a  ~|('some other select atom' !!)
       %top       ?>  ?=(@ud +<.a)  $(top `+<.a, a +>.a)
       %all
         %=  $
           columns
-            :-  (selected-all:ast %all %all)
+            :-  [%all %all]
                 columns
           a        +.a
         ==
@@ -3099,72 +3051,59 @@
     ?:  ?=(select-mold-1 -.a)
       %=  $
         columns
-          :-  %:  selected-aggregate:ast
-                %selected-aggregate
-                %:  aggregate:ast  %aggregate
-                                  (aggregate-name -<+<.a)
-                                  %:  qualified-column:ast  %qualified-column
-                                                            -<+>+<.a
-                                                            -<+>+>-.a
-                                                            -<+>+>+.a
-                                                            ==
-                                  ==
-                `->+.a
-              ==
+          :-  %^  selected-aggregate:ast
+                    %selected-aggregate
+                    :+  %aggregate
+                        (aggregate-name -<+<.a)
+                        [%qualified-column -<+>+<.a -<+>+>-.a -<+>+>+.a]
+                    `->+.a
               columns
         a        +.a
       ==
     ?:  ?=(select-mold-2 -.a)
       %=  $
         columns
-          :-  %:  selected-aggregate:ast
-                %selected-aggregate
-                %:  aggregate:ast  %aggregate
-                                  (aggregate-name ->-.a)
-                                  %:  qualified-column:ast  %qualified-column
-                                                            ->+>-.a
-                                                            ->+>+<.a
-                                                            ->+>+>.a
-                                                            ==
-                                  ==
-                ~
-              ==
+          :-  %^  selected-aggregate:ast
+                    %selected-aggregate
+                    :+  %aggregate
+                        (aggregate-name ->-.a)
+                        [%qualified-column ->+>-.a ->+>+<.a ->+>+>.a]
+                    ~
           columns
         a        +.a
       ==
     ?:  ?=([%all-columns %qualified-table (unit @p) @ @ @ (unit @t)] -.a)
       %=  $
         columns
-          :-  %+  selected-all-table:ast
-                  %all-object
-                  %:  qualified-table:ast  %qualified-table
-                                            ?~  ->+<.a  ~
-                                            [~ ->+<.a]
-                                            ->+>-.a
-                                            ->+>+<.a
-                                            ->+>+>-.a
-                                            ~
-                                            ==
+          :-  %+  selected-all-table:ast  %all-object
+                                          :*  %qualified-table
+                                              ?~  ->+<.a  ~
+                                              [~ ->+<.a]
+                                              ->+>-.a
+                                              ->+>+<.a
+                                              ->+>+>-.a
+                                              ~
+                                              ==
               columns
         a        +.a
       ==
     ?:  ?=([@ @] -.a)
       ?:  ?=([%all-columns @] -.a)
         %=  $
-          columns  :-  %+  selected-all-table:ast
-                           %all-object
-                           ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
-                             (~(got by alias-map) (crip (cass (trip ->.a))))
-                           ~|  "cannot resolve {<->.a>}"
-                               %-  ~(got by (mk-obj-name-map (need f)))
-                                   ->.a
+          columns  :-  %+  selected-all-table:ast  
+                            %all-object
+                            ?:  (~(has by alias-map) (crip (cass (trip ->.a))))
+                              (~(got by alias-map) (crip (cass (trip ->.a))))
+                            ~|  "cannot resolve {<->.a>}"
+                                %-  ~(got by (mk-obj-name-map (need f)))
+                                    ->.a
                        columns
           a        +.a
         ==
       ?>  ?=(dime -.a)
         %=  $
           columns
-            [(selected-value:ast %selected-value -.a ~) columns]
+            [[%selected-value -.a ~] columns]
           a        +.a
         ==
     ?:  ?=([unqualified-column:ast %as @] -.a)
@@ -3181,42 +3120,34 @@
       =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
       %=  $
         columns
-          :-  %:  qualified-column:ast  %qualified-column
+          :-  :^  %qualified-column
                   ?~  resolved
                     [%qualified-table ~ default-database 'dbo' tbl ~]
                   (need resolved)
                   name.uqc
                   `as-alias
-                  ==
               columns
         a  +.a
       ==
     ?:  ?=([qualified-column:ast %as @] -.a)
       %=  $
         columns
-          :-  %:  qualified-column:ast
-                %qualified-column
-                %:  qualified-table:ast
-                  %qualified-table
-                  -<+<+<.a
-                  -<+<+>-.a
-                  -<+<+>+<.a
-                  -<+<+>+>.a
-                ==
+          :-  :^  %qualified-column
+                :*  %qualified-table
+                    -<+<+<.a
+                    -<+<+>-.a
+                    -<+<+>+<.a
+                    -<+<+>+>.a
+                    ==
                 -<+>-.a
                 `->+.a
-              ==
               columns
         a        +.a
       ==
     ?:  ?=([[@tas @] %as @] -.a)
       %=  $
         columns
-          :-  %:  selected-value:ast
-                %selected-value
-                -<.a
-                `(crip (cass (trip ->+.a)))
-              ==
+          :-  [%selected-value -<.a `(crip (cass (trip ->+.a)))]
               columns
         a        +.a
       ==
@@ -3229,13 +3160,12 @@
       =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
       %=  $
         columns
-          :-  %:  qualified-column:ast  %qualified-column
+          :-  :^  %qualified-column
                   ?~  resolved
                     [%qualified-table ~ default-database 'dbo' tbl ~]
                   (need resolved)
                   name.uqc
                   ~
-                  ==
               columns
         a  +.a
       ==
@@ -3247,21 +3177,21 @@
   =/  table=qualified-table:ast  ?>(?=(qualified-table:ast -.a) -.a)
   =/  b  +.a
   ?:  ?=([%set * ~] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    ~
-                    (produce-column-sets table +<.b)
-                    ~
-                    ==
+    :*  %update
+        ctes
+        table
+        ~
+        (produce-column-sets table +<.b)
+        ~
+        ==
   ?:  ?=([[%as-of %now] %set * ~] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    ~
-                    (produce-column-sets table +>-.b)
-                    ~
-                    ==
+    :*  %update
+        ctes
+        table
+        ~
+        (produce-column-sets table +>-.b)
+        ~
+        ==
   ?:  ?=([[%as-of @ @] %set * ~] b)
     %:  update:ast  %update
                     ctes
@@ -3274,20 +3204,20 @@
     %:  update:ast  %update
                     ctes
                     table
-                    [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
+                    [~ [%as-of-offset ->-.b ->+<.b]]
                     (produce-column-sets table +>-.b)
                     ~
-                    ==                    
-  ?:  ?=([[%as-of %now] %set * *] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    ~
-                    (produce-column-sets table +>-.b)
-                    %+  qualify-predicate
-                        (produce-predicate (predicate-list +>+.b))
-                        table
                     ==
+  ?:  ?=([[%as-of %now] %set * *] b)
+    :*  %update
+        ctes
+        table
+        ~
+        (produce-column-sets table +>-.b)
+        %+  qualify-predicate
+            (produce-predicate (predicate-list +>+.b))
+            table
+        ==
   ?:  ?=([[%as-of @ @] %set * *] b)
     %:  update:ast  %update
                     ctes
@@ -3299,24 +3229,24 @@
                         table
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
-                    (produce-column-sets table +>-.b)
-                    %+  qualify-predicate
-                        (produce-predicate (predicate-list +>+.b))
-                        table
-                    ==
-  %:  update:ast  %update
-                  ctes
-                  table
-                  ~
-                  (produce-column-sets table +<.b)
-                  %+  qualify-predicate
-                      (produce-predicate (predicate-list +>.b))
-                      table
-                  ==
+    :*  %update
+        ctes
+        table
+        [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
+        (produce-column-sets table +>-.b)
+        %+  qualify-predicate
+            (produce-predicate (predicate-list +>+.b))
+            table
+        ==
+  :*  %update
+      ctes
+      table
+      ~
+      (produce-column-sets table +<.b)
+      %+  qualify-predicate
+          (produce-predicate (predicate-list +>.b))
+          table
+      ==
 ::
 ++  produce-column-sets
   |=  [table=qualified-table:ast a=*]
@@ -3329,11 +3259,7 @@
     [columns values]
   =/  b  -.a
   %=  $
-      columns  :-  %:  qualified-column:ast  %qualified-column
-                                             table
-                                             -.b
-                                             ~
-                                             ==
+      columns  :-  (qualified-column:ast %qualified-column table -.b ~)
                    columns
       values   [;;(value-or-default:ast +.b) values]
       a        +.a
@@ -3498,21 +3424,21 @@
   |=  a=*
   ~+
   ?@  a
-    (qualified-table:ast %qualified-table ~ default-database 'dbo' a ~)
-  (qualified-table:ast %qualified-table ~ default-database -.a +.a ~)
+    [%qualified-table ~ default-database 'dbo' a ~]
+  [%qualified-table ~ default-database -.a +.a ~]
 ::
 ++  cook-qualified-3object
   ::  database.namespace.object-name
   |=  a=*
   ~+
   ?:  ?=([@ @ @] a)                                 :: db.ns.name
-    (qualified-table:ast %qualified-table ~ -.a +<.a +>.a ~)
+    [%qualified-table ~ -.a +<.a +>.a ~]
   ?:  ?=([@ @ @ @] a)                               :: db..name
-    (qualified-table:ast %qualified-table ~ -.a 'dbo' +>+.a ~)
+    [%qualified-table ~ -.a 'dbo' +>+.a ~]
   ?:  ?=([@ @] a)                                   :: ns.name
-    (qualified-table:ast %qualified-table ~ default-database -.a +.a ~)
+    [%qualified-table ~ default-database -.a +.a ~]
   ?@  a                                             :: name
-    (qualified-table:ast %qualified-table ~ default-database 'dbo' a ~)
+    [%qualified-table ~ default-database 'dbo' a ~]
   ~|("cannot parse qualified-table  {<a>}" !!)
 ::
 ++  cook-qualified-table
@@ -3521,17 +3447,17 @@
   ~+
   ?:  ?=([@ @ @ @] a)
     ?:  =(+<.a '.')
-      (qualified-table:ast %qualified-table ~ -.a 'dbo' +>+.a ~)  :: db..name
+      [%qualified-table ~ -.a 'dbo' +>+.a ~]       :: db..name
     :: ~firsub.db.ns.name
-    (qualified-table:ast %qualified-table `-.a +<.a +>-.a +>+.a ~)
+    [%qualified-table `-.a +<.a +>-.a +>+.a ~]
   ?:  ?=([@ @ @ @ @ @] a)                           :: ~firsub.db..name
-    (qualified-table:ast %qualified-table `-.a +>-.a 'dbo' +>+>+.a ~)
+    [%qualified-table `-.a +>-.a 'dbo' +>+>+.a ~]
   ?:  ?=([@ @ @] a)
-    (qualified-table:ast %qualified-table ~ -.a +<.a +>.a ~)  :: db.ns.name
+    [%qualified-table ~ -.a +<.a +>.a ~]            :: db.ns.name
   ?:  ?=([@ @] a)                                   :: ns.name
-    (qualified-table:ast %qualified-table ~ default-database -.a +.a ~)
+    [%qualified-table ~ default-database -.a +.a ~]
   ?@  a                                             :: name
-    (qualified-table:ast %qualified-table ~ default-database 'dbo' a ~)
+    [%qualified-table ~ default-database 'dbo' a ~]
   ~|("cannot parse qualified-table  {<a>}" !!)
 ::
 ++  qualified-namespace
@@ -3638,7 +3564,7 @@
   =/  literal-list=tape  ~
   |-
   ?:  =(a ~)
-    (value-literals:ast %value-literals literal-type (crip literal-list))
+    [%value-literals literal-type (crip literal-list)]
   ?:  =(-<.a literal-type)
     ?:  =(literal-list ~)
       $(a +.a, literal-list (a-co:co ->.a))
@@ -3665,16 +3591,16 @@
   |=  a=*
     ?.  ?=([@ @] [a])  ~|("cannot parse column  {<a>}" !!)
     ?@  +.a
-      (column:ast %column -.a (crip (slag 1 (trip +.a))) 0)
+      [%column -.a (crip (slag 1 (trip +.a))) 0]
     ~|("cannot parse column  {<a>}" !!)
 ++  cook-ordered-column
   |=  a=*
     ?@  a
-      (ordered-column:ast %ordered-column a %.y)
+      [%ordered-column a %.y]
     ?:  ?=([@ @] [a])
       ?:  =(+.a %asc)
-        (ordered-column:ast %ordered-column -.a %.y)
-      (ordered-column:ast %ordered-column -.a %.n)
+        [%ordered-column -.a %.y]
+      [%ordered-column -.a %.n]
     ~|("cannot parse ordered-column  {<a>}" !!)
 ++  cook-referential-integrity
   |=  a=*
@@ -3953,12 +3879,12 @@
                                   -<.f-keys
                                   -.a
                                   ->-.f-keys
-                                  %:  qualified-table:ast  %qualified-table
-                                                            ~
-                                                            ->+<.a
-                                                            ->+<+>+<.f-keys
-                                                            ->+<+>+>.f-keys
-                                                            ==
+                                  :*  %qualified-table
+                                      ~
+                                      ->+<.a
+                                      ->+<+>+<.f-keys
+                                      ->+<+>+>.f-keys
+                                      ==
                                   ->+>.f-keys
                                   ~
                                   ==
@@ -3968,18 +3894,18 @@
   %=  $                         :: foreign key table must be in same DB as table
     foreign-keys
       :-  %:  foreign-key:ast  %foreign-key
-                              -<-.f-keys
-                              -.a
-                              -<+<.f-keys
-                              %:  qualified-table:ast  %qualified-table
-                                                        ~
-                                                        ->+<.a
-                                                        -<+>->+>-.f-keys
-                                                        -<+>->+>+.f-keys
-                                                        ==
-                              -<+>+.f-keys
-                              ->.f-keys
-                              ==
+                                -<-.f-keys
+                                -.a
+                                -<+<.f-keys
+                                :*  %qualified-table
+                                    ~
+                                    ->+<.a
+                                    -<+>->+>-.f-keys
+                                    -<+>->+>+.f-keys
+                                    ==
+                                -<+>+.f-keys
+                                ->.f-keys
+                                ==
           foreign-keys
     f-keys        +.f-keys
   ==
@@ -4114,28 +4040,28 @@
           [relation:ast as-of:ast]
           ==
    ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] @] parsed)
-    %-  relation:ast  :*  %qualified-table
-                          ->-.parsed
-                          ->+<.parsed
-                          ->+>-.parsed
-                          ->+>+<.parsed
-                          `+.parsed
-                          ==
+    :*  %qualified-table
+        ->-.parsed
+        ->+<.parsed
+        ->+>-.parsed
+        ->+>+<.parsed
+        `+.parsed
+        ==
   ?:  ?=([%qualified-table (unit @p) @ @ @ (unit @t)] parsed)
-    (relation:ast parsed)
+    parsed
   ::
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] %as-of %now] parsed)
-    :-  (relation:ast -.parsed)
-        (as-of-offset:ast %as-of-offset 0 %seconds)
+    :-  -.parsed
+        [%as-of-offset 0 %seconds]
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of %now] @] parsed)
-    :-  %-  relation:ast  :*  %qualified-table
-                              ->-.parsed
-                              ->+<.parsed
-                              ->+>-.parsed
-                              ->+>+<.parsed
-                              `+>.parsed
-                              ==
-        (as-of-offset:ast %as-of-offset 0 %seconds)
+    :-  :*  %qualified-table
+            ->-.parsed
+            ->+<.parsed
+            ->+>-.parsed
+            ->+>+<.parsed
+            `+>.parsed
+            ==
+        [%as-of-offset 0 %seconds]
   ::
   ?:  ?=  [[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago]]
           parsed
@@ -4143,26 +4069,26 @@
         (as-of-offset:ast %as-of-offset +>-.parsed +>+<.parsed)
   ?:  ?=  [[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @ %ago] @]
           parsed
-    :-  %-  relation:ast  :*  %qualified-table
-                              ->-.parsed
-                              ->+<.parsed
-                              ->+>-.parsed
-                              ->+>+<.parsed
-                              `+>.parsed
-                              ==
+    :-  %:  relation:ast  %qualified-table
+                          ->-.parsed
+                          ->+<.parsed
+                          ->+>-.parsed
+                          ->+>+<.parsed
+                          `+>.parsed
+                          ==
         (as-of-offset:ast %as-of-offset +<+<.parsed +<+>-.parsed)
   ::
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @]] parsed)
-    :-  (relation:ast -.parsed)
+    :-  -.parsed
         ;;(as-of:ast [+>-.parsed +>+.parsed])
   ?:  ?=([[%qualified-table (unit @p) @ @ @ (unit @t)] [%as-of @ @] @] parsed)
-    :-  %-  relation:ast  :*  %qualified-table
-                              ->-.parsed
-                              ->+<.parsed
-                              ->+>-.parsed
-                              ->+>+<.parsed
-                              `+>.parsed
-                              ==
+    :-  :*  %qualified-table
+            ->-.parsed
+            ->+<.parsed
+            ->+>-.parsed
+            ->+>+<.parsed
+            `+>.parsed
+            ==
         ;;(as-of:ast [+<+<.parsed +<+>.parsed])
   ::
   ?:  =(%query-row -.parsed)  ;;(relation:ast parsed)
@@ -4208,13 +4134,13 @@
   ~+
   ^-  relation:ast
   ?:  ?=(qualified-table:ast a)
-    (relation:ast a)
+    a
   ?:  ?=(qualified-table:ast -.a)
-    (relation:ast -.a)
+    -.a
   ?:  ?=([~ @tas @tas @tas ~] a)
-    (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a ~])
+    [%qualified-table -.a +<.a +>-.a +>+<.a ~]
   ?:  ?=([~ @tas @tas @tas [~ @t]] a)
-    (relation:ast [%qualified-table -.a +<.a +>-.a +>+<.a +>+>.a])
+    [%qualified-table -.a +<.a +>-.a +>+<.a +>+>.a]
   ::  %query-row not implemented
   =/  columns  *(list @t)
   =/  b       ?:  =(%query-row -.a)  +.a
@@ -4224,8 +4150,8 @@
   |-
   ?~  b
     ?~  alias
-      (relation:ast (query-row:ast %query-row ~ (flop columns)))
-    (relation:ast (query-row:ast %query-row `alias (flop columns)))
+      (relation:ast [%query-row ~ (flop columns)])
+    (relation:ast [%query-row `alias (flop columns)])
   ?@  -.b  $(b +.b, columns [-.b columns])
   ~|("cannot make-query-object:  {<a>}" !!)
 ::
@@ -4236,37 +4162,31 @@
   |=  a=*
   ~+
   ?:  ?=([@ @ @ @ @] a)   :: @p.db.ns.object.column (ns may be ~)
-    %:  qualified-column:ast
-      %qualified-column
-      %:  qualified-table:ast
-        %qualified-table
-        `-.a
-        +<.a
-        ?~(+>-.a 'dbo' +>-.a)
-        +>+<.a
+    :^  %qualified-column
+        :*  %qualified-table
+            `-.a
+            +<.a
+            ?~(+>-.a 'dbo' +>-.a)
+            +>+<.a
+            ~
+            ==
+        +>+>.a
         ~
-      ==
-      +>+>.a
-      ~
-    ==
   ?:  ?=([@ @ @ @] a)     :: db.ns.object.column (db or ns may be ~)
-    %:  qualified-column:ast
-      %qualified-column
-      %:  qualified-table:ast
-        %qualified-table
+    :^  %qualified-column
+        :*  %qualified-table
+            ~
+            ?~(-.a default-database -.a)
+            ?~(+<.a 'dbo' +<.a)
+            +>-.a
+            ~
+            ==
+        +>+.a
         ~
-        ?~(-.a default-database -.a)
-        ?~(+<.a 'dbo' +<.a)
-        +>-.a
-        ~
-      ==
-      +>+.a
-      ~
-    ==
   ?:  ?=([@ @] a)          :: alias.column (table alias or cte)
-    (unqualified-column:ast %unqualified-column +.a (some -.a))
+    [%unqualified-column +.a (some -.a)]
   ?@  a                    :: bare column name
-    (unqualified-column:ast %unqualified-column a ~)
+    [%unqualified-column a ~]
   ~|("cannot parse qualified-column  {<a>}" !!)
 ++  parse-column  ~+
   ;~  pose
@@ -4353,20 +4273,14 @@
   ?:  ?&(=(%aggregate:ast -<.a) ?=(@ ->-.a) ?=(qualified-column:ast ->+.a))
     %=  $
       new-list
-        :-  %:  aggregate:ast   %aggregate
-                               (aggregate-name ->-.a)
-                               `qualified-column:ast`->+.a
-                               ==
+        :-  [%aggregate (aggregate-name ->-.a) `qualified-column:ast`->+.a]
             new-list
       a  +.a
     ==
   ?:  ?&(=(%aggregate:ast -<.a) ?=(@ ->-.a) ?=(unqualified-column:ast ->+.a))
     %=  $
       new-list
-        :-  %:  aggregate:ast   %aggregate
-                               (aggregate-name ->-.a)
-                               `unqualified-column:ast`->+.a
-                               ==
+        :-  [%aggregate (aggregate-name ->-.a) `unqualified-column:ast`->+.a]
             new-list
       a  +.a
     ==
@@ -4707,14 +4621,17 @@
                 (some (finalize-param +.raw-scalar-body aliases))
     !!
   ?:  =(%power fn-name)
-    :+  %power  (finalize-param -.raw-scalar-body aliases)
-                (finalize-param +.raw-scalar-body aliases)
+    :+  %power
+        (finalize-param -.raw-scalar-body aliases)
+        (finalize-param +.raw-scalar-body aliases)
   ?:  =(%left fn-name)
-    :+  %left  (finalize-param -.raw-scalar-body aliases)
-               (finalize-param +.raw-scalar-body aliases)
+    :+  %left
+        (finalize-param -.raw-scalar-body aliases)
+        (finalize-param +.raw-scalar-body aliases)
   ?:  =(%right fn-name)
-    :+  %right  (finalize-param -.raw-scalar-body aliases)
-                (finalize-param +.raw-scalar-body aliases)
+    :+  %right
+        (finalize-param -.raw-scalar-body aliases)
+        (finalize-param +.raw-scalar-body aliases)
   ?:  =(%trim fn-name)
     ?:  =(%one-param param-count)
       [%trim ~ (finalize-param raw-scalar-body aliases)]
@@ -4885,12 +4802,10 @@
   =/  cooked-then  (cook-scalar-param raw-then)
   =/  raw-else  +>+>-.parsed
   =/  cooked-else  (cook-scalar-param raw-else)
-  %:  if-then-else-helper
-    %if-then-else-helper
+  :^  %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
     cooked-then
     cooked-else
-  ==
 ++  parse-if
   ;~  plug
     parse-predicate
@@ -4983,10 +4898,8 @@
                           [(cook-scalar-param -.parsed) $(parsed +.parsed)]
   ?~  coalesce-params     ~|("COALESCE requires at least 2 parameters" !!)
   ?~  t.coalesce-params   ~|("COALESCE requires at least 2 parameters" !!)
-  %:  coalesce-helper
-    %coalesce-helper
-    data=coalesce-params
-  ==
+  :-  %coalesce-helper
+      data=coalesce-params
 ++  parse-coalesce  ~+
   ;~  plug
     (cold %coalesce (jester %coalesce))
@@ -5104,10 +5017,7 @@
   ?@  t
     ~|("tree-to-arithmetic: received ~ tree" !!)
   ?:  ?=(arithmetic-op:ast n.t)
-    :^  %arithmetic
-        n.t
-        $(t l.t)
-        $(t r.t)
+    [%arithmetic n.t $(t l.t) $(t r.t)]
   n.t
 ::
 ++  process-arithmetic-list
@@ -5131,7 +5041,8 @@
   =/  current-op-prec  (compute-precedence next-operator)
   ?:  (gte current-op-prec min-prec)
     =/  next-min-prec  (calculate-min-precedence next-operator)
-    =/  expr-to-the-right  (process-arithmetic-list +>.ops next-min-prec aliases)
+    =/  expr-to-the-right
+          (process-arithmetic-list +>.ops next-min-prec aliases)
     =/  new-tree=(tree $?(arithmetic-op:ast scalar-node:ast))
       [next-operator tr tree.expr-to-the-right]
     $(tr new-tree, ops remaining.expr-to-the-right)
@@ -5294,12 +5205,12 @@
 ++  cook-ordering-column
   |=  parsed=*
   ?:  ?=(qualified-column:ast parsed)
-    (ordering-column:ast %ordering-column parsed %.y)
+    [%ordering-column parsed %.y]
   ?:  ?=(unqualified-column:ast parsed)
-    (ordering-column:ast %ordering-column parsed %.y)
-  ?@  parsed  (ordering-column:ast %ordering-column parsed %.y)
-  ?:  =(+.parsed %asc)  (ordering-column:ast %ordering-column -.parsed %.y)
-  (ordering-column:ast %ordering-column -.parsed %.n)
+    [%ordering-column parsed %.y]
+  ?@  parsed  [%ordering-column parsed %.y]
+  ?:  =(+.parsed %asc)  [%ordering-column -.parsed %.y]
+  [%ordering-column -.parsed %.n]
 ++  parse-ordered-column
   %:  cook
     cook-ordering-column
@@ -5393,11 +5304,6 @@
         ==
   ==
 +$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast)
-+$  scalar-helper
-  $%  coalesce-helper
-     if-then-else-helper
-     case-helper
-  ==
 +$  coalesce-helper
   $:
     %coalesce-helper
