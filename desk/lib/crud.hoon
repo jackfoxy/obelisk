@@ -176,6 +176,7 @@
             key.pri-indx.table.txn
             |=(a=key-column (make-key-pick name.a column-lookup.table.txn))
   =/  primary-key  (pri-key key.pri-indx.table.txn)
+  =/  kns=(set @tas)  (silt (turn key-pick |=(a=[@tas @] -.a)))
   ::
   =.  state          (update-sys state now.bowl)
   ::
@@ -193,6 +194,7 @@
                                                        nxt-data.txn
                                                        tbl-key.txn
                                                        key.pri-indx.table.txn
+                                                       i
                                                        ==
                               view-cache  %:  upd-view-caches  state
                                                                 db.txn
@@ -216,11 +218,13 @@
           ==
   ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  file-row  (row-cells row cols)
+  =/  rw  (row-cells-and-keys row cols kns)
+  =/  file-row=(map @tas @)   -.rw
+  =/  key-map=(map @tas @)    +.rw
   =/  row-key=(list @)
         %+  turn
             key-pick
-            |=(a=[p=@tas q=@ud] (key-atom [p.a file-row]))
+            |=(a=[@tas @] (~(got by key-map) -.a))
   =.  pri-idx.file.txn  ?:  (has:primary-key pri-idx.file.txn row-key)
                           ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
                         (put:primary-key pri-idx.file.txn row-key file-row)
@@ -476,7 +480,7 @@
           selected=(list selected-column:ast)
           ==
   ^-  (list vector)
-  ?:  =((lent rows) 0)  ~
+  ?:  =(~ rows)  ~
   =/  out-rows   *(set vector)
   =/  cells  %:  mk-rel-vect-templ  qualified-columns
                                     selected
@@ -485,11 +489,7 @@
                                     ==
   |-
   ?~  rows  ~(tap in out-rows)
-  =/  include-row=?
-    ?~  filter
-      %.y
-    ((need filter) i.rows)
-  ?.  include-row
+  ?.  ?~(filter %.y ((need filter) i.rows))
     $(rows t.rows)
   =/  row                     *(list vector-cell)
   =/  cols=(list templ-cell)  cells
@@ -1045,12 +1045,11 @@
     ==
 ::
 ++  update-file
-  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column)]
-  ~+  :: keeper
+  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column) inserted=@ud]
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =.  indexed-rows.file    new-indexed-rows
-  =.  rowcount.file        (lent new-indexed-rows)
+  =.  rowcount.file        (add rowcount.file inserted)
   =.  files.data  (~(put by files.data) tbl-key file)
   data
 ::
@@ -1063,6 +1062,24 @@
   ?~  p  (malt cells)
   %=  $
     cells  [(row-cell -.p -.q) cells]
+    p  +.p
+    q  +.q
+  ==
+::
+++  row-cells-and-keys
+  ::  Build row map and key-value subset map in a single pass.
+  |=  [p=(list value-or-default:ast) q=(list column:ast) key-names=(set @tas)]
+  ^-  [(map @tas @) (map @tas @)]
+  =/  all-cells  *(list [@tas @])
+  =/  key-cells  *(list [@tas @])
+  |-
+  ?~  p  [(malt all-cells) (malt key-cells)]
+  =/  cell=[@tas @]  (row-cell -.p -.q)
+  %=  $
+    all-cells  [cell all-cells]
+    key-cells  ?:  (~(has in key-names) -.cell)
+                 [cell key-cells]
+               key-cells
     p  +.p
     q  +.q
   ==
