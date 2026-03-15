@@ -1274,10 +1274,7 @@
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
           %=  $
             script    q.q.u.+3.q:nail
-            commands  :-  :+  %selection
-                              ~
-                              [(produce-query parsed) ~ ~]
-                          commands
+            commands  [(produce-query ~ parsed) commands]
           ==
     %revoke
       =/  [parsed=* nail=edge]  |-
@@ -1389,10 +1386,7 @@
           ?:  =(+<.parsed %query)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  selection:ast  %selection
-                                              (produce-ctes -.parsed)
-                                              [(produce-query +>.parsed) ~ ~]
-                                              ==
+              commands  :-  (produce-query (produce-ctes -.parsed) +>.parsed)
                             commands
             ==
           ?:  =(+<.parsed %update)
@@ -2222,13 +2216,15 @@
   ?:  ?&(=(%cte -<.a) =(%as ->+<.a))
     %=  $
       a  +.a
-      ctes  [(cte:ast %cte ->+>.a (produce-query ->-.a)) ctes]
+      ctes  [(cte:ast %cte ->+>.a (make-query ctes ->-.a)) ctes]
     ==
   ~|('cannot produce ctes from parsed:  {<a>}' !!)
 ++  produce-delete
   |=  [ctes=(list cte:ast) a=*]
    ~+
   ^-  delete:ast
+  =/  cte-map      (mk-cte-map ctes)
+  =/  cte-col-map  (mk-cte-col-map ctes)
   ?>  ?=(qualified-table:ast -.a)
   ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
@@ -2236,7 +2232,12 @@
                     -.a
                     ~
                     %+  qualify-predicate
-                        (produce-predicate (predicate-list +>-.a))
+                        %:  finalize-predicate
+                              (produce-predicate (predicate-list +>-.a))
+                              ~
+                              cte-map
+                              cte-col-map
+                              ==
                         -.a
                     ==
   ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
@@ -2245,7 +2246,12 @@
                     -.a
                     ~
                     %+  qualify-predicate
-                        (produce-predicate (predicate-list +>+<.a))
+                        %:  finalize-predicate
+                              (produce-predicate (predicate-list +>+<.a))
+                              ~
+                              cte-map
+                              cte-col-map
+                              ==
                         -.a
                     ==
   ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
@@ -2254,7 +2260,12 @@
                     -.a
                     [~ +<+.a]
                     %+  qualify-predicate
-                        (produce-predicate (predicate-list +>+<.a))
+                        %:  finalize-predicate
+                              (produce-predicate (predicate-list +>+<.a))
+                              ~
+                              cte-map
+                              cte-col-map
+                              ==
                         -.a
                     ==
   ?:  ?=([* [%as-of *] %where * %end-command ~] a)
@@ -2263,7 +2274,12 @@
                     -.a
                     [~ [%as-of-offset +<+<.a +<+>-.a]]
                     %+  qualify-predicate
-                        (produce-predicate (predicate-list +>+<.a))
+                        %:  finalize-predicate
+                              (produce-predicate (predicate-list +>+<.a))
+                              ~
+                              cte-map
+                              cte-col-map
+                              ==
                         -.a
                     ==
   !!
@@ -2534,10 +2550,10 @@
     matching  (produce-matching -.a)
   ==
 ::
-++  produce-query
-  |=  a=*
+++  make-query
+  |=  [ctes=(list cte:ast) a=*]
   ~+
-  ^-  query:ast     
+  ^-  query:ast
   =/  from       *(unit from:ast)
   =/  scalars    *(list scalar:ast)
   =/  predicate  *predicate:ast
@@ -2545,39 +2561,49 @@
   =/  having     *predicate:ast
   =/  select     *(unit select:ast)
   =/  order-by   *(list ordering-column:ast)
-  =/  alias-map  *(map @t qualified-table:ast)
+  =/  alias-map    *(map @t qualified-table:ast)
+  =/  cte-map      (mk-cte-map ctes)
+  =/  cte-col-map  (mk-cte-col-map ctes)
   |-
   ?~  a  ~|("cannot parse query  {<a>}" !!)
   =.  alias-map  ?~   alias-map
                    ?~   from  ~
                    (mk-alias-map (need from))
-                 alias-map 
+                 alias-map
   ?~  -.a                   $(a +.a) :: discard nulls from optional parsers
   ?:  =(-.a %query)         $(a +.a)
-  ?:  =(-.a %end-command)   :*  %query
-                                ?~  from  ~
-                                  `(finalize-predicates (need from) alias-map)
-                                scalars
-                                ?~  predicate  ~
-                                  (finalize-predicate predicate alias-map)
-                                group-by
-                                having
-                                (need select)
-                                order-by
-                                ==
-  ?:  =(-<.a %scalars)      $(a +.a, scalars (produce-scalars -.a alias-map))
+  ?:  =(-.a %end-command)
+    :*  %query
+        ?~  from  ~
+          `(finalize-predicates (need from) alias-map cte-map cte-col-map)
+        scalars
+        ?~  predicate  ~
+          (finalize-predicate predicate alias-map cte-map cte-col-map)
+        group-by
+        having
+        (need select)
+        order-by
+        ==
+  ?:  =(-<.a %scalars)
+    $(a +.a, scalars (produce-scalars -.a alias-map cte-map cte-col-map))
   ?:  =(-<.a %where)        %=  $
                               a          +.a
                               predicate  %-  produce-predicate
                                              (predicate-list ->.a)
                             ==
-  ?:  =(-<.a %select)     $(a +.a, select `(produce-select ->.a from alias-map))
+  ?:  =(-<.a %select)
+    $(a +.a, select `(produce-select ->.a from alias-map cte-map cte-col-map))
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %qualified-table)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
   ?:  =(-<-<.a %qualified-table)  $(a +.a, from `(produce-from -.a))
   ~|("cannot parse query  {<a>}" !!)
+++  produce-query
+  |=  [ctes=(list cte:ast) a=*]
+  ~+
+  ^-  selection:ast
+  (selection:ast %selection ctes [(make-query ctes a) ~ ~])
 ::
 ++  produce-from
   |=  a=*
@@ -2766,28 +2792,30 @@
   ~|("join type not supported: {<-.raw-join>}" !!)
 ::
 ++  finalize-predicates
-  |=  [f=from:ast alias-map=(map @t qualified-table:ast)]
+  |=  $:  f=from:ast
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          cte-col-map=(map @tas (set @tas))
+          ==
   ~+
   ^-  from:ast
-  =/  jss  joins.f
-  =/  js   *(list joined-relation:ast)
-  |-
-  ?~  jss
-    [%from relation.f as-of.f (flop js)]
-  =/  j=joined-relation:ast  -.jss
-  %=  $
-    js   :-  ?~  predicate.j  j
-             :*  %joined-relation
-                   join.j
-                   relation.j
-                   as-of.j
-                   (finalize-predicate predicate.j alias-map)
-                   ==
-             js
-    jss  +.jss
-  ==
+  =/  finalized-joins
+    %+  turn  joins.f
+    |=  j=joined-relation:ast
+    ?~  predicate.j  j
+    :*  %joined-relation
+          join.j
+          relation.j
+          as-of.j
+          (finalize-predicate predicate.j alias-map cte-map cte-col-map)
+          ==
+  [%from relation.f as-of.f finalized-joins]
 +$  alias-maps
-  [table=(map @t qualified-table:ast) scalar=(map @t scalar-function:ast)]
+  $:  table=(map @t qualified-table:ast)
+      scalar=(map @t scalar-function:ast)
+      cte=(map @tas @tas)
+      cte-col=(map @tas (set @tas))
+      ==
 ++  fold-key
   |=  a=@t
   ^-  @t
@@ -2808,9 +2836,20 @@
         (~(get by table.aliases) (fold-key (need alias.cooked-param)))
   =/  maybe-scalar  (~(get by scalar.aliases) name.cooked-param)
   ?~  maybe-table
-    ?~  maybe-scalar  
+    ?~  maybe-scalar
       ?~  alias.cooked-param  cooked-param
-      ~|("table alias {<(need alias.cooked-param)>} is not defined" !!)
+      =/  maybe-cte
+            (~(get by cte.aliases) (fold-key (need alias.cooked-param)))
+      ?~  maybe-cte
+        ~|("table alias {<(need alias.cooked-param)>} is not defined" !!)
+      =/  maybe-col-set  (~(get by cte-col.aliases) (fold-key (need maybe-cte)))
+      ?:  ?&  ?=(^ maybe-col-set)
+              !(~(has in (need maybe-col-set)) (fold-key name.cooked-param))
+              ==
+        ~|  "column {<name.cooked-param>} is not produced by CTE ".
+            "{<(need maybe-cte)>}"
+            !!
+      [%cte-column (need maybe-cte) name.cooked-param]
     [%scalar-name name.cooked-param]
   [%qualified-column (need maybe-table) column=name.cooked-param alias=~]
 ++  finalize-if
@@ -2880,7 +2919,11 @@
     (cook-and-finalize-builtin-scalar-fn raw-scalar-body aliases)
   ~|  "produce-scalar: scalar {<fn-name>} not implemented"  !!
 ++  produce-scalars
-  |=  [raw-scalars=* table-aliases=(map @t qualified-table:ast)]
+  |=  $:  raw-scalars=*
+          table-aliases=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          cte-col-map=(map @tas (set @tas))
+          ==
   ^-  (list scalar:ast)
   =/  scalars  +.raw-scalars
   =/  scalar-map  *(map @t scalar-function:ast)
@@ -2898,7 +2941,9 @@
     ?:  (~(has by scalar-map) scalar-name)
       ~|("there is already a scalar named {<scalar-name>}" !!)
     =/  scalar-function
-      (produce-scalar-fn fn-name raw-body [table-aliases scalar-map])
+      %^  produce-scalar-fn  fn-name
+                             raw-body
+                             [table-aliases scalar-map cte-map cte-col-map]
     =/  scalar  [%scalar name=scalar-name scalar=scalar-function]
       :-  scalar
       %=  $
@@ -2907,16 +2952,24 @@
       ==
   finalized-scalars
 ++  finalize-predicate
-  |=  [p=predicate:ast alias-map=(map @t qualified-table:ast)]
+  |=  $:  p=predicate:ast
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          cte-col-map=(map @tas (set @tas))
+          ==
   ~+
   ^-  predicate:ast
   ::
   |-
   ?~  p  ~
-  p(n (finalize-leaf n.p alias-map), l $(p l.p), r $(p r.p))
+  p(n (finalize-leaf n.p alias-map cte-map cte-col-map), l $(p l.p), r $(p r.p))
 ::
 ++  finalize-leaf
-  |=  [a=predicate-component:ast alias-map=(map @t qualified-table:ast)]
+  |=  $:  a=predicate-component:ast
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          cte-col-map=(map @tas (set @tas))
+          ==
   ~+
   ^-  predicate-component:ast
   ?-  a
@@ -2927,10 +2980,21 @@
     unqualified-column:ast
       ?~  alias.a
         a
-      ::  alias.column: look up alias in alias-map
+      ::  alias.column: look up alias in alias-map, then cte-map
+      =/  maybe-table  (~(get by alias-map) (fold-key (need alias.a)))
+      ?~  maybe-table
+        =/  maybe-cte  (~(get by cte-map) (fold-key (need alias.a)))
+        ?~  maybe-cte
+          ~|("table alias {<(need alias.a)>} is not defined" !!)
+        =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+        ?:  ?&  ?=(^ maybe-col-set)
+                !(~(has in (need maybe-col-set)) (fold-key name.a))
+                ==
+          ~|  "column {<name.a>} is not produced by CTE {<(need maybe-cte)>}"
+              !!
+        [%cte-column (need maybe-cte) name.a]
       :^  %qualified-column
-          %-  ~(got by alias-map)
-              (fold-key (need alias.a))
+          (need maybe-table)
           name.a
           ~
     dime:ast
@@ -2938,6 +3002,8 @@
     value-literals:ast
       a
     aggregate:ast
+      a
+    cte-column:ast
       a
     ==
 ::
@@ -2996,6 +3062,49 @@
     js  +.js
   ==
 ::
+++  mk-cte-map
+  |=  ctes=(list cte:ast)
+  ^-  (map @tas @tas)
+  %-  ~(gas by *(map @tas @tas))
+  %+  turn  ctes
+  |=  c=cte:ast
+  [(fold-key name.c) name.c]
+::
+++  mk-cte-col-map
+  |=  ctes=(list cte:ast)
+  ^-  (map @tas (set @tas))
+  =/  result  *(map @tas (set @tas))
+  |-
+  ?~  ctes  result
+  =/  c=cte:ast  i.ctes
+  =/  maybe-col-set
+    =/  selected  columns.select.query.c
+    =/  cols  *(set @tas)
+    |-
+    ^-  (unit (set @tas))
+    ?~  selected  `cols
+    =/  sc  i.selected
+    ?:  ?=(qualified-column:ast sc)
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
+      ==
+    ?:  ?=(unqualified-column:ast sc)
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
+      ==
+    ?:  ?=(selected-aggregate:ast sc)
+      ~|("mk-cte-col-map: selected-aggregate not implemented" !!)
+    ?:  ?=(selected-value:ast sc)
+      ~|("mk-cte-col-map: selected-value not implemented" !!)
+    ~   :: selected-all or selected-all-table: wildcard, skip column validation
+  %=  $
+    ctes    t.ctes
+    result  ?~  maybe-col-set  result
+            (~(put by result) (fold-key name.c) (need maybe-col-set))
+  ==
+::
 ++  mk-obj-name-map
   ::  from:ast -> (map @t qualified-table:ast)
   ::
@@ -3026,7 +3135,12 @@
     js  +.js
   ==
 ++  produce-select
-  |=  [a=* f=(unit from:ast) alias-map=(map @t qualified-table:ast)]
+  |=  $:  a=*
+          f=(unit from:ast)
+          alias-map=(map @t qualified-table:ast)
+          cte-map=(map @tas @tas)
+          cte-col-map=(map @tas (set @tas))
+          ==
   ^-  select:ast
   =/  top      *(unit @ud)
   =/  columns  *(list selected-column:ast)
@@ -3115,14 +3229,25 @@
           columns  [[%unqualified-column name.uqc `as-alias] columns]
           a  +.a
         ==
-      ::  table.column with AS alias: resolve table, produce qualified-column
+      ::  table.column with AS alias: resolve table alias, then cte-map
       =/  tbl  (need alias.uqc)
       =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
       %=  $
         columns
-          :-  :^  %qualified-column
-                  ?~  resolved
-                    [%qualified-table ~ default-database 'dbo' tbl ~]
+          :-  ?~  resolved
+                =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
+                ?~  maybe-cte
+                  :^  %qualified-column
+                      [%qualified-table ~ default-database 'dbo' tbl ~]
+                      name.uqc
+                      `as-alias
+                =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+                ?:  ?&  ?=(^ maybe-col-set)
+                        !(~(has in (need maybe-col-set)) (fold-key name.uqc))
+                        ==
+                  ~|  "column {<name.uqc>} is not produced by CTE {<(need maybe-cte)>}"  !!
+                [%cte-column (need maybe-cte) name.uqc]
+              :^  %qualified-column
                   (need resolved)
                   name.uqc
                   `as-alias
@@ -3155,14 +3280,25 @@
       =/  uqc  ;;(unqualified-column:ast -.a)
       ?~  alias.uqc
         $(columns [uqc columns], a +.a)
-      ::  table.column: resolve table alias
+      ::  table.column: resolve table alias, then cte-map
       =/  tbl  (need alias.uqc)
       =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
       %=  $
         columns
-          :-  :^  %qualified-column
-                  ?~  resolved
-                    [%qualified-table ~ default-database 'dbo' tbl ~]
+          :-  ?~  resolved
+                =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
+                ?~  maybe-cte
+                  :^  %qualified-column
+                      [%qualified-table ~ default-database 'dbo' tbl ~]
+                      name.uqc
+                      ~
+                =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+                ?:  ?&  ?=(^ maybe-col-set)
+                        !(~(has in (need maybe-col-set)) (fold-key name.uqc))
+                        ==
+                  ~|  "column {<name.uqc>} is not produced by CTE {<(need maybe-cte)>}"  !!
+                [%cte-column (need maybe-cte) name.uqc]
+              :^  %qualified-column
                   (need resolved)
                   name.uqc
                   ~
@@ -3175,6 +3311,8 @@
   ~+
   ^-  update:ast
   =/  table=qualified-table:ast  ?>(?=(qualified-table:ast -.a) -.a)
+  =/  cte-map      (mk-cte-map ctes)
+  =/  cte-col-map  (mk-cte-col-map ctes)
   =/  b  +.a
   ?:  ?=([%set * ~] b)
     :*  %update
@@ -3215,7 +3353,7 @@
         ~
         (produce-column-sets table +>-.b)
         %+  qualify-predicate
-            (produce-predicate (predicate-list +>+.b))
+            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ cte-map cte-col-map)
             table
         ==
   ?:  ?=([[%as-of @ @] %set * *] b)
@@ -3225,7 +3363,7 @@
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
                     %+  qualify-predicate
-                        (produce-predicate (predicate-list +>+.b))
+                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ cte-map cte-col-map)
                         table
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
@@ -3235,7 +3373,7 @@
         [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
         (produce-column-sets table +>-.b)
         %+  qualify-predicate
-            (produce-predicate (predicate-list +>+.b))
+            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ cte-map cte-col-map)
             table
         ==
   :*  %update
@@ -3244,7 +3382,7 @@
       ~
       (produce-column-sets table +<.b)
       %+  qualify-predicate
-          (produce-predicate (predicate-list +>.b))
+          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ cte-map cte-col-map)
           table
       ==
 ::

@@ -139,12 +139,14 @@
   $%
     qualified-column
     unqualified-column
+    cte-column
     cte-name
     scalar-name
     dime
     ==
 ::
 +$  cte-name      $:(%cte-name name=@tas)
++$  cte-column    $:(%cte-column cte=@tas name=@tas)
 ::
 ::  query
 ::
@@ -194,6 +196,7 @@
   $%
     qualified-column
     unqualified-column
+    cte-column
     selected-aggregate
     selected-value
     selected-all

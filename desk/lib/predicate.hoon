@@ -304,6 +304,8 @@
             ?=(%unqualified-map-meta -.map-meta)
             ==
       -:(~(got by +.map-meta) name.n.l.p)
+    ?:  ?=(cte-column:ast n.l.p)
+      ~|("TO DO: implement cte-column" !!)
     ~|("prepare-common-list can't get here 5" !!)
   ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
     ~|("type of IN list incorrect, should be {<typ>}" !!)
@@ -413,6 +415,9 @@
     ~|  "comparing column to literal of different aura: {<name.l>} ".
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
         !!
+  ::  TO DO: implement cte-column
+  ?:  ?|(?=(cte-column:ast l) ?=(cte-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
   ~|("prepare-qualified can't get here" !!)
 ::
 ++  col-name
@@ -421,6 +426,7 @@
   ^-  @tas
   ?:  ?=(qualified-column:ast d)    name.d
   ?:  ?=(unqualified-column:ast d)  name.d
+  ?:  ?=(cte-column:ast d)          name.d
   ~|("col-name: not a column" !!)
 ::
 ++  get-datum
@@ -430,6 +436,7 @@
   ?:  ?=(unqualified-column:ast c)  c
   ?:  ?=(qualified-column:ast c)    c
   ?:  ?=(cte-name:ast c)            c
+  ?:  ?=(cte-column:ast c)          c
   ?:  ?=(scalar-name:ast c)         c
   ?:  ?=(dime c)                    c
   ~|("get-datum: not a datum" !!)
@@ -495,6 +502,9 @@
         "{<-:(~(got by map-meta) ln)>} {<r>}"
         !!
   ::
+  ::  TO DO: implement cte-column
+  ?:  ?|(?=(cte-column:ast l) ?=(cte-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
   ~|("prepare-unqualified can't get here" !!)
 ::
 ++  apply-datum-op

@@ -968,8 +968,6 @@
                 "FROM my-cte ".
                 "SELECT date, us-federal-holiday, country, is-holiday "
             ::
-            %-  crip  "mk-cte-column-metas [%selected-value ".
-                      "value=[p=~.t q=21.333] alias=[~ 'country']] ".
-                      "not supported"
+            %-  crip  "mk-cte-col-map: selected-value not implemented"
             ==
 --

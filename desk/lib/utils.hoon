@@ -140,6 +140,8 @@
   ?:  ?=(selected-value:ast selected-column)
     ?~  alias.selected-column  default
         (crip (cass (trip (need alias.selected-column))))
+  ?:  ?=(cte-column:ast selected-column)
+    (crip (cass (trip name.selected-column)))
   ~|("{<selected-column>} not supported" !!)
 ::
 ++  mk-col-lu-data
@@ -214,6 +216,8 @@
         selected-columns  t.selected-columns
       ==
     unqualified-column:ast
+      $(out [i.selected-columns out], selected-columns t.selected-columns)
+    cte-column:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-aggregate:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
@@ -372,6 +376,8 @@
                 ==
           cells
     ==
+  ?:  ?=(cte-column:ast i.selected)
+    ~|("TO DO: implement cte-column" !!)
   ~|("{<i.selected>} not supported" !!)
 ::
 ++  mk-templ-cell-indexed
@@ -650,13 +656,14 @@
   (aor a b)
 ::
 ++  cte-to-literal
-  ::  resolve datum of cte-name or unqualified-column to dime
+  ::  resolve datum of cte-name or cte-column to dime
   ::  the referenced cte must contain exactly one row and one column
   |=  [=named-ctes dos=datum:ast]
   ^-  dime
   =/  name=@tas
-    ?:  ?=(cte-name:ast dos)            name.dos
-    ?:  ?=(unqualified-column:ast dos)  name.dos
+    ?:  ?=(cte-name:ast dos)   name.dos
+    ?:  ?=(cte-column:ast dos)
+      ~|("TO DO: implement cte-column" !!)
     ~|("{<-.dos>} not supported in dos-to-literal" !!)
   =/  fr=full-relation
     ~|  "dos-to-literal: cte {<name>} not found"
