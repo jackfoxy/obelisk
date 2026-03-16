@@ -546,8 +546,7 @@
                   :~  [%vector-count (lent vectors)]
                       ==
                   ==
-  ?:  .=  [[~ ~zod] %cte %cte]
-          [ship database namespace]:-.i.raw
+  ?:  (~(has by named-ctes) name.-.i.raw)
     $(raw t.raw)
   %=  $
     raw  t.raw
@@ -789,8 +788,6 @@
                           canonical-map
                           ==
 
-  =/  cte-qualified-table  (mk-cte-qualified-table name.i.ctes)
-
   =/  cte-map-meta
     %+  roll  column-metas
               |=  $:  =column-meta
@@ -799,14 +796,14 @@
               ^-  qualified-map-meta
               :-  %qualified-map-meta
                   %^  ~(put bi:mip +.map-meta)
-                        cte-qualified-table 
+                        [%cte-name name.i.ctes]
                         name.qualified-column.column-meta
                         [type.column-meta addr.column-meta]
   ::
   %=  $
     nctes  %+  ~(put by nctes)  name.i.ctes
                                 :*  %full-relation
-                                    cte-qualified-table
+                                    [%cte-name name.i.ctes]
                                     set-tables
                                     cte-map-meta
                                     column-metas

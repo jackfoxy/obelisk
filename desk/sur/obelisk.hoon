@@ -103,7 +103,7 @@
       ==
 +$  qualified-map-meta
   $:  %qualified-map-meta
-    (mip qualified-table @tas typ-addr)
+    (mip qualifier @tas typ-addr)
     ==
 +$  unqualified-map-meta
   $:  %unqualified-map-meta
@@ -112,6 +112,8 @@
 +$  map-meta  $%(qualified-map-meta unqualified-map-meta)
 ::
 +$  qualifier-lookup  (map @tas (list qualified-table))
+::
++$  qualifier  $%(qualified-table cte-name)
 ::
 +$  joined-row
   $:  %joined-row
@@ -138,7 +140,7 @@
 ::
 +$  full-relation
   $:  %full-relation
-    =qualified-table
+    =qualifier
     set-tables=(list set-table)
     map-meta=qualified-map-meta
     column-metas=(list column-meta)

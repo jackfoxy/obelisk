@@ -353,7 +353,7 @@
 ++  prepare-qualified
   |=  $:  l=datum:ast
           r=datum:ast
-          map-meta=(mip:mip qualified-table @tas typ-addr)
+          map-meta=(mip:mip qualifier @tas typ-addr)
           =qualifier-lookup
           =named-ctes
           =resolved-scalars

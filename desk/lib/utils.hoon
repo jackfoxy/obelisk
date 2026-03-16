@@ -410,17 +410,6 @@
                 |=  e=[qualified-table:ast (list column:ast)]
                 [-.e (mk-unqualified-typ-addr-lookup +.e)]
 ::
-++  mk-cte-qualified-table
-  |=  name=@tas
-  ^-  qualified-table:ast
-  :*  %qualified-table
-      [~ ~zod]
-      %cte
-      %cte
-      name
-      ~
-      ==
-::
 ++  qualify-unqualified
   |=  [selected=(list selected-column:ast) =qualifier-lookup]
   =/  selected-out  *(list selected-column:ast)

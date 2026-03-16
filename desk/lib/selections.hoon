@@ -67,7 +67,7 @@
                             (pred-unqualify-qualified predicate.q)
                             :-  %unqualified-map-meta
                                 %-  ~(got by +.map-meta.full-relation)
-                                    qualified-table.full-relation
+                                    qualifier.full-relation
                             ~
                             named-ctes
                             *resolved-scalars
@@ -458,7 +458,7 @@
               ==
           ==
       :-  %qualified-map-meta
-          %+  ~(put by *(map qualified-table:ast (map @tas typ-addr)))
+          %+  ~(put by *(map qualifier (map @tas typ-addr)))
                 qualified-table
                 typ-addr-lookup.vw2
       (mk-column-metas qualified-table column-metas columns.vw2)
@@ -522,24 +522,26 @@
           ==
   ^-  full-relation
   =/  cte-fr  ~|  "SELECT: table {<database.qualified-table>}.".
-                  "{<namespace.qualified-table>}.{<name.qualified-table>} does ".
-                  "not exist at schema time {<tmsp.schema>}"
+                  "{<namespace.qualified-table>}.{<name.qualified-table>} ".
+                  "does not exist at schema time {<tmsp.schema>}"
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr
-  =.  relation.cte-st  [~ qualified-table.cte-fr]
+  =.  relation.cte-st  [~ qualified-table]
+  =/  cte-col-meta
+    (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table]))
   :*  %full-relation
-      qualified-table.cte-fr
+      qualified-table
       [cte-st ~]
       :-  %qualified-map-meta
-          (~(uni by +.map-meta) +.map-meta.cte-fr)
+          (~(put by +.map-meta) qualified-table cte-col-meta)
       ::  use CTE's original column-metas (correct addr from
-      ::  calc-joined-addr for JOINs) rebranded to CTE qualified-table
+      ::  calc-joined-addr for JOINs) rebranded to outer qualified-table
       %+  weld  column-metas
       %+  turn  column-metas.cte-fr
       |=  cm=column-meta
       :+  :^  %qualified-column
-              (normalize-qt-alias qualified-table.cte-fr)
+              (normalize-qt-alias qualified-table)
               name.qualified-column.cm
               alias.qualified-column.cm
           type.cm
