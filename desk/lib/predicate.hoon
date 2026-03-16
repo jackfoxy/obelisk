@@ -416,7 +416,20 @@
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
         !!
   ::  TO DO: implement cte-column
-  ?:  ?|(?=(cte-column:ast l) ?=(cte-column:ast r))
+  ::  cte-column = cte-column
+  ?:  &(?=(cte-column:ast l) ?=(cte-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  cte-column = literal
+  ?:  &(?=(cte-column:ast l) ?=(dime r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  literal = cte-column
+  ?:  &(?=(dime l) ?=(cte-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  cte-column = column
+  ?:  &(?=(cte-column:ast l) ?=(qualified-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  column = cte-column
+  ?:  &(?=(qualified-column:ast l) ?=(cte-column:ast r))
     ~|("TO DO: implement cte-column" !!)
   ~|("prepare-qualified can't get here" !!)
 ::
@@ -503,7 +516,24 @@
         !!
   ::
   ::  TO DO: implement cte-column
-  ?:  ?|(?=(cte-column:ast l) ?=(cte-column:ast r))
+  ::  cte-column = cte-column
+  ?:  &(?=(cte-column:ast l) ?=(cte-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  cte-column = literal
+  ?:  &(?=(cte-column:ast l) ?=(dime r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  literal = cte-column
+  ?:  &(?=(dime l) ?=(cte-column:ast r))
+    ~|("TO DO: implement cte-column" !!)
+  ::  cte-column = column
+  ?:  ?&  ?=(cte-column:ast l)
+          ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r))
+          ==
+    ~|("TO DO: implement cte-column" !!)
+  ::  column = cte-column
+  ?:  ?&  ?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l))
+          ?=(cte-column:ast r)
+          ==
     ~|("TO DO: implement cte-column" !!)
   ~|("prepare-unqualified can't get here" !!)
 ::

@@ -1742,4 +1742,817 @@
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
+::
+::  cte column predicate helpers
+::
+++  my-cte-col1  [[%cte-column 'my-cte' 'col1'] ~ ~]
+++  my-cte-col2  [[%cte-column 'my-cte' 'col2'] ~ ~]
+++  cte1-col1    [[%cte-column 'cte1' 'col1'] ~ ~]
+++  cte2-col1    [[%cte-column 'cte2' 'col1'] ~ ~]
+++  cte2-col2    [[%cte-column 'cte2' 'col2'] ~ ~]
+++  unq-col1     [[%unqualified-column 'col1' ~] ~ ~]
+++  unq-col2     [[%unqualified-column 'col2' ~] ~ ~]
+++  my-cte-table
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='my-cte' alias=~]
+++  cte1-table
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='cte1' alias=~]
+++  cte2-table
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='cte2' alias=~]
+++  cte-my-cte
+  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  :*  %cte  name='my-cte'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select-all-columns  ~
+          ==
+      ==
+++  cte-cte1
+  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  :*  %cte  name='cte1'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select-all-columns  ~
+          ==
+      ==
+++  cte-cte2
+  =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
+  :*  %cte  name='cte2'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select-all-columns  ~
+          ==
+      ==
+++  from-my-cte-outer
+  [~ [%from relation=my-cte-table as-of=~ joins=~]]
+++  from-cte1-join-cte2
+  :-  ~
+  :^  %from
+      relation=cte1-table
+      as-of=~
+      :~  :*  %joined-relation
+              join=%join
+              relation=cte2-table
+              as-of=~
+              predicate=[%eq cte1-col1 cte2-col1]
+              ==
+          ==
+::
+::  test cte column in predicate, single table
+::
+::  1: <cte>.<col> = <cte>.<col>
+++  test-predicate-44
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE my-cte.col1 = my-cte.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq my-cte-col1 my-cte-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  2: <cte>.<col> = <literal>
+++  test-predicate-45
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE my-cte.col1 = 10 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq my-cte-col1 literal-10]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  3: <literal> = <cte>.<col>
+++  test-predicate-46
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE 10 = my-cte.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq literal-10 my-cte-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  4: <cte>.<col> = <column>
+++  test-predicate-47
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE my-cte.col1 = col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq my-cte-col1 unq-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  5: <column> = <cte>.<col>
+++  test-predicate-48
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE col1 = my-cte.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq unq-col1 my-cte-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  6: <literal> in <cte>.<col>
+++  test-predicate-49
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE 10 in my-cte.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in literal-10 my-cte-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  7: <column> in <cte>.<col>
+++  test-predicate-50
+  =/  query
+        "WITH (FROM foo SELECT *) AS my-cte ".
+        "FROM my-cte WHERE col1 in my-cte.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in unq-col1 my-cte-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  test cte column in predicate, joined tables
+::
+::  1: <cte1>.<col> = <cte2>.<col>
+++  test-predicate-51
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE cte1.col1 = cte2.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq cte1-col1 cte2-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  2: <cte1>.<col> = <literal>
+++  test-predicate-52
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE cte1.col1 = 10 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq cte1-col1 literal-10]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  3: <literal> = <cte1>.<col>
+++  test-predicate-53
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE 10 = cte1.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq literal-10 cte1-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  4: <cte1>.<col> = <column>
+++  test-predicate-54
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE cte1.col1 = col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq cte1-col1 unq-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  5: <column> = <cte2>.<col>
+++  test-predicate-55
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE col1 = cte2.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq unq-col1 cte2-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  6: <literal> in <cte1>.<col>
+++  test-predicate-56
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE 10 in cte1.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in literal-10 cte1-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  7: <column> in <cte2>.<col>
+++  test-predicate-57
+  =/  query
+        "WITH (FROM foo SELECT *) AS cte1, ".
+        "(FROM bar SELECT *) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE col1 in cte2.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in unq-col1 cte2-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1 cte-cte2]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  cte with named columns helpers
+::
+++  select-col1-col2
+  [%select top=~ columns=~[[%unqualified-column 'col1' ~] [%unqualified-column 'col2' ~]]]
+++  cte-my-cte-cols
+  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  :*  %cte  name='my-cte'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select-col1-col2  ~
+          ==
+      ==
+++  cte-cte1-cols
+  =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
+  :*  %cte  name='cte1'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select-col1-col2  ~
+          ==
+      ==
+++  cte-cte2-cols
+  =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
+  :*  %cte  name='cte2'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select-col1-col2  ~
+          ==
+      ==
+::
+::  test cte column in predicate, single table, named cte columns
+::
+::  1: <cte>.<col> = <cte>.<col>
+++  test-predicate-58
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE my-cte.col1 = my-cte.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq my-cte-col1 my-cte-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  2: <cte>.<col> = <literal>
+++  test-predicate-59
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE my-cte.col1 = 10 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq my-cte-col1 literal-10]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  3: <literal> = <cte>.<col>
+++  test-predicate-60
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE 10 = my-cte.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq literal-10 my-cte-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  4: <cte>.<col> = <column>
+++  test-predicate-61
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE my-cte.col1 = col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq my-cte-col1 unq-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  5: <column> = <cte>.<col>
+++  test-predicate-62
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE col1 = my-cte.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq unq-col1 my-cte-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  6: <literal> in <cte>.<col>
+++  test-predicate-63
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE 10 in my-cte.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in literal-10 my-cte-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  7: <column> in <cte>.<col>
+++  test-predicate-64
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS my-cte ".
+        "FROM my-cte WHERE col1 in my-cte.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in unq-col1 my-cte-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-my-cte-cols]
+            :+  :*  %query
+                    from-my-cte-outer
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  test cte column in predicate, joined tables, named cte columns
+::
+::  1: <cte1>.<col> = <cte2>.<col>
+++  test-predicate-65
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE cte1.col1 = cte2.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq cte1-col1 cte2-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  2: <cte1>.<col> = <literal>
+++  test-predicate-66
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE cte1.col1 = 10 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq cte1-col1 literal-10]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  3: <literal> = <cte1>.<col>
+++  test-predicate-67
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE 10 = cte1.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq literal-10 cte1-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  4: <cte1>.<col> = <column>
+++  test-predicate-68
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE cte1.col1 = col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq cte1-col1 unq-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  5: <column> = <cte2>.<col>
+++  test-predicate-69
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE col1 = cte2.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq unq-col1 cte2-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  6: <literal> in <cte1>.<col>
+++  test-predicate-70
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE 10 in cte1.col1 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in literal-10 cte1-col1]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  7: <column> in <cte2>.<col>
+++  test-predicate-71
+  =/  query
+        "WITH (FROM foo SELECT col1, col2) AS cte1, ".
+        "(FROM bar SELECT col1, col2) AS cte2 ".
+        "FROM cte1 JOIN cte2 ON cte1.col1 = cte2.col1 ".
+        "WHERE col1 in cte2.col2 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%in unq-col1 cte2-col2]
+  =/  expected
+        :+  %selection
+            ctes=~[cte-cte1-cols cte-cte2-cols]
+            :+  :*  %query
+                    from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
 --
