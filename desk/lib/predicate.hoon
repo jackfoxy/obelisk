@@ -415,22 +415,56 @@
     ~|  "comparing column to literal of different aura: {<name.l>} ".
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
         !!
-  ::  TO DO: implement cte-column
   ::  cte-column = cte-column
   ?:  &(?=(cte-column:ast l) ?=(cte-column:ast r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ?.  (types-match p.dl p.dr)
+      ~|("comparing cte-columns of different auras: {<name.l>} {<name.r>}" !!)
+    |=(c=data-row (lit-lit q.dl q.dr p.dl))
   ::  cte-column = literal
   ?:  &(?=(cte-column:ast l) ?=(dime r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    ?.  (types-match p.dl -.r)
+      ~|  "comparing cte-column to literal of different aura: {<name.l>} {<r>}"
+          !!
+    |=(c=data-row (lit-lit q.dl +.r p.dl))
   ::  literal = cte-column
   ?:  &(?=(dime l) ?=(cte-column:ast r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ?.  (types-match -.l p.dr)
+      ~|  "comparing literal to cte-column of different aura: {<l>} {<name.r>}"
+          !!
+    |=(c=data-row (lit-lit +.l q.dr -.l))
   ::  cte-column = column
   ?:  &(?=(cte-column:ast l) ?=(qualified-column:ast r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    ~|  "column {<name.r>} does not exist"
+    ?:  (types-match p.dl -:(~(got bi:mip map-meta) qualifier.r name.r))
+      %+  bake  %+  cury
+                      %+  cury  (cury lit-col q.dl)
+                                +:(~(got bi:mip map-meta) qualifier.r name.r)
+                      p.dl
+                data-row
+    ~|  "comparing cte-column to column of different aura: ".
+        "{<name.l>} {<name.r>}"
+        !!
   ::  column = cte-column
   ?:  &(?=(qualified-column:ast l) ?=(cte-column:ast r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ~|  "column {<name.l>} does not exist"
+    ?:  (types-match -:(~(got bi:mip map-meta) qualifier.l name.l) p.dr)
+      %+  bake  %+  cury
+                      %+  cury
+                            %+  cury
+                                  col-lit
+                                  +:(~(got bi:mip map-meta) qualifier.l name.l)
+                            q.dr
+                      -:(~(got bi:mip map-meta) qualifier.l name.l)
+                data-row
+    ~|  "comparing column to cte-column of different aura: ".
+        "{<name.l>} {<name.r>}"
+        !!
   ~|("prepare-qualified can't get here" !!)
 ::
 ++  col-name
@@ -453,6 +487,27 @@
   ?:  ?=(scalar-name:ast c)         c
   ?:  ?=(dime c)                    c
   ~|("get-datum: not a datum" !!)
+::
+++  resolve-cte-column
+  ::  extract a single-row CTE column value as a dime
+  |=  [col=cte-column:ast =named-ctes]
+  ^-  dime
+  =/  cte-fr  (~(got by named-ctes) cte.col)
+  ?~  set-tables.cte-fr
+    ~|("resolve-cte-column: empty set-tables" !!)
+  =/  cte-st  i.set-tables.cte-fr
+  ?.  =(1 rowcount.cte-st)
+    ~|("cte-column predicate requires exactly 1 row in cte {<cte.col>}" !!)
+  =/  ta=typ-addr   %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.col]
+                                                         name.col
+  =/  row=data-row  ?~  joined-rows.cte-st
+                      ?~  indexed-rows.cte-st
+                        ~|("resolve-cte-column: no rows in cte {<cte.col>}" !!)
+                      i.indexed-rows.cte-st
+                    i.joined-rows.cte-st
+  =/  x  .*(data.row [%0 addr.ta])
+  =/  val=@  ?@(x x ;;(@ +.x))
+  [type.ta val]
 ::
 ++  prepare-unqualified
   |=  $:  l=datum:ast
@@ -515,26 +570,53 @@
         "{<-:(~(got by map-meta) ln)>} {<r>}"
         !!
   ::
-  ::  TO DO: implement cte-column
   ::  cte-column = cte-column
   ?:  &(?=(cte-column:ast l) ?=(cte-column:ast r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ?.  (types-match p.dl p.dr)
+      ~|("comparing cte-columns of different auras: {<name.l>} {<name.r>}" !!)
+    |=(c=data-row (lit-lit q.dl q.dr p.dl))
   ::  cte-column = literal
   ?:  &(?=(cte-column:ast l) ?=(dime r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    ?.  (types-match p.dl -.r)
+      ~|  "comparing cte-column to literal of different aura: {<name.l>} {<r>}"
+          !!
+    |=(c=data-row (lit-lit q.dl +.r p.dl))
   ::  literal = cte-column
   ?:  &(?=(dime l) ?=(cte-column:ast r))
-    ~|("TO DO: implement cte-column" !!)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ?.  (types-match -.l p.dr)
+      ~|  "comparing literal to cte-column of different aura: {<l>} {<name.r>}"
+          !!
+    |=(c=data-row (lit-lit +.l q.dr -.l))
   ::  cte-column = column
   ?:  ?&  ?=(cte-column:ast l)
           ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r))
           ==
-    ~|("TO DO: implement cte-column" !!)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    =/  rn  (col-name r)
+    ~|  "column {<rn>} does not exist"
+    ?:  (types-match p.dl -:(~(got by map-meta) rn))
+      %+  bake  %+  cury
+                    (cury (cury lit-col q.dl) +:(~(got by map-meta) rn))
+                    p.dl
+                data-row
+    ~|("comparing cte-column to column of different aura: {<name.l>} {<rn>}" !!)
   ::  column = cte-column
   ?:  ?&  ?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l))
           ?=(cte-column:ast r)
           ==
-    ~|("TO DO: implement cte-column" !!)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    =/  ln  (col-name l)
+    ~|  "column {<ln>} does not exist"
+    ?:  (types-match -:(~(got by map-meta) ln) p.dr)
+      %+  bake  %+  cury
+                    (cury (cury col-lit +:(~(got by map-meta) ln)) q.dr)
+                    -:(~(got by map-meta) ln)
+                data-row
+    ~|("comparing column to cte-column of different aura: {<ln>} {<name.r>}" !!)
   ~|("prepare-unqualified can't get here" !!)
 ::
 ++  apply-datum-op
