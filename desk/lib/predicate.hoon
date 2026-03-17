@@ -286,10 +286,8 @@
   ?~  p                  ~|("prepare-common-list can't get here 1" !!)
   ?~  l.p                ~|("prepare-common-list can't get here 2" !!)
   ?~  r.p                ~|("prepare-common-list can't get here 3" !!)
-  =/  r=value-literals  ?:  ?=(value-literals n.r.p)  n.r.p
-                        ~|("prepare-common-list can't get here 4" !!)
-  =/  in-list  %+  turn  (split-all (trip `@t`q.r) ";")
-                         |=(a=tape (rash (crip a) dem))
+  ::  typ derived from left side only;
+  ::  computed before in-list so branches can use it
   =/  typ
     ?:  ?=(dime:ast n.l.p)  -.n.l.p
     ?:  ?&  ?=(qualified-column:ast n.l.p)
@@ -305,10 +303,42 @@
             ==
       -:(~(got by +.map-meta) name.n.l.p)
     ?:  ?=(cte-column:ast n.l.p)
-      ~|("TO DO: implement cte-column" !!)
+      =/  cte-fr  (~(got by named-ctes) cte.n.l.p)
+      =/  ta=typ-addr
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.l.p]  name.n.l.p
+      type.ta
     ~|("prepare-common-list can't get here 5" !!)
-  ?.  (fold in-list & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
-    ~|("type of IN list incorrect, should be {<typ>}" !!)
+  =/  in-list=(list @)
+    ?:  ?=(cte-column:ast n.r.p)
+      =/  cte-fr  (~(got by named-ctes) cte.n.r.p)
+      ?~  set-tables.cte-fr
+        ~|("prepare-common-list: empty cte set-tables" !!)
+      =/  cte-st  i.set-tables.cte-fr
+      =/  ta=typ-addr
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p]  name.n.r.p
+      ?.  (types-match typ type.ta)
+        ~|  "IN cte-column type {<type.ta>} ".
+            "doesn't match left side type {<typ>}"
+            !!
+      =/  rows=(list data-row)  ?~  joined-rows.cte-st  indexed-rows.cte-st
+                                joined-rows.cte-st
+      %~  tap  in  %-  silt  %+  turn  rows
+                                       |=  row=data-row
+                                       =/  x  .*(data.row [%0 addr.ta])
+                                       ?@(x x ;;(@ +.x))
+    =/  r=value-literals  ?:  ?=(value-literals n.r.p)  n.r.p
+                          ~|("prepare-common-list can't get here 4" !!)
+    =/  raw=(list @)
+      %+  turn  (split-all (trip `@t`q.r) ";")
+                |=(a=tape (rash (crip a) dem))
+    ?.  (fold raw & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
+      ~|("type of IN list incorrect, should be {<typ>}" !!)
+    raw
+  ::  cte-column on left: resolve single scalar (requires 1-row cte),
+  ::  check against list
+  ?:  ?=(cte-column:ast n.l.p)
+    =/  dl=dime  (resolve-cte-column n.l.p named-ctes)
+    (bake (cury (cury lit-list-pred q.dl) in-list) data-row)
   ?:  ?&  ?=(unqualified-column:ast n.l.p)
           ?=(%unqualified-map-meta -.map-meta)
           ==

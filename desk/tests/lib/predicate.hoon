@@ -4442,7 +4442,7 @@
           "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  fail WHERE <literal> IN (list @) types differ
@@ -4468,7 +4468,7 @@
           "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  WHERE <column> IN (list @t) joined
@@ -4711,7 +4711,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  fail WHERE <literal> IN (list @) types differ joined
@@ -4743,7 +4743,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  NOT IN
@@ -4936,7 +4936,7 @@
           "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  fail WHERE <literal> NOT IN (list @) types differ
@@ -4962,7 +4962,7 @@
           "IN (~1999.2.19, ~2005.12.19, ~2001.9.19) SELECT *"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  WHERE <column> NOT IN (list @t) joined
@@ -5195,7 +5195,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  fail WHERE <literal> NOT IN (list @) types differ joined
@@ -5227,7 +5227,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       %-  crip
-          "type of IN list incorrect, should be p=~.t"
+          "type of IN list incorrect, should be ~.t"
       ==
 ::
 ::  BETWEEN
