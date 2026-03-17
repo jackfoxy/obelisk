@@ -357,7 +357,7 @@
           =qualifier-lookup
           =named-ctes
           =resolved-scalars
-          lit-lit=$-([@ @ @ta data-row] ?)
+          lit-lit=$-([@ @ @ta] ?)
           col-col=column-column
           col-lit=$-([@ @ @ta data-row] ?)
           lit-col=$-([@ @ @ta data-row] ?)
@@ -366,7 +366,7 @@
   ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
     ?:  (types-match -.l -.r)
-      (bake (cury (cury (cury lit-lit +.l) +.r) -.l) data-row)
+      |=(c=data-row (lit-lit +.l +.r -.l))
     ~|("comparing column literals of different auras:  {<l>} {<r>}" !!)
   ::  column = column
   ?:  &(?=(qualified-column:ast l) ?=(qualified-column:ast r))
@@ -460,7 +460,7 @@
           map-meta=(map @tas typ-addr)
           =named-ctes
           =resolved-scalars
-          lit-lit=$-([@ @ @ta data-row] ?)
+          lit-lit=$-([@ @ @ta] ?)
           col-col=column-column
           col-lit=$-([@ @ @ta data-row] ?)
           lit-col=$-([@ @ @ta data-row] ?)
@@ -469,7 +469,7 @@
   ::  literal = literal
   ?:  &(?=(dime l) ?=(dime r))
     ?:  (types-match -.l -.r)
-      (bake (cury (cury (cury lit-lit +.l) +.r) -.l) data-row)
+      |=(c=data-row (lit-lit +.l +.r -.l))
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
   ::  column = column
   ?:  ?&  ?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l))
@@ -546,7 +546,7 @@
           =qualifier-lookup
           =named-ctes
           =resolved-scalars
-          lit-lit=$-([@ @ @ta data-row] ?)
+          lit-lit=$-([@ @ @ta] ?)
           col-col=column-column
           col-lit=$-([@ @ @ta data-row] ?)
           lit-col=$-([@ @ @ta data-row] ?)
@@ -709,7 +709,7 @@
   =(;;(@ +.x) ;;(@ +.y))
 ::
 ++  eq-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ typ=@ta]
   ^-  ?
   =(a b)
 ::
@@ -736,7 +736,7 @@
   ?!(=(;;(@ +.x) ;;(@ +.y)))
 ::
 ++  neq-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ typ=@ta]
   ^-  ?
   ?!(=(a b))
 ::
@@ -776,7 +776,7 @@
   (gth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gt-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ typ=@ta]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
@@ -815,7 +815,7 @@
   (gte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gte-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ typ=@ta]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`b `@t`a)
@@ -857,7 +857,7 @@
   (lth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lt-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ typ=@ta]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
@@ -896,7 +896,7 @@
   (lte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lte-lit-lit
-  |=  [a=@ b=@ typ=@ta c=data-row]
+  |=  [a=@ b=@ typ=@ta]
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a `@t`b)
