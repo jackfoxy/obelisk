@@ -116,33 +116,12 @@
   ^-  ^tang
   =/  msgs
     %+  murn  tang
-    |=  t=tank
-    ^-  (unit tank)
-    ?.  ?=([%leaf *] t)  ~
-    (parse-trace-leaf p.t)
+              |=  t=tank
+              ^-  (unit tank)
+              ?.  ?=([%leaf *] t)  ~
+              ?~(p.t ~ `leaf+(strip-msg-quotes p.t))
   ?~  msgs  tang
   (weld msgs `(list tank)`[leaf+"" tang])
-::  +parse-trace-leaf: extract location+message from a leaf tape if present
-::
-::  Scans for the pattern >", splits there, strips outer quotes from message.
-::  Returns ~ if the tape doesn't start with / or has no message.
-::
-++  parse-trace-leaf
-  |=  tp=tape
-  ^-  (unit tank)
-  ?.  &(?=(^ tp) =('/' i.tp))  ~
-  =|  rev-loc=tape
-  =/  rest=tape  tp
-  |-
-  ?~  rest  ~
-  =/  cur  i.rest
-  =/  nxt  t.rest
-  ?:  &(=('>' cur) ?=(^ nxt) =('"' i.nxt))
-    =/  loc  (tape-flop [cur rev-loc])
-    =/  msg  (strip-msg-quotes nxt)
-    `leaf+(weld loc (weld " " msg))
-  $(rev-loc [cur rev-loc], rest t.rest)
-::  +strip-msg-quotes: remove outer double-quotes from a tape if present
 ::
 ++  strip-msg-quotes
   |=  tp=tape
