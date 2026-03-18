@@ -1,6 +1,6 @@
 ::
 /-  ast, *obelisk, *server-state
-/+  *test, *scalars
+/+  *test, *scalars, parse
 /=  agent  /app/obelisk
 |%
 ::
@@ -1450,6 +1450,19 @@
     ~|((weld "CRASH - " (trip -.row)) (scalar-test-helper named-ctes qualifier-lookup map-meta resolved-scalars data-row +.row))
   :-  result
   $(rows +.rows)
+::
+::  parse test helper
+::
+++  failon-parse
+  ::  parse fail test: run parse and expect crash with message
+  |=  $:  db=@tas
+          uql=tape
+          expect=@t
+          ==
+  %+  expect-fail-message
+      expect
+      |.  %-  parse:parse(default-database db)
+              uql
 ::
 ::  create and populate test tables
 ::

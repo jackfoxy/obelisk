@@ -1,5 +1,5 @@
 /-  ast
-/+  parse,  *test
+/+  parse,  *test, *test-helpers
 ::
 :: we frequently break the rules of unit and regression tests here
 :: by testing more than one thing per result, otherwise there would
@@ -5029,4 +5029,28 @@
                 "select ' :: ', '\2f\2a', '*\2f'::, ' \2f\2a ', ' *\2f '\0a"
                 "select ' *\2f '  :: ', '\2f\2a', '*\2f', '::', ' \2f\2a '"
                 ==
+::
+:: cte validation
+::
+:: fail: cte name conflicts with from alias (case-insensitive)
+++  test-fail-cte-alias-conflict-00
+  %^  failon-parse  'db1'
+                    "with (select *) as t1 from foo T1 select *"
+                    'FROM alias conflicts with CTE name'
+::
+:: fail: predicate column qualifier is not a known from alias or cte name
+++  test-fail-cte-unknown-qualifier-01
+  %^  failon-parse  'db1'
+                    "with (select *) as t1 from foo where ".
+                    "unknown.col = col1 select *"
+                    (crip "table alias or CTE name 'unknown' is not defined")
+::
+:: fail: predicate column qualifier matches cte name
+:: column not in cte select list
+++  test-fail-cte-column-not-in-cte-02
+  %^  failon-parse  'db1'
+                    "with (from foobar where col1 = col2 ".
+                    "select col3, col4) as foobar ".
+                    "from foo where foobar.nonexistent = col1 select *"
+                    'nonexistent is not produced by CTE %foobar'
 --

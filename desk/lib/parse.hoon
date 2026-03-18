@@ -2573,6 +2573,16 @@
   ?~  -.a                   $(a +.a) :: discard nulls from optional parsers
   ?:  =(-.a %query)         $(a +.a)
   ?:  =(-.a %end-command)
+    =/  alias-keys  ~(tap in ~(key by alias-map))
+    =/  conflict
+      |-  ^-  (unit @t)
+      ?~  alias-keys  ~
+      ?:  (~(has by cte-map) i.alias-keys)
+        `i.alias-keys
+      $(alias-keys t.alias-keys)
+    ?^  conflict
+      ~|  "FROM alias conflicts with CTE name: {<(need conflict)>}"
+      !!
     :*  %query
         ?~  from  ~
           `(finalize-predicates (need from) alias-map cte-map cte-col-map)
@@ -2985,7 +2995,7 @@
       ?~  maybe-table
         =/  maybe-cte  (~(get by cte-map) (fold-key (need alias.a)))
         ?~  maybe-cte
-          ~|("table alias {<(need alias.a)>} is not defined" !!)
+          ~|("table alias or CTE name {<(need alias.a)>} is not defined" !!)
         =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
         ?:  ?&  ?=(^ maybe-col-set)
                 !(~(has in (need maybe-col-set)) (fold-key name.a))

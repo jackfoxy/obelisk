@@ -7,7 +7,11 @@
       "Bash(grep -v ':-  ~$')",
       "Bash(grep -n '^\\\\s*:-  ~$' /mnt/mars/gitrepos/obelisk/desk/lib/parse.hoon)",
       "Bash(git -C /mnt/mars/gitrepos/obelisk show 2ab86b7 --stat)",
-      "Bash(git -C /mnt/mars/gitrepos/obelisk show 2ab86b7 -- desk/tests/lib/predicate.hoon)"
+      "Bash(git -C /mnt/mars/gitrepos/obelisk show 2ab86b7 -- desk/tests/lib/predicate.hoon)",
+      "Read(//home/nativeplanet/urbit/pkg/arvo/sys/**)",
+      "Read(//home/nativeplanet/.urbit/base/sys/**)",
+      "Read(//home/nativeplanet/**)",
+      "Read(//mnt/mars/**)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"
