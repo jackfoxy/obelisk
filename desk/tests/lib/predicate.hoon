@@ -7435,7 +7435,8 @@
       ::
       :+  ~2012.5.3
           %db1
-          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1, col3) AS my-cte ".
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' ".
+          "SELECT col1, col3) AS my-cte ".
           "FROM my-table WHERE my-cte.col1 = my-cte.col3 SELECT *"
       ::
       :-  %results

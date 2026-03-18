@@ -48,6 +48,13 @@
   "(~2023.12.31, 2023, 12, 'December', 31, 'Sunday', 365, 1, 53) ".
   "(~2024.1.1, 2024, 1, 'January', 1, 'Monday', 1, 2, 1) ".
   "(~2024.1.2, 2024, 1, 'January', 2, 'Tuesday', 2, 3, 1);"
+++  create-joined-tables
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 @da) ".
+  "PRIMARY KEY (col1); ".
+  "CREATE TABLE db1..my-table-2 ".
+  "(col1 @t, col3 @t, col4 @t) ".
+  "PRIMARY KEY (col1)"
 ::
 ::  delete all
 ++  test-delete-00
@@ -608,6 +615,81 @@
               [%data-time ~2012.5.3]
               [%vector-count 3]
               ==
+      ==
+::
+::::  CTE column predicate
+::::
+::  DELETE with CTE predicate
+::  (cte-column = cte-column, matching: all rows deleted)
+++  test-delete-09
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-joined-tables
+                        "INSERT INTO my-table VALUES ".
+                                              "('Abby', ~1999.2.19) ".
+                                              "('Ace', ~2005.12.19) ".
+                                              "('Angel', ~2001.9.19);"
+                        "INSERT INTO my-table-2 VALUES ".
+                                              "('Abby', 'tricolor', 'row1') ".
+                                              "('Ace', 'ticolor', 'row2') ".
+                                              "('Angel', 'Angel', 'row3')"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 ".
+          "WHERE col4 = 'row3' SELECT col1, col3) AS my-cte ".
+          "DELETE FROM my-table WHERE my-cte.col1 = my-cte.col3"
+      ::
+      :~  %results
+          [%message 'DELETE FROM db1.dbo.my-table']
+          [%server-time ~2012.5.3]
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'deleted:']
+          [%vector-count 3]
+          [%message 'table data:']
+          [%vector-count 0]
+          ==
+      ==
+::
+::  DELETE with CTE predicate
+::  (cte-column = cte-column, not matching: no rows deleted)
+++  test-delete-10
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-joined-tables
+                        "INSERT INTO my-table VALUES ".
+                                              "('Abby', ~1999.2.19) ".
+                                              "('Ace', ~2005.12.19) ".
+                                              "('Angel', ~2001.9.19);"
+                        "INSERT INTO my-table-2 VALUES ".
+                                                "('Abby', 'tricolor', 'row1') ".
+                                                "('Ace', 'ticolor', 'row2') ".
+                                                "('Angel', 'tuxedo', 'row3')"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' ".
+          "SELECT col1, col3) AS my-cte ".
+          "DELETE FROM my-table WHERE my-cte.col1 = my-cte.col3"
+      ::
+      :~  %results
+          [%message 'DELETE FROM db1.dbo.my-table']
+          [%server-time ~2012.5.3]
+          [%schema-time ~2012.4.30]
+          [%data-time ~2012.4.30]
+          [%message 'no rows deleted']
+          ==
       ==
 ::
 ::  fail on no predicate

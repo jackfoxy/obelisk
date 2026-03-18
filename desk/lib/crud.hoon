@@ -257,7 +257,7 @@
                                  :-  %unqualified-map-meta
                                      typ-addr-lookup.table.txn
                                  ~
-                                 *named-ctes
+                                 (named-queries ctes.d *named-ctes)
                                  *resolved-scalars
                                  ==
   =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
@@ -345,7 +345,7 @@
                                           :-  %unqualified-map-meta
                                               typ-addr-lookup.table.txn
                                           ~
-                                          *named-ctes
+                                          (named-queries ctes.u *named-ctes)
                                           *resolved-scalars
                                           ==
   =/  updates  %:  mk-updates  table.u
