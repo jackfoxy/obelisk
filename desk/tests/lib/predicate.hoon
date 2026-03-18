@@ -7408,4 +7408,1157 @@
               [%vector-count 2]
               ==
       ==
+::
+::::  EQ cte-column
+::::
+::  WHERE <cte-column> = <cte-column> (matching)
+++  test-eq-cte-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'Angel', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1, col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col1 = my-cte.col3 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <cte-column> = <cte-column> (not matching)
+++  test-eq-cte-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1, col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col1 = my-cte.col3 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <cte-column> = <literal> (matching)
+++  test-eq-cte-02
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+          "FROM my-table WHERE my-cte.col1 = 'Angel' SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <cte-column> = <literal> (not matching)
+++  test-eq-cte-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+          "FROM my-table WHERE my-cte.col1 = 'Ace' SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <literal> = <cte-column> (matching)
+++  test-eq-cte-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+          "FROM my-table WHERE 'Angel' = my-cte.col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <literal> = <cte-column> (not matching)
+++  test-eq-cte-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+          "FROM my-table WHERE 'Ace' = my-cte.col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <cte-column> = <column>
+++  test-eq-cte-06
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+          "FROM my-table WHERE my-cte.col1 = col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> = <cte-column>
+++  test-eq-cte-07
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+          "FROM my-table WHERE col1 = my-cte.col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  fail WHERE <cte-column> = <cte-column> types differ
+++  test-fail-eq-cte-00
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col1, col2) AS my-cte ".
+          "FROM my-table WHERE my-cte.col1 = my-cte.col2 SELECT *"
+      ::
+      %-  crip
+          "comparing cte-columns of different auras: %col1 %col2"
+      ==
+::
+::  fail WHERE <cte-column> = <literal> types differ
+++  test-fail-eq-cte-01
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 = ~1999.2.19 SELECT *"
+      ::
+      %-  crip
+          "comparing cte-column to literal of different aura: %col3 ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400]"
+      ==
+::
+::  fail WHERE <literal> = <cte-column> types differ
+++  test-fail-eq-cte-02
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE ~1999.2.19 = my-cte.col3 SELECT *"
+      ::
+      %-  crip
+          "comparing literal to cte-column of different aura: ".
+          "[p=~.da q=170.141.184.492.111.779.796.175.933.613.172.326.400] ".
+          "%col3"
+      ==
+::
+::  fail WHERE <cte-column> = <column> types differ
+++  test-fail-eq-cte-03
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 = col2 SELECT *"
+      ::
+      %-  crip
+          "comparing cte-column to column of different aura: %col3 %col2"
+      ==
+::
+::  fail WHERE <column> = <cte-column> types differ
+++  test-fail-eq-cte-04
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE col2 = my-cte.col3 SELECT *"
+      ::
+      %-  crip
+          "comparing column to cte-column of different aura: %col2 %col3"
+      ==
+::
+::::  BETWEEN cte-column
+::::
+::  WHERE <cte-column> BETWEEN <literal> AND <literal> (true)
+++  test-between-cte-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row2' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 BETWEEN 'tango' AND 'tuxedos' SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <cte-column> BETWEEN <literal> AND <literal> (false)
+++  test-between-cte-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row2' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 BETWEEN 'tuxedo' AND 'tuxedos' SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <cte-column> BETWEEN <cte-column> AND <literal>
+++  test-between-cte-02
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'tricolor', 'row1')".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row2' SELECT col3, col4) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 BETWEEN my-cte.col4 AND 'tummy' SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <column> BETWEEN <cte-column> AND <literal>
+++  test-between-cte-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'Abby', 'row1')".
+          " ('Ace', 'Ace', 'row2')".
+          " ('Angel', 'Angel', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row2' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE col1 BETWEEN my-cte.col3 AND 'Angel' SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  WHERE <column> BETWEEN <cte-column> AND <cte-column>
+++  test-between-cte-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'Abby', 'row1')".
+          " ('Ace', 'Ace', 'Angel')".
+          " ('Angel', 'Angel', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'Angel' SELECT col3, col4) AS my-cte ".
+          "FROM my-table WHERE col1 BETWEEN my-cte.col3 AND my-cte.col4 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  fail WHERE <cte-column> BETWEEN <column> AND <literal> types differ
+++  test-fail-between-cte-00
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 BETWEEN col2 AND 'zzz' SELECT *"
+      ::
+      %-  crip
+          "comparing cte-column to column of different aura: %col3 %col2"
+      ==
+::
+::  fail WHERE <cte-column> BETWEEN <column> AND <cte-column> types differ
+++  test-fail-between-cte-01
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3, col2) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 BETWEEN col1 AND my-cte.col2 SELECT *"
+      ::
+      %-  crip
+          "comparing cte-columns of different auras: %col3 %col2"
+      ==
+::
+::  fail WHERE <column> BETWEEN <cte-column> AND <cte-column> types differ
+++  test-fail-between-cte-02
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3, col2) AS my-cte ".
+          "FROM my-table WHERE col1 BETWEEN my-cte.col3 AND my-cte.col2 SELECT *"
+      ::
+      %-  crip
+          "comparing column to cte-column of different aura: %col1 %col2"
+      ==
+::
+::::  IN cte-column
+::::
+::  WHERE <cte-column> IN (list @t) (true)
+++  test-in-cte-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row2' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 IN ('ticolor', 'tuxedo') SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              [%col3 [~.t 'ticolor']]
+                              [%col4 [~.t 'row2']]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              [%col3 [~.t 'tuxedo']]
+                              [%col4 [~.t 'row3']]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              [%col3 [~.t 'tricolor']]
+                              [%col4 [~.t 'row1']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <cte-column> IN (list @t) (false)
+++  test-in-cte-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row2' SELECT col3) AS my-cte ".
+          "FROM my-table WHERE my-cte.col3 IN ('tricolor', 'tuxedo') SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <cte-column> IN cte-column (true)
+++  test-in-cte-02
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'Abby', 'row1')".
+          " ('Ace', 'Ace', 'row2')".
+          " ('Angel', 'Angel', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row2' SELECT col3) AS cte-a, ".
+          "(FROM my-table-2 SELECT col1) AS cte-b ".
+          "FROM my-table WHERE cte-a.col3 IN cte-b.col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.da ~1999.2.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  WHERE <cte-column> IN cte-column (false)
+++  test-in-cte-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Abby', 'Abby', 'row1')".
+          " ('Ace', 'Ace', 'row2')".
+          " ('Angel', 'Angel', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 WHERE col4 = 'row2' SELECT col3) AS cte-a, ".
+          "(FROM my-table-2 WHERE col1 != 'Ace' SELECT col1) AS cte-b ".
+          "FROM my-table WHERE cte-a.col3 IN cte-b.col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <column> IN cte-column
+++  test-in-cte-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-joined-tables]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19)".
+          " ('Ace', ~2005.12.19)".
+          " ('Angel', ~2001.9.19); ".
+          "INSERT INTO my-table-2".
+          " VALUES".
+          " ('Ace', 'ticolor', 'row2')".
+          " ('Angel', 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM my-table-2 SELECT col1) AS my-cte ".
+          "FROM my-table WHERE col1 IN my-cte.col1 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Ace']]
+                              [%col2 [~.da ~2005.12.19]]
+                              ==
+                      :-  %vector
+                          :~  [%col1 [~.t 'Angel']]
+                              [%col2 [~.da ~2001.9.19]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  fail WHERE <cte-column> IN (list @t) types differ
+++  test-fail-in-cte-00
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row2' SELECT col2) AS my-cte ".
+          "FROM my-table WHERE my-cte.col2 IN ('ticolor', 'tuxedo') SELECT *"
+      ::
+      %-  crip
+          "type of IN list incorrect, should be ~.da"
+      ==
+::
+::  fail WHERE <cte-column> IN cte-column types differ
+++  test-fail-in-cte-01
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col3) AS cte-a, ".
+          "(FROM my-table WHERE col4 = 'row3' SELECT col2) AS cte-b ".
+          "FROM my-table WHERE cte-a.col3 IN cte-b.col2 SELECT *"
+      ::
+      %-  crip
+          "IN cte-column type ~.da doesn't match left side type ~.t"
+      ==
+::
+::  fail WHERE <column> IN cte-column types differ
+++  test-fail-in-cte-02
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-mytable]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', ~1999.2.19, 'tricolor', 'row1')".
+          " ('Ace', ~2005.12.19, 'ticolor', 'row2')".
+          " ('Angel', ~2001.9.19, 'tuxedo', 'row3')"
+      ::
+      :+  ~2012.5.2
+          %db1
+          "WITH (FROM my-table WHERE col4 = 'row3' SELECT col2) AS my-cte ".
+          "FROM my-table WHERE col1 IN my-cte.col2 SELECT *"
+      ::
+      %-  crip
+          "IN cte-column type ~.da doesn't match left side type ~.t"
+      ==
 --

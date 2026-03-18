@@ -331,7 +331,7 @@
     =/  raw=(list @)
       %+  turn  (split-all (trip `@t`q.r) ";")
                 |=(a=tape (rash (crip a) dem))
-    ?.  (fold raw & |=([n=@ state=?] ?:(((sane typ) n) state %.n)))
+    ?.  (types-match typ p.r)
       ~|("type of IN list incorrect, should be {<typ>}" !!)
     raw
   ::  cte-column on left: resolve single scalar (requires 1-row cte),
