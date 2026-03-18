@@ -8,6 +8,10 @@
                   "(col0 @da, col1 @t, col2 @p, col3 @ud, col4 @da) ".
                   "PRIMARY KEY (col0, col2);"
 
+++  create-cte-table
+  "CREATE TABLE db1..my-table-2 ".
+  "(col1 @t, col3 @t, col4 @t) ".
+  "PRIMARY KEY (col1)"
 ++  insert-table  "INSERT INTO db1..my-table (col0, col1, col2, col3, col4) ".
                   "VALUES (~2010.5.3, 'cord',~nomryg-nilref,20,Default) ".
                   "       (~2010.5.31, 'Default',Default, 0,Default) ".
@@ -1281,6 +1285,159 @@
                               [%message 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
+::::  CTE column predicate
+::::
+::  UPDATE with CTE predicate
+:: (cte-column = cte-column, matching: all rows updated)
+++  test-update-15
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              create-cte-table
+                              "INSERT INTO my-table-2 VALUES ".
+                                                    "('Angel', 'Angel', 'row3')"
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "WITH (FROM my-table-2 WHERE col4 = 'row3' ".
+                "SELECT col1, col3) AS my-cte ".
+                "UPDATE my-table SET col1='updated' ".
+                "WHERE my-cte.col1 = my-cte.col3"
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table SELECT *"
+            ::
+            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='updated:']
+                              [%vector-count count=4]
+                              [%message msg='table data:']
+                              [%vector-count count=4]
+                              ==
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'updated']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 20]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'updated']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'updated']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'updated']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
+::  UPDATE with CTE predicate
+::  (cte-column = cte-column, not matching: no rows updated)
+++  test-update-16
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              create-cte-table
+                              "INSERT INTO my-table-2 VALUES ".
+                                                  "('Angel', 'tuxedo', 'row3')"
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1, col3) ".
+                      "AS my-cte ".
+                "UPDATE my-table SET col1='updated' ".
+                "WHERE my-cte.col1 = my-cte.col3"
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table SELECT *"
+            ::
+            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='no rows updated']
+                              ==
+            ::
+            :-  %results  :~  [%message 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'cord']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 20]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%message 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
                               [%vector-count 4]
                               ==
             ==
