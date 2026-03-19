@@ -621,6 +621,7 @@
 ::
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
++$  number-systems    ?(%rd %sd %ud)
 ::
 +$  if-then-else
   $:  %if-then-else
@@ -650,25 +651,21 @@
 ::
 ::  datetime functions
 ::
-++  getutcdate-signature  [params=~ ret=~.da]
 +$  getutcdate
   $:  %getutcdate
     ~
   ==
 ::
-++  day-signature  [params=~[~.da] ret=~.ud]
 +$  day
   $:  %day
     date=datum
   ==
 ::
-++  month-signature  [params=~[~.da] ret=~.ud]
 +$  month
   $:  %month
     date=datum
   ==
 ::
-++  year-signature  [params=~[~.da] ret=~.ud]
 +$  year
   $:  %year
     date=datum
@@ -676,39 +673,33 @@
 ::
 ::  mathematical functions
 ::
-++  abs-signature  [params=~[~[~.sb ~.sd ~.si ~.sv ~.sw ~.sx]] ret=~.u]
 +$  abs
   $:  %abs
     numeric-expression=datum
   ==
 ::
-++  log-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.sd]]
 +$  log
   $:  %log
     float-expression=datum
     base=(unit datum)
   ==
 ::
-++  floor-signature  [params=~[~.rs] ret=~.rs]
 +$  floor
   $:  %floor
     numeric-expression=datum
   ==
 ::
-++  power-signature  [params=~[~[~.rs ~.ud] ~.ud] ret=~[~.rs ~.ud]]
 +$  power
   $:  %power
     float-expression=datum
     exponent=datum
   ==
 ::
-++  ceiling-signature  [params=~[~[~.rs ~.sd]] ret=~[~.rs ~.sd]]
 +$  ceiling
   $:  %ceiling
     numeric-expression=datum
   ==
 ::
-++  round-signature  [params=~[~.rs ~.ud ~.ud] ret=~.rs]
 +$  round
   $:  %round
     numeric-expression=datum
@@ -716,13 +707,11 @@
     function=(unit datum)
     ==
 ::
-++  sign-signature  [params=~[~.sd] ret=~.sd]
 +$  sign
   $:  %sign
     numeric-expression=datum
   ==
 ::
-++  sqrt-signature  [params=~[~[~.rs ~.ud]] ret=~[~.rs ~.ud]]
 +$  sqrt
   $:  %sqrt
     float-expression=datum
@@ -730,27 +719,23 @@
 ::
 ::  string functions
 ::
-++  len-signature  [params=~[~.t] ret=~.ud]
 +$  len
   $:  %len
     string-expression=datum
   ==
 ::
-++  left-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  left
   $:  %left
     character-expression=datum
     integer-expression=datum
   ==
 ::
-++  right-signature  [params=~[~.t ~.ud] ret=~.t]
 +$  right
   $:  %right
     character-expression=datum
     integer-expression=datum
   ==
-::
-++  substring-signature  [params=~[~.t ~.ud ~.ud] ret=~.t]
+::]
 +$  substring
   $:  %substring
     string-expression=datum
@@ -758,14 +743,12 @@
     length=datum
     ==
 ::
-++  trim-signature  [params=~[~.t ~.t] ret=~.t]
 +$  trim
   $:  %trim
     characters=(unit datum)
     string=datum
   ==
 ::
-++  concat-signature  [params=~.t ret=~.t]
 +$  concat
   $+  concat
   :: if we remove this bucpat the type checker loops infinitely

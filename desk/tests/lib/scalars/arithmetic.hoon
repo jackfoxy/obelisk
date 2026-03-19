@@ -119,7 +119,7 @@
 ::
 ::
 ::
-++  test-qual-arithmetic
+++  test-qual-addition
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -127,7 +127,6 @@
     resolved-scalars
     table-row
     :~
-    ::  addition tests
     :-  %addition-literal-literal
         :-  :*  %arithmetic
               %lus
@@ -163,7 +162,17 @@
               [%scalar-name %scalar1]
               ==
             [~.ud 4]
-    ::  subtraction tests
+  ==
+  ==
+::
+++  test-qual-subtraction
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %subtraction-literal-literal
         :-  :*  %arithmetic
               %hep
@@ -199,7 +208,17 @@
               [%scalar-name %scalar1]
               ==
             [~.ud 2]
-    ::  multiplication tests
+  ==
+  ==
+::
+++  test-qual-multiplication
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %multiplication-literal-literal
         :-  :*  %arithmetic
               %tar
@@ -235,7 +254,17 @@
               [%scalar-name %scalar1]
               ==
             [~.ud 3]
-    ::  division tests
+  ==
+  ==
+::
+++  test-qual-division
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %division-literal-literal
         :-  :*  %arithmetic
               %fas
@@ -271,7 +300,17 @@
               [%scalar-name %scalar1]
               ==
             [~.ud 0]
-    ::  exponentiation tests
+  ==
+  ==
+::
+++  test-qual-exponentiation
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %exponentiation-literal-literal
         :-  :*  %arithmetic
               %ket
@@ -310,7 +349,7 @@
   ==
   ==
 ::
-++  test-unqual-arithmetic
+++  test-unqual-addition
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -318,7 +357,6 @@
     resolved-scalars
     table-row
     :~
-    ::  addition tests
     :-  %addition-unqualified-col-literal
         :-  :*  %arithmetic
               %lus
@@ -333,7 +371,17 @@
               arithmetic-u-col-4
               ==
             [~.ud 5]
-    ::  subtraction tests
+  ==
+  ==
+::
+++  test-unqual-subtraction
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %subtraction-unqualified-col-literal
         :-  :*  %arithmetic
               %hep
@@ -348,7 +396,17 @@
               arithmetic-u-col-5
               ==
             [~.ud 4]
-    ::  multiplication tests
+  ==
+  ==
+::
+++  test-unqual-multiplication
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %multiplication-unqualified-col-literal
         :-  :*  %arithmetic
               %tar
@@ -363,7 +421,17 @@
               arithmetic-u-col-5
               ==
             [~.ud 5]
-    ::  division tests
+  ==
+  ==
+::
+++  test-unqual-division
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %division-unqualified-col-literal
         :-  :*  %arithmetic
               %fas
@@ -378,7 +446,17 @@
               arithmetic-u-col-5
               ==
             [~.ud 0]
-    ::  exponentiation tests
+  ==
+  ==
+::
+++  test-unqual-exponentiation
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
     :-  %exponentiation-unqualified-col-literal
         :-  :*  %arithmetic
               %ket

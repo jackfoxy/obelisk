@@ -479,96 +479,209 @@
           =resolved-scalars
         ==
     ^-  resolved-scalar
-    ?-  operator.scalar
+        =/  evald-left  %:  evaluate-datum  left.scalar
+                                            named-ctes
+                                            qualifier-lookup
+                                            map-meta
+                                            resolved-scalars
+                                            ==
+        =/  evald-right  %:  evaluate-datum  right.scalar
+                                             named-ctes
+                                             qualifier-lookup
+                                             map-meta
+                                             resolved-scalars
+                                             ==
+
+        (eval-operator operator.scalar evald-left evald-right)
+::
+++  eval-operator
+  |=  [operator=arithmetic-op l=resolved-scalar r=resolved-scalar]
+  ^-  resolved-scalar
+  =/  l-number-system  ?:  ?=(dime l)  -.l
+                       type.l
+  =/  r-number-system  ?:  ?=(dime r)  -.r
+                       type.r
+  ?.  =(l-number-system r-number-system)
+    ~|  "number system conflict: ".
+        "{<l-number-system>} {<operator>} {<r-number-system>}"
+        !!
+  ?.  ?=(number-systems l-number-system)
+    ~|  "{<l-number-system>} {<operator>} {<r-number-system>} : ".
+        "{<l-number-system>} not a supported number system ".
+        "?(~.rd ~.sd ~.ud)"
+        !!
+  ?-  operator
       ::
       %lus
-        %:  basic-arithmetic  scalar
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              add
-                              ==
+        ?:  &(?=(dime l) ?=(dime r))
+          ?-  l-number-system
+            ::
+            %rd  [-.l (add:rd +.l +.r)]
+            ::
+            %sd  [-.l (sum:si +.l +.r)]
+            ::
+            %ud  [-.l (add +.l +.r)]
+            ==
+        :+  %fn
+            l-number-system
+            |=  =data-row
+            ^-  dime
+            ?-  l-number-system
+              ::
+              %rd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (add:rd +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (add:rd +:(f.l data-row) +.r)]
+                [l-number-system (add:rd +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %sd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (sum:si +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (sum:si +:(f.l data-row) +.r)]
+                [l-number-system (sum:si +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %ud
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (add +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (add +:(f.l data-row) +.r)]
+                [l-number-system (add +:(f.l data-row) +:(f.r data-row))]
+              ==
       ::
       %hep
-        %:  basic-arithmetic  scalar
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              sub
-                              ==
+          ?:  &(?=(dime l) ?=(dime r))
+          ?-  l-number-system
+            ::
+            %rd  [-.l (sub:rd +.l +.r)]
+            ::
+            %sd  [-.l (dif:si +.l +.r)]
+            ::
+            %ud  [-.l (sub +.l +.r)]
+            ==
+        :+  %fn
+            l-number-system
+            |=  =data-row
+            ^-  dime
+            ?-  l-number-system
+              ::
+              %rd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (sub:rd +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (sub:rd +:(f.l data-row) +.r)]
+                [l-number-system (sub:rd +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %sd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (dif:si +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (dif:si +:(f.l data-row) +.r)]
+                [l-number-system (dif:si +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %ud
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (sub +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (sub +:(f.l data-row) +.r)]
+                [l-number-system (sub +:(f.l data-row) +:(f.r data-row))]
+              ==
       ::
       %tar
-        %:  basic-arithmetic  scalar
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              mul
-                              ==
+         ?:  &(?=(dime l) ?=(dime r))
+          ?-  l-number-system
+            ::
+            %rd  [-.l (mul:rd +.l +.r)]
+            ::
+            %sd  [-.l (pro:si +.l +.r)]
+            ::
+            %ud  [-.l (mul +.l +.r)]
+            ==
+        :+  %fn
+            l-number-system
+            |=  =data-row
+            ^-  dime
+            ?-  l-number-system
+              ::
+              %rd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (mul:rd +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (mul:rd +:(f.l data-row) +.r)]
+                [l-number-system (mul:rd +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %sd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (pro:si +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (pro:si +:(f.l data-row) +.r)]
+                [l-number-system (pro:si +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %ud
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (mul +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (mul +:(f.l data-row) +.r)]
+                [l-number-system (mul +:(f.l data-row) +:(f.r data-row))]
+              ==
       ::
       %fas
-        %:  basic-arithmetic  scalar
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              div
-                              ==
+          ?:  &(?=(dime l) ?=(dime r))
+          ?-  l-number-system
+            ::
+            %rd  [-.l (div:rd +.l +.r)]
+            ::
+            %sd  [-.l (fra:si +.l +.r)]
+            ::
+            %ud  [-.l (div +.l +.r)]
+            ==
+        :+  %fn
+            l-number-system
+            |=  =data-row
+            ^-  dime
+            ?-  l-number-system
+              ::
+              %rd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (div:rd +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (div:rd +:(f.l data-row) +.r)]
+                [l-number-system (div:rd +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %sd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (fra:si +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (fra:si +:(f.l data-row) +.r)]
+                [l-number-system (fra:si +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %ud
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (div +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (div +:(f.l data-row) +.r)]
+                [l-number-system (div +:(f.l data-row) +:(f.r data-row))]
+              ==
       ::
       %ket
-        %:  basic-arithmetic  scalar
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              pow
-                              ==
+          ~|("not implemented" !!)
       ::
       %cen
-        %:  basic-arithmetic  scalar
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              mod
-                              ==
+          ~|("not implemented" !!)
     ==
-::
-++  basic-arithmetic
-    |=  $:
-          scalar=arithmetic:ast
-          =named-ctes
-          =qualifier-lookup
-          =map-meta
-          =resolved-scalars
-          operator=$-([@ud @ud] @ud)
-        ==
-    ^-  resolved-scalar
-    :+  %fn
-        ~.ud  ::typ
-        |=  =data-row
-        ^-  dime
-        =/  evald-left  %:  evaluate-datum  left.scalar
-                                                      named-ctes
-                                                      qualifier-lookup
-                                                      map-meta
-                                                      resolved-scalars
-                                                      ==
-        =/  evald-right  %:  evaluate-datum  right.scalar
-                                                        named-ctes
-                                                        qualifier-lookup
-                                                        map-meta
-                                                        resolved-scalars
-                                                        ==
-        :-  ~.ud  ::typ
-            %+  operator  ?:  ?=(dime evald-left)
-                              +.evald-left
-                            +:(f.evald-left data-row)
-                            ?:  ?=(dime evald-right)
-                              +.evald-right
-                            +:(f.evald-right data-row)
 ::
 ++  check-consistent-types
   ::  validate that all datum items share a common aura type,
