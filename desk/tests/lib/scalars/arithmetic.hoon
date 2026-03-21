@@ -119,7 +119,201 @@
 ::
 ::
 ::
-++  test-qual-addition
+::  @rd test values
+::
+++  rd-literal-1  [~.rd 0x3ff0.0000.0000.0000]  :: .~1
+++  rd-literal-2  [~.rd 0x4000.0000.0000.0000]  :: .~2
+::
+++  rd-qual-map-meta
+  %-  mk-qualified-map-meta
+  :~  :-  qualified-table-1
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  ==
+      ==
+::
+++  rd-table-row
+  %-  mk-indexed-row
+  :~  [%col1 0x3ff0.0000.0000.0000]  :: .~1
+      [%col2 0x4000.0000.0000.0000]  :: .~2
+      [%col3 0x4008.0000.0000.0000]  :: .~3
+      [%col4 0x4010.0000.0000.0000]  :: .~4
+      [%col5 0x4014.0000.0000.0000]  :: .~5
+      [%col6 0x4018.0000.0000.0000]  :: .~6
+      ==
+::
+++  rd-resolved-scalars
+  ^-  (map @tas resolved-scalar)
+  %-  malt  %-  limo  :~  :-  %scalar1
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=arithmetic-q-col-3
+                                      else=arithmetic-q-col-2
+                                    ==
+                                    ctes
+                                    qual-lookup
+                                    rd-qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    ==
+                          ==
+::
+++  rd-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns  :~  [%column %col4 ~.rd 0]
+                                [%column %col5 ~.rd 0]
+                                [%column %col6 ~.rd 0]
+                                ==
+::
+::  @sd test values
+::
+++  sd-literal-1  [~.sd 2]  :: --1
+++  sd-literal-2  [~.sd 4]  :: --2
+::
+++  sd-qual-map-meta
+  %-  mk-qualified-map-meta
+  :~  :-  qualified-table-1
+          %-  addr-columns
+              :~  [%column %col1 ~.sd 0]
+                  [%column %col2 ~.sd 0]
+                  [%column %col3 ~.sd 0]
+                  ==
+      ==
+::
+++  sd-table-row
+  %-  mk-indexed-row
+  :~  [%col1 2]   :: --1
+      [%col2 4]   :: --2
+      [%col3 6]   :: --3
+      [%col4 8]   :: --4
+      [%col5 10]  :: --5
+      [%col6 12]  :: --6
+      ==
+::
+++  sd-resolved-scalars
+  ^-  (map @tas resolved-scalar)
+  %-  malt  %-  limo  :~  :-  %scalar1
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=arithmetic-q-col-3
+                                      else=arithmetic-q-col-2
+                                    ==
+                                    ctes
+                                    qual-lookup
+                                    sd-qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    ==
+                          ==
+::
+++  sd-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns  :~  [%column %col4 ~.sd 0]
+                                [%column %col5 ~.sd 0]
+                                [%column %col6 ~.sd 0]
+                                ==
+::
+::  tests
+::
+++  test-qual-addition-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-qual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %addition-literal-literal
+        :-  :*  %arithmetic
+              %lus
+              rd-literal-1
+              rd-literal-1
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~2
+    :-  %addition-qualified-col-literal
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-q-col-1
+              rd-literal-1
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~1+.~1=.~2
+    :-  %addition-scalar-name-literal
+        :-  :*  %arithmetic
+              %lus
+              [%scalar-name %scalar1]
+              rd-literal-1
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~3+.~1=.~4
+    :-  %addition-literal-qualified-col
+        :-  :*  %arithmetic
+              %lus
+              rd-literal-1
+              arithmetic-q-col-1
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~1+.~1=.~2
+    :-  %addition-literal-scalar-name
+        :-  :*  %arithmetic
+              %lus
+              rd-literal-1
+              [%scalar-name %scalar1]
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~1+.~3=.~4
+  ==
+  ==
+::
+++  test-qual-addition-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-qual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %addition-literal-literal
+        :-  :*  %arithmetic
+              %lus
+              sd-literal-1
+              sd-literal-1
+              ==
+            [~.sd 4]  :: --1+--1=--2
+    :-  %addition-qualified-col-literal
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-q-col-1
+              sd-literal-1
+              ==
+            [~.sd 4]  :: --1+--1=--2
+    :-  %addition-scalar-name-literal
+        :-  :*  %arithmetic
+              %lus
+              [%scalar-name %scalar1]
+              sd-literal-1
+              ==
+            [~.sd 8]  :: --3+--1=--4
+    :-  %addition-literal-qualified-col
+        :-  :*  %arithmetic
+              %lus
+              sd-literal-1
+              arithmetic-q-col-1
+              ==
+            [~.sd 4]  :: --1+--1=--2
+    :-  %addition-literal-scalar-name
+        :-  :*  %arithmetic
+              %lus
+              sd-literal-1
+              [%scalar-name %scalar1]
+              ==
+            [~.sd 8]  :: --1+--3=--4
+  ==
+  ==
+::
+++  test-qual-addition-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -165,7 +359,99 @@
   ==
   ==
 ::
-++  test-qual-subtraction
+++  test-qual-subtraction-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-qual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %subtraction-literal-literal
+        :-  :*  %arithmetic
+              %hep
+              rd-literal-2
+              rd-literal-1
+              ==
+            [~.rd 0x3ff0.0000.0000.0000]  :: .~2-.~1=.~1
+    :-  %subtraction-qualified-col-literal
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-q-col-1
+              rd-literal-1
+              ==
+            [~.rd 0x0]  :: .~1-.~1=.~0
+    :-  %subtraction-scalar-name-literal
+        :-  :*  %arithmetic
+              %hep
+              [%scalar-name %scalar1]
+              rd-literal-1
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~3-.~1=.~2
+    :-  %subtraction-literal-qualified-col
+        :-  :*  %arithmetic
+              %hep
+              rd-literal-1
+              arithmetic-q-col-1
+              ==
+            [~.rd 0x0]  :: .~1-.~1=.~0
+    :-  %subtraction-literal-scalar-name
+        :-  :*  %arithmetic
+              %hep
+              [~.rd 0x4014.0000.0000.0000]
+              [%scalar-name %scalar1]
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~5-.~3=.~2
+  ==
+  ==
+::
+++  test-qual-subtraction-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-qual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %subtraction-literal-literal
+        :-  :*  %arithmetic
+              %hep
+              sd-literal-2
+              sd-literal-1
+              ==
+            [~.sd 2]  :: --2---1=--1
+    :-  %subtraction-qualified-col-literal
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-q-col-1
+              sd-literal-1
+              ==
+            [~.sd 0]  :: --1---1=--0
+    :-  %subtraction-scalar-name-literal
+        :-  :*  %arithmetic
+              %hep
+              [%scalar-name %scalar1]
+              sd-literal-1
+              ==
+            [~.sd 4]  :: --3---1=--2
+    :-  %subtraction-literal-qualified-col
+        :-  :*  %arithmetic
+              %hep
+              sd-literal-1
+              arithmetic-q-col-1
+              ==
+            [~.sd 0]  :: --1---1=--0
+    :-  %subtraction-literal-scalar-name
+        :-  :*  %arithmetic
+              %hep
+              [~.sd 10]
+              [%scalar-name %scalar1]
+              ==
+            [~.sd 4]  :: --5---3=--2
+  ==
+  ==
+::
+++  test-qual-subtraction-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -211,7 +497,99 @@
   ==
   ==
 ::
-++  test-qual-multiplication
+++  test-qual-multiplication-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-qual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %multiplication-literal-literal
+        :-  :*  %arithmetic
+              %tar
+              rd-literal-2
+              rd-literal-2
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~2×.~2=.~4
+    :-  %multiplication-qualified-col-literal
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-q-col-2
+              rd-literal-1
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~2×.~1=.~2
+    :-  %multiplication-scalar-name-literal
+        :-  :*  %arithmetic
+              %tar
+              [%scalar-name %scalar1]
+              rd-literal-1
+              ==
+            [~.rd 0x4008.0000.0000.0000]  :: .~3×.~1=.~3
+    :-  %multiplication-literal-qualified-col
+        :-  :*  %arithmetic
+              %tar
+              rd-literal-1
+              arithmetic-q-col-2
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~1×.~2=.~2
+    :-  %multiplication-literal-scalar-name
+        :-  :*  %arithmetic
+              %tar
+              rd-literal-1
+              [%scalar-name %scalar1]
+              ==
+            [~.rd 0x4008.0000.0000.0000]  :: .~1×.~3=.~3
+  ==
+  ==
+::
+++  test-qual-multiplication-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-qual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %multiplication-literal-literal
+        :-  :*  %arithmetic
+              %tar
+              sd-literal-2
+              sd-literal-2
+              ==
+            [~.sd 8]  :: --2×--2=--4
+    :-  %multiplication-qualified-col-literal
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-q-col-2
+              sd-literal-1
+              ==
+            [~.sd 4]  :: --2×--1=--2
+    :-  %multiplication-scalar-name-literal
+        :-  :*  %arithmetic
+              %tar
+              [%scalar-name %scalar1]
+              sd-literal-1
+              ==
+            [~.sd 6]  :: --3×--1=--3
+    :-  %multiplication-literal-qualified-col
+        :-  :*  %arithmetic
+              %tar
+              sd-literal-1
+              arithmetic-q-col-2
+              ==
+            [~.sd 4]  :: --1×--2=--2
+    :-  %multiplication-literal-scalar-name
+        :-  :*  %arithmetic
+              %tar
+              sd-literal-1
+              [%scalar-name %scalar1]
+              ==
+            [~.sd 6]  :: --1×--3=--3
+  ==
+  ==
+::
+++  test-qual-multiplication-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -257,7 +635,99 @@
   ==
   ==
 ::
-++  test-qual-division
+++  test-qual-division-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-qual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %division-literal-literal
+        :-  :*  %arithmetic
+              %fas
+              rd-literal-2
+              rd-literal-2
+              ==
+            [~.rd 0x3ff0.0000.0000.0000]  :: .~2÷.~2=.~1
+    :-  %division-qualified-col-literal
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-q-col-2
+              rd-literal-1
+              ==
+            [~.rd 0x4000.0000.0000.0000]  :: .~2÷.~1=.~2
+    :-  %division-scalar-name-literal
+        :-  :*  %arithmetic
+              %fas
+              [%scalar-name %scalar1]
+              rd-literal-1
+              ==
+            [~.rd 0x4008.0000.0000.0000]  :: .~3÷.~1=.~3
+    :-  %division-literal-qualified-col
+        :-  :*  %arithmetic
+              %fas
+              rd-literal-1
+              arithmetic-q-col-2
+              ==
+            [~.rd 0x3fe0.0000.0000.0000]  :: .~1÷.~2=.~0.5
+    :-  %division-literal-scalar-name
+        :-  :*  %arithmetic
+              %fas
+              rd-literal-1
+              [%scalar-name %scalar1]
+              ==
+            [~.rd 0x3fd5.5555.5555.5555]  :: .~1÷.~3=0.333...
+  ==
+  ==
+::
+++  test-qual-division-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-qual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %division-literal-literal
+        :-  :*  %arithmetic
+              %fas
+              sd-literal-2
+              sd-literal-2
+              ==
+            [~.sd 2]  :: --2÷--2=--1
+    :-  %division-qualified-col-literal
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-q-col-2
+              sd-literal-1
+              ==
+            [~.sd 4]  :: --2÷--1=--2
+    :-  %division-scalar-name-literal
+        :-  :*  %arithmetic
+              %fas
+              [%scalar-name %scalar1]
+              sd-literal-1
+              ==
+            [~.sd 6]  :: --3÷--1=--3
+    :-  %division-literal-qualified-col
+        :-  :*  %arithmetic
+              %fas
+              sd-literal-1
+              arithmetic-q-col-2
+              ==
+            [~.sd 0]  :: --1÷--2=--0
+    :-  %division-literal-scalar-name
+        :-  :*  %arithmetic
+              %fas
+              sd-literal-1
+              [%scalar-name %scalar1]
+              ==
+            [~.sd 0]  :: --1÷--3=--0
+  ==
+  ==
+::
+++  test-qual-division-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -303,7 +773,46 @@
   ==
   ==
 ::
-++  test-qual-exponentiation
+++  test-qual-exponentiation-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-qual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %exponentiation-literal-literal
+        :-  :*  %arithmetic
+              %ket
+              rd-literal-2
+              rd-literal-2
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~2^.~2=.~4
+    :-  %exponentiation-qualified-col-literal
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-q-col-2
+              rd-literal-2
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~2^.~2=.~4
+    :-  %exponentiation-literal-qualified-col
+        :-  :*  %arithmetic
+              %ket
+              rd-literal-2
+              arithmetic-q-col-3
+              ==
+            [~.rd 0x4020.0000.0000.0000]  :: .~2^.~3=.~8
+    :-  %exponentiation-qualified-col-qualified-col
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-q-col-3
+              arithmetic-q-col-2
+              ==
+            [~.rd 0x4022.0000.0000.0000]  :: .~3^.~2=.~9
+  ==
+  ==
+::
+++  test-qual-exponentiation-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -349,7 +858,135 @@
   ==
   ==
 ::
-++  test-unqual-addition
+++  test-qual-remainder-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-qual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %remainder-literal-literal
+        :-  :*  %arithmetic
+              %cen
+              [~.sd 10]
+              sd-literal-2
+              ==
+            [~.sd 2]  :: --5 rem --2 = --1
+    :-  %remainder-qualified-col-literal
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-q-col-3
+              sd-literal-2
+              ==
+            [~.sd 2]  :: --3 rem --2 = --1
+    :-  %remainder-literal-qualified-col
+        :-  :*  %arithmetic
+              %cen
+              [~.sd 10]
+              arithmetic-q-col-3
+              ==
+            [~.sd 4]  :: --5 rem --3 = --2
+    :-  %remainder-qualified-col-qualified-col
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-q-col-3
+              arithmetic-q-col-2
+              ==
+            [~.sd 2]  :: --3 rem --2 = --1
+  ==
+  ==
+::
+++  test-qual-remainder-ud
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %remainder-literal-literal
+        :-  :*  %arithmetic
+              %cen
+              [~.ud 5]
+              literal-value-2
+              ==
+            [~.ud 1]
+    :-  %remainder-qualified-col-literal
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-q-col-3
+              literal-value-2
+              ==
+            [~.ud 1]
+    :-  %remainder-literal-qualified-col
+        :-  :*  %arithmetic
+              %cen
+              [~.ud 5]
+              arithmetic-q-col-3
+              ==
+            [~.ud 2]
+    :-  %remainder-qualified-col-qualified-col
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-q-col-3
+              arithmetic-q-col-2
+              ==
+            [~.ud 1]
+  ==
+  ==
+::
+++  test-unqual-addition-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-unqual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %addition-unqualified-col-literal
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-u-col-4
+              rd-literal-1
+              ==
+            [~.rd 0x4014.0000.0000.0000]  :: .~4+.~1=.~5
+    :-  %addition-literal-unqualified-col
+        :-  :*  %arithmetic
+              %lus
+              rd-literal-1
+              arithmetic-u-col-4
+              ==
+            [~.rd 0x4014.0000.0000.0000]  :: .~1+.~4=.~5
+  ==
+  ==
+::
+++  test-unqual-addition-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-unqual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %addition-unqualified-col-literal
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-u-col-4
+              sd-literal-1
+              ==
+            [~.sd 10]  :: --4+--1=--5
+    :-  %addition-literal-unqualified-col
+        :-  :*  %arithmetic
+              %lus
+              sd-literal-1
+              arithmetic-u-col-4
+              ==
+            [~.sd 10]  :: --1+--4=--5
+  ==
+  ==
+::
+++  test-unqual-addition-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -374,7 +1011,57 @@
   ==
   ==
 ::
-++  test-unqual-subtraction
+++  test-unqual-subtraction-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-unqual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %subtraction-unqualified-col-literal
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-u-col-5
+              rd-literal-1
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~5-.~1=.~4
+    :-  %subtraction-literal-unqualified-col
+        :-  :*  %arithmetic
+              %hep
+              [~.rd 0x4022.0000.0000.0000]
+              arithmetic-u-col-5
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~9-.~5=.~4
+  ==
+  ==
+::
+++  test-unqual-subtraction-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-unqual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %subtraction-unqualified-col-literal
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-u-col-5
+              sd-literal-1
+              ==
+            [~.sd 8]  :: --5---1=--4
+    :-  %subtraction-literal-unqualified-col
+        :-  :*  %arithmetic
+              %hep
+              [~.sd 18]
+              arithmetic-u-col-5
+              ==
+            [~.sd 8]  :: --9---5=--4
+  ==
+  ==
+::
+++  test-unqual-subtraction-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -399,7 +1086,57 @@
   ==
   ==
 ::
-++  test-unqual-multiplication
+++  test-unqual-multiplication-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-unqual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %multiplication-unqualified-col-literal
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-u-col-5
+              rd-literal-1
+              ==
+            [~.rd 0x4014.0000.0000.0000]  :: .~5×.~1=.~5
+    :-  %multiplication-literal-unqualified-col
+        :-  :*  %arithmetic
+              %tar
+              rd-literal-1
+              arithmetic-u-col-5
+              ==
+            [~.rd 0x4014.0000.0000.0000]  :: .~1×.~5=.~5
+  ==
+  ==
+::
+++  test-unqual-multiplication-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-unqual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %multiplication-unqualified-col-literal
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-u-col-5
+              sd-literal-1
+              ==
+            [~.sd 10]  :: --5×--1=--5
+    :-  %multiplication-literal-unqualified-col
+        :-  :*  %arithmetic
+              %tar
+              sd-literal-1
+              arithmetic-u-col-5
+              ==
+            [~.sd 10]  :: --1×--5=--5
+  ==
+  ==
+::
+++  test-unqual-multiplication-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -424,7 +1161,57 @@
   ==
   ==
 ::
-++  test-unqual-division
+++  test-unqual-division-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-unqual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %division-unqualified-col-literal
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-u-col-5
+              rd-literal-1
+              ==
+            [~.rd 0x4014.0000.0000.0000]  :: .~5÷.~1=.~5
+    :-  %division-literal-unqualified-col
+        :-  :*  %arithmetic
+              %fas
+              rd-literal-1
+              arithmetic-u-col-5
+              ==
+            [~.rd 0x3fc9.9999.9999.9999]  :: .~1÷.~5=.~0.2
+  ==
+  ==
+::
+++  test-unqual-division-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-unqual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %division-unqualified-col-literal
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-u-col-5
+              sd-literal-1
+              ==
+            [~.sd 10]  :: --5÷--1=--5
+    :-  %division-literal-unqualified-col
+        :-  :*  %arithmetic
+              %fas
+              sd-literal-1
+              arithmetic-u-col-5
+              ==
+            [~.sd 0]  :: --1÷--5=--0
+  ==
+  ==
+::
+++  test-unqual-division-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -449,7 +1236,46 @@
   ==
   ==
 ::
-++  test-unqual-exponentiation
+++  test-unqual-exponentiation-rd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    rd-unqual-map-meta
+    rd-resolved-scalars
+    rd-table-row
+    :~
+    :-  %exponentiation-literal-literal
+        :-  :*  %arithmetic
+              %ket
+              rd-literal-2
+              rd-literal-2
+              ==
+            [~.rd 0x4010.0000.0000.0000]  :: .~2^.~2=.~4
+    :-  %exponentiation-unqualified-col-literal
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-u-col-4
+              rd-literal-2
+              ==
+            [~.rd 0x4030.0000.0000.0000]  :: .~4^.~2=.~16
+    :-  %exponentiation-literal-unqualified-col
+        :-  :*  %arithmetic
+              %ket
+              rd-literal-2
+              arithmetic-u-col-5
+              ==
+            [~.rd 0x4040.0000.0000.0000]  :: .~2^.~5=.~32
+    :-  %exponentiation-unqualified-col-unqualified-col
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-u-col-4
+              arithmetic-u-col-5
+              ==
+            [~.rd 0x4090.0000.0000.0000]  :: .~4^.~5=.~1024
+  ==
+  ==
+::
+++  test-unqual-exponentiation-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -471,6 +1297,84 @@
               arithmetic-u-col-5
               ==
             [~.ud 32]
+  ==
+  ==
+::
+++  test-unqual-remainder-sd
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    sd-unqual-map-meta
+    sd-resolved-scalars
+    sd-table-row
+    :~
+    :-  %remainder-literal-literal
+        :-  :*  %arithmetic
+              %cen
+              [~.sd 10]
+              sd-literal-2
+              ==
+            [~.sd 2]  :: --5 rem --2 = --1
+    :-  %remainder-unqualified-col-literal
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-u-col-5
+              sd-literal-2
+              ==
+            [~.sd 2]  :: --5 rem --2 = --1
+    :-  %remainder-literal-unqualified-col
+        :-  :*  %arithmetic
+              %cen
+              sd-literal-2
+              arithmetic-u-col-4
+              ==
+            [~.sd 4]  :: --2 rem --4 = --2
+    :-  %remainder-unqualified-col-unqualified-col
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-u-col-5
+              arithmetic-u-col-4
+              ==
+            [~.sd 2]  :: --5 rem --4 = --1
+  ==
+  ==
+::
+++  test-unqual-remainder-ud
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %remainder-literal-literal
+        :-  :*  %arithmetic
+              %cen
+              [~.ud 5]
+              literal-value-2
+              ==
+            [~.ud 1]
+    :-  %remainder-unqualified-col-literal
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-u-col-5
+              literal-value-2
+              ==
+            [~.ud 1]
+    :-  %remainder-literal-unqualified-col
+        :-  :*  %arithmetic
+              %cen
+              literal-value-2
+              arithmetic-u-col-4
+              ==
+            [~.ud 2]
+    :-  %remainder-unqualified-col-unqualified-col
+        :-  :*  %arithmetic
+              %cen
+              arithmetic-u-col-5
+              arithmetic-u-col-4
+              ==
+            [~.ud 1]
   ==
   ==
 ::
@@ -559,6 +1463,7 @@
             [~.ud 8]
   ==
   ==
+::
 ++  test-embedded-by-node-arithmetic
   %:  run-scalar-tests
     ctes

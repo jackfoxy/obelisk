@@ -4768,10 +4768,6 @@
       :+  %log  (finalize-param -.raw-scalar-body aliases)
                 (some (finalize-param +.raw-scalar-body aliases))
     !!
-  ?:  =(%power fn-name)
-    :+  %power
-        (finalize-param -.raw-scalar-body aliases)
-        (finalize-param +.raw-scalar-body aliases)
   ?:  =(%left fn-name)
     :+  %left
         (finalize-param -.raw-scalar-body aliases)
@@ -4886,11 +4882,6 @@
       ==
       ;~  plug
         (cold %round (jester %round))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %power (jester %power))
         %+  stag  %two-param
                   (parse-two-params parse-scalar-param parse-scalar-param)
       ==
@@ -5114,10 +5105,6 @@
     ~|("finalize-math-builtin-fn: %log requires one or two params" !!)
   ?:  =(%month fn-name)
     [%month (finalize-param raw-scalar-body aliases)]
-  ?:  =(%power fn-name)
-    :+  %power
-        (finalize-param -.raw-scalar-body aliases)
-        (finalize-param +.raw-scalar-body aliases)
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
       :^  %round

@@ -590,7 +590,6 @@
     abs
     log
     floor
-    power
     ceiling
     round
     sign
@@ -687,12 +686,6 @@
 +$  floor
   $:  %floor
     numeric-expression=datum
-  ==
-::
-+$  power
-  $:  %power
-    float-expression=datum
-    exponent=datum
   ==
 ::
 +$  ceiling

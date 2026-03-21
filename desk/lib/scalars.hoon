@@ -1,6 +1,6 @@
 :: this file  will contain code that handles scalars in the engine
 /-  ast, *obelisk
-/+  *predicate, *utils, mip
+/+  *predicate, *utils, mip, math
 |%
 :: inventory:
 :: - we know the qualified table (or tables in case of a join) we're acting on;
@@ -79,9 +79,6 @@
       !!
   ::
     %floor
-      !!
-  ::
-    %power
       !!
   ::
     %ceiling
@@ -471,46 +468,40 @@
   [%fn typ |=(=data-row (fn validated data-row))]
 ::
 ++  prepare-arithmetic
-    |=  $:
-          scalar=arithmetic:ast
-          =named-ctes
-          =qualifier-lookup
-          =map-meta
-          =resolved-scalars
-        ==
-    ^-  resolved-scalar
-        =/  evald-left  %:  evaluate-datum  left.scalar
-                                            named-ctes
-                                            qualifier-lookup
-                                            map-meta
-                                            resolved-scalars
-                                            ==
-        =/  evald-right  %:  evaluate-datum  right.scalar
-                                             named-ctes
-                                             qualifier-lookup
-                                             map-meta
-                                             resolved-scalars
-                                             ==
-
-        (eval-operator operator.scalar evald-left evald-right)
-::
-++  eval-operator
-  |=  [operator=arithmetic-op l=resolved-scalar r=resolved-scalar]
+  |=  $:
+        scalar=arithmetic:ast
+        =named-ctes
+        =qualifier-lookup
+        =map-meta
+        =resolved-scalars
+      ==
   ^-  resolved-scalar
+  =/  l  %:  evaluate-datum  left.scalar
+                             named-ctes
+                             qualifier-lookup
+                             map-meta
+                             resolved-scalars
+                             ==
+  =/  r  %:  evaluate-datum  right.scalar
+                             named-ctes
+                             qualifier-lookup
+                             map-meta
+                             resolved-scalars
+                             ==
   =/  l-number-system  ?:  ?=(dime l)  -.l
                        type.l
   =/  r-number-system  ?:  ?=(dime r)  -.r
                        type.r
   ?.  =(l-number-system r-number-system)
     ~|  "number system conflict: ".
-        "{<l-number-system>} {<operator>} {<r-number-system>}"
+        "{<l-number-system>} {<operator.scalar>} {<r-number-system>}"
         !!
   ?.  ?=(number-systems l-number-system)
-    ~|  "{<l-number-system>} {<operator>} {<r-number-system>} : ".
+    ~|  "{<l-number-system>} {<operator.scalar>} {<r-number-system>} : ".
         "{<l-number-system>} not a supported number system ".
         "?(~.rd ~.sd ~.ud)"
         !!
-  ?-  operator
+  ?-  operator.scalar
       ::
       %lus
         ?:  &(?=(dime l) ?=(dime r))
@@ -677,10 +668,80 @@
               ==
       ::
       %ket
-          ~|("not implemented" !!)
+          ?:  &(?=(dime l) ?=(dime r))
+          ?-  l-number-system
+            ::
+            %rd  [-.l (~(pow rd:math [%z .~1e-15]) +.l +.r)]
+            ::
+            %sd  ~|("exponentiation not implemented for @sd" !!)
+            ::
+            %ud  [-.l (pow +.l +.r)]
+            ==
+        :+  %fn
+            l-number-system
+            |=  =data-row
+            ^-  dime
+            ?-  l-number-system
+              ::
+              %rd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  :-  l-number-system
+                      (~(pow rd:math [%z .~1e-15]) +.l +:(f.r data-row))
+                ?:  ?=(dime r)
+                  :-  l-number-system
+                      (~(pow rd:math [%z .~1e-15]) +:(f.l data-row) +.r)
+                :-  l-number-system
+                    %+  ~(pow rd:math [%z .~1e-15])  +:(f.l data-row)
+                                                     +:(f.r data-row)
+              ::
+              %sd
+                ~|("exponentiation not implemented for @sd" !!)
+              ::
+              %ud
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (pow +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (pow +:(f.l data-row) +.r)]
+                [l-number-system (pow +:(f.l data-row) +:(f.r data-row))]
+              ==
       ::
       %cen
-          ~|("not implemented" !!)
+          ?:  &(?=(dime l) ?=(dime r))
+          ?-  l-number-system
+            ::
+            %rd  ~|("remainder not implemented for @rd" !!)
+            ::
+            %sd  [-.l (rem:si +.l +.r)]
+            ::
+            %ud  [-.l (mod +.l +.r)]
+            ==
+        :+  %fn
+            l-number-system
+            |=  =data-row
+            ^-  dime
+            ?-  l-number-system
+              ::
+              %rd
+                ~|("remainder not implemented for @rd" !!)
+              ::
+              %sd
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (rem:si +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (rem:si +:(f.l data-row) +.r)]
+                [l-number-system (rem:si +:(f.l data-row) +:(f.r data-row))]
+              ::
+              %ud
+                ?:  ?=(dime l)
+                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
+                  [l-number-system (mod +.l +:(f.r data-row))]
+                ?:  ?=(dime r)
+                  [l-number-system (mod +:(f.l data-row) +.r)]
+                [l-number-system (mod +:(f.l data-row) +:(f.r data-row))]
+              ==
     ==
 ::
 ++  check-consistent-types

@@ -195,16 +195,12 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-:: one of these makes it type crash
 ::  test mixing arithmetic with builtin functions
-::     not sure if we want this to work
-::    "        sc8 BEGIN POWER(CEILING(1.5), ABS(-2)) END ".
 ++  test-scalars-03
   =/  query-string
     "FROM foo ".
     "SCALARS sc1 BEGIN ABS(-5) + 1 END ".
     "        sc2 BEGIN FLOOR(.2.8) - CEILING(.1.2) END ".
-    "        sc3 BEGIN SQRT(4) * POWER(2, 3) END ".
     "        sc4 BEGIN LOG(10) / ABS(-5) END ".
     "        sc5 BEGIN ROUND(.3.7, 0) ^ 2 END ".
     "        sc6 BEGIN LEN('hello') + DAY(2023.1.15) END ".
@@ -244,13 +240,6 @@
       left=[%floor literal-28]
       right=[%ceiling literal-12]
     ==
-  =/  sc3
-    :*
-      %arithmetic
-      operator=%tar
-      left=[%sqrt literal-4]
-      right=[%power literal-2 literal-3]
-    ==
   =/  sc4
     :*
       %arithmetic
@@ -282,8 +271,6 @@
           right=[%floor literal-29]
       right=[%sqrt literal-16]
     ==
-  =/  sc8
-    [%power [%ceiling literal-15] [%abs literal-neg2]]
   =/  sc9
     :*
       %arithmetic
@@ -305,12 +292,10 @@
     :~
       [%scalar 'sc1' sc1]
       [%scalar 'sc2' sc2]
-      [%scalar 'sc3' sc3]
       [%scalar 'sc4' sc4]
       [%scalar 'sc5' sc5]
       [%scalar 'sc6' sc6]
       [%scalar 'sc7' sc7]
-::      [%scalar 'sc8' `scalar-function:ast`sc8]
       [%scalar 'sc9' sc9]
       [%scalar 'sc10' sc10]
     ==
@@ -357,7 +342,6 @@
     "        mt2 LOG(.5  , 2   ) ".
     "        mt21 LOG(  .5) ".
     "        mt3 FLOOR( .5    ) ".
-    "        mt4 POWER(    .5,  2) ".
     "        mt5 CEILING(.5  ) ".
     "        mt6 ROUND(  .5 ,2   , 1  ) ".
     "        mt61 ROUND(.5   ,  2) ".
@@ -404,7 +388,6 @@
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt21' [%log literal-float ~]]
       [%scalar 'mt3' [%floor literal-float]]
-      [%scalar 'mt4' [%power literal-float literal-2]]
       [%scalar 'mt5' [%ceiling literal-float]]
       [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
       [%scalar 'mt61' [%round literal-float literal-2 ~]]
@@ -445,7 +428,6 @@
     "        mt1 ABS(    -5) ".
     "        mt2 LOG( .5,   2) ".
     "        mt3 FLOOR(  .5) ".
-    "        mt4 POWER(   .5, 2) ".
     "        mt5 CEILING( .5) ".
     "        mt6 ROUND(    .5,  2, 1) ".
     "        mt7 SIGN(  -5) ".
@@ -462,9 +444,6 @@
     "        fq1 FLOOR(   db2..table1.bar) ".
     "        fu1 FLOOR( foo3) ".
     "        fs1 FLOOR(  mt3  ) ".
-    "        pq1 POWER(  MyTable.bar,   2) ".
-    "        pu1 POWER( foo3,  2) ".
-    "        ps1 POWER(  mt4 ,  2   ) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [p=~.da q=~2023.1.15]
@@ -487,7 +466,6 @@
       [%scalar 'mt1' [%abs literal-neg5]]
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt3' [%floor literal-float]]
-      [%scalar 'mt4' [%power literal-float literal-2]]
       [%scalar 'mt5' [%ceiling literal-float]]
       [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
       [%scalar 'mt7' [%sign literal-neg5]]
@@ -504,9 +482,6 @@
       [%scalar 'fq1' [%floor qualified-col-4]]
       [%scalar 'fu1' [%floor unqualified-foo-3]]
       [%scalar 'fs1' [%floor [%scalar-name name=%mt3]]]
-      [%scalar 'pq1' [%power qualified-col-6 literal-2]]
-      [%scalar 'pu1' [%power unqualified-foo-3 literal-2]]
-      [%scalar 'ps1' [%power [%scalar-name name=%mt4] literal-2]]
     ==
   =/  table
     :*  %qualified-table
@@ -532,7 +507,6 @@
     "        mt1 ABS(-5     ) ".
     "        mt2 LOG(.5  ,2   ) ".
     "        mt3 FLOOR(.5   ) ".
-    "        mt4 POWER(.5    ,2 ) ".
     "        mt5 CEILING(.5  ) ".
     "        mt6 ROUND(.5     ,2  ,1    ) ".
     "        mt7 SIGN(-5   ) ".
@@ -574,7 +548,6 @@
       [%scalar 'mt1' [%abs literal-neg5]]
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt3' [%floor literal-float]]
-      [%scalar 'mt4' [%power literal-float literal-2]]
       [%scalar 'mt5' [%ceiling literal-float]]
       [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
       [%scalar 'mt7' [%sign literal-neg5]]
@@ -619,7 +592,6 @@
     "        mt1 ABS(    -5  ) ".
     "        mt2 LOG(  .5   ,   2    ) ".
     "        mt3 FLOOR(   .5     ) ".
-    "        mt4 POWER( .5    ,  2  ) ".
     "        mt5 CEILING(    .5   ) ".
     "        mt6 ROUND(  .5     ,   2  ,  1     ) ".
     "        mt7 SIGN(   -5    ) ".
@@ -661,7 +633,6 @@
       [%scalar 'mt1' [%abs literal-neg5]]
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt3' [%floor literal-float]]
-      [%scalar 'mt4' [%power literal-float literal-2]]
       [%scalar 'mt5' [%ceiling literal-float]]
       [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
       [%scalar 'mt7' [%sign literal-neg5]]
