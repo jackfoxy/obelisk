@@ -439,6 +439,106 @@
                                 [%col9 2]                      ::  @ud 2
                             ==
 ::
+::  %floor test helpers
+::  @rd: 0x3ff8.0000.0000.0000 = .~1.5, 0xbff8.0000.0000.0000 = .~-1.5
+::  floor(1.5) = 1.0 = 0x3ff0..., floor(-1.5) = -2.0 = 0xc000...
+::  @sd and @ud: pass-through
+::
+::  qualified: col1=@rd 0, col2=@rd 1.5, col3=@rd -1.5
+::             col4=@sd --0, col5=@sd --1, col6=@sd -1
+::             col7=@ud 0, col8=@ud 1, col9=@ud 2
+::
+++  floor-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  floor-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  floor-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  floor-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  floor-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  floor-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  floor-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  floor-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  floor-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  floor-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  floor-qual-table-row  %-  mk-indexed-row
+                          :~  [%col1 0]                        ::  @rd 0
+                              [%col2 0x3ff8.0000.0000.0000]    ::  @rd 1.5
+                              [%col3 0xbff8.0000.0000.0000]    ::  @rd -1.5
+                              [%col4 0]                        ::  @sd --0
+                              [%col5 2]                        ::  @sd --1
+                              [%col6 1]                        ::  @sd -1
+                              [%col7 0]                        ::  @ud 0
+                              [%col8 1]                        ::  @ud 1
+                              [%col9 2]                        ::  @ud 2
+                          ==
+::
+::  unqualified: col1=@rd 0, col2=@rd 1.5, col3=@rd -1.5
+::               col4=@sd --0, col5=@sd --1, col6=@sd -1
+::               col7=@ud 0, col8=@ud 1, col9=@ud 2
+::
+++  floor-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  floor-unqual-lookup  %-  malt  %-  limo
+                         :~  [%col1 ~[qualified-table-1]]
+                             [%col2 ~[qualified-table-1]]
+                             [%col3 ~[qualified-table-1]]
+                             [%col4 ~[qualified-table-1]]
+                             [%col5 ~[qualified-table-1]]
+                             [%col6 ~[qualified-table-1]]
+                             [%col7 ~[qualified-table-1]]
+                             [%col8 ~[qualified-table-1]]
+                             [%col9 ~[qualified-table-1]]
+                         ==
+::
+++  floor-u-col-1  [%unqualified-column %col1 ~]
+++  floor-u-col-2  [%unqualified-column %col2 ~]
+++  floor-u-col-3  [%unqualified-column %col3 ~]
+++  floor-u-col-4  [%unqualified-column %col4 ~]
+++  floor-u-col-5  [%unqualified-column %col5 ~]
+++  floor-u-col-6  [%unqualified-column %col6 ~]
+++  floor-u-col-7  [%unqualified-column %col7 ~]
+++  floor-u-col-8  [%unqualified-column %col8 ~]
+++  floor-u-col-9  [%unqualified-column %col9 ~]
+::
+++  floor-unqual-table-row  %-  mk-indexed-row
+                            :~  [%col1 0]                      ::  @rd 0
+                                [%col2 0x3ff8.0000.0000.0000]  ::  @rd 1.5
+                                [%col3 0xbff8.0000.0000.0000]  ::  @rd -1.5
+                                [%col4 0]                      ::  @sd --0
+                                [%col5 2]                      ::  @sd --1
+                                [%col6 1]                      ::  @sd -1
+                                [%col7 0]                      ::  @ud 0
+                                [%col8 1]                      ::  @ud 1
+                                [%col9 2]                      ::  @ud 2
+                            ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -787,6 +887,84 @@
     :*  [%round round-u-col-8 [~.ud 0] ~]  [~.ud 1]  ==
     :-  %round-unqual-ud-two
     :*  [%round round-u-col-9 [~.ud 0] ~]  [~.ud 2]  ==
+    ==
+  ==
+::
+::  %floor tests
+::
+++  test-floor-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    floor-qual-map-meta
+    *(map @tas resolved-scalar)
+    floor-qual-table-row
+    :~
+    :-  %floor-literal-rd-zero
+    :*  [%floor [~.rd 0]]  [~.rd 0]  ==
+    :-  %floor-literal-rd-one-five  ::  floor(@rd 1.5) = 1.0
+    :*  [%floor [~.rd 0x3ff8.0000.0000.0000]]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %floor-literal-rd-neg-one-five  ::  floor(@rd -1.5) = -2.0
+    :*  [%floor [~.rd 0xbff8.0000.0000.0000]]  [~.rd 0xc000.0000.0000.0000]  ==
+    :-  %floor-literal-sd-zero
+    :*  [%floor [~.sd 0]]  [~.sd 0]  ==
+    :-  %floor-literal-sd-one
+    :*  [%floor [~.sd 2]]  [~.sd 2]  ==
+    :-  %floor-literal-sd-neg
+    :*  [%floor [~.sd 1]]  [~.sd 1]  ==
+    :-  %floor-literal-ud-zero
+    :*  [%floor [~.ud 0]]  [~.ud 0]  ==
+    :-  %floor-literal-ud-one
+    :*  [%floor [~.ud 1]]  [~.ud 1]  ==
+    :-  %floor-literal-ud-two
+    :*  [%floor [~.ud 2]]  [~.ud 2]  ==
+    :-  %floor-qual-rd-zero
+    :*  [%floor floor-q-col-1]  [~.rd 0]  ==
+    :-  %floor-qual-rd-one-five  ::  floor(@rd 1.5) = 1.0
+    :*  [%floor floor-q-col-2]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %floor-qual-rd-neg-one-five  ::  floor(@rd -1.5) = -2.0
+    :*  [%floor floor-q-col-3]  [~.rd 0xc000.0000.0000.0000]  ==
+    :-  %floor-qual-sd-zero
+    :*  [%floor floor-q-col-4]  [~.sd 0]  ==
+    :-  %floor-qual-sd-one
+    :*  [%floor floor-q-col-5]  [~.sd 2]  ==
+    :-  %floor-qual-sd-neg
+    :*  [%floor floor-q-col-6]  [~.sd 1]  ==
+    :-  %floor-qual-ud-zero
+    :*  [%floor floor-q-col-7]  [~.ud 0]  ==
+    :-  %floor-qual-ud-one
+    :*  [%floor floor-q-col-8]  [~.ud 1]  ==
+    :-  %floor-qual-ud-two
+    :*  [%floor floor-q-col-9]  [~.ud 2]  ==
+    ==
+  ==
+::
+++  test-floor-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    floor-unqual-lookup
+    floor-unqual-map-meta
+    *(map @tas resolved-scalar)
+    floor-unqual-table-row
+    :~
+    :-  %floor-unqual-rd-zero
+    :*  [%floor floor-u-col-1]  [~.rd 0]  ==
+    :-  %floor-unqual-rd-one-five  ::  floor(@rd 1.5) = 1.0
+    :*  [%floor floor-u-col-2]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %floor-unqual-rd-neg-one-five  ::  floor(@rd -1.5) = -2.0
+    :*  [%floor floor-u-col-3]  [~.rd 0xc000.0000.0000.0000]  ==
+    :-  %floor-unqual-sd-zero
+    :*  [%floor floor-u-col-4]  [~.sd 0]  ==
+    :-  %floor-unqual-sd-one
+    :*  [%floor floor-u-col-5]  [~.sd 2]  ==
+    :-  %floor-unqual-sd-neg
+    :*  [%floor floor-u-col-6]  [~.sd 1]  ==
+    :-  %floor-unqual-ud-zero
+    :*  [%floor floor-u-col-7]  [~.ud 0]  ==
+    :-  %floor-unqual-ud-one
+    :*  [%floor floor-u-col-8]  [~.ud 1]  ==
+    :-  %floor-unqual-ud-two
+    :*  [%floor floor-u-col-9]  [~.ud 2]  ==
     ==
   ==
 ::
