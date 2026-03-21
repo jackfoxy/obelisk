@@ -240,6 +240,105 @@
                                [%col8 1]                      ::  @ud 1
                            ==
 ::
+::  %sqrt test helpers
+::  @rd: 0x3ff0.0000.0000.0000 = .~1, 0x4000.0000.0000.0000 = .~2, 0x4010.0000.0000.0000 = .~4
+::  @sd: atom 0 = --0, atom 2 = --1, atom 4 = --2, atom 8 = --4
+::
+::  qualified: col1=@rd 0, col2=@rd 1.0, col3=@rd 4.0
+::             col4=@sd --0, col5=@sd --1, col6=@sd --4
+::             col7=@ud 0, col8=@ud 1, col9=@ud 4
+::
+++  sqrt-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  sqrt-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  sqrt-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  sqrt-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  sqrt-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  sqrt-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  sqrt-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  sqrt-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  sqrt-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  sqrt-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  sqrt-qual-table-row  %-  mk-indexed-row
+                         :~  [%col1 0]                        ::  @rd 0
+                             [%col2 0x3ff0.0000.0000.0000]    ::  @rd 1.0
+                             [%col3 0x4010.0000.0000.0000]    ::  @rd 4.0
+                             [%col4 0]                        ::  @sd --0
+                             [%col5 2]                        ::  @sd --1
+                             [%col6 8]                        ::  @sd --4
+                             [%col7 0]                        ::  @ud 0
+                             [%col8 1]                        ::  @ud 1
+                             [%col9 4]                        ::  @ud 4
+                         ==
+::
+::  unqualified: col1=@rd 0, col2=@rd 1.0, col3=@rd 4.0
+::               col4=@sd --0, col5=@sd --1, col6=@sd --4
+::               col7=@ud 0, col8=@ud 1, col9=@ud 4
+::
+++  sqrt-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  sqrt-unqual-lookup  %-  malt  %-  limo
+                        :~  [%col1 ~[qualified-table-1]]
+                            [%col2 ~[qualified-table-1]]
+                            [%col3 ~[qualified-table-1]]
+                            [%col4 ~[qualified-table-1]]
+                            [%col5 ~[qualified-table-1]]
+                            [%col6 ~[qualified-table-1]]
+                            [%col7 ~[qualified-table-1]]
+                            [%col8 ~[qualified-table-1]]
+                            [%col9 ~[qualified-table-1]]
+                        ==
+::
+++  sqrt-u-col-1  [%unqualified-column %col1 ~]
+++  sqrt-u-col-2  [%unqualified-column %col2 ~]
+++  sqrt-u-col-3  [%unqualified-column %col3 ~]
+++  sqrt-u-col-4  [%unqualified-column %col4 ~]
+++  sqrt-u-col-5  [%unqualified-column %col5 ~]
+++  sqrt-u-col-6  [%unqualified-column %col6 ~]
+++  sqrt-u-col-7  [%unqualified-column %col7 ~]
+++  sqrt-u-col-8  [%unqualified-column %col8 ~]
+++  sqrt-u-col-9  [%unqualified-column %col9 ~]
+::
+++  sqrt-unqual-table-row  %-  mk-indexed-row
+                           :~  [%col1 0]                      ::  @rd 0
+                               [%col2 0x3ff0.0000.0000.0000]  ::  @rd 1.0
+                               [%col3 0x4010.0000.0000.0000]  ::  @rd 4.0
+                               [%col4 0]                      ::  @sd --0
+                               [%col5 2]                      ::  @sd --1
+                               [%col6 8]                      ::  @sd --4
+                               [%col7 0]                      ::  @ud 0
+                               [%col8 1]                      ::  @ud 1
+                               [%col9 4]                      ::  @ud 4
+                           ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -428,6 +527,84 @@
     :*  [%sign u-col-7]       [~.ud 0]  ==
     :-  %sign-unqual-ud-pos
     :*  [%sign u-col-8]       [~.ud 1]  ==
+    ==
+  ==
+::
+::  %sqrt tests
+::
+++  test-sqrt-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    sqrt-qual-map-meta
+    *(map @tas resolved-scalar)
+    sqrt-qual-table-row
+    :~
+    :-  %sqrt-literal-rd-zero
+    :*  [%sqrt [~.rd 0]]  [~.rd 0]  ==
+    :-  %sqrt-literal-rd-one  ::  sqrt(@rd 1.0) = 1.0
+    :*  [%sqrt [~.rd 0x3ff0.0000.0000.0000]]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %sqrt-literal-rd-four  ::  sqrt(@rd 4.0) = 2.0
+    :*  [%sqrt [~.rd 0x4010.0000.0000.0000]]  [~.rd 0x4000.0000.0000.0000]  ==
+    :-  %sqrt-literal-sd-zero
+    :*  [%sqrt [~.sd 0]]  [~.sd 0]  ==
+    :-  %sqrt-literal-sd-one  ::  sqrt(@sd --1) = --1
+    :*  [%sqrt [~.sd 2]]  [~.sd 2]  ==
+    :-  %sqrt-literal-sd-four  ::  sqrt(@sd --4) = --2
+    :*  [%sqrt [~.sd 8]]  [~.sd 4]  ==
+    :-  %sqrt-literal-ud-zero
+    :*  [%sqrt [~.ud 0]]  [~.ud 0]  ==
+    :-  %sqrt-literal-ud-one
+    :*  [%sqrt [~.ud 1]]  [~.ud 1]  ==
+    :-  %sqrt-literal-ud-four  ::  sqrt(@ud 4) = 2
+    :*  [%sqrt [~.ud 4]]  [~.ud 2]  ==
+    :-  %sqrt-qual-rd-zero
+    :*  [%sqrt sqrt-q-col-1]  [~.rd 0]  ==
+    :-  %sqrt-qual-rd-one
+    :*  [%sqrt sqrt-q-col-2]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %sqrt-qual-rd-four  ::  sqrt(@rd 4.0) = 2.0
+    :*  [%sqrt sqrt-q-col-3]  [~.rd 0x4000.0000.0000.0000]  ==
+    :-  %sqrt-qual-sd-zero
+    :*  [%sqrt sqrt-q-col-4]  [~.sd 0]  ==
+    :-  %sqrt-qual-sd-one
+    :*  [%sqrt sqrt-q-col-5]  [~.sd 2]  ==
+    :-  %sqrt-qual-sd-four  ::  sqrt(@sd --4) = --2
+    :*  [%sqrt sqrt-q-col-6]  [~.sd 4]  ==
+    :-  %sqrt-qual-ud-zero
+    :*  [%sqrt sqrt-q-col-7]  [~.ud 0]  ==
+    :-  %sqrt-qual-ud-one
+    :*  [%sqrt sqrt-q-col-8]  [~.ud 1]  ==
+    :-  %sqrt-qual-ud-four  ::  sqrt(@ud 4) = 2
+    :*  [%sqrt sqrt-q-col-9]  [~.ud 2]  ==
+    ==
+  ==
+::
+++  test-sqrt-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    sqrt-unqual-lookup
+    sqrt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    sqrt-unqual-table-row
+    :~
+    :-  %sqrt-unqual-rd-zero
+    :*  [%sqrt sqrt-u-col-1]  [~.rd 0]  ==
+    :-  %sqrt-unqual-rd-one
+    :*  [%sqrt sqrt-u-col-2]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %sqrt-unqual-rd-four  ::  sqrt(@rd 4.0) = 2.0
+    :*  [%sqrt sqrt-u-col-3]  [~.rd 0x4000.0000.0000.0000]  ==
+    :-  %sqrt-unqual-sd-zero
+    :*  [%sqrt sqrt-u-col-4]  [~.sd 0]  ==
+    :-  %sqrt-unqual-sd-one
+    :*  [%sqrt sqrt-u-col-5]  [~.sd 2]  ==
+    :-  %sqrt-unqual-sd-four  ::  sqrt(@sd --4) = --2
+    :*  [%sqrt sqrt-u-col-6]  [~.sd 4]  ==
+    :-  %sqrt-unqual-ud-zero
+    :*  [%sqrt sqrt-u-col-7]  [~.ud 0]  ==
+    :-  %sqrt-unqual-ud-one
+    :*  [%sqrt sqrt-u-col-8]  [~.ud 1]  ==
+    :-  %sqrt-unqual-ud-four  ::  sqrt(@ud 4) = 2
+    :*  [%sqrt sqrt-u-col-9]  [~.ud 2]  ==
     ==
   ==
 ::

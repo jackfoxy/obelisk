@@ -171,7 +171,74 @@
             ==
   ::
     %sqrt
-      !!
+      =/  expr  %:  evaluate-datum
+                    float-expression:;;(sqrt:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %sqrt, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      ?:  ?=(dime expr)
+        ?-  number-system
+            ::
+            %rd
+              ?:  =(0 +.expr)    [number-system 0]
+              ?:  =(.~1 +.expr)  [number-system .~1]
+              =/  result  (sqt:rd +.expr)
+              ?~  (toi:rd result)
+                ~|  "sqrt({<+.expr>}) is not a number"  !!
+              [number-system result]
+            ::
+            %sd
+              ?:  =(0 +.expr)  [number-system 0]
+              ?:  =(2 +.expr)  [number-system 2]  ::  @sd --1, sqrt(--1) = --1
+              =/  toi-result  (toi:rd (sqt:rd (san:rd +.expr)))
+              ?~  toi-result  ~|  "sqrt({<+.expr>}) is not a number"  !!
+              [number-system u.toi-result]
+            ::
+            %ud
+              ?:  =(0 +.expr)  [number-system 0]
+              ?:  =(1 +.expr)  [number-system 1]
+              =/  toi-result  (toi:rd (sqt:rd (sun:rd +.expr)))
+              ?~  toi-result  ~|  "sqrt({<+.expr>}) is not a number"  !!
+              [number-system (abs:si u.toi-result)]
+            ==
+      :+  %fn
+        type.expr
+        |=  =data-row
+        ^-  dime
+        ?-  number-system
+            ::
+            %rd
+              =/  datum  +:(f.expr data-row)
+              ?:  =(0 datum)    [number-system 0]
+              ?:  =(.~1 datum)  [number-system .~1]
+              =/  result  (sqt:rd datum)
+              ?~  (toi:rd result)
+                ~|  "sqrt({<datum>}) is not a number"  !!
+              [number-system result]
+            ::
+            %sd
+              =/  datum  +:(f.expr data-row)
+              ?:  =(0 datum)  [number-system 0]
+              ?:  =(2 datum)  [number-system 2]  ::  @sd --1, sqrt(--1) = --1
+              =/  toi-result  (toi:rd (sqt:rd (san:rd datum)))
+              ?~  toi-result  ~|  "sqrt({<datum>}) is not a number"  !!
+              [number-system u.toi-result]
+            ::
+            %ud
+              =/  datum  +:(f.expr data-row)
+              ?:  =(0 datum)  [number-system 0]
+              ?:  =(1 datum)  [number-system 1] 
+              =/  toi-result  (toi:rd (sqt:rd (sun:rd datum)))
+              ?~  toi-result  ~|  "sqrt({<datum>}) is not a number"  !!
+              [number-system (abs:si u.toi-result)]
+            ==
   ::
     %len
       !!
