@@ -108,7 +108,67 @@
       !!
   ::
     %sign
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(sign:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %sign, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      ?:  ?=(dime expr)
+        ?-  number-system
+            ::
+            %rd
+              ?:  =(0 +.expr)
+                   [number-system 0]
+              ?:  (sig:rd +.expr)
+                 [number-system .~1]
+              [number-system .~-1]
+            ::
+            %sd
+              ?:  =(0 +.expr)
+                   [number-system 0]
+              ?:  (syn:si +.expr)
+                 [number-system --1]
+              [number-system -1]
+            ::
+            %ud
+              ?:  =(0 +.expr)
+                [number-system 0]
+              [number-system 1]
+            ==
+      :+  %fn
+        type.expr
+        |=  =data-row
+        ^-  dime
+        ?-  number-system
+            ::
+            %rd
+              =/  datum  +:(f.expr data-row)
+              ?:  =(0 datum)
+                   [number-system 0]
+              ?:  (sig:rd datum)
+                 [number-system .~1]
+              [number-system .~-1]
+            ::
+            %sd
+              =/  datum  +:(f.expr data-row)
+              ?:  =(0 datum)
+                   [number-system 0]
+              ?:  (syn:si datum)
+                 [number-system --1]
+              [number-system -1]
+            ::
+            %ud
+              ?:  =(0 +:(f.expr data-row))
+                [number-system 0]
+              [number-system 1]
+            ==
   ::
     %sqrt
       !!

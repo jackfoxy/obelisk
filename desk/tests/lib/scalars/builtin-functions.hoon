@@ -156,6 +156,90 @@
                               [%col8 8]                      ::  @ud 8
                           ==
 ::
+::  %sign test helpers
+::  @sd: atom 0 = --0 (zero), atom 1 = -1, atom 2 = --1
+::  @rd: atom 0 = .~0,  0xbff0.0000.0000.0000 = .~-1,  0x3ff0.0000.0000.0000 = .~1
+::
+::  qualified: col1=@sd zero, col2=@sd neg, col3=@sd pos
+::             col4=@rd zero, col5=@rd neg, col6=@rd pos
+::             col7=@ud zero, col8=@ud pos
+::
+++  sign-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.sd 0]
+                      [%column %col2 ~.sd 0]
+                      [%column %col3 ~.sd 0]
+                      [%column %col4 ~.rd 0]
+                      [%column %col5 ~.rd 0]
+                      [%column %col6 ~.rd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      ==
+          ==
+::
+++  sign-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  sign-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  sign-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  sign-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  sign-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+::
+++  sign-qual-table-row  %-  mk-indexed-row
+                         :~  [%col1 0]                        ::  @sd --0 (zero)
+                             [%col2 1]                        ::  @sd -1
+                             [%col3 2]                        ::  @sd --1
+                             [%col4 0]                        ::  @rd .~0
+                             [%col5 0xbff0.0000.0000.0000]    ::  @rd .~-1
+                             [%col6 0x3ff0.0000.0000.0000]    ::  @rd .~1
+                             [%col7 0]                        ::  @ud 0
+                             [%col8 1]                        ::  @ud 1
+                         ==
+::
+::  unqualified: col1=@sd zero, col2=@sd neg, col3=@sd pos
+::               col4=@rd zero, col5=@rd neg, col6=@rd pos
+::               col7=@ud zero, col8=@ud pos
+::
+++  sign-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.sd 0]
+                  [%column %col2 ~.sd 0]
+                  [%column %col3 ~.sd 0]
+                  [%column %col4 ~.rd 0]
+                  [%column %col5 ~.rd 0]
+                  [%column %col6 ~.rd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  ==
+::
+++  sign-unqual-lookup  %-  malt  %-  limo
+                        :~  [%col1 ~[qualified-table-1]]
+                            [%col2 ~[qualified-table-1]]
+                            [%col3 ~[qualified-table-1]]
+                            [%col4 ~[qualified-table-1]]
+                            [%col5 ~[qualified-table-1]]
+                            [%col6 ~[qualified-table-1]]
+                            [%col7 ~[qualified-table-1]]
+                            [%col8 ~[qualified-table-1]]
+                        ==
+::
+++  sign-u-col-1  [%unqualified-column %col1 ~]
+++  sign-u-col-2  [%unqualified-column %col2 ~]
+++  sign-u-col-3  [%unqualified-column %col3 ~]
+::
+++  sign-unqual-table-row  %-  mk-indexed-row
+                           :~  [%col1 0]                      ::  @sd --0 (zero)
+                               [%col2 1]                      ::  @sd -1
+                               [%col3 2]                      ::  @sd --1
+                               [%col4 0]                      ::  @rd .~0
+                               [%col5 0xbff0.0000.0000.0000]  ::  @rd .~-1
+                               [%col6 0x3ff0.0000.0000.0000]  ::  @rd .~1
+                               [%col7 0]                      ::  @ud 0
+                               [%col8 1]                      ::  @ud 1
+                           ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -273,6 +357,78 @@
       [~.ud 8]
     ==
   ==
+  ==
+::
+::  %sign tests
+::
+++  test-sign-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    sign-qual-map-meta
+    *(map @tas resolved-scalar)
+    sign-qual-table-row
+    :~
+    :-  %sign-literal-sd-zero
+    :*  [%sign [~.sd 0]]    [~.sd 0]    ==
+    :-  %sign-literal-sd-neg
+    :*  [%sign [~.sd 1]]    [~.sd 1]    ==  ::  sign(@sd -1) = @sd -1
+    :-  %sign-literal-sd-pos
+    :*  [%sign [~.sd 2]]    [~.sd 2]    ==  ::  sign(@sd --1) = @sd --1
+    :-  %sign-literal-rd-zero
+    :*  [%sign [~.rd 0]]    [~.rd 0]    ==
+    :-  %sign-literal-rd-neg
+    :*  [%sign [~.rd 0xbff0.0000.0000.0000]]  [~.rd 0xbff0.0000.0000.0000]  ==
+    :-  %sign-literal-rd-pos
+    :*  [%sign [~.rd 0x3ff0.0000.0000.0000]]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %sign-literal-ud-zero
+    :*  [%sign [~.ud 0]]    [~.ud 0]    ==
+    :-  %sign-literal-ud-pos
+    :*  [%sign [~.ud 1]]    [~.ud 1]    ==
+    :-  %sign-qual-sd-zero
+    :*  [%sign q-col-1]       [~.sd 0]  ==
+    :-  %sign-qual-sd-neg
+    :*  [%sign q-col-2]       [~.sd 1]  ==  ::  sign(@sd -1) = @sd -1
+    :-  %sign-qual-sd-pos
+    :*  [%sign q-col-3]       [~.sd 2]  ==  ::  sign(@sd --1) = @sd --1
+    :-  %sign-qual-rd-zero
+    :*  [%sign sign-q-col-4]  [~.rd 0]  ==
+    :-  %sign-qual-rd-neg
+    :*  [%sign sign-q-col-5]  [~.rd 0xbff0.0000.0000.0000]  ==
+    :-  %sign-qual-rd-pos
+    :*  [%sign sign-q-col-6]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %sign-qual-ud-zero
+    :*  [%sign sign-q-col-7]  [~.ud 0]  ==
+    :-  %sign-qual-ud-pos
+    :*  [%sign sign-q-col-8]  [~.ud 1]  ==
+    ==
+  ==
+::
+++  test-sign-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    sign-unqual-lookup
+    sign-unqual-map-meta
+    *(map @tas resolved-scalar)
+    sign-unqual-table-row
+    :~
+    :-  %sign-unqual-sd-zero
+    :*  [%sign sign-u-col-1]  [~.sd 0]  ==
+    :-  %sign-unqual-sd-neg
+    :*  [%sign sign-u-col-2]  [~.sd 1]  ==  ::  sign(@sd -1) = @sd -1
+    :-  %sign-unqual-sd-pos
+    :*  [%sign sign-u-col-3]  [~.sd 2]  ==  ::  sign(@sd --1) = @sd --1
+    :-  %sign-unqual-rd-zero
+    :*  [%sign u-col-4]       [~.rd 0]  ==
+    :-  %sign-unqual-rd-neg
+    :*  [%sign u-col-5]       [~.rd 0xbff0.0000.0000.0000]  ==
+    :-  %sign-unqual-rd-pos
+    :*  [%sign u-col-6]       [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %sign-unqual-ud-zero
+    :*  [%sign u-col-7]       [~.ud 0]  ==
+    :-  %sign-unqual-ud-pos
+    :*  [%sign u-col-8]       [~.ud 1]  ==
+    ==
   ==
 ::
 --
