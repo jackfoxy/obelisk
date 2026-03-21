@@ -51,6 +51,8 @@
 ++  u-col-4           [%unqualified-column %col4 ~]
 ++  u-col-5           [%unqualified-column %col5 ~]
 ++  u-col-6           [%unqualified-column %col6 ~]
+++  u-col-7           [%unqualified-column %col7 ~]
+++  u-col-8           [%unqualified-column %col8 ~]
 ::
 ++  qual-map-meta  %-  mk-qualified-map-meta
                        :~  :-  qualified-table-1
@@ -94,6 +96,66 @@
                              [%col6 6]
                            ==
 ::
+::  abs test helpers
+::  @sd encoding: positive n → atom 2n, negative n → atom 2|n|-1
+::    atom 5 = @sd -3,  atom 4 = @sd --2,  atom 6 = @sd --3 (abs of -3)
+::  0xbff0.0000.0000.0000 = @rd -1.0,  0x4000.0000.0000.0000 = @rd 2.0
+::  0x3ff0.0000.0000.0000 = @rd 1.0
+::
+::  qualified: col1=@sd neg, col2=@sd pos, col3=@rd neg, col4=@rd pos, col5=@ud
+::
+++  abs-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.sd 0]
+                      [%column %col2 ~.sd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.rd 0]
+                      [%column %col5 ~.ud 0]
+                      ==
+          ==
+::
+++  abs-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  abs-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+::
+++  abs-qual-table-row  %-  mk-indexed-row
+                        :~  [%col1 5]                        ::  @sd -3
+                            [%col2 4]                        ::  @sd --2
+                            [%col3 0xbff0.0000.0000.0000]    ::  @rd -1.0
+                            [%col4 0x4000.0000.0000.0000]    ::  @rd 2.0
+                            [%col5 5]                        ::  @ud 5
+                        ==
+::
+::  unqualified: col4=@sd neg, col5=@sd pos, col6=@rd neg, col7=@rd pos, col8=@ud
+::
+++  abs-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.rd 0]
+                  [%column %col7 ~.rd 0]
+                  [%column %col8 ~.ud 0]
+                  ==
+::
+++  abs-unqual-lookup  %-  malt  %-  limo
+                       :~  [%col4 ~[qualified-table-1]]
+                           [%col5 ~[qualified-table-1]]
+                           [%col6 ~[qualified-table-1]]
+                           [%col7 ~[qualified-table-1]]
+                           [%col8 ~[qualified-table-1]]
+                       ==
+::
+++  abs-unqual-table-row  %-  mk-indexed-row
+                          :~  [%col4 5]                      ::  @sd -3
+                              [%col5 4]                      ::  @sd --2
+                              [%col6 0xbff0.0000.0000.0000]  ::  @rd -1.0
+                              [%col7 0x4000.0000.0000.0000]  ::  @rd 2.0
+                              [%col8 8]                      ::  @ud 8
+                          ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -131,17 +193,84 @@
 ::
 ::  %abs tests
 ::
-++  test-case-when-searched-eq
+++  test-abs-qual
   %:  run-scalar-tests
     table-named-ctes
     qual-lookup
-    qual-map-meta
-    resolved-scalars
-    table-row
+    abs-qual-map-meta
+    *(map @tas resolved-scalar)
+    abs-qual-table-row
     :~
-    :-  %abs
-    :*  [%abs [~.sd -1]]
-      [~.sd 1]
+    :-  %abs-literal-sd-neg
+    :*  [%abs [~.sd -1]]        ::  abs(@sd -1) = @sd --1 = atom 2
+      [~.sd 2]
+    ==
+    :-  %abs-literal-sd-pos
+    :*  [%abs [~.sd 2]]         ::  abs(@sd --1) = @sd --1 = atom 2
+      [~.sd 2]
+    ==
+    :-  %abs-literal-ud
+    :*  [%abs [~.ud 5]]
+      [~.ud 5]
+    ==
+    :-  %abs-literal-rd-neg
+    :*  [%abs [~.rd 0xbff0.0000.0000.0000]]  ::  abs(@rd -1.0) = @rd 1.0
+      [~.rd 0x3ff0.0000.0000.0000]
+    ==
+    :-  %abs-literal-rd-pos
+    :*  [%abs [~.rd 0x3ff0.0000.0000.0000]]  ::  abs(@rd 1.0) = @rd 1.0
+      [~.rd 0x3ff0.0000.0000.0000]
+    ==
+    :-  %abs-qual-sd-neg
+    :*  [%abs q-col-1]          ::  abs(@sd -3) = @sd --3 = atom 6
+      [~.sd 6]
+    ==
+    :-  %abs-qual-sd-pos
+    :*  [%abs q-col-2]          ::  abs(@sd --2) = @sd --2 = atom 4
+      [~.sd 4]
+    ==
+    :-  %abs-qual-rd-neg
+    :*  [%abs q-col-3]          ::  abs(@rd -1.0) = @rd 1.0
+      [~.rd 0x3ff0.0000.0000.0000]
+    ==
+    :-  %abs-qual-rd-pos
+    :*  [%abs abs-q-col-4]      ::  abs(@rd 2.0) = @rd 2.0
+      [~.rd 0x4000.0000.0000.0000]
+    ==
+    :-  %abs-qual-ud
+    :*  [%abs abs-q-col-5]      ::  abs(@ud 5) = @ud 5
+      [~.ud 5]
+    ==
+  ==
+  ==
+::
+++  test-abs-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    abs-unqual-lookup
+    abs-unqual-map-meta
+    *(map @tas resolved-scalar)
+    abs-unqual-table-row
+    :~
+    :-  %abs-unqual-sd-neg
+    :*  [%abs u-col-4]          ::  abs(@sd -3) = @sd --3 = atom 6
+      [~.sd 6]
+    ==
+    :-  %abs-unqual-sd-pos
+    :*  [%abs u-col-5]          ::  abs(@sd --2) = @sd --2 = atom 4
+      [~.sd 4]
+    ==
+    :-  %abs-unqual-rd-neg
+    :*  [%abs u-col-6]          ::  abs(@rd -1.0) = @rd 1.0
+      [~.rd 0x3ff0.0000.0000.0000]
+    ==
+    :-  %abs-unqual-rd-pos
+    :*  [%abs u-col-7]          ::  abs(@rd 2.0) = @rd 2.0
+      [~.rd 0x4000.0000.0000.0000]
+    ==
+    :-  %abs-unqual-ud
+    :*  [%abs u-col-8]          ::  abs(@ud 8) = @ud 8
+      [~.ud 8]
     ==
   ==
   ==

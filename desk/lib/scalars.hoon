@@ -59,21 +59,41 @@
       !!
   ::
     %abs
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(abs:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %abs, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      ?:  ?=(dime expr)
+        ?-  number-system
+            ::
+            %rd  :-  number-system
+                     (~(abs rd:math [%z .~1e-15]) +.expr)
+            ::
+            %sd  [number-system (sun:si (abs:si +.expr))]
+            ::
+            %ud  expr
+            ==
       :+  %fn
-        ~.sd  ::typ
+        type.expr
         |=  =data-row
         ^-  dime
-        =/  expr=resolved-scalar  %:  evaluate-datum
-                      numeric-expression:;;(abs:ast scalar)
-                      named-ctes
-                      qualifier-lookup
-                      map-meta
-                      resolved-scalars
-                      ==
-        :-  %sd
-            ?:  ?=(dime expr)
-              (abs:si +.expr)
-            (abs:si +:(f.expr data-row))
+        ?-  number-system
+            ::
+            %rd  :-  number-system
+                     (~(abs rd:math [%z .~1e-15]) +:(f.expr data-row))
+            ::
+            %sd  [number-system (sun:si (abs:si +:(f.expr data-row)))]
+            ::
+            %ud  (f.expr data-row)
+            ==
   ::
     %log
       !!
@@ -498,8 +518,8 @@
         !!
   ?.  ?=(number-systems l-number-system)
     ~|  "{<l-number-system>} {<operator.scalar>} {<r-number-system>} : ".
-        "{<l-number-system>} not a supported number system ".
-        "?(~.rd ~.sd ~.ud)"
+        "{<l-number-system>} not a supported number system, ".
+        "need ?(~.rd ~.sd ~.ud)"
         !!
   ?-  operator.scalar
       ::
