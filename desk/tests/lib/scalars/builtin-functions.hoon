@@ -339,6 +339,106 @@
                                [%col9 4]                      ::  @ud 4
                            ==
 ::
+::  %round test helpers
+::  @rd: 0x3ff0.0000.0000.0000 = .~1, 0x4000.0000.0000.0000 = .~2
+::  @sd: atom 0 = --0, atom 2 = --1, atom 4 = --2
+::  length=[~.ud 0] for all cases (round to integer)
+::
+::  qualified: col1=@rd 0, col2=@rd 1.0, col3=@rd 2.0
+::             col4=@sd --0, col5=@sd --1, col6=@sd --2
+::             col7=@ud 0, col8=@ud 1, col9=@ud 2
+::
+++  round-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  round-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  round-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  round-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  round-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  round-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  round-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  round-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  round-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  round-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  round-qual-table-row  %-  mk-indexed-row
+                          :~  [%col1 0]                        ::  @rd 0
+                              [%col2 0x3ff0.0000.0000.0000]    ::  @rd 1.0
+                              [%col3 0x4000.0000.0000.0000]    ::  @rd 2.0
+                              [%col4 0]                        ::  @sd --0
+                              [%col5 2]                        ::  @sd --1
+                              [%col6 4]                        ::  @sd --2
+                              [%col7 0]                        ::  @ud 0
+                              [%col8 1]                        ::  @ud 1
+                              [%col9 2]                        ::  @ud 2
+                          ==
+::
+::  unqualified: col1=@rd 0, col2=@rd 1.0, col3=@rd 2.0
+::               col4=@sd --0, col5=@sd --1, col6=@sd --2
+::               col7=@ud 0, col8=@ud 1, col9=@ud 2
+::
+++  round-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  round-unqual-lookup  %-  malt  %-  limo
+                         :~  [%col1 ~[qualified-table-1]]
+                             [%col2 ~[qualified-table-1]]
+                             [%col3 ~[qualified-table-1]]
+                             [%col4 ~[qualified-table-1]]
+                             [%col5 ~[qualified-table-1]]
+                             [%col6 ~[qualified-table-1]]
+                             [%col7 ~[qualified-table-1]]
+                             [%col8 ~[qualified-table-1]]
+                             [%col9 ~[qualified-table-1]]
+                         ==
+::
+++  round-u-col-1  [%unqualified-column %col1 ~]
+++  round-u-col-2  [%unqualified-column %col2 ~]
+++  round-u-col-3  [%unqualified-column %col3 ~]
+++  round-u-col-4  [%unqualified-column %col4 ~]
+++  round-u-col-5  [%unqualified-column %col5 ~]
+++  round-u-col-6  [%unqualified-column %col6 ~]
+++  round-u-col-7  [%unqualified-column %col7 ~]
+++  round-u-col-8  [%unqualified-column %col8 ~]
+++  round-u-col-9  [%unqualified-column %col9 ~]
+::
+++  round-unqual-table-row  %-  mk-indexed-row
+                            :~  [%col1 0]                      ::  @rd 0
+                                [%col2 0x3ff0.0000.0000.0000]  ::  @rd 1.0
+                                [%col3 0x4000.0000.0000.0000]  ::  @rd 2.0
+                                [%col4 0]                      ::  @sd --0
+                                [%col5 2]                      ::  @sd --1
+                                [%col6 4]                      ::  @sd --2
+                                [%col7 0]                      ::  @ud 0
+                                [%col8 1]                      ::  @ud 1
+                                [%col9 2]                      ::  @ud 2
+                            ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -605,6 +705,88 @@
     :*  [%sqrt sqrt-u-col-8]  [~.ud 1]  ==
     :-  %sqrt-unqual-ud-four  ::  sqrt(@ud 4) = 2
     :*  [%sqrt sqrt-u-col-9]  [~.ud 2]  ==
+    ==
+  ==
+::
+::  %round tests
+::
+++  test-round-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    round-qual-map-meta
+    *(map @tas resolved-scalar)
+    round-qual-table-row
+    :~
+    :-  %round-literal-rd-zero
+    :*  [%round [~.rd 0] [~.ud 0] ~]  [~.rd 0]  ==
+    :-  %round-literal-rd-one  ::  round(@rd 1.0, 0) = 1.0
+    :*  [%round [~.rd 0x3ff0.0000.0000.0000] [~.ud 0] ~]
+      [~.rd 0x3ff0.0000.0000.0000]
+    ==
+    :-  %round-literal-rd-two  ::  round(@rd 2.0, 0) = 2.0
+    :*  [%round [~.rd 0x4000.0000.0000.0000] [~.ud 0] ~]
+      [~.rd 0x4000.0000.0000.0000]
+    ==
+    :-  %round-literal-sd-zero
+    :*  [%round [~.sd 0] [~.ud 0] ~]  [~.sd 0]  ==
+    :-  %round-literal-sd-one
+    :*  [%round [~.sd 2] [~.ud 0] ~]  [~.sd 2]  ==
+    :-  %round-literal-sd-two
+    :*  [%round [~.sd 4] [~.ud 0] ~]  [~.sd 4]  ==
+    :-  %round-literal-ud-zero
+    :*  [%round [~.ud 0] [~.ud 0] ~]  [~.ud 0]  ==
+    :-  %round-literal-ud-one
+    :*  [%round [~.ud 1] [~.ud 0] ~]  [~.ud 1]  ==
+    :-  %round-literal-ud-two
+    :*  [%round [~.ud 2] [~.ud 0] ~]  [~.ud 2]  ==
+    :-  %round-qual-rd-zero
+    :*  [%round round-q-col-1 [~.ud 0] ~]  [~.rd 0]  ==
+    :-  %round-qual-rd-one
+    :*  [%round round-q-col-2 [~.ud 0] ~]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %round-qual-rd-two  ::  round(@rd 2.0, 0) = 2.0
+    :*  [%round round-q-col-3 [~.ud 0] ~]  [~.rd 0x4000.0000.0000.0000]  ==
+    :-  %round-qual-sd-zero
+    :*  [%round round-q-col-4 [~.ud 0] ~]  [~.sd 0]  ==
+    :-  %round-qual-sd-one
+    :*  [%round round-q-col-5 [~.ud 0] ~]  [~.sd 2]  ==
+    :-  %round-qual-sd-two
+    :*  [%round round-q-col-6 [~.ud 0] ~]  [~.sd 4]  ==
+    :-  %round-qual-ud-zero
+    :*  [%round round-q-col-7 [~.ud 0] ~]  [~.ud 0]  ==
+    :-  %round-qual-ud-one
+    :*  [%round round-q-col-8 [~.ud 0] ~]  [~.ud 1]  ==
+    :-  %round-qual-ud-two
+    :*  [%round round-q-col-9 [~.ud 0] ~]  [~.ud 2]  ==
+    ==
+  ==
+::
+++  test-round-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    round-unqual-lookup
+    round-unqual-map-meta
+    *(map @tas resolved-scalar)
+    round-unqual-table-row
+    :~
+    :-  %round-unqual-rd-zero
+    :*  [%round round-u-col-1 [~.ud 0] ~]  [~.rd 0]  ==
+    :-  %round-unqual-rd-one
+    :*  [%round round-u-col-2 [~.ud 0] ~]  [~.rd 0x3ff0.0000.0000.0000]  ==
+    :-  %round-unqual-rd-two  ::  round(@rd 2.0, 0) = 2.0
+    :*  [%round round-u-col-3 [~.ud 0] ~]  [~.rd 0x4000.0000.0000.0000]  ==
+    :-  %round-unqual-sd-zero
+    :*  [%round round-u-col-4 [~.ud 0] ~]  [~.sd 0]  ==
+    :-  %round-unqual-sd-one
+    :*  [%round round-u-col-5 [~.ud 0] ~]  [~.sd 2]  ==
+    :-  %round-unqual-sd-two
+    :*  [%round round-u-col-6 [~.ud 0] ~]  [~.sd 4]  ==
+    :-  %round-unqual-ud-zero
+    :*  [%round round-u-col-7 [~.ud 0] ~]  [~.ud 0]  ==
+    :-  %round-unqual-ud-one
+    :*  [%round round-u-col-8 [~.ud 0] ~]  [~.ud 1]  ==
+    :-  %round-unqual-ud-two
+    :*  [%round round-u-col-9 [~.ud 0] ~]  [~.ud 2]  ==
     ==
   ==
 ::

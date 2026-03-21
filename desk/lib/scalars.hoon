@@ -105,7 +105,66 @@
       !!
   ::
     %round
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(round:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %round, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  len-expr  %:  evaluate-datum
+                        length:;;(round:ast scalar)
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        ==
+      =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
+      ?.  =(~.ud len-type)
+        ~|  "round: length must be @ud, got {<len-type>}"  !!
+      ?:  ?=(dime expr)
+        ?-  number-system
+            ::
+            %rd
+              ?.  ?=(dime len-expr)
+                :+  %fn  number-system
+                |=  =data-row
+                :-  number-system
+                    %+  ~(round rd:math [%n .~1e-10])
+                        +.expr
+                        +:(f.len-expr data-row)
+              :-  number-system
+                  %+  ~(round rd:math [%n .~1e-10])
+                      +.expr
+                      +.len-expr
+            ::
+            %sd  expr
+            ::
+            %ud  expr
+            ==
+      :+  %fn
+        type.expr
+        |=  =data-row
+        ^-  dime
+        ?-  number-system
+            ::
+            %rd
+              =/  datum  +:(f.expr data-row)
+              =/  len  ?:(?=(dime len-expr) +.len-expr +:(f.len-expr data-row))
+              :-  number-system
+                  %+  ~(round rd:math [%n .~1e-10])
+                      datum
+                      len
+            ::
+            %sd  (f.expr data-row)
+            ::
+            %ud  (f.expr data-row)
+            ==
   ::
     %sign
       =/  expr  %:  evaluate-datum
