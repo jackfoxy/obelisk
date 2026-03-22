@@ -251,7 +251,7 @@
     :*
       %arithmetic
       operator=%ket
-      left=[%round literal-37 literal-0 ~]
+      left=[%round literal-37 literal-0]
       right=literal-2
     ==
   =/  sc6
@@ -343,7 +343,7 @@
     "        mt21 LOG(  .5) ".
     "        mt3 FLOOR( .5    ) ".
     "        mt5 CEILING(.5  ) ".
-    "        mt6 ROUND(  .5 ,2   , 1  ) ".
+    "        mt6 ROUND(  .5 ,2   ) ".
     "        mt61 ROUND(.5   ,  2) ".
     "        mt7 SIGN(   -5   ) ".
     "        mt8 SQRT( .5 ) ".
@@ -389,8 +389,8 @@
       [%scalar 'mt21' [%log literal-float ~]]
       [%scalar 'mt3' [%floor literal-float]]
       [%scalar 'mt5' [%ceiling literal-float]]
-      [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
-      [%scalar 'mt61' [%round literal-float literal-2 ~]]
+      [%scalar 'mt6' [%round literal-float literal-2]]
+      [%scalar 'mt61' [%round literal-float literal-2]]
       [%scalar 'mt7' [%sign literal-neg5]]
       [%scalar 'mt8' [%sqrt literal-float]]
       [%scalar 'st1' [%len literal-hello]]
@@ -429,7 +429,7 @@
     "        mt2 LOG( .5,   2) ".
     "        mt3 FLOOR(  .5) ".
     "        mt5 CEILING( .5) ".
-    "        mt6 ROUND(    .5,  2, 1) ".
+    "        mt6 ROUND(    .5,  2) ".
     "        mt7 SIGN(  -5) ".
     "        mt8 SQRT(   .5) ".
     "        st1 LEN( 'hello') ".
@@ -467,7 +467,7 @@
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt3' [%floor literal-float]]
       [%scalar 'mt5' [%ceiling literal-float]]
-      [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
+      [%scalar 'mt6' [%round literal-float literal-2]]
       [%scalar 'mt7' [%sign literal-neg5]]
       [%scalar 'mt8' [%sqrt literal-float]]
       [%scalar 'st1' [%len literal-hello]]
@@ -508,7 +508,7 @@
     "        mt2 LOG(.5  ,2   ) ".
     "        mt3 FLOOR(.5   ) ".
     "        mt5 CEILING(.5  ) ".
-    "        mt6 ROUND(.5     ,2  ,1    ) ".
+    "        mt6 ROUND(.5     ,2  ) ".
     "        mt7 SIGN(-5   ) ".
     "        mt8 SQRT(.5    ) ".
     "        st1 LEN('hello'  ) ".
@@ -523,9 +523,9 @@
     "        cq1 CEILING(db2.dba.table1.bar   ) ".
     "        cu1 CEILING(foo3  ) ".
     "        cs1 CEILING(mt5  ) ".
-    "        rq1 ROUND(dba.table1.bar    ,2  ,1 ) ".
-    "        ru1 ROUND(foo3  ,2     ,1   ) ".
-    "        rs1 ROUND(mt6, 2, 1) ".
+    "        rq1 ROUND(dba.table1.bar    ,2  ) ".
+    "        ru1 ROUND(foo3  ,2     ) ".
+    "        rs1 ROUND(mt6, 2) ".
     "SELECT foo2,foo3"
   ::
   =/  literal-date           [p=~.da q=~2023.1.15]
@@ -549,7 +549,7 @@
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt3' [%floor literal-float]]
       [%scalar 'mt5' [%ceiling literal-float]]
-      [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
+      [%scalar 'mt6' [%round literal-float literal-2]]
       [%scalar 'mt7' [%sign literal-neg5]]
       [%scalar 'mt8' [%sqrt literal-float]]
       [%scalar 'st1' [%len literal-hello]]
@@ -564,9 +564,9 @@
       [%scalar 'cq1' [%ceiling qualified-col-3]]
       [%scalar 'cu1' [%ceiling unqualified-foo-3]]
       [%scalar 'cs1' [%ceiling [%scalar-name name=%mt5]]]
-      [%scalar 'rq1' [%round qualified-col-5 literal-2 `literal-1]]
-      [%scalar 'ru1' [%round unqualified-foo-3 literal-2 `literal-1]]
-      [%scalar 'rs1' [%round [%scalar-name name=%mt6] literal-2 `literal-1]]
+      [%scalar 'rq1' [%round qualified-col-5 literal-2]]
+      [%scalar 'ru1' [%round unqualified-foo-3 literal-2]]
+      [%scalar 'rs1' [%round [%scalar-name name=%mt6] literal-2]]
     ==
   =/  table
     :*  %qualified-table
@@ -593,7 +593,7 @@
     "        mt2 LOG(  .5   ,   2    ) ".
     "        mt3 FLOOR(   .5     ) ".
     "        mt5 CEILING(    .5   ) ".
-    "        mt6 ROUND(  .5     ,   2  ,  1     ) ".
+    "        mt6 ROUND(  .5     ,   2  ) ".
     "        mt7 SIGN(   -5    ) ".
     "        mt8 SQRT( .5     ) ".
     "        st1 LEN(    'hello'  ) ".
@@ -634,7 +634,7 @@
       [%scalar 'mt2' [%log literal-float `literal-2]]
       [%scalar 'mt3' [%floor literal-float]]
       [%scalar 'mt5' [%ceiling literal-float]]
-      [%scalar 'mt6' [%round literal-float literal-2 `literal-1]]
+      [%scalar 'mt6' [%round literal-float literal-2]]
       [%scalar 'mt7' [%sign literal-neg5]]
       [%scalar 'mt8' [%sqrt literal-float]]
       [%scalar 'st1' [%len literal-hello]]

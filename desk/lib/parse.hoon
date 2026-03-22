@@ -4785,15 +4785,8 @@
     !!
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
-      :^  %round  (finalize-param -.raw-scalar-body aliases)
+      :+  %round  (finalize-param -.raw-scalar-body aliases)
                   (finalize-param +.raw-scalar-body aliases)
-                  ~
-    ?:  =(%three-param param-count)
-      :*  %round
-          (finalize-param -.raw-scalar-body aliases)
-          (finalize-param +<.raw-scalar-body aliases)
-          (some (finalize-param +>.raw-scalar-body aliases))
-      ==
     !!
   ?:  =(%substring fn-name)
     ^-  substring:ast
@@ -4872,13 +4865,6 @@
       ;~  plug
         (cold %trim (jester %trim))
         (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %round (jester %round))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-scalar-param
-                                          parse-scalar-param
-                                          parse-scalar-param
       ==
       ;~  plug
         (cold %round (jester %round))
@@ -5107,16 +5093,10 @@
     [%month (finalize-param raw-scalar-body aliases)]
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
-      :^  %round
+      :+  %round
           (finalize-param -.raw-scalar-body aliases)
           (finalize-param +.raw-scalar-body aliases)
-          ~
-    ?:  =(%three-param param-count)
-      :^  %round
-          (finalize-param -.raw-scalar-body aliases)
-          (finalize-param +<.raw-scalar-body aliases)
-          (some (finalize-param +>.raw-scalar-body aliases))
-    ~|("finalize-math-builtin-fn: %round requires two or three params" !!)
+    ~|("finalize-math-builtin-fn: %round requires two params" !!)
   ?:  =(%sign fn-name)
     ^-  sign:ast
     [%sign (finalize-param raw-scalar-body aliases)]

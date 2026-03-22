@@ -697,7 +697,6 @@
   $:  %round
     numeric-expression=datum
     length=datum
-    function=(unit datum)
     ==
 ::
 +$  sign

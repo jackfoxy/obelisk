@@ -215,8 +215,65 @@
                         resolved-scalars
                         ==
       =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
-      ?.  =(~.ud len-type)
-        ~|  "round: length must be @ud, got {<len-type>}"  !!
+      ?.  |(=(~.ud len-type) =(~.sd len-type))
+        ~|  "round: length must be @ud or @sd, got {<len-type>}"  !!
+      ::  extract [is-positive magnitude] from a raw length atom
+      =/  extract-len-info
+        |=  lval=@
+        ^-  [? @ud]
+        ?:  =(~.ud len-type)  [%.y lval]
+        ?:  (syn:si `@s`lval)  [%.y (abs:si `@s`lval)]
+        [%.n (abs:si `@s`lval)]
+      ::  floor for @rd, returns raw @rd atom
+      =/  floor-rd
+        |=  x=@
+        ^-  @
+        =/  dat  `@rd`x
+        =/  int  (san:rd (need (toi:rd dat)))
+        =/  dcm  (sub:rd dat int)
+        ?:  =(0 dcm)  `@`int
+        ?:  (sig:rd dat)  `@`int
+        `@`(sub:rd int .~1)
+      ::  round @rd using round-half-up at decimal position given by [is-pos mag]
+      ::  positive mag: round to mag decimal places (e.g. mag=2: 1.456 -> 1.46)
+      ::  negative mag (is-pos=%.n): round before decimal (e.g. mag=1: 123.4 -> 120.0)
+      =/  round-rd
+        |=  [datum=@ is-pos=? mag=@ud]
+        ^-  @
+        =/  dat    `@rd`datum
+        =/  scale  (~(pow rd:math [%z .~1e-15]) .~10 (sun:rd mag))
+        =/  scaled  ?:  is-pos
+                      (mul:rd dat scale)
+                    (div:rd dat scale)
+        =/  floored  `@rd`(floor-rd `@`(add:rd scaled .~0.5))
+        ?:  is-pos
+          `@`(div:rd floored scale)
+        `@`(mul:rd floored scale)
+      ::  round @s (signed integer) using round-half-up toward +infinity
+      ::  positive mag: no-op (integers have no fractional part)
+      ::  negative mag: round to nearest 10^mag using floor-division
+      =/  round-sd
+        |=  [datum=@ is-pos=? mag=@ud]
+        ^-  @
+        ?:  is-pos  datum
+        =/  scale  (pow 10 mag)
+        =/  half   (sun:si (div scale 2))
+        =/  scl    (sun:si scale)
+        =/  shifted  (sum:si `@s`datum half)
+        =/  q  (fra:si shifted scl)
+        =/  r  (rem:si shifted scl)
+        ?:  !(syn:si r)
+          `@`(pro:si (dif:si q --1) scl)
+        `@`(pro:si q scl)
+      ::  round @ud using round-half-up
+      ::  positive mag: no-op; negative mag: round to nearest 10^mag
+      =/  round-ud
+        |=  [datum=@ is-pos=? mag=@ud]
+        ^-  @
+        ?:  is-pos  datum
+        =/  scale  (pow 10 mag)
+        =/  half   (div scale 2)
+        (mul (div (add `@ud`datum half) scale) scale)
       ?:  ?=(dime expr)
         ?-  number-system
             ::
@@ -224,36 +281,43 @@
               ?.  ?=(dime len-expr)
                 :+  %fn  number-system
                 |=  =data-row
-                :-  number-system
-                    %+  ~(round rd:math [%n .~1e-10])
-                        +.expr
-                        +:(f.len-expr data-row)
-              :-  number-system
-                  %+  ~(round rd:math [%n .~1e-10])
-                      +.expr
-                      +.len-expr
+                ^-  dime
+                =/  [is-pos=? mag=@ud]  (extract-len-info +:(f.len-expr data-row))
+                [number-system (round-rd +.expr is-pos mag)]
+              =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
+              [number-system (round-rd +.expr is-pos mag)]
             ::
-            %sd  expr
+            %sd
+              ?.  ?=(dime len-expr)
+                :+  %fn  number-system
+                |=  =data-row
+                ^-  dime
+                =/  [is-pos=? mag=@ud]  (extract-len-info +:(f.len-expr data-row))
+                [number-system (round-sd +.expr is-pos mag)]
+              =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
+              [number-system (round-sd +.expr is-pos mag)]
             ::
-            %ud  expr
+            %ud
+              ?.  ?=(dime len-expr)
+                :+  %fn  number-system
+                |=  =data-row
+                ^-  dime
+                =/  [is-pos=? mag=@ud]  (extract-len-info +:(f.len-expr data-row))
+                [number-system (round-ud +.expr is-pos mag)]
+              =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
+              [number-system (round-ud +.expr is-pos mag)]
             ==
       :+  %fn
         type.expr
         |=  =data-row
         ^-  dime
+        =/  datum  +:(f.expr data-row)
+        =/  len    ?:(?=(dime len-expr) +.len-expr +:(f.len-expr data-row))
+        =/  [is-pos=? mag=@ud]  (extract-len-info len)
         ?-  number-system
-            ::
-            %rd
-              =/  datum  +:(f.expr data-row)
-              =/  len  ?:(?=(dime len-expr) +.len-expr +:(f.len-expr data-row))
-              :-  number-system
-                  %+  ~(round rd:math [%n .~1e-10])
-                      datum
-                      len
-            ::
-            %sd  (f.expr data-row)
-            ::
-            %ud  (f.expr data-row)
+            %rd  [number-system (round-rd datum is-pos mag)]
+            %sd  [number-system (round-sd datum is-pos mag)]
+            %ud  [number-system (round-ud datum is-pos mag)]
             ==
   ::
     %sign
