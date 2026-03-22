@@ -3341,4 +3341,254 @@
     'can\'t do arithmetic with only a single operand:\
     / [p=~.ud q=42]'
     |.  (parse:parse(default-database default-db) query-string)
+::
+::  new math and trig builtins
+::
+::  randomized spacing
+++  test-builtins-05
+  =/  query-string
+    "FROM foo ".
+    "SCALARS mt-e   E() ".
+    "        mt-phi PHI() ".
+    "        mt-pi  PI() ".
+    "        mt-tau TAU() ".
+    "        mt-max MAX(   .5 ,  .2   ) ".
+    "        mt-min MIN(  .5  ,   .2 ) ".
+    "        mt-rnd RAND(  .2  , .5   ) ".
+    "        mt-deg DEGREES(  .5   ) ".
+    "        mt-sin SIN(   .5 ) ".
+    "        mt-cos COS(  .5  ) ".
+    "        mt-tan TAN(   .5   ) ".
+    "        mt-asi ASIN( .5  ) ".
+    "        mt-aco ACOS(  .5 ) ".
+    "        mt-atn ATAN(  .5   ) ".
+    "        mt-at2 ATAN2(   .5 ,  .2   ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-float   [p=~.rs q=.5]
+  =/  literal-float2  [p=~.rs q=.2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'mt-e' [%e ~]]
+      [%scalar 'mt-phi' [%phi ~]]
+      [%scalar 'mt-pi' [%pi ~]]
+      [%scalar 'mt-tau' [%tau ~]]
+      [%scalar 'mt-max' [%max literal-float literal-float2]]
+      [%scalar 'mt-min' [%min literal-float literal-float2]]
+      [%scalar 'mt-rnd' [%rand literal-float2 literal-float]]
+      [%scalar 'mt-deg' [%degrees literal-float]]
+      [%scalar 'mt-sin' [%sin literal-float]]
+      [%scalar 'mt-cos' [%cos literal-float]]
+      [%scalar 'mt-tan' [%tan literal-float]]
+      [%scalar 'mt-asi' [%asin literal-float]]
+      [%scalar 'mt-aco' [%acos literal-float]]
+      [%scalar 'mt-atn' [%atan literal-float]]
+      [%scalar 'mt-at2' [%atan2 literal-float literal-float2]]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces before parameters
+++  test-builtins-06
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS mt-e   E() ".
+    "        mt-phi PHI() ".
+    "        mt-pi  PI() ".
+    "        mt-tau TAU() ".
+    "        mt-max MAX(  .5,   .2) ".
+    "        mt-min MIN(   .5,  .2) ".
+    "        mt-rnd RAND(  .2,   .5) ".
+    "        mt-deg DEGREES(  .5) ".
+    "        mt-sin SIN(   .5) ".
+    "        mt-cos COS(  .5) ".
+    "        mt-tan TAN(   .5) ".
+    "        mt-asi ASIN( .5) ".
+    "        mt-aco ACOS(  .5) ".
+    "        mt-atn ATAN(   .5) ".
+    "        mt-at2 ATAN2(  .5,   .2) ".
+    "        mxq1 MAX(   ~sampel-palnet.db2.dba.table1.bar,  .2) ".
+    "        mxu1 MAX(  foo3,   .2) ".
+    "        mxs1 MAX(   mt-max,  .2) ".
+    "        snq1 SIN(  ~sampel-palnet.db2..table1.bar) ".
+    "        snu1 SIN(   foo3) ".
+    "        sns1 SIN(   mt-sin) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-float   [p=~.rs q=.5]
+  =/  literal-float2  [p=~.rs q=.2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'mt-e' [%e ~]]
+      [%scalar 'mt-phi' [%phi ~]]
+      [%scalar 'mt-pi' [%pi ~]]
+      [%scalar 'mt-tau' [%tau ~]]
+      [%scalar 'mt-max' [%max literal-float literal-float2]]
+      [%scalar 'mt-min' [%min literal-float literal-float2]]
+      [%scalar 'mt-rnd' [%rand literal-float2 literal-float]]
+      [%scalar 'mt-deg' [%degrees literal-float]]
+      [%scalar 'mt-sin' [%sin literal-float]]
+      [%scalar 'mt-cos' [%cos literal-float]]
+      [%scalar 'mt-tan' [%tan literal-float]]
+      [%scalar 'mt-asi' [%asin literal-float]]
+      [%scalar 'mt-aco' [%acos literal-float]]
+      [%scalar 'mt-atn' [%atan literal-float]]
+      [%scalar 'mt-at2' [%atan2 literal-float literal-float2]]
+      [%scalar 'mxq1' [%max qualified-col-1 literal-float2]]
+      [%scalar 'mxu1' [%max unqualified-foo-3 literal-float2]]
+      [%scalar 'mxs1' [%max [%scalar-name name=%mt-max] literal-float2]]
+      [%scalar 'snq1' [%sin qualified-col-2]]
+      [%scalar 'snu1' [%sin unqualified-foo-3]]
+      [%scalar 'sns1' [%sin [%scalar-name name=%mt-sin]]]
+    ==
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces after parameters
+++  test-builtins-07
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS mt-e   E() ".
+    "        mt-phi PHI() ".
+    "        mt-pi  PI() ".
+    "        mt-tau TAU() ".
+    "        mt-max MAX(.5  ,.2   ) ".
+    "        mt-min MIN(.5   ,.2  ) ".
+    "        mt-rnd RAND(.2  ,.5   ) ".
+    "        mt-deg DEGREES(.5   ) ".
+    "        mt-sin SIN(.5    ) ".
+    "        mt-cos COS(.5   ) ".
+    "        mt-tan TAN(.5    ) ".
+    "        mt-asi ASIN(.5   ) ".
+    "        mt-aco ACOS(.5    ) ".
+    "        mt-atn ATAN(.5   ) ".
+    "        mt-at2 ATAN2(.5   ,.2   ) ".
+    "        mnq1 MIN(~sampel-palnet.db2.dba.table1.bar  ,.2 ) ".
+    "        mnu1 MIN(foo3   ,.2  ) ".
+    "        mns1 MIN(mt-min   ,.2  ) ".
+    "        csq1 COS(db2.dba.table1.bar   ) ".
+    "        csu1 COS(foo3  ) ".
+    "        css1 COS(mt-cos   ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-float   [p=~.rs q=.5]
+  =/  literal-float2  [p=~.rs q=.2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'mt-e' [%e ~]]
+      [%scalar 'mt-phi' [%phi ~]]
+      [%scalar 'mt-pi' [%pi ~]]
+      [%scalar 'mt-tau' [%tau ~]]
+      [%scalar 'mt-max' [%max literal-float literal-float2]]
+      [%scalar 'mt-min' [%min literal-float literal-float2]]
+      [%scalar 'mt-rnd' [%rand literal-float2 literal-float]]
+      [%scalar 'mt-deg' [%degrees literal-float]]
+      [%scalar 'mt-sin' [%sin literal-float]]
+      [%scalar 'mt-cos' [%cos literal-float]]
+      [%scalar 'mt-tan' [%tan literal-float]]
+      [%scalar 'mt-asi' [%asin literal-float]]
+      [%scalar 'mt-aco' [%acos literal-float]]
+      [%scalar 'mt-atn' [%atan literal-float]]
+      [%scalar 'mt-at2' [%atan2 literal-float literal-float2]]
+      [%scalar 'mnq1' [%min qualified-col-1 literal-float2]]
+      [%scalar 'mnu1' [%min unqualified-foo-3 literal-float2]]
+      [%scalar 'mns1' [%min [%scalar-name name=%mt-min] literal-float2]]
+      [%scalar 'csq1' [%cos qualified-col-3]]
+      [%scalar 'csu1' [%cos unqualified-foo-3]]
+      [%scalar 'css1' [%cos [%scalar-name name=%mt-cos]]]
+    ==
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces before and after parameters
+++  test-builtins-08
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS mt-e   E() ".
+    "        mt-phi PHI() ".
+    "        mt-pi  PI() ".
+    "        mt-tau TAU() ".
+    "        mt-max MAX(  .5   ,   .2  ) ".
+    "        mt-min MIN(   .5  ,  .2   ) ".
+    "        mt-rnd RAND(  .2   ,   .5  ) ".
+    "        mt-deg DEGREES(   .5  ) ".
+    "        mt-sin SIN(  .5    ) ".
+    "        mt-cos COS(   .5   ) ".
+    "        mt-tan TAN(  .5    ) ".
+    "        mt-asi ASIN(   .5   ) ".
+    "        mt-aco ACOS(  .5    ) ".
+    "        mt-atn ATAN(   .5   ) ".
+    "        mt-at2 ATAN2(  .5   ,   .2  ) ".
+    "        rdq1 RAND(  ~sampel-palnet.db2..table1.bar   ,  .5   ) ".
+    "        rdu1 RAND(  foo3   ,   .5  ) ".
+    "        rds1 RAND(  mt-rnd   ,   .5  ) ".
+    "        tnq1 TAN(   db2..table1.bar  ) ".
+    "        tnu1 TAN(  foo3   ) ".
+    "        tns1 TAN(   mt-tan  ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-float   [p=~.rs q=.5]
+  =/  literal-float2  [p=~.rs q=.2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'mt-e' [%e ~]]
+      [%scalar 'mt-phi' [%phi ~]]
+      [%scalar 'mt-pi' [%pi ~]]
+      [%scalar 'mt-tau' [%tau ~]]
+      [%scalar 'mt-max' [%max literal-float literal-float2]]
+      [%scalar 'mt-min' [%min literal-float literal-float2]]
+      [%scalar 'mt-rnd' [%rand literal-float2 literal-float]]
+      [%scalar 'mt-deg' [%degrees literal-float]]
+      [%scalar 'mt-sin' [%sin literal-float]]
+      [%scalar 'mt-cos' [%cos literal-float]]
+      [%scalar 'mt-tan' [%tan literal-float]]
+      [%scalar 'mt-asi' [%asin literal-float]]
+      [%scalar 'mt-aco' [%acos literal-float]]
+      [%scalar 'mt-atn' [%atan literal-float]]
+      [%scalar 'mt-at2' [%atan2 literal-float literal-float2]]
+      [%scalar 'rdq1' [%rand qualified-col-2 literal-float]]
+      [%scalar 'rdu1' [%rand unqualified-foo-3 literal-float]]
+      [%scalar 'rds1' [%rand [%scalar-name name=%mt-rnd] literal-float]]
+      [%scalar 'tnq1' [%tan qualified-col-4]]
+      [%scalar 'tnu1' [%tan unqualified-foo-3]]
+      [%scalar 'tns1' [%tan [%scalar-name name=%mt-tan]]]
+    ==
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 --

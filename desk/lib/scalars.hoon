@@ -98,6 +98,51 @@
     %log
       !!
   ::
+    %e
+      !!
+  ::
+    %max
+      !!
+  ::
+    %min
+      !!
+  ::
+    %phi
+      !!
+  ::
+    %pi
+      !!
+  ::
+    %rand
+      !!
+  ::
+    %tau
+      !!
+  ::
+    %degrees
+      !!
+  ::
+    %sin
+      !!
+  ::
+    %cos
+      !!
+  ::
+    %tan
+      !!
+  ::
+    %asin
+      !!
+  ::
+    %acos
+      !!
+  ::
+    %atan
+      !!
+  ::
+    %atan2
+      !!
+  ::
     %floor
       =/  expr  %:  evaluate-datum
                     numeric-expression:;;(floor:ast scalar)

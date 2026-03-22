@@ -578,28 +578,43 @@
 ::
 +$  scalar-function
   $%
-    if-then-else
+    arithmetic
     case
     coalesce
-    arithmetic
+    if-then-else
     :: builtin functions
-    getutcdate
-    day
-    month
-    year
     abs
-    log
-    floor
+    acos
+    asin
+    atan
+    atan2
     ceiling
+    concat
+    cos
+    day
+    degrees
+    e
+    floor
+    getutcdate
+    left
+    len
+    log
+    max
+    min
+    month
+    phi
+    pi
+    rand
+    right
     round
     sign
+    sin
     sqrt
-    len
-    left
-    right
     substring
+    tan
+    tau
     trim
-    concat
+    year
     ==
 ::
 +$  scalar-name
@@ -677,10 +692,45 @@
     numeric-expression=datum
   ==
 ::
-+$  log
-  $:  %log
-    float-expression=datum
-    base=(unit datum)
++$  acos
+  $:  %acos
+    numeric-expression=datum
+  ==
+::
++$  asin
+  $:  %asin
+    numeric-expression=datum
+  ==
+::
++$  atan
+  $:  %atan
+    numeric-expression=datum
+  ==
+::
++$  atan2
+  $:  %atan2
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  ceiling
+  $:  %ceiling
+    numeric-expression=datum
+  ==
+::
++$  cos
+  $:  %cos
+    numeric-expression=datum
+  ==
+::
++$  degrees
+  $:  %degrees
+    numeric-expression=datum
+  ==
+::
++$  e
+  $:  %e
+    ~
   ==
 ::
 +$  floor
@@ -688,9 +738,38 @@
     numeric-expression=datum
   ==
 ::
-+$  ceiling
-  $:  %ceiling
-    numeric-expression=datum
++$  log
+  $:  %log
+    float-expression=datum
+    base=(unit datum)
+  ==
+::
++$  max
+  $:  %max
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  min
+  $:  %min
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  phi
+  $:  %phi
+    ~
+  ==
+::
++$  pi
+  $:  %pi
+    ~
+  ==
+::
++$  rand
+  $:  %rand
+    numeric-expression-1=datum
+    numeric-expression-2=datum
   ==
 ::
 +$  round
@@ -704,16 +783,34 @@
     numeric-expression=datum
   ==
 ::
++$  sin
+  $:  %sin
+    numeric-expression=datum
+  ==
+::
 +$  sqrt
   $:  %sqrt
     float-expression=datum
   ==
 ::
++$  tan
+  $:  %tan
+    numeric-expression=datum
+  ==
+::
++$  tau
+  $:  %tau
+    ~
+  ==
+::
 ::  string functions
 ::
-+$  len
-  $:  %len
-    string-expression=datum
++$  concat
+  $+  concat
+  :: if we remove this bucpat the type checker loops infinitely
+  :: scalar-function -> concat -> datum -> scalar-function
+  $:  %concat
+    args=$@(~ (list datum))
   ==
 ::
 +$  left
@@ -722,12 +819,17 @@
     integer-expression=datum
   ==
 ::
++$  len
+  $:  %len
+    string-expression=datum
+  ==
+::
 +$  right
   $:  %right
     character-expression=datum
     integer-expression=datum
   ==
-::]
+::
 +$  substring
   $:  %substring
     string-expression=datum
@@ -739,13 +841,5 @@
   $:  %trim
     characters=(unit datum)
     string=datum
-  ==
-::
-+$  concat
-  $+  concat
-  :: if we remove this bucpat the type checker loops infinitely
-  :: scalar-function -> concat -> datum -> scalar-function
-  $:  %concat
-    args=$@(~ (list datum))
   ==
 --

@@ -4759,6 +4759,44 @@
     [%sign (finalize-param raw-scalar-body aliases)]
   ?:  =(%sqrt fn-name)
     [%sqrt (finalize-param raw-scalar-body aliases)]
+  ::  nullary math constants
+  ?:  =(%e fn-name)
+    ^-  e:ast  [%e ~]
+  ?:  =(%phi fn-name)
+    ^-  phi:ast  [%phi ~]
+  ?:  =(%pi fn-name)
+    ^-  pi:ast  [%pi ~]
+  ?:  =(%tau fn-name)
+    ^-  tau:ast  [%tau ~]
+  ::  two-param math functions
+  ?:  =(%max fn-name)
+    :+  %max  (finalize-param -.raw-scalar-body aliases)
+              (finalize-param +.raw-scalar-body aliases)
+  ?:  =(%min fn-name)
+    :+  %min  (finalize-param -.raw-scalar-body aliases)
+              (finalize-param +.raw-scalar-body aliases)
+  ?:  =(%rand fn-name)
+    :+  %rand  (finalize-param -.raw-scalar-body aliases)
+               (finalize-param +.raw-scalar-body aliases)
+  ?:  =(%degrees fn-name)
+    [%degrees (finalize-param raw-scalar-body aliases)]
+  ?:  =(%sin fn-name)
+    [%sin (finalize-param raw-scalar-body aliases)]
+  ?:  =(%cos fn-name)
+    [%cos (finalize-param raw-scalar-body aliases)]
+  ?:  =(%tan fn-name)
+    [%tan (finalize-param raw-scalar-body aliases)]
+  ?:  =(%asin fn-name)
+    [%asin (finalize-param raw-scalar-body aliases)]
+  ?:  =(%acos fn-name)
+    [%acos (finalize-param raw-scalar-body aliases)]
+  ?:  =(%atan fn-name)
+    [%atan (finalize-param raw-scalar-body aliases)]
+  ?:  =(%atan2 fn-name)
+    ?:  =(%two-param param-count)
+      :+  %atan2  (finalize-param -.raw-scalar-body aliases)
+                  (finalize-param +.raw-scalar-body aliases)
+    !!
   ?:  =(%len fn-name)
     [%len (finalize-param raw-scalar-body aliases)]
   ?:  =(%log fn-name)
@@ -4843,6 +4881,70 @@
       ;~  plug
         (cold %sqrt (jester %sqrt))
         (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %e (jester %e))
+        (stag %no-params (parse-no-params ~))
+      ==
+      ;~  plug
+        (cold %phi (jester %phi))
+        (stag %no-params (parse-no-params ~))
+      ==
+      ;~  plug
+        (cold %pi (jester %pi))
+        (stag %no-params (parse-no-params ~))
+      ==
+      ;~  plug
+        (cold %tau (jester %tau))
+        (stag %no-params (parse-no-params ~))
+      ==
+      ;~  plug
+        (cold %max (jester %max))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
+      ==
+      ;~  plug
+        (cold %min (jester %min))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
+      ==
+      ;~  plug
+        (cold %rand (jester %rand))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
+      ==
+      ;~  plug
+        (cold %degrees (jester %degrees))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %sin (jester %sin))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %cos (jester %cos))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %tan (jester %tan))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %asin (jester %asin))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %acos (jester %acos))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %atan (jester %atan))
+        (stag %one-param (parse-one-param parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %atan2 (jester %atan2))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %len (jester %len))
@@ -5106,6 +5208,48 @@
   ?:  =(%year fn-name)
     ^-  year:ast
     [%year (finalize-param raw-scalar-body aliases)]
+  ?:  =(%e fn-name)
+    ^-  e:ast  [%e ~]
+  ?:  =(%phi fn-name)
+    ^-  phi:ast  [%phi ~]
+  ?:  =(%pi fn-name)
+    ^-  pi:ast  [%pi ~]
+  ?:  =(%tau fn-name)
+    ^-  tau:ast  [%tau ~]
+  ?:  =(%max fn-name)
+    ?:  =(%two-param param-count)
+      :+  %max  (finalize-param -.raw-scalar-body aliases)
+                (finalize-param +.raw-scalar-body aliases)
+    ~|("finalize-math-builtin-fn: %max requires two params" !!)
+  ?:  =(%min fn-name)
+    ?:  =(%two-param param-count)
+      :+  %min  (finalize-param -.raw-scalar-body aliases)
+                (finalize-param +.raw-scalar-body aliases)
+    ~|("finalize-math-builtin-fn: %min requires two params" !!)
+  ?:  =(%rand fn-name)
+    ?:  =(%two-param param-count)
+      :+  %rand  (finalize-param -.raw-scalar-body aliases)
+                 (finalize-param +.raw-scalar-body aliases)
+    ~|("finalize-math-builtin-fn: %rand requires two params" !!)
+  ?:  =(%degrees fn-name)
+    [%degrees (finalize-param raw-scalar-body aliases)]
+  ?:  =(%sin fn-name)
+    [%sin (finalize-param raw-scalar-body aliases)]
+  ?:  =(%cos fn-name)
+    [%cos (finalize-param raw-scalar-body aliases)]
+  ?:  =(%tan fn-name)
+    [%tan (finalize-param raw-scalar-body aliases)]
+  ?:  =(%asin fn-name)
+    [%asin (finalize-param raw-scalar-body aliases)]
+  ?:  =(%acos fn-name)
+    [%acos (finalize-param raw-scalar-body aliases)]
+  ?:  =(%atan fn-name)
+    [%atan (finalize-param raw-scalar-body aliases)]
+  ?:  =(%atan2 fn-name)
+    ?:  =(%two-param param-count)
+      :+  %atan2  (finalize-param -.raw-scalar-body aliases)
+                  (finalize-param +.raw-scalar-body aliases)
+    ~|("finalize-math-builtin-fn: %atan2 requires two params" !!)
   ~|  "finalize-math-builtin-fn: cannot use {<fn-name>} ".
       "in arithmetic expression"
   !!
