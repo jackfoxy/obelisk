@@ -539,6 +539,106 @@
                                 [%col9 2]                      ::  @ud 2
                             ==
 ::
+::  %ceiling test helpers
+::  @rd: 0x3ff8.0000.0000.0000 = .~1.5, 0xbff8.0000.0000.0000 = .~-1.5
+::  ceiling(1.5) = 2.0 = .~2, ceiling(-1.5) = -1.0 = .~-1
+::  @sd and @ud: pass-through
+::
+::  qualified: col1=@rd 0, col2=@rd 1.5, col3=@rd -1.5
+::             col4=@sd --0, col5=@sd --1, col6=@sd -1
+::             col7=@ud 0, col8=@ud 1, col9=@ud 2
+::
+++  ceiling-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  ceiling-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  ceiling-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  ceiling-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  ceiling-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  ceiling-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  ceiling-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  ceiling-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  ceiling-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  ceiling-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  ceiling-qual-table-row  %-  mk-indexed-row
+                             :~  [%col1 0]                        ::  @rd 0
+                                 [%col2 0x3ff8.0000.0000.0000]    ::  @rd 1.5
+                                 [%col3 0xbff8.0000.0000.0000]    ::  @rd -1.5
+                                 [%col4 0]                        ::  @sd --0
+                                 [%col5 2]                        ::  @sd --1
+                                 [%col6 1]                        ::  @sd -1
+                                 [%col7 0]                        ::  @ud 0
+                                 [%col8 1]                        ::  @ud 1
+                                 [%col9 2]                        ::  @ud 2
+                             ==
+::
+::  unqualified: col1=@rd 0, col2=@rd 1.5, col3=@rd -1.5
+::               col4=@sd --0, col5=@sd --1, col6=@sd -1
+::               col7=@ud 0, col8=@ud 1, col9=@ud 2
+::
+++  ceiling-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  ceiling-unqual-lookup  %-  malt  %-  limo
+                            :~  [%col1 ~[qualified-table-1]]
+                                [%col2 ~[qualified-table-1]]
+                                [%col3 ~[qualified-table-1]]
+                                [%col4 ~[qualified-table-1]]
+                                [%col5 ~[qualified-table-1]]
+                                [%col6 ~[qualified-table-1]]
+                                [%col7 ~[qualified-table-1]]
+                                [%col8 ~[qualified-table-1]]
+                                [%col9 ~[qualified-table-1]]
+                            ==
+::
+++  ceiling-u-col-1  [%unqualified-column %col1 ~]
+++  ceiling-u-col-2  [%unqualified-column %col2 ~]
+++  ceiling-u-col-3  [%unqualified-column %col3 ~]
+++  ceiling-u-col-4  [%unqualified-column %col4 ~]
+++  ceiling-u-col-5  [%unqualified-column %col5 ~]
+++  ceiling-u-col-6  [%unqualified-column %col6 ~]
+++  ceiling-u-col-7  [%unqualified-column %col7 ~]
+++  ceiling-u-col-8  [%unqualified-column %col8 ~]
+++  ceiling-u-col-9  [%unqualified-column %col9 ~]
+::
+++  ceiling-unqual-table-row  %-  mk-indexed-row
+                               :~  [%col1 0]                      ::  @rd 0
+                                   [%col2 0x3ff8.0000.0000.0000]  ::  @rd 1.5
+                                   [%col3 0xbff8.0000.0000.0000]  ::  @rd -1.5
+                                   [%col4 0]                      ::  @sd --0
+                                   [%col5 2]                      ::  @sd --1
+                                   [%col6 1]                      ::  @sd -1
+                                   [%col7 0]                      ::  @ud 0
+                                   [%col8 1]                      ::  @ud 1
+                                   [%col9 2]                      ::  @ud 2
+                               ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -965,6 +1065,84 @@
     :*  [%floor floor-u-col-8]  [~.ud 1]  ==
     :-  %floor-unqual-ud-two
     :*  [%floor floor-u-col-9]  [~.ud 2]  ==
+    ==
+  ==
+::
+::  %ceiling tests
+::
+++  test-ceiling-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    ceiling-qual-map-meta
+    *(map @tas resolved-scalar)
+    ceiling-qual-table-row
+    :~
+    :-  %ceiling-literal-rd-zero
+    :*  [%ceiling [~.rd .~0]]  [~.rd .~0]  ==
+    :-  %ceiling-literal-rd-one-five  ::  ceiling(@rd 1.5) = 2.0
+    :*  [%ceiling [~.rd .~1.5]]  [~.rd .~2]  ==
+    :-  %ceiling-literal-rd-neg-one-five  ::  ceiling(@rd -1.5) = -1.0
+    :*  [%ceiling [~.rd .~-1.5]]  [~.rd .~-1]  ==
+    :-  %ceiling-literal-sd-zero
+    :*  [%ceiling [~.sd --0]]  [~.sd --0]  ==
+    :-  %ceiling-literal-sd-one
+    :*  [%ceiling [~.sd --1]]  [~.sd --1]  ==
+    :-  %ceiling-literal-sd-neg
+    :*  [%ceiling [~.sd -1]]  [~.sd -1]  ==
+    :-  %ceiling-literal-ud-zero
+    :*  [%ceiling [~.ud 0]]  [~.ud 0]  ==
+    :-  %ceiling-literal-ud-one
+    :*  [%ceiling [~.ud 1]]  [~.ud 1]  ==
+    :-  %ceiling-literal-ud-two
+    :*  [%ceiling [~.ud 2]]  [~.ud 2]  ==
+    :-  %ceiling-qual-rd-zero
+    :*  [%ceiling ceiling-q-col-1]  [~.rd .~0]  ==
+    :-  %ceiling-qual-rd-one-five  ::  ceiling(@rd 1.5) = 2.0
+    :*  [%ceiling ceiling-q-col-2]  [~.rd .~2]  ==
+    :-  %ceiling-qual-rd-neg-one-five  ::  ceiling(@rd -1.5) = -1.0
+    :*  [%ceiling ceiling-q-col-3]  [~.rd .~-1]  ==
+    :-  %ceiling-qual-sd-zero
+    :*  [%ceiling ceiling-q-col-4]  [~.sd --0]  ==
+    :-  %ceiling-qual-sd-one
+    :*  [%ceiling ceiling-q-col-5]  [~.sd --1]  ==
+    :-  %ceiling-qual-sd-neg
+    :*  [%ceiling ceiling-q-col-6]  [~.sd -1]  ==
+    :-  %ceiling-qual-ud-zero
+    :*  [%ceiling ceiling-q-col-7]  [~.ud 0]  ==
+    :-  %ceiling-qual-ud-one
+    :*  [%ceiling ceiling-q-col-8]  [~.ud 1]  ==
+    :-  %ceiling-qual-ud-two
+    :*  [%ceiling ceiling-q-col-9]  [~.ud 2]  ==
+    ==
+  ==
+::
+++  test-ceiling-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    ceiling-unqual-lookup
+    ceiling-unqual-map-meta
+    *(map @tas resolved-scalar)
+    ceiling-unqual-table-row
+    :~
+    :-  %ceiling-unqual-rd-zero
+    :*  [%ceiling ceiling-u-col-1]  [~.rd .~0]  ==
+    :-  %ceiling-unqual-rd-one-five  ::  ceiling(@rd 1.5) = 2.0
+    :*  [%ceiling ceiling-u-col-2]  [~.rd .~2]  ==
+    :-  %ceiling-unqual-rd-neg-one-five  ::  ceiling(@rd -1.5) = -1.0
+    :*  [%ceiling ceiling-u-col-3]  [~.rd .~-1]  ==
+    :-  %ceiling-unqual-sd-zero
+    :*  [%ceiling ceiling-u-col-4]  [~.sd --0]  ==
+    :-  %ceiling-unqual-sd-one
+    :*  [%ceiling ceiling-u-col-5]  [~.sd --1]  ==
+    :-  %ceiling-unqual-sd-neg
+    :*  [%ceiling ceiling-u-col-6]  [~.sd -1]  ==
+    :-  %ceiling-unqual-ud-zero
+    :*  [%ceiling ceiling-u-col-7]  [~.ud 0]  ==
+    :-  %ceiling-unqual-ud-one
+    :*  [%ceiling ceiling-u-col-8]  [~.ud 1]  ==
+    :-  %ceiling-unqual-ud-two
+    :*  [%ceiling ceiling-u-col-9]  [~.ud 2]  ==
     ==
   ==
 ::

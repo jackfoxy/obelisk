@@ -147,7 +147,52 @@
             ==
   ::
     %ceiling
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(ceiling:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %ceiling, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      ?:  ?=(dime expr)
+        ?-  number-system
+            ::
+            %rd
+              =/  int  (san:rd (need (toi:rd +.expr)))
+              =/  dcm  (sub:rd +.expr int)
+              :-  number-system
+                  ?:  =(0 dcm)  int
+                  ?:  (sig:rd +.expr)  (add:rd int .~1)
+                  int
+            ::
+            %sd  expr
+            ::
+            %ud  expr
+            ==
+      :+  %fn
+        type.expr
+        |=  =data-row
+        ^-  dime
+        ?-  number-system
+            ::
+            %rd
+              =/  datum  +:(f.expr data-row)
+              =/  int  (san:rd (need (toi:rd datum)))
+              =/  dcm  (sub:rd datum int)
+              :-  number-system
+                  ?:  =(0 dcm)  int
+                  ?:  (sig:rd datum)  (add:rd int .~1)
+                  int
+            ::
+            %sd  (f.expr data-row)
+            ::
+            %ud  (f.expr data-row)
+            ==
   ::
     %round
       =/  expr  %:  evaluate-datum
