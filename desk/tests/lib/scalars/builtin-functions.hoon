@@ -778,46 +778,45 @@
     *(map @tas resolved-scalar)
     abs-qual-table-row
     :~
+    ::  abs(@sd -1) = @sd --1 = atom 2
     :-  %abs-literal-sd-neg
-    :*  [%abs [~.sd -1]]        ::  abs(@sd -1) = @sd --1 = atom 2
-      [~.sd --1]
-    ==
+        :-  [%abs [~.sd -1]]
+            [~.sd --1]
+    ::  abs(@sd --1) = @sd --1 = atom 2
     :-  %abs-literal-sd-pos
-    :*  [%abs [~.sd --1]]         ::  abs(@sd --1) = @sd --1 = atom 2
-      [~.sd --1]
-    ==
+        :-  [%abs [~.sd --1]]
+            [~.sd --1]
     :-  %abs-literal-ud
-    :*  [%abs [~.ud 5]]
-      [~.ud 5]
-    ==
+        :-  [%abs [~.ud 5]]
+            [~.ud 5]
+    ::  abs(@rd -1.0) = @rd 1.0
     :-  %abs-literal-rd-neg
-    :*  [%abs [~.rd .~-1]]  ::  abs(@rd -1.0) = @rd 1.0
-      [~.rd .~1]
-    ==
+        :-  [%abs [~.rd .~-1]]
+            [~.rd .~1]
+    ::  abs(@rd 1.0) = @rd 1.0
     :-  %abs-literal-rd-pos
-    :*  [%abs [~.rd .~1]]  ::  abs(@rd 1.0) = @rd 1.0
-      [~.rd .~1]
-    ==
+        :-  [%abs [~.rd .~1]]
+            [~.rd .~1]
+    ::  abs(@sd -3) = @sd --3 = atom 6
     :-  %abs-qual-sd-neg
-    :*  [%abs q-col-1]          ::  abs(@sd -3) = @sd --3 = atom 6
-      [~.sd --3]
-    ==
+        :-  [%abs q-col-1]
+            [~.sd --3]
+    ::  abs(@sd --2) = @sd --2 = atom 4
     :-  %abs-qual-sd-pos
-    :*  [%abs q-col-2]          ::  abs(@sd --2) = @sd --2 = atom 4
-      [~.sd --2]
-    ==
+        :-  [%abs q-col-2]
+            [~.sd --2]
+    ::  abs(@rd -1.0) = @rd 1.0
     :-  %abs-qual-rd-neg
-    :*  [%abs q-col-3]          ::  abs(@rd -1.0) = @rd 1.0
-      [~.rd .~1]
-    ==
+        :-  [%abs q-col-3]
+            [~.rd .~1]
+    ::  abs(@rd 2.0) = @rd 2.0
     :-  %abs-qual-rd-pos
-    :*  [%abs abs-q-col-4]      ::  abs(@rd 2.0) = @rd 2.0
-      [~.rd .~2]
-    ==
+        :-  [%abs abs-q-col-4]
+            [~.rd .~2]
+    ::  abs(@ud 5) = @ud 5
     :-  %abs-qual-ud
-    :*  [%abs abs-q-col-5]      ::  abs(@ud 5) = @ud 5
-      [~.ud 5]
-    ==
+        :-  [%abs abs-q-col-5]
+            [~.ud 5]
   ==
   ==
 ::
@@ -829,26 +828,26 @@
     *(map @tas resolved-scalar)
     abs-unqual-table-row
     :~
+    ::  abs(@sd -3) = @sd --3 = atom 6
     :-  %abs-unqual-sd-neg
-    :*  [%abs u-col-4]          ::  abs(@sd -3) = @sd --3 = atom 6
-      [~.sd --3]
-    ==
+        :-  [%abs u-col-4]
+            [~.sd --3]
+    ::  abs(@sd --2) = @sd --2 = atom 4
     :-  %abs-unqual-sd-pos
-    :*  [%abs u-col-5]          ::  abs(@sd --2) = @sd --2 = atom 4
-      [~.sd --2]
-    ==
+        :-  [%abs u-col-5]
+            [~.sd --2]
+    ::  abs(@rd -1.0) = @rd 1.0
     :-  %abs-unqual-rd-neg
-    :*  [%abs u-col-6]          ::  abs(@rd -1.0) = @rd 1.0
-      [~.rd .~1]
-    ==
+        :-  [%abs u-col-6]
+            [~.rd .~1]
+    ::  abs(@rd 2.0) = @rd 2.0
     :-  %abs-unqual-rd-pos
-    :*  [%abs u-col-7]          ::  abs(@rd 2.0) = @rd 2.0
-      [~.rd .~2]
-    ==
+        :-  [%abs u-col-7]
+            [~.rd .~2]
+    ::  abs(@ud 8) = @ud 8
     :-  %abs-unqual-ud
-    :*  [%abs u-col-8]          ::  abs(@ud 8) = @ud 8
-      [~.ud 8]
-    ==
+        :-  [%abs u-col-8]
+            [~.ud 8]
   ==
   ==
 ::
@@ -863,37 +862,57 @@
     sign-qual-table-row
     :~
     :-  %sign-literal-sd-zero
-    :*  [%sign [~.sd --0]]    [~.sd --0]    ==
+        :-  [%sign [~.sd --0]]
+            [~.sd --0]
+    ::  sign(@sd -1) = @sd -1
     :-  %sign-literal-sd-neg
-    :*  [%sign [~.sd -1]]    [~.sd -1]    ==  ::  sign(@sd -1) = @sd -1
+        :-  [%sign [~.sd -1]]
+            [~.sd -1]
+    ::  sign(@sd --1) = @sd --1
     :-  %sign-literal-sd-pos
-    :*  [%sign [~.sd --1]]    [~.sd --1]    ==  ::  sign(@sd --1) = @sd --1
+        :-  [%sign [~.sd --1]]
+            [~.sd --1]
     :-  %sign-literal-rd-zero
-    :*  [%sign [~.rd .~0]]    [~.rd .~0]    ==
+        :-  [%sign [~.rd .~0]]
+            [~.rd .~0]
     :-  %sign-literal-rd-neg
-    :*  [%sign [~.rd .~-1]]  [~.rd .~-1]  ==
+        :-  [%sign [~.rd .~-1]]
+            [~.rd .~-1]
     :-  %sign-literal-rd-pos
-    :*  [%sign [~.rd .~1]]  [~.rd .~1]  ==
+        :-  [%sign [~.rd .~1]]
+            [~.rd .~1]
     :-  %sign-literal-ud-zero
-    :*  [%sign [~.ud 0]]    [~.ud 0]    ==
+        :-  [%sign [~.ud 0]]
+            [~.ud 0]
     :-  %sign-literal-ud-pos
-    :*  [%sign [~.ud 1]]    [~.ud 1]    ==
+        :-  [%sign [~.ud 1]]
+            [~.ud 1]
     :-  %sign-qual-sd-zero
-    :*  [%sign q-col-1]       [~.sd --0]  ==
+        :-  [%sign q-col-1]
+            [~.sd --0]
+    ::  sign(@sd -1) = @sd -1
     :-  %sign-qual-sd-neg
-    :*  [%sign q-col-2]       [~.sd -1]  ==  ::  sign(@sd -1) = @sd -1
+        :-  [%sign q-col-2]
+            [~.sd -1]
+    ::  sign(@sd --1) = @sd --1
     :-  %sign-qual-sd-pos
-    :*  [%sign q-col-3]       [~.sd --1]  ==  ::  sign(@sd --1) = @sd --1
+        :-  [%sign q-col-3]
+            [~.sd --1]
     :-  %sign-qual-rd-zero
-    :*  [%sign sign-q-col-4]  [~.rd .~0]  ==
+        :-  [%sign sign-q-col-4]
+            [~.rd .~0]
     :-  %sign-qual-rd-neg
-    :*  [%sign sign-q-col-5]  [~.rd .~-1]  ==
+        :-  [%sign sign-q-col-5]
+            [~.rd .~-1]
     :-  %sign-qual-rd-pos
-    :*  [%sign sign-q-col-6]  [~.rd .~1]  ==
+        :-  [%sign sign-q-col-6]
+            [~.rd .~1]
     :-  %sign-qual-ud-zero
-    :*  [%sign sign-q-col-7]  [~.ud 0]  ==
+        :-  [%sign sign-q-col-7]
+            [~.ud 0]
     :-  %sign-qual-ud-pos
-    :*  [%sign sign-q-col-8]  [~.ud 1]  ==
+        :-  [%sign sign-q-col-8]
+            [~.ud 1]
     ==
   ==
 ::
@@ -906,21 +925,31 @@
     sign-unqual-table-row
     :~
     :-  %sign-unqual-sd-zero
-    :*  [%sign sign-u-col-1]  [~.sd --0]  ==
+        :-  [%sign sign-u-col-1]
+            [~.sd --0]
+    ::  sign(@sd -1) = @sd -1
     :-  %sign-unqual-sd-neg
-    :*  [%sign sign-u-col-2]  [~.sd -1]  ==  ::  sign(@sd -1) = @sd -1
+        :-  [%sign sign-u-col-2]
+            [~.sd -1]
+    ::  sign(@sd --1) = @sd --1
     :-  %sign-unqual-sd-pos
-    :*  [%sign sign-u-col-3]  [~.sd --1]  ==  ::  sign(@sd --1) = @sd --1
+        :-  [%sign sign-u-col-3]
+            [~.sd --1]
     :-  %sign-unqual-rd-zero
-    :*  [%sign u-col-4]       [~.rd .~0]  ==
+        :-  [%sign u-col-4]
+            [~.rd .~0]
     :-  %sign-unqual-rd-neg
-    :*  [%sign u-col-5]       [~.rd .~-1]  ==
+        :-  [%sign u-col-5]
+            [~.rd .~-1]
     :-  %sign-unqual-rd-pos
-    :*  [%sign u-col-6]       [~.rd .~1]  ==
+        :-  [%sign u-col-6]
+            [~.rd .~1]
     :-  %sign-unqual-ud-zero
-    :*  [%sign u-col-7]       [~.ud 0]  ==
+        :-  [%sign u-col-7]
+            [~.ud 0]
     :-  %sign-unqual-ud-pos
-    :*  [%sign u-col-8]       [~.ud 1]  ==
+        :-  [%sign u-col-8]
+            [~.ud 1]
     ==
   ==
 ::
@@ -935,41 +964,67 @@
     sqrt-qual-table-row
     :~
     :-  %sqrt-literal-rd-zero
-    :*  [%sqrt [~.rd .~0]]  [~.rd .~0]  ==
-    :-  %sqrt-literal-rd-one  ::  sqrt(@rd 1.0) = 1.0
-    :*  [%sqrt [~.rd .~1]]  [~.rd .~1]  ==
-    :-  %sqrt-literal-rd-four  ::  sqrt(@rd 4.0) = 2.0
-    :*  [%sqrt [~.rd .~4]]  [~.rd .~2]  ==
+        :-  [%sqrt [~.rd .~0]]
+            [~.rd .~0]
+    ::  sqrt(@rd 1.0) = 1.0
+    :-  %sqrt-literal-rd-one
+        :-  [%sqrt [~.rd .~1]]
+            [~.rd .~1]
+    ::  sqrt(@rd 4.0) = 2.0
+    :-  %sqrt-literal-rd-four
+        :-  [%sqrt [~.rd .~4]]
+            [~.rd .~2]
     :-  %sqrt-literal-sd-zero
-    :*  [%sqrt [~.sd --0]]  [~.sd --0]  ==
-    :-  %sqrt-literal-sd-one  ::  sqrt(@sd --1) = --1
-    :*  [%sqrt [~.sd --1]]  [~.sd --1]  ==
-    :-  %sqrt-literal-sd-four  ::  sqrt(@sd --4) = --2
-    :*  [%sqrt [~.sd --4]]  [~.sd --2]  ==
+        :-  [%sqrt [~.sd --0]]
+            [~.sd --0]
+    ::  sqrt(@sd --1) = --1
+    :-  %sqrt-literal-sd-one
+        :-  [%sqrt [~.sd --1]]
+            [~.sd --1]
+    ::  sqrt(@sd --4) = --2
+    :-  %sqrt-literal-sd-four
+        :-  [%sqrt [~.sd --4]]
+            [~.sd --2]
     :-  %sqrt-literal-ud-zero
-    :*  [%sqrt [~.ud 0]]  [~.ud 0]  ==
+        :-  [%sqrt [~.ud 0]]
+            [~.ud 0]
     :-  %sqrt-literal-ud-one
-    :*  [%sqrt [~.ud 1]]  [~.ud 1]  ==
-    :-  %sqrt-literal-ud-four  ::  sqrt(@ud 4) = 2
-    :*  [%sqrt [~.ud 4]]  [~.ud 2]  ==
+        :-  [%sqrt [~.ud 1]]
+            [~.ud 1]
+    ::  sqrt(@ud 4) = 2
+    :-  %sqrt-literal-ud-four
+        :-  [%sqrt [~.ud 4]]
+            [~.ud 2]
     :-  %sqrt-qual-rd-zero
-    :*  [%sqrt sqrt-q-col-1]  [~.rd .~0]  ==
+        :-  [%sqrt sqrt-q-col-1]
+            [~.rd .~0]
     :-  %sqrt-qual-rd-one
-    :*  [%sqrt sqrt-q-col-2]  [~.rd .~1]  ==
-    :-  %sqrt-qual-rd-four  ::  sqrt(@rd 4.0) = 2.0
-    :*  [%sqrt sqrt-q-col-3]  [~.rd .~2]  ==
+        :-  [%sqrt sqrt-q-col-2]
+            [~.rd .~1]
+    ::  sqrt(@rd 4.0) = 2.0
+    :-  %sqrt-qual-rd-four
+        :-  [%sqrt sqrt-q-col-3]
+            [~.rd .~2]
     :-  %sqrt-qual-sd-zero
-    :*  [%sqrt sqrt-q-col-4]  [~.sd --0]  ==
+        :-  [%sqrt sqrt-q-col-4]
+            [~.sd --0]
     :-  %sqrt-qual-sd-one
-    :*  [%sqrt sqrt-q-col-5]  [~.sd --1]  ==
-    :-  %sqrt-qual-sd-four  ::  sqrt(@sd --4) = --2
-    :*  [%sqrt sqrt-q-col-6]  [~.sd --2]  ==
+        :-  [%sqrt sqrt-q-col-5]
+            [~.sd --1]
+    ::  sqrt(@sd --4) = --2
+    :-  %sqrt-qual-sd-four
+        :-  [%sqrt sqrt-q-col-6]
+            [~.sd --2]
     :-  %sqrt-qual-ud-zero
-    :*  [%sqrt sqrt-q-col-7]  [~.ud 0]  ==
+        :-  [%sqrt sqrt-q-col-7]
+            [~.ud 0]
     :-  %sqrt-qual-ud-one
-    :*  [%sqrt sqrt-q-col-8]  [~.ud 1]  ==
-    :-  %sqrt-qual-ud-four  ::  sqrt(@ud 4) = 2
-    :*  [%sqrt sqrt-q-col-9]  [~.ud 2]  ==
+        :-  [%sqrt sqrt-q-col-8]
+            [~.ud 1]
+    ::  sqrt(@ud 4) = 2
+    :-  %sqrt-qual-ud-four
+        :-  [%sqrt sqrt-q-col-9]
+            [~.ud 2]
     ==
   ==
 ::
@@ -982,23 +1037,35 @@
     sqrt-unqual-table-row
     :~
     :-  %sqrt-unqual-rd-zero
-    :*  [%sqrt sqrt-u-col-1]  [~.rd .~0]  ==
+        :-  [%sqrt sqrt-u-col-1]
+            [~.rd .~0]
     :-  %sqrt-unqual-rd-one
-    :*  [%sqrt sqrt-u-col-2]  [~.rd .~1]  ==
-    :-  %sqrt-unqual-rd-four  ::  sqrt(@rd 4.0) = 2.0
-    :*  [%sqrt sqrt-u-col-3]  [~.rd .~2]  ==
+        :-  [%sqrt sqrt-u-col-2]
+            [~.rd .~1]
+    ::  sqrt(@rd 4.0) = 2.0
+    :-  %sqrt-unqual-rd-four
+        :-  [%sqrt sqrt-u-col-3]
+            [~.rd .~2]
     :-  %sqrt-unqual-sd-zero
-    :*  [%sqrt sqrt-u-col-4]  [~.sd --0]  ==
+        :-  [%sqrt sqrt-u-col-4]
+            [~.sd --0]
     :-  %sqrt-unqual-sd-one
-    :*  [%sqrt sqrt-u-col-5]  [~.sd --1]  ==
-    :-  %sqrt-unqual-sd-four  ::  sqrt(@sd --4) = --2
-    :*  [%sqrt sqrt-u-col-6]  [~.sd --2]  ==
+        :-  [%sqrt sqrt-u-col-5]
+            [~.sd --1]
+    ::  sqrt(@sd --4) = --2
+    :-  %sqrt-unqual-sd-four
+        :-  [%sqrt sqrt-u-col-6]
+            [~.sd --2]
     :-  %sqrt-unqual-ud-zero
-    :*  [%sqrt sqrt-u-col-7]  [~.ud 0]  ==
+        :-  [%sqrt sqrt-u-col-7]
+            [~.ud 0]
     :-  %sqrt-unqual-ud-one
-    :*  [%sqrt sqrt-u-col-8]  [~.ud 1]  ==
-    :-  %sqrt-unqual-ud-four  ::  sqrt(@ud 4) = 2
-    :*  [%sqrt sqrt-u-col-9]  [~.ud 2]  ==
+        :-  [%sqrt sqrt-u-col-8]
+            [~.ud 1]
+    ::  sqrt(@ud 4) = 2
+    :-  %sqrt-unqual-ud-four
+        :-  [%sqrt sqrt-u-col-9]
+            [~.ud 2]
     ==
   ==
 ::
@@ -1013,41 +1080,63 @@
     floor-qual-table-row
     :~
     :-  %floor-literal-rd-zero
-    :*  [%floor [~.rd .~0]]  [~.rd .~0]  ==
-    :-  %floor-literal-rd-one-five  ::  floor(@rd 1.5) = 1.0
-    :*  [%floor [~.rd .~1.5]]  [~.rd .~1]  ==
-    :-  %floor-literal-rd-neg-one-five  ::  floor(@rd -1.5) = -2.0
-    :*  [%floor [~.rd .~-1.5]]  [~.rd .~-2]  ==
+        :-  [%floor [~.rd .~0]]
+            [~.rd .~0]
+    ::  floor(@rd 1.5) = 1.0
+    :-  %floor-literal-rd-one-five
+        :-  [%floor [~.rd .~1.5]]
+            [~.rd .~1]
+    ::  floor(@rd -1.5) = -2.0
+    :-  %floor-literal-rd-neg-one-five
+        :-  [%floor [~.rd .~-1.5]]
+            [~.rd .~-2]
     :-  %floor-literal-sd-zero
-    :*  [%floor [~.sd --0]]  [~.sd --0]  ==
+        :-  [%floor [~.sd --0]]
+            [~.sd --0]
     :-  %floor-literal-sd-one
-    :*  [%floor [~.sd --1]]  [~.sd --1]  ==
+        :-  [%floor [~.sd --1]]
+            [~.sd --1]
     :-  %floor-literal-sd-neg
-    :*  [%floor [~.sd -1]]  [~.sd -1]  ==
+        :-  [%floor [~.sd -1]]
+            [~.sd -1]
     :-  %floor-literal-ud-zero
-    :*  [%floor [~.ud 0]]  [~.ud 0]  ==
+        :-  [%floor [~.ud 0]]
+            [~.ud 0]
     :-  %floor-literal-ud-one
-    :*  [%floor [~.ud 1]]  [~.ud 1]  ==
+        :-  [%floor [~.ud 1]]
+            [~.ud 1]
     :-  %floor-literal-ud-two
-    :*  [%floor [~.ud 2]]  [~.ud 2]  ==
+        :-  [%floor [~.ud 2]]
+            [~.ud 2]
     :-  %floor-qual-rd-zero
-    :*  [%floor floor-q-col-1]  [~.rd .~0]  ==
-    :-  %floor-qual-rd-one-five  ::  floor(@rd 1.5) = 1.0
-    :*  [%floor floor-q-col-2]  [~.rd .~1]  ==
-    :-  %floor-qual-rd-neg-one-five  ::  floor(@rd -1.5) = -2.0
-    :*  [%floor floor-q-col-3]  [~.rd .~-2]  ==
+        :-  [%floor floor-q-col-1]
+            [~.rd .~0]
+    ::  floor(@rd 1.5) = 1.0
+    :-  %floor-qual-rd-one-five
+        :-  [%floor floor-q-col-2]
+            [~.rd .~1]
+    ::  floor(@rd -1.5) = -2.0
+    :-  %floor-qual-rd-neg-one-five
+        :-  [%floor floor-q-col-3]
+            [~.rd .~-2]
     :-  %floor-qual-sd-zero
-    :*  [%floor floor-q-col-4]  [~.sd --0]  ==
+        :-  [%floor floor-q-col-4]
+            [~.sd --0]
     :-  %floor-qual-sd-one
-    :*  [%floor floor-q-col-5]  [~.sd --1]  ==
+        :-  [%floor floor-q-col-5]
+            [~.sd --1]
     :-  %floor-qual-sd-neg
-    :*  [%floor floor-q-col-6]  [~.sd -1]  ==
+        :-  [%floor floor-q-col-6]
+            [~.sd -1]
     :-  %floor-qual-ud-zero
-    :*  [%floor floor-q-col-7]  [~.ud 0]  ==
+        :-  [%floor floor-q-col-7]
+            [~.ud 0]
     :-  %floor-qual-ud-one
-    :*  [%floor floor-q-col-8]  [~.ud 1]  ==
+        :-  [%floor floor-q-col-8]
+            [~.ud 1]
     :-  %floor-qual-ud-two
-    :*  [%floor floor-q-col-9]  [~.ud 2]  ==
+        :-  [%floor floor-q-col-9]
+            [~.ud 2]
     ==
   ==
 ::
@@ -1060,23 +1149,34 @@
     floor-unqual-table-row
     :~
     :-  %floor-unqual-rd-zero
-    :*  [%floor floor-u-col-1]  [~.rd .~0]  ==
-    :-  %floor-unqual-rd-one-five  ::  floor(@rd 1.5) = 1.0
-    :*  [%floor floor-u-col-2]  [~.rd .~1]  ==
-    :-  %floor-unqual-rd-neg-one-five  ::  floor(@rd -1.5) = -2.0
-    :*  [%floor floor-u-col-3]  [~.rd .~-2]  ==
+        :-  [%floor floor-u-col-1]
+            [~.rd .~0]
+    ::  floor(@rd 1.5) = 1.0
+    :-  %floor-unqual-rd-one-five
+        :-  [%floor floor-u-col-2]
+            [~.rd .~1]
+    ::  floor(@rd -1.5) = -2.0
+    :-  %floor-unqual-rd-neg-one-five
+        :-  [%floor floor-u-col-3]
+            [~.rd .~-2]
     :-  %floor-unqual-sd-zero
-    :*  [%floor floor-u-col-4]  [~.sd --0]  ==
+        :-  [%floor floor-u-col-4]
+            [~.sd --0]
     :-  %floor-unqual-sd-one
-    :*  [%floor floor-u-col-5]  [~.sd --1]  ==
+        :-  [%floor floor-u-col-5]
+            [~.sd --1]
     :-  %floor-unqual-sd-neg
-    :*  [%floor floor-u-col-6]  [~.sd -1]  ==
+        :-  [%floor floor-u-col-6]
+            [~.sd -1]
     :-  %floor-unqual-ud-zero
-    :*  [%floor floor-u-col-7]  [~.ud 0]  ==
+        :-  [%floor floor-u-col-7]
+            [~.ud 0]
     :-  %floor-unqual-ud-one
-    :*  [%floor floor-u-col-8]  [~.ud 1]  ==
+        :-  [%floor floor-u-col-8]
+            [~.ud 1]
     :-  %floor-unqual-ud-two
-    :*  [%floor floor-u-col-9]  [~.ud 2]  ==
+        :-  [%floor floor-u-col-9]
+            [~.ud 2]
     ==
   ==
 ::
@@ -1091,41 +1191,63 @@
     ceiling-qual-table-row
     :~
     :-  %ceiling-literal-rd-zero
-    :*  [%ceiling [~.rd .~0]]  [~.rd .~0]  ==
-    :-  %ceiling-literal-rd-one-five  ::  ceiling(@rd 1.5) = 2.0
-    :*  [%ceiling [~.rd .~1.5]]  [~.rd .~2]  ==
-    :-  %ceiling-literal-rd-neg-one-five  ::  ceiling(@rd -1.5) = -1.0
-    :*  [%ceiling [~.rd .~-1.5]]  [~.rd .~-1]  ==
+        :-  [%ceiling [~.rd .~0]]
+            [~.rd .~0]
+    ::  ceiling(@rd 1.5) = 2.0
+    :-  %ceiling-literal-rd-one-five
+        :-  [%ceiling [~.rd .~1.5]]
+            [~.rd .~2]
+    ::  ceiling(@rd -1.5) = -1.0
+    :-  %ceiling-literal-rd-neg-one-five
+        :-  [%ceiling [~.rd .~-1.5]]
+            [~.rd .~-1]
     :-  %ceiling-literal-sd-zero
-    :*  [%ceiling [~.sd --0]]  [~.sd --0]  ==
+        :-  [%ceiling [~.sd --0]]
+            [~.sd --0]
     :-  %ceiling-literal-sd-one
-    :*  [%ceiling [~.sd --1]]  [~.sd --1]  ==
+        :-  [%ceiling [~.sd --1]]
+            [~.sd --1]
     :-  %ceiling-literal-sd-neg
-    :*  [%ceiling [~.sd -1]]  [~.sd -1]  ==
+        :-  [%ceiling [~.sd -1]]
+            [~.sd -1]
     :-  %ceiling-literal-ud-zero
-    :*  [%ceiling [~.ud 0]]  [~.ud 0]  ==
+        :-  [%ceiling [~.ud 0]]
+            [~.ud 0]
     :-  %ceiling-literal-ud-one
-    :*  [%ceiling [~.ud 1]]  [~.ud 1]  ==
+        :-  [%ceiling [~.ud 1]]
+            [~.ud 1]
     :-  %ceiling-literal-ud-two
-    :*  [%ceiling [~.ud 2]]  [~.ud 2]  ==
+        :-  [%ceiling [~.ud 2]]
+            [~.ud 2]
     :-  %ceiling-qual-rd-zero
-    :*  [%ceiling ceiling-q-col-1]  [~.rd .~0]  ==
-    :-  %ceiling-qual-rd-one-five  ::  ceiling(@rd 1.5) = 2.0
-    :*  [%ceiling ceiling-q-col-2]  [~.rd .~2]  ==
-    :-  %ceiling-qual-rd-neg-one-five  ::  ceiling(@rd -1.5) = -1.0
-    :*  [%ceiling ceiling-q-col-3]  [~.rd .~-1]  ==
+        :-  [%ceiling ceiling-q-col-1]
+            [~.rd .~0]
+    ::  ceiling(@rd 1.5) = 2.0
+    :-  %ceiling-qual-rd-one-five
+        :-  [%ceiling ceiling-q-col-2]
+            [~.rd .~2]
+    ::  ceiling(@rd -1.5) = -1.0
+    :-  %ceiling-qual-rd-neg-one-five
+        :-  [%ceiling ceiling-q-col-3]
+            [~.rd .~-1]
     :-  %ceiling-qual-sd-zero
-    :*  [%ceiling ceiling-q-col-4]  [~.sd --0]  ==
+        :-  [%ceiling ceiling-q-col-4]
+            [~.sd --0]
     :-  %ceiling-qual-sd-one
-    :*  [%ceiling ceiling-q-col-5]  [~.sd --1]  ==
+        :-  [%ceiling ceiling-q-col-5]
+            [~.sd --1]
     :-  %ceiling-qual-sd-neg
-    :*  [%ceiling ceiling-q-col-6]  [~.sd -1]  ==
+        :-  [%ceiling ceiling-q-col-6]
+            [~.sd -1]
     :-  %ceiling-qual-ud-zero
-    :*  [%ceiling ceiling-q-col-7]  [~.ud 0]  ==
+        :-  [%ceiling ceiling-q-col-7]
+            [~.ud 0]
     :-  %ceiling-qual-ud-one
-    :*  [%ceiling ceiling-q-col-8]  [~.ud 1]  ==
+        :-  [%ceiling ceiling-q-col-8]
+            [~.ud 1]
     :-  %ceiling-qual-ud-two
-    :*  [%ceiling ceiling-q-col-9]  [~.ud 2]  ==
+        :-  [%ceiling ceiling-q-col-9]
+            [~.ud 2]
     ==
   ==
 ::
@@ -1138,23 +1260,34 @@
     ceiling-unqual-table-row
     :~
     :-  %ceiling-unqual-rd-zero
-    :*  [%ceiling ceiling-u-col-1]  [~.rd .~0]  ==
-    :-  %ceiling-unqual-rd-one-five  ::  ceiling(@rd 1.5) = 2.0
-    :*  [%ceiling ceiling-u-col-2]  [~.rd .~2]  ==
-    :-  %ceiling-unqual-rd-neg-one-five  ::  ceiling(@rd -1.5) = -1.0
-    :*  [%ceiling ceiling-u-col-3]  [~.rd .~-1]  ==
+        :-  [%ceiling ceiling-u-col-1]
+            [~.rd .~0]
+    ::  ceiling(@rd 1.5) = 2.0
+    :-  %ceiling-unqual-rd-one-five
+        :-  [%ceiling ceiling-u-col-2]
+            [~.rd .~2]
+    ::  ceiling(@rd -1.5) = -1.0
+    :-  %ceiling-unqual-rd-neg-one-five
+        :-  [%ceiling ceiling-u-col-3]
+            [~.rd .~-1]
     :-  %ceiling-unqual-sd-zero
-    :*  [%ceiling ceiling-u-col-4]  [~.sd --0]  ==
+        :-  [%ceiling ceiling-u-col-4]
+            [~.sd --0]
     :-  %ceiling-unqual-sd-one
-    :*  [%ceiling ceiling-u-col-5]  [~.sd --1]  ==
+        :-  [%ceiling ceiling-u-col-5]
+            [~.sd --1]
     :-  %ceiling-unqual-sd-neg
-    :*  [%ceiling ceiling-u-col-6]  [~.sd -1]  ==
+        :-  [%ceiling ceiling-u-col-6]
+            [~.sd -1]
     :-  %ceiling-unqual-ud-zero
-    :*  [%ceiling ceiling-u-col-7]  [~.ud 0]  ==
+        :-  [%ceiling ceiling-u-col-7]
+            [~.ud 0]
     :-  %ceiling-unqual-ud-one
-    :*  [%ceiling ceiling-u-col-8]  [~.ud 1]  ==
+        :-  [%ceiling ceiling-u-col-8]
+            [~.ud 1]
     :-  %ceiling-unqual-ud-two
-    :*  [%ceiling ceiling-u-col-9]  [~.ud 2]  ==
+        :-  [%ceiling ceiling-u-col-9]
+            [~.ud 2]
     ==
   ==
 ::
@@ -1169,97 +1302,179 @@
     round-frac-qual-table-row
     :~
     :-  %round-literal-rd-zero
-    :*  [%round [~.rd .~0] [~.ud 0]]  [~.rd .~0]  ==
-    :-  %round-literal-rd-one-five-pos-len  ::  round(.~1.5, 0) = .~2  (half rounds up)
-    :*  [%round [~.rd .~1.5] [~.ud 0]]  [~.rd .~2]  ==
-    :-  %round-literal-rd-neg-one-five-pos-len  ::  round(.~-1.5, 0) = .~-1  (toward +inf)
-    :*  [%round [~.rd .~-1.5] [~.ud 0]]  [~.rd .~-1]  ==
-    :-  %round-literal-rd-fifteen-neg-len  ::  round(.~15, @sd -1) = .~20
-    :*  [%round [~.rd .~15] [~.sd -1]]  [~.rd .~20]  ==
-    :-  %round-literal-rd-neg-fifteen-neg-len  ::  round(.~-15, @sd -1) = .~-10
-    :*  [%round [~.rd .~-15] [~.sd -1]]  [~.rd .~-10]  ==
+        :-  [%round [~.rd .~0] [~.ud 0]]
+            [~.rd .~0]
+    ::  round(.~1.5, 0) = .~2  (half rounds up)
+    :-  %round-literal-rd-one-five-pos-len
+        :-  [%round [~.rd .~1.5] [~.ud 0]]
+            [~.rd .~2]
+    ::  round(.~-1.5, 0) = .~-1  (toward +inf)
+    :-  %round-literal-rd-neg-one-five-pos-len
+        :-  [%round [~.rd .~-1.5] [~.ud 0]]
+            [~.rd .~-1]
+    ::  round(.~15, @sd -1) = .~20
+    :-  %round-literal-rd-fifteen-neg-len
+        :-  [%round [~.rd .~15] [~.sd -1]]
+            [~.rd .~20]
+    ::  round(.~-15, @sd -1) = .~-10
+    :-  %round-literal-rd-neg-fifteen-neg-len
+        :-  [%round [~.rd .~-15] [~.sd -1]]
+            [~.rd .~-10]
     :-  %round-literal-sd-zero
-    :*  [%round [~.sd --0] [~.ud 0]]  [~.sd --0]  ==
-    :-  %round-literal-sd-pos-neg-len  ::  round(--1.234, @sd -1) = --1.230
-    :*  [%round [~.sd --1.234] [~.sd -1]]  [~.sd --1.230]  ==
-    :-  %round-literal-sd-neg-neg-len  ::  round(-1.234, @sd -1) = -1.230
-    :*  [%round [~.sd -1.234] [~.sd -1]]  [~.sd -1.230]  ==
+        :-  [%round [~.sd --0] [~.ud 0]]
+            [~.sd --0]
+    ::  round(--1.234, @sd -1) = --1.230
+    :-  %round-literal-sd-pos-neg-len
+        :-  [%round [~.sd --1.234] [~.sd -1]]
+            [~.sd --1.230]
+    ::  round(-1.234, @sd -1) = -1.230
+    :-  %round-literal-sd-neg-neg-len
+        :-  [%round [~.sd -1.234] [~.sd -1]]
+            [~.sd -1.230]
     :-  %round-literal-ud-zero
-    :*  [%round [~.ud 0] [~.ud 0]]  [~.ud 0]  ==
-    :-  %round-literal-ud-pos-neg-len  ::  round(1.234, @sd -1) = 1.230
-    :*  [%round [~.ud 1.234] [~.sd -1]]  [~.ud 1.230]  ==
-    :-  %round-literal-ud-half-neg-len  ::  round(1.235, @sd -1) = 1.240  (half rounds up)
-    :*  [%round [~.ud 1.235] [~.sd -1]]  [~.ud 1.240]  ==
+        :-  [%round [~.ud 0] [~.ud 0]]
+            [~.ud 0]
+    ::  round(1.234, @sd -1) = 1.230
+    :-  %round-literal-ud-pos-neg-len
+        :-  [%round [~.ud 1.234] [~.sd -1]]
+            [~.ud 1.230]
+    ::  round(1.235, @sd -1) = 1.240  (half rounds up)
+    :-  %round-literal-ud-half-neg-len
+        :-  [%round [~.ud 1.235] [~.sd -1]]
+            [~.ud 1.240]
     :-  %round-qual-rd-zero
-    :*  [%round round-frac-q-col-1 [~.ud 0]]  [~.rd .~0]  ==
-    :-  %round-qual-rd-one-five-pos-len  ::  round(col2=1.5, 0) = .~2
-    :*  [%round round-frac-q-col-2 [~.ud 0]]  [~.rd .~2]  ==
-    :-  %round-qual-rd-neg-one-five-pos-len  ::  round(col3=-1.5, 0) = .~-1
-    :*  [%round round-frac-q-col-3 [~.ud 0]]  [~.rd .~-1]  ==
-    :-  %round-qual-rd-fifteen-neg-len  ::  round(col4=15.0, @sd -1) = .~20
-    :*  [%round round-frac-q-col-4 [~.sd -1]]  [~.rd .~20]  ==
-    :-  %round-qual-rd-neg-fifteen-neg-len  ::  round(col5=-15.0, @sd -1) = .~-10
-    :*  [%round round-frac-q-col-5 [~.sd -1]]  [~.rd .~-10]  ==
-    :-  %round-qual-sd-pos-neg-len  ::  round(col6=--1.234, @sd -1) = --1.230
-    :*  [%round round-frac-q-col-6 [~.sd -1]]  [~.sd --1.230]  ==
-    :-  %round-qual-sd-neg-neg-len  ::  round(col7=-1.234, @sd -1) = -1.230
-    :*  [%round round-frac-q-col-7 [~.sd -1]]  [~.sd -1.230]  ==
-    :-  %round-qual-ud-neg-len  ::  round(col8=1.234, @sd -1) = 1.230
-    :*  [%round round-frac-q-col-8 [~.sd -1]]  [~.ud 1.230]  ==
-    :-  %round-qual-ud-half-neg-len  ::  round(col9=1.235, @sd -1) = 1.240
-    :*  [%round round-frac-q-col-9 [~.sd -1]]  [~.ud 1.240]  ==
+        :-  [%round round-frac-q-col-1 [~.ud 0]]
+            [~.rd .~0]
+    ::  round(col2=1.5, 0) = .~2
+    :-  %round-qual-rd-one-five-pos-len
+        :-  [%round round-frac-q-col-2 [~.ud 0]]
+            [~.rd .~2]
+    ::  round(col3=-1.5, 0) = .~-1
+    :-  %round-qual-rd-neg-one-five-pos-len
+        :-  [%round round-frac-q-col-3 [~.ud 0]]
+            [~.rd .~-1]
+    ::  round(col4=15.0, @sd -1) = .~20
+    :-  %round-qual-rd-fifteen-neg-len
+        :-  [%round round-frac-q-col-4 [~.sd -1]]
+            [~.rd .~20]
+    ::  round(col5=-15.0, @sd -1) = .~-10
+    :-  %round-qual-rd-neg-fifteen-neg-len
+        :-  [%round round-frac-q-col-5 [~.sd -1]]
+            [~.rd .~-10]
+    ::  round(col6=--1.234, @sd -1) = --1.230
+    :-  %round-qual-sd-pos-neg-len
+        :-  [%round round-frac-q-col-6 [~.sd -1]]
+            [~.sd --1.230]
+    ::  round(col7=-1.234, @sd -1) = -1.230
+    :-  %round-qual-sd-neg-neg-len
+        :-  [%round round-frac-q-col-7 [~.sd -1]]
+            [~.sd -1.230]
+    ::  round(col8=1.234, @sd -1) = 1.230
+    :-  %round-qual-ud-neg-len
+        :-  [%round round-frac-q-col-8 [~.sd -1]]
+            [~.ud 1.230]
+    ::  round(col9=1.235, @sd -1) = 1.240
+    :-  %round-qual-ud-half-neg-len
+        :-  [%round round-frac-q-col-9 [~.sd -1]]
+            [~.ud 1.240]
     ::
     ::  length 2: @sd and @ud pass through; @rd rounds to 2 decimal places
     ::
-    :-  %round-literal-rd-one-five-len-2  ::  round(.~1.5, 2) = .~1.5  (already ≤2dp)
-    :*  [%round [~.rd .~1.5] [~.ud 2]]  [~.rd .~1.5]  ==
-    :-  %round-literal-rd-neg-one-five-len-2  ::  round(.~-1.5, 2) = .~-1.5
-    :*  [%round [~.rd .~-1.5] [~.ud 2]]  [~.rd .~-1.5]  ==
-    :-  %round-literal-sd-pos-len-2  ::  round(--1.234, 2) = --1.234  (pass-through)
-    :*  [%round [~.sd --1.234] [~.ud 2]]  [~.sd --1.234]  ==
-    :-  %round-literal-sd-neg-len-2  ::  round(-1.234, 2) = -1.234
-    :*  [%round [~.sd -1.234] [~.ud 2]]  [~.sd -1.234]  ==
-    :-  %round-literal-ud-len-2  ::  round(1.234, 2) = 1.234  (pass-through)
-    :*  [%round [~.ud 1.234] [~.ud 2]]  [~.ud 1.234]  ==
-    :-  %round-qual-rd-one-five-len-2  ::  round(col2=1.5, 2) = .~1.5
-    :*  [%round round-frac-q-col-2 [~.ud 2]]  [~.rd .~1.5]  ==
-    :-  %round-qual-rd-neg-one-five-len-2  ::  round(col3=-1.5, 2) = .~-1.5
-    :*  [%round round-frac-q-col-3 [~.ud 2]]  [~.rd .~-1.5]  ==
-    :-  %round-qual-sd-pos-len-2  ::  round(col6=--1.234, 2) = --1.234  (pass-through)
-    :*  [%round round-frac-q-col-6 [~.ud 2]]  [~.sd --1.234]  ==
-    :-  %round-qual-sd-neg-len-2  ::  round(col7=-1.234, 2) = -1.234
-    :*  [%round round-frac-q-col-7 [~.ud 2]]  [~.sd -1.234]  ==
-    :-  %round-qual-ud-len-2  ::  round(col8=1.234, 2) = 1.234  (pass-through)
-    :*  [%round round-frac-q-col-8 [~.ud 2]]  [~.ud 1.234]  ==
+    ::  round(.~1.5, 2) = .~1.5  (already ≤2dp)
+    :-  %round-literal-rd-one-five-len-2
+        :-  [%round [~.rd .~1.5] [~.ud 2]]
+            [~.rd .~1.5]
+    ::  round(.~-1.5, 2) = .~-1.5
+    :-  %round-literal-rd-neg-one-five-len-2
+        :-  [%round [~.rd .~-1.5] [~.ud 2]]
+            [~.rd .~-1.5]
+    ::  round(--1.234, 2) = --1.234  (pass-through)
+    :-  %round-literal-sd-pos-len-2
+        :-  [%round [~.sd --1.234] [~.ud 2]]
+            [~.sd --1.234]
+    ::  round(-1.234, 2) = -1.234
+    :-  %round-literal-sd-neg-len-2
+        :-  [%round [~.sd -1.234] [~.ud 2]]
+            [~.sd -1.234]
+    ::  round(1.234, 2) = 1.234  (pass-through)
+    :-  %round-literal-ud-len-2
+        :-  [%round [~.ud 1.234] [~.ud 2]]
+            [~.ud 1.234]
+    ::  round(col2=1.5, 2) = .~1.5
+    :-  %round-qual-rd-one-five-len-2
+        :-  [%round round-frac-q-col-2 [~.ud 2]]
+            [~.rd .~1.5]
+    ::  round(col3=-1.5, 2) = .~-1.5
+    :-  %round-qual-rd-neg-one-five-len-2
+        :-  [%round round-frac-q-col-3 [~.ud 2]]
+            [~.rd .~-1.5]
+    ::  round(col6=--1.234, 2) = --1.234  (pass-through)
+    :-  %round-qual-sd-pos-len-2
+        :-  [%round round-frac-q-col-6 [~.ud 2]]
+            [~.sd --1.234]
+    ::  round(col7=-1.234, 2) = -1.234
+    :-  %round-qual-sd-neg-len-2
+        :-  [%round round-frac-q-col-7 [~.ud 2]]
+            [~.sd -1.234]
+    ::  round(col8=1.234, 2) = 1.234  (pass-through)
+    :-  %round-qual-ud-len-2
+        :-  [%round round-frac-q-col-8 [~.ud 2]]
+            [~.ud 1.234]
     ::
     ::  length -2: round to nearest 100
     ::
-    :-  %round-literal-rd-one-fifty-neg-len-2  ::  round(.~150, @sd -2) = .~200  (half rounds up)
-    :*  [%round [~.rd .~150] [~.sd -2]]  [~.rd .~200]  ==
-    :-  %round-literal-rd-neg-one-fifty-neg-len-2  ::  round(.~-150, @sd -2) = .~-100  (toward +inf)
-    :*  [%round [~.rd .~-150] [~.sd -2]]  [~.rd .~-100]  ==
-    :-  %round-literal-rd-one-two-three-neg-len-2  ::  round(.~123, @sd -2) = .~100
-    :*  [%round [~.rd .~123] [~.sd -2]]  [~.rd .~100]  ==
-    :-  %round-literal-sd-pos-neg-len-2  ::  round(--12.345, @sd -2) = --12.300
-    :*  [%round [~.sd --12.345] [~.sd -2]]  [~.sd --12.300]  ==
-    :-  %round-literal-sd-neg-neg-len-2  ::  round(-12.345, @sd -2) = -12.300
-    :*  [%round [~.sd -12.345] [~.sd -2]]  [~.sd -12.300]  ==
-    :-  %round-literal-ud-neg-len-2  ::  round(12.345, @sd -2) = 12.300
-    :*  [%round [~.ud 12.345] [~.sd -2]]  [~.ud 12.300]  ==
-    :-  %round-literal-ud-half-neg-len-2  ::  round(12.350, @sd -2) = 12.400  (half rounds up)
-    :*  [%round [~.ud 12.350] [~.sd -2]]  [~.ud 12.400]  ==
-    :-  %round-qual-rd-fifteen-neg-len-2  ::  round(col4=15.0, @sd -2) = .~0
-    :*  [%round round-frac-q-col-4 [~.sd -2]]  [~.rd .~0]  ==
-    :-  %round-qual-rd-neg-fifteen-neg-len-2  ::  round(col5=-15.0, @sd -2) = .~0
-    :*  [%round round-frac-q-col-5 [~.sd -2]]  [~.rd .~0]  ==
-    :-  %round-qual-sd-pos-neg-len-2  ::  round(col6=--1.234, @sd -2) = --1.200
-    :*  [%round round-frac-q-col-6 [~.sd -2]]  [~.sd --1.200]  ==
-    :-  %round-qual-sd-neg-neg-len-2  ::  round(col7=-1.234, @sd -2) = -1.200
-    :*  [%round round-frac-q-col-7 [~.sd -2]]  [~.sd -1.200]  ==
-    :-  %round-qual-ud-neg-len-2  ::  round(col8=1.234, @sd -2) = 1.200
-    :*  [%round round-frac-q-col-8 [~.sd -2]]  [~.ud 1.200]  ==
-    :-  %round-qual-ud-neg-len-2-col9  ::  round(col9=1.235, @sd -2) = 1.200
-    :*  [%round round-frac-q-col-9 [~.sd -2]]  [~.ud 1.200]  ==
+    ::  round(.~150, @sd -2) = .~200  (half rounds up)
+    :-  %round-literal-rd-one-fifty-neg-len-2
+        :-  [%round [~.rd .~150] [~.sd -2]]
+            [~.rd .~200]
+    ::  round(.~-150, @sd -2) = .~-100  (toward +inf)
+    :-  %round-literal-rd-neg-one-fifty-neg-len-2
+        :-  [%round [~.rd .~-150] [~.sd -2]]
+            [~.rd .~-100]
+    ::  round(.~123, @sd -2) = .~100
+    :-  %round-literal-rd-one-two-three-neg-len-2
+        :-  [%round [~.rd .~123] [~.sd -2]]
+            [~.rd .~100]
+    ::  round(--12.345, @sd -2) = --12.300
+    :-  %round-literal-sd-pos-neg-len-2
+        :-  [%round [~.sd --12.345] [~.sd -2]]
+            [~.sd --12.300]
+    ::  round(-12.345, @sd -2) = -12.300
+    :-  %round-literal-sd-neg-neg-len-2
+        :-  [%round [~.sd -12.345] [~.sd -2]]
+            [~.sd -12.300]
+    ::  round(12.345, @sd -2) = 12.300
+    :-  %round-literal-ud-neg-len-2
+        :-  [%round [~.ud 12.345] [~.sd -2]]
+            [~.ud 12.300]
+    ::  round(12.350, @sd -2) = 12.400  (half rounds up)
+    :-  %round-literal-ud-half-neg-len-2
+        :-  [%round [~.ud 12.350] [~.sd -2]]
+            [~.ud 12.400]
+    ::  round(col4=15.0, @sd -2) = .~0
+    :-  %round-qual-rd-fifteen-neg-len-2
+        :-  [%round round-frac-q-col-4 [~.sd -2]]
+            [~.rd .~0]
+    ::  round(col5=-15.0, @sd -2) = .~0
+    :-  %round-qual-rd-neg-fifteen-neg-len-2
+        :-  [%round round-frac-q-col-5 [~.sd -2]]
+            [~.rd .~0]
+    ::  round(col6=--1.234, @sd -2) = --1.200
+    :-  %round-qual-sd-pos-neg-len-2
+        :-  [%round round-frac-q-col-6 [~.sd -2]]
+            [~.sd --1.200]
+    ::  round(col7=-1.234, @sd -2) = -1.200
+    :-  %round-qual-sd-neg-neg-len-2
+        :-  [%round round-frac-q-col-7 [~.sd -2]]
+            [~.sd -1.200]
+    ::  round(col8=1.234, @sd -2) = 1.200
+    :-  %round-qual-ud-neg-len-2
+        :-  [%round round-frac-q-col-8 [~.sd -2]]
+            [~.ud 1.200]
+    ::  round(col9=1.235, @sd -2) = 1.200
+    :-  %round-qual-ud-neg-len-2-col9
+        :-  [%round round-frac-q-col-9 [~.sd -2]]
+            [~.ud 1.200]
     ==
   ==
 ::
@@ -1272,51 +1487,90 @@
     round-frac-unqual-table-row
     :~
     :-  %round-unqual-rd-zero
-    :*  [%round round-frac-u-col-1 [~.ud 0]]  [~.rd .~0]  ==
-    :-  %round-unqual-rd-one-five-pos-len  ::  round(col2=1.5, 0) = .~2
-    :*  [%round round-frac-u-col-2 [~.ud 0]]  [~.rd .~2]  ==
-    :-  %round-unqual-rd-neg-one-five-pos-len  ::  round(col3=-1.5, 0) = .~-1
-    :*  [%round round-frac-u-col-3 [~.ud 0]]  [~.rd .~-1]  ==
-    :-  %round-unqual-rd-fifteen-neg-len  ::  round(col4=15.0, @sd -1) = .~20
-    :*  [%round round-frac-u-col-4 [~.sd -1]]  [~.rd .~20]  ==
-    :-  %round-unqual-rd-neg-fifteen-neg-len  ::  round(col5=-15.0, @sd -1) = .~-10
-    :*  [%round round-frac-u-col-5 [~.sd -1]]  [~.rd .~-10]  ==
-    :-  %round-unqual-sd-pos-neg-len  ::  round(col6=--1.234, @sd -1) = --1.230
-    :*  [%round round-frac-u-col-6 [~.sd -1]]  [~.sd --1.230]  ==
-    :-  %round-unqual-sd-neg-neg-len  ::  round(col7=-1.234, @sd -1) = -1.230
-    :*  [%round round-frac-u-col-7 [~.sd -1]]  [~.sd -1.230]  ==
-    :-  %round-unqual-ud-neg-len  ::  round(col8=1.234, @sd -1) = 1.230
-    :*  [%round round-frac-u-col-8 [~.sd -1]]  [~.ud 1.230]  ==
-    :-  %round-unqual-ud-half-neg-len  ::  round(col9=1.235, @sd -1) = 1.240
-    :*  [%round round-frac-u-col-9 [~.sd -1]]  [~.ud 1.240]  ==
+        :-  [%round round-frac-u-col-1 [~.ud 0]]
+            [~.rd .~0]
+    ::  round(col2=1.5, 0) = .~2
+    :-  %round-unqual-rd-one-five-pos-len
+        :-  [%round round-frac-u-col-2 [~.ud 0]]
+            [~.rd .~2]
+    ::  round(col3=-1.5, 0) = .~-1
+    :-  %round-unqual-rd-neg-one-five-pos-len
+        :-  [%round round-frac-u-col-3 [~.ud 0]]
+            [~.rd .~-1]
+    ::  round(col4=15.0, @sd -1) = .~20
+    :-  %round-unqual-rd-fifteen-neg-len
+        :-  [%round round-frac-u-col-4 [~.sd -1]]
+            [~.rd .~20]
+    ::  round(col5=-15.0, @sd -1) = .~-10
+    :-  %round-unqual-rd-neg-fifteen-neg-len
+        :-  [%round round-frac-u-col-5 [~.sd -1]]
+            [~.rd .~-10]
+    ::  round(col6=--1.234, @sd -1) = --1.230
+    :-  %round-unqual-sd-pos-neg-len
+        :-  [%round round-frac-u-col-6 [~.sd -1]]
+            [~.sd --1.230]
+    ::  round(col7=-1.234, @sd -1) = -1.230
+    :-  %round-unqual-sd-neg-neg-len
+        :-  [%round round-frac-u-col-7 [~.sd -1]]
+            [~.sd -1.230]
+    ::  round(col8=1.234, @sd -1) = 1.230
+    :-  %round-unqual-ud-neg-len
+        :-  [%round round-frac-u-col-8 [~.sd -1]]
+            [~.ud 1.230]
+    ::  round(col9=1.235, @sd -1) = 1.240
+    :-  %round-unqual-ud-half-neg-len
+        :-  [%round round-frac-u-col-9 [~.sd -1]]
+            [~.ud 1.240]
     ::
     ::  length 2
     ::
-    :-  %round-unqual-rd-one-five-len-2  ::  round(col2=1.5, 2) = .~1.5
-    :*  [%round round-frac-u-col-2 [~.ud 2]]  [~.rd .~1.5]  ==
-    :-  %round-unqual-rd-neg-one-five-len-2  ::  round(col3=-1.5, 2) = .~-1.5
-    :*  [%round round-frac-u-col-3 [~.ud 2]]  [~.rd .~-1.5]  ==
-    :-  %round-unqual-sd-pos-len-2  ::  round(col6=--1.234, 2) = --1.234  (pass-through)
-    :*  [%round round-frac-u-col-6 [~.ud 2]]  [~.sd --1.234]  ==
-    :-  %round-unqual-sd-neg-len-2  ::  round(col7=-1.234, 2) = -1.234
-    :*  [%round round-frac-u-col-7 [~.ud 2]]  [~.sd -1.234]  ==
-    :-  %round-unqual-ud-len-2  ::  round(col8=1.234, 2) = 1.234  (pass-through)
-    :*  [%round round-frac-u-col-8 [~.ud 2]]  [~.ud 1.234]  ==
+    ::  round(col2=1.5, 2) = .~1.5
+    :-  %round-unqual-rd-one-five-len-2
+        :-  [%round round-frac-u-col-2 [~.ud 2]]
+            [~.rd .~1.5]
+    ::  round(col3=-1.5, 2) = .~-1.5
+    :-  %round-unqual-rd-neg-one-five-len-2
+        :-  [%round round-frac-u-col-3 [~.ud 2]]
+            [~.rd .~-1.5]
+    ::  round(col6=--1.234, 2) = --1.234  (pass-through)
+    :-  %round-unqual-sd-pos-len-2
+        :-  [%round round-frac-u-col-6 [~.ud 2]]
+            [~.sd --1.234]
+    ::  round(col7=-1.234, 2) = -1.234
+    :-  %round-unqual-sd-neg-len-2
+        :-  [%round round-frac-u-col-7 [~.ud 2]]
+            [~.sd -1.234]
+    ::  round(col8=1.234, 2) = 1.234  (pass-through)
+    :-  %round-unqual-ud-len-2
+        :-  [%round round-frac-u-col-8 [~.ud 2]]
+            [~.ud 1.234]
     ::
     ::  length -2
     ::
-    :-  %round-unqual-rd-fifteen-neg-len-2  ::  round(col4=15.0, @sd -2) = .~0
-    :*  [%round round-frac-u-col-4 [~.sd -2]]  [~.rd .~0]  ==
-    :-  %round-unqual-rd-neg-fifteen-neg-len-2  ::  round(col5=-15.0, @sd -2) = .~0
-    :*  [%round round-frac-u-col-5 [~.sd -2]]  [~.rd .~0]  ==
-    :-  %round-unqual-sd-pos-neg-len-2  ::  round(col6=--1.234, @sd -2) = --1.200
-    :*  [%round round-frac-u-col-6 [~.sd -2]]  [~.sd --1.200]  ==
-    :-  %round-unqual-sd-neg-neg-len-2  ::  round(col7=-1.234, @sd -2) = -1.200
-    :*  [%round round-frac-u-col-7 [~.sd -2]]  [~.sd -1.200]  ==
-    :-  %round-unqual-ud-neg-len-2  ::  round(col8=1.234, @sd -2) = 1.200
-    :*  [%round round-frac-u-col-8 [~.sd -2]]  [~.ud 1.200]  ==
-    :-  %round-unqual-ud-neg-len-2-col9  ::  round(col9=1.235, @sd -2) = 1.200
-    :*  [%round round-frac-u-col-9 [~.sd -2]]  [~.ud 1.200]  ==
+    ::  round(col4=15.0, @sd -2) = .~0
+    :-  %round-unqual-rd-fifteen-neg-len-2
+        :-  [%round round-frac-u-col-4 [~.sd -2]]
+            [~.rd .~0]
+    ::  round(col5=-15.0, @sd -2) = .~0
+    :-  %round-unqual-rd-neg-fifteen-neg-len-2
+        :-  [%round round-frac-u-col-5 [~.sd -2]]
+            [~.rd .~0]
+    ::  round(col6=--1.234, @sd -2) = --1.200
+    :-  %round-unqual-sd-pos-neg-len-2
+        :-  [%round round-frac-u-col-6 [~.sd -2]]
+            [~.sd --1.200]
+    ::  round(col7=-1.234, @sd -2) = -1.200
+    :-  %round-unqual-sd-neg-neg-len-2
+        :-  [%round round-frac-u-col-7 [~.sd -2]]
+            [~.sd -1.200]
+    ::  round(col8=1.234, @sd -2) = 1.200
+    :-  %round-unqual-ud-neg-len-2
+        :-  [%round round-frac-u-col-8 [~.sd -2]]
+            [~.ud 1.200]
+    ::  round(col9=1.235, @sd -2) = 1.200
+    :-  %round-unqual-ud-neg-len-2-col9
+        :-  [%round round-frac-u-col-9 [~.sd -2]]
+            [~.ud 1.200]
     ==
   ==
 ::
