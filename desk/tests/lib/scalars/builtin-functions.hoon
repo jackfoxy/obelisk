@@ -733,6 +733,85 @@
                                      [%col9 1.235]                    ::  @ud 1.235
                                  ==
 ::
+::  %max / %min test helpers
+::  @rd: col1=.~-3 (negative), col2=.~2 (positive)
+::  @sd: col3=-3 (negative), col4=--2 (positive)
+::  @ud: col5=2 (small), col6=5 (large)
+::
+::  qualified: col1=@rd .~-3, col2=@rd .~2
+::             col3=@sd -3, col4=@sd --2
+::             col5=@ud 2, col6=@ud 5
+::
+++  minmax-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.sd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.ud 0]
+                      [%column %col6 ~.ud 0]
+                      ==
+          ==
+::
+++  minmax-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  minmax-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  minmax-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  minmax-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  minmax-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  minmax-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+::
+++  minmax-qual-table-row  %-  mk-indexed-row
+                           :~  [%col1 .~-3]                    ::  @rd -3.0
+                               [%col2 .~2]                     ::  @rd 2.0
+                               [%col3 -3]                      ::  @sd -3
+                               [%col4 --2]                     ::  @sd --2
+                               [%col5 2]                       ::  @ud 2
+                               [%col6 5]                       ::  @ud 5
+                           ==
+::
+::  unqualified: col1=@rd .~-3, col2=@rd .~2
+::               col3=@sd -3, col4=@sd --2
+::               col5=@ud 2, col6=@ud 5
+::
+++  minmax-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.sd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.ud 0]
+                  [%column %col6 ~.ud 0]
+                  ==
+::
+++  minmax-unqual-lookup  %-  malt  %-  limo
+                          :~  [%col1 ~[qualified-table-1]]
+                              [%col2 ~[qualified-table-1]]
+                              [%col3 ~[qualified-table-1]]
+                              [%col4 ~[qualified-table-1]]
+                              [%col5 ~[qualified-table-1]]
+                              [%col6 ~[qualified-table-1]]
+                          ==
+::
+++  minmax-u-col-1  [%unqualified-column %col1 ~]
+++  minmax-u-col-2  [%unqualified-column %col2 ~]
+++  minmax-u-col-3  [%unqualified-column %col3 ~]
+++  minmax-u-col-4  [%unqualified-column %col4 ~]
+++  minmax-u-col-5  [%unqualified-column %col5 ~]
+++  minmax-u-col-6  [%unqualified-column %col6 ~]
+::
+++  minmax-unqual-table-row  %-  mk-indexed-row
+                             :~  [%col1 .~-3]                  ::  @rd -3.0
+                                 [%col2 .~2]                   ::  @rd 2.0
+                                 [%col3 -3]                    ::  @sd -3
+                                 [%col4 --2]                   ::  @sd --2
+                                 [%col5 2]                     ::  @ud 2
+                                 [%col6 5]                     ::  @ud 5
+                             ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -1572,6 +1651,354 @@
         :-  [%round round-frac-u-col-9 [~.sd -2]]
             [~.ud 1.200]
     ==
+  ==
+::
+::  %max tests
+::
+++  test-max-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    minmax-qual-map-meta
+    *(map @tas resolved-scalar)
+    minmax-qual-table-row
+    :~
+    ::  literal / literal
+    ::  max(.~-3, .~2) = .~2
+    :-  %max-lit-rd-neg-pos
+        :-  [%max [~.rd .~-3] [~.rd .~2]]
+            [~.rd .~2]
+    ::  max(.~2, .~-3) = .~2
+    :-  %max-lit-rd-pos-neg
+        :-  [%max [~.rd .~2] [~.rd .~-3]]
+            [~.rd .~2]
+    ::  max(.~-3, .~-1) = .~-1  (both negative)
+    :-  %max-lit-rd-neg-neg
+        :-  [%max [~.rd .~-3] [~.rd .~-1]]
+            [~.rd .~-1]
+    ::  max(.~1, .~2) = .~2  (both positive)
+    :-  %max-lit-rd-pos-pos
+        :-  [%max [~.rd .~1] [~.rd .~2]]
+            [~.rd .~2]
+    ::  max(.~1, .~1) = .~1  (equal)
+    :-  %max-lit-rd-equal
+        :-  [%max [~.rd .~1] [~.rd .~1]]
+            [~.rd .~1]
+    ::  max(-3, --2) = --2
+    :-  %max-lit-sd-neg-pos
+        :-  [%max [~.sd -3] [~.sd --2]]
+            [~.sd --2]
+    ::  max(--2, -3) = --2
+    :-  %max-lit-sd-pos-neg
+        :-  [%max [~.sd --2] [~.sd -3]]
+            [~.sd --2]
+    ::  max(-3, -1) = -1  (both negative)
+    :-  %max-lit-sd-neg-neg
+        :-  [%max [~.sd -3] [~.sd -1]]
+            [~.sd -1]
+    ::  max(--1, --2) = --2  (both positive)
+    :-  %max-lit-sd-pos-pos
+        :-  [%max [~.sd --1] [~.sd --2]]
+            [~.sd --2]
+    ::  max(--1, --1) = --1  (equal)
+    :-  %max-lit-sd-equal
+        :-  [%max [~.sd --1] [~.sd --1]]
+            [~.sd --1]
+    ::  max(2, 5) = 5
+    :-  %max-lit-ud-small-large
+        :-  [%max [~.ud 2] [~.ud 5]]
+            [~.ud 5]
+    ::  max(5, 2) = 5
+    :-  %max-lit-ud-large-small
+        :-  [%max [~.ud 5] [~.ud 2]]
+            [~.ud 5]
+    ::  max(3, 3) = 3  (equal)
+    :-  %max-lit-ud-equal
+        :-  [%max [~.ud 3] [~.ud 3]]
+            [~.ud 3]
+    ::  column / literal and column / column
+    ::  max(col1=.~-3, .~2) = .~2
+    :-  %max-qual-rd-col-lit
+        :-  [%max minmax-q-col-1 [~.rd .~2]]
+            [~.rd .~2]
+    ::  max(.~2, col1=.~-3) = .~2
+    :-  %max-qual-rd-lit-col
+        :-  [%max [~.rd .~2] minmax-q-col-1]
+            [~.rd .~2]
+    ::  max(col1=.~-3, col2=.~2) = .~2
+    :-  %max-qual-rd-col-col
+        :-  [%max minmax-q-col-1 minmax-q-col-2]
+            [~.rd .~2]
+    ::  max(col1=.~-3, col1=.~-3) = .~-3  (equal)
+    :-  %max-qual-rd-equal
+        :-  [%max minmax-q-col-1 minmax-q-col-1]
+            [~.rd .~-3]
+    ::  max(col3=-3, --2) = --2
+    :-  %max-qual-sd-col-lit
+        :-  [%max minmax-q-col-3 [~.sd --2]]
+            [~.sd --2]
+    ::  max(--2, col3=-3) = --2
+    :-  %max-qual-sd-lit-col
+        :-  [%max [~.sd --2] minmax-q-col-3]
+            [~.sd --2]
+    ::  max(col3=-3, col4=--2) = --2
+    :-  %max-qual-sd-col-col
+        :-  [%max minmax-q-col-3 minmax-q-col-4]
+            [~.sd --2]
+    ::  max(col3=-3, col3=-3) = -3  (equal)
+    :-  %max-qual-sd-equal
+        :-  [%max minmax-q-col-3 minmax-q-col-3]
+            [~.sd -3]
+    ::  max(col5=2, 5) = 5
+    :-  %max-qual-ud-col-lit
+        :-  [%max minmax-q-col-5 [~.ud 5]]
+            [~.ud 5]
+    ::  max(5, col5=2) = 5
+    :-  %max-qual-ud-lit-col
+        :-  [%max [~.ud 5] minmax-q-col-5]
+            [~.ud 5]
+    ::  max(col5=2, col6=5) = 5
+    :-  %max-qual-ud-col-col
+        :-  [%max minmax-q-col-5 minmax-q-col-6]
+            [~.ud 5]
+    ::  max(col5=2, col5=2) = 2  (equal)
+    :-  %max-qual-ud-equal
+        :-  [%max minmax-q-col-5 minmax-q-col-5]
+            [~.ud 2]
+  ==
+  ==
+::
+++  test-max-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    minmax-unqual-lookup
+    minmax-unqual-map-meta
+    *(map @tas resolved-scalar)
+    minmax-unqual-table-row
+    :~
+    ::  max(col1=.~-3, .~2) = .~2
+    :-  %max-unqual-rd-col-lit
+        :-  [%max minmax-u-col-1 [~.rd .~2]]
+            [~.rd .~2]
+    ::  max(.~2, col1=.~-3) = .~2
+    :-  %max-unqual-rd-lit-col
+        :-  [%max [~.rd .~2] minmax-u-col-1]
+            [~.rd .~2]
+    ::  max(col1=.~-3, col2=.~2) = .~2
+    :-  %max-unqual-rd-col-col
+        :-  [%max minmax-u-col-1 minmax-u-col-2]
+            [~.rd .~2]
+    ::  max(col1=.~-3, col1=.~-3) = .~-3  (equal)
+    :-  %max-unqual-rd-equal
+        :-  [%max minmax-u-col-1 minmax-u-col-1]
+            [~.rd .~-3]
+    ::  max(col3=-3, --2) = --2
+    :-  %max-unqual-sd-col-lit
+        :-  [%max minmax-u-col-3 [~.sd --2]]
+            [~.sd --2]
+    ::  max(--2, col3=-3) = --2
+    :-  %max-unqual-sd-lit-col
+        :-  [%max [~.sd --2] minmax-u-col-3]
+            [~.sd --2]
+    ::  max(col3=-3, col4=--2) = --2
+    :-  %max-unqual-sd-col-col
+        :-  [%max minmax-u-col-3 minmax-u-col-4]
+            [~.sd --2]
+    ::  max(col3=-3, col3=-3) = -3  (equal)
+    :-  %max-unqual-sd-equal
+        :-  [%max minmax-u-col-3 minmax-u-col-3]
+            [~.sd -3]
+    ::  max(col5=2, 5) = 5
+    :-  %max-unqual-ud-col-lit
+        :-  [%max minmax-u-col-5 [~.ud 5]]
+            [~.ud 5]
+    ::  max(5, col5=2) = 5
+    :-  %max-unqual-ud-lit-col
+        :-  [%max [~.ud 5] minmax-u-col-5]
+            [~.ud 5]
+    ::  max(col5=2, col6=5) = 5
+    :-  %max-unqual-ud-col-col
+        :-  [%max minmax-u-col-5 minmax-u-col-6]
+            [~.ud 5]
+    ::  max(col5=2, col5=2) = 2  (equal)
+    :-  %max-unqual-ud-equal
+        :-  [%max minmax-u-col-5 minmax-u-col-5]
+            [~.ud 2]
+  ==
+  ==
+::
+::  %min tests
+::
+++  test-min-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    minmax-qual-map-meta
+    *(map @tas resolved-scalar)
+    minmax-qual-table-row
+    :~
+    ::  literal / literal
+    ::  min(.~-3, .~2) = .~-3
+    :-  %min-lit-rd-neg-pos
+        :-  [%min [~.rd .~-3] [~.rd .~2]]
+            [~.rd .~-3]
+    ::  min(.~2, .~-3) = .~-3
+    :-  %min-lit-rd-pos-neg
+        :-  [%min [~.rd .~2] [~.rd .~-3]]
+            [~.rd .~-3]
+    ::  min(.~-3, .~-1) = .~-3  (both negative)
+    :-  %min-lit-rd-neg-neg
+        :-  [%min [~.rd .~-3] [~.rd .~-1]]
+            [~.rd .~-3]
+    ::  min(.~1, .~2) = .~1  (both positive)
+    :-  %min-lit-rd-pos-pos
+        :-  [%min [~.rd .~1] [~.rd .~2]]
+            [~.rd .~1]
+    ::  min(.~1, .~1) = .~1  (equal)
+    :-  %min-lit-rd-equal
+        :-  [%min [~.rd .~1] [~.rd .~1]]
+            [~.rd .~1]
+    ::  min(-3, --2) = -3
+    :-  %min-lit-sd-neg-pos
+        :-  [%min [~.sd -3] [~.sd --2]]
+            [~.sd -3]
+    ::  min(--2, -3) = -3
+    :-  %min-lit-sd-pos-neg
+        :-  [%min [~.sd --2] [~.sd -3]]
+            [~.sd -3]
+    ::  min(-3, -1) = -3  (both negative)
+    :-  %min-lit-sd-neg-neg
+        :-  [%min [~.sd -3] [~.sd -1]]
+            [~.sd -3]
+    ::  min(--1, --2) = --1  (both positive)
+    :-  %min-lit-sd-pos-pos
+        :-  [%min [~.sd --1] [~.sd --2]]
+            [~.sd --1]
+    ::  min(--1, --1) = --1  (equal)
+    :-  %min-lit-sd-equal
+        :-  [%min [~.sd --1] [~.sd --1]]
+            [~.sd --1]
+    ::  min(2, 5) = 2
+    :-  %min-lit-ud-small-large
+        :-  [%min [~.ud 2] [~.ud 5]]
+            [~.ud 2]
+    ::  min(5, 2) = 2
+    :-  %min-lit-ud-large-small
+        :-  [%min [~.ud 5] [~.ud 2]]
+            [~.ud 2]
+    ::  min(3, 3) = 3  (equal)
+    :-  %min-lit-ud-equal
+        :-  [%min [~.ud 3] [~.ud 3]]
+            [~.ud 3]
+    ::  column / literal and column / column
+    ::  min(col1=.~-3, .~2) = .~-3
+    :-  %min-qual-rd-col-lit
+        :-  [%min minmax-q-col-1 [~.rd .~2]]
+            [~.rd .~-3]
+    ::  min(.~2, col1=.~-3) = .~-3
+    :-  %min-qual-rd-lit-col
+        :-  [%min [~.rd .~2] minmax-q-col-1]
+            [~.rd .~-3]
+    ::  min(col1=.~-3, col2=.~2) = .~-3
+    :-  %min-qual-rd-col-col
+        :-  [%min minmax-q-col-1 minmax-q-col-2]
+            [~.rd .~-3]
+    ::  min(col1=.~-3, col1=.~-3) = .~-3  (equal)
+    :-  %min-qual-rd-equal
+        :-  [%min minmax-q-col-1 minmax-q-col-1]
+            [~.rd .~-3]
+    ::  min(col3=-3, --2) = -3
+    :-  %min-qual-sd-col-lit
+        :-  [%min minmax-q-col-3 [~.sd --2]]
+            [~.sd -3]
+    ::  min(--2, col3=-3) = -3
+    :-  %min-qual-sd-lit-col
+        :-  [%min [~.sd --2] minmax-q-col-3]
+            [~.sd -3]
+    ::  min(col3=-3, col4=--2) = -3
+    :-  %min-qual-sd-col-col
+        :-  [%min minmax-q-col-3 minmax-q-col-4]
+            [~.sd -3]
+    ::  min(col3=-3, col3=-3) = -3  (equal)
+    :-  %min-qual-sd-equal
+        :-  [%min minmax-q-col-3 minmax-q-col-3]
+            [~.sd -3]
+    ::  min(col5=2, 5) = 2
+    :-  %min-qual-ud-col-lit
+        :-  [%min minmax-q-col-5 [~.ud 5]]
+            [~.ud 2]
+    ::  min(5, col5=2) = 2
+    :-  %min-qual-ud-lit-col
+        :-  [%min [~.ud 5] minmax-q-col-5]
+            [~.ud 2]
+    ::  min(col5=2, col6=5) = 2
+    :-  %min-qual-ud-col-col
+        :-  [%min minmax-q-col-5 minmax-q-col-6]
+            [~.ud 2]
+    ::  min(col5=2, col5=2) = 2  (equal)
+    :-  %min-qual-ud-equal
+        :-  [%min minmax-q-col-5 minmax-q-col-5]
+            [~.ud 2]
+  ==
+  ==
+::
+++  test-min-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    minmax-unqual-lookup
+    minmax-unqual-map-meta
+    *(map @tas resolved-scalar)
+    minmax-unqual-table-row
+    :~
+    ::  min(col1=.~-3, .~2) = .~-3
+    :-  %min-unqual-rd-col-lit
+        :-  [%min minmax-u-col-1 [~.rd .~2]]
+            [~.rd .~-3]
+    ::  min(.~2, col1=.~-3) = .~-3
+    :-  %min-unqual-rd-lit-col
+        :-  [%min [~.rd .~2] minmax-u-col-1]
+            [~.rd .~-3]
+    ::  min(col1=.~-3, col2=.~2) = .~-3
+    :-  %min-unqual-rd-col-col
+        :-  [%min minmax-u-col-1 minmax-u-col-2]
+            [~.rd .~-3]
+    ::  min(col1=.~-3, col1=.~-3) = .~-3  (equal)
+    :-  %min-unqual-rd-equal
+        :-  [%min minmax-u-col-1 minmax-u-col-1]
+            [~.rd .~-3]
+    ::  min(col3=-3, --2) = -3
+    :-  %min-unqual-sd-col-lit
+        :-  [%min minmax-u-col-3 [~.sd --2]]
+            [~.sd -3]
+    ::  min(--2, col3=-3) = -3
+    :-  %min-unqual-sd-lit-col
+        :-  [%min [~.sd --2] minmax-u-col-3]
+            [~.sd -3]
+    ::  min(col3=-3, col4=--2) = -3
+    :-  %min-unqual-sd-col-col
+        :-  [%min minmax-u-col-3 minmax-u-col-4]
+            [~.sd -3]
+    ::  min(col3=-3, col3=-3) = -3  (equal)
+    :-  %min-unqual-sd-equal
+        :-  [%min minmax-u-col-3 minmax-u-col-3]
+            [~.sd -3]
+    ::  min(col5=2, 5) = 2
+    :-  %min-unqual-ud-col-lit
+        :-  [%min minmax-u-col-5 [~.ud 5]]
+            [~.ud 2]
+    ::  min(5, col5=2) = 2
+    :-  %min-unqual-ud-lit-col
+        :-  [%min [~.ud 5] minmax-u-col-5]
+            [~.ud 2]
+    ::  min(col5=2, col6=5) = 2
+    :-  %min-unqual-ud-col-col
+        :-  [%min minmax-u-col-5 minmax-u-col-6]
+            [~.ud 2]
+    ::  min(col5=2, col5=2) = 2  (equal)
+    :-  %min-unqual-ud-equal
+        :-  [%min minmax-u-col-5 minmax-u-col-5]
+            [~.ud 2]
+  ==
   ==
 ::
 --

@@ -102,10 +102,84 @@
       !!
   ::
     %max
-      !!
+      =/  expr1  %:  evaluate-datum
+                     numeric-expression-1:;;(max:ast scalar)
+                     named-ctes
+                     qualifier-lookup
+                     map-meta
+                     resolved-scalars
+                     ==
+      =/  expr2  %:  evaluate-datum
+                     numeric-expression-2:;;(max:ast scalar)
+                     named-ctes
+                     qualifier-lookup
+                     map-meta
+                     resolved-scalars
+                     ==
+      =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
+      =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
+      ?.  =(ns1 ns2)
+        ~|  "max: type conflict: {<ns1>} vs {<ns2>}"  !!
+      ?.  ?=(number-systems ns1)
+        ~|  "{<ns1>} not a supported number system for %max, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  max-val
+        |=  [a=@ b=@]  ^-  @
+        ?-  ns1
+            %rd  ?:  (sig:rd (sub:rd `@rd`a `@rd`b))  a  b
+            %sd  ?:  (syn:si (dif:si `@s`a `@s`b))  a  b
+            %ud  ?:  (gte a b)  a  b
+            ==
+      ?:  &(?=(dime expr1) ?=(dime expr2))
+        [ns1 (max-val +.expr1 +.expr2)]
+      :+  %fn
+        ns1
+        |=  =data-row
+        ^-  dime
+        =/  v1  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
+        =/  v2  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
+        [ns1 (max-val v1 v2)]
   ::
     %min
-      !!
+      =/  expr1  %:  evaluate-datum
+                     numeric-expression-1:;;(min:ast scalar)
+                     named-ctes
+                     qualifier-lookup
+                     map-meta
+                     resolved-scalars
+                     ==
+      =/  expr2  %:  evaluate-datum
+                     numeric-expression-2:;;(min:ast scalar)
+                     named-ctes
+                     qualifier-lookup
+                     map-meta
+                     resolved-scalars
+                     ==
+      =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
+      =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
+      ?.  =(ns1 ns2)
+        ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      ?.  ?=(number-systems ns1)
+        ~|  "{<ns1>} not a supported number system for %min, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  min-val
+        |=  [a=@ b=@]  ^-  @
+        ?-  ns1
+            %rd  ?:  (sig:rd (sub:rd `@rd`a `@rd`b))  b  a
+            %sd  ?:  (syn:si (dif:si `@s`a `@s`b))  b  a
+            %ud  ?:  (gte a b)  b  a
+            ==
+      ?:  &(?=(dime expr1) ?=(dime expr2))
+        [ns1 (min-val +.expr1 +.expr2)]
+      :+  %fn
+        ns1
+        |=  =data-row
+        ^-  dime
+        =/  v1  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
+        =/  v2  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
+        [ns1 (min-val v1 v2)]
   ::
     %phi
       !!
