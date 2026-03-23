@@ -421,7 +421,49 @@
         (do-atan number-system +:(f.expr data-row))
   ::
     %atan2
-      !!
+      =/  expr1  %:  evaluate-datum
+                     numeric-expression-1:;;(atan2:ast scalar)
+                     named-ctes
+                     qualifier-lookup
+                     map-meta
+                     resolved-scalars
+                     ==
+      =/  expr2  %:  evaluate-datum
+                     numeric-expression-2:;;(atan2:ast scalar)
+                     named-ctes
+                     qualifier-lookup
+                     map-meta
+                     resolved-scalars
+                     ==
+      =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
+      =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
+      ?.  ?=(number-systems ns1)
+        ~|  "{<ns1>} not a supported number system for %atan2, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      ?.  ?=(number-systems ns2)
+        ~|  "{<ns2>} not a supported number system for %atan2, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  to-rd
+        |=  [ns=number-systems val=@]  ^-  @rd
+        ?-  ns
+            %rd  `@rd`val
+            %sd  (san:rd `@s`val)
+            %ud  (sun:rd val)
+            ==
+      =/  do-atan2
+        |=  [y=@ x=@]  ^-  dime
+        [~.rd (~(atan2 rd:math [%z .~1e-15]) (to-rd ns1 y) (to-rd ns2 x))]
+      ?:  &(?=(dime expr1) ?=(dime expr2))
+        (do-atan2 +.expr1 +.expr2)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        =/  y  ?:(?=(dime expr1) +.expr1 +:(f.expr1 data-row))
+        =/  x  ?:(?=(dime expr2) +.expr2 +:(f.expr2 data-row))
+        (do-atan2 y x)
   ::
     %floor
       =/  expr  %:  evaluate-datum

@@ -1483,6 +1483,85 @@
                                [%col9 2]                     ::  @ud 2
                            ==
 ::
+::  %atan2 test helpers
+::  col1=@rd y=.~1, col2=@rd x=.~2
+::  col3=@sd y=--1, col4=@sd x=--2
+::  col5=@ud y=1,   col6=@ud x=2
+::
+::  qualified: col1=@rd .~1, col2=@rd .~2
+::             col3=@sd --1, col4=@sd --2
+::             col5=@ud 1,   col6=@ud 2
+::
+++  atan2-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.sd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.ud 0]
+                      [%column %col6 ~.ud 0]
+                      ==
+          ==
+::
+++  atan2-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  atan2-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  atan2-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  atan2-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  atan2-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  atan2-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+::
+++  atan2-qual-table-row  %-  mk-indexed-row
+                           :~  [%col1 .~1]                   ::  @rd y=1.0
+                               [%col2 .~2]                   ::  @rd x=2.0
+                               [%col3 --1]                   ::  @sd y=--1
+                               [%col4 --2]                   ::  @sd x=--2
+                               [%col5 1]                     ::  @ud y=1
+                               [%col6 2]                     ::  @ud x=2
+                           ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~2
+::               col3=@sd --1, col4=@sd --2
+::               col5=@ud 1,   col6=@ud 2
+::
+++  atan2-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.sd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.ud 0]
+                  [%column %col6 ~.ud 0]
+                  ==
+::
+++  atan2-unqual-lookup  %-  malt  %-  limo
+                          :~  [%col1 ~[qualified-table-1]]
+                              [%col2 ~[qualified-table-1]]
+                              [%col3 ~[qualified-table-1]]
+                              [%col4 ~[qualified-table-1]]
+                              [%col5 ~[qualified-table-1]]
+                              [%col6 ~[qualified-table-1]]
+                          ==
+::
+++  atan2-u-col-1  [%unqualified-column %col1 ~]
+++  atan2-u-col-2  [%unqualified-column %col2 ~]
+++  atan2-u-col-3  [%unqualified-column %col3 ~]
+++  atan2-u-col-4  [%unqualified-column %col4 ~]
+++  atan2-u-col-5  [%unqualified-column %col5 ~]
+++  atan2-u-col-6  [%unqualified-column %col6 ~]
+::
+++  atan2-unqual-table-row  %-  mk-indexed-row
+                             :~  [%col1 .~1]                 ::  @rd y=1.0
+                                 [%col2 .~2]                 ::  @rd x=2.0
+                                 [%col3 --1]                 ::  @sd y=--1
+                                 [%col4 --2]                 ::  @sd x=--2
+                                 [%col5 1]                   ::  @ud y=1
+                                 [%col6 2]                   ::  @ud x=2
+                             ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -3677,6 +3756,180 @@
     :-  %atan-unqual-ud-2
         :-  [%atan atan-u-col-9]
             [~.rd .~1.1071487177940984]
+  ==
+  ==
+::
+::  %atan2 tests
+::
+++  test-atan2-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    atan2-qual-map-meta
+    *(map @tas resolved-scalar)
+    atan2-qual-table-row
+    :~
+    ::  literals: @rd y / @rd x
+    ::  atan2(.~0, .~0) = 0.0
+    :-  %atan2-lit-rd-0-0
+        :-  [%atan2 [~.rd .~0] [~.rd .~0]]
+            [~.rd .~0]
+    ::  atan2(.~1, .~2) = 0.46364760900081726
+    :-  %atan2-lit-rd-1-2
+        :-  [%atan2 [~.rd .~1] [~.rd .~2]]
+            [~.rd .~0.46364760900080748]
+    ::  atan2(.~-1, .~1) = -0.78539816339744828
+    :-  %atan2-lit-rd-neg1-1
+        :-  [%atan2 [~.rd .~-1] [~.rd .~1]]
+            [~.rd .~-0.78539816339745139]
+    ::  atan2(.~3, .~-2) = 2.1587989303424643
+    :-  %atan2-lit-rd-3-neg2
+        :-  [%atan2 [~.rd .~3] [~.rd .~-2]]
+            [~.rd .~2.1587989303424591]
+    ::  atan2(.~-4, .~-5) = -2.4668517113662596
+    :-  %atan2-lit-rd-neg4-neg5
+        :-  [%atan2 [~.rd .~-4] [~.rd .~-5]]
+            [~.rd .~-2.466851711366238]
+    ::  literals: @sd y / @sd x
+    ::  atan2(--0, --0) = 0.0
+    :-  %atan2-lit-sd-0-0
+        :-  [%atan2 [~.sd --0] [~.sd --0]]
+            [~.rd .~0]
+    ::  atan2(--1, --2) = 0.46364760900081726
+    :-  %atan2-lit-sd-1-2
+        :-  [%atan2 [~.sd --1] [~.sd --2]]
+            [~.rd .~0.46364760900080748]
+    ::  atan2(-1, --1) = -0.78539816339744828
+    :-  %atan2-lit-sd-neg1-1
+        :-  [%atan2 [~.sd -1] [~.sd --1]]
+            [~.rd .~-0.78539816339745139]
+    ::  atan2(--3, -2) = 2.1587989303424643
+    :-  %atan2-lit-sd-3-neg2
+        :-  [%atan2 [~.sd --3] [~.sd -2]]
+            [~.rd .~2.1587989303424591]
+    ::  atan2(-4, -5) = -2.4668517113662596
+    :-  %atan2-lit-sd-neg4-neg5
+        :-  [%atan2 [~.sd -4] [~.sd -5]]
+            [~.rd .~-2.466851711366238]
+    ::  literals: @ud y / @ud x (non-negative only)
+    ::  atan2(0, 0) = 0.0
+    :-  %atan2-lit-ud-0-0
+        :-  [%atan2 [~.ud 0] [~.ud 0]]
+            [~.rd .~0]
+    ::  atan2(1, 2) = 0.46364760900081726
+    :-  %atan2-lit-ud-1-2
+        :-  [%atan2 [~.ud 1] [~.ud 2]]
+            [~.rd .~0.46364760900080748]
+    ::  cross-type literals: atan2(1, 2) with all 6 cross-type combos
+    ::  @rd y / @sd x: atan2(.~1, --2)
+    :-  %atan2-lit-rd-y-sd-x
+        :-  [%atan2 [~.rd .~1] [~.sd --2]]
+            [~.rd .~0.46364760900080748]
+    ::  @rd y / @ud x: atan2(.~1, 2)
+    :-  %atan2-lit-rd-y-ud-x
+        :-  [%atan2 [~.rd .~1] [~.ud 2]]
+            [~.rd .~0.46364760900080748]
+    ::  @sd y / @rd x: atan2(--1, .~2)
+    :-  %atan2-lit-sd-y-rd-x
+        :-  [%atan2 [~.sd --1] [~.rd .~2]]
+            [~.rd .~0.46364760900080748]
+    ::  @sd y / @ud x: atan2(--1, 2)
+    :-  %atan2-lit-sd-y-ud-x
+        :-  [%atan2 [~.sd --1] [~.ud 2]]
+            [~.rd .~0.46364760900080748]
+    ::  @ud y / @rd x: atan2(1, .~2)
+    :-  %atan2-lit-ud-y-rd-x
+        :-  [%atan2 [~.ud 1] [~.rd .~2]]
+            [~.rd .~0.46364760900080748]
+    ::  @ud y / @sd x: atan2(1, --2)
+    :-  %atan2-lit-ud-y-sd-x
+        :-  [%atan2 [~.ud 1] [~.sd --2]]
+            [~.rd .~0.46364760900080748]
+    ::  qualified columns: 9 type combinations (y=1, x=2)
+    ::  @rd col1(y=.~1) / @rd col2(x=.~2)
+    :-  %atan2-qual-rd-y-rd-x
+        :-  [%atan2 atan2-q-col-1 atan2-q-col-2]
+            [~.rd .~0.46364760900080748]
+    ::  @rd col1(y=.~1) / @sd col4(x=--2)
+    :-  %atan2-qual-rd-y-sd-x
+        :-  [%atan2 atan2-q-col-1 atan2-q-col-4]
+            [~.rd .~0.46364760900080748]
+    ::  @rd col1(y=.~1) / @ud col6(x=2)
+    :-  %atan2-qual-rd-y-ud-x
+        :-  [%atan2 atan2-q-col-1 atan2-q-col-6]
+            [~.rd .~0.46364760900080748]
+    ::  @sd col3(y=--1) / @rd col2(x=.~2)
+    :-  %atan2-qual-sd-y-rd-x
+        :-  [%atan2 atan2-q-col-3 atan2-q-col-2]
+            [~.rd .~0.46364760900080748]
+    ::  @sd col3(y=--1) / @sd col4(x=--2)
+    :-  %atan2-qual-sd-y-sd-x
+        :-  [%atan2 atan2-q-col-3 atan2-q-col-4]
+            [~.rd .~0.46364760900080748]
+    ::  @sd col3(y=--1) / @ud col6(x=2)
+    :-  %atan2-qual-sd-y-ud-x
+        :-  [%atan2 atan2-q-col-3 atan2-q-col-6]
+            [~.rd .~0.46364760900080748]
+    ::  @ud col5(y=1) / @rd col2(x=.~2)
+    :-  %atan2-qual-ud-y-rd-x
+        :-  [%atan2 atan2-q-col-5 atan2-q-col-2]
+            [~.rd .~0.46364760900080748]
+    ::  @ud col5(y=1) / @sd col4(x=--2)
+    :-  %atan2-qual-ud-y-sd-x
+        :-  [%atan2 atan2-q-col-5 atan2-q-col-4]
+            [~.rd .~0.46364760900080748]
+    ::  @ud col5(y=1) / @ud col6(x=2)
+    :-  %atan2-qual-ud-y-ud-x
+        :-  [%atan2 atan2-q-col-5 atan2-q-col-6]
+            [~.rd .~0.46364760900080748]
+  ==
+  ==
+::
+++  test-atan2-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    atan2-unqual-lookup
+    atan2-unqual-map-meta
+    *(map @tas resolved-scalar)
+    atan2-unqual-table-row
+    :~
+    ::  unqualified columns: 9 type combinations (y=1, x=2)
+    ::  @rd col1(y=.~1) / @rd col2(x=.~2)
+    :-  %atan2-unqual-rd-y-rd-x
+        :-  [%atan2 atan2-u-col-1 atan2-u-col-2]
+            [~.rd .~0.46364760900080748]
+    ::  @rd col1(y=.~1) / @sd col4(x=--2)
+    :-  %atan2-unqual-rd-y-sd-x
+        :-  [%atan2 atan2-u-col-1 atan2-u-col-4]
+            [~.rd .~0.46364760900080748]
+    ::  @rd col1(y=.~1) / @ud col6(x=2)
+    :-  %atan2-unqual-rd-y-ud-x
+        :-  [%atan2 atan2-u-col-1 atan2-u-col-6]
+            [~.rd .~0.46364760900080748]
+    ::  @sd col3(y=--1) / @rd col2(x=.~2)
+    :-  %atan2-unqual-sd-y-rd-x
+        :-  [%atan2 atan2-u-col-3 atan2-u-col-2]
+            [~.rd .~0.46364760900080748]
+    ::  @sd col3(y=--1) / @sd col4(x=--2)
+    :-  %atan2-unqual-sd-y-sd-x
+        :-  [%atan2 atan2-u-col-3 atan2-u-col-4]
+            [~.rd .~0.46364760900080748]
+    ::  @sd col3(y=--1) / @ud col6(x=2)
+    :-  %atan2-unqual-sd-y-ud-x
+        :-  [%atan2 atan2-u-col-3 atan2-u-col-6]
+            [~.rd .~0.46364760900080748]
+    ::  @ud col5(y=1) / @rd col2(x=.~2)
+    :-  %atan2-unqual-ud-y-rd-x
+        :-  [%atan2 atan2-u-col-5 atan2-u-col-2]
+            [~.rd .~0.46364760900080748]
+    ::  @ud col5(y=1) / @sd col4(x=--2)
+    :-  %atan2-unqual-ud-y-sd-x
+        :-  [%atan2 atan2-u-col-5 atan2-u-col-4]
+            [~.rd .~0.46364760900080748]
+    ::  @ud col5(y=1) / @ud col6(x=2)
+    :-  %atan2-unqual-ud-y-ud-x
+        :-  [%atan2 atan2-u-col-5 atan2-u-col-6]
+            [~.rd .~0.46364760900080748]
   ==
   ==
 ::
