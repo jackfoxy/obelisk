@@ -241,22 +241,184 @@
       !!
   ::
     %sin
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(sin:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %sin, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-sin
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        [~.rd (~(sin rd:math [%z .~1e-15]) rd-val)]
+      ?:  ?=(dime expr)
+        (do-sin number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-sin number-system +:(f.expr data-row))
   ::
     %cos
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(cos:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %cos, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-cos
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        [~.rd (~(cos rd:math [%z .~1e-15]) rd-val)]
+      ?:  ?=(dime expr)
+        (do-cos number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-cos number-system +:(f.expr data-row))
   ::
     %tan
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(tan:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %tan, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-tan
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        [~.rd (~(tan rd:math [%z .~1e-15]) rd-val)]
+      ?:  ?=(dime expr)
+        (do-tan number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-tan number-system +:(f.expr data-row))
   ::
     %asin
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(asin:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %asin, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-asin
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        [~.rd (~(asin rd:math [%z .~1e-15]) rd-val)]
+      ?:  ?=(dime expr)
+        (do-asin number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-asin number-system +:(f.expr data-row))
   ::
     %acos
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(acos:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %acos, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-acos
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        [~.rd (~(acos rd:math [%z .~1e-15]) rd-val)]
+      ?:  ?=(dime expr)
+        (do-acos number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-acos number-system +:(f.expr data-row))
   ::
     %atan
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(atan:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %atan, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-atan
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        [~.rd (~(atan rd:math [%z .~1e-15]) rd-val)]
+      ?:  ?=(dime expr)
+        (do-atan number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-atan number-system +:(f.expr data-row))
   ::
     %atan2
       !!

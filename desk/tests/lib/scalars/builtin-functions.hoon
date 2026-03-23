@@ -911,6 +911,577 @@
                               [%col8 2]                      ::  @ud 2
                               [%col9 100]                    ::  @ud 100
                           ==
+::  %sin test helpers
+::  @rd: col1=.~0.2, col2=.~1, col3=.~-0.2
+::  @sd: col4=--0,   col5=--1, col6=-1
+::  @ud: col7=0,     col8=1,   col9=2
+::
+::  qualified: col1=@rd .~0.2, col2=@rd .~1, col3=@rd .~-0.2
+::             col4=@sd --0,   col5=@sd --1, col6=@sd -1
+::             col7=@ud 0,     col8=@ud 1,   col9=@ud 2
+::
+++  sin-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  sin-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  sin-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  sin-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  sin-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  sin-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  sin-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  sin-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  sin-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  sin-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  sin-qual-table-row  %-  mk-indexed-row
+                        :~  [%col1 .~0.2]                    ::  @rd 0.2
+                            [%col2 .~1]                      ::  @rd 1.0
+                            [%col3 .~-0.2]                   ::  @rd -0.2
+                            [%col4 --0]                      ::  @sd --0
+                            [%col5 --1]                      ::  @sd --1
+                            [%col6 -1]                       ::  @sd -1
+                            [%col7 0]                        ::  @ud 0
+                            [%col8 1]                        ::  @ud 1
+                            [%col9 2]                        ::  @ud 2
+                        ==
+::
+::  unqualified: col1=@rd .~0.2, col2=@rd .~1, col3=@rd .~-0.2
+::               col4=@sd --0,   col5=@sd --1, col6=@sd -1
+::               col7=@ud 0,     col8=@ud 1,   col9=@ud 2
+::
+++  sin-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  sin-unqual-lookup  %-  malt  %-  limo
+                       :~  [%col1 ~[qualified-table-1]]
+                           [%col2 ~[qualified-table-1]]
+                           [%col3 ~[qualified-table-1]]
+                           [%col4 ~[qualified-table-1]]
+                           [%col5 ~[qualified-table-1]]
+                           [%col6 ~[qualified-table-1]]
+                           [%col7 ~[qualified-table-1]]
+                           [%col8 ~[qualified-table-1]]
+                           [%col9 ~[qualified-table-1]]
+                       ==
+::
+++  sin-u-col-1  [%unqualified-column %col1 ~]
+++  sin-u-col-2  [%unqualified-column %col2 ~]
+++  sin-u-col-3  [%unqualified-column %col3 ~]
+++  sin-u-col-4  [%unqualified-column %col4 ~]
+++  sin-u-col-5  [%unqualified-column %col5 ~]
+++  sin-u-col-6  [%unqualified-column %col6 ~]
+++  sin-u-col-7  [%unqualified-column %col7 ~]
+++  sin-u-col-8  [%unqualified-column %col8 ~]
+++  sin-u-col-9  [%unqualified-column %col9 ~]
+::
+++  sin-unqual-table-row  %-  mk-indexed-row
+                          :~  [%col1 .~0.2]                  ::  @rd 0.2
+                              [%col2 .~1]                    ::  @rd 1.0
+                              [%col3 .~-0.2]                 ::  @rd -0.2
+                              [%col4 --0]                    ::  @sd --0
+                              [%col5 --1]                    ::  @sd --1
+                              [%col6 -1]                     ::  @sd -1
+                              [%col7 0]                      ::  @ud 0
+                              [%col8 1]                      ::  @ud 1
+                              [%col9 2]                      ::  @ud 2
+                          ==
+::  %cos test helpers
+::  @rd: col1=.~1, col2=.~1.56, col3=.~-1
+::  @sd: col4=--0, col5=--1,    col6=-1
+::  @ud: col7=0,   col8=1,      col9=2
+::
+::  qualified: col1=@rd .~1, col2=@rd .~1.56, col3=@rd .~-1
+::             col4=@sd --0, col5=@sd --1,    col6=@sd -1
+::             col7=@ud 0,   col8=@ud 1,      col9=@ud 2
+::
+++  cos-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  cos-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  cos-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  cos-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  cos-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  cos-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  cos-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  cos-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  cos-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  cos-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  cos-qual-table-row  %-  mk-indexed-row
+                        :~  [%col1 .~1]                      ::  @rd 1.0
+                            [%col2 .~1.56]                   ::  @rd 1.56
+                            [%col3 .~-1]                     ::  @rd -1.0
+                            [%col4 --0]                      ::  @sd --0
+                            [%col5 --1]                      ::  @sd --1
+                            [%col6 -1]                       ::  @sd -1
+                            [%col7 0]                        ::  @ud 0
+                            [%col8 1]                        ::  @ud 1
+                            [%col9 2]                        ::  @ud 2
+                        ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~1.56, col3=@rd .~-1
+::               col4=@sd --0, col5=@sd --1,    col6=@sd -1
+::               col7=@ud 0,   col8=@ud 1,      col9=@ud 2
+::
+++  cos-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  cos-unqual-lookup  %-  malt  %-  limo
+                       :~  [%col1 ~[qualified-table-1]]
+                           [%col2 ~[qualified-table-1]]
+                           [%col3 ~[qualified-table-1]]
+                           [%col4 ~[qualified-table-1]]
+                           [%col5 ~[qualified-table-1]]
+                           [%col6 ~[qualified-table-1]]
+                           [%col7 ~[qualified-table-1]]
+                           [%col8 ~[qualified-table-1]]
+                           [%col9 ~[qualified-table-1]]
+                       ==
+::
+++  cos-u-col-1  [%unqualified-column %col1 ~]
+++  cos-u-col-2  [%unqualified-column %col2 ~]
+++  cos-u-col-3  [%unqualified-column %col3 ~]
+++  cos-u-col-4  [%unqualified-column %col4 ~]
+++  cos-u-col-5  [%unqualified-column %col5 ~]
+++  cos-u-col-6  [%unqualified-column %col6 ~]
+++  cos-u-col-7  [%unqualified-column %col7 ~]
+++  cos-u-col-8  [%unqualified-column %col8 ~]
+++  cos-u-col-9  [%unqualified-column %col9 ~]
+::
+++  cos-unqual-table-row  %-  mk-indexed-row
+                          :~  [%col1 .~1]                    ::  @rd 1.0
+                              [%col2 .~1.56]                 ::  @rd 1.56
+                              [%col3 .~-1]                   ::  @rd -1.0
+                              [%col4 --0]                    ::  @sd --0
+                              [%col5 --1]                    ::  @sd --1
+                              [%col6 -1]                     ::  @sd -1
+                              [%col7 0]                      ::  @ud 0
+                              [%col8 1]                      ::  @ud 1
+                              [%col9 2]                      ::  @ud 2
+                          ==
+::
+::  tan helpers
+::  qualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::              col4=@sd --0, col5=@sd --1, col6=@sd -1
+::              col7=@ud 0,   col8=@ud 1,   col9=@ud 2
+::
+++  tan-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  tan-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  tan-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  tan-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  tan-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  tan-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  tan-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  tan-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  tan-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  tan-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  tan-qual-table-row  %-  mk-indexed-row
+                        :~  [%col1 .~1]                      ::  @rd 1.0
+                            [%col2 .~0]                      ::  @rd 0.0
+                            [%col3 .~-1]                     ::  @rd -1.0
+                            [%col4 --0]                      ::  @sd --0
+                            [%col5 --1]                      ::  @sd --1
+                            [%col6 -1]                       ::  @sd -1
+                            [%col7 0]                        ::  @ud 0
+                            [%col8 1]                        ::  @ud 1
+                            [%col9 2]                        ::  @ud 2
+                        ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::               col4=@sd --0, col5=@sd --1, col6=@sd -1
+::               col7=@ud 0,   col8=@ud 1,   col9=@ud 2
+::
+++  tan-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  tan-unqual-lookup  %-  malt  %-  limo
+                       :~  [%col1 ~[qualified-table-1]]
+                           [%col2 ~[qualified-table-1]]
+                           [%col3 ~[qualified-table-1]]
+                           [%col4 ~[qualified-table-1]]
+                           [%col5 ~[qualified-table-1]]
+                           [%col6 ~[qualified-table-1]]
+                           [%col7 ~[qualified-table-1]]
+                           [%col8 ~[qualified-table-1]]
+                           [%col9 ~[qualified-table-1]]
+                       ==
+::
+++  tan-u-col-1  [%unqualified-column %col1 ~]
+++  tan-u-col-2  [%unqualified-column %col2 ~]
+++  tan-u-col-3  [%unqualified-column %col3 ~]
+++  tan-u-col-4  [%unqualified-column %col4 ~]
+++  tan-u-col-5  [%unqualified-column %col5 ~]
+++  tan-u-col-6  [%unqualified-column %col6 ~]
+++  tan-u-col-7  [%unqualified-column %col7 ~]
+++  tan-u-col-8  [%unqualified-column %col8 ~]
+++  tan-u-col-9  [%unqualified-column %col9 ~]
+::
+++  tan-unqual-table-row  %-  mk-indexed-row
+                          :~  [%col1 .~1]                    ::  @rd 1.0
+                              [%col2 .~0]                    ::  @rd 0.0
+                              [%col3 .~-1]                   ::  @rd -1.0
+                              [%col4 --0]                    ::  @sd --0
+                              [%col5 --1]                    ::  @sd --1
+                              [%col6 -1]                     ::  @sd -1
+                              [%col7 0]                      ::  @ud 0
+                              [%col8 1]                      ::  @ud 1
+                              [%col9 2]                      ::  @ud 2
+                          ==
+::
+::  asin helpers
+::  asin domain is [-1, 1]; @ud only supports 0 and 1 (8 columns total)
+::  qualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::              col4=@sd --0, col5=@sd --1, col6=@sd -1
+::              col7=@ud 0,   col8=@ud 1
+::
+++  asin-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      ==
+          ==
+::
+++  asin-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  asin-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  asin-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  asin-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  asin-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  asin-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  asin-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  asin-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+::
+++  asin-qual-table-row  %-  mk-indexed-row
+                         :~  [%col1 .~1]                     ::  @rd 1.0
+                             [%col2 .~0]                     ::  @rd 0.0
+                             [%col3 .~-1]                    ::  @rd -1.0
+                             [%col4 --0]                     ::  @sd --0
+                             [%col5 --1]                     ::  @sd --1
+                             [%col6 -1]                      ::  @sd -1
+                             [%col7 0]                       ::  @ud 0
+                             [%col8 1]                       ::  @ud 1
+                         ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::               col4=@sd --0, col5=@sd --1, col6=@sd -1
+::               col7=@ud 0,   col8=@ud 1
+::
+++  asin-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  ==
+::
+++  asin-unqual-lookup  %-  malt  %-  limo
+                        :~  [%col1 ~[qualified-table-1]]
+                            [%col2 ~[qualified-table-1]]
+                            [%col3 ~[qualified-table-1]]
+                            [%col4 ~[qualified-table-1]]
+                            [%col5 ~[qualified-table-1]]
+                            [%col6 ~[qualified-table-1]]
+                            [%col7 ~[qualified-table-1]]
+                            [%col8 ~[qualified-table-1]]
+                        ==
+::
+++  asin-u-col-1  [%unqualified-column %col1 ~]
+++  asin-u-col-2  [%unqualified-column %col2 ~]
+++  asin-u-col-3  [%unqualified-column %col3 ~]
+++  asin-u-col-4  [%unqualified-column %col4 ~]
+++  asin-u-col-5  [%unqualified-column %col5 ~]
+++  asin-u-col-6  [%unqualified-column %col6 ~]
+++  asin-u-col-7  [%unqualified-column %col7 ~]
+++  asin-u-col-8  [%unqualified-column %col8 ~]
+::
+++  asin-unqual-table-row  %-  mk-indexed-row
+                           :~  [%col1 .~1]                   ::  @rd 1.0
+                               [%col2 .~0]                   ::  @rd 0.0
+                               [%col3 .~-1]                  ::  @rd -1.0
+                               [%col4 --0]                   ::  @sd --0
+                               [%col5 --1]                   ::  @sd --1
+                               [%col6 -1]                    ::  @sd -1
+                               [%col7 0]                     ::  @ud 0
+                               [%col8 1]                     ::  @ud 1
+                           ==
+::
+::  acos helpers
+::  acos domain is [-1, 1]; @ud only supports 0 and 1 (8 columns total)
+::  qualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::              col4=@sd --0, col5=@sd --1, col6=@sd -1
+::              col7=@ud 0,   col8=@ud 1
+::
+++  acos-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      ==
+          ==
+::
+++  acos-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  acos-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  acos-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  acos-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  acos-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  acos-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  acos-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  acos-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+::
+++  acos-qual-table-row  %-  mk-indexed-row
+                         :~  [%col1 .~1]                     ::  @rd 1.0
+                             [%col2 .~0]                     ::  @rd 0.0
+                             [%col3 .~-1]                    ::  @rd -1.0
+                             [%col4 --0]                     ::  @sd --0
+                             [%col5 --1]                     ::  @sd --1
+                             [%col6 -1]                      ::  @sd -1
+                             [%col7 0]                       ::  @ud 0
+                             [%col8 1]                       ::  @ud 1
+                         ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::               col4=@sd --0, col5=@sd --1, col6=@sd -1
+::               col7=@ud 0,   col8=@ud 1
+::
+++  acos-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  ==
+::
+++  acos-unqual-lookup  %-  malt  %-  limo
+                        :~  [%col1 ~[qualified-table-1]]
+                            [%col2 ~[qualified-table-1]]
+                            [%col3 ~[qualified-table-1]]
+                            [%col4 ~[qualified-table-1]]
+                            [%col5 ~[qualified-table-1]]
+                            [%col6 ~[qualified-table-1]]
+                            [%col7 ~[qualified-table-1]]
+                            [%col8 ~[qualified-table-1]]
+                        ==
+::
+++  acos-u-col-1  [%unqualified-column %col1 ~]
+++  acos-u-col-2  [%unqualified-column %col2 ~]
+++  acos-u-col-3  [%unqualified-column %col3 ~]
+++  acos-u-col-4  [%unqualified-column %col4 ~]
+++  acos-u-col-5  [%unqualified-column %col5 ~]
+++  acos-u-col-6  [%unqualified-column %col6 ~]
+++  acos-u-col-7  [%unqualified-column %col7 ~]
+++  acos-u-col-8  [%unqualified-column %col8 ~]
+::
+++  acos-unqual-table-row  %-  mk-indexed-row
+                           :~  [%col1 .~1]                   ::  @rd 1.0
+                               [%col2 .~0]                   ::  @rd 0.0
+                               [%col3 .~-1]                  ::  @rd -1.0
+                               [%col4 --0]                   ::  @sd --0
+                               [%col5 --1]                   ::  @sd --1
+                               [%col6 -1]                    ::  @sd -1
+                               [%col7 0]                     ::  @ud 0
+                               [%col8 1]                     ::  @ud 1
+                           ==
+::
+::  atan helpers
+::  atan domain is all reals; 9 columns total
+::  qualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::              col4=@sd --0, col5=@sd --1, col6=@sd -1
+::              col7=@ud 0,   col8=@ud 1,   col9=@ud 2
+::
+++  atan-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  atan-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  atan-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  atan-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  atan-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  atan-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  atan-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  atan-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  atan-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  atan-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  atan-qual-table-row  %-  mk-indexed-row
+                         :~  [%col1 .~1]                     ::  @rd 1.0
+                             [%col2 .~0]                     ::  @rd 0.0
+                             [%col3 .~-1]                    ::  @rd -1.0
+                             [%col4 --0]                     ::  @sd --0
+                             [%col5 --1]                     ::  @sd --1
+                             [%col6 -1]                      ::  @sd -1
+                             [%col7 0]                       ::  @ud 0
+                             [%col8 1]                       ::  @ud 1
+                             [%col9 2]                       ::  @ud 2
+                         ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~0, col3=@rd .~-1
+::               col4=@sd --0, col5=@sd --1, col6=@sd -1
+::               col7=@ud 0,   col8=@ud 1,   col9=@ud 2
+::
+++  atan-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  atan-unqual-lookup  %-  malt  %-  limo
+                        :~  [%col1 ~[qualified-table-1]]
+                            [%col2 ~[qualified-table-1]]
+                            [%col3 ~[qualified-table-1]]
+                            [%col4 ~[qualified-table-1]]
+                            [%col5 ~[qualified-table-1]]
+                            [%col6 ~[qualified-table-1]]
+                            [%col7 ~[qualified-table-1]]
+                            [%col8 ~[qualified-table-1]]
+                            [%col9 ~[qualified-table-1]]
+                        ==
+::
+++  atan-u-col-1  [%unqualified-column %col1 ~]
+++  atan-u-col-2  [%unqualified-column %col2 ~]
+++  atan-u-col-3  [%unqualified-column %col3 ~]
+++  atan-u-col-4  [%unqualified-column %col4 ~]
+++  atan-u-col-5  [%unqualified-column %col5 ~]
+++  atan-u-col-6  [%unqualified-column %col6 ~]
+++  atan-u-col-7  [%unqualified-column %col7 ~]
+++  atan-u-col-8  [%unqualified-column %col8 ~]
+++  atan-u-col-9  [%unqualified-column %col9 ~]
+::
+++  atan-unqual-table-row  %-  mk-indexed-row
+                           :~  [%col1 .~1]                   ::  @rd 1.0
+                               [%col2 .~0]                   ::  @rd 0.0
+                               [%col3 .~-1]                  ::  @rd -1.0
+                               [%col4 --0]                   ::  @sd --0
+                               [%col5 --1]                   ::  @sd --1
+                               [%col6 -1]                    ::  @sd -1
+                               [%col7 0]                     ::  @ud 0
+                               [%col8 1]                     ::  @ud 1
+                               [%col9 2]                     ::  @ud 2
+                           ==
 ::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
@@ -2280,6 +2851,832 @@
     :-  %log-unqual-ud-100
         :-  [%log log-u-col-9 ~]
             [~.rd 4.616.870.979.110.785.924]
+  ==
+  ==
+::
+++  test-sin-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    sin-qual-map-meta
+    *(map @tas resolved-scalar)
+    sin-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  sin(0.0) = 0.0
+    :-  %sin-lit-rd-0
+        :-  [%sin [~.rd .~0]]
+            [~.rd .~0]
+    ::  sin(0.2) = 0.1986693307950617
+    :-  %sin-lit-rd-0-2
+        :-  [%sin [~.rd .~0.2]]
+            [~.rd .~0.19866933079506116]
+    ::  sin(1.0) = 0.8414709848078934
+    :-  %sin-lit-rd-1
+        :-  [%sin [~.rd .~1]]
+            [~.rd .~0.84147098480789606]
+    ::  sin(-0.2) = 0.02278564266428059
+    :-  %sin-lit-rd-neg-0-2
+        :-  [%sin [~.rd .~-0.2]]
+            [~.rd .~0.022785642664279956]
+    ::  sin(-1.0) = 0.11588947232451653
+    :-  %sin-lit-rd-neg-1
+        :-  [%sin [~.rd .~-1]]
+            [~.rd .~0.11588947232452712]
+    ::  literals: @sd
+    ::  sin(--0) = 0.0
+    :-  %sin-lit-sd-0
+        :-  [%sin [~.sd --0]]
+            [~.rd .~0]
+    ::  sin(--1) = 0.8414709848078934
+    :-  %sin-lit-sd-1
+        :-  [%sin [~.sd --1]]
+            [~.rd .~0.84147098480789606]
+    ::  sin(-1) = 0.11588947232451653
+    :-  %sin-lit-sd-neg-1
+        :-  [%sin [~.sd -1]]
+            [~.rd .~0.11588947232452712]
+    ::  literals: @ud
+    ::  sin(0) = 0.0
+    :-  %sin-lit-ud-0
+        :-  [%sin [~.ud 0]]
+            [~.rd .~0]
+    ::  sin(1) = 0.8414709848078934
+    :-  %sin-lit-ud-1
+        :-  [%sin [~.ud 1]]
+            [~.rd .~0.84147098480789606]
+    ::  sin(2) = 0.9092974268256406
+    :-  %sin-lit-ud-2
+        :-  [%sin [~.ud 2]]
+            [~.rd .~0.90929742682568127]
+    ::  qualified columns: @rd
+    ::  sin(col1=.~0.2) = 0.1986693307950617
+    :-  %sin-qual-rd-0-2
+        :-  [%sin sin-q-col-1]
+            [~.rd .~0.19866933079506116]
+    ::  sin(col2=.~1) = 0.8414709848078934
+    :-  %sin-qual-rd-1
+        :-  [%sin sin-q-col-2]
+            [~.rd .~0.84147098480789606]
+    ::  sin(col3=.~-0.2) = 0.02278564266428059
+    :-  %sin-qual-rd-neg-0-2
+        :-  [%sin sin-q-col-3]
+            [~.rd .~0.022785642664279956]
+    ::  qualified columns: @sd
+    ::  sin(col4=--0) = 0.0
+    :-  %sin-qual-sd-0
+        :-  [%sin sin-q-col-4]
+            [~.rd .~0]
+    ::  sin(col5=--1) = 0.8414709848078934
+    :-  %sin-qual-sd-1
+        :-  [%sin sin-q-col-5]
+            [~.rd .~0.84147098480789606]
+    ::  sin(col6=-1) = 0.11588947232451653
+    :-  %sin-qual-sd-neg-1
+        :-  [%sin sin-q-col-6]
+            [~.rd .~0.11588947232452712]
+    ::  qualified columns: @ud
+    ::  sin(col7=0) = 0.0
+    :-  %sin-qual-ud-0
+        :-  [%sin sin-q-col-7]
+            [~.rd .~0]
+    ::  sin(col8=1) = 0.8414709848078934
+    :-  %sin-qual-ud-1
+        :-  [%sin sin-q-col-8]
+            [~.rd .~0.84147098480789606]
+    ::  sin(col9=2) = 0.9092974268256406
+    :-  %sin-qual-ud-2
+        :-  [%sin sin-q-col-9]
+            [~.rd .~0.90929742682568127]
+  ==
+  ==
+::
+++  test-sin-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    sin-unqual-lookup
+    sin-unqual-map-meta
+    *(map @tas resolved-scalar)
+    sin-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  sin(col1=.~0.2) = 0.1986693307950617
+    :-  %sin-unqual-rd-0-2
+        :-  [%sin sin-u-col-1]
+            [~.rd .~0.19866933079506116]
+    ::  sin(col2=.~1) = 0.8414709848078934
+    :-  %sin-unqual-rd-1
+        :-  [%sin sin-u-col-2]
+            [~.rd .~0.84147098480789606]
+    ::  sin(col3=.~-0.2) = 0.02278564266428059
+    :-  %sin-unqual-rd-neg-0-2
+        :-  [%sin sin-u-col-3]
+            [~.rd .~0.022785642664279956]
+    ::  unqualified columns: @sd
+    ::  sin(col4=--0) = 0.0
+    :-  %sin-unqual-sd-0
+        :-  [%sin sin-u-col-4]
+            [~.rd .~0]
+    ::  sin(col5=--1) = 0.8414709848078934
+    :-  %sin-unqual-sd-1
+        :-  [%sin sin-u-col-5]
+            [~.rd .~0.84147098480789606]
+    ::  sin(col6=-1) = 0.11588947232451653
+    :-  %sin-unqual-sd-neg-1
+        :-  [%sin sin-u-col-6]
+            [~.rd .~0.11588947232452712]
+    ::  unqualified columns: @ud
+    ::  sin(col7=0) = 0.0
+    :-  %sin-unqual-ud-0
+        :-  [%sin sin-u-col-7]
+            [~.rd .~0]
+    ::  sin(col8=1) = 0.8414709848078934
+    :-  %sin-unqual-ud-1
+        :-  [%sin sin-u-col-8]
+            [~.rd .~0.84147098480789606]
+    ::  sin(col9=2) = 0.9092974268256406
+    :-  %sin-unqual-ud-2
+        :-  [%sin sin-u-col-9]
+            [~.rd .~0.90929742682568127]
+  ==
+  ==
+::
+++  test-cos-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    cos-qual-map-meta
+    *(map @tas resolved-scalar)
+    cos-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  cos(0.0) = 1.0
+    :-  %cos-lit-rd-0
+        :-  [%cos [~.rd .~0]]
+            [~.rd .~1]
+    ::  cos(1.0) = 0.5403023058680917
+    :-  %cos-lit-rd-1
+        :-  [%cos [~.rd .~1]]
+            [~.rd .~0.54030230586813921]
+    ::  cos(1.56) = 0.010796117058732157
+    :-  %cos-lit-rd-1-56
+        :-  [%cos [~.rd .~1.56]]
+            [~.rd .~0.010796117058267505]
+    ::  cos(-1.0) = 0.9932621155587997
+    :-  %cos-lit-rd-neg-1
+        :-  [%cos [~.rd .~-1]]
+            [~.rd .~0.99326211555879951]
+    ::  cos(-1.56) = 0.9843233239774423
+    :-  %cos-lit-rd-neg-1-56
+        :-  [%cos [~.rd .~-1.56]]
+            [~.rd .~0.98432332397743372]
+    ::  literals: @sd
+    ::  cos(--0) = 1.0
+    :-  %cos-lit-sd-0
+        :-  [%cos [~.sd --0]]
+            [~.rd .~1]
+    ::  cos(--1) = 0.5403023058680917
+    :-  %cos-lit-sd-1
+        :-  [%cos [~.sd --1]]
+            [~.rd .~0.54030230586813921]
+    ::  cos(-1) = 0.9932621155587997
+    :-  %cos-lit-sd-neg-1
+        :-  [%cos [~.sd -1]]
+            [~.rd .~0.99326211555879951]
+    ::  literals: @ud
+    ::  cos(0) = 1.0
+    :-  %cos-lit-ud-0
+        :-  [%cos [~.ud 0]]
+            [~.rd .~1]
+    ::  cos(1) = 0.5403023058680917
+    :-  %cos-lit-ud-1
+        :-  [%cos [~.ud 1]]
+            [~.rd .~0.54030230586813921]
+    ::  cos(2) = -0.41614683654756957
+    :-  %cos-lit-ud-2
+        :-  [%cos [~.ud 2]]
+            [~.rd .~-0.41614683654714218]
+    ::  qualified columns: @rd
+    ::  cos(col1=.~1) = 0.5403023058680917
+    :-  %cos-qual-rd-1
+        :-  [%cos cos-q-col-1]
+            [~.rd .~0.54030230586813921]
+    ::  cos(col2=.~1.56) = 0.010796117058732157
+    :-  %cos-qual-rd-1-56
+        :-  [%cos cos-q-col-2]
+            [~.rd .~0.010796117058267505]
+    ::  cos(col3=.~-1) = 0.9932621155587997
+    :-  %cos-qual-rd-neg-1
+        :-  [%cos cos-q-col-3]
+            [~.rd .~0.99326211555879951]
+    ::  qualified columns: @sd
+    ::  cos(col4=--0) = 1.0
+    :-  %cos-qual-sd-0
+        :-  [%cos cos-q-col-4]
+            [~.rd .~1]
+    ::  cos(col5=--1) = 0.5403023058680917
+    :-  %cos-qual-sd-1
+        :-  [%cos cos-q-col-5]
+            [~.rd .~0.54030230586813921]
+    ::  cos(col6=-1) = 0.9932621155587997
+    :-  %cos-qual-sd-neg-1
+        :-  [%cos cos-q-col-6]
+            [~.rd .~0.99326211555879951]
+    ::  qualified columns: @ud
+    ::  cos(col7=0) = 1.0
+    :-  %cos-qual-ud-0
+        :-  [%cos cos-q-col-7]
+            [~.rd .~1]
+    ::  cos(col8=1) = 0.5403023058680917
+    :-  %cos-qual-ud-1
+        :-  [%cos cos-q-col-8]
+            [~.rd .~0.54030230586813921]
+    ::  cos(col9=2) = -0.41614683654756957
+    :-  %cos-qual-ud-2
+        :-  [%cos cos-q-col-9]
+            [~.rd .~-0.41614683654714218]
+  ==
+  ==
+::
+++  test-cos-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    cos-unqual-lookup
+    cos-unqual-map-meta
+    *(map @tas resolved-scalar)
+    cos-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  cos(col1=.~1) = 0.5403023058680917
+    :-  %cos-unqual-rd-1
+        :-  [%cos cos-u-col-1]
+            [~.rd .~0.54030230586813921]
+    ::  cos(col2=.~1.56) = 0.010796117058732157
+    :-  %cos-unqual-rd-1-56
+        :-  [%cos cos-u-col-2]
+            [~.rd .~0.010796117058267505]
+    ::  cos(col3=.~-1) = 0.9932621155587997
+    :-  %cos-unqual-rd-neg-1
+        :-  [%cos cos-u-col-3]
+            [~.rd .~0.99326211555879951]
+    ::  unqualified columns: @sd
+    ::  cos(col4=--0) = 1.0
+    :-  %cos-unqual-sd-0
+        :-  [%cos cos-u-col-4]
+            [~.rd .~1]
+    ::  cos(col5=--1) = 0.5403023058680917
+    :-  %cos-unqual-sd-1
+        :-  [%cos cos-u-col-5]
+            [~.rd .~0.54030230586813921]
+    ::  cos(col6=-1) = 0.9932621155587997
+    :-  %cos-unqual-sd-neg-1
+        :-  [%cos cos-u-col-6]
+            [~.rd .~0.99326211555879951]
+    ::  unqualified columns: @ud
+    ::  cos(col7=0) = 1.0
+    :-  %cos-unqual-ud-0
+        :-  [%cos cos-u-col-7]
+            [~.rd .~1]
+    ::  cos(col8=1) = 0.5403023058680917
+    :-  %cos-unqual-ud-1
+        :-  [%cos cos-u-col-8]
+            [~.rd .~0.54030230586813921]
+    ::  cos(col9=2) = -0.41614683654756957
+    :-  %cos-unqual-ud-2
+        :-  [%cos cos-u-col-9]
+            [~.rd .~-0.41614683654714218]
+  ==
+  ==
+::
+++  test-tan-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    tan-qual-map-meta
+    *(map @tas resolved-scalar)
+    tan-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  tan(0.0) = 0.0
+    :-  %tan-lit-rd-0
+        :-  [%tan [~.rd .~0]]
+            [~.rd .~0]
+    ::  tan(1.0) = 1.5574077246550349
+    :-  %tan-lit-rd-1
+        :-  [%tan [~.rd .~1]]
+            [~.rd .~1.5574077246549027]
+    ::  tan(-1.0) = 0.11667561916354599
+    :-  %tan-lit-rd-neg-1
+        :-  [%tan [~.rd .~-1]]
+            [~.rd .~0.11667561916355668]
+    ::  literals: @sd
+    ::  tan(--0) = 0.0
+    :-  %tan-lit-sd-0
+        :-  [%tan [~.sd --0]]
+            [~.rd .~0]
+    ::  tan(--1) = 1.5574077246550349
+    :-  %tan-lit-sd-1
+        :-  [%tan [~.sd --1]]
+            [~.rd .~1.5574077246549027]
+    ::  tan(-1) = 0.11667561916354599
+    :-  %tan-lit-sd-neg-1
+        :-  [%tan [~.sd -1]]
+            [~.rd .~0.11667561916355668]
+    ::  literals: @ud
+    ::  tan(0) = 0.0
+    :-  %tan-lit-ud-0
+        :-  [%tan [~.ud 0]]
+            [~.rd .~0]
+    ::  tan(1) = 1.5574077246550349
+    :-  %tan-lit-ud-1
+        :-  [%tan [~.ud 1]]
+            [~.rd .~1.5574077246549027]
+    ::  tan(2) = -2.1850398632615189
+    :-  %tan-lit-ud-2
+        :-  [%tan [~.ud 2]]
+            [~.rd .~-2.1850398632615189]
+    ::  qualified columns: @rd
+    ::  tan(col1=.~1) = 1.5574077246550349
+    :-  %tan-qual-rd-1
+        :-  [%tan tan-q-col-1]
+            [~.rd .~1.5574077246549027]
+    ::  tan(col2=.~0) = 0.0
+    :-  %tan-qual-rd-0
+        :-  [%tan tan-q-col-2]
+            [~.rd .~0]
+    ::  tan(col3=.~-1) = 0.11667561916354599
+    :-  %tan-qual-rd-neg-1
+        :-  [%tan tan-q-col-3]
+            [~.rd .~0.11667561916355668]
+    ::  qualified columns: @sd
+    ::  tan(col4=--0) = 0.0
+    :-  %tan-qual-sd-0
+        :-  [%tan tan-q-col-4]
+            [~.rd .~0]
+    ::  tan(col5=--1) = 1.5574077246550349
+    :-  %tan-qual-sd-1
+        :-  [%tan tan-q-col-5]
+            [~.rd .~1.5574077246549027]
+    ::  tan(col6=-1) = 0.11667561916354599
+    :-  %tan-qual-sd-neg-1
+        :-  [%tan tan-q-col-6]
+            [~.rd .~0.11667561916355668]
+    ::  qualified columns: @ud
+    ::  tan(col7=0) = 0.0
+    :-  %tan-qual-ud-0
+        :-  [%tan tan-q-col-7]
+            [~.rd .~0]
+    ::  tan(col8=1) = 1.5574077246550349
+    :-  %tan-qual-ud-1
+        :-  [%tan tan-q-col-8]
+            [~.rd .~1.5574077246549027]
+    ::  tan(col9=2) = -2.1850398632615189
+    :-  %tan-qual-ud-2
+        :-  [%tan tan-q-col-9]
+            [~.rd .~-2.1850398632615189]
+  ==
+  ==
+::
+++  test-tan-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    tan-unqual-lookup
+    tan-unqual-map-meta
+    *(map @tas resolved-scalar)
+    tan-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  tan(col1=.~1) = 1.5574077246550349
+    :-  %tan-unqual-rd-1
+        :-  [%tan tan-u-col-1]
+            [~.rd .~1.5574077246549027]
+    ::  tan(col2=.~0) = 0.0
+    :-  %tan-unqual-rd-0
+        :-  [%tan tan-u-col-2]
+            [~.rd .~0]
+    ::  tan(col3=.~-1) = 0.11667561916354599
+    :-  %tan-unqual-rd-neg-1
+        :-  [%tan tan-u-col-3]
+            [~.rd .~0.11667561916355668]
+    ::  unqualified columns: @sd
+    ::  tan(col4=--0) = 0.0
+    :-  %tan-unqual-sd-0
+        :-  [%tan tan-u-col-4]
+            [~.rd .~0]
+    ::  tan(col5=--1) = 1.5574077246550349
+    :-  %tan-unqual-sd-1
+        :-  [%tan tan-u-col-5]
+            [~.rd .~1.5574077246549027]
+    ::  tan(col6=-1) = 0.11667561916354599
+    :-  %tan-unqual-sd-neg-1
+        :-  [%tan tan-u-col-6]
+            [~.rd .~0.11667561916355668]
+    ::  unqualified columns: @ud
+    ::  tan(col7=0) = 0.0
+    :-  %tan-unqual-ud-0
+        :-  [%tan tan-u-col-7]
+            [~.rd .~0]
+    ::  tan(col8=1) = 1.5574077246550349
+    :-  %tan-unqual-ud-1
+        :-  [%tan tan-u-col-8]
+            [~.rd .~1.5574077246549027]
+    ::  tan(col9=2) = -2.1850398632615189
+    :-  %tan-unqual-ud-2
+        :-  [%tan tan-u-col-9]
+            [~.rd .~-2.1850398632615189]
+  ==
+  ==
+::
+++  test-asin-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    asin-qual-map-meta
+    *(map @tas resolved-scalar)
+    asin-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  asin(1.0) = 1.5707963267948966
+    :-  %asin-lit-rd-1
+        :-  [%asin [~.rd .~1]]
+            [~.rd .~1.5707963267948966]
+    ::  asin(0.0) = 0.0
+    :-  %asin-lit-rd-0
+        :-  [%asin [~.rd .~0]]
+            [~.rd .~0]
+    ::  asin(-1.0) = -1.5707963267948966
+    :-  %asin-lit-rd-neg-1
+        :-  [%asin [~.rd .~-1]]
+            [~.rd .~-1.5707963267948966]
+    ::  literals: @sd
+    ::  asin(--0) = 0.0
+    :-  %asin-lit-sd-0
+        :-  [%asin [~.sd --0]]
+            [~.rd .~0]
+    ::  asin(--1) = 1.5707963267948966
+    :-  %asin-lit-sd-1
+        :-  [%asin [~.sd --1]]
+            [~.rd .~1.5707963267948966]
+    ::  asin(-1) = -1.5707963267948966
+    :-  %asin-lit-sd-neg-1
+        :-  [%asin [~.sd -1]]
+            [~.rd .~-1.5707963267948966]
+    ::  literals: @ud
+    ::  asin(0) = 0.0
+    :-  %asin-lit-ud-0
+        :-  [%asin [~.ud 0]]
+            [~.rd .~0]
+    ::  asin(1) = 1.5707963267948966
+    :-  %asin-lit-ud-1
+        :-  [%asin [~.ud 1]]
+            [~.rd .~1.5707963267948966]
+    ::  qualified columns: @rd
+    ::  asin(col1=.~1) = 1.5707963267948966
+    :-  %asin-qual-rd-1
+        :-  [%asin asin-q-col-1]
+            [~.rd .~1.5707963267948966]
+    ::  asin(col2=.~0) = 0.0
+    :-  %asin-qual-rd-0
+        :-  [%asin asin-q-col-2]
+            [~.rd .~0]
+    ::  asin(col3=.~-1) = -1.5707963267948966
+    :-  %asin-qual-rd-neg-1
+        :-  [%asin asin-q-col-3]
+            [~.rd .~-1.5707963267948966]
+    ::  qualified columns: @sd
+    ::  asin(col4=--0) = 0.0
+    :-  %asin-qual-sd-0
+        :-  [%asin asin-q-col-4]
+            [~.rd .~0]
+    ::  asin(col5=--1) = 1.5707963267948966
+    :-  %asin-qual-sd-1
+        :-  [%asin asin-q-col-5]
+            [~.rd .~1.5707963267948966]
+    ::  asin(col6=-1) = -1.5707963267948966
+    :-  %asin-qual-sd-neg-1
+        :-  [%asin asin-q-col-6]
+            [~.rd .~-1.5707963267948966]
+    ::  qualified columns: @ud
+    ::  asin(col7=0) = 0.0
+    :-  %asin-qual-ud-0
+        :-  [%asin asin-q-col-7]
+            [~.rd .~0]
+    ::  asin(col8=1) = 1.5707963267948966
+    :-  %asin-qual-ud-1
+        :-  [%asin asin-q-col-8]
+            [~.rd .~1.5707963267948966]
+  ==
+  ==
+::
+++  test-asin-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    asin-unqual-lookup
+    asin-unqual-map-meta
+    *(map @tas resolved-scalar)
+    asin-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  asin(col1=.~1) = 1.5707963267948966
+    :-  %asin-unqual-rd-1
+        :-  [%asin asin-u-col-1]
+            [~.rd .~1.5707963267948966]
+    ::  asin(col2=.~0) = 0.0
+    :-  %asin-unqual-rd-0
+        :-  [%asin asin-u-col-2]
+            [~.rd .~0]
+    ::  asin(col3=.~-1) = -1.5707963267948966
+    :-  %asin-unqual-rd-neg-1
+        :-  [%asin asin-u-col-3]
+            [~.rd .~-1.5707963267948966]
+    ::  unqualified columns: @sd
+    ::  asin(col4=--0) = 0.0
+    :-  %asin-unqual-sd-0
+        :-  [%asin asin-u-col-4]
+            [~.rd .~0]
+    ::  asin(col5=--1) = 1.5707963267948966
+    :-  %asin-unqual-sd-1
+        :-  [%asin asin-u-col-5]
+            [~.rd .~1.5707963267948966]
+    ::  asin(col6=-1) = -1.5707963267948966
+    :-  %asin-unqual-sd-neg-1
+        :-  [%asin asin-u-col-6]
+            [~.rd .~-1.5707963267948966]
+    ::  unqualified columns: @ud
+    ::  asin(col7=0) = 0.0
+    :-  %asin-unqual-ud-0
+        :-  [%asin asin-u-col-7]
+            [~.rd .~0]
+    ::  asin(col8=1) = 1.5707963267948966
+    :-  %asin-unqual-ud-1
+        :-  [%asin asin-u-col-8]
+            [~.rd .~1.5707963267948966]
+  ==
+  ==
+::
+++  test-acos-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    acos-qual-map-meta
+    *(map @tas resolved-scalar)
+    acos-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  acos(1.0) = 0.0
+    :-  %acos-lit-rd-1
+        :-  [%acos [~.rd .~1]]
+            [~.rd .~0]
+    ::  acos(0.0) = 1.5707963267948966
+    :-  %acos-lit-rd-0
+        :-  [%acos [~.rd .~0]]
+            [~.rd .~1.5707963267948966]
+    ::  acos(-1.0) = 3.141592653589793
+    :-  %acos-lit-rd-neg-1
+        :-  [%acos [~.rd .~-1]]
+            [~.rd .~3.141592653589793]
+    ::  literals: @sd
+    ::  acos(--0) = 1.5707963267948966
+    :-  %acos-lit-sd-0
+        :-  [%acos [~.sd --0]]
+            [~.rd .~1.5707963267948966]
+    ::  acos(--1) = 0.0
+    :-  %acos-lit-sd-1
+        :-  [%acos [~.sd --1]]
+            [~.rd .~0]
+    ::  acos(-1) = 3.141592653589793
+    :-  %acos-lit-sd-neg-1
+        :-  [%acos [~.sd -1]]
+            [~.rd .~3.141592653589793]
+    ::  literals: @ud
+    ::  acos(0) = 1.5707963267948966
+    :-  %acos-lit-ud-0
+        :-  [%acos [~.ud 0]]
+            [~.rd .~1.5707963267948966]
+    ::  acos(1) = 0.0
+    :-  %acos-lit-ud-1
+        :-  [%acos [~.ud 1]]
+            [~.rd .~0]
+    ::  qualified columns: @rd
+    ::  acos(col1=.~1) = 0.0
+    :-  %acos-qual-rd-1
+        :-  [%acos acos-q-col-1]
+            [~.rd .~0]
+    ::  acos(col2=.~0) = 1.5707963267948966
+    :-  %acos-qual-rd-0
+        :-  [%acos acos-q-col-2]
+            [~.rd .~1.5707963267948966]
+    ::  acos(col3=.~-1) = 3.141592653589793
+    :-  %acos-qual-rd-neg-1
+        :-  [%acos acos-q-col-3]
+            [~.rd .~3.141592653589793]
+    ::  qualified columns: @sd
+    ::  acos(col4=--0) = 1.5707963267948966
+    :-  %acos-qual-sd-0
+        :-  [%acos acos-q-col-4]
+            [~.rd .~1.5707963267948966]
+    ::  acos(col5=--1) = 0.0
+    :-  %acos-qual-sd-1
+        :-  [%acos acos-q-col-5]
+            [~.rd .~0]
+    ::  acos(col6=-1) = 3.141592653589793
+    :-  %acos-qual-sd-neg-1
+        :-  [%acos acos-q-col-6]
+            [~.rd .~3.141592653589793]
+    ::  qualified columns: @ud
+    ::  acos(col7=0) = 1.5707963267948966
+    :-  %acos-qual-ud-0
+        :-  [%acos acos-q-col-7]
+            [~.rd .~1.5707963267948966]
+    ::  acos(col8=1) = 0.0
+    :-  %acos-qual-ud-1
+        :-  [%acos acos-q-col-8]
+            [~.rd .~0]
+  ==
+  ==
+::
+++  test-acos-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    acos-unqual-lookup
+    acos-unqual-map-meta
+    *(map @tas resolved-scalar)
+    acos-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  acos(col1=.~1) = 0.0
+    :-  %acos-unqual-rd-1
+        :-  [%acos acos-u-col-1]
+            [~.rd .~0]
+    ::  acos(col2=.~0) = 1.5707963267948966
+    :-  %acos-unqual-rd-0
+        :-  [%acos acos-u-col-2]
+            [~.rd .~1.5707963267948966]
+    ::  acos(col3=.~-1) = 3.141592653589793
+    :-  %acos-unqual-rd-neg-1
+        :-  [%acos acos-u-col-3]
+            [~.rd .~3.141592653589793]
+    ::  unqualified columns: @sd
+    ::  acos(col4=--0) = 1.5707963267948966
+    :-  %acos-unqual-sd-0
+        :-  [%acos acos-u-col-4]
+            [~.rd .~1.5707963267948966]
+    ::  acos(col5=--1) = 0.0
+    :-  %acos-unqual-sd-1
+        :-  [%acos acos-u-col-5]
+            [~.rd .~0]
+    ::  acos(col6=-1) = 3.141592653589793
+    :-  %acos-unqual-sd-neg-1
+        :-  [%acos acos-u-col-6]
+            [~.rd .~3.141592653589793]
+    ::  unqualified columns: @ud
+    ::  acos(col7=0) = 1.5707963267948966
+    :-  %acos-unqual-ud-0
+        :-  [%acos acos-u-col-7]
+            [~.rd .~1.5707963267948966]
+    ::  acos(col8=1) = 0.0
+    :-  %acos-unqual-ud-1
+        :-  [%acos acos-u-col-8]
+            [~.rd .~0]
+  ==
+  ==
+::
+++  test-atan-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    atan-qual-map-meta
+    *(map @tas resolved-scalar)
+    atan-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  atan(1.0) = 0.7853981633790044
+    :-  %atan-lit-rd-1
+        :-  [%atan [~.rd .~1]]
+            [~.rd .~0.78539816339745139]
+    ::  atan(0.0) = 0.0
+    :-  %atan-lit-rd-0
+        :-  [%atan [~.rd .~0]]
+            [~.rd .~0]
+    ::  atan(-1.0) = -0.7853981633790044
+    :-  %atan-lit-rd-neg-1
+        :-  [%atan [~.rd .~-1]]
+            [~.rd .~-0.78539816339745139]
+    ::  literals: @sd
+    ::  atan(--0) = 0.0
+    :-  %atan-lit-sd-0
+        :-  [%atan [~.sd --0]]
+            [~.rd .~0]
+    ::  atan(--1) = 0.7853981633790044
+    :-  %atan-lit-sd-1
+        :-  [%atan [~.sd --1]]
+            [~.rd .~0.78539816339745139]
+    ::  atan(-1) = -0.7853981633790044
+    :-  %atan-lit-sd-neg-1
+        :-  [%atan [~.sd -1]]
+            [~.rd .~-0.78539816339745139]
+    ::  literals: @ud
+    ::  atan(0) = 0.0
+    :-  %atan-lit-ud-0
+        :-  [%atan [~.ud 0]]
+            [~.rd .~0]
+    ::  atan(1) = 0.7853981633790044
+    :-  %atan-lit-ud-1
+        :-  [%atan [~.ud 1]]
+            [~.rd .~0.78539816339745139]
+    ::  atan(2) = 1.1071487177940904
+    :-  %atan-lit-ud-2
+        :-  [%atan [~.ud 2]]
+            [~.rd .~1.1071487177940984]
+    ::  qualified columns: @rd
+    ::  atan(col1=.~1) = 0.7853981633790044
+    :-  %atan-qual-rd-1
+        :-  [%atan atan-q-col-1]
+            [~.rd .~0.78539816339745139]
+    ::  atan(col2=.~0) = 0.0
+    :-  %atan-qual-rd-0
+        :-  [%atan atan-q-col-2]
+            [~.rd .~0]
+    ::  atan(col3=.~-1) = -0.7853981633790044
+    :-  %atan-qual-rd-neg-1
+        :-  [%atan atan-q-col-3]
+            [~.rd .~-0.78539816339745139]
+    ::  qualified columns: @sd
+    ::  atan(col4=--0) = 0.0
+    :-  %atan-qual-sd-0
+        :-  [%atan atan-q-col-4]
+            [~.rd .~0]
+    ::  atan(col5=--1) = 0.7853981633790044
+    :-  %atan-qual-sd-1
+        :-  [%atan atan-q-col-5]
+            [~.rd .~0.78539816339745139]
+    ::  atan(col6=-1) = -0.7853981633790044
+    :-  %atan-qual-sd-neg-1
+        :-  [%atan atan-q-col-6]
+            [~.rd .~-0.78539816339745139]
+    ::  qualified columns: @ud
+    ::  atan(col7=0) = 0.0
+    :-  %atan-qual-ud-0
+        :-  [%atan atan-q-col-7]
+            [~.rd .~0]
+    ::  atan(col8=1) = 0.7853981633790044
+    :-  %atan-qual-ud-1
+        :-  [%atan atan-q-col-8]
+            [~.rd .~0.78539816339745139]
+    ::  atan(col9=2) = 1.1071487177940904
+    :-  %atan-qual-ud-2
+        :-  [%atan atan-q-col-9]
+            [~.rd .~1.1071487177940984]
+  ==
+  ==
+::
+++  test-atan-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    atan-unqual-lookup
+    atan-unqual-map-meta
+    *(map @tas resolved-scalar)
+    atan-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  atan(col1=.~1) = 0.7853981633790044
+    :-  %atan-unqual-rd-1
+        :-  [%atan atan-u-col-1]
+            [~.rd .~0.78539816339745139]
+    ::  atan(col2=.~0) = 0.0
+    :-  %atan-unqual-rd-0
+        :-  [%atan atan-u-col-2]
+            [~.rd .~0]
+    ::  atan(col3=.~-1) = -0.7853981633790044
+    :-  %atan-unqual-rd-neg-1
+        :-  [%atan atan-u-col-3]
+            [~.rd .~-0.78539816339745139]
+    ::  unqualified columns: @sd
+    ::  atan(col4=--0) = 0.0
+    :-  %atan-unqual-sd-0
+        :-  [%atan atan-u-col-4]
+            [~.rd .~0]
+    ::  atan(col5=--1) = 0.7853981633790044
+    :-  %atan-unqual-sd-1
+        :-  [%atan atan-u-col-5]
+            [~.rd .~0.78539816339745139]
+    ::  atan(col6=-1) = -0.7853981633790044
+    :-  %atan-unqual-sd-neg-1
+        :-  [%atan atan-u-col-6]
+            [~.rd .~-0.78539816339745139]
+    ::  unqualified columns: @ud
+    ::  atan(col7=0) = 0.0
+    :-  %atan-unqual-ud-0
+        :-  [%atan atan-u-col-7]
+            [~.rd .~0]
+    ::  atan(col8=1) = 0.7853981633790044
+    :-  %atan-unqual-ud-1
+        :-  [%atan atan-u-col-8]
+            [~.rd .~0.78539816339745139]
+    ::  atan(col9=2) = 1.1071487177940904
+    :-  %atan-unqual-ud-2
+        :-  [%atan atan-u-col-9]
+            [~.rd .~1.1071487177940984]
   ==
   ==
 ::
