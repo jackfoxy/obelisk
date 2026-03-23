@@ -24,13 +24,10 @@
           ==
   ^-  resolved-scalar
   ?-  -.scalar
-    %if-then-else
-      %:  prepare-if-then-else  scalar
-                                named-ctes
-                                qualifier-lookup
-                                map-meta
-                                resolved-scalars
-                                ==
+  ::
+    %arithmetic
+      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta resolved-scalars)
+
   ::
     %case
       (prepare-case scalar named-ctes qualifier-lookup map-meta resolved-scalars)
@@ -43,8 +40,15 @@
                             resolved-scalars
                             ==
   ::
-    %arithmetic
-      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta resolved-scalars)
+    %if-then-else
+      %:  prepare-if-then-else  scalar
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                ==
+  ::
+  ::  data functions
   ::
     %getutcdate
       !!
@@ -52,11 +56,13 @@
     %day
       !!
   ::
-     %month
+    %month
       !!
   ::
     %year
       !!
+  ::
+  ::  numeric functions
   ::
     %abs
       =/  expr  %:  evaluate-datum
@@ -96,7 +102,45 @@
             ==
   ::
     %log
-      !!
+      =/  expr  %:  evaluate-datum
+                    float-expression:;;(log:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %log, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  do-log
+        |=  [ns=number-systems val=@]  ^-  dime
+        ?-  ns
+            %rd
+              ?:  =(0 val)
+                ~|  "log(0) is not a number"  !!
+              ?.  (sig:rd `@rd`val)
+                ~|  "log({<val>}) is not a number"  !!
+              [~.rd (~(log rd:math [%z .~1e-15]) `@rd`val)]
+            %sd
+              ?:  =(0 val)
+                ~|  "log(0) is not a number"  !!
+              ?.  (syn:si `@s`val)
+                ~|  "log({<val>}) is not a number"  !!
+              [~.rd (~(log rd:math [%z .~1e-15]) (san:rd `@s`val))]
+            %ud
+              ?:  =(0 val)
+                ~|  "log(0) is not a number"  !!
+              [~.rd (~(log rd:math [%z .~1e-15]) (sun:rd val))]
+            ==
+      ?:  ?=(dime expr)
+        (do-log number-system +.expr)
+      :+  %fn
+        ~.rd
+        |=  =data-row
+        ^-  dime
+        (do-log number-system +:(f.expr data-row))
   ::
     %e
       [~.rd .~2.718281828459045]
@@ -571,6 +615,8 @@
               ?~  toi-result  ~|  "sqrt({<datum>}) is not a number"  !!
               [number-system (abs:si u.toi-result)]
             ==
+  ::
+  ::  string functions
   ::
     %len
       !!

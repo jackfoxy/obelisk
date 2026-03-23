@@ -812,6 +812,106 @@
                                  [%col6 5]                     ::  @ud 5
                              ==
 ::
+::  %log test helpers
+::  @rd: col1=.~1, col2=.~2, col3=.~0.1
+::  @sd: col4=--1, col5=--2, col6=--100
+::  @ud: col7=1,   col8=2,   col9=100
+::
+::  qualified: col1=@rd .~1, col2=@rd .~2, col3=@rd .~0.1
+::             col4=@sd --1, col5=@sd --2, col6=@sd --100
+::             col7=@ud 1,   col8=@ud 2,   col9=@ud 100
+::
+++  log-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.sd 0]
+                      [%column %col5 ~.sd 0]
+                      [%column %col6 ~.sd 0]
+                      [%column %col7 ~.ud 0]
+                      [%column %col8 ~.ud 0]
+                      [%column %col9 ~.ud 0]
+                      ==
+          ==
+::
+++  log-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  log-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  log-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  log-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  log-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+++  log-q-col-6  [%qualified-column qualified-table-1 %col6 ~]
+++  log-q-col-7  [%qualified-column qualified-table-1 %col7 ~]
+++  log-q-col-8  [%qualified-column qualified-table-1 %col8 ~]
+++  log-q-col-9  [%qualified-column qualified-table-1 %col9 ~]
+::
+++  log-qual-table-row  %-  mk-indexed-row
+                        :~  [%col1 .~1]                      ::  @rd 1.0
+                            [%col2 .~2]                      ::  @rd 2.0
+                            [%col3 .~0.1]                    ::  @rd 0.1
+                            [%col4 --1]                      ::  @sd --1
+                            [%col5 --2]                      ::  @sd --2
+                            [%col6 --100]                    ::  @sd --100
+                            [%col7 1]                        ::  @ud 1
+                            [%col8 2]                        ::  @ud 2
+                            [%col9 100]                      ::  @ud 100
+                        ==
+::
+::  unqualified: col1=@rd .~1, col2=@rd .~2, col3=@rd .~0.1
+::               col4=@sd --1, col5=@sd --2, col6=@sd --100
+::               col7=@ud 1,   col8=@ud 2,   col9=@ud 100
+::
+++  log-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.sd 0]
+                  [%column %col5 ~.sd 0]
+                  [%column %col6 ~.sd 0]
+                  [%column %col7 ~.ud 0]
+                  [%column %col8 ~.ud 0]
+                  [%column %col9 ~.ud 0]
+                  ==
+::
+++  log-unqual-lookup  %-  malt  %-  limo
+                       :~  [%col1 ~[qualified-table-1]]
+                           [%col2 ~[qualified-table-1]]
+                           [%col3 ~[qualified-table-1]]
+                           [%col4 ~[qualified-table-1]]
+                           [%col5 ~[qualified-table-1]]
+                           [%col6 ~[qualified-table-1]]
+                           [%col7 ~[qualified-table-1]]
+                           [%col8 ~[qualified-table-1]]
+                           [%col9 ~[qualified-table-1]]
+                       ==
+::
+++  log-u-col-1  [%unqualified-column %col1 ~]
+++  log-u-col-2  [%unqualified-column %col2 ~]
+++  log-u-col-3  [%unqualified-column %col3 ~]
+++  log-u-col-4  [%unqualified-column %col4 ~]
+++  log-u-col-5  [%unqualified-column %col5 ~]
+++  log-u-col-6  [%unqualified-column %col6 ~]
+++  log-u-col-7  [%unqualified-column %col7 ~]
+++  log-u-col-8  [%unqualified-column %col8 ~]
+++  log-u-col-9  [%unqualified-column %col9 ~]
+::
+++  log-unqual-table-row  %-  mk-indexed-row
+                          :~  [%col1 .~1]                    ::  @rd 1.0
+                              [%col2 .~2]                    ::  @rd 2.0
+                              [%col3 .~0.1]                  ::  @rd 0.1
+                              [%col4 --1]                    ::  @sd --1
+                              [%col5 --2]                    ::  @sd --2
+                              [%col6 --100]                  ::  @sd --100
+                              [%col7 1]                      ::  @ud 1
+                              [%col8 2]                      ::  @ud 2
+                              [%col9 100]                    ::  @ud 100
+                          ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -2023,6 +2123,163 @@
     :-  %min-unqual-ud-equal
         :-  [%min minmax-u-col-5 minmax-u-col-5]
             [~.ud 2]
+  ==
+  ==
+::
+::  %log tests
+::
+++  test-log-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    log-qual-map-meta
+    *(map @tas resolved-scalar)
+    log-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  log(1.0) = 0.0
+    :-  %log-lit-rd-1
+        :-  [%log [~.rd .~1] ~]
+            [~.rd .~0]
+    ::  log(2.0) = 0.6931471805589156
+    :-  %log-lit-rd-2
+        :-  [%log [~.rd .~2] ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(0.12) = -2.1202635359958357
+    :-  %log-lit-rd-0-12
+        :-  [%log [~.rd .~0.12] ~]
+            [~.rd 13.835.328.864.690.572.176]
+    ::  log(0.1) = -2.302585092782879
+    :-  %log-lit-rd-0-1
+        :-  [%log [~.rd .~0.1] ~]
+            [~.rd 13.835.739.416.338.191.600]
+    ::  log(0.2) = -1.6094379123624005
+    :-  %log-lit-rd-0-2
+        :-  [%log [~.rd .~0.2] ~]
+            [~.rd 13.833.299.120.010.136.851]
+    ::  log(2.2) = 0.7884573603622065
+    :-  %log-lit-rd-2-2
+        :-  [%log [~.rd .~2.2] ~]
+            [~.rd 4.605.277.012.093.944.509]
+    ::  log(100.0) = 4.605170181454591
+    :-  %log-lit-rd-100
+        :-  [%log [~.rd .~100] ~]
+            [~.rd 4.616.870.979.110.785.924]
+    ::  literals: @sd (positive integers only)
+    ::  log(--1) = 0.0
+    :-  %log-lit-sd-1
+        :-  [%log [~.sd --1] ~]
+            [~.rd .~0]
+    ::  log(--2) = 0.6931471805589156
+    :-  %log-lit-sd-2
+        :-  [%log [~.sd --2] ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(--100) = 4.605170181454591
+    :-  %log-lit-sd-100
+        :-  [%log [~.sd --100] ~]
+            [~.rd 4.616.870.979.110.785.924]
+    ::  literals: @ud
+    ::  log(1) = 0.0
+    :-  %log-lit-ud-1
+        :-  [%log [~.ud 1] ~]
+            [~.rd .~0]
+    ::  log(2) = 0.6931471805589156
+    :-  %log-lit-ud-2
+        :-  [%log [~.ud 2] ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(100) = 4.605170181454591
+    :-  %log-lit-ud-100
+        :-  [%log [~.ud 100] ~]
+            [~.rd 4.616.870.979.110.785.924]
+    ::  qualified columns: @rd
+    ::  log(col1=.~1) = 0.0
+    :-  %log-qual-rd-1
+        :-  [%log log-q-col-1 ~]
+            [~.rd .~0]
+    ::  log(col2=.~2) = 0.6931471805589156
+    :-  %log-qual-rd-2
+        :-  [%log log-q-col-2 ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(col3=.~0.1) = -2.302585092782879
+    :-  %log-qual-rd-0-1
+        :-  [%log log-q-col-3 ~]
+            [~.rd 13.835.739.416.338.191.600]
+    ::  qualified columns: @sd
+    ::  log(col4=--1) = 0.0
+    :-  %log-qual-sd-1
+        :-  [%log log-q-col-4 ~]
+            [~.rd .~0]
+    ::  log(col5=--2) = 0.6931471805589156
+    :-  %log-qual-sd-2
+        :-  [%log log-q-col-5 ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(col6=--100) = 4.605170181454591
+    :-  %log-qual-sd-100
+        :-  [%log log-q-col-6 ~]
+            [~.rd 4.616.870.979.110.785.924]
+    ::  qualified columns: @ud
+    ::  log(col7=1) = 0.0
+    :-  %log-qual-ud-1
+        :-  [%log log-q-col-7 ~]
+            [~.rd .~0]
+    ::  log(col8=2) = 0.6931471805589156
+    :-  %log-qual-ud-2
+        :-  [%log log-q-col-8 ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(col9=100) = 4.605170181454591
+    :-  %log-qual-ud-100
+        :-  [%log log-q-col-9 ~]
+            [~.rd 4.616.870.979.110.785.924]
+  ==
+  ==
+::
+++  test-log-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    log-unqual-lookup
+    log-unqual-map-meta
+    *(map @tas resolved-scalar)
+    log-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  log(col1=.~1) = 0.0
+    :-  %log-unqual-rd-1
+        :-  [%log log-u-col-1 ~]
+            [~.rd .~0]
+    ::  log(col2=.~2) = 0.6931471805589156
+    :-  %log-unqual-rd-2
+        :-  [%log log-u-col-2 ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(col3=.~0.1) = -2.302585092782879
+    :-  %log-unqual-rd-0-1
+        :-  [%log log-u-col-3 ~]
+            [~.rd 13.835.739.416.338.191.600]
+    ::  unqualified columns: @sd
+    ::  log(col4=--1) = 0.0
+    :-  %log-unqual-sd-1
+        :-  [%log log-u-col-4 ~]
+            [~.rd .~0]
+    ::  log(col5=--2) = 0.6931471805589156
+    :-  %log-unqual-sd-2
+        :-  [%log log-u-col-5 ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(col6=--100) = 4.605170181454591
+    :-  %log-unqual-sd-100
+        :-  [%log log-u-col-6 ~]
+            [~.rd 4.616.870.979.110.785.924]
+    ::  unqualified columns: @ud
+    ::  log(col7=1) = 0.0
+    :-  %log-unqual-ud-1
+        :-  [%log log-u-col-7 ~]
+            [~.rd .~0]
+    ::  log(col8=2) = 0.6931471805589156
+    :-  %log-unqual-ud-2
+        :-  [%log log-u-col-8 ~]
+            [~.rd 4.604.418.534.313.441.763]
+    ::  log(col9=100) = 4.605170181454591
+    :-  %log-unqual-ud-100
+        :-  [%log log-u-col-9 ~]
+            [~.rd 4.616.870.979.110.785.924]
   ==
   ==
 ::
