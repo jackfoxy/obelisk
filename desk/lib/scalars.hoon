@@ -1221,7 +1221,9 @@
                        type.l
   =/  r-number-system  ?:  ?=(dime r)  -.r
                        type.r
-  ?.  =(l-number-system r-number-system)
+  ?.  ?|  =(l-number-system r-number-system)
+          &(=(%ket operator.scalar) ?=(number-systems r-number-system))
+          ==
     ~|  "number system conflict: ".
         "{<l-number-system>} {<operator.scalar>} {<r-number-system>}"
         !!
@@ -1398,43 +1400,54 @@
       ::
       %ket
           ?:  &(?=(dime l) ?=(dime r))
-          ?-  l-number-system
-            ::
-            %rd  [-.l (~(pow rd:math [%z .~1e-15]) +.l +.r)]
-            ::
-            %sd  ~|("exponentiation not implemented for @sd" !!)
-            ::
-            %ud  [-.l (pow +.l +.r)]
-            ==
-        :+  %fn
-            l-number-system
-            |=  =data-row
-            ^-  dime
+          =/  l-rd
             ?-  l-number-system
-              ::
-              %rd
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  :-  l-number-system
-                      (~(pow rd:math [%z .~1e-15]) +.l +:(f.r data-row))
-                ?:  ?=(dime r)
-                  :-  l-number-system
-                      (~(pow rd:math [%z .~1e-15]) +:(f.l data-row) +.r)
-                :-  l-number-system
-                    %+  ~(pow rd:math [%z .~1e-15])  +:(f.l data-row)
-                                                     +:(f.r data-row)
-              ::
-              %sd
-                ~|("exponentiation not implemented for @sd" !!)
-              ::
-              %ud
-                ?:  ?=(dime l)
-                  ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (pow +.l +:(f.r data-row))]
-                ?:  ?=(dime r)
-                  [l-number-system (pow +:(f.l data-row) +.r)]
-                [l-number-system (pow +:(f.l data-row) +:(f.r data-row))]
-              ==
+              %rd  +.l
+              %ud  (sun:rd +.l)
+              %sd  (san:rd `@s`+.l)
+            ==
+          =/  r-rd
+            ?:  =(r-number-system %rd)  +.r
+            ?:  =(r-number-system %ud)  (sun:rd +.r)
+            (san:rd `@s`+.r)
+          ?:  (lth:rd r-rd .~0)
+            ~|("negative exponent {<+.r>} not supported" !!)
+          =/  res-rd
+            ?:  =(r-number-system %rd)
+              (~(pow rd:math [%z .~1e-15]) l-rd r-rd)
+            (~(pow-n rd:math [%z .~1e-15]) l-rd r-rd)
+          ?-  l-number-system
+            %rd  [l-number-system res-rd]
+            %ud  [l-number-system (abs:si `@s`(need (toi:rd res-rd)))]
+            %sd  [l-number-system (need (toi:rd res-rd))]
+          ==
+      :+  %fn
+          l-number-system
+          |=  =data-row
+          ^-  dime
+          =/  l-raw  ?:(?=(dime l) +.l +:(f.l data-row))
+          =/  r-raw  ?:(?=(dime r) +.r +:(f.r data-row))
+          =/  l-rd
+            ?-  l-number-system
+              %rd  l-raw
+              %ud  (sun:rd l-raw)
+              %sd  (san:rd `@s`l-raw)
+            ==
+          =/  r-rd
+            ?:  =(r-number-system %rd)  r-raw
+            ?:  =(r-number-system %ud)  (sun:rd r-raw)
+            (san:rd `@s`r-raw)
+          ?:  (lth:rd r-rd .~0)
+            ~|("negative exponent {<r-raw>} not supported" !!)
+          =/  res-rd
+            ?:  =(r-number-system %rd)
+              (~(pow rd:math [%z .~1e-15]) l-rd r-rd)
+            (~(pow-n rd:math [%z .~1e-15]) l-rd r-rd)
+          ?-  l-number-system
+            %rd  [l-number-system res-rd]
+            %ud  [l-number-system (abs:si `@s`(need (toi:rd res-rd)))]
+            %sd  [l-number-system (need (toi:rd res-rd))]
+          ==
       ::
       %cen
           ?:  &(?=(dime l) ?=(dime r))
