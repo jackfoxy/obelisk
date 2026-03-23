@@ -221,7 +221,7 @@
 ::
 ::  tests
 ::
-++  test-qual-addition-rd
+++  test-addition-qual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -267,7 +267,7 @@
   ==
   ==
 ::
-++  test-qual-addition-sd
+++  test-addition-qual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -313,7 +313,7 @@
   ==
   ==
 ::
-++  test-qual-addition-ud
+++  test-addition-qual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -359,7 +359,7 @@
   ==
   ==
 ::
-++  test-qual-subtraction-rd
+++  test-subtraction-qual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -405,7 +405,7 @@
   ==
   ==
 ::
-++  test-qual-subtraction-sd
+++  test-subtraction-qual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -451,7 +451,7 @@
   ==
   ==
 ::
-++  test-qual-subtraction-ud
+++  test-subtraction-qual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -497,7 +497,7 @@
   ==
   ==
 ::
-++  test-qual-multiplication-rd
+++  test-multiplication-qual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -543,7 +543,7 @@
   ==
   ==
 ::
-++  test-qual-multiplication-sd
+++  test-multiplication-qual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -589,7 +589,7 @@
   ==
   ==
 ::
-++  test-qual-multiplication-ud
+++  test-multiplication-qual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -635,7 +635,7 @@
   ==
   ==
 ::
-++  test-qual-division-rd
+++  test-division-qual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -681,7 +681,7 @@
   ==
   ==
 ::
-++  test-qual-division-sd
+++  test-division-qual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -727,7 +727,7 @@
   ==
   ==
 ::
-++  test-qual-division-ud
+++  test-division-qual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -773,7 +773,7 @@
   ==
   ==
 ::
-++  test-qual-exponentiation-rd
+++  test-exponentiation-qual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -847,7 +847,7 @@
   ==
   ==
 ::
-++  test-qual-exponentiation-ud
+++  test-exponentiation-qual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -921,7 +921,7 @@
   ==
   ==
 ::
-++  test-qual-exponentiation-sd
+++  test-exponentiation-qual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1009,7 +1009,7 @@
   ==
   ==
 ::
-++  test-qual-remainder-sd
+++  test-remainder-qual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1048,7 +1048,7 @@
   ==
   ==
 ::
-++  test-qual-remainder-ud
+++  test-remainder-qual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1087,7 +1087,7 @@
   ==
   ==
 ::
-++  test-unqual-addition-rd
+++  test-addition-unqual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1112,7 +1112,7 @@
   ==
   ==
 ::
-++  test-unqual-addition-sd
+++  test-addition-unqual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1137,7 +1137,7 @@
   ==
   ==
 ::
-++  test-unqual-addition-ud
+++  test-addition-unqual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1162,7 +1162,7 @@
   ==
   ==
 ::
-++  test-unqual-subtraction-rd
+++  test-subtraction-unqual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1187,7 +1187,7 @@
   ==
   ==
 ::
-++  test-unqual-subtraction-sd
+++  test-subtraction-unqual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1212,7 +1212,7 @@
   ==
   ==
 ::
-++  test-unqual-subtraction-ud
+++  test-subtraction-unqual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1237,7 +1237,7 @@
   ==
   ==
 ::
-++  test-unqual-multiplication-rd
+++  test-multiplication-unqual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1262,7 +1262,7 @@
   ==
   ==
 ::
-++  test-unqual-multiplication-sd
+++  test-multiplication-unqual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1287,7 +1287,7 @@
   ==
   ==
 ::
-++  test-unqual-multiplication-ud
+++  test-multiplication-unqual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1312,7 +1312,7 @@
   ==
   ==
 ::
-++  test-unqual-division-rd
+++  test-division-unqual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1337,7 +1337,7 @@
   ==
   ==
 ::
-++  test-unqual-division-sd
+++  test-division-unqual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1362,7 +1362,7 @@
   ==
   ==
 ::
-++  test-unqual-division-ud
+++  test-division-unqual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1387,7 +1387,7 @@
   ==
   ==
 ::
-++  test-unqual-exponentiation-rd
+++  test-exponentiation-unqual-rd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1461,7 +1461,7 @@
   ==
   ==
 ::
-++  test-unqual-exponentiation-ud
+++  test-exponentiation-unqual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1514,7 +1514,7 @@
   ==
   ==
 ::
-++  test-unqual-exponentiation-sd
+++  test-exponentiation-unqual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1602,7 +1602,7 @@
   ==
   ==
 ::
-++  test-unqual-remainder-sd
+++  test-remainder-unqual-sd
   %:  run-scalar-tests
     ctes
     qual-lookup
@@ -1641,7 +1641,7 @@
   ==
   ==
 ::
-++  test-unqual-remainder-ud
+++  test-remainder-unqual-ud
   %:  run-scalar-tests
     ctes
     qual-lookup

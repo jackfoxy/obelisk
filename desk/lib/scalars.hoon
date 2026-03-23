@@ -232,13 +232,46 @@
       [~.rd .~3.141592653589793]
   ::
     %rand
-      !!
+      ~|("%rand not implemented" !!)
   ::
     %tau
       [~.rd .~6.283185307179586]
   ::
     %degrees
-      !!
+      =/  expr  %:  evaluate-datum
+                    numeric-expression:;;(degrees:ast scalar)
+                    named-ctes
+                    qualifier-lookup
+                    map-meta
+                    resolved-scalars
+                    ==
+      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(number-systems number-system)
+        ~|  "{<number-system>} not a supported number system for %degrees, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      =/  factor  (div:rd .~360 .~6.283185307179586)
+      =/  do-degrees
+        |=  [ns=number-systems val=@]  ^-  dime
+        =/  rd-val
+          ?-  ns
+              %rd  `@rd`val
+              %sd  (san:rd `@s`val)
+              %ud  (sun:rd val)
+              ==
+        =/  res-rd  (mul:rd rd-val factor)
+        ?-  ns
+            %rd  [ns res-rd]
+            %sd  [ns (need (toi:rd (add:rd res-rd ?:((sig:rd res-rd) .~0.5 .~-0.5))))]
+            %ud  [ns (abs:si `@s`(need (toi:rd (add:rd res-rd .~0.5))))]
+            ==
+      ?:  ?=(dime expr)
+        (do-degrees number-system +.expr)
+      :+  %fn
+        number-system
+        |=  =data-row
+        ^-  dime
+        (do-degrees number-system +:(f.expr data-row))
   ::
     %sin
       =/  expr  %:  evaluate-datum

@@ -1562,6 +1562,151 @@
                                  [%col6 2]                   ::  @ud x=2
                              ==
 ::
+::  %degrees test helpers
+::  @rd: col1=.~0, col2=.~1, col3=.~3.14, col4=.~-3.14, col5=.~24, col6=.~-24
+::  @sd: col7=--0, col8=--1, col9=--3, col10=-3, col11=--24, col12=-24
+::  @ud: col13=0, col14=1, col15=3, col16=24
+::
+::  qualified: col1..col6=@rd, col7..col12=@sd, col13..col16=@ud
+::
+++  degrees-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      [%column %col3 ~.rd 0]
+                      [%column %col4 ~.rd 0]
+                      [%column %col5 ~.rd 0]
+                      [%column %col6 ~.rd 0]
+                      [%column %col7 ~.sd 0]
+                      [%column %col8 ~.sd 0]
+                      [%column %col9 ~.sd 0]
+                      [%column %col10 ~.sd 0]
+                      [%column %col11 ~.sd 0]
+                      [%column %col12 ~.sd 0]
+                      [%column %col13 ~.ud 0]
+                      [%column %col14 ~.ud 0]
+                      [%column %col15 ~.ud 0]
+                      [%column %col16 ~.ud 0]
+                      ==
+          ==
+::
+++  degrees-q-col-1   [%qualified-column qualified-table-1 %col1 ~]
+++  degrees-q-col-2   [%qualified-column qualified-table-1 %col2 ~]
+++  degrees-q-col-3   [%qualified-column qualified-table-1 %col3 ~]
+++  degrees-q-col-4   [%qualified-column qualified-table-1 %col4 ~]
+++  degrees-q-col-5   [%qualified-column qualified-table-1 %col5 ~]
+++  degrees-q-col-6   [%qualified-column qualified-table-1 %col6 ~]
+++  degrees-q-col-7   [%qualified-column qualified-table-1 %col7 ~]
+++  degrees-q-col-8   [%qualified-column qualified-table-1 %col8 ~]
+++  degrees-q-col-9   [%qualified-column qualified-table-1 %col9 ~]
+++  degrees-q-col-10  [%qualified-column qualified-table-1 %col10 ~]
+++  degrees-q-col-11  [%qualified-column qualified-table-1 %col11 ~]
+++  degrees-q-col-12  [%qualified-column qualified-table-1 %col12 ~]
+++  degrees-q-col-13  [%qualified-column qualified-table-1 %col13 ~]
+++  degrees-q-col-14  [%qualified-column qualified-table-1 %col14 ~]
+++  degrees-q-col-15  [%qualified-column qualified-table-1 %col15 ~]
+++  degrees-q-col-16  [%qualified-column qualified-table-1 %col16 ~]
+::
+++  degrees-qual-table-row  %-  mk-indexed-row
+                             :~  [%col1 .~0]       ::  @rd 0.0
+                                 [%col2 .~1]       ::  @rd 1.0
+                                 [%col3 .~3.14]    ::  @rd 3.14
+                                 [%col4 .~-3.14]   ::  @rd -3.14
+                                 [%col5 .~24]      ::  @rd 24.0
+                                 [%col6 .~-24]     ::  @rd -24.0
+                                 [%col7 --0]       ::  @sd --0
+                                 [%col8 --1]       ::  @sd --1
+                                 [%col9 --3]       ::  @sd --3
+                                 [%col10 -3]       ::  @sd -3
+                                 [%col11 --24]     ::  @sd --24
+                                 [%col12 -24]      ::  @sd -24
+                                 [%col13 0]        ::  @ud 0
+                                 [%col14 1]        ::  @ud 1
+                                 [%col15 3]        ::  @ud 3
+                                 [%col16 24]       ::  @ud 24
+                             ==
+::
+::  unqualified: col1..col6=@rd, col7..col12=@sd, col13..col16=@ud
+::
+++  degrees-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col1 ~.rd 0]
+                  [%column %col2 ~.rd 0]
+                  [%column %col3 ~.rd 0]
+                  [%column %col4 ~.rd 0]
+                  [%column %col5 ~.rd 0]
+                  [%column %col6 ~.rd 0]
+                  [%column %col7 ~.sd 0]
+                  [%column %col8 ~.sd 0]
+                  [%column %col9 ~.sd 0]
+                  [%column %col10 ~.sd 0]
+                  [%column %col11 ~.sd 0]
+                  [%column %col12 ~.sd 0]
+                  [%column %col13 ~.ud 0]
+                  [%column %col14 ~.ud 0]
+                  [%column %col15 ~.ud 0]
+                  [%column %col16 ~.ud 0]
+                  ==
+::
+++  degrees-unqual-lookup  %-  malt  %-  limo
+                           :~  [%col1 ~[qualified-table-1]]
+                               [%col2 ~[qualified-table-1]]
+                               [%col3 ~[qualified-table-1]]
+                               [%col4 ~[qualified-table-1]]
+                               [%col5 ~[qualified-table-1]]
+                               [%col6 ~[qualified-table-1]]
+                               [%col7 ~[qualified-table-1]]
+                               [%col8 ~[qualified-table-1]]
+                               [%col9 ~[qualified-table-1]]
+                               [%col10 ~[qualified-table-1]]
+                               [%col11 ~[qualified-table-1]]
+                               [%col12 ~[qualified-table-1]]
+                               [%col13 ~[qualified-table-1]]
+                               [%col14 ~[qualified-table-1]]
+                               [%col15 ~[qualified-table-1]]
+                               [%col16 ~[qualified-table-1]]
+                           ==
+::
+++  degrees-u-col-1   [%unqualified-column %col1 ~]
+++  degrees-u-col-2   [%unqualified-column %col2 ~]
+++  degrees-u-col-3   [%unqualified-column %col3 ~]
+++  degrees-u-col-4   [%unqualified-column %col4 ~]
+++  degrees-u-col-5   [%unqualified-column %col5 ~]
+++  degrees-u-col-6   [%unqualified-column %col6 ~]
+++  degrees-u-col-7   [%unqualified-column %col7 ~]
+++  degrees-u-col-8   [%unqualified-column %col8 ~]
+++  degrees-u-col-9   [%unqualified-column %col9 ~]
+++  degrees-u-col-10  [%unqualified-column %col10 ~]
+++  degrees-u-col-11  [%unqualified-column %col11 ~]
+++  degrees-u-col-12  [%unqualified-column %col12 ~]
+++  degrees-u-col-13  [%unqualified-column %col13 ~]
+++  degrees-u-col-14  [%unqualified-column %col14 ~]
+++  degrees-u-col-15  [%unqualified-column %col15 ~]
+++  degrees-u-col-16  [%unqualified-column %col16 ~]
+::
+++  degrees-unqual-table-row  %-  mk-indexed-row
+                               :~  [%col1 .~0]       ::  @rd 0.0
+                                   [%col2 .~1]       ::  @rd 1.0
+                                   [%col3 .~3.14]    ::  @rd 3.14
+                                   [%col4 .~-3.14]   ::  @rd -3.14
+                                   [%col5 .~24]      ::  @rd 24.0
+                                   [%col6 .~-24]     ::  @rd -24.0
+                                   [%col7 --0]       ::  @sd --0
+                                   [%col8 --1]       ::  @sd --1
+                                   [%col9 --3]       ::  @sd --3
+                                   [%col10 -3]       ::  @sd -3
+                                   [%col11 --24]     ::  @sd --24
+                                   [%col12 -24]      ::  @sd -24
+                                   [%col13 0]        ::  @ud 0
+                                   [%col14 1]        ::  @ud 1
+                                   [%col15 3]        ::  @ud 3
+                                   [%col16 24]       ::  @ud 24
+                               ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -3930,6 +4075,229 @@
     :-  %atan2-unqual-ud-y-ud-x
         :-  [%atan2 atan2-u-col-5 atan2-u-col-6]
             [~.rd .~0.46364760900080748]
+  ==
+  ==
+::
+++  test-degrees-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    degrees-qual-map-meta
+    *(map @tas resolved-scalar)
+    degrees-qual-table-row
+    :~
+    ::  literals: @rd
+    ::  degrees(0.0) = 0.0
+    :-  %degrees-lit-rd-0
+        :-  [%degrees [~.rd .~0]]
+            [~.rd .~0]
+    ::  degrees(1.0) = 57.29577951308232
+    :-  %degrees-lit-rd-1
+        :-  [%degrees [~.rd .~1]]
+            [~.rd .~57.29577951308232]
+    ::  degrees(3.14) ~= 179.9087
+    :-  %degrees-lit-rd-3-14
+        :-  [%degrees [~.rd .~3.14]]
+            [~.rd .~179.90874767107848]
+    ::  degrees(-3.14) ~= -179.9087
+    :-  %degrees-lit-rd-neg-3-14
+        :-  [%degrees [~.rd .~-3.14]]
+            [~.rd .~-179.90874767107848]
+    ::  degrees(24.0) ~= 1375.0987
+    :-  %degrees-lit-rd-24
+        :-  [%degrees [~.rd .~24]]
+            [~.rd .~1375.0987083139757]
+    ::  degrees(-24.0) ~= -1375.0987
+    :-  %degrees-lit-rd-neg-24
+        :-  [%degrees [~.rd .~-24]]
+            [~.rd .~-1375.0987083139757]
+    ::  literals: @sd
+    ::  degrees(--0) = --0
+    :-  %degrees-lit-sd-0
+        :-  [%degrees [~.sd --0]]
+            [~.sd --0]
+    ::  degrees(--1) = --57
+    :-  %degrees-lit-sd-1
+        :-  [%degrees [~.sd --1]]
+            [~.sd --57]
+    ::  degrees(--3) = --172
+    :-  %degrees-lit-sd-3
+        :-  [%degrees [~.sd --3]]
+            [~.sd --172]
+    ::  degrees(-3) = -172
+    :-  %degrees-lit-sd-neg-3
+        :-  [%degrees [~.sd -3]]
+            [~.sd -172]
+    ::  degrees(--24) = --1.375
+    :-  %degrees-lit-sd-24
+        :-  [%degrees [~.sd --24]]
+            [~.sd --1.375]
+    ::  degrees(-24) = -1.375
+    :-  %degrees-lit-sd-neg-24
+        :-  [%degrees [~.sd -24]]
+            [~.sd -1.375]
+    ::  literals: @ud
+    ::  degrees(0) = 0
+    :-  %degrees-lit-ud-0
+        :-  [%degrees [~.ud 0]]
+            [~.ud 0]
+    ::  degrees(1) = 57
+    :-  %degrees-lit-ud-1
+        :-  [%degrees [~.ud 1]]
+            [~.ud 57]
+    ::  degrees(3) = 172
+    :-  %degrees-lit-ud-3
+        :-  [%degrees [~.ud 3]]
+            [~.ud 172]
+    ::  degrees(24) = 1.375
+    :-  %degrees-lit-ud-24
+        :-  [%degrees [~.ud 24]]
+            [~.ud 1.375]
+    ::  qualified columns: @rd
+    ::  degrees(col1=.~0) = .~0
+    :-  %degrees-qual-rd-0
+        :-  [%degrees degrees-q-col-1]
+            [~.rd .~0]
+    ::  degrees(col2=.~1) = .~57.29577951308232
+    :-  %degrees-qual-rd-1
+        :-  [%degrees degrees-q-col-2]
+            [~.rd .~57.29577951308232]
+    ::  degrees(col3=.~3.14) ~= .~179.9087
+    :-  %degrees-qual-rd-3-14
+        :-  [%degrees degrees-q-col-3]
+            [~.rd .~179.90874767107848]
+    ::  degrees(col4=.~-3.14) ~= .~-179.9087
+    :-  %degrees-qual-rd-neg-3-14
+        :-  [%degrees degrees-q-col-4]
+            [~.rd .~-179.90874767107848]
+    ::  degrees(col5=.~24) ~= .~1375.0987
+    :-  %degrees-qual-rd-24
+        :-  [%degrees degrees-q-col-5]
+            [~.rd .~1375.0987083139757]
+    ::  degrees(col6=.~-24) ~= .~-1375.0987
+    :-  %degrees-qual-rd-neg-24
+        :-  [%degrees degrees-q-col-6]
+            [~.rd .~-1375.0987083139757]
+    ::  qualified columns: @sd
+    ::  degrees(col7=--0) = --0
+    :-  %degrees-qual-sd-0
+        :-  [%degrees degrees-q-col-7]
+            [~.sd --0]
+    ::  degrees(col8=--1) = --180
+    :-  %degrees-qual-sd-1
+        :-  [%degrees degrees-q-col-8]
+            [~.sd --57]
+    ::  degrees(col9=--3) = --540
+    :-  %degrees-qual-sd-3
+        :-  [%degrees degrees-q-col-9]
+            [~.sd --172]
+    ::  degrees(col10=-3) = -540
+    :-  %degrees-qual-sd-neg-3
+        :-  [%degrees degrees-q-col-10]
+            [~.sd -172]
+    ::  degrees(col11=--24)
+    :-  %degrees-qual-sd-24
+        :-  [%degrees degrees-q-col-11]
+            [~.sd --1.375]
+    ::  degrees(col12=-24) = -4320
+    :-  %degrees-qual-sd-neg-24
+        :-  [%degrees degrees-q-col-12]
+            [~.sd -1.375]
+    ::  qualified columns: @ud
+    ::  degrees(col13=0) = 0
+    :-  %degrees-qual-ud-0
+        :-  [%degrees degrees-q-col-13]
+            [~.ud 0]
+    ::  degrees(col14=1) = 180
+    :-  %degrees-qual-ud-1
+        :-  [%degrees degrees-q-col-14]
+            [~.ud 57]
+    ::  degrees(col15=3) = 540
+    :-  %degrees-qual-ud-3
+        :-  [%degrees degrees-q-col-15]
+            [~.ud 172]
+    ::  degrees(col16=24)
+    :-  %degrees-qual-ud-24
+        :-  [%degrees degrees-q-col-16]
+            [~.ud 1.375]
+  ==
+  ==
+::
+++  test-degrees-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    degrees-unqual-lookup
+    degrees-unqual-map-meta
+    *(map @tas resolved-scalar)
+    degrees-unqual-table-row
+    :~
+    ::  unqualified columns: @rd
+    ::  degrees(col1=.~0) = .~0
+    :-  %degrees-unqual-rd-0
+        :-  [%degrees degrees-u-col-1]
+            [~.rd .~0]
+    ::  degrees(col2=.~1) = .~57.29577951308232
+    :-  %degrees-unqual-rd-1
+        :-  [%degrees degrees-u-col-2]
+            [~.rd .~57.29577951308232]
+    ::  degrees(col3=.~3.14) ~= .~179.9087
+    :-  %degrees-unqual-rd-3-14
+        :-  [%degrees degrees-u-col-3]
+            [~.rd .~179.90874767107848]
+    ::  degrees(col4=.~-3.14) ~= .~-179.9087
+    :-  %degrees-unqual-rd-neg-3-14
+        :-  [%degrees degrees-u-col-4]
+            [~.rd .~-179.90874767107848]
+    ::  degrees(col5=.~24) ~= .~1375.0987
+    :-  %degrees-unqual-rd-24
+        :-  [%degrees degrees-u-col-5]
+            [~.rd .~1375.0987083139757]
+    ::  degrees(col6=.~-24) ~= .~-1375.0987
+    :-  %degrees-unqual-rd-neg-24
+        :-  [%degrees degrees-u-col-6]
+            [~.rd .~-1375.0987083139757]
+    ::  unqualified columns: @sd
+    ::  degrees(col7=--0) = --0
+    :-  %degrees-unqual-sd-0
+        :-  [%degrees degrees-u-col-7]
+            [~.sd --0]
+    ::  degrees(col8=--1) = --180
+    :-  %degrees-unqual-sd-1
+        :-  [%degrees degrees-u-col-8]
+            [~.sd --57]
+    ::  degrees(col9=--3) = --540
+    :-  %degrees-unqual-sd-3
+        :-  [%degrees degrees-u-col-9]
+            [~.sd --172]
+    ::  degrees(col10=-3) = -540
+    :-  %degrees-unqual-sd-neg-3
+        :-  [%degrees degrees-u-col-10]
+            [~.sd -172]
+    ::  degrees(col11=--24)
+    :-  %degrees-unqual-sd-24
+        :-  [%degrees degrees-u-col-11]
+            [~.sd --1.375]
+    ::  degrees(col12=-24) = -4320
+    :-  %degrees-unqual-sd-neg-24
+        :-  [%degrees degrees-u-col-12]
+            [~.sd -1.375]
+    ::  unqualified columns: @ud
+    ::  degrees(col13=0) = 0
+    :-  %degrees-unqual-ud-0
+        :-  [%degrees degrees-u-col-13]
+            [~.ud 0]
+    ::  degrees(col14=1) = 180
+    :-  %degrees-unqual-ud-1
+        :-  [%degrees degrees-u-col-14]
+            [~.ud 57]
+    ::  degrees(col15=3) = 540
+    :-  %degrees-unqual-ud-3
+        :-  [%degrees degrees-u-col-15]
+            [~.ud 172]
+    ::  degrees(col16=24)
+    :-  %degrees-unqual-ud-24
+        :-  [%degrees degrees-u-col-16]
+            [~.ud 1.375]
   ==
   ==
 ::
