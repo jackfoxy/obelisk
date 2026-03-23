@@ -1653,6 +1653,31 @@
     ==
   ==
 ::
+::  constant tests
+::
+++  test-constants
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    *(map @tas resolved-scalar)
+    table-row
+    :~
+    :-  %e
+        :-  [%e ~]
+            [~.rd .~2.718281828459045]
+    :-  %phi
+        :-  [%phi ~]
+            [~.rd .~1.618033988749895]
+    :-  %pi
+        :-  [%pi ~]
+            [~.rd .~3.141592653589793]
+    :-  %tau
+        :-  [%tau ~]
+            [~.rd .~6.283185307179586]
+  ==
+  ==
+::
 ::  %max tests
 ::
 ++  test-max-qual
