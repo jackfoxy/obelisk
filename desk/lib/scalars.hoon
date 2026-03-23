@@ -21,16 +21,17 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   ?-  -.scalar
   ::
     %arithmetic
-      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta resolved-scalars)
+      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta resolved-scalars bowl)
 
   ::
     %case
-      (prepare-case scalar named-ctes qualifier-lookup map-meta resolved-scalars)
+      (prepare-case scalar named-ctes qualifier-lookup map-meta resolved-scalars bowl)
   ::
     %coalesce
       %:  prepare-coalesce  scalar
@@ -38,6 +39,7 @@
                             qualifier-lookup
                             map-meta
                             resolved-scalars
+                            bowl
                             ==
   ::
     %if-then-else
@@ -46,12 +48,13 @@
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
+                                bowl
                                 ==
   ::
   ::  data functions
   ::
     %getutcdate
-      !!
+      [~.da now.bowl]
   ::
     %day
       !!
@@ -71,6 +74,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -108,6 +112,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -152,6 +157,7 @@
                      qualifier-lookup
                      map-meta
                      resolved-scalars
+                     bowl
                      ==
       =/  expr2  %:  evaluate-datum
                      numeric-expression-2:;;(max:ast scalar)
@@ -159,6 +165,7 @@
                      qualifier-lookup
                      map-meta
                      resolved-scalars
+                     bowl
                      ==
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
@@ -192,6 +199,7 @@
                      qualifier-lookup
                      map-meta
                      resolved-scalars
+                     bowl
                      ==
       =/  expr2  %:  evaluate-datum
                      numeric-expression-2:;;(min:ast scalar)
@@ -199,6 +207,7 @@
                      qualifier-lookup
                      map-meta
                      resolved-scalars
+                     bowl
                      ==
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
@@ -244,6 +253,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -280,6 +290,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -310,6 +321,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -340,6 +352,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -370,6 +383,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -400,6 +414,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -430,6 +445,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -460,6 +476,7 @@
                      qualifier-lookup
                      map-meta
                      resolved-scalars
+                     bowl
                      ==
       =/  expr2  %:  evaluate-datum
                      numeric-expression-2:;;(atan2:ast scalar)
@@ -467,6 +484,7 @@
                      qualifier-lookup
                      map-meta
                      resolved-scalars
+                     bowl
                      ==
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
@@ -505,6 +523,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -553,6 +572,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -601,6 +621,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -613,6 +634,7 @@
                         qualifier-lookup
                         map-meta
                         resolved-scalars
+                        bowl
                         ==
       =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
       ?.  |(=(~.ud len-type) =(~.sd len-type))
@@ -727,6 +749,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -790,6 +813,7 @@
                     qualifier-lookup
                     map-meta
                     resolved-scalars
+                    bowl
                     ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
@@ -881,6 +905,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   :: prepare-predicate switches on map-meta to evaluate its arguments
@@ -895,12 +920,14 @@
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
+                                bowl
                                 ==
   =/  else  %:  evaluate-datum  else.scalar
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
+                                bowl
                                 ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
@@ -935,6 +962,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   ?~  target.scalar
@@ -943,12 +971,14 @@
                                qualifier-lookup
                                map-meta
                                resolved-scalars
+                               bowl
                                ==
   %:  prepare-case-simple  scalar
                            named-ctes
                            qualifier-lookup
                            map-meta
                            resolved-scalars
+                           bowl
                            ==
 ::
 ++  prepare-case-searched
@@ -958,6 +988,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   =/  cases  cases.scalar
@@ -971,6 +1002,7 @@
                         qualifier-lookup
                         map-meta
                         resolved-scalars
+                        bowl
                         ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
@@ -980,6 +1012,7 @@
                               qualifier-lookup
                               map-meta
                               resolved-scalars
+                              bowl
                               ==
           then-dos
       ~
@@ -992,6 +1025,7 @@
                                            qualifier-lookup
                                            map-meta
                                            resolved-scalars
+                                           bowl
                                            ==
   :+  %fn
       typ
@@ -1011,6 +1045,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   =/  cases  cases.scalar
@@ -1026,12 +1061,14 @@
                         qualifier-lookup
                         map-meta
                         resolved-scalars
+                        bowl
                         ==
   =/  target  %:  evaluate-datum  (need target.scalar)
                                   named-ctes
                                   qualifier-lookup
                                   map-meta
                                   resolved-scalars
+                                  bowl
                                   ==
   =/  [cmp-typ=@ta cmp-valid=(list resolved-scalar)]
     %:  check-consistent-types
@@ -1050,6 +1087,7 @@
                         qualifier-lookup
                         map-meta
                         resolved-scalars
+                        bowl
                         ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
@@ -1059,6 +1097,7 @@
                               qualifier-lookup
                               map-meta
                               resolved-scalars
+                              bowl
                               ==
           then-dos
       ~
@@ -1071,6 +1110,7 @@
                                          qualifier-lookup
                                          map-meta
                                          resolved-scalars
+                                         bowl
                                          ==
   :+  %fn
       typ
@@ -1093,6 +1133,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  fns=(list [$-(data-row ?) resolved-scalar])
@@ -1112,6 +1153,7 @@
                                                     qualifier-lookup
                                                     map-meta
                                                     resolved-scalars
+                                                    bowl
                                                     ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum  (need else.scalar)
@@ -1119,6 +1161,7 @@
                                              qualifier-lookup
                                              map-meta
                                              resolved-scalars
+                                             bowl
                                              ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
@@ -1133,6 +1176,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  eq-pred
@@ -1145,6 +1189,7 @@
                                                           qualifier-lookup
                                                           map-meta
                                                           resolved-scalars
+                                                          bowl
                                                           ==
     =/  when-val
           %+  apply-scalar  data-row
@@ -1153,6 +1198,7 @@
                                                           qualifier-lookup
                                                           map-meta
                                                           resolved-scalars
+                                                          bowl
                                                           ==
     =(target-val when-val)
   =/  fns  %+  turn  cases.scalar
@@ -1179,6 +1225,7 @@
                                               qualifier-lookup
                                               map-meta
                                               resolved-scalars
+                                              bowl
                                               ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum  (need else.scalar)
@@ -1186,6 +1233,7 @@
                                    qualifier-lookup
                                    map-meta
                                    resolved-scalars
+                                   bowl
                                    ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
@@ -1197,6 +1245,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   =/  [typ=@ta validated=(list resolved-scalar)]
@@ -1207,6 +1256,7 @@
                                                               qualifier-lookup
                                                               map-meta
                                                               resolved-scalars
+                                                              bowl
                                                               ==
                                   ~
                                   named-ctes
@@ -1236,6 +1286,7 @@
         =qualifier-lookup
         =map-meta
         =resolved-scalars
+        =bowl:gall
       ==
   ^-  resolved-scalar
   =/  l  %:  evaluate-datum  left.scalar
@@ -1243,12 +1294,14 @@
                              qualifier-lookup
                              map-meta
                              resolved-scalars
+                             bowl
                              ==
   =/  r  %:  evaluate-datum  right.scalar
                              named-ctes
                              qualifier-lookup
                              map-meta
                              resolved-scalars
+                             bowl
                              ==
   =/  l-number-system  ?:  ?=(dime l)  -.l
                        type.l
@@ -1593,6 +1646,7 @@
           =qualifier-lookup
           =map-meta
           =resolved-scalars
+          =bowl:gall
           ==
   ^-  resolved-scalar
   ~|  "evaluate-datum: failed {<datum>}"
@@ -1601,6 +1655,7 @@
                                  qualifier-lookup
                                  map-meta
                                  resolved-scalars
+                                 bowl
                                  ==
     ::
     scalar-name:ast    :: must be before dime

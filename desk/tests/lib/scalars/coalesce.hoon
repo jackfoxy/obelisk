@@ -99,6 +99,7 @@
                                     qual-lookup
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar2
                               %:  prepare-scalar
@@ -112,6 +113,7 @@
                                     qual-lookup
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::  tests
@@ -162,7 +164,8 @@
 ::::                                           table-named-ctes
 ::::                                           qual-lookup
 ::::                                           qual-map-meta
-::::                                           *(map @tas resolved-scalar)  ::
+::::                                           *(map @tas resolved-scalar)
+::::                                           (bowl [0 ~2026.4.21])            
 ::::                                           ==
 ::::  %+  expect-fail-message
 ::::    'coalesce: couldn\'t resolve any column'
@@ -178,6 +181,7 @@
 ::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           table-scalars
+::::                                           (bowl [0 ~2026.4.21])
 ::::                                           ==
 ::::  %+  expect-fail-message
 ::::    'coalesce: can only use columns'
@@ -193,6 +197,7 @@
 ::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           table-scalars
+::::                                           (bowl [0 ~2026.4.21])
 ::::                                           ==
 ::::  %+  expect-fail-message
 ::::    'coalesce: can only use columns'
@@ -208,6 +213,7 @@
 ::::                                           qual-lookup
 ::::                                           qual-map-meta
 ::::                                           table-scalars
+::::                                           (bowl [0 ~2026.4.21])
 ::::                                           ==
 ::::  %+  expect-fail-message
 ::::    'coalesce: can only use columns'

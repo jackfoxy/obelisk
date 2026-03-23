@@ -96,6 +96,7 @@
                                     qual-lookup
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -158,6 +159,7 @@
                                     qual-lookup
                                     rd-qual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -208,6 +210,7 @@
                                     qual-lookup
                                     sd-qual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::

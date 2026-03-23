@@ -1420,7 +1420,13 @@
           row=table-test-row
          ==
   =/  scalar-to-apply
-    (prepare-scalar fn.row named-ctes qualifier-lookup map-meta resolved-scalars)
+    %:  prepare-scalar  fn.row
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        (bowl [0 ~2026.4.21])
+                        ==
   %+  expect-eq
     !>  expected.row
     !>  (apply-scalar data-row scalar-to-apply)
@@ -1447,7 +1453,14 @@
   =/  result
     %+  category
       (trip -.row)
-    ~|((weld "CRASH - " (trip -.row)) (scalar-test-helper named-ctes qualifier-lookup map-meta resolved-scalars data-row +.row))
+    ~|  (weld "CRASH - " (trip -.row))
+        %:  scalar-test-helper  named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                data-row
+                                +.row
+                                ==
   :-  result
   $(rows +.rows)
 ::

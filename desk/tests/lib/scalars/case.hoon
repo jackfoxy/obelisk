@@ -112,6 +112,7 @@
                                     qual-lookup
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar2
                               %:  prepare-scalar
@@ -125,6 +126,7 @@
                                     qual-lookup
                                     unqual-map-meta
                                     *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
