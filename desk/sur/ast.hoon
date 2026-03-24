@@ -619,9 +619,21 @@
     concat
     left
     len
+    lower
+    ltrim
+    patindex
+    quotestring
+    replace
+    replicate
+    reverse
     right
+    rtrim
+    string
+    string-concat
+    stuff
     substring
     trim
+    upper
     ==
 ::
 +$  scalar-name
@@ -857,10 +869,83 @@
     string-expression=datum
   ==
 ::
++$  lower
+  $:  %lower
+    string-expression=datum
+  ==
+::
+::  unit @t default whitespace
++$  ltrim
+  $:  %ltrim
+    string-expression=datum
+    pattern=(unit datum)
+  ==
+::
+::  Returns the starting position of the first occurrence of a pattern 
+::  in a specified expression, or zero if the pattern isn't found
++$  patindex
+  $:  %patindex
+    string-expression=datum
+    pattern=datum
+  ==
+::
+::  default[]
++$  quotestring
+  $:  %quotestring
+    string-expression=datum
+    quote=(unit [datum datum])
+  ==
+::
++$  replace
+  $:  %replace
+   string-expression=datum
+   pattern=datum
+   replacement=datum
+  ==
+::
++$  replicate
+  $:  %replicate
+   string-expression=datum
+   times=datum
+  ==
+::
++$  reverse
+  $:  %reverse
+    string-expression=datum
+  ==
+::
 +$  right
   $:  %right
     character-expression=datum
     integer-expression=datum
+  ==
+::
+::  unit @t default whitespace
++$  rtrim
+  $:  %rtrim
+    string-expression=datum
+    pattern=(unit datum)
+  ==
+::
+::@ud @sd @rd -> @t  (scow %ud 123)
++$  string
+  $:  %string
+    numeric-expression=datum
+  ==
+::
+::  (list @t @ud @st @rd) @t
++$  string-concat
+  $:  %string
+    args=$@(~ (list datum))
+    delimiter=datum
+  ==
+::
++$  stuff
+  $:  %stuff
+    string-expression=datum
+    start=datum
+    length=datum
+    replace=datum
   ==
 ::
 +$  substring
@@ -874,5 +959,9 @@
   $:  %trim
     characters=(unit datum)
     string=datum
+  ==
++$  upper
+  $:  %upper
+    string-expression=datum
   ==
 --

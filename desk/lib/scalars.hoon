@@ -1053,13 +1053,49 @@
   ::
   ::  string functions
   ::
-    %len
+    %concat
       !!
   ::
     %left
       !!
   ::
+    %len
+      !!
+  ::
+    %lower
+      !!
+  ::
+    %ltrim
+      !!
+  ::
+    %patindex
+      !!
+  ::
+    %quotestring
+      !!
+  ::
+    %replace
+      !!
+  ::
+    %replicate
+      !!
+  ::
+    %reverse
+      !!
+  ::
     %right
+      !!
+  ::
+    %rtrim
+      !!
+  ::
+    %string
+      !!
+  ::
+    %string-concat
+      !!
+  ::
+    %stuff
       !!
   ::
     %substring
@@ -1068,7 +1104,7 @@
     %trim
       !!
   ::
-    %concat
+    %upper
       !!
   ::
   ==
