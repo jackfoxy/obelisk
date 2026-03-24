@@ -126,19 +126,21 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  time-elem  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(time-element:ast time-elem)
+      =/  aura  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(time-element:ast aura)
         ~|("{<aura>} not a supported type for %hour, need @da or @dr" !!)
-      ?:  ?=(time-element:ast time-elem)
-        ?:  =(~.da time-elem)  [~.ud h.t:(yore ;;(@da +.expr))]
-        [~.ud (div ;;(@dr +.expr) ~h1)]
-      !!
-      :::+  %fn
-      ::    ~.ud
-      ::    |=  =data-row
-      ::    ^-  dime
-      ::    ?:  =(~.da aura)  !!  ::  [~.ud h.t:(yore ;;(@da +:(f.expr data-row)))]
-      ::    [~.ud (div ;;(@dr +:(f.expr data-row)) ~h1)]
+      =/  do-hour
+        ?-  aura
+            %da  |=(val=@ [~.ud h.t:(yore `@da`val)])
+            %dr  |=(val=@ [~.ud (div `@dr`val ~h1)])
+            ==
+      ?:  ?=(dime expr)
+        (do-hour +.expr)
+      :+  %fn
+          ~.ud
+          |=  =data-row
+          ^-  dime
+          (do-hour +:(f.expr data-row))
   ::
     %minute
       =/  expr  %:  evaluate-datum  time-expression:;;(minute:ast scalar)

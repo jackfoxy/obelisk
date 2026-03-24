@@ -125,7 +125,8 @@
                             [%col5 5]                        ::  @ud 5
                         ==
 ::
-::  unqualified: col4=@sd neg, col5=@sd pos, col6=@rd neg, col7=@rd pos, col8=@ud
+::  unqualified: col4=@sd neg, col5=@sd pos, col6=@rd neg, col7=@rd pos, 
+::  col8=@ud
 ::
 ++  abs-unqual-map-meta
   :-  %unqualified-map-meta
@@ -4301,6 +4302,495 @@
         :-  [%degrees degrees-u-col-16]
             [~.ud 1.375]
   ==
+  ==
+::
+::  date scalar test helpers
+::  col1=@da ~2026.3.15..10.30.45 (year=2026, month=3, day=15, hour=10, min=30, sec=45)
+::  col2=@dr ~d1 (1 day)
+::
+::  qualified: col1=@da, col2=@dr
+::
+++  dt-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.da 0]
+                      [%column %col2 ~.dr 0]
+                      ==
+          ==
+::
+++  dt-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  dt-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+::
+++  dt-qual-table-row  %-  mk-indexed-row
+                       :~  [%col1 ~2026.3.15..10.30.45]  ::  @da
+                           [%col2 ~d1]                    ::  @dr 1 day
+                       ==
+::
+::  unqualified: col1=@da, col2=@dr
+::
+++  dt-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns  :~  [%column %col1 ~.da 0]
+                                [%column %col2 ~.dr 0]
+                                ==
+::
+++  dt-unqual-lookup  %-  malt  %-  limo
+                      :~  [%col1 ~[qualified-table-1]]
+                          [%col2 ~[qualified-table-1]]
+                          ==
+::
+++  dt-u-col-1  [%unqualified-column %col1 ~]
+++  dt-u-col-2  [%unqualified-column %col2 ~]
+::
+++  dt-unqual-table-row  %-  mk-indexed-row
+                         :~  [%col1 ~2026.3.15..10.30.45]  ::  @da
+                             [%col2 ~d1]                    ::  @dr 1 day
+                         ==
+::
+::  %getutcdate
+::
+++  test-getutcdate
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    qual-map-meta
+    *(map @tas resolved-scalar)
+    table-row
+    :~
+    ::  getutcdate() = now.bowl = ~2026.4.21
+    :-  %getutcdate
+        :-  [%getutcdate ~]
+            [~.da ~2026.4.21]
+    ==
+  ==
+::
+::  %year: only @da supported
+::
+++  test-year-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  literal @da: year(~2026.3.15..10.30.45) = 2026
+    :-  %year-lit-da
+        :-  [%year [~.da ~2026.3.15..10.30.45]]
+            [~.ud 2.026]
+    ::  qualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %year-qual-da
+        :-  [%year dt-q-col-1]
+            [~.ud 2.026]
+    ==
+  ==
+::
+++  test-year-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %year-unqual-da
+        :-  [%year dt-u-col-1]
+            [~.ud 2.026]
+    ==
+  ==
+::
+::  %month: only @da supported
+::
+++  test-month-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  literal @da: month(~2026.3.15..10.30.45) = 3
+    :-  %month-lit-da
+        :-  [%month [~.da ~2026.3.15..10.30.45]]
+            [~.ud 3]
+    ::  qualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %month-qual-da
+        :-  [%month dt-q-col-1]
+            [~.ud 3]
+    ==
+  ==
+::
+++  test-month-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %month-unqual-da
+        :-  [%month dt-u-col-1]
+            [~.ud 3]
+    ==
+  ==
+::
+::  %day: @da yields day-of-month; @dr yields whole days in duration
+::
+++  test-day-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  literal @da: day(~2026.3.15..10.30.45) = 15
+    :-  %day-lit-da
+        :-  [%day [~.da ~2026.3.15..10.30.45]]
+            [~.ud 15]
+    ::  literal @dr: day(~d1) = 1
+    :-  %day-lit-dr
+        :-  [%day [~.dr ~d1]]
+            [~.ud 1]
+    ::  qualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %day-qual-da
+        :-  [%day dt-q-col-1]
+            [~.ud 15]
+    ::  qualified column @dr (col2=~d1)
+    :-  %day-qual-dr
+        :-  [%day dt-q-col-2]
+            [~.ud 1]
+    ==
+  ==
+::
+++  test-day-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %day-unqual-da
+        :-  [%day dt-u-col-1]
+            [~.ud 15]
+    ::  unqualified column @dr (col2=~d1)
+    :-  %day-unqual-dr
+        :-  [%day dt-u-col-2]
+            [~.ud 1]
+    ==
+  ==
+::
+::  %hour: @da yields hour-of-day; @dr yields whole hours in duration
+::
+++  test-hour-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  literal @da: hour(~2026.3.15..10.30.45) = 10
+    :-  %hour-lit-da
+        :-  [%hour [~.da ~2026.3.15..10.30.45]]
+            [~.ud 10]
+    ::  literal @dr: hour(~d1) = 24
+    :-  %hour-lit-dr
+        :-  [%hour [~.dr ~d1]]
+            [~.ud 24]
+    ::  qualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %hour-qual-da
+        :-  [%hour dt-q-col-1]
+            [~.ud 10]
+    ::  qualified column @dr (col2=~d1)
+    :-  %hour-qual-dr
+        :-  [%hour dt-q-col-2]
+            [~.ud 24]
+    ==
+  ==
+::
+++  test-hour-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %hour-unqual-da
+        :-  [%hour dt-u-col-1]
+            [~.ud 10]
+    ::  unqualified column @dr (col2=~d1)
+    :-  %hour-unqual-dr
+        :-  [%hour dt-u-col-2]
+            [~.ud 24]
+    ==
+  ==
+::
+::  %minute: @da yields minute-of-hour; @dr yields whole minutes in duration
+::
+++  test-minute-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  literal @da: minute(~2026.3.15..10.30.45) = 30
+    :-  %minute-lit-da
+        :-  [%minute [~.da ~2026.3.15..10.30.45]]
+            [~.ud 30]
+    ::  literal @dr: minute(~d1) = 1440
+    :-  %minute-lit-dr
+        :-  [%minute [~.dr ~d1]]
+            [~.ud 1.440]
+    ::  qualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %minute-qual-da
+        :-  [%minute dt-q-col-1]
+            [~.ud 30]
+    ::  qualified column @dr (col2=~d1)
+    :-  %minute-qual-dr
+        :-  [%minute dt-q-col-2]
+            [~.ud 1.440]
+    ==
+  ==
+::
+++  test-minute-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %minute-unqual-da
+        :-  [%minute dt-u-col-1]
+            [~.ud 30]
+    ::  unqualified column @dr (col2=~d1)
+    :-  %minute-unqual-dr
+        :-  [%minute dt-u-col-2]
+            [~.ud 1.440]
+    ==
+  ==
+::
+::  %second: @da yields second-of-minute; @dr yields whole seconds in duration
+::
+++  test-second-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  literal @da: second(~2026.3.15..10.30.45) = 45
+    :-  %second-lit-da
+        :-  [%second [~.da ~2026.3.15..10.30.45]]
+            [~.ud 45]
+    ::  literal @dr: second(~d1) = 86400
+    :-  %second-lit-dr
+        :-  [%second [~.dr ~d1]]
+            [~.ud 86.400]
+    ::  qualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %second-qual-da
+        :-  [%second dt-q-col-1]
+            [~.ud 45]
+    ::  qualified column @dr (col2=~d1)
+    :-  %second-qual-dr
+        :-  [%second dt-q-col-2]
+            [~.ud 86.400]
+    ==
+  ==
+::
+++  test-second-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified column @da (col1=~2026.3.15..10.30.45)
+    :-  %second-unqual-da
+        :-  [%second dt-u-col-1]
+            [~.ud 45]
+    ::  unqualified column @dr (col2=~d1)
+    :-  %second-unqual-dr
+        :-  [%second dt-u-col-2]
+            [~.ud 86.400]
+    ==
+  ==
+::
+::  %add-time: expr=@da|@dr, duration=@dr
+::  covers all 4 (lit/col × lit/col) combos for both @da+@dr and @dr+@dr
+::
+++  test-add-time-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  @da + @dr literals: ~2026.3.15..10.30.45 + ~d1 = ~2026.3.16..10.30.45
+    :-  %add-time-lit-da-dr
+        :-  [%add-time [~.da ~2026.3.15..10.30.45] [~.dr ~d1]]
+            [~.da ~2026.3.16..10.30.45]
+    ::  @dr + @dr literals: ~d1 + ~d1 = ~d2
+    :-  %add-time-lit-dr-dr
+        :-  [%add-time [~.dr ~d1] [~.dr ~d1]]
+            [~.dr ~d2]
+    ::  qualified col @da + lit @dr
+    :-  %add-time-qual-col-da-lit-dr
+        :-  [%add-time dt-q-col-1 [~.dr ~d1]]
+            [~.da ~2026.3.16..10.30.45]
+    ::  lit @da + qualified col @dr
+    :-  %add-time-qual-lit-da-col-dr
+        :-  [%add-time [~.da ~2026.3.15..10.30.45] dt-q-col-2]
+            [~.da ~2026.3.16..10.30.45]
+    ::  qualified col @da + qualified col @dr
+    :-  %add-time-qual-col-da-col-dr
+        :-  [%add-time dt-q-col-1 dt-q-col-2]
+            [~.da ~2026.3.16..10.30.45]
+    ::  qualified col @dr + lit @dr: ~d1 + ~d1 = ~d2
+    :-  %add-time-qual-col-dr-lit-dr
+        :-  [%add-time dt-q-col-2 [~.dr ~d1]]
+            [~.dr ~d2]
+    ::  lit @dr + qualified col @dr: ~d1 + ~d1 = ~d2
+    :-  %add-time-qual-lit-dr-col-dr
+        :-  [%add-time [~.dr ~d1] dt-q-col-2]
+            [~.dr ~d2]
+    ::  qualified col @dr + qualified col @dr: ~d1 + ~d1 = ~d2
+    :-  %add-time-qual-col-dr-col-dr
+        :-  [%add-time dt-q-col-2 dt-q-col-2]
+            [~.dr ~d2]
+    ==
+  ==
+::
+++  test-add-time-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified col @da + lit @dr
+    :-  %add-time-unqual-col-da-lit-dr
+        :-  [%add-time dt-u-col-1 [~.dr ~d1]]
+            [~.da ~2026.3.16..10.30.45]
+    ::  lit @da + unqualified col @dr
+    :-  %add-time-unqual-lit-da-col-dr
+        :-  [%add-time [~.da ~2026.3.15..10.30.45] dt-u-col-2]
+            [~.da ~2026.3.16..10.30.45]
+    ::  unqualified col @da + unqualified col @dr
+    :-  %add-time-unqual-col-da-col-dr
+        :-  [%add-time dt-u-col-1 dt-u-col-2]
+            [~.da ~2026.3.16..10.30.45]
+    ::  unqualified col @dr + lit @dr: ~d1 + ~d1 = ~d2
+    :-  %add-time-unqual-col-dr-lit-dr
+        :-  [%add-time dt-u-col-2 [~.dr ~d1]]
+            [~.dr ~d2]
+    ::  lit @dr + unqualified col @dr: ~d1 + ~d1 = ~d2
+    :-  %add-time-unqual-lit-dr-col-dr
+        :-  [%add-time [~.dr ~d1] dt-u-col-2]
+            [~.dr ~d2]
+    ::  unqualified col @dr + unqualified col @dr: ~d1 + ~d1 = ~d2
+    :-  %add-time-unqual-col-dr-col-dr
+        :-  [%add-time dt-u-col-2 dt-u-col-2]
+            [~.dr ~d2]
+    ==
+  ==
+::
+::  %subtract-time: expr=@da|@dr, duration=@dr
+::  covers all 4 (lit/col × lit/col) combos for both @da-@dr and @dr-@dr
+::  note: col@dr-col@dr uses col2=~d1 for both sides, yielding zero duration
+::
+++  test-subtract-time-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    dt-qual-map-meta
+    *(map @tas resolved-scalar)
+    dt-qual-table-row
+    :~
+    ::  @da - @dr literals: ~2026.3.15..10.30.45 - ~d1 = ~2026.3.14..10.30.45
+    :-  %subtract-time-lit-da-dr
+        :-  [%subtract-time [~.da ~2026.3.15..10.30.45] [~.dr ~d1]]
+            [~.da ~2026.3.14..10.30.45]
+    ::  @dr - @dr literals: ~d2 - ~d1 = ~d1
+    :-  %subtract-time-lit-dr-dr
+        :-  [%subtract-time [~.dr ~d2] [~.dr ~d1]]
+            [~.dr ~d1]
+    ::  qualified col @da - lit @dr
+    :-  %subtract-time-qual-col-da-lit-dr
+        :-  [%subtract-time dt-q-col-1 [~.dr ~d1]]
+            [~.da ~2026.3.14..10.30.45]
+    ::  lit @da - qualified col @dr
+    :-  %subtract-time-qual-lit-da-col-dr
+        :-  [%subtract-time [~.da ~2026.3.15..10.30.45] dt-q-col-2]
+            [~.da ~2026.3.14..10.30.45]
+    ::  qualified col @da - qualified col @dr
+    :-  %subtract-time-qual-col-da-col-dr
+        :-  [%subtract-time dt-q-col-1 dt-q-col-2]
+            [~.da ~2026.3.14..10.30.45]
+    ::  qualified col @dr - lit @dr: ~d1 - ~d1 = 0
+    :-  %subtract-time-qual-col-dr-lit-dr
+        :-  [%subtract-time dt-q-col-2 [~.dr ~d1]]
+            [~.dr 0]
+    ::  lit @dr - qualified col @dr: ~d2 - ~d1 = ~d1
+    :-  %subtract-time-qual-lit-dr-col-dr
+        :-  [%subtract-time [~.dr ~d2] dt-q-col-2]
+            [~.dr ~d1]
+    ::  qualified col @dr - qualified col @dr: ~d1 - ~d1 = 0
+    :-  %subtract-time-qual-col-dr-col-dr
+        :-  [%subtract-time dt-q-col-2 dt-q-col-2]
+            [~.dr 0]
+    ==
+  ==
+::
+++  test-subtract-time-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    dt-unqual-lookup
+    dt-unqual-map-meta
+    *(map @tas resolved-scalar)
+    dt-unqual-table-row
+    :~
+    ::  unqualified col @da - lit @dr
+    :-  %subtract-time-unqual-col-da-lit-dr
+        :-  [%subtract-time dt-u-col-1 [~.dr ~d1]]
+            [~.da ~2026.3.14..10.30.45]
+    ::  lit @da - unqualified col @dr
+    :-  %subtract-time-unqual-lit-da-col-dr
+        :-  [%subtract-time [~.da ~2026.3.15..10.30.45] dt-u-col-2]
+            [~.da ~2026.3.14..10.30.45]
+    ::  unqualified col @da - unqualified col @dr
+    :-  %subtract-time-unqual-col-da-col-dr
+        :-  [%subtract-time dt-u-col-1 dt-u-col-2]
+            [~.da ~2026.3.14..10.30.45]
+    ::  unqualified col @dr - lit @dr: ~d1 - ~d1 = 0
+    :-  %subtract-time-unqual-col-dr-lit-dr
+        :-  [%subtract-time dt-u-col-2 [~.dr ~d1]]
+            [~.dr 0]
+    ::  lit @dr - unqualified col @dr: ~d2 - ~d1 = ~d1
+    :-  %subtract-time-unqual-lit-dr-col-dr
+        :-  [%subtract-time [~.dr ~d2] dt-u-col-2]
+            [~.dr ~d1]
+    ::  unqualified col @dr - unqualified col @dr: ~d1 - ~d1 = 0
+    :-  %subtract-time-unqual-col-dr-col-dr
+        :-  [%subtract-time dt-u-col-2 dt-u-col-2]
+            [~.dr 0]
+    ==
   ==
 ::
 --
