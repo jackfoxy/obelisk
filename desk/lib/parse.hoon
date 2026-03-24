@@ -3671,6 +3671,13 @@
   =/  parsed  (numeric-parser [[1 1] a])      :: to do: this is inside-out
   ?~  q.parsed  ~
   (some (wonk parsed))
+++  sear-ud  ~+                                    :: only accepts @ud results
+  |=  a=(list @t)
+  =/  parsed  (numeric-parser [[1 1] a])
+  ?~  q.parsed  ~
+  =/  result  (wonk parsed)
+  ?.  ?=([%ud @] result)  ~
+  (some result)
 ++  numeric-characters  ~+       ::to do:  likely source of slow parse, rewrite?
   ::  including base-64 characters
   %-  star  ;~  pose  (shim 48 57)
@@ -3984,10 +3991,8 @@
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~  pose
-      ;~(pfix whitespace (stag %ud (full dem:ag)))
-      ;~(pfix whitespace (stag %ud (full dim:ag)))
-      (stag %ud (full dem:ag))
-      (stag %ud (full dim:ag))
+      ;~(pfix whitespace (sear sear-ud numeric-characters))
+      (sear sear-ud numeric-characters)
     ==
   ==
 ++  parse-numeric-param  ~+
@@ -3995,14 +4000,8 @@
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~  pose
-      ;~(pfix whitespace (stag %ud (full dem:ag)))
-      ;~(pfix whitespace (stag %ud (full dim:ag)))
-      ;~(pfix whitespace (full tash:so))
-      ;~(pfix whitespace (stag %rd (full royl-rd:so)))
-      (stag %ud (full dem:ag))
-      (stag %ud (full dim:ag))
-      (full tash:so)
-      (stag %rd (full royl-rd:so))
+      ;~(pfix whitespace (sear sear-numbers numeric-characters))
+      (sear sear-numbers numeric-characters)
     ==
   ==
 ++  parse-datum-for-predicate  ~+

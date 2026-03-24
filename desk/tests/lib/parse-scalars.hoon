@@ -3591,4 +3591,294 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+::  new string scalar builtins
+::
+::  no spacing
+++  test-builtins-09
+  =/  query-string
+    "FROM foo ".
+    "SCALARS st-low LOWER('hello') ".
+    "        st-upr UPPER('hello') ".
+    "        st-rev REVERSE('hello') ".
+    "        st-lt1 LTRIM('hello') ".
+    "        st-lt2 LTRIM('hello',' ') ".
+    "        st-rt1 RTRIM('hello') ".
+    "        st-rt2 RTRIM('hello',' ') ".
+    "        st-pat PATINDEX('hello','ell') ".
+    "        st-rep REPLACE('hello','ell','ELL') ".
+    "        st-rpl REPLICATE('hello',3) ".
+    "        st-qs1 QUOTESTRING('hello') ".
+    "        st-qs2 QUOTESTRING('hello','\\'') ".
+    "        st-qs3 QUOTESTRING('hello','[',']') ".
+    "        st-str STRING(3) ".
+    "        st-sc1 STRING-CONCAT('hello','world',' ') ".
+    "        st-sc2 STRING-CONCAT(' ') ".
+    "        st-stf STUFF('hello',2,3,'xx') ".
+    "        loq1 LOWER(~sampel-palnet.db2.dba.table1.bar) ".
+    "        lou1 LOWER(foo3) ".
+    "        los1 LOWER(st-low) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-hello    [p=~.t q='hello']
+  =/  literal-world    [p=~.t q='world']
+  =/  literal-space    [p=~.t q=' ']
+  =/  literal-ell      [p=~.t q='ell']
+  =/  literal-ell-up      [p=~.t q='ELL']
+  =/  literal-xx       [p=~.t q='xx']
+  =/  literal-sq       [p=~.t q='\'']
+  =/  literal-open     [p=~.t q='[']
+  =/  literal-close    [p=~.t q=']']
+  =/  literal-3        [p=~.ud q=3]
+  =/  literal-2        [p=~.ud q=2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'st-low' [%lower literal-hello]]
+      [%scalar 'st-upr' [%upper literal-hello]]
+      [%scalar 'st-rev' [%reverse literal-hello]]
+      [%scalar 'st-lt1' [%ltrim literal-hello ~]]
+      [%scalar 'st-lt2' [%ltrim literal-hello `literal-space]]
+      [%scalar 'st-rt1' [%rtrim literal-hello ~]]
+      [%scalar 'st-rt2' [%rtrim literal-hello `literal-space]]
+      [%scalar 'st-pat' [%patindex literal-hello literal-ell]]
+      [%scalar 'st-rep' [%replace literal-hello literal-ell literal-ell-up]]
+      [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
+      [%scalar 'st-qs1' [%quotestring literal-hello ~]]
+      [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
+      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      [%scalar 'st-str' [%string literal-3]]
+      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
+      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
+      [%scalar 'loq1' [%lower qualified-col-1]]
+      [%scalar 'lou1' [%lower unqualified-foo-3]]
+      [%scalar 'los1' [%lower [%scalar-name name=%st-low]]]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces before params
+++  test-builtins-10
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS st-low LOWER(  'hello') ".
+    "        st-upr UPPER(  'hello') ".
+    "        st-rev REVERSE(  'hello') ".
+    "        st-lt1 LTRIM(  'hello') ".
+    "        st-lt2 LTRIM(  'hello',  ' ') ".
+    "        st-rt1 RTRIM(  'hello') ".
+    "        st-rt2 RTRIM(  'hello',  ' ') ".
+    "        st-pat PATINDEX(  'hello',  'ell') ".
+    "        st-rep REPLACE(  'hello',  'ell',  'ELL') ".
+    "        st-rpl REPLICATE(  'hello',  3) ".
+    "        st-qs1 QUOTESTRING(  'hello') ".
+    "        st-qs2 QUOTESTRING(  'hello',  '\\'') ".
+    "        st-qs3 QUOTESTRING(  'hello',  '[',  ']') ".
+    "        st-str STRING(  3) ".
+    "        st-sc1 STRING-CONCAT(  'hello',  'world',  ' ') ".
+    "        st-sc2 STRING-CONCAT(  ' ') ".
+    "        st-stf STUFF(  'hello',  2,  3,  'xx') ".
+    "        loq1 LOWER(  ~sampel-palnet.db2.dba.table1.bar) ".
+    "        lou1 LOWER(  foo3) ".
+    "        los1 LOWER(  st-low) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-hello    [p=~.t q='hello']
+  =/  literal-world    [p=~.t q='world']
+  =/  literal-space    [p=~.t q=' ']
+  =/  literal-ell      [p=~.t q='ell']
+  =/  literal-ell-up      [p=~.t q='ELL']
+  =/  literal-xx       [p=~.t q='xx']
+  =/  literal-sq       [p=~.t q='\'']
+  =/  literal-open     [p=~.t q='[']
+  =/  literal-close    [p=~.t q=']']
+  =/  literal-3        [p=~.ud q=3]
+  =/  literal-2        [p=~.ud q=2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'st-low' [%lower literal-hello]]
+      [%scalar 'st-upr' [%upper literal-hello]]
+      [%scalar 'st-rev' [%reverse literal-hello]]
+      [%scalar 'st-lt1' [%ltrim literal-hello ~]]
+      [%scalar 'st-lt2' [%ltrim literal-hello `literal-space]]
+      [%scalar 'st-rt1' [%rtrim literal-hello ~]]
+      [%scalar 'st-rt2' [%rtrim literal-hello `literal-space]]
+      [%scalar 'st-pat' [%patindex literal-hello literal-ell]]
+      [%scalar 'st-rep' [%replace literal-hello literal-ell literal-ell-up]]
+      [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
+      [%scalar 'st-qs1' [%quotestring literal-hello ~]]
+      [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
+      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      [%scalar 'st-str' [%string literal-3]]
+      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
+      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
+      [%scalar 'loq1' [%lower qualified-col-1]]
+      [%scalar 'lou1' [%lower unqualified-foo-3]]
+      [%scalar 'los1' [%lower [%scalar-name name=%st-low]]]
+    ==
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces after params
+++  test-builtins-11
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS st-low LOWER('hello'  ) ".
+    "        st-upr UPPER('hello'  ) ".
+    "        st-rev REVERSE('hello'  ) ".
+    "        st-lt1 LTRIM('hello'  ) ".
+    "        st-lt2 LTRIM('hello'  ,' '  ) ".
+    "        st-rt1 RTRIM('hello'  ) ".
+    "        st-rt2 RTRIM('hello'  ,' '  ) ".
+    "        st-pat PATINDEX('hello'  ,'ell'  ) ".
+    "        st-rep REPLACE('hello'  ,'ell'  ,'ELL'  ) ".
+    "        st-rpl REPLICATE('hello'  ,3  ) ".
+    "        st-qs1 QUOTESTRING('hello'  ) ".
+    "        st-qs2 QUOTESTRING('hello'  ,'\\''  ) ".
+    "        st-qs3 QUOTESTRING('hello'  ,'['  ,']'  ) ".
+    "        st-str STRING(3  ) ".
+    "        st-sc1 STRING-CONCAT('hello'  ,'world'  ,' '  ) ".
+    "        st-sc2 STRING-CONCAT(' '  ) ".
+    "        st-stf STUFF('hello'  ,2  ,3  ,'xx'  ) ".
+    "        loq1 LOWER(~sampel-palnet.db2.dba.table1.bar  ) ".
+    "        lou1 LOWER(foo3  ) ".
+    "        los1 LOWER(st-low  ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-hello    [p=~.t q='hello']
+  =/  literal-world    [p=~.t q='world']
+  =/  literal-space    [p=~.t q=' ']
+  =/  literal-ell      [p=~.t q='ell']
+  =/  literal-ell-up      [p=~.t q='ELL']
+  =/  literal-xx       [p=~.t q='xx']
+  =/  literal-sq       [p=~.t q='\'']
+  =/  literal-open     [p=~.t q='[']
+  =/  literal-close    [p=~.t q=']']
+  =/  literal-3        [p=~.ud q=3]
+  =/  literal-2        [p=~.ud q=2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'st-low' [%lower literal-hello]]
+      [%scalar 'st-upr' [%upper literal-hello]]
+      [%scalar 'st-rev' [%reverse literal-hello]]
+      [%scalar 'st-lt1' [%ltrim literal-hello ~]]
+      [%scalar 'st-lt2' [%ltrim literal-hello `literal-space]]
+      [%scalar 'st-rt1' [%rtrim literal-hello ~]]
+      [%scalar 'st-rt2' [%rtrim literal-hello `literal-space]]
+      [%scalar 'st-pat' [%patindex literal-hello literal-ell]]
+      [%scalar 'st-rep' [%replace literal-hello literal-ell literal-ell-up]]
+      [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
+      [%scalar 'st-qs1' [%quotestring literal-hello ~]]
+      [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
+      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      [%scalar 'st-str' [%string literal-3]]
+      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
+      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
+      [%scalar 'loq1' [%lower qualified-col-1]]
+      [%scalar 'lou1' [%lower unqualified-foo-3]]
+      [%scalar 'los1' [%lower [%scalar-name name=%st-low]]]
+    ==
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  spaces before and after params
+++  test-builtins-12
+  =/  query-string
+    "FROM ~sampel-palnet.db2.dba.table1 AS MyTable ".
+    "SCALARS st-low LOWER(  'hello'  ) ".
+    "        st-upr UPPER(  'hello'  ) ".
+    "        st-rev REVERSE(  'hello'  ) ".
+    "        st-lt1 LTRIM(  'hello'  ) ".
+    "        st-lt2 LTRIM(  'hello'  ,  ' '  ) ".
+    "        st-rt1 RTRIM(  'hello'  ) ".
+    "        st-rt2 RTRIM(  'hello'  ,  ' '  ) ".
+    "        st-pat PATINDEX(  'hello'  ,  'ell'  ) ".
+    "        st-rep REPLACE(  'hello'  ,  'ell'  ,  'ELL'  ) ".
+    "        st-rpl REPLICATE(  'hello'  ,  3  ) ".
+    "        st-qs1 QUOTESTRING(  'hello'  ) ".
+    "        st-qs2 QUOTESTRING(  'hello'  ,  '\\''  ) ".
+    "        st-qs3 QUOTESTRING(  'hello'  ,  '['  ,  ']'  ) ".
+    "        st-str STRING(  3  ) ".
+    "        st-sc1 STRING-CONCAT(  'hello'  ,  'world'  ,  ' '  ) ".
+    "        st-sc2 STRING-CONCAT(  ' '  ) ".
+    "        st-stf STUFF(  'hello'  ,  2  ,  3  ,  'xx'  ) ".
+    "        loq1 LOWER(  ~sampel-palnet.db2.dba.table1.bar  ) ".
+    "        lou1 LOWER(  foo3  ) ".
+    "        los1 LOWER(  st-low  ) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-hello    [p=~.t q='hello']
+  =/  literal-world    [p=~.t q='world']
+  =/  literal-space    [p=~.t q=' ']
+  =/  literal-ell      [p=~.t q='ell']
+  =/  literal-ell-up      [p=~.t q='ELL']
+  =/  literal-xx       [p=~.t q='xx']
+  =/  literal-sq       [p=~.t q='\'']
+  =/  literal-open     [p=~.t q='[']
+  =/  literal-close    [p=~.t q=']']
+  =/  literal-3        [p=~.ud q=3]
+  =/  literal-2        [p=~.ud q=2]
+  ::
+  =/  scalars
+    :~
+      [%scalar 'st-low' [%lower literal-hello]]
+      [%scalar 'st-upr' [%upper literal-hello]]
+      [%scalar 'st-rev' [%reverse literal-hello]]
+      [%scalar 'st-lt1' [%ltrim literal-hello ~]]
+      [%scalar 'st-lt2' [%ltrim literal-hello `literal-space]]
+      [%scalar 'st-rt1' [%rtrim literal-hello ~]]
+      [%scalar 'st-rt2' [%rtrim literal-hello `literal-space]]
+      [%scalar 'st-pat' [%patindex literal-hello literal-ell]]
+      [%scalar 'st-rep' [%replace literal-hello literal-ell literal-ell-up]]
+      [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
+      [%scalar 'st-qs1' [%quotestring literal-hello ~]]
+      [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
+      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      [%scalar 'st-str' [%string literal-3]]
+      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
+      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
+      [%scalar 'loq1' [%lower qualified-col-1]]
+      [%scalar 'lou1' [%lower unqualified-foo-3]]
+      [%scalar 'los1' [%lower [%scalar-name name=%st-low]]]
+    ==
+  =/  table
+    :*  %qualified-table
+      ship=[~ ~sampel-palnet]
+      database=%db2
+      namespace=%dba
+      name=%table1
+      alias=[~ 'MyTable']
+    ==
+  =/  expected  (mk-selection scalars (some table))
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 --
