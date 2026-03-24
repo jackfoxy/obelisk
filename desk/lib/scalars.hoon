@@ -223,40 +223,40 @@
           =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
           [expr-aura (add e d)]
   ::
-    %subtract-time  !!
-    ::::  =/  expr  %:  evaluate-datum  time-expression:;;(subtract-time:ast scalar)
-    ::::                                named-ctes
-    ::::                                qualifier-lookup
-    ::::                                map-meta
-    ::::                                resolved-scalars
-    ::::                                bowl
-    ::::                                ==
-    ::::  =/  duration  %:  evaluate-datum  duration:;;(subtract-time:ast scalar)
-    ::::                                    named-ctes
-    ::::                                    qualifier-lookup
-    ::::                                    map-meta
-    ::::                                    resolved-scalars
-    ::::                                    bowl
-    ::::                                    ==
-    ::::  =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
-    ::::  =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
-    ::::  ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
-    ::::    ~|  "{<expr-aura>} not a supported type for %subtract-time ".
-    ::::        "time-expression, need @da or @dr"
-    ::::        !!
-    ::::  ?.  =(~.dr dur-aura)
-    ::::    ~|  "{<dur-aura>} not a supported type for %subtract-time duration, ".
-    ::::        "need @dr"
-    ::::        !!
-    ::::  ?:  &(?=(dime expr) ?=(dime duration))
-    ::::    [expr-aura (sub +.expr +.duration)]
-    ::::  :+  %fn
-    ::::      expr-aura
-    ::::      |=  =data-row
-    ::::      ^-  dime
-    ::::      =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
-    ::::      =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
-    ::::      [expr-aura (sub e d)]
+    %subtract-time
+      =/  expr  %:  evaluate-datum  time-expression:;;(subtract-time:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  duration  %:  evaluate-datum  duration:;;(subtract-time:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
+      =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
+      ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
+        ~|  "{<expr-aura>} not a supported type for %subtract-time ".
+            "time-expression, need @da or @dr"
+            !!
+      ?.  =(~.dr dur-aura)
+        ~|  "{<dur-aura>} not a supported type for %subtract-time duration, ".
+            "need @dr"
+            !!
+      ?:  &(?=(dime expr) ?=(dime duration))
+        [expr-aura (sub +.expr +.duration)]
+      :+  %fn
+          expr-aura
+          |=  =data-row
+          ^-  dime
+          =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
+          =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
+          [expr-aura (sub e d)]
   ::
   ::  numeric functions
   ::

@@ -713,7 +713,7 @@
     duration=datum
   ==
 +$  subtract-time
-  $:  %add-time
+  $:  %subtract-time
     time-expression=datum
     duration=datum
   ==
