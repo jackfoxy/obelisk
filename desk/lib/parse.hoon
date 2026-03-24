@@ -4858,7 +4858,7 @@
     ?:  =(%two-param param-count)
       :+  %atan2  (finalize-param -.raw-scalar-body aliases)
                   (finalize-param +.raw-scalar-body aliases)
-    !!
+    ~|("ATAN2 requires 2 parameters" !!)
   ?:  =(%len fn-name)
     [%len (finalize-param raw-scalar-body aliases)]
   ?:  =(%log fn-name)
@@ -4867,7 +4867,7 @@
     ?:  =(%two-param param-count)
       :+  %log  (finalize-param -.raw-scalar-body aliases)
                 (some (finalize-param +.raw-scalar-body aliases))
-    !!
+    ~|("LOG requires 1 or 2 parameters" !!)
   ?:  =(%left fn-name)
     :+  %left
         (finalize-param -.raw-scalar-body aliases)
@@ -4882,12 +4882,12 @@
     ?:  =(%two-param param-count)
       :+  %trim  (finalize-param -.raw-scalar-body aliases)
                  (some (finalize-param +.raw-scalar-body aliases))
-    !!
+    ~|("TRIM requires 1 or 2 parameters" !!)
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
       :+  %round  (finalize-param -.raw-scalar-body aliases)
                   (finalize-param +.raw-scalar-body aliases)
-    !!
+    ~|("ROUND requires 2 parameters" !!)
   ?:  =(%substring fn-name)
     ^-  substring:ast
     :*  %substring
@@ -4898,9 +4898,11 @@
   ::  n-ary builtin functions
   ?:  =(%concat fn-name)
     ^-  concat:ast
+    =/  items  ;;((list *) raw-scalar-body)
+    ?:  (lth (lent items) 2)
+      ~|("CONCAT requires at least 2 parameters" !!)
     :-  %concat
-    %+  turn
-      ;;((list *) raw-scalar-body)
+    %+  turn  items
     |=(raw=* (finalize-param raw aliases))
   ::  string functions
   ?:  =(%lower fn-name)
@@ -4915,19 +4917,19 @@
     ?:  =(%two-param param-count)
       :+  %ltrim  (finalize-param -.raw-scalar-body aliases)
                   (some (finalize-param +.raw-scalar-body aliases))
-    !!
+    ~|("LTRIM requires 1 or 2 parameters" !!)
   ?:  =(%rtrim fn-name)
     ?:  =(%one-param param-count)
       [%rtrim (finalize-param raw-scalar-body aliases) ~]
     ?:  =(%two-param param-count)
       :+  %rtrim  (finalize-param -.raw-scalar-body aliases)
                   (some (finalize-param +.raw-scalar-body aliases))
-    !!
+    ~|("RTRIM requires 1 or 2 parameters" !!)
   ?:  =(%patindex fn-name)
     ?:  =(%two-param param-count)
       :+  %patindex  (finalize-param -.raw-scalar-body aliases)
                      (finalize-param +.raw-scalar-body aliases)
-    !!
+    ~|("PATINDEX requires 2 parameters" !!)
   ?:  =(%replace fn-name)
     ?:  =(%three-param param-count)
       :*  %replace
@@ -4935,12 +4937,12 @@
           (finalize-param +<.raw-scalar-body aliases)
           (finalize-param +>.raw-scalar-body aliases)
       ==
-    !!
+    ~|("REPLACE requires 3 parameters" !!)
   ?:  =(%replicate fn-name)
     ?:  =(%two-param param-count)
       :+  %replicate  (finalize-param -.raw-scalar-body aliases)
                       (finalize-param +.raw-scalar-body aliases)
-    !!
+    ~|("REPLICATE requires 2 parameters" !!)
   ?:  =(%stuff fn-name)
     ?:  =(%four-param param-count)
       :*  %stuff
@@ -4949,7 +4951,7 @@
           (finalize-param +>-.raw-scalar-body aliases)
           (finalize-param +>+.raw-scalar-body aliases)
       ==
-    !!
+    ~|("STUFF requires 4 parameters" !!)
   ?:  =(%quotestring fn-name)
     ?:  =(%one-param param-count)
       [%quotestring (finalize-param raw-scalar-body aliases) ~]
@@ -4960,16 +4962,18 @@
     ?:  =(%three-param param-count)
       :+  %quotestring  (finalize-param -.raw-scalar-body aliases)
                         (some [(finalize-param +<.raw-scalar-body aliases) (finalize-param +>.raw-scalar-body aliases)])
-    !!
+    ~|("QUOTESTRING requires 1, 2, or 3 parameters" !!)
   ?:  =(%string fn-name)
     [%string (finalize-param raw-scalar-body aliases)]
   ?:  =(%string-concat fn-name)
     ^-  string-concat:ast
     =/  all-params  ;;((list *) raw-scalar-body)
+    ?:  (lth (lent all-params) 3)
+      ~|("STRING-CONCAT requires at least 3 parameters" !!)
     =/  args  (snip all-params)
     =/  delim-raw  (rear all-params)
-    :*  %string
-        ?~(args ~ (turn args |=(raw=* (finalize-param raw aliases))))
+    :*  %string-concat
+        (turn args |=(raw=* (finalize-param raw aliases)))
         (finalize-param delim-raw aliases)
     ==
   ~|("unknown builtin scalar fn {<fn-name>}" !!)

@@ -3613,7 +3613,6 @@
     "        st-qs3 QUOTESTRING('hello','[',']') ".
     "        st-str STRING(3) ".
     "        st-sc1 STRING-CONCAT('hello','world',' ') ".
-    "        st-sc2 STRING-CONCAT(' ') ".
     "        st-stf STUFF('hello',2,3,'xx') ".
     "        loq1 LOWER(~sampel-palnet.db2.dba.table1.bar) ".
     "        lou1 LOWER(foo3) ".
@@ -3648,8 +3647,7 @@
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
       [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
-      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3679,7 +3677,6 @@
     "        st-qs3 QUOTESTRING(  'hello',  '[',  ']') ".
     "        st-str STRING(  3) ".
     "        st-sc1 STRING-CONCAT(  'hello',  'world',  ' ') ".
-    "        st-sc2 STRING-CONCAT(  ' ') ".
     "        st-stf STUFF(  'hello',  2,  3,  'xx') ".
     "        loq1 LOWER(  ~sampel-palnet.db2.dba.table1.bar) ".
     "        lou1 LOWER(  foo3) ".
@@ -3714,8 +3711,7 @@
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
       [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
-      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3753,7 +3749,6 @@
     "        st-qs3 QUOTESTRING('hello'  ,'['  ,']'  ) ".
     "        st-str STRING(3  ) ".
     "        st-sc1 STRING-CONCAT('hello'  ,'world'  ,' '  ) ".
-    "        st-sc2 STRING-CONCAT(' '  ) ".
     "        st-stf STUFF('hello'  ,2  ,3  ,'xx'  ) ".
     "        loq1 LOWER(~sampel-palnet.db2.dba.table1.bar  ) ".
     "        lou1 LOWER(foo3  ) ".
@@ -3788,8 +3783,7 @@
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
       [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
-      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3827,7 +3821,6 @@
     "        st-qs3 QUOTESTRING(  'hello'  ,  '['  ,  ']'  ) ".
     "        st-str STRING(  3  ) ".
     "        st-sc1 STRING-CONCAT(  'hello'  ,  'world'  ,  ' '  ) ".
-    "        st-sc2 STRING-CONCAT(  ' '  ) ".
     "        st-stf STUFF(  'hello'  ,  2  ,  3  ,  'xx'  ) ".
     "        loq1 LOWER(  ~sampel-palnet.db2.dba.table1.bar  ) ".
     "        lou1 LOWER(  foo3  ) ".
@@ -3862,8 +3855,7 @@
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
       [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string ~[literal-hello literal-world] literal-space]]
-      [%scalar 'st-sc2' [%string ~ literal-space]]
+      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3881,4 +3873,316 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+::  CONCAT requires at least 2 parameters
+++  test-fail-concat-01
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CONCAT('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'CONCAT requires at least 2 parameters'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  CONCAT with 0 args also requires at least 2 parameters
+++  test-fail-concat-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo CONCAT() ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'CONCAT requires at least 2 parameters'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  STRING-CONCAT requires at least 3 parameters (1 given)
+++  test-fail-string-concat-01
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo STRING-CONCAT('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'STRING-CONCAT requires at least 3 parameters'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  STRING-CONCAT requires at least 3 parameters (2 given)
+++  test-fail-string-concat-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo STRING-CONCAT('hello','world') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'STRING-CONCAT requires at least 3 parameters'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  COALESCE with 0 params requires at least 2 parameters
+++  test-fail-coalesce-05
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE() ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'COALESCE requires at least 2 parameters'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function LOWER with arithmetic operator
+++  test-fail-arithmetic-10
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN LOWER('hello') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %lower in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function UPPER with arithmetic operator
+++  test-fail-arithmetic-11
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN UPPER('hello') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %upper in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function REVERSE with arithmetic operator
+++  test-fail-arithmetic-12
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN REVERSE('hello') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %reverse in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function LTRIM with arithmetic operator
+++  test-fail-arithmetic-13
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN LTRIM('hello') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %ltrim in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function RTRIM with arithmetic operator
+++  test-fail-arithmetic-14
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN RTRIM('hello') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %rtrim in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function PATINDEX with arithmetic operator
+++  test-fail-arithmetic-15
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN PATINDEX('hello','ll') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %patindex in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function REPLACE with arithmetic operator
+++  test-fail-arithmetic-16
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN REPLACE('hello','ll','LL') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %replace in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function REPLICATE with arithmetic operator
+++  test-fail-arithmetic-17
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN REPLICATE('hello',3) + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %replicate in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function QUOTESTRING with arithmetic operator
+++  test-fail-arithmetic-18
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN QUOTESTRING('hello') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %quotestring in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing STRING with arithmetic operator
+++  test-fail-arithmetic-19
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN STRING(3) + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %string in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing STRING-CONCAT with arithmetic operator
+++  test-fail-arithmetic-20
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN STRING-CONCAT('a','b',' ') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %string-concat in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  test mixing string function STUFF with arithmetic operator
+++  test-fail-arithmetic-21
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo BEGIN STUFF('hello',2,3,'xx') + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'finalize-math-builtin-fn: cannot use %stuff in arithmetic expression'
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  wrong param count tests — parser rejects before reaching cook,
+::  which is why these produce PARSER errors rather than the cook messages.
+::  they serve as regression tests confirming param-count enforcement.
+::
+::  ATAN2 requires 2 params
+++  test-fail-params-01
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ATAN2(.5) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  LOG requires 1 or 2 params
+++  test-fail-params-02
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LOG(.5,.2,.1) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  TRIM requires 1 or 2 params
+++  test-fail-params-03
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo TRIM('hello','x','y') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  ROUND requires 2 params
+++  test-fail-params-04
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo ROUND(42) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  LTRIM requires 1 or 2 params
+++  test-fail-params-05
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo LTRIM('hello',' ','x') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  RTRIM requires 1 or 2 params
+++  test-fail-params-06
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo RTRIM('hello',' ','x') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  PATINDEX requires 2 params
+++  test-fail-params-07
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo PATINDEX('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  REPLACE requires 3 params
+++  test-fail-params-08
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo REPLACE('hello','ll') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  REPLICATE requires 2 params
+++  test-fail-params-09
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo REPLICATE('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  STUFF requires 4 params
+++  test-fail-params-10
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo STUFF('hello',2,3) ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  QUOTESTRING requires 1, 2, or 3 params
+++  test-fail-params-11
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo QUOTESTRING('hello','[',']','extra') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
 --

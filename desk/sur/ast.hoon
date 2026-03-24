@@ -935,7 +935,7 @@
 ::
 ::  (list @t @ud @st @rd) @t
 +$  string-concat
-  $:  %string
+  $:  %string-concat
     args=$@(~ (list datum))
     delimiter=datum
   ==
