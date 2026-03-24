@@ -3956,6 +3956,55 @@
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
   ==
+++  parse-cord-param  ~+
+  ::  accepts column ref or single-quoted cord literal only
+  ;~  pose
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ;~  pose
+      ;~  pfix  whitespace
+        %:  cook  |=(a=(list @t) [%t (crip a)])
+                  %+  ifix  [soq soq]
+                  %-  star
+                  ;~  pose  (cold '\'' (jest '\\\''))
+                            ;~(less (just `@`39) (just `@`127) (shim 32 256))
+                            ==
+                  ==
+      ==
+      %:  cook  |=(a=(list @t) [%t (crip a)])
+                %+  ifix  [soq soq]
+                %-  star
+                ;~  pose  (cold '\'' (jest '\\\''))
+                          ;~(less (just `@`39) (just `@`127) (shim 32 256))
+                          ==
+                ==
+    ==
+  ==
+++  parse-ud-param  ~+
+  ::  accepts column ref or @ud literal only
+  ;~  pose
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ;~  pose
+      ;~(pfix whitespace (stag %ud (full dem:ag)))
+      ;~(pfix whitespace (stag %ud (full dim:ag)))
+      (stag %ud (full dem:ag))
+      (stag %ud (full dim:ag))
+    ==
+  ==
+++  parse-numeric-param  ~+
+  ::  accepts column ref or @ud/@sd/@rd literal
+  ;~  pose
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ;~  pose
+      ;~(pfix whitespace (stag %ud (full dem:ag)))
+      ;~(pfix whitespace (stag %ud (full dim:ag)))
+      ;~(pfix whitespace (full tash:so))
+      ;~(pfix whitespace (stag %rd (full royl-rd:so)))
+      (stag %ud (full dem:ag))
+      (stag %ud (full dim:ag))
+      (full tash:so)
+      (stag %rd (full royl-rd:so))
+    ==
+  ==
 ++  parse-datum-for-predicate  ~+
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
@@ -4724,6 +4773,20 @@
         ==
     ==
 ::
+++  parse-four-params
+  |*  [first-param=rule second-param=rule third-param=rule fourth-param=rule]
+    ;~  pfix
+      whitespace
+      %+  ifix
+        [pal par]
+        ;~  (glue com)
+          ;~(pfix whitespace ;~(sfix first-param whitespace))
+          ;~(pfix whitespace ;~(sfix second-param whitespace))
+          ;~(pfix whitespace ;~(sfix third-param whitespace))
+          ;~(pfix whitespace ;~(sfix fourth-param whitespace))
+        ==
+    ==
+::
 ++  parse-n-params
   |*  [parse-params=rule]
     ;~  pfix
@@ -4816,10 +4879,10 @@
         (finalize-param +.raw-scalar-body aliases)
   ?:  =(%trim fn-name)
     ?:  =(%one-param param-count)
-      [%trim ~ (finalize-param raw-scalar-body aliases)]
+      [%trim (finalize-param raw-scalar-body aliases) ~]
     ?:  =(%two-param param-count)
-      :+  %trim  (some (finalize-param -.raw-scalar-body aliases))
-                 (finalize-param +.raw-scalar-body aliases)
+      :+  %trim  (finalize-param -.raw-scalar-body aliases)
+                 (some (finalize-param +.raw-scalar-body aliases))
     !!
   ?:  =(%round fn-name)
     ?:  =(%two-param param-count)
@@ -4840,6 +4903,76 @@
     %+  turn
       ;;((list *) raw-scalar-body)
     |=(raw=* (finalize-param raw aliases))
+  ::  string functions
+  ?:  =(%lower fn-name)
+    [%lower (finalize-param raw-scalar-body aliases)]
+  ?:  =(%upper fn-name)
+    [%upper (finalize-param raw-scalar-body aliases)]
+  ?:  =(%reverse fn-name)
+    [%reverse (finalize-param raw-scalar-body aliases)]
+  ?:  =(%ltrim fn-name)
+    ?:  =(%one-param param-count)
+      [%ltrim (finalize-param raw-scalar-body aliases) ~]
+    ?:  =(%two-param param-count)
+      :+  %ltrim  (finalize-param -.raw-scalar-body aliases)
+                  (some (finalize-param +.raw-scalar-body aliases))
+    !!
+  ?:  =(%rtrim fn-name)
+    ?:  =(%one-param param-count)
+      [%rtrim (finalize-param raw-scalar-body aliases) ~]
+    ?:  =(%two-param param-count)
+      :+  %rtrim  (finalize-param -.raw-scalar-body aliases)
+                  (some (finalize-param +.raw-scalar-body aliases))
+    !!
+  ?:  =(%patindex fn-name)
+    ?:  =(%two-param param-count)
+      :+  %patindex  (finalize-param -.raw-scalar-body aliases)
+                     (finalize-param +.raw-scalar-body aliases)
+    !!
+  ?:  =(%replace fn-name)
+    ?:  =(%three-param param-count)
+      :*  %replace
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +<.raw-scalar-body aliases)
+          (finalize-param +>.raw-scalar-body aliases)
+      ==
+    !!
+  ?:  =(%replicate fn-name)
+    ?:  =(%two-param param-count)
+      :+  %replicate  (finalize-param -.raw-scalar-body aliases)
+                      (finalize-param +.raw-scalar-body aliases)
+    !!
+  ?:  =(%stuff fn-name)
+    ?:  =(%four-param param-count)
+      :*  %stuff
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +<.raw-scalar-body aliases)
+          (finalize-param +>-.raw-scalar-body aliases)
+          (finalize-param +>+.raw-scalar-body aliases)
+      ==
+    !!
+  ?:  =(%quotestring fn-name)
+    ?:  =(%one-param param-count)
+      [%quotestring (finalize-param raw-scalar-body aliases) ~]
+    ?:  =(%two-param param-count)
+      =/  q  (finalize-param +.raw-scalar-body aliases)
+      :+  %quotestring  (finalize-param -.raw-scalar-body aliases)
+                        (some [q q])
+    ?:  =(%three-param param-count)
+      :+  %quotestring  (finalize-param -.raw-scalar-body aliases)
+                        (some [(finalize-param +<.raw-scalar-body aliases) (finalize-param +>.raw-scalar-body aliases)])
+    !!
+  ?:  =(%string fn-name)
+    [%string (finalize-param raw-scalar-body aliases)]
+  ?:  =(%string-concat fn-name)
+    ^-  string-concat:ast
+    =/  all-params  ;;((list *) raw-scalar-body)
+    =/  args  (snip all-params)
+    =/  delim-raw  (rear all-params)
+    :*  %string
+        ?~(args ~ (turn args |=(raw=* (finalize-param raw aliases))))
+        (finalize-param delim-raw aliases)
+    ==
   ~|("unknown builtin scalar fn {<fn-name>}" !!)
 :: TODO: replace params with parse-scalar-param
 ++  parse-builtin-scalar-fn
@@ -4993,6 +5126,86 @@
       ;~  plug
         (cold %concat (jester %concat))
         (stag %n-params (parse-n-params parse-scalar-param))
+      ==
+      ;~  plug
+        (cold %lower (jester %lower))
+        (stag %one-param (parse-one-param parse-cord-param))
+      ==
+      ;~  plug
+        (cold %upper (jester %upper))
+        (stag %one-param (parse-one-param parse-cord-param))
+      ==
+      ;~  plug
+        (cold %reverse (jester %reverse))
+        (stag %one-param (parse-one-param parse-cord-param))
+      ==
+      ;~  plug
+        (cold %ltrim (jester %ltrim))
+        %+  stag  %two-param
+                  (parse-two-params parse-cord-param parse-cord-param)
+      ==
+      ;~  plug
+        (cold %ltrim (jester %ltrim))
+        (stag %one-param (parse-one-param parse-cord-param))
+      ==
+      ;~  plug
+        (cold %rtrim (jester %rtrim))
+        %+  stag  %two-param
+                  (parse-two-params parse-cord-param parse-cord-param)
+      ==
+      ;~  plug
+        (cold %rtrim (jester %rtrim))
+        (stag %one-param (parse-one-param parse-cord-param))
+      ==
+      ;~  plug
+        (cold %patindex (jester %patindex))
+        %+  stag  %two-param
+                  (parse-two-params parse-cord-param parse-cord-param)
+      ==
+      ;~  plug
+        (cold %replace (jester %replace))
+        %+  stag  %three-param
+                  %^  parse-three-params  parse-cord-param
+                                          parse-cord-param
+                                          parse-cord-param
+      ==
+      ;~  plug
+        (cold %replicate (jester %replicate))
+        %+  stag  %two-param
+                  (parse-two-params parse-cord-param parse-ud-param)
+      ==
+      ;~  plug
+        (cold %stuff (jester %stuff))
+        %+  stag  %four-param
+          %:  parse-four-params  parse-cord-param
+                                 parse-ud-param
+                                 parse-ud-param
+                                 parse-cord-param
+          ==
+      ==
+      ;~  plug
+        (cold %quotestring (jester %quotestring))
+        %+  stag  %three-param
+                  %^  parse-three-params  parse-cord-param
+                                          parse-cord-param
+                                          parse-cord-param
+      ==
+      ;~  plug
+        (cold %quotestring (jester %quotestring))
+        %+  stag  %two-param
+                  (parse-two-params parse-cord-param parse-cord-param)
+      ==
+      ;~  plug
+        (cold %quotestring (jester %quotestring))
+        (stag %one-param (parse-one-param parse-cord-param))
+      ==
+      ;~  plug
+        (cold %string (jester %string))
+        (stag %one-param (parse-one-param parse-numeric-param))
+      ==
+      ;~  plug
+        (cold %string-concat (jester 'string-concat'))
+        (stag %n-params (parse-n-params parse-cord-param))
       ==
     ==
 ::

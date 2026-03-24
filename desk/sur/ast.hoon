@@ -860,7 +860,7 @@
 ::
 +$  left
   $:  %left
-    character-expression=datum
+    string-expression=datum
     integer-expression=datum
   ==
 ::
@@ -898,15 +898,15 @@
 ::
 +$  replace
   $:  %replace
-   string-expression=datum
-   pattern=datum
-   replacement=datum
+    string-expression=datum
+    pattern=datum
+    replacement=datum
   ==
 ::
 +$  replicate
   $:  %replicate
-   string-expression=datum
-   times=datum
+    string-expression=datum
+    integer-expression=datum
   ==
 ::
 +$  reverse
@@ -916,7 +916,7 @@
 ::
 +$  right
   $:  %right
-    character-expression=datum
+    string-expression=datum
     integer-expression=datum
   ==
 ::
@@ -957,8 +957,8 @@
 ::
 +$  trim
   $:  %trim
-    characters=(unit datum)
-    string=datum
+    string-expression=datum
+    pattern=(unit datum)
   ==
 +$  upper
   $:  %upper
