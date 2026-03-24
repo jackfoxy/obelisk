@@ -582,39 +582,46 @@
     case
     coalesce
     if-then-else
-    :: builtin functions
+    :: datetime functions
+    add-time
+    day
+    getutcdate
+    hour
+    minute
+    month
+    second
+    subtract-time
+    year
+    :: math functions
     abs
     acos
     asin
     atan
     atan2
     ceiling
-    concat
     cos
-    day
     degrees
     e
     floor
-    getutcdate
-    left
-    len
     log
     max
     min
-    month
     phi
     pi
     rand
-    right
     round
     sign
     sin
     sqrt
-    substring
     tan
     tau
+    ::  string functions
+    concat
+    left
+    len
+    right
+    substring
     trim
-    year
     ==
 ::
 +$  scalar-name
@@ -636,6 +643,7 @@
 +$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
 +$  arithmetic-token  ?(%pal %par arithmetic-op)
 +$  number-systems    ?(%rd %sd %ud)
++$  time-element      ?(%da %dr)
 ::
 +$  if-then-else
   $:  %if-then-else
@@ -670,8 +678,8 @@
     ~
   ==
 ::
-+$  day
-  $:  %day
++$  year
+  $:  %year
     date=datum
   ==
 ::
@@ -680,9 +688,34 @@
     date=datum
   ==
 ::
-+$  year
-  $:  %year
-    date=datum
++$  day
+  $:  %day
+    time-expression=datum
+  ==
+::
++$  hour
+  $:  %hour
+    time-expression=datum
+  ==
+::
++$  minute
+  $:  %minute
+    time-expression=datum
+  ==
+::
++$  second
+  $:  %second
+    time-expression=datum
+  ==
++$  add-time
+  $:  %add-time
+    time-expression=datum
+    duration=datum
+  ==
++$  subtract-time
+  $:  %add-time
+    time-expression=datum
+    duration=datum
   ==
 ::
 ::  mathematical functions

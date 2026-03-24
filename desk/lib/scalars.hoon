@@ -56,26 +56,218 @@
     %getutcdate
       [~.da now.bowl]
   ::
-    %day
-      !!
+    %year
+      =/  expr  %:  evaluate-datum  date:;;(year:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  aura  ?:(?=(dime expr) -.expr type.expr)
+      ?.  =(~.da aura)
+        ~|("{<aura>} not a supported type for %year, need @da" !!)
+      ?:  ?=(dime expr)
+        [~.ud y:(yore `@da`+.expr)]
+      :+  %fn
+          ~.ud
+          |=  =data-row
+          ^-  dime
+          [~.ud y:(yore `@da`+:(f.expr data-row))]
   ::
     %month
-      !!
+      =/  expr  %:  evaluate-datum  date:;;(month:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  aura  ?:(?=(dime expr) -.expr type.expr)
+      ?.  =(~.da aura)
+        ~|("{<aura>} not a supported type for %month, need @da" !!)
+      ?:  ?=(dime expr)
+        [~.ud m:(yore `@da`+.expr)]
+      :+  %fn
+          ~.ud
+          |=  =data-row
+          ^-  dime
+          [~.ud m:(yore `@da`+:(f.expr data-row))]
   ::
-    %year
+    %day
+      =/  expr  %:  evaluate-datum  time-expression:;;(day:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  aura  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(time-element:ast aura)
+        ~|("{<aura>} not a supported type for %day, need @da or @dr" !!)
+      =/  do-day
+        ?-  aura
+            %da  |=(val=@ [~.ud d.t:(yore `@da`val)])
+            %dr  |=(val=@ [~.ud (div `@dr`val ~d1)])
+            ==
+      ?:  ?=(dime expr)
+        (do-day +.expr)
+      :+  %fn
+          ~.ud
+          |=  =data-row
+          ^-  dime
+          (do-day +:(f.expr data-row))
+  ::
+    %hour
+      =/  expr  %:  evaluate-datum  time-expression:;;(hour:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  time-elem  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(time-element:ast time-elem)
+        ~|("{<aura>} not a supported type for %hour, need @da or @dr" !!)
+      ?:  ?=(time-element:ast time-elem)
+        ?:  =(~.da time-elem)  [~.ud h.t:(yore ;;(@da +.expr))]
+        [~.ud (div ;;(@dr +.expr) ~h1)]
       !!
+      :::+  %fn
+      ::    ~.ud
+      ::    |=  =data-row
+      ::    ^-  dime
+      ::    ?:  =(~.da aura)  !!  ::  [~.ud h.t:(yore ;;(@da +:(f.expr data-row)))]
+      ::    [~.ud (div ;;(@dr +:(f.expr data-row)) ~h1)]
+  ::
+    %minute
+      =/  expr  %:  evaluate-datum  time-expression:;;(minute:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  aura  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(time-element:ast aura)
+        ~|("{<aura>} not a supported type for %minute, need @da or @dr" !!)
+      =/  do-minute
+        ?-  aura
+            %da  |=(val=@ [~.ud m.t:(yore `@da`val)])
+            %dr  |=(val=@ [~.ud (div `@dr`val ~m1)])
+            ==
+      ?:  ?=(dime expr)
+        (do-minute +.expr)
+      :+  %fn
+          ~.ud
+          |=  =data-row
+          ^-  dime
+          (do-minute +:(f.expr data-row))
+  ::
+    %second
+      =/  expr  %:  evaluate-datum  time-expression:;;(second:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  aura  ?:(?=(dime expr) -.expr type.expr)
+      ?.  ?=(time-element:ast aura)
+        ~|("{<aura>} not a supported type for %second, need @da or @dr" !!)
+      =/  do-second
+        ?-  aura
+            %da  |=(val=@ [~.ud s.t:(yore `@da`val)])
+            %dr  |=(val=@ [~.ud (div `@dr`val ~s1)])
+            ==
+      ?:  ?=(dime expr)
+        (do-second +.expr)
+      :+  %fn
+          ~.ud
+          |=  =data-row
+          ^-  dime
+          (do-second +:(f.expr data-row))
+  ::
+    %add-time
+      =/  expr  %:  evaluate-datum  time-expression:;;(add-time:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      =/  duration  %:  evaluate-datum  duration:;;(add-time:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
+      =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
+      ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
+        ~|  "{<expr-aura>} not a supported type for %add-time time-expression,".
+            " need @da or @dr"
+            !!
+      ?.  =(~.dr dur-aura)
+        ~|  "{<dur-aura>} not a supported type for %add-time duration, ".
+            "need @dr"
+            !!
+      ?:  &(?=(dime expr) ?=(dime duration))
+        [expr-aura (add +.expr +.duration)]
+      :+  %fn
+          expr-aura
+          |=  =data-row
+          ^-  dime
+          =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
+          =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
+          [expr-aura (add e d)]
+  ::
+    %subtract-time  !!
+    ::::  =/  expr  %:  evaluate-datum  time-expression:;;(subtract-time:ast scalar)
+    ::::                                named-ctes
+    ::::                                qualifier-lookup
+    ::::                                map-meta
+    ::::                                resolved-scalars
+    ::::                                bowl
+    ::::                                ==
+    ::::  =/  duration  %:  evaluate-datum  duration:;;(subtract-time:ast scalar)
+    ::::                                    named-ctes
+    ::::                                    qualifier-lookup
+    ::::                                    map-meta
+    ::::                                    resolved-scalars
+    ::::                                    bowl
+    ::::                                    ==
+    ::::  =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
+    ::::  =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
+    ::::  ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
+    ::::    ~|  "{<expr-aura>} not a supported type for %subtract-time ".
+    ::::        "time-expression, need @da or @dr"
+    ::::        !!
+    ::::  ?.  =(~.dr dur-aura)
+    ::::    ~|  "{<dur-aura>} not a supported type for %subtract-time duration, ".
+    ::::        "need @dr"
+    ::::        !!
+    ::::  ?:  &(?=(dime expr) ?=(dime duration))
+    ::::    [expr-aura (sub +.expr +.duration)]
+    ::::  :+  %fn
+    ::::      expr-aura
+    ::::      |=  =data-row
+    ::::      ^-  dime
+    ::::      =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
+    ::::      =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
+    ::::      [expr-aura (sub e d)]
   ::
   ::  numeric functions
   ::
     %abs
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(abs:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(abs:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %abs, ".
@@ -106,14 +298,13 @@
             ==
   ::
     %log
-      =/  expr  %:  evaluate-datum
-                    float-expression:;;(log:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  float-expression:;;(log:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %log, ".
@@ -151,22 +342,20 @@
       [~.rd .~2.718281828459045]
   ::
     %max
-      =/  expr1  %:  evaluate-datum
-                     numeric-expression-1:;;(max:ast scalar)
-                     named-ctes
-                     qualifier-lookup
-                     map-meta
-                     resolved-scalars
-                     bowl
-                     ==
-      =/  expr2  %:  evaluate-datum
-                     numeric-expression-2:;;(max:ast scalar)
-                     named-ctes
-                     qualifier-lookup
-                     map-meta
-                     resolved-scalars
-                     bowl
-                     ==
+      =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(max:ast scalar)
+                                     named-ctes
+                                     qualifier-lookup
+                                     map-meta
+                                     resolved-scalars
+                                     bowl
+                                     ==
+      =/  expr2  %:  evaluate-datum  numeric-expression-2:;;(max:ast scalar)
+                                     named-ctes
+                                     qualifier-lookup
+                                     map-meta
+                                     resolved-scalars
+                                     bowl
+                                     ==
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  =(ns1 ns2)
@@ -193,22 +382,20 @@
         [ns1 (max-val v1 v2)]
   ::
     %min
-      =/  expr1  %:  evaluate-datum
-                     numeric-expression-1:;;(min:ast scalar)
-                     named-ctes
-                     qualifier-lookup
-                     map-meta
-                     resolved-scalars
-                     bowl
-                     ==
-      =/  expr2  %:  evaluate-datum
-                     numeric-expression-2:;;(min:ast scalar)
-                     named-ctes
-                     qualifier-lookup
-                     map-meta
-                     resolved-scalars
-                     bowl
-                     ==
+      =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
+                                     named-ctes
+                                     qualifier-lookup
+                                     map-meta
+                                     resolved-scalars
+                                     bowl
+                                     ==
+      =/  expr2  %:  evaluate-datum  numeric-expression-2:;;(min:ast scalar)
+                                     named-ctes
+                                     qualifier-lookup
+                                     map-meta
+                                     resolved-scalars
+                                     bowl
+                                     ==
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  =(ns1 ns2)
@@ -247,14 +434,13 @@
       [~.rd .~6.283185307179586]
   ::
     %degrees
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(degrees:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(degrees:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %degrees, ".
@@ -284,14 +470,13 @@
         (do-degrees number-system +:(f.expr data-row))
   ::
     %sin
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(sin:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(sin:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sin, ".
@@ -315,14 +500,13 @@
         (do-sin number-system +:(f.expr data-row))
   ::
     %cos
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(cos:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(cos:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %cos, ".
@@ -346,14 +530,13 @@
         (do-cos number-system +:(f.expr data-row))
   ::
     %tan
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(tan:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(tan:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %tan, ".
@@ -377,14 +560,13 @@
         (do-tan number-system +:(f.expr data-row))
   ::
     %asin
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(asin:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(asin:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %asin, ".
@@ -408,14 +590,13 @@
         (do-asin number-system +:(f.expr data-row))
   ::
     %acos
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(acos:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(acos:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %acos, ".
@@ -439,14 +620,13 @@
         (do-acos number-system +:(f.expr data-row))
   ::
     %atan
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(atan:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(atan:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %atan, ".
@@ -470,22 +650,20 @@
         (do-atan number-system +:(f.expr data-row))
   ::
     %atan2
-      =/  expr1  %:  evaluate-datum
-                     numeric-expression-1:;;(atan2:ast scalar)
-                     named-ctes
-                     qualifier-lookup
-                     map-meta
-                     resolved-scalars
-                     bowl
-                     ==
-      =/  expr2  %:  evaluate-datum
-                     numeric-expression-2:;;(atan2:ast scalar)
-                     named-ctes
-                     qualifier-lookup
-                     map-meta
-                     resolved-scalars
-                     bowl
-                     ==
+      =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(atan2:ast scalar)
+                                     named-ctes
+                                     qualifier-lookup
+                                     map-meta
+                                     resolved-scalars
+                                     bowl
+                                     ==
+      =/  expr2  %:  evaluate-datum  numeric-expression-2:;;(atan2:ast scalar)
+                                     named-ctes
+                                     qualifier-lookup
+                                     map-meta
+                                     resolved-scalars
+                                     bowl
+                                     ==
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  ?=(number-systems ns1)
@@ -517,14 +695,13 @@
         (do-atan2 y x)
   ::
     %floor
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(floor:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(floor:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %floor, ".
@@ -566,14 +743,13 @@
             ==
   ::
     %ceiling
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(ceiling:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(ceiling:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %ceiling, ".
@@ -615,27 +791,25 @@
             ==
   ::
     %round
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(round:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(round:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %round, ".
             "need ?(~.rd ~.sd ~.ud)"
             !!
-      =/  len-expr  %:  evaluate-datum
-                        length:;;(round:ast scalar)
-                        named-ctes
-                        qualifier-lookup
-                        map-meta
-                        resolved-scalars
-                        bowl
-                        ==
+      =/  len-expr  %:  evaluate-datum  length:;;(round:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
       =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
       ?.  |(=(~.ud len-type) =(~.sd len-type))
         ~|  "round: length must be @ud or @sd, got {<len-type>}"  !!
@@ -743,14 +917,13 @@
             ==
   ::
     %sign
-      =/  expr  %:  evaluate-datum
-                    numeric-expression:;;(sign:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(sign:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sign, ".
@@ -807,14 +980,13 @@
             ==
   ::
     %sqrt
-      =/  expr  %:  evaluate-datum
-                    float-expression:;;(sqrt:ast scalar)
-                    named-ctes
-                    qualifier-lookup
-                    map-meta
-                    resolved-scalars
-                    bowl
-                    ==
+      =/  expr  %:  evaluate-datum  float-expression:;;(sqrt:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sqrt, ".
@@ -1149,20 +1321,20 @@
                                               resolved-scalars
                                               ==
                       %:  evaluate-datum  then.cwt
-                                                    named-ctes
-                                                    qualifier-lookup
-                                                    map-meta
-                                                    resolved-scalars
-                                                    bowl
-                                                    ==
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum  (need else.scalar)
-                                             named-ctes
-                                             qualifier-lookup
-                                             map-meta
-                                             resolved-scalars
-                                             bowl
-                                             ==
+                                   named-ctes
+                                   qualifier-lookup
+                                   map-meta
+                                   resolved-scalars
+                                   bowl
+                                   ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
       ~[[|=(=data-row %.y) else-rs]]
@@ -1185,21 +1357,21 @@
     =/  target-val
           %+  apply-scalar  data-row
                             %:  evaluate-datum  target
-                                                          named-ctes
-                                                          qualifier-lookup
-                                                          map-meta
-                                                          resolved-scalars
-                                                          bowl
-                                                          ==
+                                                named-ctes
+                                                qualifier-lookup
+                                                map-meta
+                                                resolved-scalars
+                                                bowl
+                                                ==
     =/  when-val
           %+  apply-scalar  data-row
                             %:  evaluate-datum  when
-                                                          named-ctes
-                                                          qualifier-lookup
-                                                          map-meta
-                                                          resolved-scalars
-                                                          bowl
-                                                          ==
+                                                named-ctes
+                                                qualifier-lookup
+                                                map-meta
+                                                resolved-scalars
+                                                bowl
+                                                ==
     =(target-val when-val)
   =/  fns  %+  turn  cases.scalar
                      |=  cwt=case-when-then:ast
@@ -1221,12 +1393,12 @@
                                       data-row
                          ::
                          %:  evaluate-datum  then.cwt
-                                              named-ctes
-                                              qualifier-lookup
-                                              map-meta
-                                              resolved-scalars
-                                              bowl
-                                              ==
+                                             named-ctes
+                                             qualifier-lookup
+                                             map-meta
+                                             resolved-scalars
+                                             bowl
+                                             ==
   ?~  else.scalar  fns
   =/  else-rs  %:  evaluate-datum  (need else.scalar)
                                    named-ctes
