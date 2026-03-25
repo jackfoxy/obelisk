@@ -952,7 +952,7 @@
   $:  %substring
     string-expression=datum
     start=datum
-    length=datum
+    length=(unit datum)
     ==
 ::
 +$  trim

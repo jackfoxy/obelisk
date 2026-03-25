@@ -396,7 +396,7 @@
       [%scalar 'st1' [%len literal-hello]]
       [%scalar 'st2' [%left literal-hello literal-3]]
       [%scalar 'st3' [%right literal-hello literal-3]]
-      [%scalar 'st4' [%substring literal-hello literal-2 literal-3]]
+      [%scalar 'st4' [%substring literal-hello literal-2 `literal-3]]
       [%scalar 'st5' [%trim literal-space `literal-hello]]
       [%scalar 'st51' [%trim literal-hello ~]]
       [%scalar 'st6' [%concat ~[literal-hello literal-world]]]
@@ -473,7 +473,7 @@
       [%scalar 'st1' [%len literal-hello]]
       [%scalar 'st2' [%left literal-hello literal-3]]
       [%scalar 'st3' [%right literal-hello literal-3]]
-      [%scalar 'st4' [%substring literal-hello literal-2 literal-3]]
+      [%scalar 'st4' [%substring literal-hello literal-2 `literal-3]]
       [%scalar 'st5' [%trim literal-space `literal-hello]]
       [%scalar 'st6' [%concat ~[literal-hello literal-world]]]
       [%scalar 'mq1' [%month qualified-col-2]]
@@ -555,7 +555,7 @@
       [%scalar 'st1' [%len literal-hello]]
       [%scalar 'st2' [%left literal-hello literal-3]]
       [%scalar 'st3' [%right literal-hello literal-3]]
-      [%scalar 'st4' [%substring literal-hello literal-2 literal-3]]
+      [%scalar 'st4' [%substring literal-hello literal-2 `literal-3]]
       [%scalar 'st5' [%trim literal-space `literal-hello]]
       [%scalar 'st6' [%concat ~[literal-hello literal-world]]]
       [%scalar 'yq1' [%year qualified-col-1]]
@@ -640,7 +640,7 @@
       [%scalar 'st1' [%len literal-hello]]
       [%scalar 'st2' [%left literal-hello literal-3]]
       [%scalar 'st3' [%right literal-hello literal-3]]
-      [%scalar 'st4' [%substring literal-hello literal-2 literal-3]]
+      [%scalar 'st4' [%substring literal-hello literal-2 `literal-3]]
       [%scalar 'st5' [%trim literal-space `literal-hello]]
       [%scalar 'st6' [%concat ~[literal-hello literal-world]]]
       [%scalar 'sq1' [%sign qualified-col-2]]
@@ -4185,4 +4185,32 @@
   %+  expect-fail-message
     'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
+::  SUBSTRING requires 1 param only
+++  test-fail-params-12
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo SUBSTRING('hello') ".
+    "SELECT foo2,foo3"
+  ::
+  %+  expect-fail-message
+    'PARSER: '
+    |.  (parse:parse(default-database default-db) query-string)
+::
+::  SUBSTRING without length (2-param)
+++  test-builtins-substring
+  =/  query-string
+    "FROM foo ".
+    "SCALARS st4 SUBSTRING('hello',2) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-hello  [p=~.t q='hello']
+  =/  literal-2      [p=~.ud q=2]
+  =/  scalars
+    :~
+      [%scalar 'st4' [%substring literal-hello literal-2 ~]]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 --

@@ -4889,12 +4889,19 @@
                   (finalize-param +.raw-scalar-body aliases)
     ~|("ROUND requires 2 parameters" !!)
   ?:  =(%substring fn-name)
-    ^-  substring:ast
-    :*  %substring
-        (finalize-param -.raw-scalar-body aliases)
-        (finalize-param +<.raw-scalar-body aliases)
-        (finalize-param +>.raw-scalar-body aliases)
-    ==
+    ?:  =(%two-param param-count)
+      :*  %substring
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +.raw-scalar-body aliases)
+          ~
+      ==
+    ?:  =(%three-param param-count)
+      :*  %substring
+          (finalize-param -.raw-scalar-body aliases)
+          (finalize-param +<.raw-scalar-body aliases)
+          (some (finalize-param +>.raw-scalar-body aliases))
+      ==
+    ~|("SUBSTRING requires 2 or 3 parameters" !!)
   ::  n-ary builtin functions
   ?:  =(%concat fn-name)
     ^-  concat:ast
@@ -5125,6 +5132,11 @@
                   %^  parse-three-params  parse-scalar-param
                                           parse-scalar-param
                                           parse-scalar-param
+      ==
+      ;~  plug
+        (cold %substring (jester %substring))
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
       ==
       ;~  plug
         (cold %concat (jester %concat))
