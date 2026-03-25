@@ -27,11 +27,23 @@
   ?-  -.scalar
   ::
     %arithmetic
-      (prepare-arithmetic scalar named-ctes qualifier-lookup map-meta resolved-scalars bowl)
+      %:  prepare-arithmetic  scalar
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              ==
 
   ::
     %case
-      (prepare-case scalar named-ctes qualifier-lookup map-meta resolved-scalars bowl)
+      %:  prepare-case  scalar
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        bowl
+                        ==
   ::
     %coalesce
       %:  prepare-coalesce  scalar
@@ -460,7 +472,11 @@
         =/  res-rd  (mul:rd rd-val factor)
         ?-  ns
             %rd  [ns res-rd]
-            %sd  [ns (need (toi:rd (add:rd res-rd ?:((sig:rd res-rd) .~0.5 .~-0.5))))]
+            %sd  :-  ns
+                    %-  need  %-  toi:rd  %+  add:rd  res-rd
+                                                      ?:  (sig:rd res-rd)
+                                                        .~0.5
+                                                      .~-0.5
             %ud  [ns (abs:si `@s`(need (toi:rd (add:rd res-rd .~0.5))))]
             ==
       ?:  ?=(dime expr)
@@ -832,9 +848,10 @@
         ?:  =(0 dcm)  `@`int
         ?:  (sig:rd dat)  `@`int
         `@`(sub:rd int .~1)
-      ::  round @rd using round-half-up at decimal position given by [is-pos mag]
+      ::  round @rd using round-half-up at decimal position by [is-pos mag]
       ::  positive mag: round to mag decimal places (e.g. mag=2: 1.456 -> 1.46)
-      ::  negative mag (is-pos=%.n): round before decimal (e.g. mag=1: 123.4 -> 120.0)
+      ::  negative mag (is-pos=%.n): round before decimal
+      ::    (e.g. mag=1: 123.4 -> 120.0)
       =/  round-rd
         |=  [datum=@ is-pos=? mag=@ud]
         ^-  @
@@ -880,7 +897,8 @@
                 :+  %fn  number-system
                 |=  =data-row
                 ^-  dime
-                =/  [is-pos=? mag=@ud]  (extract-len-info +:(f.len-expr data-row))
+                =/  [is-pos=? mag=@ud]
+                      (extract-len-info +:(f.len-expr data-row))
                 [number-system (round-rd +.expr is-pos mag)]
               =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
               [number-system (round-rd +.expr is-pos mag)]
@@ -890,7 +908,8 @@
                 :+  %fn  number-system
                 |=  =data-row
                 ^-  dime
-                =/  [is-pos=? mag=@ud]  (extract-len-info +:(f.len-expr data-row))
+                =/  [is-pos=? mag=@ud]
+                      (extract-len-info +:(f.len-expr data-row))
                 [number-system (round-sd +.expr is-pos mag)]
               =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
               [number-system (round-sd +.expr is-pos mag)]
@@ -900,7 +919,8 @@
                 :+  %fn  number-system
                 |=  =data-row
                 ^-  dime
-                =/  [is-pos=? mag=@ud]  (extract-len-info +:(f.len-expr data-row))
+                =/  [is-pos=? mag=@ud]
+                      (extract-len-info +:(f.len-expr data-row))
                 [number-system (round-ud +.expr is-pos mag)]
               =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
               [number-system (round-ud +.expr is-pos mag)]
@@ -1054,7 +1074,7 @@
   ::  string functions
   ::
     %concat
-      ::  CONCAT(str1, str2, ...) returns the concatenation of all string arguments end-to-end
+      ::  CONCAT(str1, str2, ...) returns the concatenation of string arguments
       =/  exprs
         %+  turn  ;;((list datum) args:;;(concat:ast scalar))
         |=  arg=datum
@@ -1066,11 +1086,19 @@
                             bowl
                             ==
       ?:  (levy exprs |=(e=resolved-scalar ?=(dime e)))
-        [~.t (crip (zing (turn exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))))]
+        :-  ~.t
+            %-  crip  %-  zing  %+  turn  exprs
+                                          |=  e=resolved-scalar
+                                          (trip `@t`+:;;(dime e))
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
-      [~.t (crip (zing (turn exprs |=(e=resolved-scalar (trip `@t`+:?:(?=(dime e) e (f.e data-row)))))))]
+      :-  ~.t
+            %-  crip  %-  zing
+                            %+  turn
+                                  exprs
+                                  |=  e=resolved-scalar
+                                  (trip `@t`+:?:(?=(dime e) e (f.e data-row)))
   ::
     %left
       ::  LEFT(str, n) returns the leftmost n characters of str
@@ -1101,7 +1129,7 @@
       [~.t (do-left str n)]
   ::
     %len
-      ::  LEN(str) returns the number of characters in str as an unsigned integer
+      ::  LEN(str) returns the number of characters as an unsigned integer
       =/  expr  %:  evaluate-datum  string-expression:;;(len:ast scalar)
                                     named-ctes
                                     qualifier-lookup
@@ -1133,7 +1161,8 @@
       [~.t (crip (cass (trip `@t`+:(f.expr data-row))))]
   ::
     %ltrim
-      ::  LTRIM(str[, pattern]) removes leading whitespace (default) or leading occurrences of pattern
+      ::  LTRIM(str[, pattern]) removes leading whitespace (default)
+      ::                        or leading occurrences of pattern
       =/  str-expr  %:  evaluate-datum  string-expression:;;(ltrim:ast scalar)
                                         named-ctes
                                         qualifier-lookup
@@ -1191,14 +1220,16 @@
       [~.t (do-ltrim-pat str pat)]
   ::
     %patindex
-      ::  PATINDEX(str, pattern) returns 1-based starting position of pattern in str, or 0 if not found
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(patindex:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      ::  PATINDEX(str, pattern) returns 1-based starting position of pattern
+      ::                         in str, or 0 if not found
+      =/  str-expr
+            %:  evaluate-datum  string-expression:;;(patindex:ast scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                ==
       =/  pat-expr  %:  evaluate-datum  pattern:;;(patindex:ast scalar)
                                         named-ctes
                                         qualifier-lookup
@@ -1222,14 +1253,16 @@
       [~.ud (do-patindex str pat)]
   ::
     %quotestring
-      ::  QUOTESTRING(str[, open, close]) wraps str in delimiters; default delimiters are '[' and ']'
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(quotestring:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      ::  QUOTESTRING(str[, open, close]) wraps str in delimiters;
+      ::                                  default delimiters are '[' and ']'
+      =/  str-expr
+            %:  evaluate-datum  string-expression:;;(quotestring:ast scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                ==
       =/  raw-quote  quote:;;(quotestring:ast scalar)
       =/  do-quote
         |=  [str=@t open=@t close=@t]
@@ -1263,11 +1296,13 @@
       ^-  dime
       =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
       =/  open   `@t`+:?:(?=(dime open-expr) open-expr (f.open-expr data-row))
-      =/  close  `@t`+:?:(?=(dime close-expr) close-expr (f.close-expr data-row))
+      =/  close
+            `@t`+:?:(?=(dime close-expr) close-expr (f.close-expr data-row))
       [~.t (do-quote str open close)]
   ::
     %replace
-      ::  REPLACE(str, pattern, replacement) replaces all occurrences of pattern in str with replacement
+      ::  REPLACE(str, pattern, replacement) replaces all occurrences of pattern
+      ::                                     in str with replacement
       =/  str-expr  %:  evaluate-datum  string-expression:;;(replace:ast scalar)
                                         named-ctes
                                         qualifier-lookup
@@ -1316,20 +1351,22 @@
   ::
     %replicate
       ::  REPLICATE(str, n) repeats str n times
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(replicate:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
-      =/  int-expr  %:  evaluate-datum  integer-expression:;;(replicate:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  str-expr
+            %:  evaluate-datum  string-expression:;;(replicate:ast scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                ==
+      =/  int-expr
+            %:  evaluate-datum  integer-expression:;;(replicate:ast scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                ==
       =/  do-replicate
         |=  [str=@t n=@ud]
         ^-  @t
@@ -1396,7 +1433,8 @@
       [~.t (do-right str n)]
   ::
     %rtrim
-      ::  RTRIM(str[, pattern]) removes trailing whitespace (default) or trailing occurrences of pattern
+      ::  RTRIM(str[, pattern]) removes trailing whitespace (default)
+      ::                        or trailing occurrences of pattern
       =/  str-expr  %:  evaluate-datum  string-expression:;;(rtrim:ast scalar)
                                         named-ctes
                                         qualifier-lookup
@@ -1471,7 +1509,7 @@
       [~.t (crip (scow `@tas`-.d +.d))]
   ::
     %string-concat
-      ::  STRING-CONCAT(str1, str2, ..., delimiter) joins strings with delimiter placed between each
+      ::  STRING-CONCAT(str1, str2, ..., delimiter) joins strings with delimiter
       =/  arg-exprs
         %+  turn  ;;((list datum) args:;;(string-concat:ast scalar))
         |=  arg=datum
@@ -1496,8 +1534,11 @@
         ?~  tapes  ~
         ?~  t.tapes  i.tapes
         (weld i.tapes (weld d $(tapes t.tapes)))
-      ?:  &((levy arg-exprs |=(e=resolved-scalar ?=(dime e))) ?=(dime delim-expr))
-        =/  tapes  (turn arg-exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))
+      ?:  ?&  (levy arg-exprs |=(e=resolved-scalar ?=(dime e)))
+              ?=(dime delim-expr)
+              ==
+        =/  tapes
+          (turn arg-exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))
         =/  d      (trip `@t`+:;;(dime delim-expr))
         [~.t (crip (do-join tapes d))]
       :+  %fn  ~.t
@@ -1506,11 +1547,14 @@
       =/  tapes  %+  turn  arg-exprs
                  |=  e=resolved-scalar
                  (trip `@t`+:?:(?=(dime e) e (f.e data-row)))
-      =/  d      (trip `@t`+:?:(?=(dime delim-expr) delim-expr (f.delim-expr data-row)))
+      =/  d
+            %-  trip
+                `@t`+:?:(?=(dime delim-expr) delim-expr (f.delim-expr data-row))
       [~.t (crip (do-join tapes d))]
   ::
     %stuff
-      ::  STUFF(str, start, length, replace) deletes length chars at start (1-based) and inserts replace
+      ::  STUFF(str, start, length, replace) deletes length chars at start
+      ::                                     (1-based) and inserts replace
       =/  str-expr    %:  evaluate-datum  string-expression:;;(stuff:ast scalar)
                                           named-ctes
                                           qualifier-lookup
@@ -1546,27 +1590,37 @@
         =/  r=tape   (trip rep)
         =/  idx=@ud  (dec start)
         (crip (weld (scag idx s) (weld r (slag (add idx len) s))))
-      ?:  &(?=(dime str-expr) &(?=(dime start-expr) &(?=(dime len-expr) ?=(dime rep-expr))))
-        [~.t (do-stuff `@t`+.str-expr `@ud`+.start-expr `@ud`+.len-expr `@t`+.rep-expr)]
+      ?:  ?&  ?=(dime str-expr)
+              &(?=(dime start-expr) &(?=(dime len-expr) ?=(dime rep-expr)))
+              ==
+        :-  ~.t
+            %:  do-stuff  `@t`+.str-expr
+                          `@ud`+.start-expr
+                          `@ud`+.len-expr
+                          `@t`+.rep-expr
+                          ==
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
       =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
-      =/  start  `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+      =/  start
+            `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
       =/  len    `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
       =/  rep    `@t`+:?:(?=(dime rep-expr) rep-expr (f.rep-expr data-row))
       [~.t (do-stuff str start len rep)]
   ::
     %substring
-      ::  SUBSTRING(str, start[, length]) returns substring starting at start (1-based index);
+      ::  SUBSTRING(str, start[, length]) returns substring starting
+      ::                                  at start (1-based index);
       ::  if length is omitted, returns from start to end of str
-      =/  str-expr    %:  evaluate-datum  string-expression:;;(substring:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
+      =/  str-expr
+            %:  evaluate-datum  string-expression:;;(substring:ast scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                ==
       =/  start-expr  %:  evaluate-datum  start:;;(substring:ast scalar)
                                           named-ctes
                                           qualifier-lookup
@@ -1589,7 +1643,8 @@
         |=  =data-row
         ^-  dime
         =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
-        =/  start  `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+        =/  start
+              `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
         [~.t (do-sub str start ~)]
       =/  len-expr  %:  evaluate-datum  u.raw-length
                                         named-ctes
@@ -1604,12 +1659,14 @@
       |=  =data-row
       ^-  dime
       =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
-      =/  start  `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+      =/  start
+            `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
       =/  len    `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
       [~.t (do-sub str start (some len))]
   ::
     %trim
-      ::  TRIM(str[, pattern]) removes leading and trailing whitespace or pattern occurrences from str
+      ::  TRIM(str[, pattern]) removes leading and trailing whitespace
+      ::                       or pattern occurrences from str
       =/  str-expr  %:  evaluate-datum  string-expression:;;(trim:ast scalar)
                                         named-ctes
                                         qualifier-lookup
@@ -1725,12 +1782,12 @@
         ==
   =/  pred-result
         %:  prepare-predicate  %+  normalize-predicate  if.scalar
-                                                         qualifier-lookup
-                                map-meta
-                                qualifier-lookup
-                                named-ctes
-                                resolved-scalars
-                                ==
+                                                        qualifier-lookup
+                               map-meta
+                               qualifier-lookup
+                               named-ctes
+                               resolved-scalars
+                               ==
   :+  %fn
       typ
       |=  =data-row
@@ -1929,11 +1986,11 @@
                         %+  normalize-predicate  ;;(predicate:ast when.cwt)
                                                  qualifier-lookup
                   :-  %:  prepare-predicate  qualified-pred
-                                              map-meta
-                                              qualifier-lookup
-                                              named-ctes
-                                              resolved-scalars
-                                              ==
+                                             map-meta
+                                             qualifier-lookup
+                                             named-ctes
+                                             resolved-scalars
+                                             ==
                       %:  evaluate-datum  then.cwt
                                           named-ctes
                                           qualifier-lookup

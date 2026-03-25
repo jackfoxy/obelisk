@@ -3645,9 +3645,13 @@
       [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
       [%scalar 'st-qs1' [%quotestring literal-hello ~]]
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
-      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      :+  %scalar
+          'st-qs3'
+          [%quotestring literal-hello `[literal-open literal-close]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
+      :+  %scalar
+          'st-sc1'
+          [%string-concat ~[literal-hello literal-world] literal-space]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3709,9 +3713,13 @@
       [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
       [%scalar 'st-qs1' [%quotestring literal-hello ~]]
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
-      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      :+  %scalar
+          'st-qs3'
+          [%quotestring literal-hello `[literal-open literal-close]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
+      :+  %scalar
+          'st-sc1'
+          [%string-concat ~[literal-hello literal-world] literal-space]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3781,9 +3789,13 @@
       [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
       [%scalar 'st-qs1' [%quotestring literal-hello ~]]
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
-      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      :+  %scalar
+          'st-qs3'
+          [%quotestring literal-hello `[literal-open literal-close]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
+      :+  %scalar
+          'st-sc1'
+          [%string-concat ~[literal-hello literal-world] literal-space]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -3853,9 +3865,13 @@
       [%scalar 'st-rpl' [%replicate literal-hello literal-3]]
       [%scalar 'st-qs1' [%quotestring literal-hello ~]]
       [%scalar 'st-qs2' [%quotestring literal-hello `[literal-sq literal-sq]]]
-      [%scalar 'st-qs3' [%quotestring literal-hello `[literal-open literal-close]]]
+      :+  %scalar
+          'st-qs3'
+          [%quotestring literal-hello `[literal-open literal-close]]
       [%scalar 'st-str' [%string literal-3]]
-      [%scalar 'st-sc1' [%string-concat ~[literal-hello literal-world] literal-space]]
+      :+  %scalar
+          'st-sc1'
+          [%string-concat ~[literal-hello literal-world] literal-space]
       [%scalar 'st-stf' [%stuff literal-hello literal-2 literal-3 literal-xx]]
       [%scalar 'loq1' [%lower qualified-col-1]]
       [%scalar 'lou1' [%lower unqualified-foo-3]]
@@ -4047,7 +4063,8 @@
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %string-concat in arithmetic expression'
+    %-  crip  "finalize-math-builtin-fn: cannot use %string-concat in ".
+              "arithmetic expression"
     |.  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function STUFF with arithmetic operator

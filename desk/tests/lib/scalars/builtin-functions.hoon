@@ -723,15 +723,15 @@
 ++  round-frac-u-col-9  [%unqualified-column %col9 ~]
 ::
 ++  round-frac-unqual-table-row  %-  mk-indexed-row
-                                 :~  [%col1 0]                        ::  @rd 0
-                                     [%col2 .~1.5]                    ::  @rd 1.5
-                                     [%col3 .~-1.5]                   ::  @rd -1.5
-                                     [%col4 .~15]                     ::  @rd 15.0
-                                     [%col5 .~-15]                    ::  @rd -15.0
-                                     [%col6 --1.234]                  ::  @sd --1.234
-                                     [%col7 -1.234]                   ::  @sd -1.234
-                                     [%col8 1.234]                    ::  @ud 1.234
-                                     [%col9 1.235]                    ::  @ud 1.235
+                                 :~  [%col1 0]                   ::  @rd 0
+                                     [%col2 .~1.5]               ::  @rd 1.5
+                                     [%col3 .~-1.5]              ::  @rd -1.5
+                                     [%col4 .~15]                ::  @rd 15.0
+                                     [%col5 .~-15]               ::  @rd -15.0
+                                     [%col6 --1.234]             ::  @sd --1.234
+                                     [%col7 -1.234]              ::  @sd -1.234
+                                     [%col8 1.234]               ::  @ud 1.234
+                                     [%col9 1.235]               ::  @ud 1.235
                                  ==
 ::
 ::  %max / %min test helpers
@@ -1709,7 +1709,8 @@
                                ==
 ::
 ::  string test helpers
-::  col1=@t 'hello', col2=@t 'world', col3=@t '  hello  ', col4=@t 'HELLO', col5=@ud 3
+::  col1=@t
+::    'hello', col2=@t 'world', col3=@t '  hello  ', col4=@t 'HELLO', col5=@ud 3
 ::
 ++  str-qual-map-meta
   %-  mk-qualified-map-meta
@@ -1730,11 +1731,11 @@
 ++  str-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
 ::
 ++  str-qual-table-row  %-  mk-indexed-row
-                        :~  [%col1 'hello']          ::  @t
-                            [%col2 'world']          ::  @t
-                            [%col3 '  hello  ']      ::  @t with leading/trailing spaces
-                            [%col4 'HELLO']          ::  @t uppercase
-                            [%col5 3]                ::  @ud
+                        :~  [%col1 'hello']
+                            [%col2 'world']
+                            [%col3 '  hello  ']
+                            [%col4 'HELLO']
+                            [%col5 3]
                         ==
 ::
 ++  str-unqual-map-meta
@@ -1763,11 +1764,11 @@
 ++  str-u-col-10  [%unqualified-column %col10 ~]
 ::
 ++  str-unqual-table-row  %-  mk-indexed-row
-                          :~  [%col6 'hello']         ::  @t
-                              [%col7 'world']         ::  @t
-                              [%col8 '  hello  ']     ::  @t with leading/trailing spaces
-                              [%col9 'HELLO']         ::  @t uppercase
-                              [%col10 3]              ::  @ud
+                          :~  [%col6 'hello']        ::  @t
+                              [%col7 'world']        ::  @t
+                              [%col8 '  hello  ']    ::  leading/trailing spaces
+                              [%col9 'HELLO']        ::  @t uppercase
+                              [%col10 3]             ::  @ud
                           ==
 ::
 ::  string trim test helpers
@@ -1814,7 +1815,8 @@
                                ==
 ::
 ::  string numeric test helpers (for %string function)
-::  col1=@ud 42, col2=@sd --42, col3=@sd -42, col4=@rd .~42.42, col5=@rd .~-24.24
+::  col1=@ud 42, col2=@sd --42, col3=@sd -42, col4=@rd .~42.42, 
+::                                                         col5=@rd .~-24.24
 ::
 ++  str-num-qual-map-meta
   %-  mk-qualified-map-meta
@@ -4472,7 +4474,8 @@
   ==
 ::
 ::  date scalar test helpers
-::  col1=@da ~2026.3.15..10.30.45 (year=2026, month=3, day=15, hour=10, min=30, sec=45)
+::  col1=@da ~2026.3.15..10.30.45 
+::     (year=2026, month=3, day=15, hour=10, min=30, sec=45)
 ::  col2=@dr ~d1 (1 day)
 ::
 ::  qualified: col1=@da, col2=@dr
@@ -5367,7 +5370,8 @@
     :-  %replace-col-col-lit
         :-  [%replace str-q-col-1 str-q-col-1 [~.t 'bye']]
             [~.t 'bye']
-    ::  col-str + lit-pattern + col-replacement: REPLACE('hello','ell','world') = 'hworldo'
+    ::  col-str + lit-pattern + col-replacement: 
+    ::    REPLACE('hello','ell','world') = 'hworldo'
     :-  %replace-col-lit-col
         :-  [%replace str-q-col-1 [~.t 'ell'] str-q-col-2]
             [~.t 'hworldo']
@@ -5797,7 +5801,8 @@
   ==
 ::
 ::  %stuff tests
-::  STUFF(str, start, length, replace): deletes length chars at start, inserts replace
+::  STUFF(str, start, length, replace): 
+::      deletes length chars at start, inserts replace
 ::  col1='hello', col2='world', col5=@ud 3
 ::
 ++  test-stuff-qual
@@ -5824,7 +5829,8 @@
     :-  %stuff-col-lit-col-lit
         :-  [%stuff str-q-col-1 [~.ud 2] str-q-col-5 [~.t 'ELL']]
             [~.t 'hELLo']
-    ::  col-str + lit + lit + col-replace: STUFF('hello',2,3,'world') = 'hworldo'
+    ::  col-str + lit + lit + col-replace: 
+    ::      STUFF('hello',2,3,'world') = 'hworldo'
     :-  %stuff-col-lit-lit-col
         :-  [%stuff str-q-col-1 [~.ud 2] [~.ud 3] str-q-col-2]
             [~.t 'hworldo']
@@ -5909,7 +5915,8 @@
   ==
 ::
 ::  %trim tests
-::  TRIM removes leading and trailing whitespace (default) or pattern chars (2-param)
+::  TRIM removes leading and trailing whitespace (default) 
+::       or pattern chars (2-param)
 ::
 ++  test-trim-qual
   %:  run-scalar-tests

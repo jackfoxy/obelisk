@@ -11,7 +11,8 @@
       "Read(//home/nativeplanet/urbit/pkg/arvo/sys/**)",
       "Read(//home/nativeplanet/.urbit/base/sys/**)",
       "Read(//home/nativeplanet/**)",
-      "Read(//mnt/mars/**)"
+      "Read(//mnt/mars/**)",
+      "Bash(grep -n '.\\\\{81,\\\\}' /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse-scalars.hoon)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"
