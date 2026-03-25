@@ -1708,6 +1708,173 @@
                                    [%col16 24]       ::  @ud 24
                                ==
 ::
+::  string test helpers
+::  col1=@t 'hello', col2=@t 'world', col3=@t '  hello  ', col4=@t 'HELLO', col5=@ud 3
+::
+++  str-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.t 0]
+                      [%column %col2 ~.t 0]
+                      [%column %col3 ~.t 0]
+                      [%column %col4 ~.t 0]
+                      [%column %col5 ~.ud 0]
+                      ==
+          ==
+::
+++  str-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  str-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  str-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  str-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  str-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+::
+++  str-qual-table-row  %-  mk-indexed-row
+                        :~  [%col1 'hello']          ::  @t
+                            [%col2 'world']          ::  @t
+                            [%col3 '  hello  ']      ::  @t with leading/trailing spaces
+                            [%col4 'HELLO']          ::  @t uppercase
+                            [%col5 3]                ::  @ud
+                        ==
+::
+++  str-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col6 ~.t 0]
+                  [%column %col7 ~.t 0]
+                  [%column %col8 ~.t 0]
+                  [%column %col9 ~.t 0]
+                  [%column %col10 ~.ud 0]
+                  ==
+::
+++  str-unqual-lookup  %-  malt  %-  limo
+                       :~  [%col6 ~[qualified-table-1]]
+                           [%col7 ~[qualified-table-1]]
+                           [%col8 ~[qualified-table-1]]
+                           [%col9 ~[qualified-table-1]]
+                           [%col10 ~[qualified-table-1]]
+                       ==
+::
+++  str-u-col-6   [%unqualified-column %col6 ~]
+++  str-u-col-7   [%unqualified-column %col7 ~]
+++  str-u-col-8   [%unqualified-column %col8 ~]
+++  str-u-col-9   [%unqualified-column %col9 ~]
+++  str-u-col-10  [%unqualified-column %col10 ~]
+::
+++  str-unqual-table-row  %-  mk-indexed-row
+                          :~  [%col6 'hello']         ::  @t
+                              [%col7 'world']         ::  @t
+                              [%col8 '  hello  ']     ::  @t with leading/trailing spaces
+                              [%col9 'HELLO']         ::  @t uppercase
+                              [%col10 3]              ::  @ud
+                          ==
+::
+::  string trim test helpers
+::  for testing pattern=(unit datum) as a column reference
+::  qualified: col1=@t 'xxhelloxx', col2=@t 'x'
+::  unqualified: col3=@t 'xxhelloxx', col4=@t 'x'
+::
+++  str-trim-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.t 0]
+                      [%column %col2 ~.t 0]
+                      ==
+          ==
+::
+++  str-trim-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  str-trim-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+::
+++  str-trim-qual-table-row  %-  mk-indexed-row
+                             :~  [%col1 'xxhelloxx']  ::  @t string to trim
+                                 [%col2 'x']          ::  @t trim character
+                             ==
+::
+++  str-trim-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col3 ~.t 0]
+                  [%column %col4 ~.t 0]
+                  ==
+::
+++  str-trim-unqual-lookup  %-  malt  %-  limo
+                            :~  [%col3 ~[qualified-table-1]]
+                                [%col4 ~[qualified-table-1]]
+                            ==
+::
+++  str-trim-u-col-3  [%unqualified-column %col3 ~]
+++  str-trim-u-col-4  [%unqualified-column %col4 ~]
+::
+++  str-trim-unqual-table-row  %-  mk-indexed-row
+                               :~  [%col3 'xxhelloxx']  ::  @t string to trim
+                                   [%col4 'x']          ::  @t trim character
+                               ==
+::
+::  string numeric test helpers (for %string function)
+::  col1=@ud 42, col2=@sd --42, col3=@sd -42, col4=@rd .~42.42, col5=@rd .~-24.24
+::
+++  str-num-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.ud 0]
+                      [%column %col2 ~.sd 0]
+                      [%column %col3 ~.sd 0]
+                      [%column %col4 ~.rd 0]
+                      [%column %col5 ~.rd 0]
+                      ==
+          ==
+::
+++  str-num-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
+++  str-num-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
+++  str-num-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+++  str-num-q-col-4  [%qualified-column qualified-table-1 %col4 ~]
+++  str-num-q-col-5  [%qualified-column qualified-table-1 %col5 ~]
+::
+++  str-num-qual-table-row  %-  mk-indexed-row
+                            :~  [%col1 42]        ::  @ud 42
+                                [%col2 --42]      ::  @sd --42 positive
+                                [%col3 -42]       ::  @sd -42 negative
+                                [%col4 .~42.42]   ::  @rd 42.42
+                                [%col5 .~-24.24]  ::  @rd -24.24
+                            ==
+::
+++  str-num-unqual-map-meta
+  :-  %unqualified-map-meta
+      %-  mk-unqualified-typ-addr-lookup
+          %-  addr-columns
+              :~  [%column %col6 ~.ud 0]
+                  [%column %col7 ~.sd 0]
+                  [%column %col8 ~.sd 0]
+                  [%column %col9 ~.rd 0]
+                  [%column %col10 ~.rd 0]
+                  ==
+::
+++  str-num-unqual-lookup  %-  malt  %-  limo
+                           :~  [%col6 ~[qualified-table-1]]
+                               [%col7 ~[qualified-table-1]]
+                               [%col8 ~[qualified-table-1]]
+                               [%col9 ~[qualified-table-1]]
+                               [%col10 ~[qualified-table-1]]
+                           ==
+::
+++  str-num-u-col-6   [%unqualified-column %col6 ~]
+++  str-num-u-col-7   [%unqualified-column %col7 ~]
+++  str-num-u-col-8   [%unqualified-column %col8 ~]
+++  str-num-u-col-9   [%unqualified-column %col9 ~]
+++  str-num-u-col-10  [%unqualified-column %col10 ~]
+::
+++  str-num-unqual-table-row  %-  mk-indexed-row
+                              :~  [%col6 42]        ::  @ud 42
+                                  [%col7 --42]      ::  @sd --42 positive
+                                  [%col8 -42]       ::  @sd -42 negative
+                                  [%col9 .~42.42]   ::  @rd 42.42
+                                  [%col10 .~-24.24] ::  @rd -24.24
+                              ==
+::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
@@ -4756,6 +4923,1126 @@
         :-  [%subtract-time dt-q-col-2 dt-q-col-2]
             [~.dr 0]
     ==
+  ==
+::
+::  ::::::::::::::::::::::::::::
+::  :::: STRING SCALAR TESTS ::::
+::  ::::::::::::::::::::::::::::
+::
+::  %concat tests
+::  col1='hello', col2='world', col5=@ud 3 (unused here)
+::
+++  test-concat-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit + lit
+    :-  %concat-lit-lit
+        :-  [%concat ~[[~.t 'hello'] [~.t 'world']]]
+            [~.t 'helloworld']
+    ::  3-item lit
+    :-  %concat-lit-lit-lit
+        :-  [%concat ~[[~.t 'a'] [~.t 'b'] [~.t 'c']]]
+            [~.t 'abc']
+    ::  col + lit
+    :-  %concat-col-lit
+        :-  [%concat ~[str-q-col-1 [~.t 'world']]]
+            [~.t 'helloworld']
+    ::  lit + col
+    :-  %concat-lit-col
+        :-  [%concat ~[[~.t 'hello'] str-q-col-2]]
+            [~.t 'helloworld']
+    ::  col + col
+    :-  %concat-col-col
+        :-  [%concat ~[str-q-col-1 str-q-col-2]]
+            [~.t 'helloworld']
+  ==
+  ==
+::
+++  test-concat-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col + lit
+    :-  %concat-unqual-col-lit
+        :-  [%concat ~[str-u-col-6 [~.t 'world']]]
+            [~.t 'helloworld']
+    ::  lit + unqual col
+    :-  %concat-unqual-lit-col
+        :-  [%concat ~[[~.t 'hello'] str-u-col-7]]
+            [~.t 'helloworld']
+    ::  unqual col + unqual col
+    :-  %concat-unqual-col-col
+        :-  [%concat ~[str-u-col-6 str-u-col-7]]
+            [~.t 'helloworld']
+  ==
+  ==
+::
+::  %left tests
+::  LEFT(str, n) returns the left n characters
+::  col1='hello' col5=@ud 3
+::
+++  test-left-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit-str + lit-int
+    :-  %left-lit-lit
+        :-  [%left [~.t 'hello'] [~.ud 3]]
+            [~.t 'hel']
+    ::  col-str + lit-int
+    :-  %left-col-lit
+        :-  [%left str-q-col-1 [~.ud 3]]
+            [~.t 'hel']
+    ::  lit-str + col-int
+    :-  %left-lit-col
+        :-  [%left [~.t 'hello'] str-q-col-5]
+            [~.t 'hel']
+    ::  col-str + col-int
+    :-  %left-col-col
+        :-  [%left str-q-col-1 str-q-col-5]
+            [~.t 'hel']
+  ==
+  ==
+::
+++  test-left-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col-str + lit-int
+    :-  %left-unqual-col-lit
+        :-  [%left str-u-col-6 [~.ud 3]]
+            [~.t 'hel']
+    ::  lit-str + unqual col-int
+    :-  %left-unqual-lit-col
+        :-  [%left [~.t 'hello'] str-u-col-10]
+            [~.t 'hel']
+    ::  unqual col-str + unqual col-int
+    :-  %left-unqual-col-col
+        :-  [%left str-u-col-6 str-u-col-10]
+            [~.t 'hel']
+  ==
+  ==
+::
+::  %len tests
+::  LEN(str) returns number of characters as @ud
+::  col1='hello' (len 5)
+::
+++  test-len-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit empty string
+    :-  %len-lit-empty
+        :-  [%len [~.t '']]
+            [~.ud 0]
+    ::  lit 'hello' = 5 chars
+    :-  %len-lit
+        :-  [%len [~.t 'hello']]
+            [~.ud 5]
+    ::  qualified col1='hello' = 5
+    :-  %len-qual-col
+        :-  [%len str-q-col-1]
+            [~.ud 5]
+  ==
+  ==
+::
+++  test-len-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col6='hello' = 5
+    :-  %len-unqual-col
+        :-  [%len str-u-col-6]
+            [~.ud 5]
+  ==
+  ==
+::
+::  %lower tests
+::  LOWER(str) converts uppercase to lowercase
+::  col4='HELLO'
+::
+++  test-lower-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit all-caps
+    :-  %lower-lit-caps
+        :-  [%lower [~.t 'HELLO']]
+            [~.t 'hello']
+    ::  lit mixed case
+    :-  %lower-lit-mixed
+        :-  [%lower [~.t 'Hello World']]
+            [~.t 'hello world']
+    ::  qualified col4='HELLO'
+    :-  %lower-qual-col
+        :-  [%lower str-q-col-4]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-lower-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col9='HELLO'
+    :-  %lower-unqual-col
+        :-  [%lower str-u-col-9]
+            [~.t 'hello']
+  ==
+  ==
+::
+::  %ltrim tests
+::  default 1-param: trims leading whitespace
+::  2-param: trims leading occurrences of pattern cord
+::  str-qual: col1='hello', col3='  hello  '
+::  str-trim: col1='xxhelloxx', col2='x'
+::
+++  test-ltrim-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  default: lit with leading spaces
+    :-  %ltrim-default-lit
+        :-  [%ltrim [~.t '  hello  '] ~]
+            [~.t 'hello  ']
+    ::  default: qualified col3='  hello  '
+    :-  %ltrim-default-qual-col
+        :-  [%ltrim str-q-col-3 ~]
+            [~.t 'hello  ']
+    ::  pattern: lit-str + lit-pattern
+    :-  %ltrim-pattern-lit-lit
+        :-  [%ltrim [~.t 'xxhello'] (some [~.t 'x'])]
+            [~.t 'hello']
+    ::  pattern: col-str (no leading 'x') + lit-pattern — no change
+    :-  %ltrim-pattern-col-lit
+        :-  [%ltrim str-q-col-1 (some [~.t 'x'])]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-ltrim-qual-pattern-col
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    str-trim-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-trim-qual-table-row
+    :~
+    ::  col-str + lit-pattern: col1='xxhelloxx', trim 'x' from left
+    :-  %ltrim-trim-col-lit
+        :-  [%ltrim str-trim-q-col-1 (some [~.t 'x'])]
+            [~.t 'helloxx']
+    ::  lit-str + col-pattern: col2='x'
+    :-  %ltrim-trim-lit-col
+        :-  [%ltrim [~.t 'xxhello'] (some str-trim-q-col-2)]
+            [~.t 'hello']
+    ::  col-str + col-pattern
+    :-  %ltrim-trim-col-col
+        :-  [%ltrim str-trim-q-col-1 (some str-trim-q-col-2)]
+            [~.t 'helloxx']
+  ==
+  ==
+::
+++  test-ltrim-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  default: unqual col8='  hello  '
+    :-  %ltrim-default-unqual-col
+        :-  [%ltrim str-u-col-8 ~]
+            [~.t 'hello  ']
+    ::  pattern: lit-str + lit-pattern
+    :-  %ltrim-unqual-pattern-lit-lit
+        :-  [%ltrim [~.t 'xxhello'] (some [~.t 'x'])]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-ltrim-unqual-pattern-col
+  %:  run-scalar-tests
+    table-named-ctes
+    str-trim-unqual-lookup
+    str-trim-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-trim-unqual-table-row
+    :~
+    ::  unqual col-str + lit-pattern
+    :-  %ltrim-unqual-trim-col-lit
+        :-  [%ltrim str-trim-u-col-3 (some [~.t 'x'])]
+            [~.t 'helloxx']
+    ::  lit-str + unqual col-pattern
+    :-  %ltrim-unqual-trim-lit-col
+        :-  [%ltrim [~.t 'xxhello'] (some str-trim-u-col-4)]
+            [~.t 'hello']
+    ::  unqual col-str + unqual col-pattern
+    :-  %ltrim-unqual-trim-col-col
+        :-  [%ltrim str-trim-u-col-3 (some str-trim-u-col-4)]
+            [~.t 'helloxx']
+  ==
+  ==
+::
+::
+::  %patindex tests
+::  PATINDEX(str, pattern) returns 1-based position, 0 if not found
+::  col1='hello', col2='world'
+::
+++  test-patindex-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit found: 'ell' starts at position 2
+    :-  %patindex-lit-found
+        :-  [%patindex [~.t 'hello'] [~.t 'ell']]
+            [~.ud 2]
+    ::  lit not found: returns 0
+    :-  %patindex-lit-not-found
+        :-  [%patindex [~.t 'hello'] [~.t 'xyz']]
+            [~.ud 0]
+    ::  col-str + lit-pattern
+    :-  %patindex-col-lit
+        :-  [%patindex str-q-col-1 [~.t 'ell']]
+            [~.ud 2]
+    ::  lit-str + col-pattern: 'world' in 'hello world' at pos 7
+    :-  %patindex-lit-col
+        :-  [%patindex [~.t 'hello world'] str-q-col-2]
+            [~.ud 7]
+    ::  col-str + col-pattern: col1 finds col1 at pos 1
+    :-  %patindex-col-col
+        :-  [%patindex str-q-col-1 str-q-col-1]
+            [~.ud 1]
+  ==
+  ==
+::
+++  test-patindex-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col-str + lit-pattern
+    :-  %patindex-unqual-col-lit
+        :-  [%patindex str-u-col-6 [~.t 'ell']]
+            [~.ud 2]
+    ::  lit-str + unqual col-pattern
+    :-  %patindex-unqual-lit-col
+        :-  [%patindex [~.t 'hello world'] str-u-col-7]
+            [~.ud 7]
+    ::  unqual col + unqual col
+    :-  %patindex-unqual-col-col
+        :-  [%patindex str-u-col-6 str-u-col-6]
+            [~.ud 1]
+  ==
+  ==
+::
+::  %quotestring tests
+::  default wraps in '[' ']'; optional pair (unit [datum datum]) = open + close
+::  col1='hello'
+::
+++  test-quotestring-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  default: no quote pair → wraps in [ ]
+    :-  %quotestring-default-lit
+        :-  [%quotestring [~.t 'hello'] ~]
+            [~.t '[hello]']
+    ::  default: qualified col
+    :-  %quotestring-default-col
+        :-  [%quotestring str-q-col-1 ~]
+            [~.t '[hello]']
+    ::  quote pair ['"' '"']: same open and close
+    :-  %quotestring-dquote-lit
+        :-  [%quotestring [~.t 'hello'] (some [[~.t '"'] [~.t '"']])]
+            [~.t '"hello"']
+    ::  quote pair ['"' '"']: qualified col
+    :-  %quotestring-dquote-col
+        :-  [%quotestring str-q-col-1 (some [[~.t '"'] [~.t '"']])]
+            [~.t '"hello"']
+    ::  quote pair ['{' '}']: different open and close
+    :-  %quotestring-braces-lit
+        :-  [%quotestring [~.t 'hello'] (some [[~.t '{'] [~.t '}']])]
+            [~.t '{hello}']
+    ::  quote pair ['{' '}']: qualified col
+    :-  %quotestring-braces-col
+        :-  [%quotestring str-q-col-1 (some [[~.t '{'] [~.t '}']])]
+            [~.t '{hello}']
+  ==
+  ==
+::
+++  test-quotestring-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  default: unqual col
+    :-  %quotestring-unqual-default-col
+        :-  [%quotestring str-u-col-6 ~]
+            [~.t '[hello]']
+    ::  quote pair ['"' '"']: unqual col
+    :-  %quotestring-unqual-dquote-col
+        :-  [%quotestring str-u-col-6 (some [[~.t '"'] [~.t '"']])]
+            [~.t '"hello"']
+    ::  quote pair ['{' '}']: unqual col
+    :-  %quotestring-unqual-braces-col
+        :-  [%quotestring str-u-col-6 (some [[~.t '{'] [~.t '}']])]
+            [~.t '{hello}']
+  ==
+  ==
+::
+::  %replace tests
+::  REPLACE(str, pattern, replacement) replaces all occurrences
+::  col1='hello', col2='world'
+::
+++  test-replace-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit+lit+lit
+    :-  %replace-lit-lit-lit
+        :-  [%replace [~.t 'hello world'] [~.t 'world'] [~.t 'there']]
+            [~.t 'hello there']
+    ::  col-str + lit-pattern + lit-replacement
+    :-  %replace-col-lit-lit
+        :-  [%replace str-q-col-1 [~.t 'ell'] [~.t 'ELL']]
+            [~.t 'hELLo']
+    ::  col-str + col-pattern + lit-replacement: replaces 'hello' with 'bye'
+    :-  %replace-col-col-lit
+        :-  [%replace str-q-col-1 str-q-col-1 [~.t 'bye']]
+            [~.t 'bye']
+    ::  col-str + lit-pattern + col-replacement: REPLACE('hello','ell','world') = 'hworldo'
+    :-  %replace-col-lit-col
+        :-  [%replace str-q-col-1 [~.t 'ell'] str-q-col-2]
+            [~.t 'hworldo']
+  ==
+  ==
+::
+++  test-replace-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col-str + lit-pattern + lit-replacement
+    :-  %replace-unqual-col-lit-lit
+        :-  [%replace str-u-col-6 [~.t 'ell'] [~.t 'ELL']]
+            [~.t 'hELLo']
+    ::  unqual col-str + col-pattern + lit-replacement
+    :-  %replace-unqual-col-col-lit
+        :-  [%replace str-u-col-6 str-u-col-6 [~.t 'bye']]
+            [~.t 'bye']
+    ::  unqual col-str + lit-pattern + col-replacement
+    :-  %replace-unqual-col-lit-col
+        :-  [%replace str-u-col-6 [~.t 'ell'] str-u-col-7]
+            [~.t 'hworldo']
+  ==
+  ==
+::
+::  %replicate tests
+::  REPLICATE(str, n) repeats str n times
+::  col1='hello', col5=@ud 3
+::
+++  test-replicate-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit integer-expression=1
+    :-  %replicate-lit-1
+        :-  [%replicate [~.t 'ha'] [~.ud 1]]
+            [~.t 'ha']
+    ::  lit integer-expression=2
+    :-  %replicate-lit-2
+        :-  [%replicate [~.t 'ha'] [~.ud 2]]
+            [~.t 'haha']
+    ::  lit integer-expression=3
+    :-  %replicate-lit-3
+        :-  [%replicate [~.t 'ha'] [~.ud 3]]
+            [~.t 'hahaha']
+    ::  col-str + lit-int
+    :-  %replicate-col-lit
+        :-  [%replicate str-q-col-1 [~.ud 2]]
+            [~.t 'hellohello']
+    ::  lit-str + col-int (col5=3)
+    :-  %replicate-lit-col
+        :-  [%replicate [~.t 'ha'] str-q-col-5]
+            [~.t 'hahaha']
+    ::  col-str + col-int
+    :-  %replicate-col-col
+        :-  [%replicate str-q-col-1 str-q-col-5]
+            [~.t 'hellohellohello']
+  ==
+  ==
+::
+++  test-replicate-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col-str + lit-int
+    :-  %replicate-unqual-col-lit
+        :-  [%replicate str-u-col-6 [~.ud 2]]
+            [~.t 'hellohello']
+    ::  lit-str + unqual col-int
+    :-  %replicate-unqual-lit-col
+        :-  [%replicate [~.t 'ha'] str-u-col-10]
+            [~.t 'hahaha']
+    ::  unqual col-str + unqual col-int
+    :-  %replicate-unqual-col-col
+        :-  [%replicate str-u-col-6 str-u-col-10]
+            [~.t 'hellohellohello']
+  ==
+  ==
+::
+::  %reverse tests
+::  REVERSE(str) returns string in reverse order
+::  col1='hello'
+::
+++  test-reverse-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit
+    :-  %reverse-lit
+        :-  [%reverse [~.t 'hello']]
+            [~.t 'olleh']
+    ::  lit palindrome: unchanged
+    :-  %reverse-lit-palindrome
+        :-  [%reverse [~.t 'racecar']]
+            [~.t 'racecar']
+    ::  qualified col1='hello'
+    :-  %reverse-qual-col
+        :-  [%reverse str-q-col-1]
+            [~.t 'olleh']
+  ==
+  ==
+::
+++  test-reverse-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col6='hello'
+    :-  %reverse-unqual-col
+        :-  [%reverse str-u-col-6]
+            [~.t 'olleh']
+  ==
+  ==
+::
+::  %right tests
+::  RIGHT(str, n) returns the right n characters
+::  col1='hello', col5=@ud 3
+::
+++  test-right-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit-str + lit-int
+    :-  %right-lit-lit
+        :-  [%right [~.t 'hello'] [~.ud 3]]
+            [~.t 'llo']
+    ::  col-str + lit-int
+    :-  %right-col-lit
+        :-  [%right str-q-col-1 [~.ud 3]]
+            [~.t 'llo']
+    ::  lit-str + col-int (col5=3)
+    :-  %right-lit-col
+        :-  [%right [~.t 'hello'] str-q-col-5]
+            [~.t 'llo']
+    ::  col-str + col-int
+    :-  %right-col-col
+        :-  [%right str-q-col-1 str-q-col-5]
+            [~.t 'llo']
+  ==
+  ==
+::
+++  test-right-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col-str + lit-int
+    :-  %right-unqual-col-lit
+        :-  [%right str-u-col-6 [~.ud 3]]
+            [~.t 'llo']
+    ::  lit-str + unqual col-int
+    :-  %right-unqual-lit-col
+        :-  [%right [~.t 'hello'] str-u-col-10]
+            [~.t 'llo']
+    ::  unqual col-str + unqual col-int
+    :-  %right-unqual-col-col
+        :-  [%right str-u-col-6 str-u-col-10]
+            [~.t 'llo']
+  ==
+  ==
+::
+::
+::  %rtrim tests
+::  mirror of ltrim: removes trailing occurrences
+::
+++  test-rtrim-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  default: lit with trailing spaces
+    :-  %rtrim-default-lit
+        :-  [%rtrim [~.t '  hello  '] ~]
+            [~.t '  hello']
+    ::  default: qualified col3='  hello  '
+    :-  %rtrim-default-qual-col
+        :-  [%rtrim str-q-col-3 ~]
+            [~.t '  hello']
+    ::  pattern: lit-str + lit-pattern
+    :-  %rtrim-pattern-lit-lit
+        :-  [%rtrim [~.t 'helloxx'] (some [~.t 'x'])]
+            [~.t 'hello']
+    ::  pattern: col-str (no trailing 'x') + lit-pattern — no change
+    :-  %rtrim-pattern-col-lit
+        :-  [%rtrim str-q-col-1 (some [~.t 'x'])]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-rtrim-qual-pattern-col
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    str-trim-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-trim-qual-table-row
+    :~
+    ::  col-str + lit-pattern: col1='xxhelloxx', trim 'x' from right
+    :-  %rtrim-trim-col-lit
+        :-  [%rtrim str-trim-q-col-1 (some [~.t 'x'])]
+            [~.t 'xxhello']
+    ::  lit-str + col-pattern
+    :-  %rtrim-trim-lit-col
+        :-  [%rtrim [~.t 'helloxx'] (some str-trim-q-col-2)]
+            [~.t 'hello']
+    ::  col-str + col-pattern
+    :-  %rtrim-trim-col-col
+        :-  [%rtrim str-trim-q-col-1 (some str-trim-q-col-2)]
+            [~.t 'xxhello']
+  ==
+  ==
+::
+++  test-rtrim-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  default: unqual col8='  hello  '
+    :-  %rtrim-default-unqual-col
+        :-  [%rtrim str-u-col-8 ~]
+            [~.t '  hello']
+    ::  pattern: lit-str + lit-pattern
+    :-  %rtrim-unqual-pattern-lit-lit
+        :-  [%rtrim [~.t 'helloxx'] (some [~.t 'x'])]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-rtrim-unqual-pattern-col
+  %:  run-scalar-tests
+    table-named-ctes
+    str-trim-unqual-lookup
+    str-trim-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-trim-unqual-table-row
+    :~
+    ::  unqual col-str + lit-pattern
+    :-  %rtrim-unqual-trim-col-lit
+        :-  [%rtrim str-trim-u-col-3 (some [~.t 'x'])]
+            [~.t 'xxhello']
+    ::  lit-str + unqual col-pattern
+    :-  %rtrim-unqual-trim-lit-col
+        :-  [%rtrim [~.t 'helloxx'] (some str-trim-u-col-4)]
+            [~.t 'hello']
+    ::  unqual col-str + unqual col-pattern
+    :-  %rtrim-unqual-trim-col-col
+        :-  [%rtrim str-trim-u-col-3 (some str-trim-u-col-4)]
+            [~.t 'xxhello']
+  ==
+  ==
+::
+::  %string tests
+::  STRING(numeric) converts to cord using scow
+::  @ud 42 → '42', @sd --42 → '--42', @sd -42 → '-42'
+::  @rd .~42.42 → '.~42.42', @rd .~-24.24 → '.~-24.24'
+::
+++  test-string-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    str-num-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-num-qual-table-row
+    :~
+    ::  literal @ud 42
+    :-  %string-lit-ud
+        :-  [%string [~.ud 42]]
+            [~.t '42']
+    ::  literal @sd --42 (positive)
+    :-  %string-lit-sd-pos
+        :-  [%string [~.sd --42]]
+            [~.t '--42']
+    ::  literal @sd -42 (negative)
+    :-  %string-lit-sd-neg
+        :-  [%string [~.sd -42]]
+            [~.t '-42']
+    ::  literal @rd .~42.42
+    :-  %string-lit-rd-pos
+        :-  [%string [~.rd .~42.42]]
+            [~.t '.~42.42']
+    ::  literal @rd .~-24.24
+    :-  %string-lit-rd-neg
+        :-  [%string [~.rd .~-24.24]]
+            [~.t '.~-24.24']
+    ::  qualified col1=@ud 42
+    :-  %string-qual-col-ud
+        :-  [%string str-num-q-col-1]
+            [~.t '42']
+    ::  qualified col2=@sd --42 (positive)
+    :-  %string-qual-col-sd-pos
+        :-  [%string str-num-q-col-2]
+            [~.t '--42']
+    ::  qualified col3=@sd -42 (negative)
+    :-  %string-qual-col-sd-neg
+        :-  [%string str-num-q-col-3]
+            [~.t '-42']
+    ::  qualified col4=@rd .~42.42
+    :-  %string-qual-col-rd-pos
+        :-  [%string str-num-q-col-4]
+            [~.t '.~42.42']
+    ::  qualified col5=@rd .~-24.24
+    :-  %string-qual-col-rd-neg
+        :-  [%string str-num-q-col-5]
+            [~.t '.~-24.24']
+  ==
+  ==
+::
+++  test-string-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-num-unqual-lookup
+    str-num-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-num-unqual-table-row
+    :~
+    ::  unqual col6=@ud 42
+    :-  %string-unqual-col-ud
+        :-  [%string str-num-u-col-6]
+            [~.t '42']
+    ::  unqual col7=@sd --42
+    :-  %string-unqual-col-sd-pos
+        :-  [%string str-num-u-col-7]
+            [~.t '--42']
+    ::  unqual col8=@sd -42
+    :-  %string-unqual-col-sd-neg
+        :-  [%string str-num-u-col-8]
+            [~.t '-42']
+    ::  unqual col9=@rd .~42.42
+    :-  %string-unqual-col-rd-pos
+        :-  [%string str-num-u-col-9]
+            [~.t '.~42.42']
+    ::  unqual col10=@rd .~-24.24
+    :-  %string-unqual-col-rd-neg
+        :-  [%string str-num-u-col-10]
+            [~.t '.~-24.24']
+  ==
+  ==
+::
+::  %string-concat tests
+::  STRING-CONCAT(args..., delimiter): joins args with delimiter between each
+::  col1='hello', col2='world', col5=@ud 3 (unused)
+::
+++  test-string-concat-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  2-item lit + lit-delimiter
+    :-  %string-concat-lit-lit-delim
+        :-  [%string-concat ~[[~.t 'hello'] [~.t 'world']] [~.t ', ']]
+            [~.t 'hello, world']
+    ::  3-item lit + lit-delimiter
+    :-  %string-concat-lit-lit-lit-delim
+        :-  [%string-concat ~[[~.t 'a'] [~.t 'b'] [~.t 'c']] [~.t ',']]
+            [~.t 'a,b,c']
+    ::  col + lit + lit-delimiter
+    :-  %string-concat-col-lit-delim
+        :-  [%string-concat ~[str-q-col-1 [~.t 'world']] [~.t ', ']]
+            [~.t 'hello, world']
+    ::  col + col + lit-delimiter
+    :-  %string-concat-col-col-delim
+        :-  [%string-concat ~[str-q-col-1 str-q-col-2] [~.t ', ']]
+            [~.t 'hello, world']
+    ::  col + col + col-delimiter (col1='hello' as delimiter)
+    :-  %string-concat-col-col-col-delim
+        :-  [%string-concat ~[[~.t 'a'] [~.t 'b']] str-q-col-1]
+            [~.t 'ahellob']
+  ==
+  ==
+::
+++  test-string-concat-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col + lit + lit-delimiter
+    :-  %string-concat-unqual-col-lit-delim
+        :-  [%string-concat ~[str-u-col-6 [~.t 'world']] [~.t ', ']]
+            [~.t 'hello, world']
+    ::  unqual col + unqual col + lit-delimiter
+    :-  %string-concat-unqual-col-col-delim
+        :-  [%string-concat ~[str-u-col-6 str-u-col-7] [~.t ', ']]
+            [~.t 'hello, world']
+    ::  unqual col + unqual col + unqual col-delimiter
+    :-  %string-concat-unqual-col-col-col-delim
+        :-  [%string-concat ~[[~.t 'a'] [~.t 'b']] str-u-col-6]
+            [~.t 'ahellob']
+  ==
+  ==
+::
+::  %stuff tests
+::  STUFF(str, start, length, replace): deletes length chars at start, inserts replace
+::  col1='hello', col2='world', col5=@ud 3
+::
+++  test-stuff-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  all literals: STUFF('hello world', 7, 5, 'there') = 'hello there'
+    :-  %stuff-lit-lit-lit-lit
+        :-  [%stuff [~.t 'hello world'] [~.ud 7] [~.ud 5] [~.t 'there']]
+            [~.t 'hello there']
+    ::  STUFF('hello', 2, 3, 'ELL') = 'hELLo'
+    :-  %stuff-lit-234-lit
+        :-  [%stuff [~.t 'hello'] [~.ud 2] [~.ud 3] [~.t 'ELL']]
+            [~.t 'hELLo']
+    ::  col-str + lit + lit + lit
+    :-  %stuff-col-lit-lit-lit
+        :-  [%stuff str-q-col-1 [~.ud 2] [~.ud 3] [~.t 'ELL']]
+            [~.t 'hELLo']
+    ::  col-str + lit + col-len + lit-replace
+    :-  %stuff-col-lit-col-lit
+        :-  [%stuff str-q-col-1 [~.ud 2] str-q-col-5 [~.t 'ELL']]
+            [~.t 'hELLo']
+    ::  col-str + lit + lit + col-replace: STUFF('hello',2,3,'world') = 'hworldo'
+    :-  %stuff-col-lit-lit-col
+        :-  [%stuff str-q-col-1 [~.ud 2] [~.ud 3] str-q-col-2]
+            [~.t 'hworldo']
+  ==
+  ==
+::
+++  test-stuff-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col-str + lit + lit + lit
+    :-  %stuff-unqual-col-lit-lit-lit
+        :-  [%stuff str-u-col-6 [~.ud 2] [~.ud 3] [~.t 'ELL']]
+            [~.t 'hELLo']
+    ::  unqual col-str + lit + col-len + col-replace
+    :-  %stuff-unqual-col-lit-col-col
+        :-  [%stuff str-u-col-6 [~.ud 2] str-u-col-10 str-u-col-7]
+            [~.t 'hworldo']
+  ==
+  ==
+::
+::  %substring tests
+::  SUBSTRING(str, start, [length]): 1-based index
+::  col1='hello', col5=@ud 3
+::
+++  test-substring-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  3-param lit: SUBSTRING('hello', 2, 3) = 'ell'
+    :-  %substring-3p-lit
+        :-  [%substring [~.t 'hello'] [~.ud 2] (some [~.ud 3])]
+            [~.t 'ell']
+    ::  2-param lit: SUBSTRING('hello', 2) = 'ello'
+    :-  %substring-2p-lit
+        :-  [%substring [~.t 'hello'] [~.ud 2] ~]
+            [~.t 'ello']
+    ::  3-param col-str + lit-start + lit-len
+    :-  %substring-3p-col-lit-lit
+        :-  [%substring str-q-col-1 [~.ud 2] (some [~.ud 3])]
+            [~.t 'ell']
+    ::  3-param col-str + lit-start + col-len (col5=3)
+    :-  %substring-3p-col-lit-col
+        :-  [%substring str-q-col-1 [~.ud 2] (some str-q-col-5)]
+            [~.t 'ell']
+    ::  2-param col-str + lit-start
+    :-  %substring-2p-col-lit
+        :-  [%substring str-q-col-1 [~.ud 2] ~]
+            [~.t 'ello']
+  ==
+  ==
+::
+++  test-substring-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  3-param unqual col-str + lit-start + lit-len
+    :-  %substring-unqual-3p-col-lit-lit
+        :-  [%substring str-u-col-6 [~.ud 2] (some [~.ud 3])]
+            [~.t 'ell']
+    ::  3-param unqual col-str + lit-start + col-len
+    :-  %substring-unqual-3p-col-lit-col
+        :-  [%substring str-u-col-6 [~.ud 2] (some str-u-col-10)]
+            [~.t 'ell']
+    ::  2-param unqual col-str + lit-start
+    :-  %substring-unqual-2p-col-lit
+        :-  [%substring str-u-col-6 [~.ud 2] ~]
+            [~.t 'ello']
+  ==
+  ==
+::
+::  %trim tests
+::  TRIM removes leading and trailing whitespace (default) or pattern chars (2-param)
+::
+++  test-trim-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  default: lit with leading and trailing spaces
+    :-  %trim-default-lit
+        :-  [%trim [~.t '  hello  '] ~]
+            [~.t 'hello']
+    ::  default: qualified col3='  hello  '
+    :-  %trim-default-qual-col
+        :-  [%trim str-q-col-3 ~]
+            [~.t 'hello']
+    ::  pattern: lit-str + lit-pattern
+    :-  %trim-pattern-lit-lit
+        :-  [%trim [~.t 'xxhelloxx'] (some [~.t 'x'])]
+            [~.t 'hello']
+    ::  pattern: col-str (no surrounding 'x') + lit-pattern — no change
+    :-  %trim-pattern-col-lit
+        :-  [%trim str-q-col-1 (some [~.t 'x'])]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-trim-qual-pattern-col
+  %:  run-scalar-tests
+    table-named-ctes
+    *qualifier-lookup
+    str-trim-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-trim-qual-table-row
+    :~
+    ::  col-str + lit-pattern: col1='xxhelloxx', trim 'x' from both sides
+    :-  %trim-trim-col-lit
+        :-  [%trim str-trim-q-col-1 (some [~.t 'x'])]
+            [~.t 'hello']
+    ::  lit-str + col-pattern
+    :-  %trim-trim-lit-col
+        :-  [%trim [~.t 'xxhelloxx'] (some str-trim-q-col-2)]
+            [~.t 'hello']
+    ::  col-str + col-pattern
+    :-  %trim-trim-col-col
+        :-  [%trim str-trim-q-col-1 (some str-trim-q-col-2)]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-trim-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  default: unqual col8='  hello  '
+    :-  %trim-default-unqual-col
+        :-  [%trim str-u-col-8 ~]
+            [~.t 'hello']
+    ::  pattern: lit-str + lit-pattern
+    :-  %trim-unqual-pattern-lit-lit
+        :-  [%trim [~.t 'xxhelloxx'] (some [~.t 'x'])]
+            [~.t 'hello']
+  ==
+  ==
+::
+++  test-trim-unqual-pattern-col
+  %:  run-scalar-tests
+    table-named-ctes
+    str-trim-unqual-lookup
+    str-trim-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-trim-unqual-table-row
+    :~
+    ::  unqual col-str + lit-pattern
+    :-  %trim-unqual-trim-col-lit
+        :-  [%trim str-trim-u-col-3 (some [~.t 'x'])]
+            [~.t 'hello']
+    ::  lit-str + unqual col-pattern
+    :-  %trim-unqual-trim-lit-col
+        :-  [%trim [~.t 'xxhelloxx'] (some str-trim-u-col-4)]
+            [~.t 'hello']
+    ::  unqual col-str + unqual col-pattern
+    :-  %trim-unqual-trim-col-col
+        :-  [%trim str-trim-u-col-3 (some str-trim-u-col-4)]
+            [~.t 'hello']
+  ==
+  ==
+::
+::  %upper tests
+::  UPPER(str) converts lowercase to uppercase
+::  col1='hello', col4='HELLO'
+::
+++  test-upper-qual
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    str-qual-map-meta
+    *(map @tas resolved-scalar)
+    str-qual-table-row
+    :~
+    ::  lit all-lowercase
+    :-  %upper-lit
+        :-  [%upper [~.t 'hello']]
+            [~.t 'HELLO']
+    ::  lit mixed case
+    :-  %upper-lit-mixed
+        :-  [%upper [~.t 'Hello World']]
+            [~.t 'HELLO WORLD']
+    ::  qualified col1='hello'
+    :-  %upper-qual-col
+        :-  [%upper str-q-col-1]
+            [~.t 'HELLO']
+  ==
+  ==
+::
+++  test-upper-unqual
+  %:  run-scalar-tests
+    table-named-ctes
+    str-unqual-lookup
+    str-unqual-map-meta
+    *(map @tas resolved-scalar)
+    str-unqual-table-row
+    :~
+    ::  unqual col6='hello'
+    :-  %upper-unqual-col
+        :-  [%upper str-u-col-6]
+            [~.t 'HELLO']
+  ==
   ==
 ::
 ++  test-subtract-time-unqual

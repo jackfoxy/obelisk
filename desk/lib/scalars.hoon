@@ -1054,58 +1054,634 @@
   ::  string functions
   ::
     %concat
-      !!
+      ::  CONCAT(str1, str2, ...) returns the concatenation of all string arguments end-to-end
+      =/  exprs
+        %+  turn  ;;((list datum) args:;;(concat:ast scalar))
+        |=  arg=datum
+        %:  evaluate-datum  arg
+                            named-ctes
+                            qualifier-lookup
+                            map-meta
+                            resolved-scalars
+                            bowl
+                            ==
+      ?:  (levy exprs |=(e=resolved-scalar ?=(dime e)))
+        [~.t (crip (zing (turn exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      [~.t (crip (zing (turn exprs |=(e=resolved-scalar (trip `@t`+:?:(?=(dime e) e (f.e data-row)))))))]
   ::
     %left
-      !!
+      ::  LEFT(str, n) returns the leftmost n characters of str
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(left:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  int-expr  %:  evaluate-datum  integer-expression:;;(left:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  do-left
+        |=  [str=@t n=@ud]
+        (crip (scag n (trip str)))
+      ?:  &(?=(dime str-expr) ?=(dime int-expr))
+        [~.t (do-left `@t`+.str-expr `@ud`+.int-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  n    `@ud`+:?:(?=(dime int-expr) int-expr (f.int-expr data-row))
+      [~.t (do-left str n)]
   ::
     %len
-      !!
+      ::  LEN(str) returns the number of characters in str as an unsigned integer
+      =/  expr  %:  evaluate-datum  string-expression:;;(len:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      ?:  ?=(dime expr)
+        [~.ud (met 3 `@t`+.expr)]
+      :+  %fn  ~.ud
+      |=  =data-row
+      ^-  dime
+      [~.ud (met 3 `@t`+:(f.expr data-row))]
   ::
     %lower
-      !!
+      ::  LOWER(str) converts all uppercase characters in str to lowercase
+      =/  expr  %:  evaluate-datum  string-expression:;;(lower:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      ?:  ?=(dime expr)
+        [~.t (crip (cass (trip `@t`+.expr)))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      [~.t (crip (cass (trip `@t`+:(f.expr data-row))))]
   ::
     %ltrim
-      !!
+      ::  LTRIM(str[, pattern]) removes leading whitespace (default) or leading occurrences of pattern
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(ltrim:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  raw-pattern  pattern:;;(ltrim:ast scalar)
+      =/  is-ws
+        |=  c=@t
+        ?|  =(c ' ')  =(c '\09')  =(c '\0d')  ==
+      =/  drop-ws
+        |=  t=tape
+        |-  ^-  tape
+        ?~  t  ~
+        ?.  (is-ws i.t)  t
+        $(t t.t)
+      =/  drop-pat
+        |=  [p=tape s=tape]
+        ^-  tape
+        ?~  p  s
+        =/  n=@ud  (lent p)
+        |-  ^-  tape
+        ?.  =(p (scag n s))  s
+        $(s (slag n s))
+      =/  do-ltrim-ws
+        |=  str=@t
+        ^-  @t
+        (crip (drop-ws (trip str)))
+      =/  do-ltrim-pat
+        |=  [str=@t pat=@t]
+        ^-  @t
+        (crip (drop-pat (trip pat) (trip str)))
+      ?~  raw-pattern
+        ?:  ?=(dime str-expr)
+          [~.t (do-ltrim-ws `@t`+.str-expr)]
+        :+  %fn  ~.t
+        |=  =data-row
+        ^-  dime
+        [~.t (do-ltrim-ws `@t`+:(f.str-expr data-row))]
+      =/  pat-expr  %:  evaluate-datum  u.raw-pattern
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      ?:  &(?=(dime str-expr) ?=(dime pat-expr))
+        [~.t (do-ltrim-pat `@t`+.str-expr `@t`+.pat-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+      [~.t (do-ltrim-pat str pat)]
   ::
     %patindex
-      !!
+      ::  PATINDEX(str, pattern) returns 1-based starting position of pattern in str, or 0 if not found
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(patindex:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  pat-expr  %:  evaluate-datum  pattern:;;(patindex:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  do-patindex
+        |=  [str=@t pat=@t]
+        ^-  @ud
+        =/  pos  (find (trip pat) (trip str))
+        ?~  pos  0
+        +(u.pos)
+      ?:  &(?=(dime str-expr) ?=(dime pat-expr))
+        [~.ud (do-patindex `@t`+.str-expr `@t`+.pat-expr)]
+      :+  %fn  ~.ud
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+      [~.ud (do-patindex str pat)]
   ::
     %quotestring
-      !!
+      ::  QUOTESTRING(str[, open, close]) wraps str in delimiters; default delimiters are '[' and ']'
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(quotestring:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  raw-quote  quote:;;(quotestring:ast scalar)
+      =/  do-quote
+        |=  [str=@t open=@t close=@t]
+        ^-  @t
+        (crip (weld (weld (trip open) (trip str)) (trip close)))
+      ?~  raw-quote
+        ?:  ?=(dime str-expr)
+          [~.t (do-quote `@t`+.str-expr '[' ']')]
+        :+  %fn  ~.t
+        |=  =data-row
+        ^-  dime
+        [~.t (do-quote `@t`+:(f.str-expr data-row) '[' ']')]
+      =/  open-expr   %:  evaluate-datum  -.u.raw-quote
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  close-expr  %:  evaluate-datum  +.u.raw-quote
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      ?:  &(?=(dime str-expr) &(?=(dime open-expr) ?=(dime close-expr)))
+        [~.t (do-quote `@t`+.str-expr `@t`+.open-expr `@t`+.close-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  open   `@t`+:?:(?=(dime open-expr) open-expr (f.open-expr data-row))
+      =/  close  `@t`+:?:(?=(dime close-expr) close-expr (f.close-expr data-row))
+      [~.t (do-quote str open close)]
   ::
     %replace
-      !!
+      ::  REPLACE(str, pattern, replacement) replaces all occurrences of pattern in str with replacement
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(replace:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  pat-expr  %:  evaluate-datum  pattern:;;(replace:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  rep-expr  %:  evaluate-datum  replacement:;;(replace:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  do-replace
+        |=  [str=@t pat=@t rep=@t]
+        ^-  @t
+        =/  p=tape  (trip pat)
+        =/  r=tape  (trip rep)
+        =/  n=@ud   (lent p)
+        =/  s=tape  (trip str)
+        =/  result=tape
+          ?~  p  s
+          |-  ^-  tape
+          ?~  s  ~
+          ?.  =(p (scag n `tape`s))
+            [i.s $(s t.s)]
+          (weld r $(s (slag n `tape`s)))
+        (crip result)
+      ?:  &(?=(dime str-expr) &(?=(dime pat-expr) ?=(dime rep-expr)))
+        [~.t (do-replace `@t`+.str-expr `@t`+.pat-expr `@t`+.rep-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+      =/  rep  `@t`+:?:(?=(dime rep-expr) rep-expr (f.rep-expr data-row))
+      [~.t (do-replace str pat rep)]
   ::
     %replicate
-      !!
+      ::  REPLICATE(str, n) repeats str n times
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(replicate:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  int-expr  %:  evaluate-datum  integer-expression:;;(replicate:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  do-replicate
+        |=  [str=@t n=@ud]
+        ^-  @t
+        =/  s=tape  (trip str)
+        =/  result=tape
+          |-  ^-  tape
+          ?:  =(n 0)  ~
+          (weld s $(n (dec n)))
+        (crip result)
+      ?:  &(?=(dime str-expr) ?=(dime int-expr))
+        [~.t (do-replicate `@t`+.str-expr `@ud`+.int-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  n    `@ud`+:?:(?=(dime int-expr) int-expr (f.int-expr data-row))
+      [~.t (do-replicate str n)]
   ::
     %reverse
-      !!
+      ::  REVERSE(str) returns the characters of str in reverse order
+      =/  expr  %:  evaluate-datum  string-expression:;;(reverse:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      ?:  ?=(dime expr)
+        [~.t (crip (flop (trip `@t`+.expr)))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      [~.t (crip (flop (trip `@t`+:(f.expr data-row))))]
   ::
     %right
-      !!
+      ::  RIGHT(str, n) returns the rightmost n characters of str
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(right:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  int-expr  %:  evaluate-datum  integer-expression:;;(right:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  do-right
+        |=  [str=@t n=@ud]
+        ^-  @t
+        =/  s=tape  (trip str)
+        =/  len=@ud  (lent s)
+        (crip ?:((gte n len) s (slag (sub len n) s)))
+      ?:  &(?=(dime str-expr) ?=(dime int-expr))
+        [~.t (do-right `@t`+.str-expr `@ud`+.int-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  n    `@ud`+:?:(?=(dime int-expr) int-expr (f.int-expr data-row))
+      [~.t (do-right str n)]
   ::
     %rtrim
-      !!
+      ::  RTRIM(str[, pattern]) removes trailing whitespace (default) or trailing occurrences of pattern
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(rtrim:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  raw-pattern  pattern:;;(rtrim:ast scalar)
+      =/  is-ws
+        |=  c=@t
+        ?|  =(c ' ')  =(c '\09')  =(c '\0d')  ==
+      =/  drop-ws
+        |=  t=tape
+        |-  ^-  tape
+        ?~  t  ~
+        ?.  (is-ws i.t)  t
+        $(t t.t)
+      =/  drop-pat
+        |=  [p=tape s=tape]
+        ^-  tape
+        ?~  p  s
+        =/  n=@ud  (lent p)
+        |-  ^-  tape
+        ?.  =(p (scag n s))  s
+        $(s (slag n s))
+      =/  do-rtrim-ws
+        |=  str=@t
+        ^-  @t
+        (crip (flop (drop-ws (flop (trip str)))))
+      =/  do-rtrim-pat
+        |=  [str=@t pat=@t]
+        ^-  @t
+        (crip (flop (drop-pat (flop (trip pat)) (flop (trip str)))))
+      ?~  raw-pattern
+        ?:  ?=(dime str-expr)
+          [~.t (do-rtrim-ws `@t`+.str-expr)]
+        :+  %fn  ~.t
+        |=  =data-row
+        ^-  dime
+        [~.t (do-rtrim-ws `@t`+:(f.str-expr data-row))]
+      =/  pat-expr  %:  evaluate-datum  u.raw-pattern
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      ?:  &(?=(dime str-expr) ?=(dime pat-expr))
+        [~.t (do-rtrim-pat `@t`+.str-expr `@t`+.pat-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+      [~.t (do-rtrim-pat str pat)]
   ::
     %string
-      !!
+      ::  STRING(numeric) converts a numeric value to its string representation
+      =/  expr  %:  evaluate-datum  numeric-expression:;;(string:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      ?:  ?=(dime expr)
+        [~.t (crip (scow `@tas`-.expr +.expr))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  d  (f.expr data-row)
+      [~.t (crip (scow `@tas`-.d +.d))]
   ::
     %string-concat
-      !!
+      ::  STRING-CONCAT(str1, str2, ..., delimiter) joins strings with delimiter placed between each
+      =/  arg-exprs
+        %+  turn  ;;((list datum) args:;;(string-concat:ast scalar))
+        |=  arg=datum
+        %:  evaluate-datum  arg
+                            named-ctes
+                            qualifier-lookup
+                            map-meta
+                            resolved-scalars
+                            bowl
+                            ==
+      =/  delim-expr  %:  evaluate-datum  delimiter:;;(string-concat:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  do-join
+        |=  [tapes=(list tape) d=tape]
+        ^-  tape
+        |-  ^-  tape
+        ?~  tapes  ~
+        ?~  t.tapes  i.tapes
+        (weld i.tapes (weld d $(tapes t.tapes)))
+      ?:  &((levy arg-exprs |=(e=resolved-scalar ?=(dime e))) ?=(dime delim-expr))
+        =/  tapes  (turn arg-exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))
+        =/  d      (trip `@t`+:;;(dime delim-expr))
+        [~.t (crip (do-join tapes d))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  tapes  %+  turn  arg-exprs
+                 |=  e=resolved-scalar
+                 (trip `@t`+:?:(?=(dime e) e (f.e data-row)))
+      =/  d      (trip `@t`+:?:(?=(dime delim-expr) delim-expr (f.delim-expr data-row)))
+      [~.t (crip (do-join tapes d))]
   ::
     %stuff
-      !!
+      ::  STUFF(str, start, length, replace) deletes length chars at start (1-based) and inserts replace
+      =/  str-expr    %:  evaluate-datum  string-expression:;;(stuff:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  start-expr  %:  evaluate-datum  start:;;(stuff:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  len-expr    %:  evaluate-datum  length:;;(stuff:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  rep-expr    %:  evaluate-datum  replace:;;(stuff:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  do-stuff
+        |=  [str=@t start=@ud len=@ud rep=@t]
+        ^-  @t
+        =/  s=tape   (trip str)
+        =/  r=tape   (trip rep)
+        =/  idx=@ud  (dec start)
+        (crip (weld (scag idx s) (weld r (slag (add idx len) s))))
+      ?:  &(?=(dime str-expr) &(?=(dime start-expr) &(?=(dime len-expr) ?=(dime rep-expr))))
+        [~.t (do-stuff `@t`+.str-expr `@ud`+.start-expr `@ud`+.len-expr `@t`+.rep-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  start  `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+      =/  len    `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
+      =/  rep    `@t`+:?:(?=(dime rep-expr) rep-expr (f.rep-expr data-row))
+      [~.t (do-stuff str start len rep)]
   ::
     %substring
-      !!
+      ::  SUBSTRING(str, start[, length]) returns substring starting at start (1-based index);
+      ::  if length is omitted, returns from start to end of str
+      =/  str-expr    %:  evaluate-datum  string-expression:;;(substring:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  start-expr  %:  evaluate-datum  start:;;(substring:ast scalar)
+                                          named-ctes
+                                          qualifier-lookup
+                                          map-meta
+                                          resolved-scalars
+                                          bowl
+                                          ==
+      =/  raw-length  length:;;(substring:ast scalar)
+      =/  do-sub
+        |=  [str=@t start=@ud mlen=(unit @ud)]
+        ^-  @t
+        =/  from=tape  (slag (dec start) (trip str))
+        ?~  mlen
+          (crip from)
+        (crip (scag u.mlen from))
+      ?~  raw-length
+        ?:  &(?=(dime str-expr) ?=(dime start-expr))
+          [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr ~)]
+        :+  %fn  ~.t
+        |=  =data-row
+        ^-  dime
+        =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+        =/  start  `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+        [~.t (do-sub str start ~)]
+      =/  len-expr  %:  evaluate-datum  u.raw-length
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      ?:  &(?=(dime str-expr) &(?=(dime start-expr) ?=(dime len-expr)))
+        [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  start  `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+      =/  len    `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
+      [~.t (do-sub str start (some len))]
   ::
     %trim
-      !!
+      ::  TRIM(str[, pattern]) removes leading and trailing whitespace or pattern occurrences from str
+      =/  str-expr  %:  evaluate-datum  string-expression:;;(trim:ast scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      =/  raw-pattern  pattern:;;(trim:ast scalar)
+      =/  is-ws
+        |=  c=@t
+        ?|  =(c ' ')  =(c '\09')  =(c '\0d')  ==
+      =/  drop-ws
+        |=  t=tape
+        |-  ^-  tape
+        ?~  t  ~
+        ?.  (is-ws i.t)  t
+        $(t t.t)
+      =/  drop-pat
+        |=  [p=tape s=tape]
+        ^-  tape
+        ?~  p  s
+        =/  n=@ud  (lent p)
+        |-  ^-  tape
+        ?.  =(p (scag n s))  s
+        $(s (slag n s))
+      =/  do-trim-ws
+        |=  str=@t
+        ^-  @t
+        (crip (flop (drop-ws (flop (drop-ws (trip str))))))
+      =/  do-trim-pat
+        |=  [str=@t pat=@t]
+        ^-  @t
+        =/  p=tape  (trip pat)
+        (crip (flop (drop-pat (flop p) (flop (drop-pat p (trip str))))))
+      ?~  raw-pattern
+        ?:  ?=(dime str-expr)
+          [~.t (do-trim-ws `@t`+.str-expr)]
+        :+  %fn  ~.t
+        |=  =data-row
+        ^-  dime
+        [~.t (do-trim-ws `@t`+:(f.str-expr data-row))]
+      =/  pat-expr  %:  evaluate-datum  u.raw-pattern
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        ==
+      ?:  &(?=(dime str-expr) ?=(dime pat-expr))
+        [~.t (do-trim-pat `@t`+.str-expr `@t`+.pat-expr)]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+      =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+      [~.t (do-trim-pat str pat)]
   ::
     %upper
-      !!
+      ::  UPPER(str) converts all lowercase characters in str to uppercase
+      =/  expr  %:  evaluate-datum  string-expression:;;(upper:ast scalar)
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    ==
+      ?:  ?=(dime expr)
+        [~.t (crip (cuss (trip `@t`+.expr)))]
+      :+  %fn  ~.t
+      |=  =data-row
+      ^-  dime
+      [~.t (crip (cuss (trip `@t`+:(f.expr data-row))))]
   ::
   ==
 ::
