@@ -18,7 +18,11 @@ See [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and t
 
 ### Sample database
 
-This repository includes a sample database, "animal-shelter", derived from https://github.com/ami-levin/Animal_Shelter.  
+This repository includes a sample database, "animal-shelter", derived from https://github.com/ami-levin/Animal_Shelter.
+
+### Developers
+
+Copy sur/ast/hoon to your project to work with Obelisk results.
 
 ### Bug reporting
 

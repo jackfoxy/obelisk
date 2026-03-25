@@ -44,7 +44,7 @@
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
           ==
-  ^-  [cmd-result (map @tas @da) (map @tas @da) server]
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   =/  db  ~|  "TRUNCATE TABLE: database {<database.table.d>} does not exist"
              (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
@@ -122,7 +122,7 @@
           next-data=(map @tas @da)
           next-schemas=(map @tas @da)
       ==
-  ^-  [? [(map @tas @da) server (list result)]]
+  ^-  [? [(map @tas @da) server (list result:ast)]]
   =/  named-ctes   (named-queries ctes.selection *named-ctes)
   =/  rtree        (~(rdc of set-functions.selection) rdc-set-func)
   ?-  -<.rtree
@@ -146,7 +146,7 @@
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
     :: to do: aura validation? (isn't this covered in testing? see roadmap)
-  ^-  [(map @tas @da) server (list result)]
+  ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  (common-txn "INSERT" state now.bowl table.ins as-of.ins next-schemas)
   ::
   =.  tmsp.file.txn            now.bowl
@@ -232,7 +232,7 @@
 ::
 ++  do-delete
   |=  [d=delete:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
-  ^-  [(map @tas @da) server (list result)]
+  ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  %:  common-txn  "DELETE FROM"
                            state
                            now.bowl
@@ -316,7 +316,7 @@
 ::
 ++  do-update
   |=  [u=update:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
-  ^-  [(map @tas @da) server (list result)]
+  ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  %:  common-txn  "UPDATE"
                            state
                            now.bowl
@@ -491,7 +491,7 @@
   ?~  rows  ~(tap in out-rows)
   ?.  ?~(filter %.y ((need filter) i.rows))
     $(rows t.rows)
-  =/  row                     *(list vector-cell)
+  =/  row                     *(list vector-cell:ast)
   =/  cols=(list templ-cell)  cells
   |-
   ?~  cols
@@ -512,10 +512,10 @@
 ++  select-results
   |=  $:  =named-ctes
           =join-return
-          vectors=(list vector)
+          vectors=(list vector:ast)
           ==
-  ^-  (list result)
-  =/  out  *(list (list result))
+  ^-  (list result:ast)
+  =/  out  *(list (list result:ast))
   =/  ctes=(list set-table)
         (zing (turn ~(val by named-ctes) |=(a=full-relation set-tables.a)))
   =/  raw  %+  sort  %~  tap  in
@@ -542,7 +542,7 @@
                       [%result-set vectors]
                       [%server-time now.bowl]
                       ==
-                  `(list result)`(zing out)
+                  `(list result:ast)`(zing out)
                   :~  [%vector-count (lent vectors)]
                       ==
                   ==
@@ -663,10 +663,10 @@
 ++  mk-vect
   |=  [columns=(list column:ast) values=(map @tas @)]
   ^-  vector
-  =/  vector-cells  *(list vector-cell)
+  =/  vector-cells  *(list vector-cell:ast)
   |-
   ?~  columns  ?~  vector-cells  ~|("mk-vect can't get here" !!)
-               [%vector `(lest vector-cell)`vector-cells]
+               [%vector `(lest vector-cell:ast)`vector-cells]
   %=  $
     columns       t.columns
     vector-cells  :-  :-  name.i.columns

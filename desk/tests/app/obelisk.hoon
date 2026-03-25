@@ -607,7 +607,7 @@
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
-          !>  ;;(cmd-result ->+>+>+<.mov2)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -637,7 +637,7 @@
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov2)
+          !>  ;;(cmd-result:ast ->+>+>-.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -668,7 +668,7 @@
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov2)
+          !>  ;;(cmd-result:ast ->+>+>-.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -707,7 +707,7 @@
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
-          !>  ;;(cmd-result ->+>+>+<.mov2)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -748,7 +748,7 @@
                       [%server-time ~2000.1.3]
                       [%schema-time ~2000.1.3]
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov3)
+          !>  ;;(cmd-result:ast ->+>+>-.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -801,7 +801,7 @@
                       [%server-time ~2000.1.3]
                       [%schema-time ~2000.1.3]
                       ==
-          !>  ;;(cmd-result ->+>+>+<.mov3)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -851,7 +851,7 @@
                       [%schema-time ~2000.1.2]
                       ==
               ==
-          !>  ;;((list cmd-result) ->+>+>.mov2)
+          !>  ;;((list cmd-result:ast) ->+>+>.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -899,7 +899,7 @@
                       [%schema-time ~2000.1.2]
                       ==
               ==
-          !>  ;;((list cmd-result) ->+>+>+.mov2)
+          !>  ;;((list cmd-result:ast) ->+>+>+.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -964,7 +964,7 @@
                       [%server-time ~2000.1.3]
                       [%schema-time ~2000.1.3]
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov3)
+          !>  ;;(cmd-result:ast ->+>+>-.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -1033,7 +1033,7 @@
                       [%data-time ~2000.1.4]
                       [%vector-count 1]
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov4)
+          !>  ;;(cmd-result:ast ->+>+>-.mov4)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -1102,7 +1102,7 @@
                   :~  [%message 'TRUNCATE TABLE db1.dbo.my-table']
                       [%message 'no data in table to truncate']
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov3)
+          !>  ;;(cmd-result:ast ->+>+>-.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -1163,7 +1163,7 @@
                       [%data-time ~2000.1.4]
                       [%vector-count 1]
                       ==
-          !>  ;;(cmd-result ->+>+>-.mov4)
+          !>  ;;(cmd-result:ast ->+>+>-.mov4)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -1242,7 +1242,7 @@
                       [%server-time ~2000.1.3]
                       [%schema-time ~2023.7.9..22.35.36..7e90]
                       ==
-          !>  ;;(cmd-result ->+>+>+<.mov3)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -1284,7 +1284,7 @@
                       [%server-time ~2000.1.2]
                       [%schema-time ~2023.7.9..22.35.36..7e90]
                       ==
-          !>  ;;(cmd-result ->+>+>+<.mov2)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov2)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2023.7.9..22.35.35..7e90
@@ -1340,7 +1340,7 @@
                       [%server-time ~2000.1.2]
                       [%schema-time ~2023.7.9..22.35.38..7e90]
                       ==
-          !>  ;;(cmd-result ->+>+>+<.mov3)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1
@@ -1412,7 +1412,7 @@
                     [%message 'table data:']
                     [%vector-count 1]
                     ==
-          !>  ;;(cmd-result ->+>+>+<.mov3)
+          !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
           !>  %:  mk-db  %db1
                         ~2000.1.1

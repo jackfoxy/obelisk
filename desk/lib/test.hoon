@@ -1,6 +1,6 @@
 ::  testing utilities meant to be directly used from files in %/tests
 ::
-/-  *obelisk
+/-  *ast
 |%
 ++  parse-results
   |=  [expected=cmd-result actual=cmd-result]

@@ -1,4 +1,4 @@
-/-  *server-state, server-state, *obelisk, obelisk, ast
+/-  *server-state, server-state, *obelisk, ast
 /+  default-agent, dbug, *server, *print
 |%
 +$  versioned-state
@@ -44,7 +44,7 @@
     :: uncomment in order to stop on parse error
     ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-        ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+        ^-  (each (pair (list cmd-result) server:server-state) tang)
         %-  mule
           |.
           %:  state-server
@@ -71,7 +71,7 @@
     :: uncomment in order to stop on parse error
     ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-      ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+      ^-  (each (pair (list cmd-result) server:server-state) tang)
       %-  mule
       |.
       %:  state-server

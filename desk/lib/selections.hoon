@@ -239,7 +239,7 @@
     ((need filter) i.rows)
   ?.  include-row
     $(rows t.rows)
-  =/  row                     *(list vector-cell)
+  =/  row                     *(list vector-cell:ast)
   =/  cols=(list templ-cell)  templ-cells
   |-
   ?~  cols
@@ -271,7 +271,7 @@
     ((need filter) i.rows)
   ?.  include-row
     $(rows t.rows)
-  =/  row                     *(list vector-cell)
+  =/  row                     *(list vector-cell:ast)
   =/  cols=(list templ-cell)  templ-cells
   |-
   ?~  cols

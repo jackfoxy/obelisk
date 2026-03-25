@@ -43,7 +43,7 @@
 ++  process-cmds
   |=  cmds=(list command:ast)
   ~+
-  ^-  [(list cmd-result) server]
+  ^-  [(list cmd-result:ast) server]
   ::
   ::  to do:
   ::  temporary security prevents all access by foreign ships
@@ -57,7 +57,7 @@
   ::  allowed.
   =/  next-schemas  *(map @tas @da)
   =/  next-data     *(map @tas @da)
-  =/  results       *(list cmd-result)
+  =/  results       *(list cmd-result:ast)
   =/  query-has-run=?  %.n
   |-
   ?~  cmds  :-  (flop results)
@@ -85,7 +85,7 @@
       :: create database is exempt from query-has-run
       ?.  =(our.bowl src.bowl)
             ~|("database must be created by local agent" !!)
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
             (new-database i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
@@ -105,7 +105,7 @@
             ~|("CREATE NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
         ~|("CREATE NAMESPACE: state change after query in script" !!)
-      =/  r=[cmd-result (map @tas @da) server]
+      =/  r=[cmd-result:ast (map @tas @da) server]
             (create-ns(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
@@ -118,7 +118,7 @@
             ~|("CREATE TABLE: table must be created by local agent" !!)
       ?:  query-has-run
         ~|("CREATE TABLE: state change after query in script" !!)
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
             (create-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
@@ -137,7 +137,7 @@
       ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
       ::=/  ctes=(map @tas [@ud (list indexed-row)])
       ::      (named-queries ->-.cmds)
-      =/  r=[(map @tas @da) server (list result)]
+      =/  r=[(map @tas @da) server (list result:ast)]
             %^  do-delete(state state, bowl bowl)  i.cmds
                                                    next-data
                                                    next-schemas
@@ -180,7 +180,7 @@
       ?.  =(our.bowl src.bowl)
             ~|("DROP TABLE: table must be dropped by local agent" !!)
       ?:  query-has-run  ~|("DROP TABLE: state change after query in script" !!)
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
             (drop-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
@@ -203,7 +203,7 @@
             ~|("REVOKE: revoke permissions must be by local agent" !!)
       ~|("%revoke not implemented" !!)
     %selection
-      =/  r=[? [(map @tas @da) server (list result)]]
+      =/  r=[? [(map @tas @da) server (list result:ast)]]
             %:  do-selection(state state, bowl bowl)  i.cmds
                                                       query-has-run
                                                       next-data
@@ -220,7 +220,7 @@
       ?:  query-has-run
         ~|("TRUNCATE TABLE: state change after query in script" !!)
       =/  cmd=truncate-table:ast  i.cmds
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
             (truncate-tbl(state state, bowl bowl) cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
@@ -233,7 +233,7 @@
       ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
       ::=/  ctes=(map @tas [@ud (list indexed-row)])
       ::      (named-queries ->-.cmds)
-      =/  r=[(map @tas @da) server (list result)]
+      =/  r=[(map @tas @da) server (list result:ast)]
             %^  do-update(state state, bowl bowl)  i.cmds
                                                    next-data
                                                    next-schemas
@@ -251,7 +251,7 @@
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
           ==
-  ^-  [cmd-result (map @tas @da) (map @tas @da) server]
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   ?:  =(name.c %sys)            ~|("database name cannot be 'sys'" !!)
   ?:  (~(has by state) name.c)  ~|("database {<name.c>} already exists" !!)
   =/  sys-time  (set-tmsp as-of.c now.bowl)

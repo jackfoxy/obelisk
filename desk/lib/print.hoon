@@ -1,4 +1,4 @@
-/-  *obelisk
+/-  *ast
 |% 
 ::
 ::  +print:  (list cmd-result) -> ?

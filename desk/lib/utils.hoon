@@ -394,7 +394,7 @@
   :^  %templ-cell
       `-.a
       addr.a
-      `vector-cell`[name.qualified-column.a [type.a 0]]
+      `vector-cell:ast`[name.qualified-column.a [type.a 0]]
 ::
 ++  mk-unqualified-typ-addr-lookup
   |=  a=(list column:ast)

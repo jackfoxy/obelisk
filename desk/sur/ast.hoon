@@ -964,4 +964,24 @@
   $:  %upper
     string-expression=datum
   ==
+::
+::  OUTPUT
+::
++$  cmd-result  [%results (list result)]
++$  result
+  $%
+    [%message msg=@t]
+    [%vector-count count=@ud]
+    [%server-time date=@da]
+    [%security-time date=@da]
+    [%schema-time date=@da]
+    [%data-time date=@da]
+    [%result-set (list vector)]
+    ==
+::
++$  vector-cell  [p=@tas q=dime]
++$  vector
+  $:  %vector
+    (lest vector-cell)
+    ==
 --

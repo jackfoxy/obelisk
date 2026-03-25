@@ -68,18 +68,6 @@
     %delete
     ==
 ::
-+$  cmd-result  [%results (list result)]
-+$  result
-  $%
-    [%message msg=@t]
-    [%vector-count count=@ud]
-    [%server-time date=@da]
-    [%security-time date=@da]
-    [%schema-time date=@da]
-    [%data-time date=@da]
-    [%result-set (list vector)]
-    ==
-::
 +$  set-table
   $:  %set-table
     join=(unit join-type)
@@ -127,7 +115,7 @@
     =server
     set-tables=(list set-table)
     =map-meta
-    column-metas=(list column-meta)    ::to do: rename
+    column-metas=(list column-meta)
     ==
 ::
 +$  joined-relat
@@ -161,12 +149,7 @@
     addr=@
     vc=vector-cell
     ==
-::
-+$  vector-cell  [p=@tas q=dime]
-+$  vector
-  $:  %vector
-    (lest vector-cell)
-    ==
+
 ::
 ::  common metadata for DELETE, INSERT, UPDATE
 +$  txn-meta
