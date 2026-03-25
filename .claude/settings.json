@@ -12,7 +12,9 @@
       "Read(//home/nativeplanet/.urbit/base/sys/**)",
       "Read(//home/nativeplanet/**)",
       "Read(//mnt/mars/**)",
-      "Bash(grep -n '.\\\\{81,\\\\}' /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse-scalars.hoon)"
+      "Bash(grep -n '.\\\\{81,\\\\}' /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse-scalars.hoon)",
+      "Bash(grep -n \"^\\\\+$\\\\|year\\\\|month\\\\b\\\\|add-time\\\\|subtract-time\\\\|atan2\\\\|round\\\\b\\\\|sqrt\\\\b\\\\|rand\\\\b\\\\|degrees\\\\b\\\\|numeric-expression\\\\|date\\\\b\\\\|time-expression\\\\|float-expression\\\\|length\\\\b\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
+      "Bash(grep -n \"qualifier-lookup\\\\|^\\\\+$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/lib/scalars.hoon)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"

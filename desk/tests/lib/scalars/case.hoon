@@ -1744,4 +1744,145 @@
             literal-1
     ==
     ==
+::
+++  test-fail-searched-empty-cases
+  %+  expect-fail-message
+    'cases can\'t be empty'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%case ~ ~ ~]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-simple-empty-cases
+  %+  expect-fail-message
+    'cases can\'t be empty'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%case (some literal-1) ~ ~]
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-simple-when-predicate
+  %+  expect-fail-message
+    'when predicate not allowed in simple case'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              :*  %case
+                (some literal-1)
+                ~[[%case-when-then true-predicate [~.ud 1]]]
+                ~
+                ==
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-searched-no-match
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          :*  %case
+            ~
+            ~[[%case-when-then false-predicate [~.ud 1]]]
+            ~
+            ==
+          table-named-ctes
+          qual-lookup
+          qual-map-meta
+          resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'no case matched'
+    |.  (apply-scalar table-row fn)
+::
+++  test-fail-simple-no-match
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          :*  %case
+            (some literal-1)
+            ~[[%case-when-then literal-2 literal-2]]
+            ~
+            ==
+          table-named-ctes
+          qual-lookup
+          qual-map-meta
+          resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'no case matched'
+    |.  (apply-scalar table-row fn)
+::
+++  test-fail-inconsistent-then-types
+  %+  expect-fail-message
+    %-  crip  "check-consistent-types: inconsistent types, expected ~.ud ".
+              "but got ~.t at [p=~.t q=7.303.014]"
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              :*  %case
+                ~
+                :~  [%case-when-then true-predicate [~.ud 1]]
+                    [%case-when-then false-predicate [~.t 'foo']]
+                ==
+                ~
+                ==
+              table-named-ctes
+              qual-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-case-no-table
+  =/  empty-lookup
+    ^-  qualifier-lookup
+    (malt (limo ~[[%col4 `(list qualified-table)`~]]))
+  %+  expect-fail-message
+    'no table!'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              :*  %case
+                ~
+                ~[[%case-when-then true-predicate u-col-4]]
+                ~
+                ==
+              table-named-ctes
+              empty-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-case-too-many-tables
+  =/  multi-lookup
+    ^-  qualifier-lookup
+    (malt (limo ~[[%col4 ~[qualified-table-1 qualified-table-1]]]))
+  %+  expect-fail-message
+    'too many tables!'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              :*  %case
+                ~
+                ~[[%case-when-then true-predicate u-col-4]]
+                ~
+                ==
+              table-named-ctes
+              multi-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
 --

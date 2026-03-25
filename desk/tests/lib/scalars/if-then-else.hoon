@@ -1110,4 +1110,36 @@
             [~.ud 3]
   ==
   ==
+::
+++  test-fail-no-table
+  =/  empty-lookup
+    ^-  qualifier-lookup
+    (malt (limo ~[[%col4 `(list qualified-table)`~]]))
+  %+  expect-fail-message
+    'no table!'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else true-predicate u-col-4 [~.ud 0]]
+              table-named-ctes
+              empty-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-too-many-tables
+  =/  multi-lookup
+    ^-  qualifier-lookup
+    (malt (limo ~[[%col4 ~[qualified-table-1 qualified-table-1]]]))
+  %+  expect-fail-message
+    'too many tables!'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%if-then-else true-predicate u-col-4 [~.ud 0]]
+              table-named-ctes
+              multi-lookup
+              qual-map-meta
+              resolved-scalars
+              (bowl [0 ~2026.4.21])
+              ==
 --

@@ -2064,4 +2064,74 @@
             [~.ud 8]
     ==
   ==
+::
+++  test-fail-arithmetic-ns-conflict
+  %+  expect-fail-message
+    'number system conflict: ~.rd %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [~.rd .~1] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-unsupported-ns
+  %+  expect-fail-message
+    '~.t %lus ~.t : ~.t not a supported number system, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [~.t 'foo'] [~.t 'bar']]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-neg-exp-prepare
+  %+  expect-fail-message
+    'negative exponent [p=~.sd q=1] not supported'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %ket [~.rd .~2] [~.sd -1]]
+              ctes  qual-lookup  rd-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-neg-exp-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %ket arithmetic-q-col-1 [~.sd -1]]
+          ctes  qual-lookup  rd-qual-map-meta
+          rd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'negative exponent [p=~.sd q=1] not supported'
+    |.  (apply-scalar rd-table-row fn)
+::
+++  test-fail-arithmetic-remainder-rd-prepare
+  %+  expect-fail-message
+    'remainder not implemented for @rd'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %cen [~.rd .~1] [~.rd .~2]]
+              ctes  qual-lookup  rd-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-remainder-rd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %cen arithmetic-q-col-1 arithmetic-q-col-2]
+          ctes  qual-lookup  rd-qual-map-meta
+          rd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'remainder not implemented for @rd'
+    |.  (apply-scalar rd-table-row fn)
 --

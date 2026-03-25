@@ -338,6 +338,14 @@
                                [%col9 4]                      ::  @ud 4
                            ==
 ::
+::  fail test row: negative values for log/sqrt crash tests
+::  col1 = @rd -1.0 (raw IEEE-754 atom 13830554455654793216)
+::  col4 = @sd -4   (raw sign-magnitude atom 7)
+++  fail-qual-table-row  %-  mk-indexed-row
+                         :~  [%col1 .~-1]  ::  @rd -1.0
+                             [%col4 7]      ::  @sd -4
+                         ==
+::
 ::  %round test helpers
 ::  @rd: col2=.~1, col3=.~2
 ::  @sd: col4=--0, col5=--1, col6=--2
@@ -6087,4 +6095,617 @@
     ==
   ==
 ::
+::  :::::::::::::::::::::::::::::::::::::::::::
+::  ::::  crash / expect-fail tests  ::::
+::  :::::::::::::::::::::::::::::::::::::::::::
+::
+::  time function type errors
+::
+++  test-fail-year-unsupported-type
+  %+  expect-fail-message
+    '~.ud not a supported type for %year, need @da'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%year [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-month-unsupported-type
+  %+  expect-fail-message
+    '~.ud not a supported type for %month, need @da'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%month [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-day-unsupported-type
+  %+  expect-fail-message
+    '~.ud not a supported type for %day, need @da or @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%day [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-hour-unsupported-type
+  %+  expect-fail-message
+    '~.ud not a supported type for %hour, need @da or @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%hour [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-minute-unsupported-type
+  %+  expect-fail-message
+    '~.ud not a supported type for %minute, need @da or @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%minute [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-second-unsupported-type
+  %+  expect-fail-message
+    '~.ud not a supported type for %second, need @da or @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%second [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-add-time-bad-time-expression
+  %+  expect-fail-message
+    '~.ud not a supported type for %add-time time-expression, need @da or @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%add-time [~.ud 1] [~.dr ~d1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-add-time-bad-duration
+  %+  expect-fail-message
+    '~.ud not a supported type for %add-time duration, need @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%add-time [~.da ~2026.1.1] [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-subtract-time-bad-time-expression
+  %+  expect-fail-message
+    %-  crip
+      %+  weld
+        "~.ud not a supported type for %subtract-time "
+      "time-expression, need @da or @dr"
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%subtract-time [~.ud 1] [~.dr ~d1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-subtract-time-bad-duration
+  %+  expect-fail-message
+    '~.ud not a supported type for %subtract-time duration, need @dr'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%subtract-time [~.da ~2026.1.1] [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+::  unsupported number system tests (one per function, using @t literal)
+::
+++  test-fail-abs-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %abs, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%abs [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-log-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %log, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%log [~.t 'foo'] ~]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-rand-not-implemented
+  %+  expect-fail-message
+    '%rand not implemented'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%rand [~.ud 1] [~.ud 2]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-max-ns-conflict
+  %+  expect-fail-message
+    'max: type conflict: ~.rd vs ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%max [~.rd .~1] [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-max-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %max, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%max [~.t 'foo'] [~.t 'bar']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-min-ns-conflict
+  %+  expect-fail-message
+    'min: type conflict: ~.rd vs ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%min [~.rd .~1] [~.ud 1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-min-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %min, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%min [~.t 'foo'] [~.t 'bar']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-degrees-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %degrees, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%degrees [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-sin-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %sin, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%sin [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-cos-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %cos, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%cos [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-tan-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %tan, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%tan [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-asin-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %asin, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%asin [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-acos-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %acos, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%acos [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-atan-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %atan, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%atan [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-atan2-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %atan2, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%atan2 [~.t 'foo'] [~.t 'bar']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-floor-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %floor, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%floor [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-ceiling-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %ceiling, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%ceiling [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-round-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %round, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%round [~.t 'foo'] [~.ud 0]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-round-bad-length-type
+  %+  expect-fail-message
+    'round: length must be @ud or @sd, got ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%round [~.rd .~1] [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-sign-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %sign, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%sign [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-sqrt-unsupported-ns
+  %+  expect-fail-message
+    '~.t not a supported number system for %sqrt, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%sqrt [~.t 'foo']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+::  log special cases
+::
+++  test-fail-log-zero-rd-prepare
+  %+  expect-fail-message
+    'log(0) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%log [~.rd 0] ~]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-log-zero-rd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%log sqrt-q-col-1 ~]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'log(0) is not a number'
+    |.  (apply-scalar sqrt-qual-table-row fn)
+::
+++  test-fail-log-zero-sd-prepare
+  %+  expect-fail-message
+    'log(0) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%log [~.sd --0] ~]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-log-zero-sd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%log sqrt-q-col-4 ~]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'log(0) is not a number'
+    |.  (apply-scalar sqrt-qual-table-row fn)
+::
+++  test-fail-log-zero-ud-prepare
+  %+  expect-fail-message
+    'log(0) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%log [~.ud 0] ~]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-log-zero-ud-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%log sqrt-q-col-7 ~]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'log(0) is not a number'
+    |.  (apply-scalar sqrt-qual-table-row fn)
+::
+++  test-fail-log-negative-rd-prepare
+  %+  expect-fail-message
+    'log(.~-1) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%log [~.rd .~-1] ~]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-log-negative-rd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%log sqrt-q-col-1 ~]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'log(.~-1) is not a number'
+    |.  (apply-scalar fail-qual-table-row fn)
+::
+++  test-fail-log-negative-sd-prepare
+  %+  expect-fail-message
+    'log(-4) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%log [~.sd -4] ~]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-log-negative-sd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%log sqrt-q-col-4 ~]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'log(-4) is not a number'
+    |.  (apply-scalar fail-qual-table-row fn)
+::
+::  sqrt special cases
+::
+++  test-fail-sqrt-negative-rd-prepare
+  %+  expect-fail-message
+    'sqrt(.~-1) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%sqrt [~.rd .~-1]]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-sqrt-negative-rd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%sqrt sqrt-q-col-1]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'sqrt(.~-1) is not a number'
+    |.  (apply-scalar fail-qual-table-row fn)
+::
+++  test-fail-sqrt-negative-sd-prepare
+  %+  expect-fail-message
+    'sqrt(-4) is not a number'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%sqrt [~.sd -4]]
+              table-named-ctes
+              *qualifier-lookup
+              sqrt-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-sqrt-negative-sd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%sqrt sqrt-q-col-4]
+          table-named-ctes
+          *qualifier-lookup
+          sqrt-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'sqrt(-4) is not a number'
+    |.  (apply-scalar fail-qual-table-row fn)
 --

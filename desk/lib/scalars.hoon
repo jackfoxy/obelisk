@@ -331,13 +331,13 @@
               ?:  =(0 val)
                 ~|  "log(0) is not a number"  !!
               ?.  (sig:rd `@rd`val)
-                ~|  "log({<val>}) is not a number"  !!
+                ~|  "log({<`@rd`val>}) is not a number"  !!
               [~.rd (~(log rd:math [%z .~1e-15]) `@rd`val)]
             %sd
               ?:  =(0 val)
                 ~|  "log(0) is not a number"  !!
               ?.  (syn:si `@s`val)
-                ~|  "log({<val>}) is not a number"  !!
+                ~|  "log({<`@s`val>}) is not a number"  !!
               [~.rd (~(log rd:math [%z .~1e-15]) (san:rd `@s`val))]
             %ud
               ?:  =(0 val)
@@ -1022,14 +1022,14 @@
               ?:  =(.~1 +.expr)  [number-system .~1]
               =/  result  (sqt:rd +.expr)
               ?~  (toi:rd result)
-                ~|  "sqrt({<+.expr>}) is not a number"  !!
+                ~|  "sqrt({<`@rd`+.expr>}) is not a number"  !!
               [number-system result]
             ::
             %sd
               ?:  =(0 +.expr)  [number-system 0]
               ?:  =(2 +.expr)  [number-system 2]  ::  @sd --1, sqrt(--1) = --1
               =/  toi-result  (toi:rd (sqt:rd (san:rd +.expr)))
-              ?~  toi-result  ~|  "sqrt({<+.expr>}) is not a number"  !!
+              ?~  toi-result  ~|  "sqrt({<`@sd`+.expr>}) is not a number"  !!
               [number-system u.toi-result]
             ::
             %ud
@@ -1051,7 +1051,7 @@
               ?:  =(.~1 datum)  [number-system .~1]
               =/  result  (sqt:rd datum)
               ?~  (toi:rd result)
-                ~|  "sqrt({<datum>}) is not a number"  !!
+                ~|  "sqrt({<`@rd`datum>}) is not a number"  !!
               [number-system result]
             ::
             %sd
@@ -1059,7 +1059,7 @@
               ?:  =(0 datum)  [number-system 0]
               ?:  =(2 datum)  [number-system 2]  ::  @sd --1, sqrt(--1) = --1
               =/  toi-result  (toi:rd (sqt:rd (san:rd datum)))
-              ?~  toi-result  ~|  "sqrt({<datum>}) is not a number"  !!
+              ?~  toi-result  ~|  "sqrt({<`@sd`datum>}) is not a number"  !!
               [number-system u.toi-result]
             ::
             %ud
@@ -2340,7 +2340,7 @@
             ?:  =(r-number-system %ud)  (sun:rd +.r)
             (san:rd `@s`+.r)
           ?:  (lth:rd r-rd .~0)
-            ~|("negative exponent {<+.r>} not supported" !!)
+            ~|("negative exponent {<r>} not supported" !!)
           =/  res-rd
             ?:  =(r-number-system %rd)
               (~(pow rd:math [%z .~1e-15]) l-rd r-rd)
@@ -2367,7 +2367,7 @@
             ?:  =(r-number-system %ud)  (sun:rd r-raw)
             (san:rd `@s`r-raw)
           ?:  (lth:rd r-rd .~0)
-            ~|("negative exponent {<r-raw>} not supported" !!)
+            ~|("negative exponent {<r>} not supported" !!)
           =/  res-rd
             ?:  =(r-number-system %rd)
               (~(pow rd:math [%z .~1e-15]) l-rd r-rd)
@@ -2458,7 +2458,7 @@
   ?~  expected
     $(expected `t, out [sub out], items t.items)
   ~|  "check-consistent-types: inconsistent types, expected {<u.expected>} ".
-      "but got {<t>} at {<-.i.items>}"
+      "but got {<t>} at {<i.items>}"
   ?>  =(u.expected t)
   $(out [sub out], items t.items)
 ::
