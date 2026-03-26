@@ -584,10 +584,10 @@
   %.n
 ::
 ++  pick-from-object
-  |=  [a=set-table state=(set [qualified-table:ast @da @da])]
+  |=  [a=set-table sources-state=(set [qualified-table:ast @da @da])]
   ^-  (set [qualified-table:ast @da @da])
-  ?~  relation.a    state
-  %-  ~(put in state)  :+  (need relation.a)
+  ?~  relation.a    sources-state
+  %-  ~(put in sources-state)  :+  (need relation.a)
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
 ::
