@@ -279,8 +279,8 @@
           =map-meta
           =named-ctes
           =resolved-scalars
-          list-pred=$-([@ (list @) =data-row] ?)
-          lit-list-pred=$-([@ (list @) =data-row] ?)
+          list-pred=$-([@ @ta (list @) =data-row] ?)
+          lit-list-pred=$-([@ @ta (list @) =data-row] ?)
           ==
   ^-  $-(data-row ?)
   ?~  p                  ~|("prepare-common-list can't get here 1" !!)
@@ -338,30 +338,32 @@
   ::  check against list
   ?:  ?=(cte-column:ast n.l.p)
     =/  dl=dime  (resolve-cte-column n.l.p named-ctes)
-    (bake (cury (cury lit-list-pred q.dl) in-list) data-row)
+    (bake (cury (cury (cury lit-list-pred q.dl) typ) in-list) data-row)
   ?:  ?&  ?=(unqualified-column:ast n.l.p)
           ?=(%unqualified-map-meta -.map-meta)
           ==
     %+  bake
-          (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) in-list)
+          (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
           data-row
   ?:  ?&  ?=(qualified-column:ast n.l.p)
           ?=(%qualified-map-meta -.map-meta)
           ==
     %+  bake  %+  cury
                   %+  cury
-                        list-pred
-                        +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p)
+                      %+  cury
+                            list-pred
+                            +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p)
+                      typ
                   in-list
               data-row
   ?:  ?&  ?=(qualified-column:ast n.l.p)
           ?=(%unqualified-map-meta -.map-meta)
           ==
     %+  bake
-          (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) in-list)
+          (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
           data-row
   ?:  ?=(dime n.l.p)
-    (bake (cury (cury lit-list-pred +.n.l.p) in-list) data-row)
+    (bake (cury (cury (cury lit-list-pred +.n.l.p) typ) in-list) data-row)
   ~|("prepare-common-list can't get here 6" !!)
 ::
 ++  get-qualifier
@@ -1039,41 +1041,57 @@
 ::  in
 ::
 ++  in-lit-list
-  |=  [a=@ b=(list @) c=data-row]
+  |=  [a=@ typ=@ta b=(list @) c=data-row]
   ^-  ?
   |-
   ?~  b  %.n
-  ?:  =(a -.b)  %.y
+  =/  match
+    ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`-.b)
+    ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`-.b)
+    =(a -.b)
+  ?:  match  %.y
   $(b +.b)
 ::
 ++  in-col-list
-  |=  [a=@ b=(list @) c=data-row]
+  |=  [a=@ typ=@ta b=(list @) c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  val  ?@(x x ;;(@ +.x))
   |-
   ?~  b  %.n
-  ?:  =(val -.b)  %.y
+  =/  match
+    ?:  =(typ ~.rs)  (equ:rs `@rs`val `@rs`-.b)
+    ?:  =(typ ~.rd)  (equ:rd `@rd`val `@rd`-.b)
+    =(val -.b)
+  ?:  match  %.y
   $(b +.b)
 ::
 ::  not in
 ::
 ++  not-in-lit-list
-  |=  [a=@ b=(list @) c=data-row]
+  |=  [a=@ typ=@ta b=(list @) c=data-row]
   ^-  ?
   |-
   ?~  b  %.y
-  ?:  =(a -.b)  %.n
+  =/  match
+    ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`-.b)
+    ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`-.b)
+    =(a -.b)
+  ?:  match  %.n
   $(b +.b)
 ::
 ++  not-in-col-list
-  |=  [a=@ b=(list @) c=data-row]
+  |=  [a=@ typ=@ta b=(list @) c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  val  ?@(x x ;;(@ +.x))
   |-
   ?~  b  %.y
-  ?:  =(val -.b)  %.n
+  =/  match
+    ?:  =(typ ~.rs)  (equ:rs `@rs`val `@rs`-.b)
+    ?:  =(typ ~.rd)  (equ:rd `@rd`val `@rd`-.b)
+    =(val -.b)
+  ?:  match  %.n
   $(b +.b)
 ::
 ::  not

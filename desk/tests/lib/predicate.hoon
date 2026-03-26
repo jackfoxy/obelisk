@@ -4641,6 +4641,78 @@
               [%vector-count 0]
               ==
       ==
+::
+::  WHERE <column> IN (list @rs) +0 = -0
+++  test-in-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rs-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .-0)".
+          " ('row2', .3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 IN (.0, .1.0) SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rs .-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> IN (list @rd) +0 = -0
+++  test-in-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rd-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~-0)".
+          " ('row2', .~3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 IN (.~0, .~1.0) SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rd .~-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
 
 ::
 ::  fail WHERE <column> IN (list @t) types differ
