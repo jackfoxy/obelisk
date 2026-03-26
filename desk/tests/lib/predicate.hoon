@@ -7,6 +7,14 @@
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @da, col3 @t, col4 @t) ".
   "PRIMARY KEY (col1)"
+++  create-rs-table
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 @rs) ".
+  "PRIMARY KEY (col1)"
+++  create-rd-table
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 @rd) ".
+  "PRIMARY KEY (col1)"
 ++  create-joined-tables
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @da) ".
@@ -248,6 +256,150 @@
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 4]
+              ==
+      ==
+::
+::  WHERE <column> = <literal> @rs
+++  test-eq-06
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rs-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .6.02)".
+          " ('row2', .3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .6.02 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rs .6.02]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> = <literal> @rs +0 = -0
+++  test-eq-07
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rs-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .-0)".
+          " ('row2', .3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .0 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rs .-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> = <literal> @rd
+++  test-eq-08
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rd-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~6.02)".
+          " ('row2', .~3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .~6.02 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rd .~6.02]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> = <literal> @rd +0 = -0
+++  test-eq-09
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rd-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~-0)".
+          " ('row2', .~3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 = .~0 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row1']]
+                              [%col2 [~.rd .~-0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
               ==
       ==
 ::
@@ -875,6 +1027,78 @@
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 0]
+              ==
+      ==
+::
+::  WHERE <column> <> <literal> @rs
+++  test-neq-06
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rs-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .6.02)".
+          " ('row2', .3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 <> .6.02 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [~.rs .3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> <> <literal> @rd
+++  test-neq-07
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-rd-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('row1', .~6.02)".
+          " ('row2', .~3.14)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table WHERE col2 <> .~6.02 SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'row2']]
+                              [%col2 [~.rd .~3.14]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
               ==
       ==
 ::

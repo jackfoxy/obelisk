@@ -1186,7 +1186,7 @@
   "~d71.h19.m26.s24, ~d71.h19.m26, ~d71.h19, ~d71, Y AS Loobean, N,  ".
   ".195.198.143.90 AS IPv4-address, .0.0.0.0.0.1c.c3c6.8f5a as IPv6-address, ".
   "~sampel-palnet AS Ship, .3.14 AS Single-float, .-3.14,  ".
-  "~3.14 AS Double-float, ~-3.14, --0b10.0000 AS Signed-binary, -0b10.0000, ".
+  ".~3.14 AS Double-float, .~-3.14, --0b10.0000 AS Signed-binary, -0b10.0000, ".
   "--20 AS Signed-decimal, -20, --0v201.4gvml.245kc AS Signed-base32, ".
   "-0v201.4gvml.245kc, --0w2.04AfS.G8xqc AS Signed-base64, -0w2.04AfS.G8xqc, ".
   "--0x2004.90fd AS Signed-hexadecimal, -0x2004.90fd,  ".

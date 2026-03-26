@@ -804,25 +804,36 @@
   |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 b])
-  =(a ?@(x x ;;(@ +.x)))
+  =/  xv  ?@(x x ;;(@ +.x))
+  ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`xv)
+  ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`xv)
+  =(a xv)
 ::
 ++  eq-col-lit
   |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
-  =(?@(x x ;;(@ +.x)) b)
+  =/  xv  ?@(x x ;;(@ +.x))
+  ?:  =(typ ~.rs)  (equ:rs `@rs`xv `@rs`b)
+  ?:  =(typ ~.rd)  (equ:rd `@rd`xv `@rd`b)
+  =(xv b)
 ::
 ++  eq-col-col
   |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  y  .*(data.c [%0 b])
-  ?@  x  =(x y)
-  =(;;(@ +.x) ;;(@ +.y))
+  =/  xv  ?@(x x ;;(@ +.x))
+  =/  yv  ?@(y y ;;(@ +.y))
+  ?:  =(typ ~.rs)  (equ:rs `@rs`xv `@rs`yv)
+  ?:  =(typ ~.rd)  (equ:rd `@rd`xv `@rd`yv)
+  ?@(x =(x y) =(xv yv))
 ::
 ++  eq-lit-lit
   |=  [a=@ b=@ typ=@ta]
   ^-  ?
+  ?:  =(typ ~.rs)  (equ:rs `@rs`a `@rs`b)
+  ?:  =(typ ~.rd)  (equ:rd `@rd`a `@rd`b)
   =(a b)
 ::
 ::  neq
@@ -831,25 +842,36 @@
   |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 b])
-  ?!(=(a ?@(x x ;;(@ +.x))))
+  =/  xv  ?@(x x ;;(@ +.x))
+  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`a `@rs`xv))
+  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`a `@rd`xv))
+  ?!(=(a xv))
 ::
 ++  neq-col-lit
   |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
-  ?!(=(?@(x x ;;(@ +.x)) b))
+  =/  xv  ?@(x x ;;(@ +.x))
+  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`xv `@rs`b))
+  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`xv `@rd`b))
+  ?!(=(xv b))
 ::
 ++  neq-col-col
   |=  [a=@ b=@ typ=@ta c=data-row]
   ^-  ?
   =/  x  .*(data.c [%0 a])
   =/  y  .*(data.c [%0 b])
-  ?@  x  ?!(=(x y))
-  ?!(=(;;(@ +.x) ;;(@ +.y)))
+  =/  xv  ?@(x x ;;(@ +.x))
+  =/  yv  ?@(y y ;;(@ +.y))
+  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`xv `@rs`yv))
+  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`xv `@rd`yv))
+  ?@(x ?!(=(x y)) ?!(=(xv yv)))
 ::
 ++  neq-lit-lit
   |=  [a=@ b=@ typ=@ta]
   ^-  ?
+  ?:  =(typ ~.rs)  ?!((equ:rs `@rs`a `@rs`b))
+  ?:  =(typ ~.rd)  ?!((equ:rd `@rd`a `@rd`b))
   ?!(=(a b))
 ::
 ::  gt

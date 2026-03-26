@@ -3645,10 +3645,10 @@
     (stag %ud (full dem:ag))                      :: formatted @ud
     (stag %ud (full dim:ag))                   :: unformatted @ud, no leading 0s
     ;~(pfix dot (stag %rs (full royl-rs:so)))     :: @rs
+    ;~(pfix dot (stag %rd (full royl-rd:so)))                  :: @rd
     (full tash:so)                                :: @sd or @sx
     (stag %ub (full bay:ag))                     :: formatted @ub, no leading 0s
     (stag %ux ;~(pfix (jest '0x') (full hex:ag))) :: formatted @ux
-    (stag %rd (full royl-rd:so))                  :: @rd
     (stag %uw (full wiz:ag))                   :: formatted @uw base-64 unsigned
   ==
 ++  non-numeric-parser  ~+
