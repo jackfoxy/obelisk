@@ -885,6 +885,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`a)
+  ?:  =(typ ~.rd)  (gth:rd a ?@(x x ;;(@ +.x)))
+  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1)
   (gth a ?@(x x ;;(@ +.x)))
 ::
 ++  gt-col-lit
@@ -894,6 +896,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha `@t`b ?@(x `@t`x `@t`;;(@ +.x)))
+  ?:  =(typ ~.rd)  (gth:rd ?@(x x ;;(@ +.x)) b)
+  ?:  =(typ ~.sd)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1)
   (gth ?@(x x ;;(@ +.x)) b)
 ::
 ++  gt-col-col
@@ -905,10 +909,14 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`;;(@ y) `@t`x)
+    ?:  =(typ ~.rd)  (gth:rd x ;;(@ +.y))
+    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ +.y)) --1)
     (gth x ;;(@ +.y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha ;;(@ +.y) ;;(@ +.x))
+  ?:  =(typ ~.rd)  (gth:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  =(typ ~.sd)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1)
   (gth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gt-lit-lit
@@ -917,6 +925,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
     (alpha b a)
+  ?:  =(typ ~.rd)  (gth:rd a b)
+  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`b) --1)
   (gth a b)
 ::
 ::  gte
@@ -927,6 +937,8 @@
   =/  x  .*(data.c [%0 b])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) a)
+  ?:  =(typ ~.rd)  (gte:rd a ?@(x x ;;(@ +.x)))
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1))
   (gte a ?@(x x ;;(@ +.x)))
 ::
 ++  gte-col-lit
@@ -935,6 +947,8 @@
   =/  x  .*(data.c [%0 a])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha b ?@(x `@t`x `@t`;;(@ +.x)))
+  ?:  =(typ ~.rd)  (gte:rd ?@(x x ;;(@ +.x)) b)
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1))
   (gte ?@(x x ;;(@ +.x)) b)
 ::
 ++  gte-col-col
@@ -945,9 +959,13 @@
   ?@  x
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`;;(@ y) `@t`x)
+    ?:  =(typ ~.rd)  (gte:rd x ;;(@ y))
+    ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) -1))
     (gte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.y) `@t`;;(@ +.x))
+  ?:  =(typ ~.rd)  (gte:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1))
   (gte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  gte-lit-lit
@@ -955,6 +973,8 @@
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`b `@t`a)
+  ?:  =(typ ~.rd)  (gte:rd a b)
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`b) -1))
   (gte a b)
 ::
 ::  lt
@@ -966,6 +986,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a ?@(x x ;;(@ +.x)))  %.n
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
+  ?:  =(typ ~.rd)  (lth:rd a ?@(x x ;;(@ +.x)))
+  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) -1)
   (lth a ?@(x x ;;(@ +.x)))
 ::
 ++  lt-col-lit
@@ -975,6 +997,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(?@(x x ;;(@ +.x)) b)  %.n
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) `@t`b)
+  ?:  =(typ ~.rd)  (lth:rd ?@(x x ;;(@ +.x)) b)
+  ?:  =(typ ~.sd)  =((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) -1)
   (lth ?@(x x ;;(@ +.x)) b)
 ::
 ++  lt-col-col
@@ -986,10 +1010,14 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`x `@t`;;(@ y))
+    ?:  =(typ ~.rd)  (lth:rd x ;;(@ y))
+    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) -1)
     (lth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
+  ?:  =(typ ~.rd)  (lth:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  =(typ ~.sd)  =((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) -1)
   (lth ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lt-lit-lit
@@ -998,6 +1026,8 @@
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(a b)  %.n
     (alpha `@t`a `@t`b)
+  ?:  =(typ ~.rd)  (lth:rd a b)
+  ?:  =(typ ~.sd)  =((cmp:si `@s`a `@s`b) -1)
   (lth a b)
 ::
 ::  lte
@@ -1008,6 +1038,8 @@
   =/  x  .*(data.c [%0 b])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a ?@(x `@t`x `@t`;;(@ +.x)))
+  ?:  =(typ ~.rd)  (lte:rd a ?@(x x ;;(@ +.x)))
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`?@(x x ;;(@ +.x))) --1))
   (lte a ?@(x x ;;(@ +.x)))
 ::
 ++  lte-col-lit
@@ -1016,6 +1048,8 @@
   =/  x  .*(data.c [%0 a])
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha ?@(x `@t`x `@t`;;(@ +.x)) b)
+  ?:  =(typ ~.rd)  (lte:rd ?@(x x ;;(@ +.x)) b)
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`?@(x x ;;(@ +.x)) `@s`b) --1))
   (lte ?@(x x ;;(@ +.x)) b)
 ::
 ++  lte-col-col
@@ -1026,9 +1060,13 @@
   ?@  x
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       (alpha `@t`x `@t`;;(@ y))
+    ?:  =(typ ~.rd)  (lte:rd x ;;(@ y))
+    ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`x `@s`;;(@ y)) --1))
     (lte x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`;;(@ +.x) `@t`;;(@ +.y))
+  ?:  =(typ ~.rd)  (lte:rd ;;(@ +.x) ;;(@ +.y))
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`;;(@ +.x) `@s`;;(@ +.y)) --1))
   (lte ;;(@ +.x) ;;(@ +.y))
 ::
 ++  lte-lit-lit
@@ -1036,6 +1074,8 @@
   ^-  ?
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     (alpha `@t`a `@t`b)
+  ?:  =(typ ~.rd)  (lte:rd a b)
+  ?:  =(typ ~.sd)  ?!(=((cmp:si `@s`a `@s`b) --1))
   (lte a b)
 ::
 ::  in
