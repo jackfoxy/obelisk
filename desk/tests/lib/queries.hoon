@@ -342,7 +342,7 @@
   =/  select  "SELECT 'cor,d', ~nomryg-nilref, ~2020.12.25..7.15.0..1ef5, ".
               "2020.12.25..7.15.0..1ef5, ~d71.h19.m26.s24..9d55, ".
               ".195.198.143.90, .0.0.0.0.0.1c.c3c6.8f5a, Y, N, 2.222, 2222, ".
-              "195.198.143.900, .3.14, .-3.14, ~3.14, ~-3.14, 0x12.6401, ".
+              "195.198.143.900, .3.14, .-3.14, .~3.14, .~-3.14, 0x12.6401, ".
               "10.1011, -20, --20, 'cor\\'d'"
   %-  exec-0-1
   :*  run
@@ -395,8 +395,8 @@
               "~d71.h19.m26.s24..9d55 as timespan, .195.198.143.90 as ip, ".
               ".0.0.0.0.0.1c.c3c6.8f5a as ipfv6, Y as true, N as false, ".
               "2.222 as undec1, 2222 as undec2, 195.198.143.900 as undec3, ".
-              ".3.14 as float32-1, .-3.14 as float32-2, ~3.14 as float64-1, ".
-              "~-3.14 as float64-2, 0x12.6401 AS UNHEX, 10.1011 as unbinary, ".
+              ".3.14 as float32-1, .-3.14 as float32-2, .~3.14 as float64-1, ".
+              ".~-3.14 as float64-2, 0x12.6401 AS UNHEX, 10.1011 as unbinary, ".
               "-20 as signdec1, --20 as signdec2, 'cor\\'d' AS CORD2"
   %-  exec-0-1
   :*  run
