@@ -18,11 +18,23 @@ Features coming after v0.5 alpha release.
 
 * __Any natural join__ -- natural join on any column(s) match
 
-* __Set operators__ -- UNION, INTERSECT, EXCEPT, DIVIDED BY, DIVIDED BY WITH REMAINDER
+* __Set operators__ -- UNION, INTERSECT, EXCEPT
+
+##  V1.0
+
+* __Views__ -- views are cached queries and can shadow user-defined tables.
+
+* __Outer JOINs__ -- LEFT JOIN, RIGHT JOIN, OUTER JOIN,
+
+* __GROUP BY...HAVING__ -- as in SQL.
+
+* __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(*).
 
 * __ORDER BY ...__ -- order result set
 
-* __path column type__ -- support path type as atom
+* __path column type__ -- support path and pith types.
+
+* __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
 
 ## other functionality
 
@@ -32,13 +44,9 @@ Features coming after v0.5 alpha release.
 
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
-* __Views__ -- views are cached queries and can shadow user-defined tables.
-
 * __Additional system views__ -- security, views, etc.
 
 * __UPSERT__ -- INSERT that does not fail on duplicate key, but rather updates the row.
-
-* __Outer JOINs__ -- 3 kinds of outer joins.
 
 * __Support column cells and/or jammed nouns__ -- currently only aura-typed atoms supported.
 
@@ -47,11 +55,6 @@ Features coming after v0.5 alpha release.
 * __Suppport Paths__  -- %hawk compatibility support path to select server components.
 
 * __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will.
-
-
-* __GROUP BY...HAVING__ -- as in SQL.
-
-* __Aggregate functions__ -- functions on a column, depends on GROUP BY, e.g. COUNT(*).
 
 * __Stored procedures__ -- Parameterized queries, to be designed (TBD). Possibly urQL + inlined hoon...who knows.
 
@@ -80,8 +83,6 @@ Features coming after v0.5 alpha release.
 * __Support @ta and @tas auras__ -- would require +sane.
 
 * __%quiz__ -- property tests on database, namespace, table, insert, query, etc.
-
-* __in-line relation__ -- much infrastructure is in place for this, not sure it is a good idea (idea floated at Re-Assembly 2023)
 
 * __alternate urQL grammar__ -- row tuple in square brackets and/or pith for from.
 

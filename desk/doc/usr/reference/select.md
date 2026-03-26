@@ -15,13 +15,13 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
     [ ...n ]
     | CROSS JOIN <relation> [ <as-of-time> ] [ [AS] <alias> ]
   ]
+  [ SCALARS {<name> <scalar-function>} [ ...n ]]
   [ WHERE <predicate> ]
   [ GROUP BY { <qualified-column> 
                | <column-alias> 
                | <column-ordinal> } [ ,...n ]
     [ HAVING <predicate> ]
   ]
-  [ SCALARS {<alias> <scalar-function>} ]
   SELECT [ TOP <n> ]
     { * | { [<ship-qualifier>]<table-view> | <alias> }.*
         | <expression> [ AS <column-alias> ]
