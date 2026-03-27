@@ -5329,6 +5329,226 @@
               ==
       ==
 ::
+::  natural join, composite @rd @sd @rd primary key, asc/desc inverted between tables
+++  test-join-29
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..nj-tbl-a "
+            "(pk-rd1 @rd, pk-sd @sd, pk-rd2 @rd, tbl-a-label @t) "
+            "PRIMARY KEY (pk-rd1 ASC, pk-sd DESC, pk-rd2 ASC);"
+            "CREATE TABLE db1..nj-tbl-b "
+            "(pk-rd1 @rd, pk-sd @sd, pk-rd2 @rd, tbl-b-label @t) "
+            "PRIMARY KEY (pk-rd1 DESC, pk-sd ASC, pk-rd2 DESC);"
+            "INSERT INTO nj-tbl-a (pk-rd1, pk-sd, pk-rd2, tbl-a-label) VALUES "
+            "(.~1.0, --3, .~2.0, 'row1') "
+            "(.~1.0, --1, .~4.0, 'row2') "
+            "(.~2.0, --4, .~1.0, 'row3') "
+            "(.~2.0, --2, .~3.0, 'row4') "
+            "(.~3.0, --5, .~2.0, 'row5') "
+            "(.~3.0, --1, .~1.0, 'row6') "
+            "(.~4.0, --3, .~4.0, 'row7') "
+            "(.~4.0, --2, .~2.0, 'row8') "
+            "(.~5.0, --4, .~3.0, 'row9') "
+            "(.~5.0, --1, .~2.0, 'row10');"
+            "INSERT INTO nj-tbl-b (pk-rd1, pk-sd, pk-rd2, tbl-b-label) VALUES "
+            "(.~6.0, --2, .~3.0, 'row1') "
+            "(.~5.0, --1, .~2.0, 'row2') "
+            "(.~4.5, --5, .~1.5, 'row3') "
+            "(.~4.0, --3, .~4.0, 'row4') "
+            "(.~3.5, --3, .~2.5, 'row5') "
+            "(.~3.0, --1, .~1.0, 'row6') "
+            "(.~2.5, --4, .~4.0, 'row7') "
+            "(.~2.0, --2, .~3.0, 'row8') "
+            "(.~1.5, --1, .~3.5, 'row9') "
+            "(.~1.0, --3, .~2.0, 'row10');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM nj-tbl-a T1 ".
+          "JOIN nj-tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk-rd1 [~.rd .~1.0]]
+                              [%pk-sd [~.sd --3]]
+                              [%pk-rd2 [~.rd .~2.0]]
+                              [%tbl-a-label [~.t 'row1']]
+                              [%pk-rd1 [~.rd .~1.0]]
+                              [%pk-sd [~.sd --3]]
+                              [%pk-rd2 [~.rd .~2.0]]
+                              [%tbl-b-label [~.t 'row10']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-rd1 [~.rd .~2.0]]
+                              [%pk-sd [~.sd --2]]
+                              [%pk-rd2 [~.rd .~3.0]]
+                              [%tbl-a-label [~.t 'row4']]
+                              [%pk-rd1 [~.rd .~2.0]]
+                              [%pk-sd [~.sd --2]]
+                              [%pk-rd2 [~.rd .~3.0]]
+                              [%tbl-b-label [~.t 'row8']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-rd1 [~.rd .~3.0]]
+                              [%pk-sd [~.sd --1]]
+                              [%pk-rd2 [~.rd .~1.0]]
+                              [%tbl-a-label [~.t 'row6']]
+                              [%pk-rd1 [~.rd .~3.0]]
+                              [%pk-sd [~.sd --1]]
+                              [%pk-rd2 [~.rd .~1.0]]
+                              [%tbl-b-label [~.t 'row6']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-rd1 [~.rd .~4.0]]
+                              [%pk-sd [~.sd --3]]
+                              [%pk-rd2 [~.rd .~4.0]]
+                              [%tbl-a-label [~.t 'row7']]
+                              [%pk-rd1 [~.rd .~4.0]]
+                              [%pk-sd [~.sd --3]]
+                              [%pk-rd2 [~.rd .~4.0]]
+                              [%tbl-b-label [~.t 'row4']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-rd1 [~.rd .~5.0]]
+                              [%pk-sd [~.sd --1]]
+                              [%pk-rd2 [~.rd .~2.0]]
+                              [%tbl-a-label [~.t 'row10']]
+                              [%pk-rd1 [~.rd .~5.0]]
+                              [%pk-sd [~.sd --1]]
+                              [%pk-rd2 [~.rd .~2.0]]
+                              [%tbl-b-label [~.t 'row2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.nj-tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%message 'db1.dbo.nj-tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  natural join, composite @sd @rd @sd primary key, asc/desc inverted between tables
+++  test-join-30
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..nj-tbl-c "
+            "(pk-sd1 @sd, pk-rd @rd, pk-sd2 @sd, tbl-c-label @t) "
+            "PRIMARY KEY (pk-sd1 DESC, pk-rd ASC, pk-sd2 DESC);"
+            "CREATE TABLE db1..nj-tbl-d "
+            "(pk-sd1 @sd, pk-rd @rd, pk-sd2 @sd, tbl-d-label @t) "
+            "PRIMARY KEY (pk-sd1 ASC, pk-rd DESC, pk-sd2 ASC);"
+            "INSERT INTO nj-tbl-c (pk-sd1, pk-rd, pk-sd2, tbl-c-label) VALUES "
+            "(--9, .~1.0, --9, 'row1') "
+            "(--9, .~2.0, --7, 'row2') "
+            "(--8, .~1.5, --8, 'row3') "
+            "(--8, .~3.0, --6, 'row4') "
+            "(--7, .~2.5, --9, 'row5') "
+            "(--7, .~4.0, --5, 'row6') "
+            "(--6, .~3.5, --8, 'row7') "
+            "(--6, .~5.0, --4, 'row8') "
+            "(--5, .~4.5, --7, 'row9') "
+            "(--5, .~6.0, --3, 'row10');"
+            "INSERT INTO nj-tbl-d (pk-sd1, pk-rd, pk-sd2, tbl-d-label) VALUES "
+            "(--6, .~5.0, --4, 'row1') "
+            "(--10, .~9.0, --1, 'row2') "
+            "(--9, .~1.0, --9, 'row3') "
+            "(--8, .~4.5, --2, 'row4') "
+            "(--7, .~3.0, --1, 'row5') "
+            "(--8, .~3.0, --6, 'row6') "
+            "(--6, .~2.0, --3, 'row7') "
+            "(--7, .~4.0, --5, 'row8') "
+            "(--5, .~7.0, --2, 'row9') "
+            "(--5, .~6.0, --3, 'row10');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM nj-tbl-c T1 ".
+          "JOIN nj-tbl-d T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk-sd1 [~.sd --9]]
+                              [%pk-rd [~.rd .~1.0]]
+                              [%pk-sd2 [~.sd --9]]
+                              [%tbl-c-label [~.t 'row1']]
+                              [%pk-sd1 [~.sd --9]]
+                              [%pk-rd [~.rd .~1.0]]
+                              [%pk-sd2 [~.sd --9]]
+                              [%tbl-d-label [~.t 'row3']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-sd1 [~.sd --8]]
+                              [%pk-rd [~.rd .~3.0]]
+                              [%pk-sd2 [~.sd --6]]
+                              [%tbl-c-label [~.t 'row4']]
+                              [%pk-sd1 [~.sd --8]]
+                              [%pk-rd [~.rd .~3.0]]
+                              [%pk-sd2 [~.sd --6]]
+                              [%tbl-d-label [~.t 'row6']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-sd1 [~.sd --7]]
+                              [%pk-rd [~.rd .~4.0]]
+                              [%pk-sd2 [~.sd --5]]
+                              [%tbl-c-label [~.t 'row6']]
+                              [%pk-sd1 [~.sd --7]]
+                              [%pk-rd [~.rd .~4.0]]
+                              [%pk-sd2 [~.sd --5]]
+                              [%tbl-d-label [~.t 'row8']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-sd1 [~.sd --6]]
+                              [%pk-rd [~.rd .~5.0]]
+                              [%pk-sd2 [~.sd --4]]
+                              [%tbl-c-label [~.t 'row8']]
+                              [%pk-sd1 [~.sd --6]]
+                              [%pk-rd [~.rd .~5.0]]
+                              [%pk-sd2 [~.sd --4]]
+                              [%tbl-d-label [~.t 'row1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk-sd1 [~.sd --5]]
+                              [%pk-rd [~.rd .~6.0]]
+                              [%pk-sd2 [~.sd --3]]
+                              [%tbl-c-label [~.t 'row10']]
+                              [%pk-sd1 [~.sd --5]]
+                              [%pk-rd [~.rd .~6.0]]
+                              [%pk-sd2 [~.sd --3]]
+                              [%tbl-d-label [~.t 'row10']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.nj-tbl-c']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%message 'db1.dbo.nj-tbl-d']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 5]
+              ==
+      ==
+::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud
