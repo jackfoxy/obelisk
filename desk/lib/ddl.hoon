@@ -2,8 +2,8 @@
 /+  *utils
 |_  [state=server =bowl:gall]
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -36,15 +36,14 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ::
-::  +create-ns:
-::    [create-namespace:ast (map @tas @da) (map @tas @da)]
-::    -> [cmd-result (map @tas @da) server]
 ++  create-ns
   |=  $:  =create-namespace:ast
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
       ==
-  ^-  [cmd-result (map @tas @da) server]
+  ^-  [cmd-result:ast (map @tas @da) server]
+  ?:  =(database-name.create-namespace %sys)
+        ~|("cannot create namespace in sys database" !!)
   =/  db  ~|  "CREATE NAMESPACE: database {<database-name.create-namespace>} ".
               "does not exist"
                  (~(got by state) database-name.create-namespace)
@@ -85,17 +84,16 @@
               [%schema-time sys-time]
               ==
       (~(put by next-schemas) database-name.create-namespace sys-time)
-      (~(put by state) name.db db)
+      (~(put by state) name.db db) 
 ::
-::  +create-tbl:
-::    [create-table:ast (map @tas @da) (map @tas @da)]
-::    -> [cmd-result (map @tas @da) (map @tas @da) server]
 ++  create-tbl
   |=  $:  =create-table:ast
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
           ==
-  ^-  [cmd-result (map @tas @da) (map @tas @da) server]
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  ?:  =(database.table.create-table %sys)
+        ~|("cannot create table in %sys database" !!)
   =/  db  ~|  "CREATE TABLE: database {<database.table.create-table>} ".
               "does not exist"
               (~(got by state) database.table.create-table)
@@ -134,23 +132,18 @@
         "{<pri-indx.create-table>}"
         !!
   ::
-  =/  column-look-up  (malt (spun columns.create-table make-col-lu-data))
+  =/  column-look-up  (malt (spun columns.create-table mk-col-lu-data))
   ::
   =/  table
-        %:  table
-            %table
+        :*  %table
             sap.bowl
             sys-time
             column-look-up
-            (malt (turn columns.create-table |=(a=column:ast [name.a type.a])))
-            %:  index
-                %index
-                %.y
-                (mk-key-column column-look-up pri-indx.create-table)
-            ==
-            columns.create-table
+            (mk-unqualified-typ-addr-lookup (addr-columns columns.create-table))
+            [%index %.y (mk-key-column column-look-up pri-indx.create-table)]
+            (addr-columns columns.create-table)
             ~
-        ==
+            ==
   =/  tables
     ~|  "CREATE TABLE: {<name.table.create-table>} ".
         "exists in {<namespace.table.create-table>}"
@@ -163,17 +156,14 @@
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
   ::
-  =/  file  %:  file
-                %file
+  =/  file  :*  %file
                 src.bowl
                 sap.bowl
                 sys-time
                 0
                 ~
                 ~
-                ~
-                ~
-            ==
+                ==
   =/  files
     ~|  "CREATE TABLE: {<name.table.create-table>} ".
         "exists in {<namespace.table.create-table>}"
@@ -201,14 +191,12 @@
       (~(put by next-data) database.table.create-table sys-time)
       (~(put by state) name.db db)
 ::
-::  +drop-tbl:
-::    [drop-table:ast (map @tas @da) (map @tas @da)] -> table-return
 ++  drop-tbl
   |=  $:  d=drop-table:ast
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
           ==
-  ^-  [cmd-result (map @tas @da) (map @tas @da) server]
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   =/  db  ~|  "DROP TABLE: database {<database.table.d>} does not exist"
              (~(got by state) database.table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
@@ -274,4 +262,37 @@
       (~(put by next-schemas) database.table.d sys-time)
       (~(put by next-data) database.table.d sys-time)
       (~(put by state) name.db db)
+::
+++  map-insert
+  |*  [m=(map) key=* value=*]
+  ^+  m
+  ?:  (~(has by m) key)  ~|("duplicate key: {<key>}" !!)
+  (~(put by m) key value)
+::
+++  map-delete
+  |*  [m=(map) key=*]
+  ^+  m
+  ?:  (~(has by m) key)  (~(del by m) key)
+  ~|("deletion key does not exist: {<key>}" !!)
+::
+++  mk-key-column
+  |=  [=column-lookup pri-indx=(list ordered-column:ast)]
+  ^-  (list key-column)
+  =/  key  *(list key-column)
+  |-
+  ?~  pri-indx  (flop key)
+  %=  $
+    pri-indx  t.pri-indx
+    key       :-  :^  %key-column
+                      name.i.pri-indx
+                      -:(~(got by column-lookup) name.i.pri-indx)
+                      ascending.i.pri-indx
+                  key
+  ==
+::
+++  name-set
+  |*  a=(set)
+  ~+   :: keep, seems to make small difference
+  ^-  (set @tas)
+  (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 --

@@ -60,58 +60,53 @@
     selection
     truncate-table
     update
-  ==
+    ==
 ::
 ::  simple union types
 ::
-+$  referential-integrity-action   ?(%delete-cascade %update-cascade)
-+$  index-action         ?(%rebuild %disable %resume)
-+$  all-or-any           ?(%all %any)
-+$  bool-conjunction     ?(%and %or)
-+$  object-type          ?(%table %view)
++$  referential-integrity-action  ?(%delete-cascade %update-cascade)
++$  index-action                  ?(%rebuild %disable %resume)
++$  all-or-any                    ?(%all %any)
++$  bool-conjunction              ?(%and %or)
++$  object-type                   ?(%table %view)
 +$  join-type
   ?(%join %left-join %right-join %outer-join %cross-join)
 ::
 ::  command component types
 ::
 +$  value-literals
-  $:
-    %value-literals
+  $:  %value-literals
     dime               :: false dime [<aura of type> <crip of literal list>]
-  ==
+    ==
 +$  ordered-column
-  $:
-    %ordered-column
+  $:  %ordered-column
     name=@tas
     ascending=?
-  ==
+    ==
 +$  column
-  $:
-    %column
+  $:  %column
     name=@tas
     type=@ta
-  ==
+    addr=@
+    ==
 +$  qualified-table
   $+  qualified-table
-  $:
-    %qualified-table
+  $:  %qualified-table
     ship=(unit @p)
     database=@tas
     namespace=@tas
     name=@tas
     alias=(unit @t)
-  ==
+    ==
 +$  qualified-column
   $+  qualified-column
-  $:
-    %qualified-column
+  $:  %qualified-column
     qualifier=qualified-table
     name=@tas
     alias=(unit @t)
-  ==
+    ==
 +$  foreign-key
-  $:
-    %foreign-key
+  $:  %foreign-key
     name=@tas
     =qualified-table
     columns=(list ordered-column)                    :: the source columns
@@ -119,88 +114,45 @@
     reference-columns=(list @t)                      :: and columns
                   :: what to do when referenced item deletes or updates
     referential-integrity=(list referential-integrity-action)
-  ==
+    ==
 ::
 ::  expressions
 ::
 :: { = | <> | != | > | >= | !> | < | <= | !< | BETWEEN...AND...
 ::       | IS DISTINCT FROM | IS NOT DISTINCT FROM }
-+$  ternary-op           ?(%between %not-between)
-+$  inequality-op        ?(%neq %gt %gte %lt %lte)
-+$  all-any-op           ?(%all %any)
-+$  binary-op            ?(%eq inequality-op %equiv %not-equiv %in %not-in)
-+$  unary-op             ?(%exists %not-exists %not)
-+$  conjunction          ?(%and %or)
-+$  ops-and-conjs
-      ?(ternary-op binary-op unary-op all-any-op conjunction)
++$  ternary-op     ?(%between %not-between)
++$  inequality-op  ?(%neq %gt %gte %lt %lte)
++$  all-any-op     ?(%all %any)
++$  binary-op      ?(%eq inequality-op %equiv %not-equiv %in %not-in)
++$  unary-op       ?(%exists %not-exists %not)
++$  conjunction    ?(%and %or)
++$  ops-and-conjs  ?(ternary-op binary-op unary-op all-any-op conjunction)
 +$  predicate-component
-      $?  ops-and-conjs
-          qualified-column
-          unqualified-column
-          dime
-          value-literals
-          aggregate
-          ==
-+$  predicate            (tree predicate-component)
-+$  datum                $%(qualified-column unqualified-column dime)
-
-+$  scalar-op            ?(%lus %tar %hep %fas %ket)
-+$  scalar-token         ?(%pal %par scalar-op)
-+$  arithmetic
-  $:
-    %arithmetic
-    operator=scalar-op
-    left=datum                         :: datum-or-scalar
-    ::left=datum-or-scalar                         :: datum-or-scalar
-    right=datum                        :: datum-or-scalar
-    ::right=datum-or-scalar                        :: datum-or-scalar
-  ==
-+$  if-then-else
-  $:
-    %if-then-else
-    if=predicate
-    then=datum-or-scalar                         :: datum-or-scalar
-    else=datum-or-scalar                         :: datum-or-scalar
-  ==
-+$  case-when-then
-  $:
-    %case-when-then
-    when=predicate                         :: predicate | datum
-    then=datum-or-scalar                        :: datum-or-scalar
-  ==
-+$  case
-  $:
-    %case
-    target=datum-or-scalar
-    cases=(list case-when-then)
-    else=(unit datum-or-scalar)                         :: datum-or-scalar
-  ==
-+$  literal-value        $:(%literal-value dime=dime)
-+$  cte-alias            $:(%cte-alias alias=@t)
-+$  datum-for-scalar     $%(qualified-column unqualified-column literal-value)
-++  datum-or-scalar
-  $@  ~
-  $%($%(datum-for-scalar cte-alias) scalar-function)
-+$  coalesce
-  $+  coalesce
-  $:
-    %coalesce
-    data=(list datum-or-scalar)
-  ==
-+$  scalar-function
+  $?
+    ops-and-conjs
+    datum
+    value-literals
+    aggregate
+    ==
++$  predicate     (tree predicate-component)
++$  datum 
   $%
-    if-then-else
-    case
-    coalesce
-    :: arithmetic
-  ==
+    qualified-column
+    unqualified-column
+    cte-column
+    cte-name
+    scalar-name
+    dime
+    ==
+::
++$  cte-name      $:(%cte-name name=@tas)
++$  cte-column    $:(%cte-column cte=@tas name=@tas)
 ::
 ::  query
 ::
 ::  $query:
 +$  query
-  $:
-    %query
+  $:  %query
     from=(unit from)
     scalars=(list scalar)
     =predicate
@@ -208,132 +160,100 @@
     having=predicate
     =select
     order-by=(list ordering-column)
-  ==
+    ==
 ::
 ::  $from:
 +$  from
-  $:
-    %from
-    object=relation
+  $:  %from
+    =relation
     as-of=(unit as-of)
-    joins=(list joined-object)
-  ==
-+$  joined-object
-  $:
-    %joined-object
+    joins=(list joined-relation)
+    ==
++$  joined-relation
+  $:  %joined-relation
     join=join-type
-    object=relation
+    =relation
     as-of=(unit as-of)
     =predicate
-  ==
+    ==
 ::
 ::  $relation:
-+$  relation
-  $:
-    %relation
-    object=$%(qualified-table cte-alias query-row)
-  ==
++$  relation  $%(qualified-table cte-name query-row)
 ::
 +$  query-row     ::  parses, not used for now, may never be used
-  $:
-    %query-row
+  $:  %query-row
     alias=(unit @t)
     (list @t)
-  ==
+    ==
 ::
 ::  $select:
 +$  select
-  $:
-    %select
+  $:  %select
     top=(unit @ud)
     columns=(list selected-column)
-  ==
+    ==
 +$  selected-column
   $%
     qualified-column
     unqualified-column
-    qualified-table
+    cte-column
     selected-aggregate
     selected-value
     selected-all
-    selected-all-object
-  ==
+    selected-all-table
+    ==
 +$  unqualified-column
-  $:
-    %unqualified-column
+  $:  %unqualified-column
     name=@tas
     alias=(unit @t)
     ==
 +$  selected-all
-  $:
-    %all
-    %all
-  ==
-
-+$  selected-all-object  [%all-object qualified-table]
-
+  $:  %all  %all
+    ==
++$  selected-all-table  $:([%all-object =qualified-table])
 +$  selected-aggregate
-  $:
-    %selected-aggregate
+  $:  %selected-aggregate
     aggregate=aggregate
     alias=(unit @t)
-  ==
-+$  scalar
-  $:
-    %scalar
-    scalar=scalar-function
-    alias=@t
-  ==
+    ==
 +$  selected-value
-  $:
-    %selected-value
+  $:  %selected-value
     value=dime
     alias=(unit @t)
-  ==
+    ==
 +$  aggregate
-  $:
-  %aggregate
-  function=@t
-  source=aggregate-source
-  ==
-+$  aggregate-source     $%(qualified-column) :: selected-scalar)
-+$  grouping-column      ?(qualified-column @ud)
+  $:  %aggregate
+    function=@t
+    source=aggregate-source
+    ==
++$  aggregate-source     $%(qualified-column unqualified-column)
++$  grouping-column      ?(qualified-column unqualified-column @ud)
 +$  ordering-column
-  $:
-  %ordering-column
-  column=grouping-column
-  ascending=?
-  ==
+  $:  %ordering-column
+    column=grouping-column
+    ascending=?
+    ==
 +$  with
-  $:
-    %with
+  $:  %with
     (list cte)
-  ==
+    ==
 ::
 ::  $selection:
 +$  selection
-  $:
-  %selection
-  ctes=(list cte)
-  set-functions=(tree set-function)
-  ==
+  $:  %selection
+    ctes=(list cte)
+    set-functions=(tree set-function)
+    ==
 ::
 ::  $cte:
 +$  cte
-  $:
-    %cte
+  $:  %cte
     name=@tas
     =query
-  ==
+    ==
 +$  set-op
-  $?
-    %union
-    %except
-    %intersect
-    %divided-by
-    %divide-with-remainder
-    %into
-  ==
+    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder  %into
+    ==
 +$  set-cmd       $%(insert merge query)
 +$  set-function  ?(set-op set-cmd)
 ::
@@ -342,45 +262,41 @@
 ::
 ::  $delete:
 +$  delete
-  $:
-    %delete
+  $:  %delete
     ctes=(list cte)
     table=qualified-table
     as-of=(unit as-of)
     =predicate
-  ==
+    ==
 ::
 ::  $update:
 +$  update
-  $:
-    %update
+  $:  %update
     ctes=(list cte)
     table=qualified-table
     as-of=(unit as-of)
     $:  columns=(list qualified-column)
         values=(list value-or-default)
-        ==
+          ==
     =predicate
-  ==
+    ==
 ::
 ::
 +$  insert-values      $%([%data (list (list value-or-default))] [%query query])
 ::
 ::  $insert:
 +$  insert
-  $:
-    %insert
+  $:  %insert
     table=qualified-table
     as-of=(unit as-of)
     columns=(unit (list @tas))
     values=insert-values
-  ==
+    ==
 +$  value-or-default     ?(%default datum)
 ::
 ::  $merge: merge from source relation into target relation
 +$  merge
-  $:
-    %merge
+  $:  %merge
     target-table=relation
     new-table=(unit relation)
     source-table=relation
@@ -389,13 +305,12 @@
     unmatched-by-target=(list matching)
     unmatched-by-source=(list matching)
     as-of=(unit as-of)
-  ==
+    ==
 +$  matching
-  $:
-    %matching
+  $:  %matching
     =predicate
     matching-profile=matching-profile
-  ==
+    ==
 +$  matching-action  ?(%insert %update %delete)
 +$  matching-profile
   $%([%insert (list [@t datum])] [%update (list [@t datum])] %delete)
@@ -403,24 +318,22 @@
   $:  matched=(list matching)
     not-target=(list matching)
     not-source=(list matching)
-  ==
+    ==
 ::
 ::  $truncate-table:
 +$  truncate-table
-  $:
-    %truncate-table
+  $:  %truncate-table
     table=qualified-table
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  create ASTs
 ::
 +$  as-of-offset
-  $:
-    %as-of-offset
+  $:  %as-of-offset
     offset=@ud
     units=?(%seconds %minutes %hours %days %weeks %months %years)
-  ==
+    ==
 +$  as-of  ?([%da @da] [%dr @dr] as-of-offset)
 ::
 ::  $create-database: $:([%create-database name=@tas])
@@ -428,14 +341,13 @@
 ::
 ::  $create-index:
 +$  create-index
-  $:
-    %create-index
+  $:  %create-index
     name=@tas
     =qualified-table
     unique=?
     columns=(list ordered-column)
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $create-namespace
 +$  create-namespace
@@ -443,7 +355,7 @@
     database-name=@tas
     name=@tas
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $create-table
 +$  create-table
@@ -453,27 +365,25 @@
     pri-indx=(list ordered-column)
     foreign-keys=(list foreign-key)
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $create-trigger: TBD
 +$  create-trigger
-  $:
-    %create-trigger
+  $:  %create-trigger
     name=@tas
     =qualified-table
     enabled=?
-  ==
+    ==
 ::
 ::  $create-type: TBD
 +$  create-type          $:([%create-type name=@tas])
 ::
 ::  $create-view: persist a selection as a view
 +$  create-view
-  $:
-    %create-view
+  $:  %create-view
     view=qualified-table
     selection
-  ==
+    ==
 ::
 ::  drop ASTs
 ::
@@ -482,12 +392,11 @@
 ::
 ::  $drop-index: name=@tas object=qualified-table
 +$  drop-index
-  $:
-    %drop-index
+  $:  %drop-index
     name=@tas
     =qualified-table
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $drop-namespace: database-name=@tas name=@tas force=?
 +$  drop-namespace
@@ -499,40 +408,37 @@
     table=qualified-table
     force=?
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $drop-trigger: TBD
 +$  drop-trigger
-  $:
-    %drop-trigger
+  $:  %drop-trigger
     name=@tas
     =qualified-table
-  ==
+    ==
 ::
 ::  $drop-type: TBD
 +$  drop-type            $:([%drop-type name=@tas])
 ::
 ::  $drop-view: view=qualified-table force=?
 +$  drop-view
-  $:
-    %drop-view
+  $:  %drop-view
     view=qualified-table
     force=?
-  ==
+    ==
 ::
 ::  alter ASTs
 ::
 ::
 ::  $alter-index: change an index
 +$  alter-index
-  $:
-    %alter-index
+  $:  %alter-index
     name=qualified-table
     object=qualified-table
     columns=(list ordered-column)
     action=index-action
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $alter-namespace: move an object from one namespace to another
 +$  alter-namespace
@@ -543,12 +449,11 @@
     target-namespace=@tas
     target-name=@tas
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $alter-table: to do - this could be simpler
 +$  alter-table
-  $:
-    %alter-table
+  $:  %alter-table
     table=qualified-table
     alter-columns=(list column)
     add-columns=(list column)
@@ -556,24 +461,22 @@
     add-foreign-keys=(list foreign-key)
     drop-foreign-keys=(list @tas)
     as-of=(unit as-of)
-  ==
+    ==
 ::
 ::  $alter-trigger: TBD
 +$  alter-trigger
-  $:
-    %alter-trigger
+  $:  %alter-trigger
     name=@tas
     =qualified-table
     enabled=?
-  ==
+    ==
 ::
 ::  $alter-view: view=qualified-table selection
 +$  alter-view
-  $:
-    %alter-view
+  $:  %alter-view
     view=qualified-table
     =selection
-  ==
+    ==
 ::
 ::  permissions
 ::
@@ -583,25 +486,27 @@
 ::
 ::  $grantee: ?(%parent %siblings %moons %our @p)
 ::            $dime
-+$  grantee  
-  $?  [@ta %parent]
-      [@ta %siblings]
-      [@ta %moons]
-      [@ta %our]
-      [@ta @p]
-      ==
++$  grantee
+  $?
+    [@ta %parent]
+    [@ta %siblings]
+    [@ta %moons]
+    [@ta %our]
+    [@ta @p]
+    ==
 ::
 ::  $revoke-from: ?(%parent %siblings %moons %all)
 +$  revoke-from          ?(%parent %siblings %moons %all)
 ::
 ::  $grant-object: ?(%server %database %namespace %table %table-column)
-+$  grant-object  
-  $%  [%server %server]
-      [%database @tas]
-      [%namespace [@tas @tas]]
-      [%table qualified-table]
-      [%table-column path]
-      ==
++$  grant-object
+  $%
+    [%server %server]
+    [%database @tas]
+    [%namespace [@tas @tas]]
+    [%table qualified-table]
+    [%table-column path]
+    ==
 ::
 ::  $sec-time:  pair  ?([%da @da] [%dr @dr])
 ::                    (unit ?([%da @da] [%dr @dr]))
@@ -620,47 +525,463 @@
 ::           grant-objects=(list grant-object)
 ::           duration=(unit sec-time)
 +$  grant
-  $:
-    %grant
+  $:  %grant
     permission=grant-permission
     grantees=(list [dime (unit path)])
     grant-objects=(list grant-object)
     duration=(unit sec-time)
-  ==
+    ==
 ::
 ::  $revoke-permission: ?(%adminread %readonly %readwrite %all)
 +$  revoke-permission    ?(%adminread %readonly %readwrite %all)
 ::
 ::  $revoke-object: ?([%database @t] [%namespace [@t @t]] %all qualified-table)
 +$  revoke-object
-  $%  [%all %all]
-      [%server %server]
-      [%database @tas]
-      [%namespace [@tas @tas]]
-      [%table qualified-table]
-      [%table-column path]
-      ==
+  $%
+    [%all %all]
+    [%server %server]
+    [%database @tas]
+    [%namespace [@tas @tas]]
+    [%table qualified-table]
+    [%table-column path]
+    ==
 ::ela
-::  $revoke:  permission=revoke-permission from=revoke-from 
+::  $revoke:  permission=revoke-permission from=revoke-from
 ::            revoke-target=revoke-object
 +$  revoke
-  $:
-    %revoke
+  $:  %revoke
     permission=revoke-permission
     from=(list [dime (unit path)])
     revoke-target=(list revoke-object)
     duration=(unit sec-time)
-  ==
+    ==
 ::
 ::  $security-group
-+$  security-group 
++$  security-group
   $:  %security-group
-      grantees=(list [dime (unit path)])
-      ==
+    grantees=(list [dime (unit path)])
+    ==
 ::
 ::  $security-target
 +$  security-target
   $:  %security-target
-      grant-objects=(list grant-object)
+    grant-objects=(list grant-object)
+    ==
+::
+::  SCALARS
+::
++$  scalar
+  $:  %scalar
+    name=@tas
+    f=scalar-function
+    ==
+::
++$  scalar-function
+  $%
+    arithmetic
+    case
+    coalesce
+    if-then-else
+    :: datetime functions
+    add-time
+    day
+    getutcdate
+    hour
+    minute
+    month
+    second
+    subtract-time
+    year
+    :: math functions
+    abs
+    acos
+    asin
+    atan
+    atan2
+    ceiling
+    cos
+    degrees
+    e
+    floor
+    log
+    max
+    min
+    phi
+    pi
+    rand
+    round
+    sign
+    sin
+    sqrt
+    tan
+    tau
+    ::  string functions
+    concat
+    left
+    len
+    lower
+    ltrim
+    patindex
+    quotestring
+    replace
+    replicate
+    reverse
+    right
+    rtrim
+    string
+    string-concat
+    stuff
+    substring
+    trim
+    upper
+    ==
+::
++$  scalar-name
+  $:  %scalar-name
+      name=@tas
       ==
+::
++$  scalar-node  $%  scalar-function
+                     datum
+                     ==
+::
++$  arithmetic
+  $:  %arithmetic
+    operator=arithmetic-op
+    left=scalar-node
+    right=scalar-node
+    ==
+::
++$  arithmetic-op     ?(%lus %tar %hep %fas %cen %ket)
++$  arithmetic-token  ?(%pal %par arithmetic-op)
++$  number-systems    ?(%rd %sd %ud)
++$  time-element      ?(%da %dr)
+::
++$  if-then-else
+  $:  %if-then-else
+    if=predicate
+    then=scalar-node
+    else=scalar-node
+    ==
+::
++$  case-when-then
+  $:  %case-when-then
+    when=$%(predicate scalar-node)
+    then=scalar-node
+    ==
+::
++$  case
+  $:  %case
+    target=(unit scalar-node)
+    cases=(list case-when-then)
+    else=(unit scalar-node)
+    ==
+::
++$  coalesce
+  $+  coalesce
+  $:  %coalesce
+    data=(list scalar-node)
+    ==
+::
+::  datetime functions
+::
++$  getutcdate
+  $:  %getutcdate
+    ~
+  ==
+::
++$  year
+  $:  %year
+    date=datum
+  ==
+::
++$  month
+  $:  %month
+    date=datum
+  ==
+::
++$  day
+  $:  %day
+    time-expression=datum
+  ==
+::
++$  hour
+  $:  %hour
+    time-expression=datum
+  ==
+::
++$  minute
+  $:  %minute
+    time-expression=datum
+  ==
+::
++$  second
+  $:  %second
+    time-expression=datum
+  ==
++$  add-time
+  $:  %add-time
+    time-expression=datum
+    duration=datum
+  ==
++$  subtract-time
+  $:  %subtract-time
+    time-expression=datum
+    duration=datum
+  ==
+::
+::  mathematical functions
+::
++$  abs
+  $:  %abs
+    numeric-expression=datum
+  ==
+::
++$  acos
+  $:  %acos
+    numeric-expression=datum
+  ==
+::
++$  asin
+  $:  %asin
+    numeric-expression=datum
+  ==
+::
++$  atan
+  $:  %atan
+    numeric-expression=datum
+  ==
+::
++$  atan2
+  $:  %atan2
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  ceiling
+  $:  %ceiling
+    numeric-expression=datum
+  ==
+::
++$  cos
+  $:  %cos
+    numeric-expression=datum
+  ==
+::
++$  degrees
+  $:  %degrees
+    numeric-expression=datum
+  ==
+::
++$  e
+  $:  %e
+    ~
+  ==
+::
++$  floor
+  $:  %floor
+    numeric-expression=datum
+  ==
+::
++$  log
+  $:  %log
+    float-expression=datum
+    base=(unit datum)
+  ==
+::
++$  max
+  $:  %max
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  min
+  $:  %min
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  phi
+  $:  %phi
+    ~
+  ==
+::
++$  pi
+  $:  %pi
+    ~
+  ==
+::
++$  rand
+  $:  %rand
+    numeric-expression-1=datum
+    numeric-expression-2=datum
+  ==
+::
++$  round
+  $:  %round
+    numeric-expression=datum
+    length=datum
+    ==
+::
++$  sign
+  $:  %sign
+    numeric-expression=datum
+  ==
+::
++$  sin
+  $:  %sin
+    numeric-expression=datum
+  ==
+::
++$  sqrt
+  $:  %sqrt
+    float-expression=datum
+  ==
+::
++$  tan
+  $:  %tan
+    numeric-expression=datum
+  ==
+::
++$  tau
+  $:  %tau
+    ~
+  ==
+::
+::  string functions
+::
++$  concat
+  $+  concat
+  :: if we remove this bucpat the type checker loops infinitely
+  :: scalar-function -> concat -> datum -> scalar-function
+  $:  %concat
+    args=$@(~ (list datum))
+  ==
+::
++$  left
+  $:  %left
+    string-expression=datum
+    integer-expression=datum
+  ==
+::
++$  len
+  $:  %len
+    string-expression=datum
+  ==
+::
++$  lower
+  $:  %lower
+    string-expression=datum
+  ==
+::
+::  unit @t default whitespace
++$  ltrim
+  $:  %ltrim
+    string-expression=datum
+    pattern=(unit datum)
+  ==
+::
+::  Returns the starting position of the first occurrence of a pattern 
+::  in a specified expression, or zero if the pattern isn't found
++$  patindex
+  $:  %patindex
+    string-expression=datum
+    pattern=datum
+  ==
+::
+::  default[]
++$  quotestring
+  $:  %quotestring
+    string-expression=datum
+    quote=(unit [datum datum])
+  ==
+::
++$  replace
+  $:  %replace
+    string-expression=datum
+    pattern=datum
+    replacement=datum
+  ==
+::
++$  replicate
+  $:  %replicate
+    string-expression=datum
+    integer-expression=datum
+  ==
+::
++$  reverse
+  $:  %reverse
+    string-expression=datum
+  ==
+::
++$  right
+  $:  %right
+    string-expression=datum
+    integer-expression=datum
+  ==
+::
+::  unit @t default whitespace
++$  rtrim
+  $:  %rtrim
+    string-expression=datum
+    pattern=(unit datum)
+  ==
+::
+::@ud @sd @rd -> @t  (scow %ud 123)
++$  string
+  $:  %string
+    numeric-expression=datum
+  ==
+::
+::  (list @t @ud @st @rd) @t
++$  string-concat
+  $:  %string-concat
+    args=$@(~ (list datum))
+    delimiter=datum
+  ==
+::
++$  stuff
+  $:  %stuff
+    string-expression=datum
+    start=datum
+    length=datum
+    replace=datum
+  ==
+::
++$  substring
+  $:  %substring
+    string-expression=datum
+    start=datum
+    length=(unit datum)
+    ==
+::
++$  trim
+  $:  %trim
+    string-expression=datum
+    pattern=(unit datum)
+  ==
++$  upper
+  $:  %upper
+    string-expression=datum
+  ==
+::
+::  OUTPUT
+::
++$  cmd-result  [%results (list result)]
++$  result
+  $%
+    [%message msg=@t]
+    [%vector-count count=@ud]
+    [%server-time date=@da]
+    [%security-time date=@da]
+    [%schema-time date=@da]
+    [%data-time date=@da]
+    [%result-set (list vector)]
+    ==
+::
++$  vector-cell  [p=@tas q=dime]
++$  vector
+  $:  %vector
+    (lest vector-cell)
+    ==
 --

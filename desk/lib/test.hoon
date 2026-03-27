@@ -1,6 +1,6 @@
 ::  testing utilities meant to be directly used from files in %/tests
 ::
-/-  *obelisk
+/-  *ast
 |%
 ++  parse-results
   |=  [expected=cmd-result actual=cmd-result]
@@ -20,6 +20,7 @@
   $(results t.results, out-results [res out-results])
 ++  eval-results
   |=  [expected=cmd-result actual=cmd-result]
+  ^-  tang
   =/  expct-actual  (parse-results expected actual)
   %+    weld  %+  expect-eq
                 !>  -<.expct-actual
@@ -56,6 +57,7 @@
 ::
 ++  expect
   |=  actual=vase
+  ^-  tang
   (expect-eq !>(%.y) actual)
 ::  +expect-fail: kicks a trap, expecting crash. pretty-prints if succeeds
 ::
@@ -78,11 +80,11 @@
           =/  =tang  (flatten +.b)
           ?:  ?=(^ (find (trip msg) tang))
             ~
-          
+
             ~&  "expected:  {<(trip msg)>}"
             ~&  "find in tang:  {<(flatten +.b)>}"
 
-          ['expected error message - not found' ~]
+          (weld ['expected error message - not found' ~] (show-crash-messages +.b))
           ++  flatten
             |=  tang=(list tank)
             =|  res=tape
@@ -100,8 +102,50 @@
   =/  b  (mule a)
   ?-  -.b
     %&  ~
-    %|  ['expected success - failed' p.b]
+    %|  ['expected success - failed' (show-crash-messages p.b)]
   ==
+::  +show-crash-messages: prepends message summary lines from a crash trace
+::
+::  Scans for %leaf tanks whose tape is a combined location+message entry
+::  of the form: /path/to/file.hoon:<[r c].[r c]>"message text"
+::  For each found, emits a formatted summary line, then a blank line,
+::  then the original trace.
+::
+++  show-crash-messages
+  |=  =tang
+  ^-  ^tang
+  =/  msgs
+    %+  murn  tang
+              |=  t=tank
+              ^-  (unit tank)
+              ?.  ?=([%leaf *] t)  ~
+              ?~(p.t ~ `leaf+(strip-msg-quotes p.t))
+  ?~  msgs  tang
+  (weld msgs `(list tank)`[leaf+"" tang])
+::
+++  strip-msg-quotes
+  |=  tp=tape
+  ^-  tape
+  ?~  tp  tp
+  ?.  =('"' i.tp)  tp
+  =/  inner=tape  t.tp
+  ?~  inner  inner
+  =/  lag=@tD  i.inner
+  =/  rest=tape  t.inner
+  |-  ^-  tape
+  ?~  rest
+    ?:  =('"' lag)  ~
+    ~[lag]
+  [lag $(lag i.rest, rest t.rest)]
+::  +tape-flop: reverse a tape, returning tape (avoids wet-gate mull issues)
+::
+++  tape-flop
+  |=  tp=tape
+  ^-  tape
+  =|  acc=tape
+  |-  ^-  tape
+  ?~  tp  acc
+  $(tp t.tp, acc [i.tp acc])
 ::  $a-test-chain: a sequence of tests to be run
 ::
 ::  NB: arms shouldn't start with `test-` so that `-test % ~` runs

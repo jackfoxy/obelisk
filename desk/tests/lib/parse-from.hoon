@@ -18,314 +18,281 @@
 ::  TABLE SET
 ::
 ++  foo-table
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='foo'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='foo'
+      alias=~
+      ==
 ++  foo-table-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='ns1'
-          name='foo'
-          alias=~
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='ns1'
+      name='foo'
+      alias=~
           ==
 ++  foo-table-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='dbo'
-          name='foo'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='dbo'
+      name='foo'
+      alias=~
+      ==
 ++  foo-table-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='ns1'
-          name='foo'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='ns1'
+      name='foo'
+      alias=~
+      ==
 ++  foo-table-nec-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='dbo'
-          name='foo'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='dbo'
+      name='foo'
+      alias=~
+      ==
 ++  foo-table-nec-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='ns1'
-          name='foo'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='ns1'
+      name='foo'
+      alias=~
+      ==
 ++  foo-table-f1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-table-f1-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='ns1'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='ns1'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-table-f1-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-table-f1-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='ns1'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='ns1'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-table-f1-nec-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-table-f1-nec-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='ns1'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='ns1'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-table-f1-low
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'f1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'f1']
+      ==
 ++  bar-unaliased
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='bar'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='bar'
+      alias=~
+      ==
 ++  bar-unaliased-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='ns1'
-          name='bar'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='ns1'
+      name='bar'
+      alias=~
+      ==
 ++  bar-unaliased-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='dbo'
-          name='bar'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='dbo'
+      name='bar'
+      alias=~
+      ==
 ++  bar-unaliased-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='ns1'
-          name='bar'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='ns1'
+      name='bar'
+      alias=~
+      ==
 ++  bar-unaliased-nec-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='dbo'
-          name='bar'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='dbo'
+      name='bar'
+      alias=~
+      ==
 ++  bar-unaliased-nec-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='ns1'
-          name='bar'
-          alias=~
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='ns1'
+      name='bar'
+      alias=~
+      ==
 ++  foo-alias-y
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'y']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'y']
+      ==
 ++  bar-alias-x
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='bar'
-          alias=[~ 'x']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='bar'
+      alias=[~ 'x']
+      ==
 ++  foo-aliased
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-aliased-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='ns1'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='ns1'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-aliased-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-aliased-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='ns1'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='ns1'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-aliased-nec-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='dbo'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='dbo'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  foo-aliased-nec-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='ns1'
-          name='foo'
-          alias=[~ 'F1']
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='ns1'
+      name='foo'
+      alias=[~ 'F1']
+      ==
 ++  bar-aliased
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='dbo'
-          name='bar'
-          alias=[~ 'B1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='dbo'
+      name='bar'
+      alias=[~ 'B1']
+      ==
 ++  bar-aliased-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db1'
-          namespace='ns1'
-          name='bar'
-          alias=[~ 'B1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db1'
+      namespace='ns1'
+      name='bar'
+      alias=[~ 'B1']
+      ==
 ++  bar-aliased-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='dbo'
-          name='bar'
-          alias=[~ 'B1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='dbo'
+      name='bar'
+      alias=[~ 'B1']
+      ==
 ++  bar-aliased-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=~
-          database='db2'
-          namespace='ns1'
-          name='bar'
-          alias=[~ 'B1']
-          ==
+  :*  %qualified-table
+      ship=~
+      database='db2'
+      namespace='ns1'
+      name='bar'
+      alias=[~ 'B1']
+      ==
 ++  bar-aliased-nec-db2
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='dbo'
-          name='bar'
-          alias=[~ 'B1']
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='dbo'
+      name='bar'
+      alias=[~ 'B1']
+      ==
 ++  bar-aliased-nec-db2-ns1
-  :-  %relation
-      :*  %qualified-table
-          ship=[~ ~nec]
-          database='db2'
-          namespace='ns1'
-          name='bar'
-          alias=[~ 'B1']
-          ==
+  :*  %qualified-table
+      ship=[~ ~nec]
+      database='db2'
+      namespace='ns1'
+      name='bar'
+      alias=[~ 'B1']
+      ==
 ++  passthru-row-y
-  [%relation object=[%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]]
+  [%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]
 ++  passthru-row-x
-  [%relation object=[%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]]
+  [%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]
 ++  passthru-unaliased
-  [%relation object=[%query-row alias=~ ~['col1' 'col2' 'col3']]]
+  [%query-row alias=~ ~['col1' 'col2' 'col3']]
 ::
 ::  QUERY
 ::
 ++  simple-from-foo
   :*  %query
-      [~ [%from object=foo-table as-of=~ joins=~]]
+      [~ [%from relation=foo-table as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -335,7 +302,7 @@
       ==
 ++  simple-from-foo-ns1
   :*  %query
-      [~ [%from object=foo-table-ns1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -345,7 +312,7 @@
       ==
 ++  simple-from-foo-db2
   :*  %query
-      [~ [%from object=foo-table-db2 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -355,7 +322,7 @@
       ==
 ++  simple-from-foo-db2-ns1
   :*  %query
-      [~ [%from object=foo-table-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -365,7 +332,7 @@
       ==
 ++  simple-from-foo-nec-db2
   :*  %query
-      [~ [%from object=foo-table-nec-db2 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-nec-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -375,7 +342,7 @@
       ==
 ++  simple-from-foo-nec-db2-ns1
   :*  %query
-      [~ [%from object=foo-table-nec-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-nec-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -385,7 +352,7 @@
       ==
 ++  aliased-from-foo
   :*  %query
-      [~ [%from object=foo-table-f1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-f1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -395,7 +362,7 @@
       ==
 ++  aliased-from-foo-ns1
   :*  %query
-      [~ [%from object=foo-table-f1-ns1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-f1-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -405,7 +372,7 @@
       ==
 ++  aliased-from-foo-db2
   :*  %query
-      [~ [%from object=foo-table-f1-db2 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-f1-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -415,7 +382,7 @@
       ==
 ++  aliased-from-foo-db2-ns1
   :*  %query
-      [~ [%from object=foo-table-f1-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-f1-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -425,7 +392,7 @@
       ==
 ++  aliased-from-foo-nec-db2
   :*  %query
-      [~ [%from object=foo-table-f1-nec-db2 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-f1-nec-db2 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -435,7 +402,7 @@
       ==
 ++  aliased-from-foo-nec-db2-ns1
   :*  %query
-      [~ [%from object=foo-table-f1-nec-db2-ns1 as-of=~ joins=~]]
+      [~ [%from relation=foo-table-f1-nec-db2-ns1 as-of=~ joins=~]]
       scalars=~
       ~
       group-by=~
@@ -445,7 +412,7 @@
       ==
 ++  simple-from-foo-join-bar
   :*  %query
-      [~ [%from object=foo-table as-of=~ joins=join-bar]]
+      [~ [%from relation=foo-table as-of=~ joins=join-bar]]
       scalars=~
       ~
       group-by=~
@@ -465,7 +432,7 @@
       ==
 ++  simple-from-foo-join-bar-db2
   :*  %query
-      [~ [%from object=foo-table-db2 as-of=~ joins=join-bar-db2]]
+      [~ [%from relation=foo-table-db2 as-of=~ joins=join-bar-db2]]
       scalars=~
       ~
       group-by=~
@@ -475,7 +442,7 @@
       ==
 ++  simple-from-foo-join-bar-db2-ns1
   :*  %query
-      [~ [%from object=foo-table-db2-ns1 as-of=~ joins=join-bar-db2-ns1]]
+      [~ [%from relation=foo-table-db2-ns1 as-of=~ joins=join-bar-db2-ns1]]
       scalars=~
       ~
       group-by=~
@@ -485,7 +452,7 @@
       ==
 ++  simple-from-foo-join-bar-nec-db2
   :*  %query
-      [~ [%from object=foo-table-nec-db2 as-of=~ joins=join-bar-nec-db2]]
+      [~ [%from relation=foo-table-nec-db2 as-of=~ joins=join-bar-nec-db2]]
       scalars=~
       ~
       group-by=~
@@ -496,7 +463,7 @@
 ++  simple-from-foo-join-bar-nec-db2-ns1
   :*  %query
       :-  ~
-      [%from object=foo-table-nec-db2-ns1 as-of=~ joins=join-bar-nec-db2-ns1]
+      [%from relation=foo-table-nec-db2-ns1 as-of=~ joins=join-bar-nec-db2-ns1]
       scalars=~
       ~
       group-by=~
@@ -506,7 +473,7 @@
       ==
 ++  simple-from-foo-join-bar-aliased
   :*  %query
-      [~ [%from object=foo-table as-of=~ joins=join-bar-aliased]]
+      [~ [%from relation=foo-table as-of=~ joins=join-bar-aliased]]
       scalars=~
       ~
       group-by=~
@@ -516,7 +483,7 @@
       ==
 ++  simple-from-foo-join-bar-aliased-ns1
   :*  %query
-      [~ [%from object=foo-table-ns1 as-of=~ joins=join-bar-aliased-ns1]]
+      [~ [%from relation=foo-table-ns1 as-of=~ joins=join-bar-aliased-ns1]]
       scalars=~
       ~
       group-by=~
@@ -526,7 +493,7 @@
       ==
 ++  simple-from-foo-join-bar-aliased-db2
   :*  %query
-      [~ [%from object=foo-table-db2 as-of=~ joins=join-bar-aliased-db2]]
+      [~ [%from relation=foo-table-db2 as-of=~ joins=join-bar-aliased-db2]]
       scalars=~
       ~
       group-by=~
@@ -538,7 +505,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2-ns1
+              relation=foo-table-db2-ns1
               as-of=~
               joins=join-bar-aliased-db2-ns1
       scalars=~
@@ -552,7 +519,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2
+              relation=foo-table-nec-db2
               as-of=~
               joins=join-bar-aliased-nec-db2
       scalars=~
@@ -566,7 +533,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2-ns1
+              relation=foo-table-nec-db2-ns1
               as-of=~
               joins=join-bar-aliased-nec-db2-ns1
       scalars=~
@@ -580,139 +547,133 @@
 ::  JOINED OBJECT
 ::
 ++  join-bar
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          object=bar-unaliased
+          relation=bar-unaliased
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          object=bar-unaliased-ns1
+          relation=bar-unaliased-ns1
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          object=bar-unaliased-db2
+          relation=bar-unaliased-db2
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          object=bar-unaliased-db2-ns1
+          relation=bar-unaliased-db2-ns1
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-nec-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          object=bar-unaliased-nec-db2
+          relation=bar-unaliased-nec-db2
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-nec-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          object=bar-unaliased-nec-db2-ns1
+          relation=bar-unaliased-nec-db2-ns1
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          :-  %relation
-              :*  %qualified-table
-                  ship=~
-                  database='db1'
-                  namespace='dbo'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
+          :*  %qualified-table
+              ship=~
+              database='db1'
+              namespace='dbo'
+              name='bar'
+              alias=[~ 'b1']
+              ==
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          :-  %relation
-              :*  %qualified-table
-                  ship=~
-                  database='db1'
-                  namespace='ns1'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
+           :*  %qualified-table
+                ship=~
+                database='db1'
+                namespace='ns1'
+                name='bar'
+                alias=[~ 'b1']
+                ==
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          :-  %relation
-              :*  %qualified-table
-                  ship=~
-                  database='db2'
-                  namespace='dbo'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
+          :*  %qualified-table
+              ship=~
+              database='db2'
+              namespace='dbo'
+              name='bar'
+              alias=[~ 'b1']
+              ==
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          :-  %relation
-              :*  %qualified-table
-                  ship=~
-                  database='db2'
-                  namespace='ns1'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
+          :*  %qualified-table
+              ship=~
+              database='db2'
+              namespace='ns1'
+              name='bar'
+              alias=[~ 'b1']
+              ==
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-nec-db2
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          :-  %relation
-              :*  %qualified-table
-                  ship=[~ ~nec]
-                  database='db2'
-                  namespace='dbo'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
+          :*  %qualified-table
+              ship=[~ ~nec]
+              database='db2'
+              namespace='dbo'
+              name='bar'
+              alias=[~ 'b1']
+              ==
           as-of=~
           predicate=one-eq-1
           ==
       ==
 ++  join-bar-aliased-nec-db2-ns1
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           join=%join
-          :-  %relation
-              :*  %qualified-table
-                  ship=[~ ~nec]
-                  database='db2'
-                  namespace='ns1'
-                  name='bar'
-                  alias=[~ 'b1']
-                  ==
+          :*  %qualified-table
+              ship=[~ ~nec]
+              database='db2'
+              namespace='ns1'
+              name='bar'
+              alias=[~ 'b1']
+              ==
           as-of=~
           predicate=one-eq-1
           ==
@@ -722,7 +683,7 @@
 ::
 ++  join-bar-as-of
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased
           [~ time]  ::as-of
@@ -731,7 +692,7 @@
       ==
 ++  join-bar-as-of-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-ns1
           [~ time]  ::as-of
@@ -740,7 +701,7 @@
       ==
 ++  join-bar-as-of-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-db2
           [~ time]  ::as-of
@@ -749,7 +710,7 @@
       ==
 ++  join-bar-as-of-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-db2-ns1
           [~ time]  ::as-of
@@ -758,7 +719,7 @@
       ==
 ++  join-bar-as-of-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-nec-db2
           [~ time]  ::as-of
@@ -767,7 +728,7 @@
       ==
 ++  join-bar-as-of-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased-nec-db2-ns1
           [~ time]  ::as-of
@@ -776,7 +737,7 @@
       ==
 ++  natural-join-bar
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-unaliased
           [~ time]  ::as-of
@@ -785,7 +746,7 @@
       ==
 ++  join-bar-aliased-as-of
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased 
           [~ time]  ::as-of
@@ -794,7 +755,7 @@
       ==
 ++  join-bar-aliased-as-of-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-ns1
           [~ time]  ::as-of
@@ -803,7 +764,7 @@
       ==
 ++  join-bar-aliased-as-of-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2
           [~ time]  ::as-of
@@ -812,7 +773,7 @@
       ==
 ++  join-bar-aliased-as-of-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2-ns1
           [~ time]  ::as-of
@@ -821,7 +782,7 @@
       ==
 ++  join-bar-aliased-as-of-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2
           [~ time]  ::as-of
@@ -830,7 +791,7 @@
       ==
 ++  join-bar-aliased-as-of-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2-ns1
           [~ time]  ::as-of
@@ -840,7 +801,7 @@
 
 ++  natural-join-bar-aliased
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased
           [~ time]  ::as-of
@@ -849,271 +810,259 @@
       ==
 ++  join-bar-baz
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db1'  ::database
-                  'dbo'  ::namespace
-                  'baz'  ::name
-                  ~      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db1'  ::database
+              'dbo'  ::namespace
+              'baz'  ::name
+              ~      ::alias
+              ==
           [~ time]  ::as-of
           one-eq-1
           ==
       ==
 ++  join-bar-baz-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-ns1
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db1'  ::database
-                  'ns1'  ::namespace
-                  'baz'  ::name
-                  ~      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db1'  ::database
+              'ns1'  ::namespace
+              'baz'  ::name
+              ~      ::alias
+              ==
           [~ time]  ::as-of
           one-eq-1
           ==
       ==
 ++  join-bar-baz-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-db2
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db2'  ::database
-                  'dbo'  ::namespace
-                  'baz'  ::name
-                  ~      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db2'  ::database
+              'dbo'  ::namespace
+              'baz'  ::name
+              ~      ::alias
+              ==
           [~ time]  ::as-of
           one-eq-1
           ==
       ==
 ++  join-bar-baz-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-db2-ns1
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db2'  ::database
-                  'ns1'  ::namespace
-                  'baz'  ::name
-                  ~      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db2'  ::database
+              'ns1'  ::namespace
+              'baz'  ::name
+              ~      ::alias
+              ==
           [~ time]  ::as-of
           one-eq-1
           ==
       ==
 ++  join-bar-baz-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-nec-db2
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
-          :-  %relation
-              :*  %qualified-table
-                  [~ ~nec]  ::ship
-                  'db2'     ::database
-                  'dbo'     ::namespace
-                  'baz'     ::name
-                  ~         ::alias
-                  ==
+          :*  %qualified-table
+              [~ ~nec]  ::ship
+              'db2'     ::database
+              'dbo'     ::namespace
+              'baz'     ::name
+              ~         ::alias
+              ==
           [~ time]  ::as-of
           one-eq-1
           ==
       ==
 ++  join-bar-baz-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %left-join
           bar-unaliased-nec-db2-ns1
           [~ time]  ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %join
-          :-  %relation
-              :*  %qualified-table
-                  [~ ~nec]  ::ship
-                  'db2'     ::database
-                  'ns1'     ::namespace
-                  'baz'     ::name
-                  ~         ::alias
-                  ==
+          :*  %qualified-table
+              [~ ~nec]  ::ship
+              'db2'     ::database
+              'ns1'     ::namespace
+              'baz'     ::name
+              ~         ::alias
+              ==
           [~ time]  ::as-of
           one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db1'  ::database
-                  'dbo'  ::namespace
-                  'baz'  ::name
-                  [~ 'b2']      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db1'  ::database
+              'dbo'  ::namespace
+              'baz'  ::name
+              [~ 'b2']      ::alias
+              ==
           [~ time]         ::as-of
           one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-ns1
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db1'  ::database
-                  'ns1'  ::namespace
-                  'baz'  ::name
-                  [~ 'b2']      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db1'  ::database
+              'ns1'  ::namespace
+              'baz'  ::name
+              [~ 'b2']      ::alias
+              ==
           [~ time]         ::as-of
           one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db2'  ::database
-                  'dbo'  ::namespace
-                  'baz'  ::name
-                  [~ 'b2']      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db2'  ::database
+              'dbo'  ::namespace
+              'baz'  ::name
+              [~ 'b2']      ::alias
+              ==
           [~ time]         ::as-of
           one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-db2-ns1
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
-          :-  %relation
-              :*  %qualified-table
-                  ~      ::ship
-                  'db2'  ::database
-                  'ns1'  ::namespace
-                  'baz'  ::name
-                  [~ 'b2']      ::alias
-                  ==
+          :*  %qualified-table
+              ~      ::ship
+              'db2'  ::database
+              'ns1'  ::namespace
+              'baz'  ::name
+              [~ 'b2']      ::alias
+              ==
           [~ time]         ::as-of
           one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
-          :-  %relation
-              :*  %qualified-table
-                  [~ ~nec]  ::ship
-                  'db2'     ::database
-                  'dbo'     ::namespace
-                  'baz'     ::name
-                  [~ 'b2']  ::alias
-                  ==
+          :*  %qualified-table
+              [~ ~nec]  ::ship
+              'db2'     ::database
+              'dbo'     ::namespace
+              'baz'     ::name
+              [~ 'b2']  ::alias
+              ==
           [~ time]         ::as-of
           one-eq-1
           ==
       ==
 ++  aliased-join-bar-baz-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %join
           bar-aliased-nec-db2-ns1
           [~ time]         ::as-of
           one-eq-1
           ==
-      :*  %joined-object
+      :*  %joined-relation
           %left-join
-          :-  %relation
-              :*  %qualified-table
-                  [~ ~nec]  ::ship
-                  'db2'     ::database
-                  'ns1'     ::namespace
-                  'baz'     ::name
-                  [~ 'b2']  ::alias
-                  ==
+          :*  %qualified-table
+              [~ ~nec]  ::ship
+              'db2'     ::database
+              'ns1'     ::namespace
+              'baz'     ::name
+              [~ 'b2']  ::alias
+              ==
           [~ time]         ::as-of
           one-eq-1
           ==
       ==
 ++  cross-join-bar
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-unaliased
           [~ time]  ::as-of
@@ -1122,7 +1071,7 @@
       ==
 ++  cross-join-bar-aliased
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased
           [~ time]  ::as-of
@@ -1131,7 +1080,7 @@
       ==
 ++  cross-join-bar-aliased-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-ns1
           [~ time]  ::as-of
@@ -1140,7 +1089,7 @@
       ==
 ++  cross-join-bar-aliased-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-db2
           [~ time]  ::as-of
@@ -1149,7 +1098,7 @@
       ==
 ++  cross-join-bar-aliased-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-db2-ns1
           [~ time]  ::as-of
@@ -1158,7 +1107,7 @@
       ==
 ++  cross-join-bar-aliased-nec-db2
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-nec-db2
           [~ time]  ::as-of
@@ -1167,7 +1116,7 @@
       ==
 ++  cross-join-bar-aliased-nec-db2-ns1
   |=  time=as-of
-  :~  :*  %joined-object
+  :~  :*  %joined-relation
           %cross-join
           bar-aliased-nec-db2-ns1
           [~ time]  ::as-of
@@ -1180,7 +1129,7 @@
 ++  simple-from
   |=  time=as-of
   :*  %query 
-      [~ [%from object=foo-table as-of=[~ time] joins=~]]
+      [~ [%from relation=foo-table as-of=[~ time] joins=~]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1191,7 +1140,7 @@
 ++  simple-from-aliased
   |=  time=as-of
   :*  %query
-      [~ [%from object=foo-aliased as-of=[~ time] joins=~]]
+      [~ [%from relation=foo-aliased as-of=[~ time] joins=~]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1202,7 +1151,7 @@
 ++  simple-from-join-bar
   |=  time=as-of
   :*  %query
-      [~ [%from object=foo-table as-of=[~ time] joins=(join-bar-as-of time)]]
+      [~ [%from relation=foo-table as-of=[~ time] joins=(join-bar-as-of time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1215,7 +1164,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-ns1
+              relation=foo-table-ns1
               as-of=[~ time]
               joins=(join-bar-as-of-ns1 time)
       ~      ::scalars
@@ -1230,7 +1179,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2
+              relation=foo-table-db2
               as-of=[~ time]
               joins=(join-bar-as-of-db2 time)
       ~      ::scalars
@@ -1245,7 +1194,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2-ns1
+              relation=foo-table-db2-ns1
               as-of=[~ time]
               joins=(join-bar-as-of-db2-ns1 time)
       ~      ::scalars
@@ -1260,7 +1209,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2
+              relation=foo-table-nec-db2
               as-of=[~ time]
               joins=(join-bar-as-of-nec-db2 time)
       ~      ::scalars
@@ -1275,7 +1224,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2-ns1
+              relation=foo-table-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-as-of-nec-db2-ns1 time)
       ~      ::scalars
@@ -1290,7 +1239,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table
+              relation=foo-table
               as-of=[~ time]
               joins=(join-bar-aliased-as-of time)
       ~      ::scalars
@@ -1305,7 +1254,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-ns1
+              relation=foo-table-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-ns1 time)
       ~      ::scalars
@@ -1320,7 +1269,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2
+              relation=foo-table-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2 time)
       ~      ::scalars
@@ -1335,7 +1284,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2-ns1
+              relation=foo-table-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2-ns1 time)
       ~      ::scalars
@@ -1350,7 +1299,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2
+              relation=foo-table-nec-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2 time)
       ~      ::scalars
@@ -1365,7 +1314,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2-ns1
+              relation=foo-table-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2-ns1 time)
       ~      ::scalars
@@ -1380,7 +1329,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased
+              relation=foo-aliased
               as-of=[~ time]
               joins=(join-bar-aliased-as-of time)
       ~      ::scalars
@@ -1395,7 +1344,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-ns1
+              relation=foo-aliased-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-ns1 time)
       ~      ::scalars
@@ -1410,7 +1359,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-db2
+              relation=foo-aliased-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2 time)
       ~      ::scalars
@@ -1425,7 +1374,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-db2-ns1
+              relation=foo-aliased-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-db2-ns1 time)
       ~      ::scalars
@@ -1440,7 +1389,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-nec-db2
+              relation=foo-aliased-nec-db2
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2 time)
       ~      ::scalars
@@ -1455,7 +1404,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-nec-db2-ns1
+              relation=foo-aliased-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-aliased-as-of-nec-db2-ns1 time)
       ~      ::scalars
@@ -1468,7 +1417,7 @@
 ++  simple-from-join-bar-baz
   |=  time=as-of
   :*  %query
-      [~ [%from object=foo-table as-of=[~ time] joins=(join-bar-baz time)]]
+      [~ [%from relation=foo-table as-of=[~ time] joins=(join-bar-baz time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1481,7 +1430,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-ns1
+              relation=foo-table-ns1
               as-of=[~ time]
               joins=(join-bar-baz-ns1 time)
       ~      ::scalars
@@ -1496,7 +1445,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2
+              relation=foo-table-db2
               as-of=[~ time]
               joins=(join-bar-baz-db2 time)
       ~      ::scalars
@@ -1511,7 +1460,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-db2-ns1
+              relation=foo-table-db2-ns1
               as-of=[~ time]
               joins=(join-bar-baz-db2-ns1 time)
       ~      ::scalars
@@ -1526,7 +1475,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2
+              relation=foo-table-nec-db2
               as-of=[~ time]
               joins=(join-bar-baz-nec-db2 time)
       ~      ::scalars
@@ -1541,7 +1490,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table-nec-db2-ns1
+              relation=foo-table-nec-db2-ns1
               as-of=[~ time]
               joins=(join-bar-baz-nec-db2-ns1 time)
       ~      ::scalars
@@ -1557,7 +1506,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased
+              relation=foo-aliased
               as-of=[~ time]
               joins=(aliased-join-bar-baz time)
       ~      ::scalars
@@ -1572,7 +1521,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-ns1
+              relation=foo-aliased-ns1
               as-of=[~ time]
               joins=(aliased-join-bar-baz-ns1 time)
       ~      ::scalars
@@ -1587,7 +1536,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-db2
+              relation=foo-aliased-db2
               as-of=[~ time]
               joins=(aliased-join-bar-baz-db2 time)
       ~      ::scalars
@@ -1602,7 +1551,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-db2-ns1
+              relation=foo-aliased-db2-ns1
               as-of=[~ time]
               joins=(aliased-join-bar-baz-db2-ns1 time)
       ~      ::scalars
@@ -1617,7 +1566,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-nec-db2
+              relation=foo-aliased-nec-db2
               as-of=[~ time]
               joins=(aliased-join-bar-baz-nec-db2 time)
       ~      ::scalars
@@ -1632,7 +1581,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased-nec-db2-ns1
+              relation=foo-aliased-nec-db2-ns1
               as-of=[~ time]
               joins=(aliased-join-bar-baz-nec-db2-ns1 time)
       ~      ::scalars
@@ -1645,7 +1594,7 @@
 ++  simple-from-cross-join-bar
   |=  time=as-of
   :*  %query
-      [~ [%from object=foo-table as-of=[~ time] joins=(cross-join-bar time)]]
+      [~ [%from relation=foo-table as-of=[~ time] joins=(cross-join-bar time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1746,7 +1695,7 @@
 ++  natural-from-join-bar
   |=  time=as-of
   :*  %query
-      [~ [%from object=foo-table as-of=[~ time] joins=(natural-join-bar time)]]
+      [~ [%from relation=foo-table as-of=[~ time] joins=(natural-join-bar time)]]
       ~      ::scalars
       ~      ::predicate
       ~      ::group-by
@@ -1759,7 +1708,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-table
+              relation=foo-table
               as-of=[~ time]
               joins=(natural-join-bar-aliased time)
       ~      ::scalars
@@ -1774,7 +1723,7 @@
   :*  %query
       :-  ~
           :^  %from
-              object=foo-aliased
+              relation=foo-aliased
               as-of=[~ time]
               joins=(natural-join-bar-aliased time)
       ~      ::scalars
@@ -1793,46 +1742,41 @@
               :-
                 ~
                 :^  %from
-                    [%relation [%qualified-table ~ %db1 %dbo %foo [~ 'F1']]]
+                    [%qualified-table ~ %db1 %dbo %foo [~ 'F1']]
                     [~ [%dr ~h5.m30.s12]]
                     :~
-                      :*  %joined-object
+                      :*  %joined-relation
                           %join
-                          :-  %relation
-                              [%qualified-table ~ %db1 %dbo %bar [~ 'B2']]
+                          [%qualified-table ~ %db1 %dbo %bar [~ 'B2']]
                               
                           as-of=[~ [%da ~2000.1.1]]
                           predicate=~
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %left-join
-                          :-  %relation
-                              [%qualified-table ~ %db1 %dbo %baz [~ 'B3']]
+                          [%qualified-table ~ %db1 %dbo %baz [~ 'B3']]
                           as-of=[~ [%da ~2000.1.1]]
                           :+  %eq
                               [[value-type=%ud value=1] ~ ~]
                               [[value-type=%ud value=1] ~ ~]
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %join
-                          :-  %relation
-                              [%qualified-table ~ %db1 %dbo %bar [~ 'B4']]
+                          [%qualified-table ~ %db1 %dbo %bar [~ 'B4']]
                           as-of=~
                           predicate=~
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %left-join
-                          :-  %relation
-                              [%qualified-table ~ %db1 %dbo %bar ~]
+                          [%qualified-table ~ %db1 %dbo %bar ~]
                           as-of=~
                           :+  %eq
                               [[value-type=%ud value=1] ~ ~]
                               [[value-type=%ud value=1] ~ ~]
                           ==
-                      :*  %joined-object
+                      :*  %joined-relation
                           %join
-                          :-  %relation
-                              [%qualified-table ~ %db1 %dbo %foo ~]
+                          [%qualified-table ~ %db1 %dbo %foo ~]
                           [~ [%as-of-offset offset=2 units=%minutes]]
                           :+  %eq
                               [[value-type=%ud value=1] ~ ~]
@@ -2125,7 +2069,7 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-table-f1-low
+                                    relation=foo-table-f1-low
                                     as-of=~
                                     joins=join-bar-aliased
                             scalars=~
@@ -2149,24 +2093,23 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=object=foo-table
+                                    relation=foo-table
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
-                                            object=bar-unaliased
+                                            relation=bar-unaliased
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
-                                        :*  %joined-object
+                                        :*  %joined-relation
                                             join=%left-join
-                                            :-  %relation
-                                                :*  %qualified-table
-                                                    ship=~
-                                                    database='db1'
-                                                    namespace='dbo'
-                                                    name='baz'
-                                                    alias=~
-                                                    ==
+                                            :*  %qualified-table
+                                                ship=~
+                                                database='db1'
+                                                namespace='dbo'
+                                                name='baz'
+                                                alias=~
+                                                ==
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
@@ -2192,31 +2135,29 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-table-f1-low
+                                    relation=foo-table-f1-low
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
-                                            :-  %relation
-                                                :*  %qualified-table
-                                                          ship=~
-                                                          database='db1'
-                                                          namespace='dbo'
-                                                          name='bar'
-                                                          alias=[~ 'B1']
-                                                          ==
+                                            :*  %qualified-table
+                                                ship=~
+                                                database='db1'
+                                                namespace='dbo'
+                                                name='bar'
+                                                alias=[~ 'B1']
+                                                ==
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
-                                        :*  %joined-object
+                                        :*  %joined-relation
                                             join=%left-join
-                                            :-  %relation
-                                                :*  %qualified-table
-                                                          ship=~
-                                                          database='db1'
-                                                          namespace='dbo'
-                                                          name='baz'
-                                                          alias=[~ 'b2']
-                                                          ==
+                                            :*  %qualified-table
+                                                ship=~
+                                                database='db1'
+                                                namespace='dbo'
+                                                name='baz'
+                                                alias=[~ 'b2']
+                                                ==
                                             as-of=~
                                             predicate=one-eq-1
                                             ==
@@ -2312,11 +2253,11 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-alias-y
+                                    relation=foo-alias-y
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%cross-join
-                                            object=bar-alias-x
+                                            relation=bar-alias-x
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2342,11 +2283,11 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-alias-y
+                                    relation=foo-alias-y
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%cross-join
-                                            object=bar-alias-x
+                                            relation=bar-alias-x
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2372,11 +2313,11 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-table
+                                    relation=foo-table
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%cross-join
-                                            object=bar-unaliased
+                                            relation=bar-unaliased
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2403,11 +2344,11 @@
 ::                    :+  :*  %query
 ::                            :-  ~
 ::                                :^  %from
-::                                    object=passthru-row-y
+::                                    relation=passthru-row-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
-::                                            object=bar-alias-x
+::                                            relation=bar-alias-x
 ::                                            as-of=~
 ::                                            predicate=~
 ::                                            ==
@@ -2433,11 +2374,11 @@
 ::                    :+  :*  %query
 ::                            :-  ~
 ::                                :^  %from
-::                                    object=passthru-row-y
+::                                    relation=passthru-row-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
-::                                            object=bar-alias-x
+::                                            relation=bar-alias-x
 ::                                            as-of=~
 ::                                            predicate=~
 ::                                            ==
@@ -2463,11 +2404,11 @@
 ::                    :+  :*  %query
 ::                            :-  ~
 ::                                :^  %from
-::                                    object=foo-alias-y
+::                                    relation=foo-alias-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
-::                                            object=passthru-row-x as-of=~
+::                                            relation=passthru-row-x as-of=~
 ::                                            predicate=~
 ::                                            ==
 ::                                        ==
@@ -2492,11 +2433,11 @@
 ::                    :+  :*  %query
 ::                            :-  ~
 ::                                :^  %from
-::                                    object=foo-alias-y
+::                                    relation=foo-alias-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
-::                                            object=passthru-row-x
+::                                            relation=passthru-row-x
 ::                                            as-of=~
 ::                                            predicate=~
 ::                                            ==
@@ -2522,11 +2463,11 @@
 ::                    :+  :*  %query
 ::                            :-  ~
 ::                                :^  %from
-::                                    object=passthru-unaliased
+::                                    relation=passthru-unaliased
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
-::                                            object=passthru-unaliased
+::                                            relation=passthru-unaliased
 ::                                            as-of=~
 ::                                            predicate=~
 ::                                            ==
@@ -2552,11 +2493,11 @@
 ::                    :+  :*  %query
 ::                            :-  ~
 ::                                :^  %from
-::                                    object=foo-alias-y
+::                                    relation=foo-alias-y
 ::                                    as-of=~
-::                                    :~  :*  %joined-object
+::                                    :~  :*  %joined-relation
 ::                                            join=%cross-join
-::                                            object=passthru-unaliased
+::                                            relation=passthru-unaliased
 ::                                            as-of=~
 ::                                            predicate=~
 ::                                            ==
@@ -2583,11 +2524,11 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-table
+                                    relation=foo-table
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
-                                            object=bar-unaliased
+                                            relation=bar-unaliased
                                             as-of=~
                                             predicate=~
                                             ==
@@ -2612,11 +2553,11 @@
                     :+  :*  %query
                             :-  ~
                                 :^  %from
-                                    object=foo-alias-y
+                                    relation=foo-alias-y
                                     as-of=~
-                                    :~  :*  %joined-object
+                                    :~  :*  %joined-relation
                                             join=%join
-                                            object=bar-alias-x
+                                            relation=bar-alias-x
                                             as-of=~
                                             predicate=~
                                             ==

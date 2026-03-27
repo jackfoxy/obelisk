@@ -1,4 +1,4 @@
-/-  *obelisk
+/-  *ast
 |% 
 ::
 ::  +print:  (list cmd-result) -> ?
@@ -80,7 +80,7 @@
   =/  heading=tape  "    "
   |-
   ?.  =(~ cells)
-        $(cells +.cells, heading (weld (flop (trip -<.cells)) (weld "  " heading)))
+    $(cells +.cells, heading (weld (flop (trip -<.cells)) (weld "  " heading)))
   =/  head  (flop heading)
   ~&  "{<(crip head)>}"  %.y
 --

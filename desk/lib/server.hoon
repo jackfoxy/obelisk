@@ -2,8 +2,8 @@
 /+  *sys-views, *ddl, *crud, parse
 |_  [state=server =bowl:gall]
 ::
-::  +license:  MIT+n license
 ++  license
+  ::  MIT+n license
   ^-  @  %-  crip
   "Original Copyright 2024 Jack Fox".
   " ".
@@ -35,16 +35,15 @@
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
-::  +parse-urql:  [@tas tape] -> (list command:ast)
 ++  parse-urql
   |=  [db=@tas script=tape]
   ^-  (list command:ast)
   (parse:parse(default-database db) script)
 ::
-::  +process-cmds:  [(list command:ast)] -> [(list cmd-result) server]
 ++  process-cmds
   |=  cmds=(list command:ast)
-  ^-  [(list cmd-result) server]
+  ~+
+  ^-  [(list cmd-result:ast) server]
   ::
   ::  to do:
   ::  temporary security prevents all access by foreign ships
@@ -58,7 +57,7 @@
   ::  allowed.
   =/  next-schemas  *(map @tas @da)
   =/  next-data     *(map @tas @da)
-  =/  results       *(list cmd-result)
+  =/  results       *(list cmd-result:ast)
   =/  query-has-run=?  %.n
   |-
   ?~  cmds  :-  (flop results)
@@ -86,13 +85,13 @@
       :: create database is exempt from query-has-run
       ?.  =(our.bowl src.bowl)
             ~|("database must be created by local agent" !!)
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
-            (new-database -.cmds next-schemas next-data)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (new-database i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results  [-.r results]
       ==
     %create-index
@@ -106,12 +105,12 @@
             ~|("CREATE NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
         ~|("CREATE NAMESPACE: state change after query in script" !!)
-      =/  r=[cmd-result (map @tas @da) server]
-            (create-ns(state state, bowl bowl) -.cmds next-schemas next-data)
+      =/  r=[cmd-result:ast (map @tas @da) server]
+            (create-ns(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         state         +>.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %create-table
@@ -119,13 +118,13 @@
             ~|("CREATE TABLE: table must be created by local agent" !!)
       ?:  query-has-run
         ~|("CREATE TABLE: state change after query in script" !!)
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
-            (create-tbl(state state, bowl bowl) -.cmds next-schemas next-data)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (create-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %create-view
@@ -138,15 +137,15 @@
       ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
       ::=/  ctes=(map @tas [@ud (list indexed-row)])
       ::      (named-queries ->-.cmds)
-      =/  r=[(map @tas @da) server (list result)]
-            %^  do-delete(state state, bowl bowl)  -.cmds
+      =/  r=[(map @tas @da) server (list result:ast)]
+            %^  do-delete(state state, bowl bowl)  i.cmds
                                                    next-data
                                                    next-schemas
       %=  $
         query-has-run   %.n
         next-data       -.r
         state           +<.r
-        cmds            +.cmds
+        cmds            t.cmds
         results         [[%results +>.r] results]
       ==
     %drop-database
@@ -154,10 +153,10 @@
             ~|("DROP DATABASE: database must be dropped by local agent" !!)
       ?:  query-has-run
             ~|("DROP DATABASE: state change after query in script" !!)
-      =/  cmd=drop-database:ast  -.cmds
+      =/  cmd=drop-database:ast  i.cmds
       %=  $
         state         (drop-db cmd)
-        cmds          +.cmds
+        cmds          t.cmds
         results  :-
                    :-  %results
                        :~  [%message (crip "DROP DATABASE {<name.cmd>}")]
@@ -181,13 +180,13 @@
       ?.  =(our.bowl src.bowl)
             ~|("DROP TABLE: table must be dropped by local agent" !!)
       ?:  query-has-run  ~|("DROP TABLE: state change after query in script" !!)
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
-            (drop-tbl(state state, bowl bowl) -.cmds next-schemas next-data)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (drop-tbl(state state, bowl bowl) i.cmds next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %drop-view
@@ -204,8 +203,8 @@
             ~|("REVOKE: revoke permissions must be by local agent" !!)
       ~|("%revoke not implemented" !!)
     %selection
-      =/  r=[? [(map @tas @da) server (list result)]]
-            %:  do-selection(state state, bowl bowl)  -.cmds
+      =/  r=[? [(map @tas @da) server (list result:ast)]]
+            %:  do-selection(state state, bowl bowl)  i.cmds
                                                       query-has-run
                                                       next-data
                                                       next-schemas
@@ -214,46 +213,45 @@
         query-has-run   ?:  query-has-run  %.y  -.r
         next-data       +<.r
         state           +>-.r
-        cmds            +.cmds
+        cmds            t.cmds
         results         [[%results +>+.r] results]
       ==
     %truncate-table
       ?:  query-has-run
         ~|("TRUNCATE TABLE: state change after query in script" !!)
-      =/  cmd=truncate-table:ast  -.cmds
-      =/  r=[cmd-result (map @tas @da) (map @tas @da) server]
+      =/  cmd=truncate-table:ast  i.cmds
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
             (truncate-tbl(state state, bowl bowl) cmd next-schemas next-data)
       %=  $
         next-schemas  +<.r
         next-data     +>-.r
         state         +>+.r
-        cmds          +.cmds
+        cmds          t.cmds
         results       [-.r results]
       ==
     %update
       ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
       ::=/  ctes=(map @tas [@ud (list indexed-row)])
       ::      (named-queries ->-.cmds)
-      =/  r=[(map @tas @da) server (list result)]
-            %^  do-update(state state, bowl bowl)  -.cmds
+      =/  r=[(map @tas @da) server (list result:ast)]
+            %^  do-update(state state, bowl bowl)  i.cmds
                                                    next-data
                                                    next-schemas
       %=  $
         query-has-run   %.n
         next-data       -.r
         state           +<.r
-        cmds            +.cmds
+        cmds            t.cmds
         results         [[%results +>.r] results]
       ==
   ==
 ::
-::  +new-database:  [create-database:ast] -> [cmd-result server]
 ++  new-database
   |=  $:  c=create-database:ast
           next-schemas=(map @tas @da)
           next-data=(map @tas @da)
           ==
-  ^-  [cmd-result (map @tas @da) (map @tas @da) server]
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
   ?:  =(name.c %sys)            ~|("database name cannot be 'sys'" !!)
   ?:  (~(has by state) name.c)  ~|("database {<name.c>} already exists" !!)
   =/  sys-time  (set-tmsp as-of.c now.bowl)
@@ -278,7 +276,7 @@
                           %-  apply-ordering
                               (sys-data-log-view +<.c sap.bowl sys-time)
                       ==
-  =/  vws=views  (gas:view-key *((mop data-obj-key view) ns-obj-comp) db-views)
+  =/  vws=views  (gas:view-key *((mop ns-rel-key view) ns-rel-comp) db-views)
   ::
   =/  sys-db  ?:  (~(has by state) %sys)  (~(got by state) %sys)     
               %:  mk-db        ::  first time add sys database
@@ -303,51 +301,43 @@
           (~(put by next-data) name.c sys-time)
           (~(put by state) name.c (mk-db name.c ns sys-time db-views))
 ::
-::  +mk-db:  [@tas namespaces @da (list [p=data-obj-key q=view])] -> database
 ++  mk-db
   |=  $:  name=@tas
           =namespaces
           sys-time=@da
-          db-views=(list [p=data-obj-key q=view])
+          db-views=(list [p=ns-rel-key q=view])
           ==
   ^-  database
-  =/  vws=views  (gas:view-key *((mop data-obj-key view) ns-obj-comp) db-views)
+  =/  vws=views  (gas:view-key *((mop ns-rel-key view) ns-rel-comp) db-views)
   =/  vw-cache
         %+  gas:view-cache-key
-              *((mop data-obj-key cache) ns-obj-comp)
+              *((mop ns-rel-key cache) ns-rel-comp)
               %+  turn  db-views
-                        |=([p=data-obj-key q=view] [p (cache %cache time.p ~)])
+                        |=([p=ns-rel-key q=view] [p [%cache time.p ~]])
   ::
-  %:  database  %database
-                name
-                sap.bowl
-                sys-time
-                :+  :-  sys-time
-                        %:  schema  %schema
-                                    sap.bowl
-                                    sys-time
-                                    namespaces
-                                    ~
-                                    vws
-                        ==
-                    ~
-                    ~
-                :+  :-  sys-time
-                        %:  data  %data
-                                  src.bowl
-                                  sap.bowl
-                                  sys-time
-                                  ~
-                        ==
-                    ~
-                    ~
-                vw-cache
-              ==
+  :*  %database
+      name
+      sap.bowl
+      sys-time
+      :+  :-  sys-time
+              :*  %schema
+                  sap.bowl
+                  sys-time
+                  namespaces
+                  ~
+                  vws
+                  ==
+          ~
+          ~
+      :+  :-  sys-time
+              [%data src.bowl sap.bowl sys-time ~]
+          ~
+          ~
+      vw-cache
+      ==
 ::
-::  +drop-db:  drop-database:ast -> server
-::
-::  clear content of %sys view keys caches
 ++  drop-db
+  ::  clear content of %sys view keys caches
   |=  drop=drop-database:ast
   ^-  server
   ?:  =(%sys name.drop)  ~|("database %sys cannot be dropped" !!)
@@ -361,4 +351,14 @@
   =.  view-cache.sys-db  %+  run:tab:view-cache-key  view-cache.sys-db
                                                      |=(a=cache [%cache +<.a ~])
   (~(del by (~(put by state) %sys sys-db)) name.drop)
+::
+++  is-content-populated
+  |=  [=database sys-time=@da]
+  ^-  ?
+  =/  content  (tab:content-key content.database ``@da`(add `@`sys-time 1) 1)
+  ?~  content  %.n
+  =/  d=data  ->.content
+  %^  fold  ~(tap by files.d)
+            `?`%.n
+            |=([[* =file] state=?] ?:(=(0 rowcount.file) state %.y))
 --

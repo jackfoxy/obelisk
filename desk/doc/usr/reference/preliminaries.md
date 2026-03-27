@@ -112,7 +112,7 @@ When a `<view>`  and a `<table>` have the same name within a namespace, `<view>`
 
 User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 
-The `<selection>` command returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<selection>` commands. This is true because every `<selection>` command is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
+The `<selection>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<selection>` statements. This is true because every `<selection>` statement is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
 
 More generally, a `<relation>` is a user-defined table, view, common table expression, join, or result of a query. Most importantly, it is a proper set of its rows. 
 
@@ -137,7 +137,7 @@ Specifying **\<as-of-time>** overrides setting the schema and/or content timesta
 
 ## Literals
 
-urQL supports most aura types implemented in Urbit as literals for the INSERT and SELECT commands and predicates. The *loobean* Urbit literal types, %.y %.n, are supported by *different* literals in urQL than normally in Urbit, Y/N. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
+urQL supports most aura types implemented in Urbit as literals for the INSERT command and SELECT statement and predicates. The *loobean* Urbit literal types, %.y %.n, are supported by *different* literals in urQL than normally in Urbit, Y/N. urQL supports some literal types in multiple ways. Dates, timespans, and ships can all be represented in INSERT without the leading **~**. Unsigned decimal can be represented without the dot thousands separator. In some cases the support between INSERT and SELECT is not the same.
 
 Column types (auras) not supported for INSERT can only be inserted into tables through the API.
 
@@ -272,7 +272,7 @@ Each user-defined table is typed by its `<row-type>`.
 ```
 A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
 
-Rows from `<view>`s, `<common-table-expression>`s, and the command output from `<selection>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
+Rows from `<view>`s, `<common-table-expression>`s, and output from `<selection>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
 
 When the `<relation-type>` is a union of `<row-type>`s. There is a `<row-type>` representing the full width of the `SELECT` statement and as many sub-types as necessary to represent any selected unjoined outer `JOIN`s. 
 
@@ -304,11 +304,11 @@ Ultimately, "set" is the most important concept because every `<relation>` will 
 
 In *urQL* time is both primary and fundamental. Every change of state, whether to a database's schema or content, is indexed by time. Thus every query is idempotent becasue each query is implicitly or explicitly associated with a particular state in the series.
 
-The rules enforcing time primacy in the Obelisk database engine are simple. Each database has a most recent schema time and a most recent content time. Every subsequent state change, whether to schema or content must be subsequent to the latest of the two times. Normally the user never needs to concern himself with this requirement. The database engine just takes care of it because the default `<as-of-time>` for every command is `NOW`, the host schema time carried in the Obelisk agent's `now.bowl`. *urQL* scripts default every command in a script (sequence of commands) to `NOW`, so the time result of script execution is as if everything happened _all at once_ even though the commands executed sequentially. Users only need to be aware of this rule when applying `<as-of-time>` to override `NOW`. Violation of time constraints (or any other error) causes the entire script to fail. (Scripts are always atomic.)
+The rules enforcing time primacy in the Obelisk database engine are simple. Each database has a most recent schema time and a most recent content time. Every subsequent state change, whether to schema or content must be subsequent to the latest of the two times. Normally the user never needs to concern himself with this requirement. The database engine just takes care of it because the default `<as-of-time>` for every statement is `NOW`, the host schema time carried in the Obelisk agent's `now.bowl`. *urQL* scripts default every statement in a script (sequence of statements) to `NOW`, so the time result of script execution is as if everything happened _all at once_ even though the statements executed sequentially. Users only need to be aware of this rule when applying `<as-of-time>` to override `NOW`. Violation of time constraints (or any other error) causes the entire script to fail. (Scripts are always atomic.)
 
 The `CREATE DATABASE` command sets the first schema and content times to the database creation time.
 
-The second, and last, rule is once you introduce a query returning results into a script, all subsequent commands must also be queries. No further schema or data changes are allowed.
+The second, and last, rule is once you introduce a query returning results into a script, all subsequent statements must also be queries. No further schema or data changes are allowed.
 
 Among the metadata returned by queries is the schema and content times (labelled `schema time` and `data time`) used by the engine to create the query results. The query has a de facto `<as-of-time>` of the latest of the two for each underlying table or view. That is what makes it idempotent. You need to specify this `<as-of-time>` to recreate the same query. By specifying `<as-of-time>` in a query the engine uses the schema and content in effect at that time to create the results.
 

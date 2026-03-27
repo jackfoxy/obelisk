@@ -725,31 +725,26 @@ For instance the joined query we last ran produces the following pretty-printed 
         [ ~
           [ %from
               object
-            [ %relation
-                object
-              [ %qualified-object
+            [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference
                 name=%calendar
+                alias=[~ 'T1']
               ]
-              alias=[~ 'T1']
             ]
             as-of=~
               joins
             ~[
-              [ %joined-object
+              [ %joined-relation
                 join=%join
                   object
-                [ %relation
-                    object
-                  [ %qualified-object
+                [ %qualified-table
                     ship=~
                     database=%animal-shelter
                     namespace=%reference
                     name=%calendar-us-fed-holiday
-                  ]
-                  alias=[~ 'T2']
+                    alias=[~ 'T2']
                 ]
                 as-of=~
                 predicate=~
@@ -762,11 +757,12 @@ For instance the joined query we last ran produces the following pretty-printed 
         [ ~
           { [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference
                 name=%calendar
+                alias=~
               ]
               column=%date
               alias=~
@@ -776,11 +772,12 @@ For instance the joined query we last ran produces the following pretty-printed 
             %between
             [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference
                 name=%calendar
+                alias=~
               ]
               column=%date
               alias=~
@@ -798,28 +795,30 @@ For instance the joined query we last ran produces the following pretty-printed 
           ~[
             [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference
                 name=%calendar
+                alias=~
               ]
               column=%date
               alias=~
             ]
             [ %qualified-column
                 qualifier
-              [%qualified-object ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%day-name]
+              [%qualified-table ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%day-name alias=~]
               column=%day-name
               alias=~
             ]
             [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%UNKNOWN
                 namespace=%COLUMN-OR-CTE
                 name=%us-federal-holiday
+                alias=~
               ]
               column=%us-federal-holiday
               alias=~
@@ -842,31 +841,25 @@ For instance the joined query we last ran produces the following pretty-printed 
         [ ~
           [ %from
               object
-            [ %relation
-                object
-              [ %qualified-object
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
+            [ %qualified-table
+              ship=~
+              database=%animal-shelter
+              namespace=%reference
+              name=%calendar
+              alias=[~ 'T1']
             ]
             as-of=~
               joins
             ~[
-              [ %joined-object
+              [ %joined-relation
                 join=%join
                   object
-                [ %relation
-                    object
-                  [ %qualified-object
-                    ship=~
-                    database=%animal-shelter
-                    namespace=%reference
-                    name=%calendar-us-fed-holiday
-                    alias=[~ 'T2']
-                  ]
+                [ %qualified-table
+                  ship=~
+                  database=%animal-shelter
+                  namespace=%reference
+                  name=%calendar-us-fed-holiday
+                  alias=[~ 'T2']
                 ]
                 as-of=~
                 predicate=~
@@ -879,7 +872,7 @@ For instance the joined query we last ran produces the following pretty-printed 
         [ ~
           { [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference
@@ -894,7 +887,7 @@ For instance the joined query we last ran produces the following pretty-printed 
             %between
             [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference
@@ -917,7 +910,7 @@ For instance the joined query we last ran produces the following pretty-printed 
           ~[
             [ %qualified-column
                 qualifier
-              [ %qualified-object
+              [ %qualified-table
                 ship=~
                 database=%animal-shelter
                 namespace=%reference

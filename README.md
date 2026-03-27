@@ -14,11 +14,15 @@
 
 Obelisk employs a dialect of SQL called "urQL" that provides for these properties.
 
-See [Reference/Preliminaries](/docs/reference/01-preliminaries.md) and the [Users Guide](/docs/users-guide.md) in the docs folder for more information.
+See [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and the [Users Guide](/desk/doc/sur/users-guide.md) in the docs folder for more information.
 
 ### Sample database
 
-This repository includes a sample database, "animal-shelter", derived from https://github.com/ami-levin/Animal_Shelter.  
+This repository includes a sample database, "animal-shelter", derived from https://github.com/ami-levin/Animal_Shelter.
+
+### Developers
+
+Copy sur/ast/hoon to your project to work with Obelisk results.
 
 ### Bug reporting
 
@@ -36,8 +40,10 @@ To interact with Obelisk from %hawk:
 
 - Ensure you have %hawk installed
   `|install ~dister-migrev-dolseg %hawk`
-- Create a file in your hawk namespace
-- Get the latest Obelisk UI template from https://hawk.computer/~~/templates/. Paste the contents into into the hawk file. (templates/hawk.txt in this repo is not necessarily current)
+- Create an obelisk file sibling to the manual in your hawk namespace.
+- Get the latest Obelisk UI template from https://hawk.computer/~~/templates/ or templates/hawk.txt in this repo. Paste the contents into the obelisk hawk file.
+
+Now clicking the Obelisk landscape tile will take you to the Obelisk UI, with UX similar to SQL Studio.
 
 ### Alpha release
 

@@ -1,7 +1,7 @@
 # SELECT
 *supported in urQL parser, partially supported and under development in Obelisk*
 
-The `<query>` command provides a means to create `<relation>`s derived from persisted and/or cached `<relation>`s and/or constants. Data rows can be joined based on predicates, specific columns can be selected, and the resulting rows can be filtered by predicate.
+The `<query>` statement provides a means to create `<relation>`s derived from persisted and/or cached `<relation>`s and/or constants. Data rows can be joined based on predicates, specific columns can be selected, and the resulting rows can be filtered by predicate.
 
 ```
 <query> ::=
@@ -15,13 +15,13 @@ The `<query>` command provides a means to create `<relation>`s derived from pers
     [ ...n ]
     | CROSS JOIN <relation> [ <as-of-time> ] [ [AS] <alias> ]
   ]
+  [ SCALARS {<name> <scalar-function>} [ ...n ]]
   [ WHERE <predicate> ]
   [ GROUP BY { <qualified-column> 
                | <column-alias> 
                | <column-ordinal> } [ ,...n ]
     [ HAVING <predicate> ]
   ]
-  [ SCALARS {<alias> <scalar-function>} ]
   SELECT [ TOP <n> ]
     { * | { [<ship-qualifier>]<table-view> | <alias> }.*
         | <expression> [ AS <column-alias> ]

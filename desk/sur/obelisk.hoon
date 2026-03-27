@@ -1,4 +1,5 @@
 /-  *ast, *server-state
+/+  *mip
 ^?
 |%
 ::
@@ -34,120 +35,137 @@
   " DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR ".
   "OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ".
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
-+$  vector-cell  [p=@tas q=dime]
-+$  vector
-    $:  %vector
-        (lest vector-cell)
+::
+::  $action
+::    [%tape @tas tape]          - prints result to dodjo
+::    [%tape2 @tas tape]         - suppresses printing result to dodjo
+::    [%commands (list command)] - prints result to dodjo
+::    [%test @tas tape]          - supports expect-fail-message in unit tests
+::    [%parse tape]              - returns (list command)
+::  
++$  action
+  $%
+    [%tape default-database=@tas urql=tape]
+    [%tape2 default-database=@tas urql=tape]
+    [%commands cmds=(list command)]
+    [%test default-database=@tas urql=tape]
+    [%parse urql=tape]
     ==
 ::
-+$  action
-  $%  [%tape default-database=@tas urql=tape]
-      [%tape2 default-database=@tas urql=tape]
-      [%commands cmds=(list command)]
-      [%test default-database=@tas urql=tape]
-      [%parse urql=tape]
-  ==
-+$  cmd-result  [%results (list result)]
-+$  result
-  $%  [%message msg=@t]
-      [%vector-count count=@ud]
-      [%server-time date=@da]
-      [%security-time date=@da]
-      [%schema-time date=@da]
-      [%data-time date=@da]
-      [%result-set (list vector)]
-      ==
++$  db-cmd
+  $?
+    %create-database
+    %drop-database
+    %create-namespace
+    %alter-namespace
+    %drop-namespace
+    %create-table
+    %alter-table
+    %drop-table
+    %truncate-table
+    %insert
+    %update
+    %delete
+    ==
 ::
 +$  set-table
   $:  %set-table
-      object=(unit qualified-table)
-      schema-tmsp=(unit @da)
-      data-tmsp=(unit @da)
-      columns=(list column)
-      =lookup-type
-      pri-indx=(unit index)
-      join=(unit join-type)
-      =predicate
-      rowcount=@
-      pri-indexed=(tree [(list @) (map @tas @)])
-      indexed-rows=(list indexed-row)
-      joined-rows=(list joined-row)
-  ==
+    join=(unit join-type)
+    relation=(unit qualified-table)
+    schema-tmsp=(unit @da)
+    data-tmsp=(unit @da)
+    columns=(list column)
+    =predicate
+    rowcount=@
+    =map-meta
+    pri-indx=(unit index)
+    pri-indexed=(tree [(list @) (map @tas @)])
+    indexed-rows=(list indexed-row)
+    joined-rows=(list joined-row)
+    ==
 ::
-+$  qual-col-type  [qualified-column @ta]
-+$  qualified-lookup-type
-  $:  %qualified-lookup-type
-      (map qualified-table (map @tas @ta))
++$  column-meta
+  $:  =qualified-column
+      type=@ta
+      addr=@
       ==
-+$  unqualified-lookup-type
-  $:  %unqualified-lookup-type
-      (map @tas @ta)
-      ==
-+$  lookup-type  $%(qualified-lookup-type unqualified-lookup-type)
++$  qualified-map-meta
+  $:  %qualified-map-meta
+    (mip qualifier @tas typ-addr)
+    ==
++$  unqualified-map-meta
+  $:  %unqualified-map-meta
+    (map @tas typ-addr)
+    ==
++$  map-meta  $%(qualified-map-meta unqualified-map-meta)
+::
++$  qualifier-lookup  (map @tas (list qualified-table))
+::
++$  qualifier  $%(qualified-table cte-name)
 ::
 +$  joined-row
   $:  %joined-row
-      key=(list @)
-      data=(map qualified-table (map @tas @))
-      ==
+    key=(list @)
+    data=(mip qualified-table @tas @)
+    ==
 +$  data-row  $%(joined-row indexed-row)
 ::
 +$  join-return
   $:  %join-return
-      =server
-      set-tables=(list set-table)
-      type-lookup=lookup-type
-      qualified-columns=(list qual-col-type)
-      ==
+    =server
+    set-tables=(list set-table)
+    =map-meta
+    column-metas=(list column-meta)
+    ==
 ::
-+$  joined-relation
-  $:
-    %joined-relation
++$  joined-relat
+  $:  %joined-relat
+    join=(unit join-type)
     =relation
     as-of=(unit as-of)
-    join=(unit join-type)
     =predicate
-  ==
+    ==
 ::
-+$  named-ctes  (map @tas (list set-table))
++$  full-relation
+  $:  %full-relation
+    =qualifier
+    set-tables=(list set-table)
+    map-meta=qualified-map-meta
+    column-metas=(list column-meta)
+    ==
 ::
-+$  db-cmd  $?  %create-database
-                %drop-database
-                %create-namespace
-                %alter-namespace
-                %drop-namespace
-                %create-table
-                %alter-table
-                %drop-table
-                %truncate-table
-                %insert
-                %update
-                %delete
-                ==
++$  named-ctes  (map @tas full-relation)
 ::
-::  template for selected column from qualified objects
++$  resolved-scalar  $%  [%fn type=@ta f=$-(data-row dime)]
+                         dime
+                         ==
+::
++$  resolved-scalars  (map @tas resolved-scalar)
+::
+::  template for selected column from qualified-column objects
 +$  templ-cell
   $:  %templ-cell
-      object=(unit qualified-column)
-      addr=@
-      vc=vector-cell
-  ==
+    column=(unit qualified-column)
+    addr=@
+    vc=vector-cell
+    ==
+
 ::
 ::  common metadata for DELETE, INSERT, UPDATE
 +$  txn-meta
   $:  %txn-meta
-      db=database
-      tbl-key=[@tas @tas]
-      nxt-data=data
-      =table
-      =file
-      source-content-time=@da
-      ==
+    db=database
+    tbl-key=[@tas @tas]
+    nxt-data=data
+    =table
+    =file
+    source-content-time=@da
+    ==
 ::
 +$  table-return
   $:  [@da ? @ud]
       changed-schemas=(map @tas @da)
       changed-data=(map @tas @da)
       state=server
-  ==
+      ==
 --

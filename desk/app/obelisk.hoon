@@ -1,4 +1,4 @@
-/-  *server-state, server-state, *obelisk, obelisk, ast
+/-  *server-state, server-state, *obelisk, ast
 /+  default-agent, dbug, *server, *print
 |%
 +$  versioned-state
@@ -41,17 +41,15 @@
   ::
   ::  prints results
   %tape
-    :: required in order to stop on parse error
-    =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
+    :: uncomment in order to stop on parse error
+    ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-        ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+        ^-  (each (pair (list cmd-result) server:server-state) tang)
         %-  mule
           |.
           %:  state-server
           ::::~>  %bout.[0 %parse-cmds]
           (parse-urql +<.act +>.act)
-          ::(parse-urql(state server, bowl bowl) +<.act +>.act)
-          ::::(parse:parse(default-database +<.act) +>.act)
           ==
     ?-  -.virtualized
       %.n
@@ -70,11 +68,10 @@
   ::
   ::  for testing without printing results
   %tape2
-    :: required in order to stop on parse error
-    :: comment out for benchmarking
-    =/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
+    :: uncomment in order to stop on parse error
+    ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-      ^-  (each (pair (list cmd-result:obelisk) server:server-state) tang)
+      ^-  (each (pair (list cmd-result) server:server-state) tang)
       %-  mule
       |.
       %:  state-server
@@ -95,28 +92,27 @@
         ==
     ==
   ::
-  %parse  !!
-    ::=/  virtualized
-    ::  ::^-  (each (pair (list command:ast) server) tang)
-    ::  ^-  (each (pair tape server) tang)
-    ::  %-  mule
-    ::  |.
-    ::  ::~>  %bout.[0 %parse-cmds]
-    ::  (parse-urql +<.act +>.act)
-    ::?-  -.virtualized
-    ::  %.n
-    ::    :_  this
-    ::    :~  [%give %fact ~[/server] %noun !>([| p.virtualized])]
-    ::        [%give %kick ~[/server] ~]
-    ::    ==
-    ::  %.y
-    ::    =/  res  p.virtualized
-    ::    =/  x  (print -.res)
-    ::    :_  this(server +.res)
-    ::    :~  [%give %fact ~[/server] %noun !>([& -.res])]
-    ::        [%give %kick ~[/server] ~]
-    ::    ==
-    ::==
+  %parse
+    =/  virtualized
+      ^-  (each (list command) tang)
+      %-  mule
+      |.
+      ::~>  %bout.[0 %parse-cmds]
+      (parse-urql +<.act +>.act)
+    ?-  -.virtualized
+      %.n
+        ~&  "{<(slog p.virtualized)>}"
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([| (slog p.virtualized)])]
+            [%give %kick ~[/server] ~]
+        ==
+      %.y
+        ~&  "{<p.virtualized>}"
+        :_  this
+        :~  [%give %fact ~[/server] %noun !>([& -.p.virtualized])]
+            [%give %kick ~[/server] ~]
+        ==
+    ==
   ::
   %commands
     =/  res  (state-server +.act)
@@ -131,7 +127,6 @@
                   ::~>  %bout.[0 %parse-cmds]
                   (parse-urql +<.act +>.act)
                   ==
-                                                       ::=/  x  (print -.res2)
     :_  this(server +.res2)
     :~  [%give %fact ~[/server] %noun !>(-.res2)]
         [%give %kick ~[/server] ~]
