@@ -443,6 +443,12 @@
   =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
   =/  selected          (normalize-selected columns.select.q)
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
+  =/  resolved-scalars
+        %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta.join-return
+                                                           ==
   =.  selected          (qualify-unqualified selected qualifier-lookup)
   ::
   =/  filter=(unit $-(data-row ?))  ?~  predicate.q  ~
@@ -454,7 +460,7 @@
                                               map-meta.join-return
                                               qualifier-lookup
                                               named-ctes
-                                              *resolved-scalars
+                                              resolved-scalars
                                               ==
   ?:  is-cte
     ?~  filter  [join-return ~]

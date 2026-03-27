@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *sys-views, *utils, *predicate
+/+  *sys-views, *utils, *predicate, *scalars
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -61,6 +61,14 @@
                                         ~
                                         ==
   =/  selected      (normalize-selected columns.select.q)
+  =/  qualifier-lookup
+        (query-qualifier-lookup set-tables.full-relation)
+  =/  resolved-scalars
+        %:  resolve-query-scalars  scalars.q
+                                   named-ctes
+                                   qualifier-lookup
+                                   map-meta.full-relation
+                                   ==
   =/  filter        ?~  predicate.q  ~
                     :-  ~
                         %:  prepare-predicate
@@ -70,7 +78,7 @@
                                     qualifier.full-relation
                             ~
                             named-ctes
-                            *resolved-scalars
+                            resolved-scalars
                             ==
   ::
   ?~  set-tables.full-relation  ~|("select-relation can't get here" !!)
@@ -91,6 +99,54 @@
                             joined-rows.i.set-tables.full-relation
                             selected
                             ==
+::
+::  Build lookup qualifier by column name for resolving unqualified columns in
+::  scalar functions on a single relation.
+++  query-qualifier-lookup
+  |=  sources=(list set-table)
+  ^-  qualifier-lookup
+  =/  lookup  *qualifier-lookup
+  |-
+  ?~  sources  lookup
+  =/  source=set-table  i.sources
+  ?~  relation.source  $(sources t.sources)
+  =/  columns=(list column:ast)  columns.source
+  |-
+  ?~  columns  ^$(sources t.sources)
+  =/  col=column:ast  -.columns
+  %=  $
+    columns  +.columns
+    lookup   ?:  (~(has by lookup) name.col)
+               %+  ~(put by lookup)
+                      name.col
+                      :-  (need relation.source)
+                          (~(got by lookup) name.col)
+             %+  ~(put by lookup)  name.col
+                                   (limo ~[(need relation.source)])
+  ==
+::
+++  resolve-query-scalars
+  |=  $:  scalars=(list scalar:ast)
+          =named-ctes
+          =qualifier-lookup
+          =map-meta
+          ==
+  ^-  resolved-scalars
+  =/  out  *resolved-scalars
+  |-
+  ?~  scalars  out
+  =/  resolved=resolved-scalar
+        %:  prepare-scalar  f.i.scalars
+                            named-ctes
+                            qualifier-lookup
+                            map-meta
+                            out
+                            bowl
+                            ==
+  %=  $
+    scalars  t.scalars
+    out      (~(put by out) name.i.scalars resolved)
+  ==
 ::
 ++  select-for-cte
   ::  cons a set-table of the selection
