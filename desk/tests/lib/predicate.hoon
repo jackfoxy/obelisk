@@ -1,6 +1,7 @@
 ::  Demonstrate unit testing filtered queries on a Gall agent with %obelisk.
 ::
-/+  *test-helpers
+/-  ast, *obelisk
+/+  *predicate, *scalars, *test, *test-helpers, *utils
 |%
 ::
 ++  create-mytable
@@ -12352,4 +12353,189 @@
       %-  crip
           "IN cte-column type ~.da doesn't match left side type ~.t"
       ==
+::
+::  direct predicate scalar-name resolution
+::
+++  mk-predicate-indexed-row
+  |=  kvp=(lest [@tas @])
+  ^-  data-row
+  :*  %indexed-row
+      key=(turn kvp |=(e=[@tas @] +.e))
+      data=(malt (limo kvp))
+  ==
+::
+++  pred-leaf
+  |=  a=predicate-component:ast
+  [a ~ ~]
+::
+++  pred-scalar-row
+  %-  mk-predicate-indexed-row
+  :~
+    [%col1 'Angel']
+    [%col2 ~2001.9.19]
+    [%col3 'tuxedo']
+    [%col4 7]
+    ==
+::
+++  pred-scalar-map-meta
+  ^-  map-meta
+  :-  %unqualified-map-meta
+  %-  mk-unqualified-typ-addr-lookup
+  %-  addr-columns
+  :~  [%column %col1 ~.t 0]
+      [%column %col2 ~.da 0]
+      [%column %col3 ~.t 0]
+      [%column %col4 ~.ud 0]
+      ==
+::
+++  pred-scalar-qualified-table
+  :*  %qualified-table
+      ship=~
+      database=%db1
+      namespace=%dbo
+      name=%my-table
+      alias=~
+      ==
+::
+++  pred-scalar-qualifier-lookup
+  ^-  qualifier-lookup
+  %-  malt
+  %-  limo
+  :~  [%col1 ~[pred-scalar-qualified-table]]
+      [%col2 ~[pred-scalar-qualified-table]]
+      [%col3 ~[pred-scalar-qualified-table]]
+      [%col4 ~[pred-scalar-qualified-table]]
+      ==
+::
+++  pred-scalar-resolved-scalars
+  ^-  resolved-scalars
+  %-  malt
+  %-  limo
+      :~  :-  %scalar-lit
+          [~.t 'tuxedo']
+      :-  %scalar-fn
+          :*  %fn
+            type=~.t
+            |=  row=data-row
+            ^-  dime
+            =/  idx=indexed-row  ?>(?=(%indexed-row -.row) row)
+            [~.t (~(got by data.idx) %col3)]
+          ==
+      :-  %scalar-num
+          :*  %fn
+            type=~.ud
+            |=  row=data-row
+            ^-  dime
+            =/  idx=indexed-row  ?>(?=(%indexed-row -.row) row)
+            [~.ud (~(got by data.idx) %col4)]
+          ==
+      :-  %scalar-date
+          :*  %fn
+            type=~.da
+            |=  row=data-row
+            ^-  dime
+            =/  idx=indexed-row  ?>(?=(%indexed-row -.row) row)
+            [~.da (~(got by data.idx) %col2)]
+          ==
+      ==
+::
+::  scalar test harness rows
+::
+++  scalar-true  [~.t 'true']
+++  scalar-false  [~.t 'false']
+::
+::  WHEN scalar-fn equals text literal
+++  scalar-row-00
+  :-  :*  %if-then-else
+        if=[%eq (pred-leaf [%scalar-name %scalar-fn]) (pred-leaf [~.t 'tuxedo'])]
+        then=scalar-true
+        else=scalar-false
+        ==
+      scalar-true
+::
+::  WHEN text column equals scalar-literal
+++  scalar-row-01
+  :-  :*  %if-then-else
+        if=[%eq (pred-leaf [%unqualified-column %col3 ~]) (pred-leaf [%scalar-name %scalar-lit])]
+        then=scalar-true
+        else=scalar-false
+        ==
+      scalar-true
+::
+::  WHEN scalar-fn is contained in numeric list
+++  scalar-row-02
+  :-  :*  %if-then-else
+        if=[%in (pred-leaf [%scalar-name %scalar-num]) (pred-leaf [%value-literals %ud '5;7'])]
+        then=scalar-true
+        else=scalar-false
+        ==
+      scalar-true
+::
+::  WHERE <scalar-fn> = <literal>
+++  test-scalar-00
+  %:  run-scalar-tests
+    *named-ctes
+    pred-scalar-qualifier-lookup
+    pred-scalar-map-meta
+    pred-scalar-resolved-scalars
+    pred-scalar-row
+    :~  [%scalar-00 scalar-row-00]
+        ==
+  ==
+::
+::  WHERE <column> = <scalar-literal>
+++  test-scalar-01
+  %:  run-scalar-tests
+    *named-ctes
+    pred-scalar-qualifier-lookup
+    pred-scalar-map-meta
+    pred-scalar-resolved-scalars
+    pred-scalar-row
+    :~  [%scalar-01 scalar-row-01]
+        ==
+  ==
+::
+::  WHERE <scalar-fn> IN (list @ud)
+++  test-scalar-02
+  %:  run-scalar-tests
+    *named-ctes
+    pred-scalar-qualifier-lookup
+    pred-scalar-map-meta
+    pred-scalar-resolved-scalars
+    pred-scalar-row
+    :~  [%scalar-02 scalar-row-02]
+        ==
+  ==
+::
+::  fail WHERE <scalar-fn> = <column> types differ
+++  test-fail-scalar-00
+  %+  expect-fail-message
+      'comparing scalar to column of different aura: %scalar-date type=~.da %col3 type=~.t'
+      |.
+      =/  pred
+        [%eq (pred-leaf [%scalar-name %scalar-date]) (pred-leaf [%unqualified-column %col3 ~])]
+      =/  gate
+        %:  prepare-predicate  pred
+                               pred-scalar-map-meta
+                               pred-scalar-qualifier-lookup
+                               *named-ctes
+                               pred-scalar-resolved-scalars
+                               ==
+      !>((gate pred-scalar-row))
+::
+::  fail WHERE <scalar-fn> IN (list @ud) types differ
+++  test-fail-scalar-01
+  %+  expect-fail-message
+      'type of IN list incorrect, should be ~.da'
+      |.
+      =/  pred
+        [%in (pred-leaf [%scalar-name %scalar-date]) (pred-leaf [%value-literals %ud '5;7'])]
+      =/  gate
+        %:  prepare-predicate  pred
+                               pred-scalar-map-meta
+                               pred-scalar-qualifier-lookup
+                               *named-ctes
+                               pred-scalar-resolved-scalars
+                               ==
+      !>((gate pred-scalar-row))
 --

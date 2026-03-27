@@ -1464,6 +1464,38 @@
   :-  result
   $(rows +.rows)
 ::
+::  debug helper: intentionally expects the wrong crash message so the
+::  underlying crash details are surfaced during development
+++  debug-scalar-tests
+  |=  $:  =named-ctes
+          =qualifier-lookup
+          =map-meta
+          resolved-scalars=(map @tas resolved-scalar)
+          =data-row
+          rows=(list [@tas table-test-row])
+         ==
+  ^-  tang
+  %-  zing
+  |-
+  ?~  rows
+    ~
+  =/  row  -.rows
+  =/  result
+    %+  category
+      (trip -.row)
+    %+  expect-fail-message
+      'debug-scalar-tests dummy message'
+      |.  ~|  (weld "CRASH - " (trip -.row))
+          %:  scalar-test-helper  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  data-row
+                                  +.row
+                                  ==
+  :-  result
+  $(rows +.rows)
+::
 ::  parse test helper
 ::
 ++  failon-parse
