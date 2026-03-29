@@ -1268,7 +1268,7 @@
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
                                         ~|  "query parse nail:  ".
-                                            "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
                                             " ..."
                                             %-  parse-query
                                                   [[1 1] q.q.command-nail]
@@ -2540,7 +2540,12 @@
           `(finalize-predicates (need from) alias-map cte-map cte-col-map)
         scalars
         ?~  predicate  ~
-          (finalize-predicate predicate alias-map scalar-map cte-map cte-col-map)
+          %:  finalize-predicate  predicate
+                                  alias-map
+                                  scalar-map
+                                  cte-map
+                                  cte-col-map
+                                  ==
         group-by
         having
         (need select)
@@ -2782,7 +2787,12 @@
           join.j
           relation.j
           as-of.j
-          (finalize-predicate predicate.j alias-map *(map @tas scalar-function:ast) cte-map cte-col-map)
+          %:  finalize-predicate  predicate.j
+                                  alias-map
+                                  *(map @tas scalar-function:ast)
+                                  cte-map
+                                  cte-col-map
+                                  ==
           ==
   [%from relation.f as-of.f finalized-joins]
 +$  alias-maps
@@ -2940,7 +2950,13 @@
   ::
   |-
   ?~  p  ~
-  p(n (finalize-leaf n.p alias-map scalar-map cte-map cte-col-map), l $(p l.p), r $(p r.p))
+  =/  final-leaf  %:  finalize-leaf  n.p
+                                     alias-map
+                                     scalar-map
+                                     cte-map
+                                     cte-col-map
+                                     ==
+  p(n final-leaf, l $(p l.p), r $(p r.p))
 ::
 ++  finalize-leaf
   |=  $:  a=predicate-component:ast
@@ -3233,11 +3249,14 @@
                       [%qualified-table ~ default-database 'dbo' tbl ~]
                       name.uqc
                       `as-alias
-                =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+                =/  maybe-col-set
+                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
                 ?:  ?&  ?=(^ maybe-col-set)
                         !(~(has in (need maybe-col-set)) (fold-key name.uqc))
                         ==
-                  ~|  "column {<name.uqc>} is not produced by CTE {<(need maybe-cte)>}"  !!
+                  ~|  "column {<name.uqc>} is not produced by CTE ".
+                      "{<(need maybe-cte)>}"
+                      !!
                 [%cte-column (need maybe-cte) name.uqc]
               :^  %qualified-column
                   (need resolved)
@@ -3284,11 +3303,14 @@
                       [%qualified-table ~ default-database 'dbo' tbl ~]
                       name.uqc
                       ~
-                =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+                =/  maybe-col-set
+                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
                 ?:  ?&  ?=(^ maybe-col-set)
                         !(~(has in (need maybe-col-set)) (fold-key name.uqc))
                         ==
-                  ~|  "column {<name.uqc>} is not produced by CTE {<(need maybe-cte)>}"  !!
+                  ~|  "column {<name.uqc>} is not produced by CTE ".
+                      "{<(need maybe-cte)>}"
+                      !!
                 [%cte-column (need maybe-cte) name.uqc]
               :^  %qualified-column
                   (need resolved)
@@ -5020,7 +5042,9 @@
                         (some [q q])
     ?:  =(%three-param param-count)
       :+  %quotestring  (finalize-param -.raw-scalar-body aliases)
-                        (some [(finalize-param +<.raw-scalar-body aliases) (finalize-param +>.raw-scalar-body aliases)])
+                        %-  some
+                              :-  (finalize-param +<.raw-scalar-body aliases)
+                                  (finalize-param +>.raw-scalar-body aliases)
     ~|("QUOTESTRING requires 1, 2, or 3 parameters" !!)
   ?:  =(%string fn-name)
     [%string (finalize-param raw-scalar-body aliases)]
@@ -5088,14 +5112,17 @@
   |=  [fn-name=@tas tub=nail]
   ^-  (like *)
   =/  scalar-one-param  (stag %one-param (parse-one-param parse-scalar-param))
-  =/  scalar-two-param  (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+  =/  scalar-two-param
+        %+  stag  %two-param
+                  (parse-two-params parse-scalar-param parse-scalar-param)
   =/  scalar-three-param
     %+  stag  %three-param
     %^  parse-three-params  parse-scalar-param
                             parse-scalar-param
                             parse-scalar-param
   =/  cord-one-param  (stag %one-param (parse-one-param parse-cord-param))
-  =/  cord-two-param  (stag %two-param (parse-two-params parse-cord-param parse-cord-param))
+  =/  cord-two-param
+        (stag %two-param (parse-two-params parse-cord-param parse-cord-param))
   =/  cord-three-param
     %+  stag  %three-param
     %^  parse-three-params  parse-cord-param
@@ -5154,7 +5181,8 @@
     %rtrim       (cord-one-or-two tub)
     %patindex    (cord-two-param tub)
     %replace     (cord-three-param tub)
-    %replicate   ((stag %two-param (parse-two-params parse-cord-param parse-ud-param)) tub)
+    %replicate
+      ((stag %two-param (parse-two-params parse-cord-param parse-ud-param)) tub)
     %stuff       (cord-four-param tub)
     %quotestring  (cord-one-two-or-three tub)
     %string-concat  ((stag %n-params (parse-n-params parse-cord-param)) tub)
