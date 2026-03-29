@@ -3676,7 +3676,16 @@
   ;~  pose  non-numeric-parser    :: \/ to do: this is inside-out
             (sear sear-numbers numeric-characters)        :: all numeric parsers
             ==
-++  insert-value  ~+
+++  insert-value-literal-leading-char
+  |=  a=@
+  ^-  ?
+  ?|  =('\'' a)
+      =('~' a)
+      =('.' a)
+      =('-' a)
+      &((gte '0' a) (lte '9' a))
+  ==
+++  insert-value-default
   ;~  pose
     (cold %default (jester 'default'))  :: \/ to do: inside-out
     ;~  pose  non-numeric-parser
@@ -3686,6 +3695,19 @@
                         numeric-characters
               ==
   ==
+++  insert-value  ~+
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  ?~  q.rest
+    (insert-value-default tub)
+  ?:  (insert-value-literal-leading-char i.q.rest)
+    =/  default-result  ((cold %default (jester 'default')) rest)
+    ?~  q.default-result
+      (parse-value-literal rest)
+    (insert-value-default tub)
+  (insert-value-default tub)
 ++  get-value-literal  ~+
   ;~(sfix ;~(pfix whitespace parse-value-literal) whitespace)
 ++  cook-literal-list
@@ -3714,14 +3736,16 @@
               (ifix [pal par] (more com get-value-literal))
               ==
             ==
+++  parse-insert-value-core  ~+
+  ;~(sfix insert-value whitespace)
 ++  parse-insert-value  ~+
   ;~  pose
-    ;~(pfix whitespace ;~(sfix insert-value whitespace))
+    ;~(pfix whitespace parse-insert-value-core)
+    parse-insert-value-core
     ;~(pfix whitespace insert-value)
-    ;~(sfix insert-value whitespace)
     insert-value
   ==
-::
+::  
 ::  used for various commands
 ::
 ++  cook-column
@@ -3945,15 +3969,33 @@
     face-list
   ==
 ::
+++  literal-leading-char
+  |=  a=@
+  ^-  ?
+  ?|  =('\'' a)
+      =('.' a)
+      =('-' a)
+      &((gte '0' a) (lte '9' a))
+  ==
+++  parse-scalar-param-default
+  ;~  pose
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
+  ==
 ++  parse-scalar-param  ~+
   :: this version of parse-scalar-param sidesteps the unknown column/cte issue
   :: in qualified columns by parsing qualifiers into their own types
   :: <lowercase-name> unqualified-column
   :: <mixedcase-name> alias
-  ;~  pose
-    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
-    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
-  ==
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  ?~  q.rest
+    (parse-scalar-param-default tub)
+  ?:  (literal-leading-char i.q.rest)
+    (parse-value-literal rest)
+  (parse-scalar-param-default tub)
 ++  parse-cord-param  ~+
   ::  accepts column ref or single-quoted cord literal only
   ;~  pose
@@ -3995,12 +4037,30 @@
       (sear sear-numbers numeric-characters)
     ==
   ==
-++  parse-datum-for-predicate  ~+
-  ~|  "parse-datum-for-predicate"
+++  predicate-literal-leading-char
+  |=  a=@
+  ^-  ?
+  ?|  =('\'' a)
+      =('.' a)
+      =('-' a)
+      &((gte '0' a) (lte '9' a))
+  ==
+++  parse-datum-for-predicate-default
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
   ==
+++  parse-datum-for-predicate  ~+
+  ~|  "parse-datum-for-predicate"
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  ?~  q.rest
+    (parse-datum-for-predicate-default tub)
+  ?:  (predicate-literal-leading-char i.q.rest)
+    (parse-value-literal rest)
+  (parse-datum-for-predicate-default tub)
 ++  cook-aggregate
   |=  parsed=*
   [%aggregate -.parsed +.parsed]
@@ -4977,244 +5037,144 @@
     ==
   ~|("unknown builtin scalar fn {<fn-name>}" !!)
 :: TODO: replace params with parse-scalar-param
-++  parse-builtin-scalar-fn
-  %+  stag
-    %builtin-fn
-    ;~  pose
-      ;~  plug
-        (cold %getutcdate (jester %getutcdate))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %day (jester %day))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %month (jester %month))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %year (jester %year))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %abs (jester %abs))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %floor (jester %floor))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %ceiling (jester %ceiling))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %sign (jester %sign))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %sqrt (jester %sqrt))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %e (jester %e))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %phi (jester %phi))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %pi (jester %pi))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %tau (jester %tau))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %max (jester %max))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %min (jester %min))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %rand (jester %rand))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %degrees (jester %degrees))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %sin (jester %sin))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %cos (jester %cos))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %tan (jester %tan))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %asin (jester %asin))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %acos (jester %acos))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %atan (jester %atan))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %atan2 (jester %atan2))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %len (jester %len))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %log (jester %log))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %log (jester %log))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %trim (jester %trim))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %trim (jester %trim))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %round (jester %round))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %left (jester %left))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %right (jester %right))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %substring (jester %substring))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-scalar-param
-                                          parse-scalar-param
-                                          parse-scalar-param
-      ==
-      ;~  plug
-        (cold %substring (jester %substring))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %concat (jester %concat))
-        (stag %n-params (parse-n-params parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %lower (jester %lower))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %upper (jester %upper))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %reverse (jester %reverse))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %ltrim (jester %ltrim))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %ltrim (jester %ltrim))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %rtrim (jester %rtrim))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %rtrim (jester %rtrim))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %patindex (jester %patindex))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %replace (jester %replace))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-cord-param
-                                          parse-cord-param
-                                          parse-cord-param
-      ==
-      ;~  plug
-        (cold %replicate (jester %replicate))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-ud-param)
-      ==
-      ;~  plug
-        (cold %stuff (jester %stuff))
-        %+  stag  %four-param
-          %:  parse-four-params  parse-cord-param
-                                 parse-ud-param
-                                 parse-ud-param
-                                 parse-cord-param
-          ==
-      ==
-      ;~  plug
-        (cold %quotestring (jester %quotestring))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-cord-param
-                                          parse-cord-param
-                                          parse-cord-param
-      ==
-      ;~  plug
-        (cold %quotestring (jester %quotestring))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %quotestring (jester %quotestring))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %string (jester %string))
-        (stag %one-param (parse-one-param parse-numeric-param))
-      ==
-      ;~  plug
-        (cold %string-concat (jester 'string-concat'))
-        (stag %n-params (parse-n-params parse-cord-param))
-      ==
+++  parse-builtin-scalar-name
+  ;~  pose
+    (cold %getutcdate (jester %getutcdate))
+    (cold %degrees (jester %degrees))
+    (cold %ceiling (jester %ceiling))
+    (cold %substring (jester %substring))
+    (cold %replicate (jester %replicate))
+    (cold %quotestring (jester %quotestring))
+    (cold %string-concat (jester 'string-concat'))
+    (cold %patindex (jester %patindex))
+    (cold %replace (jester %replace))
+    (cold %reverse (jester %reverse))
+    (cold %atan2 (jester %atan2))
+    (cold %floor (jester %floor))
+    (cold %month (jester %month))
+    (cold %right (jester %right))
+    (cold %round (jester %round))
+    (cold %lower (jester %lower))
+    (cold %upper (jester %upper))
+    (cold %ltrim (jester %ltrim))
+    (cold %rtrim (jester %rtrim))
+    (cold %stuff (jester %stuff))
+    (cold %concat (jester %concat))
+    (cold %string (jester %string))
+    (cold %sign (jester %sign))
+    (cold %sqrt (jester %sqrt))
+    (cold %left (jester %left))
+    (cold %trim (jester %trim))
+    (cold %year (jester %year))
+    (cold %asin (jester %asin))
+    (cold %acos (jester %acos))
+    (cold %atan (jester %atan))
+    (cold %rand (jester %rand))
+    (cold %len (jester %len))
+    (cold %log (jester %log))
+    (cold %day (jester %day))
+    (cold %abs (jester %abs))
+    (cold %max (jester %max))
+    (cold %min (jester %min))
+    (cold %sin (jester %sin))
+    (cold %cos (jester %cos))
+    (cold %tan (jester %tan))
+    (cold %phi (jester %phi))
+    (cold %tau (jester %tau))
+    (cold %pi (jester %pi))
+    (cold %e (jester %e))
+  ==
+++  parse-builtin-scalar-params
+  |=  [fn-name=@tas tub=nail]
+  ^-  (like *)
+  =/  scalar-one-param  (stag %one-param (parse-one-param parse-scalar-param))
+  =/  scalar-two-param  (stag %two-param (parse-two-params parse-scalar-param parse-scalar-param))
+  =/  scalar-three-param
+    %+  stag  %three-param
+    %^  parse-three-params  parse-scalar-param
+                            parse-scalar-param
+                            parse-scalar-param
+  =/  cord-one-param  (stag %one-param (parse-one-param parse-cord-param))
+  =/  cord-two-param  (stag %two-param (parse-two-params parse-cord-param parse-cord-param))
+  =/  cord-three-param
+    %+  stag  %three-param
+    %^  parse-three-params  parse-cord-param
+                            parse-cord-param
+                            parse-cord-param
+  =/  cord-four-param
+    %+  stag  %four-param
+    %:  parse-four-params  parse-cord-param
+                           parse-ud-param
+                           parse-ud-param
+                           parse-cord-param
     ==
+  =/  scalar-one-or-two  ;~(pose scalar-two-param scalar-one-param)
+  =/  cord-one-or-two    ;~(pose cord-two-param cord-one-param)
+  =/  cord-one-two-or-three
+    ;~(pose cord-three-param cord-two-param cord-one-param)
+  ?+  fn-name
+    (fail tub)
+    %getutcdate  ((stag %no-params (parse-no-params ~)) tub)
+    %e           ((stag %no-params (parse-no-params ~)) tub)
+    %phi         ((stag %no-params (parse-no-params ~)) tub)
+    %pi          ((stag %no-params (parse-no-params ~)) tub)
+    %tau         ((stag %no-params (parse-no-params ~)) tub)
+    %day         (scalar-one-param tub)
+    %month       (scalar-one-param tub)
+    %year        (scalar-one-param tub)
+    %abs         (scalar-one-param tub)
+    %floor       (scalar-one-param tub)
+    %ceiling     (scalar-one-param tub)
+    %sign        (scalar-one-param tub)
+    %sqrt        (scalar-one-param tub)
+    %degrees     (scalar-one-param tub)
+    %sin         (scalar-one-param tub)
+    %cos         (scalar-one-param tub)
+    %tan         (scalar-one-param tub)
+    %asin        (scalar-one-param tub)
+    %acos        (scalar-one-param tub)
+    %atan        (scalar-one-param tub)
+    %len         (scalar-one-param tub)
+    %lower       (cord-one-param tub)
+    %upper       (cord-one-param tub)
+    %reverse     (cord-one-param tub)
+    %string      ((stag %one-param (parse-one-param parse-numeric-param)) tub)
+    %max         (scalar-two-param tub)
+    %min         (scalar-two-param tub)
+    %rand        (scalar-two-param tub)
+    %atan2       (scalar-two-param tub)
+    %round       (scalar-two-param tub)
+    %left        (scalar-two-param tub)
+    %right       (scalar-two-param tub)
+    %log         (scalar-one-or-two tub)
+    %trim        (scalar-one-or-two tub)
+    %substring   (;~(pose scalar-three-param scalar-two-param) tub)
+    %concat      ((stag %n-params (parse-n-params parse-scalar-param)) tub)
+    %ltrim       (cord-one-or-two tub)
+    %rtrim       (cord-one-or-two tub)
+    %patindex    (cord-two-param tub)
+    %replace     (cord-three-param tub)
+    %replicate   ((stag %two-param (parse-two-params parse-cord-param parse-ud-param)) tub)
+    %stuff       (cord-four-param tub)
+    %quotestring  (cord-one-two-or-three tub)
+    %string-concat  ((stag %n-params (parse-n-params parse-cord-param)) tub)
+  ==
+++  parse-builtin-scalar-fn
+  |=  tub=nail
+  ^-  (like *)
+  =/  name-result  (parse-builtin-scalar-name tub)
+  ?~  q.name-result
+    name-result
+  =/  fn-name  p.u.q.name-result
+  =/  rest  q.u.q.name-result
+  =/  params-result  (parse-builtin-scalar-params fn-name rest)
+  ?~  q.params-result
+    (fail tub)
+  =/  params  p.u.q.params-result
+  =/  tail  q.u.q.params-result
+  :*  p.params-result
+      [~ u=[p=[%builtin-fn [fn-name params]] q=tail]]
+  ==
 ::
 ++  cook-scalar-param
   |=  parsed=*
@@ -5544,43 +5504,28 @@
         (tree-to-arithmetic r.op-tree)
   ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
 ::
-++  arithmetic-token
+++  arithmetic-token-core
   ;~  pose
-    ;~(pfix whitespace (cold %end (jester 'end')))
-    ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
+    (cold %end (jester 'end'))
+    (cold %pal pal)
+    (cold %par par)
+    (cold %lus lus)
+    (cold %hep hep)
+    (cold %tar tar)
+    (cold %fas fas)
+    (cold %cen cen)
+    (cold %ket ket)
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~  pfix
-      whitespace
-      ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
-    ==
-    ;~  pfix
-      whitespace
-      ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
-    ==
     ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
     ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
-    ;~(pfix whitespace parse-coalesce)
-    ;~(pfix whitespace parse-builtin-scalar-fn)
     parse-coalesce
     parse-builtin-scalar-fn
-    (cold %pal ;~(plug whitespace pal))
-    (cold %pal pal)
-    (cold %par ;~(plug whitespace par))
-    (cold %par par)
-    (cold %lus ;~(plug whitespace lus))
-    (cold %lus lus)
-    (cold %hep ;~(plug whitespace hep))
-    (cold %hep hep)
-    (cold %tar ;~(plug whitespace tar))
-    (cold %tar tar)
-    (cold %fas ;~(plug whitespace fas))
-    (cold %fas fas)
-    (cold %cen ;~(plug whitespace cen))
-    (cold %cen cen)
-    (cold %ket ;~(plug whitespace ket))
-    (cold %ket ket)
-    ;~(pfix whitespace parse-scalar-param)
     parse-scalar-param
+  ==
+++  arithmetic-token
+  ;~  pose
+    ;~(pfix whitespace arithmetic-token-core)
+    arithmetic-token-core
   ==
 ::
 ++  parse-arithmetic
