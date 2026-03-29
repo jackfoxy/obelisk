@@ -195,15 +195,13 @@
       ::    fix when outer joins implemented 
       ::=/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
       ::             ?:  ?=(qualified-column:ast n.l.p)  n.l.p
-      ::             ?:  ?=(cte-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(dime n.l.p)  n.l.p
       ::             ~|("prepare-binary-op can't get here" !!)
       ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
-      ::             ?:  ?=(qualified-column:ast  n.r.p)   n.r.p
-      ::             ?:  ?=(cte-name:ast n.l.p)  n.l.p
-      ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-      ::             ?:  ?=(dime  n.r.p)   n.r.p
+      ::             ?:  ?=(qualified-column:ast n.r.p)   n.r.p
+      ::             ?:  ?=(scalar-name:ast n.r.p)   n.r.p
+      ::             ?:  ?=(dime n.r.p)   n.r.p
       ::             ~|("prepare-binary-op can't get here" !!::)
       ::=/  l-exists=?  ?:  ?=(dime l)  %.y
       ::                (~(has by map-meta) name.l)
@@ -649,7 +647,6 @@
   ^-  datum:ast
   ?:  ?=(unqualified-column:ast c)  c
   ?:  ?=(qualified-column:ast c)    c
-  ?:  ?=(cte-name:ast c)            c
   ?:  ?=(cte-column:ast c)          c
   ?:  ?=(scalar-name:ast c)         c
   ?:  ?=(dime c)                    c

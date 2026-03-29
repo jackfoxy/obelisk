@@ -140,7 +140,6 @@
     qualified-column
     unqualified-column
     cte-column
-    cte-name
     scalar-name
     dime
     ==

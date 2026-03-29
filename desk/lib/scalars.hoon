@@ -2418,8 +2418,7 @@
 ++  check-consistent-types
   ::  validate that all datum items share a common aura type,
   ::  and (if allowed is non-empty) that type is in the allowed list.
-  ::  returns [common-type list] with any cte-name or unqualified-column
-  ::  resolved via cte-to-literal replaced by their dime.
+  ::  returns [common-type list].
   ::  crashes on empty dos.
   |=  $:  dos=(list resolved-scalar)
           allowed=(list @ta)
@@ -2504,9 +2503,6 @@
     scalar-name:ast    :: must be before dime
       ~|  "scalar {<name.datum>} not found"
           (~(got by resolved-scalars) name.datum)
-    ::
-    cte-name:ast
-      (cte-to-literal named-ctes datum)
     ::
     dime
       datum
