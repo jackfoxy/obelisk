@@ -199,14 +199,14 @@
 ++  test-scalars-03
   =/  query-string
     "FROM foo ".
-    "SCALARS sc1 BEGIN ABS(-5) + 1 END ".
-    "        sc2 BEGIN FLOOR(.2.8) - CEILING(.1.2) END ".
-    "        sc4 BEGIN LOG(10) / ABS(-5) END ".
-    "        sc5 BEGIN ROUND(.3.7, 0) ^ 2 END ".
-    "        sc6 BEGIN LEN('hello') + DAY(2023.1.15) END ".
-    "        sc7 BEGIN (ABS(-3) + FLOOR(.2.9)) * SQRT(16) END ".
-    "        sc9 BEGIN YEAR(2023.6.20) - MONTH(2023.6.20) END ".
-    "        sc10 BEGIN (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
+    "SCALARS sc1 ABS(-5) + 1 END ".
+    "        sc2 FLOOR(.2.8) - CEILING(.1.2) END ".
+    "        sc4 LOG(10) / ABS(-5) END ".
+    "        sc5 ROUND(.3.7, 0) ^ 2 END ".
+    "        sc6 LEN('hello') + DAY(2023.1.15) END ".
+    "        sc7 (ABS(-3) + FLOOR(.2.9)) * SQRT(16) END ".
+    "        sc9 YEAR(2023.6.20) - MONTH(2023.6.20) END ".
+    "        sc10 (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-05             [p=~.rs q=.5]
@@ -2315,12 +2315,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 + 1 END ".
-    "        foo2 BEGIN 1 - 1 END ".
-    "        foo3 BEGIN 1 / 1 END ".
-    "        foo4 BEGIN 1 * 1 END ".
-    "        foo5 BEGIN 1 ^ 1 END ".
-    "        foo6 BEGIN 1 % 1 END ".
+    "SCALARS foo1 1 + 1 END ".
+    "        foo2 1 - 1 END ".
+    "        foo3 1 / 1 END ".
+    "        foo4 1 * 1 END ".
+    "        foo5 1 ^ 1 END ".
+    "        foo6 1 % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  scalars
@@ -2342,12 +2342,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN (1 + 1) + 1 END ".
-    "        foo2 BEGIN (1 - 1) - 1 END ".
-    "        foo3 BEGIN (1 / 1) / 1 END ".
-    "        foo4 BEGIN (1 * 1) * 1 END ".
-    "        foo5 BEGIN (1 ^ 1) ^ 1 END ".
-    "        foo6 BEGIN (1 % 1) % 1 END ".
+    "SCALARS foo1 (1 + 1) + 1 END ".
+    "        foo2 (1 - 1) - 1 END ".
+    "        foo3 (1 / 1) / 1 END ".
+    "        foo4 (1 * 1) * 1 END ".
+    "        foo5 (1 ^ 1) ^ 1 END ".
+    "        foo6 (1 % 1) % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
@@ -2411,12 +2411,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 + (1 + 1) END ".
-    "        foo2 BEGIN 1 - (1 - 1) END ".
-    "        foo3 BEGIN 1 / (1 / 1) END ".
-    "        foo4 BEGIN 1 * (1 * 1) END ".
-    "        foo5 BEGIN 1 ^ (1 ^ 1) END ".
-    "        foo6 BEGIN 1 % (1 % 1) END ".
+    "SCALARS foo1 1 + (1 + 1) END ".
+    "        foo2 1 - (1 - 1) END ".
+    "        foo3 1 / (1 / 1) END ".
+    "        foo4 1 * (1 * 1) END ".
+    "        foo5 1 ^ (1 ^ 1) END ".
+    "        foo6 1 % (1 % 1) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
@@ -2480,12 +2480,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN ((1 * 1) - 1) + 1 END ".
-    "        foo2 BEGIN ((1 + 1) ^ 1) - 1 END ".
-    "        foo3 BEGIN ((1 - 1) * 1) / 1 END ".
-    "        foo4 BEGIN ((1 / 1) + 1) * 1 END ".
-    "        foo5 BEGIN ((1 ^ 1) / 1) ^ 1 END ".
-    "        foo6 BEGIN ((1 % 1) % 1) % 1 END ".
+    "SCALARS foo1 ((1 * 1) - 1) + 1 END ".
+    "        foo2 ((1 + 1) ^ 1) - 1 END ".
+    "        foo3 ((1 - 1) * 1) / 1 END ".
+    "        foo4 ((1 / 1) + 1) * 1 END ".
+    "        foo5 ((1 ^ 1) / 1) ^ 1 END ".
+    "        foo6 ((1 % 1) % 1) % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  inner-multiplication
@@ -2573,12 +2573,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 + (1 - (1 * 1)) END ".
-    "        foo2 BEGIN 1 - (1 ^ (1 + 1)) END ".
-    "        foo3 BEGIN 1 / (1 * (1 - 1)) END ".
-    "        foo4 BEGIN 1 * (1 + (1 / 1)) END ".
-    "        foo5 BEGIN 1 ^ (1 / (1 ^ 1)) END ".
-    "        foo6 BEGIN 1 % (1 % (1 % 1)) END ".
+    "SCALARS foo1 1 + (1 - (1 * 1)) END ".
+    "        foo2 1 - (1 ^ (1 + 1)) END ".
+    "        foo3 1 / (1 * (1 - 1)) END ".
+    "        foo4 1 * (1 + (1 / 1)) END ".
+    "        foo5 1 ^ (1 / (1 ^ 1)) END ".
+    "        foo6 1 % (1 % (1 % 1)) END ".
     "SELECT foo2,foo3"
   ::
   =/  inner-multiplication
@@ -2665,21 +2665,21 @@
 ++  test-arithmetic-6
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 +1 END ".
-    "        foo2 BEGIN 1  -  1 END ".
-    "        foo3 BEGIN 1 /1 END ".
-    "        foo4 BEGIN 1 *1 END ".
-    "        foo5 BEGIN 1   ^   1 END ".
-    "        foo6 BEGIN (1 +1)+1 END ".
-    "        foo7 BEGIN ( 1 -1 ) - 1 END ".
-    "        foo8 BEGIN (1 / 1)/  1 END ".
-    "        foo9 BEGIN 1 +( 1 + 1 ) END ".
-    "        foo10 BEGIN 1 -(1 -1) END ".
-    "        foo11 BEGIN 1  /  (1 / 1) END ".
-    "        foo12 BEGIN ((1 *1) -1) +1 END ".
-    "        foo13 BEGIN ( ( 1 + 1 ) ^ 1 ) - 1 END ".
-    "        foo14 BEGIN 1 +  (1 -(1 *1)) END ".
-    "        foo15 BEGIN 1 *(  1 +(1 /1)  ) END ".
+    "SCALARS foo1 1 +1 END ".
+    "        foo2 1  -  1 END ".
+    "        foo3 1 /1 END ".
+    "        foo4 1 *1 END ".
+    "        foo5 1   ^   1 END ".
+    "        foo6 (1 +1)+1 END ".
+    "        foo7 ( 1 -1 ) - 1 END ".
+    "        foo8 (1 / 1)/  1 END ".
+    "        foo9 1 +( 1 + 1 ) END ".
+    "        foo10 1 -(1 -1) END ".
+    "        foo11 1  /  (1 / 1) END ".
+    "        foo12 ((1 *1) -1) +1 END ".
+    "        foo13 ( ( 1 + 1 ) ^ 1 ) - 1 END ".
+    "        foo14 1 +  (1 -(1 *1)) END ".
+    "        foo15 1 *(  1 +(1 /1)  ) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition-no-space
@@ -2785,38 +2785,38 @@
 ++  test-arithmetic-7
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1  BEGIN 2 ^ 3 ^ 3 END ".
-    "        foo2  BEGIN 2 ^ (3 ^ 3) END ".
-    "        foo3  BEGIN (2 ^ 3) ^ 3 END ".
-    "        foo4  BEGIN 2 + 3 + 4 END ".
-    "        foo5  BEGIN 2 + (3 + 4) END ".
-    "        foo6  BEGIN (2 + 3) + 4 END ".
-    "        foo7  BEGIN 2 - 3 - 4 END ".
-    "        foo8  BEGIN 2 - (3 - 4) END ".
-    "        foo9  BEGIN (2 - 3) - 4 END ".
-    "        foo10 BEGIN 2 * 3 * 4 END ".
-    "        foo11 BEGIN 2 * (3 * 4) END ".
-    "        foo12 BEGIN (2 * 3) * 4 END ".
-    "        foo13 BEGIN 2 / 3 / 4 END ".
-    "        foo14 BEGIN 2 / (3 / 4) END ".
-    "        foo15 BEGIN (2 / 3) / 4 END ".
-    "        foo16 BEGIN 2 + 3 * 4 END ".
-    "        foo17 BEGIN (2 + 3) * 4 END ".
-    "        foo18 BEGIN 2 * 3 + 4 END ".
-    "        foo19 BEGIN 2 * 3 ^ 4 END ".
-    "        foo20 BEGIN (2 * 3) ^ 4 END ".
-    "        foo21 BEGIN 2 ^ 3 * 4 END ".
-    "        foo22 BEGIN 2 + 3 - 4 * 5 / 2 END ".
-    "        foo23 BEGIN 2 ^ 3 + 4 * 5 - 6 / 2 END ".
-    "        foo24 BEGIN 2 % 3 % 4 END ".
-    "        foo25 BEGIN 2 % (3 % 4) END ".
-    "        foo26 BEGIN (2 % 3) % 4 END ".
-    "        foo27 BEGIN 2 + 3 % 4 END ".
-    "        foo28 BEGIN 2 % 3 + 4 END ".
-    "        foo29 BEGIN 2 * 3 % 4 END ".
-    "        foo30 BEGIN 2 % 3 * 4 END ".
-    "        foo31 BEGIN 2 ^ 3 % 4 END ".
-    "        foo32 BEGIN 2 % 3 ^ 4 END ".
+    "SCALARS foo1  2 ^ 3 ^ 3 END ".
+    "        foo2  2 ^ (3 ^ 3) END ".
+    "        foo3  (2 ^ 3) ^ 3 END ".
+    "        foo4  2 + 3 + 4 END ".
+    "        foo5  2 + (3 + 4) END ".
+    "        foo6  (2 + 3) + 4 END ".
+    "        foo7  2 - 3 - 4 END ".
+    "        foo8  2 - (3 - 4) END ".
+    "        foo9  (2 - 3) - 4 END ".
+    "        foo10 2 * 3 * 4 END ".
+    "        foo11 2 * (3 * 4) END ".
+    "        foo12 (2 * 3) * 4 END ".
+    "        foo13 2 / 3 / 4 END ".
+    "        foo14 2 / (3 / 4) END ".
+    "        foo15 (2 / 3) / 4 END ".
+    "        foo16 2 + 3 * 4 END ".
+    "        foo17 (2 + 3) * 4 END ".
+    "        foo18 2 * 3 + 4 END ".
+    "        foo19 2 * 3 ^ 4 END ".
+    "        foo20 (2 * 3) ^ 4 END ".
+    "        foo21 2 ^ 3 * 4 END ".
+    "        foo22 2 + 3 - 4 * 5 / 2 END ".
+    "        foo23 2 ^ 3 + 4 * 5 - 6 / 2 END ".
+    "        foo24 2 % 3 % 4 END ".
+    "        foo25 2 % (3 % 4) END ".
+    "        foo26 (2 % 3) % 4 END ".
+    "        foo27 2 + 3 % 4 END ".
+    "        foo28 2 % 3 + 4 END ".
+    "        foo29 2 * 3 % 4 END ".
+    "        foo30 2 % 3 * 4 END ".
+    "        foo31 2 ^ 3 % 4 END ".
+    "        foo32 2 % 3 ^ 4 END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-2              [p=~.ud q=2]
@@ -3223,7 +3223,7 @@
   =/  query-string
     :: commented some out because not sure that we want double spacing
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1+1 END ".
+    "SCALARS foo1 1+1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3238,7 +3238,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN CONCAT('hello', 'world') + 1 END ".
+    "SCALARS foo CONCAT('hello', 'world') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3250,7 +3250,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN LEFT('hello', 2) - 5 END ".
+    "SCALARS foo LEFT('hello', 2) - 5 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3262,7 +3262,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN 10 * RIGHT('world', 3) END ".
+    "SCALARS foo 10 * RIGHT('world', 3) END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3274,7 +3274,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN SUBSTRING('hello', 1, 3) / 2 END ".
+    "SCALARS foo SUBSTRING('hello', 1, 3) / 2 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3286,7 +3286,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN 2 ^ TRIM('  hello  ') END ".
+    "SCALARS foo 2 ^ TRIM('  hello  ') END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3298,7 +3298,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN GETUTCDATE() + 100 END ".
+    "SCALARS foo GETUTCDATE() + 100 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3310,7 +3310,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN LEFT('abc', 1) + RIGHT('xyz', 1) END ".
+    "SCALARS foo LEFT('abc', 1) + RIGHT('xyz', 1) END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3322,7 +3322,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN (5 + CONCAT('a', 'b')) * 2 END ".
+    "SCALARS foo (5 + CONCAT('a', 'b')) * 2 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3334,7 +3334,7 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN 42 END ".
+    "SCALARS foo 42 END ".
     "SELECT foo"
   ::
   %+  expect-fail-message
@@ -3949,7 +3949,7 @@
 ++  test-fail-arithmetic-10
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN LOWER('hello') + 1 END ".
+    "SCALARS foo LOWER('hello') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3960,7 +3960,7 @@
 ++  test-fail-arithmetic-11
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN UPPER('hello') + 1 END ".
+    "SCALARS foo UPPER('hello') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3971,7 +3971,7 @@
 ++  test-fail-arithmetic-12
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN REVERSE('hello') + 1 END ".
+    "SCALARS foo REVERSE('hello') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3982,7 +3982,7 @@
 ++  test-fail-arithmetic-13
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN LTRIM('hello') + 1 END ".
+    "SCALARS foo LTRIM('hello') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -3993,7 +3993,7 @@
 ++  test-fail-arithmetic-14
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN RTRIM('hello') + 1 END ".
+    "SCALARS foo RTRIM('hello') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4004,7 +4004,7 @@
 ++  test-fail-arithmetic-15
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN PATINDEX('hello','ll') + 1 END ".
+    "SCALARS foo PATINDEX('hello','ll') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4015,7 +4015,7 @@
 ++  test-fail-arithmetic-16
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN REPLACE('hello','ll','LL') + 1 END ".
+    "SCALARS foo REPLACE('hello','ll','LL') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4026,7 +4026,7 @@
 ++  test-fail-arithmetic-17
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN REPLICATE('hello',3) + 1 END ".
+    "SCALARS foo REPLICATE('hello',3) + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4037,7 +4037,7 @@
 ++  test-fail-arithmetic-18
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN QUOTESTRING('hello') + 1 END ".
+    "SCALARS foo QUOTESTRING('hello') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4048,7 +4048,7 @@
 ++  test-fail-arithmetic-19
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN STRING(3) + 1 END ".
+    "SCALARS foo STRING(3) + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4059,7 +4059,7 @@
 ++  test-fail-arithmetic-20
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN STRING-CONCAT('a','b',' ') + 1 END ".
+    "SCALARS foo STRING-CONCAT('a','b',' ') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
@@ -4071,7 +4071,7 @@
 ++  test-fail-arithmetic-21
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN STUFF('hello',2,3,'xx') + 1 END ".
+    "SCALARS foo STUFF('hello',2,3,'xx') + 1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message

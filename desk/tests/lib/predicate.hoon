@@ -28,6 +28,10 @@
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @sd, col3 @sd) ".
   "PRIMARY KEY (col1)"
+++  create-ud-3col-table
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 @ud, col3 @ud, col4 @ud) ".
+  "PRIMARY KEY (col1)"
 ++  create-joined-tables
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @da) ".
@@ -12506,6 +12510,217 @@
     :~  [%scalar-02 scalar-row-02]
         ==
   ==
+::
+::  WHERE <scalar-fn> = <literal>
+++  test-scalar-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE my-scalar = 6 ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <literal> = <scalar-fn>
+++  test-scalar-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE 6 = my-scalar ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <scalar-fn> = <column>
+++  test-scalar-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE my-scalar = col2 ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> = <scalar-fn>
+++  test-scalar-06
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE col2 = my-scalar ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <scalar-fn> = <scalar-fn>
+++  test-scalar-07
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS left-scalar (col2 + col3 + 2) - 6 END ".
+          "right-scalar (col4 * 2 + 0) / 2 END ".
+          "WHERE left-scalar = right-scalar ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
 ::
 ::  fail WHERE <scalar-fn> = <column> types differ
 ++  test-fail-scalar-00

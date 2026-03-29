@@ -191,6 +191,38 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov2))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov3))
 ::
+++  debug-0-2
+  ::  init + 2 resolve → compare 2 results
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve-1=[tmsp=@da db=@tas uql=tape]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result:ast
+          expect-2=cmd-result:ast
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  ::=^  mov2  agent
+  ::%+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+  ::    %obelisk-action
+  ::    !>  [%tape2 db.resolve-1 uql.resolve-1]
+  ::=^  mov3  agent
+  ::%+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
+  ::    %obelisk-action
+  ::    !>  [%tape2 db.resolve-2 uql.resolve-2]
+  ::::
+  ::%+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov2))
+  ::          (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov3))
+
+  ::
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+                %obelisk-action
+                !>([%test db.resolve-1 uql.resolve-1])
+::
 ++  exec-1-1
   ::  init + 1 action + 1 resolve → compare  result
   |=  $:  run=@ud
@@ -213,6 +245,29 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov3))
+::
+++  debug-1-1
+  ::  init + 1 action + 1 resolve → compare  result
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expect=cmd-result:ast
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action]))
+      %obelisk-action
+      !>  [%tape2 db.action uql.action]
+  ::
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+                %obelisk-action
+                !>([%test db.resolve uql.resolve])
 ::
 ++  exec-1-l
   ::  init + 1 action + 1 resolves → compare 1 result (list cmd-result:ast)

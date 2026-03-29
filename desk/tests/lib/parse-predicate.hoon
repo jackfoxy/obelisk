@@ -81,6 +81,8 @@
       ~
 ++  foobar
   [[%unqualified-column 'foobar' ~] ~ ~]
+++  left-scalar
+  [[%unqualified-column 'left-scalar' ~] ~ ~]
 ++  a1-adoption-email
   :+  :^  %qualified-column
           [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
@@ -2543,6 +2545,30 @@
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :+  :*  %query
                     from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  bare hyphenated unqualified column in predicate
+++  test-predicate-72
+  =/  query
+        "FROM foo WHERE left-scalar = 10 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq left-scalar literal-10]
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    from-foo
                     scalars=~
                     pred
                     group-by=~
