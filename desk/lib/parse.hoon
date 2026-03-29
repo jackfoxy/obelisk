@@ -5674,6 +5674,34 @@
     ==
   ==
 ::
+++  arithmetic-continuation
+  ;~  pose
+    ;~(pfix whitespace (jester 'end'))
+    ;~(pfix whitespace lus)
+    ;~(pfix whitespace hep)
+    ;~(pfix whitespace tar)
+    ;~(pfix whitespace fas)
+    ;~(pfix whitespace ket)
+    (jester 'end')
+    lus
+    hep
+    tar
+    fas
+    ket
+  ==
+::
+++  parse-standalone-builtin-scalar-fn
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (parse-builtin-scalar-fn tub)
+  ?~  q.parsed
+    parsed
+  =/  rest  q.u.q.parsed
+  =/  continuation  (arithmetic-continuation rest)
+  ?.  ?=(^ q.continuation)
+    parsed
+  (fail tub)
+::
 ++  scalar-stop
   ;~  pose
     ;~(plug whitespace (jester 'where') whitespace)
@@ -5693,6 +5721,7 @@
     ==
     ==
     parse-coalesce
+    parse-standalone-builtin-scalar-fn
     parse-arithmetic
     parse-builtin-scalar-fn
   ==

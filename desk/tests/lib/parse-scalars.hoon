@@ -171,7 +171,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test-scalars-02 test mixed-case keyword and unqualified columns
 ++  test-scalars-02
@@ -193,7 +193,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing arithmetic with builtin functions
 ++  test-scalars-03
@@ -302,7 +302,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test-fail-scalars-01 tests that parsing fails when there are two scalars
 ::  with the same alias
@@ -315,7 +315,7 @@
   ::
   %+  expect-fail-message
     'there is already a scalar named %bar1'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::  test-fail-scalars-02 tests that parsing fails when scalars are defined
 ::  without a select statement after
 ++  test-fail-scalars-02
@@ -326,7 +326,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  builtin scalar functions
 ::  spaces after parameters, also test for optional parameters
@@ -415,7 +415,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before parameters
 ++  test-builtins-02
@@ -494,7 +494,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 
 ::  spaces after parameters
 ++  test-builtins-03
@@ -579,7 +579,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before and after parameters
 ++  test-builtins-04
@@ -664,7 +664,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  coalesce
 ::
@@ -685,7 +685,7 @@
 =/  expected  (mk-selection scalars ~)
 %+  expect-eq
   !>  expected
-  !>  (parse:parse(default-database default-db) query-string)
+  !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce, 2 scalars
 ++  test-coalesce-02
@@ -706,7 +706,7 @@
 =/  expected  (mk-selection scalars ~)
 %+  expect-eq
   !>  expected
-  !>  (parse:parse(default-database default-db) query-string)
+  !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with ship.database.namespace.table.column
 ++  test-coalesce-03
@@ -725,7 +725,7 @@
 =/  expected=(list command:ast)  (mk-selection scalars ~)
 %+  expect-eq
   !>  expected
-  !>  (parse:parse(default-database default-db) query-string)
+  !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with ship.database..table.column (default ns)
 ++  test-coalesce-04
@@ -744,7 +744,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with database.namespace.table.column
 ++  test-coalesce-05
@@ -763,7 +763,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with database..table.column (default namespace)
 ++  test-coalesce-06
@@ -782,7 +782,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with namespace.table.column (default database)
 ++  test-coalesce-07
@@ -801,7 +801,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with alias.column (default database)
 ++  test-coalesce-08
@@ -828,7 +828,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column coalesce with alias.column (default database)
 :: should fail, table alias is not defined
@@ -862,7 +862,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with case scalar inline
 ++  test-coalesce-10
@@ -891,7 +891,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with coalesce scalar inline
 ++  test-coalesce-11
@@ -918,7 +918,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test coalesce with a coalesce nested in a coalesce
 ++  test-coalesce-12
@@ -953,7 +953,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce with space between name and arguments
 ++  test-coalesce-13
@@ -972,7 +972,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce with last element as scalar-name
 ++  test-coalesce-14
@@ -995,7 +995,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  fail on relation not defined
 ++  test-fail-coalesce-01
@@ -1009,7 +1009,7 @@
     [%coalesce ~[qualified-col-6 literal-zod literal-1 unqualified-foo-3]]
   %+  expect-fail-message
     'table alias \'MyTable\' is not defined'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce without parens - should fail
 ++  test-fail-coalesce-02
@@ -1021,7 +1021,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: coalesce without parens - should fail
 ++  test-fail-coalesce-03
@@ -1033,7 +1033,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: fail on coalesce with 1 param
 ++  test-fail-coalesce-04
@@ -1045,7 +1045,7 @@
   ::
   %+  expect-fail-message
     'COALESCE requires at least 2 parameters'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  simple if
 ++  test-if-01
@@ -1066,7 +1066,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: if with two scalars
 ++  test-if-02
@@ -1092,7 +1092,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with ship.database.namespace.table.column
 ++  test-if-03
@@ -1116,7 +1116,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with ship.database..table.column (default ns)
 ++  test-if-04
@@ -1140,7 +1140,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with database.namespace.table.column
 ++  test-if-05
@@ -1164,7 +1164,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with database..table.column (default namespace)
 ++  test-if-06
@@ -1188,7 +1188,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with namespace.table.column (default database)
 ++  test-if-07
@@ -1212,7 +1212,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with alias.column (default database)
 ++  test-if-08
@@ -1244,7 +1244,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column if scalar with alias.column (should fail - undefined alias)
 ++  test-if-09
@@ -1272,7 +1272,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with case scalar inline
 ++  test-if-10
@@ -1304,7 +1304,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with if scalar inline
 ++  test-if-11
@@ -1337,7 +1337,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with a if nested in a if
 ++  test-if-12
@@ -1379,7 +1379,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test if with scalar-name as else element
 ++  test-if-13
@@ -1412,7 +1412,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ++  test-fail-if-01
   ::
@@ -1424,7 +1424,7 @@
   ::
   %+  expect-fail-message
     'table alias \'MyTable\' is not defined'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression with expression
 ++  test-case-simple-01
@@ -1444,7 +1444,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression with expression, no else
 ++  test-case-simple-02
@@ -1463,7 +1463,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 
 :: simple case expression with expression, two cases, one with else
 :: the other without
@@ -1491,7 +1491,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression with expression, two cases in the same scalar
 ++  test-case-simple-04
@@ -1528,7 +1528,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: qualified column case scalar with
 :: ship.database.namespace.table.column
@@ -1554,7 +1554,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: qualified column case scalar with
 :: ship.database..table.column (default ns)
@@ -1580,7 +1580,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: qualified column case scalar with
 :: database.namespace.table.column
@@ -1606,7 +1606,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: qualified column case scalar with
 :: database..table.column (default ns)
@@ -1632,7 +1632,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: qualified column case scalar with
 :: namespace.table.column (default database)
@@ -1658,7 +1658,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: qualified column case scalar with
 :: alias.column (default database)
@@ -1692,7 +1692,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: test case with coalesce scalar inline
 ++  test-case-simple-11
@@ -1720,7 +1720,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: test case with if scalar inline
 ++  test-case-simple-12
@@ -1753,7 +1753,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: test case with case scalar inline
 ++  test-case-simple-13
@@ -1786,7 +1786,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: test case with a case nested in a case
 ++  test-case-simple-14
@@ -1828,7 +1828,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: test case with scalar-name as else element
 ++  test-case-simple-15
@@ -1861,7 +1861,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple case expression: test case with scalar-name as target element
 ++  test-case-simple-16
@@ -1889,7 +1889,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression with predicate
 ++  test-case-searched-01
@@ -1909,7 +1909,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression with predicate, no else
 ++  test-case-searched-02
@@ -1929,7 +1929,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression with predicate, two cases, one with else
 :: the other without
@@ -1957,7 +1957,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression with predicate, two cases in the same scalar
 ++  test-case-searched-04
@@ -1994,7 +1994,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: qualified column case scalar with ship.database.namespace.table.column
 ++  test-case-searched-05
@@ -2019,7 +2019,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: qualified column case scalar
 :: with ship.database..table.column (default ns)
@@ -2045,7 +2045,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: qualified column case scalar
 :: with database.namespace.table.column
@@ -2071,7 +2071,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: qualified column case scalar with
 :: database..table.column (default ns)
@@ -2097,7 +2097,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: qualified column case scalar with
 :: namespace.table.column (default database)
@@ -2123,7 +2123,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: qualified column case scalar with
 :: alias.column (default database)
@@ -2157,7 +2157,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with coalesce scalar inline
 ++  test-case-searched-11
@@ -2185,7 +2185,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with if scalar inline
 ++  test-case-searched-12
@@ -2218,7 +2218,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with case scalar inline
 ++  test-case-searched-13
@@ -2251,7 +2251,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: searched case expression: test case with a case nested in a case
 ++  test-case-searched-14
@@ -2293,7 +2293,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  arithmetic
 ::
@@ -2308,7 +2308,7 @@
   ::
   %+  expect-fail-message
     'table alias \'MyTable\' is not defined'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: simple math expression
 ++  test-arithmetic-1
@@ -2335,7 +2335,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: singly nested math expressions
 ++  test-arithmetic-2
@@ -2404,7 +2404,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: singly nested math expressions (right side)
 ++  test-arithmetic-3
@@ -2473,7 +2473,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: doubly nested math expressions
 ++  test-arithmetic-4
@@ -2566,7 +2566,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: doubly nested math expressions (right side)
 ++  test-arithmetic-5
@@ -2659,7 +2659,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: arithmetic expressions with spacing variations
 ++  test-arithmetic-6
@@ -2779,7 +2779,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test operator associativity
 ++  test-arithmetic-7
@@ -3211,7 +3211,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 :: test that there can't be an operator right after an operand
 ::
@@ -3228,7 +3228,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test-fail-arithmetic-* tests verify that non-arithmetic builtin functions
 ::  (one that return string and date) can't be used with arithmetic operators
@@ -3243,7 +3243,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %concat in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function LEFT with subtraction operator
 ++  test-fail-arithmetic-02
@@ -3255,7 +3255,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %left in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function RIGHT with multiplication operator
 ++  test-fail-arithmetic-03
@@ -3267,7 +3267,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %right in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function SUBSTRING with division operator
 ++  test-fail-arithmetic-04
@@ -3279,7 +3279,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %substring in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function TRIM with exponentiation operator
 ++  test-fail-arithmetic-05
@@ -3291,7 +3291,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %trim in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing date function GETUTCDATE with addition operator
 ++  test-fail-arithmetic-06
@@ -3303,7 +3303,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %getutcdate in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string on both sides of operator
 ++  test-fail-arithmetic-07
@@ -3315,7 +3315,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %left in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test nested arithmetic with string function
 ++  test-fail-arithmetic-08
@@ -3327,7 +3327,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %concat in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test single operand in arithmetic expression
 ++  test-fail-arithmetic-09
@@ -3340,7 +3340,7 @@
   %+  expect-fail-message
     'can\'t do arithmetic with only a single operand:\
     / [p=~.ud q=42]'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  new math and trig builtins
 ::
@@ -3389,7 +3389,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before parameters
 ++  test-builtins-06
@@ -3456,7 +3456,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>   ~>  %bout  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces after parameters
 ++  test-builtins-07
@@ -3523,7 +3523,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before and after parameters
 ++  test-builtins-08
@@ -3590,7 +3590,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  new string scalar builtins
 ::
@@ -3660,7 +3660,7 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before params
 ++  test-builtins-10
@@ -3736,7 +3736,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces after params
 ++  test-builtins-11
@@ -3812,7 +3812,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  spaces before and after params
 ++  test-builtins-12
@@ -3888,7 +3888,7 @@
   =/  expected  (mk-selection scalars (some table))
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  CONCAT requires at least 2 parameters
 ++  test-fail-concat-01
@@ -3899,7 +3899,7 @@
   ::
   %+  expect-fail-message
     'CONCAT requires at least 2 parameters'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  CONCAT with 0 args also requires at least 2 parameters
 ++  test-fail-concat-02
@@ -3910,7 +3910,7 @@
   ::
   %+  expect-fail-message
     'CONCAT requires at least 2 parameters'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  STRING-CONCAT requires at least 3 parameters (1 given)
 ++  test-fail-string-concat-01
@@ -3921,7 +3921,7 @@
   ::
   %+  expect-fail-message
     'STRING-CONCAT requires at least 3 parameters'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  STRING-CONCAT requires at least 3 parameters (2 given)
 ++  test-fail-string-concat-02
@@ -3932,7 +3932,7 @@
   ::
   %+  expect-fail-message
     'STRING-CONCAT requires at least 3 parameters'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  COALESCE with 0 params requires at least 2 parameters
 ++  test-fail-coalesce-05
@@ -3943,7 +3943,7 @@
   ::
   %+  expect-fail-message
     'COALESCE requires at least 2 parameters'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function LOWER with arithmetic operator
 ++  test-fail-arithmetic-10
@@ -3954,7 +3954,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %lower in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function UPPER with arithmetic operator
 ++  test-fail-arithmetic-11
@@ -3965,7 +3965,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %upper in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function REVERSE with arithmetic operator
 ++  test-fail-arithmetic-12
@@ -3976,7 +3976,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %reverse in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function LTRIM with arithmetic operator
 ++  test-fail-arithmetic-13
@@ -3987,7 +3987,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %ltrim in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function RTRIM with arithmetic operator
 ++  test-fail-arithmetic-14
@@ -3998,7 +3998,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %rtrim in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function PATINDEX with arithmetic operator
 ++  test-fail-arithmetic-15
@@ -4009,7 +4009,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %patindex in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function REPLACE with arithmetic operator
 ++  test-fail-arithmetic-16
@@ -4020,7 +4020,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %replace in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function REPLICATE with arithmetic operator
 ++  test-fail-arithmetic-17
@@ -4031,7 +4031,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %replicate in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function QUOTESTRING with arithmetic operator
 ++  test-fail-arithmetic-18
@@ -4042,7 +4042,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %quotestring in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing STRING with arithmetic operator
 ++  test-fail-arithmetic-19
@@ -4053,7 +4053,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %string in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing STRING-CONCAT with arithmetic operator
 ++  test-fail-arithmetic-20
@@ -4065,7 +4065,7 @@
   %+  expect-fail-message
     %-  crip  "finalize-math-builtin-fn: cannot use %string-concat in ".
               "arithmetic expression"
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing string function STUFF with arithmetic operator
 ++  test-fail-arithmetic-21
@@ -4076,7 +4076,7 @@
   ::
   %+  expect-fail-message
     'finalize-math-builtin-fn: cannot use %stuff in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  wrong param count tests — parser rejects before reaching cook,
 ::  which is why these produce PARSER errors rather than the cook messages.
@@ -4091,7 +4091,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  LOG requires 1 or 2 params
 ++  test-fail-params-02
@@ -4102,7 +4102,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  TRIM requires 1 or 2 params
 ++  test-fail-params-03
@@ -4113,7 +4113,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  ROUND requires 2 params
 ++  test-fail-params-04
@@ -4124,7 +4124,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  LTRIM requires 1 or 2 params
 ++  test-fail-params-05
@@ -4135,7 +4135,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  RTRIM requires 1 or 2 params
 ++  test-fail-params-06
@@ -4146,7 +4146,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  PATINDEX requires 2 params
 ++  test-fail-params-07
@@ -4157,7 +4157,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  REPLACE requires 3 params
 ++  test-fail-params-08
@@ -4168,7 +4168,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  REPLICATE requires 2 params
 ++  test-fail-params-09
@@ -4179,7 +4179,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  STUFF requires 4 params
 ++  test-fail-params-10
@@ -4190,7 +4190,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  QUOTESTRING requires 1, 2, or 3 params
 ++  test-fail-params-11
@@ -4201,7 +4201,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::  SUBSTRING requires 1 param only
 ++  test-fail-params-12
   =/  query-string
@@ -4211,7 +4211,7 @@
   ::
   %+  expect-fail-message
     'PARSER: '
-    |.  (parse:parse(default-database default-db) query-string)
+    |.  ~>  %bout  (parse:parse(default-database default-db) query-string)
 ::
 ::  SUBSTRING without length (2-param)
 ++  test-builtins-substring
@@ -4229,5 +4229,5 @@
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
-    !>  (parse:parse(default-database default-db) query-string)
+    !>  ~>  %bout  (parse:parse(default-database default-db) query-string)
 --

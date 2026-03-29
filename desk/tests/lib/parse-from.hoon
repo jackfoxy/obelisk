@@ -1807,25 +1807,25 @@
 ++  test-join-01
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[simple-from-foo] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 10 *")
 ::
 ::  from ns1.foo (un-aliased)
 ++  test-join-02
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[simple-from-foo-ns1] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT TOP 10 *")
 ::
 ::  from db2..foo (un-aliased)
 ++  test-join-03
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[simple-from-foo-db2] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM db2..foo SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM db2..foo SELECT TOP 10 *")
 ::
 ::  from db2.ns1.foo (un-aliased)
 ++  test-join-04
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[simple-from-foo-db2-ns1] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM db2.ns1.foo SELECT TOP 10 *")
 ::
 ::  from ~nec.db2..foo (un-aliased)
 ++  test-join-05
@@ -1846,7 +1846,7 @@
 ++  test-join-07
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[aliased-from-foo] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM foo F1 SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM foo F1 SELECT TOP 10 *")
 ::
 ::  from ns1.foo (aliased)
 ++  test-join-08
@@ -1859,7 +1859,7 @@
 ++  test-join-09
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[aliased-from-foo-db2] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM db2..foo F1 SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM db2..foo F1 SELECT TOP 10 *")
 ::
 ::  from db2.ns1.foo (aliased)
 ++  test-join-10
@@ -1887,7 +1887,7 @@
 ++  test-join-13
   %+  expect-eq
     !>  ~[[%selection ctes=~ [[aliased-from-foo] ~ ~]]]
-    !>  (parse:parse(default-database 'db1') "FROM foo as F1 SELECT TOP 10 *")
+    !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM foo as F1 SELECT TOP 10 *")
 ::
 ::  from ns1.foo (aliased as)
 ++  test-join-14
@@ -2543,7 +2543,7 @@
                     ~
                     ~
       !>  ~[expected]
-      !>  (parse:parse(default-database 'db1') "FROM foo join bar SELECT *")
+      !>  ~>  %bout  (parse:parse(default-database 'db1') "FROM foo join bar SELECT *")
 ::
 ::  (natural join) from foo as (aliased) join bar (aliased)
 ++  test-join-44
