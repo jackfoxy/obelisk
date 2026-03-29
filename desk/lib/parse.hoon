@@ -1743,105 +1743,24 @@
   ==
 ++  parse-query  ~+
   ;~  pose
-    parse-query01
-    parse-query02
-    parse-query03
-    parse-query04
-    parse-query05
-    parse-query06
-    parse-query07
-    parse-query08
-    parse-query09
+    parse-from-query
     parse-query10
   ==
-++  parse-query01  ~+
+++  parse-from-query  ~+
   ;~  plug
     parse-object-and-joins
     ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~  pfix
-      whitespace
-      ~|  "query where parse: parse-query01"
-        ;~(plug (cold %where (jester 'where')) parse-predicate)
+    ;~  pose
+      ;~  pfix
+        whitespace
+        ~|  "query where parse: parse-from-query"
+          ;~(plug (cold %where (jester 'where')) parse-predicate)
+      ==
+      (easy ~)
     ==
-    parse-group-by
+    ;~(pose parse-group-by (easy ~))
     parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query02  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~  pfix
-      whitespace
-      ~|  "query where parse: parse-query02"
-        ;~(plug (cold %where (jester 'where')) parse-predicate)
-    ==
-    parse-group-by
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query03  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~  pfix
-      whitespace
-      ~|  "query where parse: parse-query03"
-        ;~(plug (cold %where (jester 'where')) parse-predicate)
-    ==
-    parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query04  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~  pfix
-      whitespace
-      ~|  "query where parse: parse-query04"
-        ;~(plug (cold %where (jester 'where')) parse-predicate)
-    ==
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query05  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query06  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query07  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-group-by
-    parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query08  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-group-by
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query09  ~+
-  ;~  plug
-    parse-object-and-joins
-    parse-select
+    ;~(pose parse-order-by (easy ~))
     end-or-next-command
   ==
 ++  parse-query10  ~+
