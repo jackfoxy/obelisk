@@ -1714,30 +1714,17 @@
             ==
 ++  parse-insert  ~+
   ;~  plug
-    ;~  pose
-      ;~  plug
-        ;~(pfix whitespace parse-qualified-table)
-        parse-as-of
-        ;~  pose
-          ;~(plug face-list ;~(pfix whitespace (jester 'values')))
-          ;~(pfix whitespace (jester 'values'))
-          ==
-        ;~  pfix
-          whitespace
-          (more whitespace (ifix [pal par] (more com parse-insert-value)))
-          ==
-      ==
-      ;~  plug
-        ;~(pfix whitespace parse-qualified-table)
-        ;~  pose
-          ;~(plug face-list ;~(pfix whitespace (jester 'values')))
-          ;~(pfix whitespace (jester 'values'))
-          ==
-        ;~  pfix
-          whitespace
-          (more whitespace (ifix [pal par] (more com parse-insert-value)))
-          ==
-      ==
+    ;~  plug
+      ;~(pfix whitespace parse-qualified-table)
+      ;~(pose parse-as-of (easy ~))
+      ;~  pose
+        ;~(plug face-list ;~(pfix whitespace (jester 'values')))
+        ;~(pfix whitespace (jester 'values'))
+        ==
+      ;~  pfix
+        whitespace
+        (more whitespace (ifix [pal par] (more com parse-insert-value)))
+        ==
     ==
     end-or-next-command
   ==
@@ -2258,6 +2245,20 @@
   =/  table  -<.a
   =/  c      ->.a
   ::
+  ?:  ?=([~ %values *] c)            :: insert rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    ~
+                    [%data +>.c]
+                    ==
+  ?:  ?=([~ [* %values] *] c)        :: insert column names rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    `+<-.c
+                    [%data +>.c]
+                    ==
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
     %:  insert:ast  %insert
                     table
@@ -2299,20 +2300,6 @@
                     [~ [%as-of-offset ->-.c ->+<.c]]
                     `+<-.c
                     [%data +>.c]
-                    ==
-  ?:  ?=([%values *] c)            :: insert rows
-    %:  insert:ast  %insert
-                    table
-                    ~
-                    ~
-                    [%data +.c]
-                    ==
-  ?:  ?=([[* %values] *] c)        :: insert column names rows
-    %:  insert:ast  %insert
-                    table
-                    ~
-                    `-<.c
-                    [%data +.c]
                     ==
   ~|("Cannot parse insert {<a>}" !!)
 ++  produce-matching-profile
@@ -3705,7 +3692,7 @@
       =('~' a)
       =('.' a)
       =('-' a)
-      &((gte '0' a) (lte '9' a))
+      &((gte a '0') (lte a '9'))
   ==
 ++  insert-value-default
   ;~  pose
@@ -3725,11 +3712,8 @@
   ?~  q.rest
     (insert-value-default tub)
   ?:  (insert-value-literal-leading-char i.q.rest)
-    =/  default-result  ((cold %default (jester 'default')) rest)
-    ?~  q.default-result
-      (parse-value-literal rest)
-    (insert-value-default tub)
-  (insert-value-default tub)
+    (parse-value-literal rest)
+  (insert-value-default rest)
 ++  get-value-literal  ~+
   ;~(sfix ;~(pfix whitespace parse-value-literal) whitespace)
 ++  cook-literal-list
@@ -3762,9 +3746,7 @@
   ;~(sfix insert-value whitespace)
 ++  parse-insert-value  ~+
   ;~  pose
-    ;~(pfix whitespace parse-insert-value-core)
     parse-insert-value-core
-    ;~(pfix whitespace insert-value)
     insert-value
   ==
 ::  
@@ -3997,7 +3979,7 @@
   ?|  =('\'' a)
       =('.' a)
       =('-' a)
-      &((gte '0' a) (lte '9' a))
+      &((gte a '0') (lte a '9'))
   ==
 ++  parse-scalar-param-default
   ;~  pose
@@ -4065,7 +4047,7 @@
   ?|  =('\'' a)
       =('.' a)
       =('-' a)
-      &((gte '0' a) (lte '9' a))
+      &((gte a '0') (lte a '9'))
   ==
 ++  parse-datum-for-predicate-default
   ;~  pose

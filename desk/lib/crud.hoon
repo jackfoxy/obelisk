@@ -176,7 +176,6 @@
             key.pri-indx.table.txn
             |=(a=key-column (make-key-pick name.a column-lookup.table.txn))
   =/  primary-key  (pri-key key.pri-indx.table.txn)
-  =/  kns=(set @tas)  (silt (turn key-pick |=(a=[@tas @] -.a)))
   ::
   =.  state          (update-sys state now.bowl)
   ::
@@ -218,13 +217,9 @@
           ==
   ~|  "INSERT: {<tbl-key.txn>} row {<+(i)>}"
   =/  row=(list value-or-default:ast)  -.value-table
-  =/  rw  (row-cells-and-keys row cols kns)
-  =/  file-row=(map @tas @)   -.rw
-  =/  key-map=(map @tas @)    +.rw
-  =/  row-key=(list @)
-        %+  turn
-            key-pick
-            |=(a=[@tas @] (~(got by key-map) -.a))
+  =/  file-row=(map @tas @)  (row-cells-and-keys row cols)
+  =/  got-fr  ~(got by file-row)
+  =/  row-key=(list @)  (turn key-pick |=(a=[@tas @] (got-fr -.a)))
   =.  pri-idx.file.txn  ?:  (has:primary-key pri-idx.file.txn row-key)
                           ~|("INSERT: cannot add duplicate key: {<row-key>}" !!)
                         (put:primary-key pri-idx.file.txn row-key file-row)
@@ -1074,19 +1069,15 @@
   ==
 ::
 ++  row-cells-and-keys
-  ::  Build row map and key-value subset map in a single pass.
-  |=  [p=(list value-or-default:ast) q=(list column:ast) key-names=(set @tas)]
-  ^-  [(map @tas @) (map @tas @)]
-  =/  all-cells  *(list [@tas @])
-  =/  key-cells  *(list [@tas @])
+  ::  Build row map incrementally, no intermediate list or key-map.
+  |=  [p=(list value-or-default:ast) q=(list column:ast)]
+  ^-  (map @tas @)
+  =/  cells  *(map @tas @)
   |-
-  ?~  p  [(malt all-cells) (malt key-cells)]
+  ?~  p  cells
   =/  cell=[@tas @]  (row-cell -.p -.q)
   %=  $
-    all-cells  [cell all-cells]
-    key-cells  ?:  (~(has in key-names) -.cell)
-                 [cell key-cells]
-               key-cells
+    cells  (~(put by cells) -.cell +.cell)
     p  +.p
     q  +.q
   ==
