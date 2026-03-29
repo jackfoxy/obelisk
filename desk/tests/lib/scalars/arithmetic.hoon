@@ -48,7 +48,8 @@
 ++  qual-map-meta  %-  mk-qualified-map-meta
                   :~  :-  qualified-table-1
                           %-  addr-columns
-                              :~  [%column %col1 ~.ud 0]
+                              :~  [%column %col0 ~.ud 0]
+                                  [%column %col1 ~.ud 0]
                                   [%column %col2 ~.ud 0]
                                   [%column %col3 ~.ud 0]
                                   ==
@@ -59,6 +60,7 @@
                              %-  addr-columns  :~  [%column %col4 ~.ud 0]
                                                    [%column %col5 ~.ud 0]
                                                    [%column %col6 ~.ud 0]
+                                                   [%column %col7 ~.ud 0]
                                                    ==
 ::
 ++  qual-lookup  %-  malt
@@ -67,18 +69,21 @@
                              [%col4 ~[qualified-table-1]]
                              [%col5 ~[qualified-table-1]]
                              [%col6 ~[qualified-table-1]]
+                             [%col7 ~[qualified-table-1]]
                            ==
 ::
 ++  ctes        *named-ctes
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
+                             [%col0 0]
                              [%col1 1]
                              [%col2 2]
                              [%col3 3]
                              [%col4 4]
                              [%col5 5]
                              [%col6 6]
+                             [%col7 0]
                            ==
 ::
 ++  resolved-scalars
@@ -113,10 +118,13 @@
 ++  arithmetic-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
 ++  arithmetic-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
 ++  arithmetic-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+:: zero-valued qualified column for runtime failure tests
+++  arithmetic-q-col-0  [%qualified-column qualified-table-1 %col0 ~]
 ::
 ++  arithmetic-u-col-4  [%unqualified-column %col4 ~]
 ++  arithmetic-u-col-5  [%unqualified-column %col5 ~]
 ++  arithmetic-u-col-6  [%unqualified-column %col6 ~]
+++  arithmetic-u-col-7  [%unqualified-column %col7 ~]
 ::
 ::
 ::
@@ -129,7 +137,8 @@
   %-  mk-qualified-map-meta
   :~  :-  qualified-table-1
           %-  addr-columns
-              :~  [%column %col1 ~.rd 0]
+              :~  [%column %col0 ~.rd 0]
+                  [%column %col1 ~.rd 0]
                   [%column %col2 ~.rd 0]
                   [%column %col3 ~.rd 0]
                   ==
@@ -137,12 +146,14 @@
 ::
 ++  rd-table-row
   %-  mk-indexed-row
-  :~  [%col1 .~1]
+  :~  [%col0 .~0]
+      [%col1 .~1]
       [%col2 .~2]
       [%col3 .~3]
       [%col4 .~4]
       [%col5 .~5]
       [%col6 .~6]
+      [%col7 .~0]
       ==
 ::
 ++  rd-resolved-scalars
@@ -169,6 +180,7 @@
           %-  addr-columns  :~  [%column %col4 ~.rd 0]
                                 [%column %col5 ~.rd 0]
                                 [%column %col6 ~.rd 0]
+                                [%column %col7 ~.rd 0]
                                 ==
 ::
 ::  @sd test values
@@ -180,7 +192,8 @@
   %-  mk-qualified-map-meta
   :~  :-  qualified-table-1
           %-  addr-columns
-              :~  [%column %col1 ~.sd 0]
+              :~  [%column %col0 ~.sd 0]
+                  [%column %col1 ~.sd 0]
                   [%column %col2 ~.sd 0]
                   [%column %col3 ~.sd 0]
                   ==
@@ -188,12 +201,14 @@
 ::
 ++  sd-table-row
   %-  mk-indexed-row
-  :~  [%col1 2]   :: --1
+  :~  [%col0 0]   :: --0
+      [%col1 2]   :: --1
       [%col2 4]   :: --2
       [%col3 6]   :: --3
       [%col4 8]   :: --4
       [%col5 10]  :: --5
       [%col6 12]  :: --6
+      [%col7 0]   :: --0
       ==
 ::
 ++  sd-resolved-scalars
@@ -220,6 +235,7 @@
           %-  addr-columns  :~  [%column %col4 ~.sd 0]
                                 [%column %col5 ~.sd 0]
                                 [%column %col6 ~.sd 0]
+                                [%column %col7 ~.sd 0]
                                 ==
 ::
 ::  tests
@@ -2134,4 +2150,100 @@
   %+  expect-fail-message
     'remainder not implemented for @rd'
     |.  (apply-scalar rd-table-row fn)
+::
+++  test-fail-arithmetic-div-zero-ud-literal
+  %+  expect-fail-message
+    'division by zero'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [~.ud 1] [~.ud 0]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-div-zero-rd-literal
+  %+  expect-fail-message
+    'division by zero'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [~.rd .~1] [~.rd .~0]]
+              ctes  qual-lookup  rd-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-div-zero-sd-literal
+  %+  expect-fail-message
+    'division by zero'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [~.sd --1] [~.sd --0]]
+              ctes  qual-lookup  sd-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-div-zero-ud-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %fas arithmetic-q-col-1 arithmetic-q-col-0]
+          ctes  qual-lookup  qual-map-meta
+          resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'division by zero'
+    |.  (apply-scalar table-row fn)
+::
+++  test-fail-arithmetic-div-zero-rd-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %fas arithmetic-q-col-1 arithmetic-q-col-0]
+          ctes  qual-lookup  rd-qual-map-meta
+          rd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'division by zero'
+    |.  (apply-scalar rd-table-row fn)
+::
+++  test-fail-arithmetic-div-zero-sd-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %fas arithmetic-u-col-4 arithmetic-u-col-7]
+          ctes  qual-lookup  sd-unqual-map-meta
+          sd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'division by zero'
+    |.  (apply-scalar sd-table-row fn)
+::
+++  test-fail-arithmetic-sub-underflow-literal
+  %+  expect-fail-message
+    'subtraction underflow'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %hep [~.ud 1] [~.ud 2]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-sub-underflow-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %hep arithmetic-q-col-1 arithmetic-q-col-2]
+          ctes  qual-lookup  qual-map-meta
+          resolved-scalars
+          (bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'subtraction underflow'
+    |.  (apply-scalar table-row fn)
 --

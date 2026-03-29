@@ -2161,6 +2161,34 @@
         "{<l-number-system>} not a supported number system, ".
         "need ?(~.rd ~.sd ~.ud)"
         !!
+  =/  check-sub-underflow
+    |=  [left=@ud right=@ud]
+    ^-  ?
+    (gth right left)
+  =/  guard-div-zero-rd
+    |=  val=@rd
+    ^-  @rd
+    ?:  =(val .~0)
+      ~|("division by zero" !!)
+    val
+  =/  guard-div-zero-sd
+    |=  val=@sd
+    ^-  @sd
+    ?:  =(val --0)
+      ~|("division by zero" !!)
+    val
+  =/  guard-div-zero-ud
+    |=  val=@ud
+    ^-  @ud
+    ?:  =(val 0)
+      ~|("division by zero" !!)
+    val
+  =/  guard-sub-underflow-ud
+    |=  [left=@ud right=@ud]
+    ^-  [@ud @ud]
+    ?:  (check-sub-underflow left right)
+      ~|("subtraction underflow" !!)
+    [left right]
   ?-  operator.scalar
       ::
       %lus
@@ -2212,7 +2240,9 @@
             ::
             %sd  [-.l (dif:si +.l +.r)]
             ::
-            %ud  [-.l (sub +.l +.r)]
+            %ud
+              =/  args  (guard-sub-underflow-ud +.l +.r)
+              [-.l (sub -.args +.args)]
             ==
         :+  %fn
             l-number-system
@@ -2239,10 +2269,13 @@
               %ud
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (sub +.l +:(f.r data-row))]
+                  =/  args  (guard-sub-underflow-ud +.l +:(f.r data-row))
+                  [l-number-system (sub -.args +.args)]
                 ?:  ?=(dime r)
-                  [l-number-system (sub +:(f.l data-row) +.r)]
-                [l-number-system (sub +:(f.l data-row) +:(f.r data-row))]
+                  =/  args  (guard-sub-underflow-ud +:(f.l data-row) +.r)
+                  [l-number-system (sub -.args +.args)]
+                =/  args  (guard-sub-underflow-ud +:(f.l data-row) +:(f.r data-row))
+                [l-number-system (sub -.args +.args)]
               ==
       ::
       %tar
@@ -2290,11 +2323,11 @@
           ?:  &(?=(dime l) ?=(dime r))
           ?-  l-number-system
             ::
-            %rd  [-.l (div:rd +.l +.r)]
+            %rd  [-.l (div:rd +.l (guard-div-zero-rd +.r))]
             ::
-            %sd  [-.l (fra:si +.l +.r)]
+            %sd  [-.l (fra:si +.l (guard-div-zero-sd +.r))]
             ::
-            %ud  [-.l (div +.l +.r)]
+            %ud  [-.l (div +.l (guard-div-zero-ud +.r))]
             ==
         :+  %fn
             l-number-system
@@ -2305,26 +2338,26 @@
               %rd
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (div:rd +.l +:(f.r data-row))]
+                  [l-number-system (div:rd +.l (guard-div-zero-rd +:(f.r data-row)))]
                 ?:  ?=(dime r)
-                  [l-number-system (div:rd +:(f.l data-row) +.r)]
-                [l-number-system (div:rd +:(f.l data-row) +:(f.r data-row))]
+                  [l-number-system (div:rd +:(f.l data-row) (guard-div-zero-rd +.r))]
+                [l-number-system (div:rd +:(f.l data-row) (guard-div-zero-rd +:(f.r data-row)))]
               ::
               %sd
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (fra:si +.l +:(f.r data-row))]
+                  [l-number-system (fra:si +.l (guard-div-zero-sd +:(f.r data-row)))]
                 ?:  ?=(dime r)
-                  [l-number-system (fra:si +:(f.l data-row) +.r)]
-                [l-number-system (fra:si +:(f.l data-row) +:(f.r data-row))]
+                  [l-number-system (fra:si +:(f.l data-row) (guard-div-zero-sd +.r))]
+                [l-number-system (fra:si +:(f.l data-row) (guard-div-zero-sd +:(f.r data-row)))]
               ::
               %ud
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (div +.l +:(f.r data-row))]
+                  [l-number-system (div +.l (guard-div-zero-ud +:(f.r data-row)))]
                 ?:  ?=(dime r)
-                  [l-number-system (div +:(f.l data-row) +.r)]
-                [l-number-system (div +:(f.l data-row) +:(f.r data-row))]
+                  [l-number-system (div +:(f.l data-row) (guard-div-zero-ud +.r))]
+                [l-number-system (div +:(f.l data-row) (guard-div-zero-ud +:(f.r data-row)))]
               ==
       ::
       %ket
