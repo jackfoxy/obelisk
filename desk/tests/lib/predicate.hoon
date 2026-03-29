@@ -12679,6 +12679,33 @@
               ==
       ==
 ::
+:::: following test-scalar-07 in tests/lib/predicate.hoon create new scalar
+:::: predicate tests
+:::: 1. each from clause has a join of two tables 
+:::: 2. the joined rows should total 10
+:::: 3. each query has two CTEs, one returns one row and the other 3 rows
+:::: 4. test must cover predicate equality and the following datum pairs
+::::    scalar scalar
+::::    literal scalar
+::::    scalar literal
+::::    scalar column
+::::    column scalar
+:::: 5. each scalar must incorporate one column from each joined table and a
+::::    column from the 1-row CTE
+:::: 6. provide test cases for a case scalar (both forms) and an if-then-else
+::::    scalar
+:::: 7. cover each of the scalar forms with each form in #4 above
+:::: 8. creat tests for IN (list) predicate where list is a column from 3-row
+::::    CTE. Cover each scalar case from #6
+:::: 9. all tests must  return more than zero and fewer than 10 rows
+::::
+::::
+::::
+:::: refer to desk/lib/scalars.hoon and desk/doc/usr/reference/scalars.md and 
+:::: sur/ast.hoon
+::::
+:::: any questions?
+:::: show me the plan first
 ::  WHERE <scalar-fn> = <scalar-fn>
 ++  test-scalar-07
   =|  run=@ud
