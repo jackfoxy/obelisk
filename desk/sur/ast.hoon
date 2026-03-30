@@ -576,6 +576,7 @@
     ==
 ::
 +$  scalar-function
+  $+  scalar-function
   $%
     arithmetic
     case
@@ -640,10 +641,12 @@
       name=@tas
       ==
 ::
-+$  scalar-node  $%  scalar-function
-                     scalar-name
-                     datum
-                     ==
++$  scalar-node
+  $+  scalar-node
+  $%  scalar-function
+      scalar-name
+      datum
+      ==
 ::
 +$  arithmetic
   $:  %arithmetic
@@ -691,86 +694,102 @@
   ==
 ::
 +$  year
+  $+  year
   $:  %year
-    date=datum
+    date=scalar-node
   ==
 ::
 +$  month
+  $+  month
   $:  %month
-    date=datum
+    date=scalar-node
   ==
 ::
 +$  day
+  $+  day
   $:  %day
-    time-expression=datum
+    time-expression=scalar-node
   ==
 ::
 +$  hour
+  $+  hour
   $:  %hour
-    time-expression=datum
+    time-expression=scalar-node
   ==
 ::
 +$  minute
+  $+  minute
   $:  %minute
-    time-expression=datum
+    time-expression=scalar-node
   ==
 ::
 +$  second
+  $+  second
   $:  %second
-    time-expression=datum
+    time-expression=scalar-node
   ==
 +$  add-time
+  $+  add-time
   $:  %add-time
-    time-expression=datum
-    duration=datum
+    time-expression=scalar-node
+    duration=scalar-node
   ==
 +$  subtract-time
+  $+  subtract-time
   $:  %subtract-time
-    time-expression=datum
-    duration=datum
+    time-expression=scalar-node
+    duration=scalar-node
   ==
 ::
 ::  mathematical functions
 ::
 +$  abs
+  $+  abs
   $:  %abs
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  acos
+  $+  acos
   $:  %acos
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  asin
+  $+  asin
   $:  %asin
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  atan
+  $+  atan
   $:  %atan
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  atan2
+  $+  atan2
   $:  %atan2
-    numeric-expression-1=datum
-    numeric-expression-2=datum
+    numeric-expression-1=scalar-node
+    numeric-expression-2=scalar-node
   ==
 ::
 +$  ceiling
+  $+  ceiling
   $:  %ceiling
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  cos
+  $+  cos
   $:  %cos
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  degrees
+  $+  degrees
   $:  %degrees
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  e
@@ -779,26 +798,30 @@
   ==
 ::
 +$  floor
+  $+  floor
   $:  %floor
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  log
+  $+  log
   $:  %log
-    float-expression=datum
-    base=(unit datum)
+    float-expression=scalar-node
+    base=(unit scalar-node)
   ==
 ::
 +$  max
+  $+  max
   $:  %max
-    numeric-expression-1=datum
-    numeric-expression-2=datum
+    numeric-expression-1=scalar-node
+    numeric-expression-2=scalar-node
   ==
 ::
 +$  min
+  $+  min
   $:  %min
-    numeric-expression-1=datum
-    numeric-expression-2=datum
+    numeric-expression-1=scalar-node
+    numeric-expression-2=scalar-node
   ==
 ::
 +$  phi
@@ -812,35 +835,41 @@
   ==
 ::
 +$  rand
+  $+  rand
   $:  %rand
-    numeric-expression-1=datum
-    numeric-expression-2=datum
+    numeric-expression-1=scalar-node
+    numeric-expression-2=scalar-node
   ==
 ::
 +$  round
+  $+  round
   $:  %round
-    numeric-expression=datum
-    length=datum
+    numeric-expression=scalar-node
+    length=scalar-node
     ==
 ::
 +$  sign
+  $+  sign
   $:  %sign
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  sin
+  $+  sin
   $:  %sin
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  sqrt
+  $+  sqrt
   $:  %sqrt
-    float-expression=datum
+    float-expression=scalar-node
   ==
 ::
 +$  tan
+  $+  tan
   $:  %tan
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 +$  tau
@@ -853,116 +882,133 @@
 +$  concat
   $+  concat
   :: if we remove this bucpat the type checker loops infinitely
-  :: scalar-function -> concat -> datum -> scalar-function
+  :: scalar-function -> concat -> scalar-node -> scalar-function
   $:  %concat
-    args=$@(~ (list datum))
+    args=$@(~ (list scalar-node))
   ==
 ::
 +$  left
+  $+  left
   $:  %left
-    string-expression=datum
-    integer-expression=datum
+    string-expression=scalar-node
+    integer-expression=scalar-node
   ==
 ::
 +$  len
+  $+  len
   $:  %len
-    string-expression=datum
+    string-expression=scalar-node
   ==
 ::
 +$  lower
+  $+  lower
   $:  %lower
-    string-expression=datum
+    string-expression=scalar-node
   ==
 ::
 ::  unit @t default whitespace
 +$  ltrim
+  $+  ltrim
   $:  %ltrim
-    string-expression=datum
-    pattern=(unit datum)
+    string-expression=scalar-node
+    pattern=(unit scalar-node)
   ==
 ::
 ::  Returns the starting position of the first occurrence of a pattern 
 ::  in a specified expression, or zero if the pattern isn't found
 +$  patindex
+  $+  patindex
   $:  %patindex
-    string-expression=datum
-    pattern=datum
+    string-expression=scalar-node
+    pattern=scalar-node
   ==
 ::
 ::  default[]
 +$  quotestring
+  $+  quotestring
   $:  %quotestring
-    string-expression=datum
-    quote=(unit [datum datum])
+    string-expression=scalar-node
+    quote=(unit [scalar-node scalar-node])
   ==
 ::
 +$  replace
+  $+  replace
   $:  %replace
-    string-expression=datum
-    pattern=datum
-    replacement=datum
+    string-expression=scalar-node
+    pattern=scalar-node
+    replacement=scalar-node
   ==
 ::
 +$  replicate
+  $+  replicate
   $:  %replicate
-    string-expression=datum
-    integer-expression=datum
+    string-expression=scalar-node
+    integer-expression=scalar-node
   ==
 ::
 +$  reverse
+  $+  reverse
   $:  %reverse
-    string-expression=datum
+    string-expression=scalar-node
   ==
 ::
 +$  right
+  $+  right
   $:  %right
-    string-expression=datum
-    integer-expression=datum
+    string-expression=scalar-node
+    integer-expression=scalar-node
   ==
 ::
 ::  unit @t default whitespace
 +$  rtrim
+  $+  rtrim
   $:  %rtrim
-    string-expression=datum
-    pattern=(unit datum)
+    string-expression=scalar-node
+    pattern=(unit scalar-node)
   ==
 ::
 ::@ud @sd @rd -> @t  (scow %ud 123)
 +$  string
+  $+  string
   $:  %string
-    numeric-expression=datum
+    numeric-expression=scalar-node
   ==
 ::
 ::  (list @t @ud @st @rd) @t
 +$  string-concat
+  $+  string-concat
   $:  %string-concat
-    args=$@(~ (list datum))
-    delimiter=datum
+    args=$@(~ (list scalar-node))
+    delimiter=scalar-node
   ==
 ::
 +$  stuff
+  $+  stuff
   $:  %stuff
-    string-expression=datum
-    start=datum
-    length=datum
-    replace=datum
+    string-expression=scalar-node
+    start=scalar-node
+    length=scalar-node
+    replace=scalar-node
   ==
 ::
 +$  substring
+  $+  substring
   $:  %substring
-    string-expression=datum
-    start=datum
-    length=(unit datum)
+    string-expression=scalar-node
+    start=scalar-node
+    length=(unit scalar-node)
     ==
 ::
 +$  trim
+  $+  trim
   $:  %trim
-    string-expression=datum
-    pattern=(unit datum)
+    string-expression=scalar-node
+    pattern=(unit scalar-node)
   ==
 +$  upper
+  $+  upper
   $:  %upper
-    string-expression=datum
+    string-expression=scalar-node
   ==
 ::
 ::  OUTPUT

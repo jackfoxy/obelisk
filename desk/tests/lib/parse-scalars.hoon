@@ -4263,4 +4263,69 @@
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
+::
+::  nested scalar-node builtin params
+++  test-builtins-nested-scalar-nodes
+  =/  query-string
+    "FROM foo ".
+    "SCALARS mt-log LOG(ABS(-5),MAX(1,2)) ".
+    "        st-sub SUBSTRING(CASE WHEN 1 = 1 THEN LOWER('hello') ELSE UPPER('world') END,COALESCE(1,2),IF 1 = 1 THEN ABS(3) ELSE ABS(2) ENDIF) ".
+    "        st-sc1 STRING-CONCAT(LOWER('hello'),UPPER('world'),CASE WHEN 1 = 1 THEN ' ' ELSE '-' END) ".
+    "        st-stf STUFF(LOWER('hello'),COALESCE(2,3),IF 1 = 1 THEN 3 ELSE 2 ENDIF,UPPER('xx')) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-neg5      [p=~.sd q=-5]
+  =/  literal-1         [p=~.ud q=1]
+  =/  literal-2         [p=~.ud q=2]
+  =/  literal-3         [p=~.ud q=3]
+  =/  literal-hello     [p=~.t q='hello']
+  =/  literal-world     [p=~.t q='world']
+  =/  literal-space     [p=~.t q=' ']
+  =/  literal-dash      [p=~.t q='-']
+  =/  literal-xx        [p=~.t q='xx']
+  =/  substring-case
+    :*
+      %case
+      target=~
+      cases=~[[%case-when-then simple-true-pred [%lower literal-hello]]]
+      else=(some [%upper literal-world])
+    ==
+  =/  substring-start
+    [%coalesce ~[literal-1 literal-2]]
+  =/  substring-length
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[%abs literal-3]
+      else=[%abs literal-2]
+    ==
+  =/  string-concat-delim
+    :*
+      %case
+      target=~
+      cases=~[[%case-when-then simple-true-pred literal-space]]
+      else=(some literal-dash)
+    ==
+  =/  stuff-start
+    [%coalesce ~[literal-2 literal-3]]
+  =/  stuff-length
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=literal-3
+      else=literal-2
+    ==
+  =/  scalars
+    :~
+      [%scalar 'mt-log' [%log [%abs literal-neg5] `[%max literal-1 literal-2]]]
+      [%scalar 'st-sub' [%substring substring-case substring-start `substring-length]]
+      :+  %scalar
+          'st-sc1'
+          [%string-concat ~[[%lower literal-hello] [%upper literal-world]] string-concat-delim]
+      [%scalar 'st-stf' [%stuff [%lower literal-hello] stuff-start stuff-length [%upper literal-xx]]]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 --

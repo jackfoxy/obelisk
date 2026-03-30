@@ -43,6 +43,44 @@
     data=(malt (limo kvp))
   ==
 ::
+::  make a CTE map-meta keyed by cte name + column name
+++  mk-cte-map-meta
+  |=  [cte=@tas columns=(list column:ast)]
+  ^-  qualified-map-meta
+  %+  roll  columns
+  |=  [col=column:ast map-meta=qualified-map-meta]
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
+  %^  ~(put bi:mip +.map-meta)
+      [%cte-name cte]
+      name.col
+      [type.col addr.col]
+::
+::  wrap a single indexed row as a one-row CTE relation
+++  mk-single-row-cte
+  |=  [cte=@tas columns=(list column:ast) row=indexed-row]
+  ^-  full-relation
+  :*  %full-relation
+      [%cte-name cte]
+      :~  :*  %set-table
+              join=~
+              relation=~
+              schema-tmsp=~
+              data-tmsp=~
+              columns=columns
+              predicate=~
+              rowcount=1
+              map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
+              pri-indx=~
+              pri-indexed=*(tree [(list @) (map @tas @)])
+              indexed-rows=~[row]
+              joined-rows=~
+              ==
+      ==
+      (mk-cte-map-meta cte columns)
+      ~
+      ==
+::
 ::  table testing harness
 ::
 ++  qual-map-meta  %-  mk-qualified-map-meta
@@ -72,7 +110,23 @@
                              [%col7 ~[qualified-table-1]]
                            ==
 ::
-++  ctes        *named-ctes
+++  arithmetic-cte-columns
+  %-  addr-columns
+  :~  [%column %value ~.ud 0]
+      ==
+::
+++  arithmetic-cte-row
+  %-  mk-indexed-row
+  :~  [%value 3]
+      ==
+::
+++  arithmetic-cte-value  [%cte-column %arithmetic-cte %value]
+::
+++  ctes
+  %-  malt
+  %-  limo
+  :~  [%arithmetic-cte (mk-single-row-cte %arithmetic-cte arithmetic-cte-columns arithmetic-cte-row)]
+  ==
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
@@ -2078,7 +2132,93 @@
                       ~
               ==
             [~.ud 8]
-    ==
+  ==
+  ==
+::
+++  test-embedded-by-cte-column-arithmetic
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  addition tests
+    :-  %addition-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 4]
+    :-  %addition-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              arithmetic-cte-value
+              ==
+            [~.ud 4]
+    ::  subtraction tests
+    :-  %subtraction-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 2]
+    :-  %subtraction-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %hep
+              [~.ud 5]
+              arithmetic-cte-value
+              ==
+            [~.ud 2]
+    ::  multiplication tests
+    :-  %multiplication-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %multiplication-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              arithmetic-cte-value
+              ==
+            [~.ud 3]
+    ::  division tests
+    :-  %division-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %division-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              arithmetic-cte-value
+              ==
+            [~.ud 0]
+    ::  exponentiation tests
+    :-  %exponentiation-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-cte-value
+              literal-value-2
+              ==
+            [~.ud 9]
+    :-  %exponentiation-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              arithmetic-cte-value
+              ==
+            [~.ud 8]
+  ==
   ==
 ::
 :: parser-migrated arithmetic fail tests now belong at scalar preparation time

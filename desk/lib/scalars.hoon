@@ -1076,8 +1076,8 @@
     %concat
       ::  CONCAT(str1, str2, ...) returns the concatenation of string arguments
       =/  exprs
-        %+  turn  ;;((list datum) args:;;(concat:ast scalar))
-        |=  arg=datum
+        %+  turn  ;;((list scalar-node) args:;;(concat:ast scalar))
+        |=  arg=*
         %:  evaluate-datum  arg
                             named-ctes
                             qualifier-lookup
@@ -1511,8 +1511,8 @@
     %string-concat
       ::  STRING-CONCAT(str1, str2, ..., delimiter) joins strings with delimiter
       =/  arg-exprs
-        %+  turn  ;;((list datum) args:;;(string-concat:ast scalar))
-        |=  arg=datum
+        %+  turn  ;;((list scalar-node) args:;;(string-concat:ast scalar))
+        |=  arg=*
         %:  evaluate-datum  arg
                             named-ctes
                             qualifier-lookup
@@ -2023,7 +2023,7 @@
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  eq-pred
-    |=  [target=scalar-node:ast when=scalar-node:ast =data-row]
+    |=  [target=* when=* =data-row]
     ^-  ?
     =/  target-val
           %+  apply-scalar  data-row
@@ -2093,7 +2093,7 @@
   ^-  resolved-scalar
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types  %+  turn  data.scalar
-                                          |=  item=scalar-node:ast
+                                          |=  item=*
                                           %:  evaluate-datum  item
                                                               named-ctes
                                                               qualifier-lookup
@@ -2521,7 +2521,7 @@
       ==
 ::
 ++  evaluate-datum
-  |=  $:  datum=scalar-node
+  |=  $:  datum=*
           =named-ctes
           =qualifier-lookup
           =map-meta
@@ -2530,43 +2530,37 @@
           ==
   ^-  resolved-scalar
   ~|  "evaluate-datum: failed {<datum>}"
-  ?+  datum  %:  prepare-scalar  ;;(scalar-function:ast datum)
-                                 named-ctes
-                                 qualifier-lookup
-                                 map-meta
-                                 resolved-scalars
-                                 bowl
-                                 ==
-    ::
-    scalar-name:ast    :: must be before dime
-      ~|  "scalar {<name.datum>} not found"
-          (~(got by resolved-scalars) name.datum)
-    ::
-    dime
-      datum
-    ::
-    cte-column:ast
-      (resolve-cte-column datum named-ctes)
-    ::
-    qualified-column:ast
-      :+  %fn
-          %+  got-qualified-col-type  map-meta
-                                      ;;(qualified-column:ast datum)
-          |=  =data-row
-            %^  got-column-dime  map-meta
-                                ;;(qualified-column:ast datum)
-                                data-row
-    ::
-    unqualified-column:ast
-      =/  table-list
-            (~(got by qualifier-lookup) name:;;(unqualified-column:ast datum))
-      ?~  table-list  ~|("no table!" !!)
-      ?:  (gth (lent table-list) 1)  ~|("too many tables!" !!)
-      =/  column=qualified-column:ast
-        [%qualified-column -.table-list name:;;(unqualified-column:ast datum) ~]
-      :+  %fn
-          (got-qualified-col-type map-meta column)
-          |=  =data-row
-              (got-column-dime map-meta column data-row)
-    ==
+  ?:  ?=(scalar-name:ast datum)    :: must be before dime
+    ~|  "scalar {<name.datum>} not found"
+        (~(got by resolved-scalars) name.datum)
+  ?:  ?=(dime datum)
+    datum
+  ?:  ?=(cte-column:ast datum)
+    (resolve-cte-column datum named-ctes)
+  ?:  ?=(qualified-column:ast datum)
+    :+  %fn
+        %+  got-qualified-col-type  map-meta
+                                    ;;(qualified-column:ast datum)
+        |=  =data-row
+          %^  got-column-dime  map-meta
+                              ;;(qualified-column:ast datum)
+                              data-row
+  ?:  ?=(unqualified-column:ast datum)
+    =/  table-list
+          (~(got by qualifier-lookup) name:;;(unqualified-column:ast datum))
+    ?~  table-list  ~|("no table!" !!)
+    ?:  (gth (lent table-list) 1)  ~|("too many tables!" !!)
+    =/  column=qualified-column:ast
+      [%qualified-column -.table-list name:;;(unqualified-column:ast datum) ~]
+    :+  %fn
+        (got-qualified-col-type map-meta column)
+        |=  =data-row
+            (got-column-dime map-meta column data-row)
+  %:  prepare-scalar  ;;(scalar-function:ast datum)
+                      named-ctes
+                      qualifier-lookup
+                      map-meta
+                      resolved-scalars
+                      bowl
+                      ==
 --

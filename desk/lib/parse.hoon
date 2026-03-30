@@ -4808,8 +4808,8 @@
 ::
 ++  finalize-param
   |=  [raw=* aliases=alias-maps]
-  ^-  datum:ast
-  (finalize-scalar-param (cook-scalar-param raw) aliases)
+  ^-  scalar-node:ast
+  (finalize-scalar-node (cook-scalar-node raw) aliases)
 ::
 ++  parse-no-params
   |*  [a=*]
@@ -5117,29 +5117,29 @@
 ++  parse-builtin-scalar-params
   |=  [fn-name=@tas tub=nail]
   ^-  (like *)
-  =/  scalar-one-param  (stag %one-param (parse-one-param parse-scalar-param))
+  =/  scalar-one-param  (stag %one-param (parse-one-param parse-scalar-node))
   =/  scalar-two-param
         %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
+                  (parse-two-params parse-scalar-node parse-scalar-node)
   =/  scalar-three-param
     %+  stag  %three-param
-    %^  parse-three-params  parse-scalar-param
-                            parse-scalar-param
-                            parse-scalar-param
-  =/  cord-one-param  (stag %one-param (parse-one-param parse-cord-param))
+    %^  parse-three-params  parse-scalar-node
+                            parse-scalar-node
+                            parse-scalar-node
+  =/  cord-one-param  (stag %one-param (parse-one-param parse-scalar-node))
   =/  cord-two-param
-        (stag %two-param (parse-two-params parse-cord-param parse-cord-param))
+        (stag %two-param (parse-two-params parse-scalar-node parse-scalar-node))
   =/  cord-three-param
     %+  stag  %three-param
-    %^  parse-three-params  parse-cord-param
-                            parse-cord-param
-                            parse-cord-param
+    %^  parse-three-params  parse-scalar-node
+                            parse-scalar-node
+                            parse-scalar-node
   =/  cord-four-param
     %+  stag  %four-param
-    %:  parse-four-params  parse-cord-param
-                           parse-ud-param
-                           parse-ud-param
-                           parse-cord-param
+    %:  parse-four-params  parse-scalar-node
+                           parse-scalar-node
+                           parse-scalar-node
+                           parse-scalar-node
     ==
   =/  scalar-one-or-two  ;~(pose scalar-two-param scalar-one-param)
   =/  cord-one-or-two    ;~(pose cord-two-param cord-one-param)
@@ -5171,7 +5171,7 @@
     %lower       (cord-one-param tub)
     %upper       (cord-one-param tub)
     %reverse     (cord-one-param tub)
-    %string      ((stag %one-param (parse-one-param parse-numeric-param)) tub)
+    %string      (scalar-one-param tub)
     %max         (scalar-two-param tub)
     %min         (scalar-two-param tub)
     %rand        (scalar-two-param tub)
@@ -5182,16 +5182,15 @@
     %log         (scalar-one-or-two tub)
     %trim        (scalar-one-or-two tub)
     %substring   (;~(pose scalar-three-param scalar-two-param) tub)
-    %concat      ((stag %n-params (parse-n-params parse-scalar-param)) tub)
+    %concat      ((stag %n-params (parse-n-params parse-scalar-node)) tub)
     %ltrim       (cord-one-or-two tub)
     %rtrim       (cord-one-or-two tub)
     %patindex    (cord-two-param tub)
     %replace     (cord-three-param tub)
-    %replicate
-      ((stag %two-param (parse-two-params parse-cord-param parse-ud-param)) tub)
+    %replicate   (scalar-two-param tub)
     %stuff       (cord-four-param tub)
     %quotestring  (cord-one-two-or-three tub)
-    %string-concat  ((stag %n-params (parse-n-params parse-cord-param)) tub)
+    %string-concat  ((stag %n-params (parse-n-params parse-scalar-node)) tub)
   ==
 ++  parse-builtin-scalar-fn
   |=  tub=nail

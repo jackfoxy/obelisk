@@ -43,6 +43,44 @@
     data=(malt (limo kvp))
   ==
 ::
+::  make a CTE map-meta keyed by cte name + column name
+++  mk-cte-map-meta
+  |=  [cte=@tas columns=(list column:ast)]
+  ^-  qualified-map-meta
+  %+  roll  columns
+  |=  [col=column:ast map-meta=qualified-map-meta]
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
+  %^  ~(put bi:mip +.map-meta)
+      [%cte-name cte]
+      name.col
+      [type.col addr.col]
+::
+::  wrap a single indexed row as a one-row CTE relation
+++  mk-single-row-cte
+  |=  [cte=@tas columns=(list column:ast) row=indexed-row]
+  ^-  full-relation
+  :*  %full-relation
+      [%cte-name cte]
+      :~  :*  %set-table
+              join=~
+              relation=~
+              schema-tmsp=~
+              data-tmsp=~
+              columns=columns
+              predicate=~
+              rowcount=1
+              map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
+              pri-indx=~
+              pri-indexed=*(tree [(list @) (map @tas @)])
+              indexed-rows=~[row]
+              joined-rows=~
+              ==
+      ==
+      (mk-cte-map-meta cte columns)
+      ~
+      ==
+::
 ++  q-col-1           [%qualified-column qualified-table-1 %col1 ~]
 ++  q-col-2           [%qualified-column qualified-table-1 %col2 ~]
 ++  q-col-3           [%qualified-column qualified-table-1 %col3 ~]
@@ -83,7 +121,35 @@
                              [%col6 ~[qualified-table-1]]
                            ==
 ::
-++  table-named-ctes        *named-ctes
+++  builtin-cte-columns
+  %-  addr-columns
+  :~  [%column %num ~.ud 0]
+      [%column %text1 ~.t 0]
+      [%column %text2 ~.t 0]
+      [%column %date ~.da 0]
+      [%column %duration ~.dr 0]
+      ==
+::
+++  builtin-cte-row
+  %-  mk-indexed-row
+  :~  [%num 3]
+      [%text1 'hello']
+      [%text2 'world']
+      [%date ~2026.3.15..10.30.45]
+      [%duration ~d1]
+      ==
+::
+++  builtin-cte-num       [%cte-column %builtin-cte %num]
+++  builtin-cte-text-1    [%cte-column %builtin-cte %text1]
+++  builtin-cte-text-2    [%cte-column %builtin-cte %text2]
+++  builtin-cte-date      [%cte-column %builtin-cte %date]
+++  builtin-cte-duration  [%cte-column %builtin-cte %duration]
+::
+++  table-named-ctes
+  %-  malt
+  %-  limo
+  :~  [%builtin-cte (mk-single-row-cte %builtin-cte builtin-cte-columns builtin-cte-row)]
+  ==
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
@@ -1915,7 +1981,103 @@
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
                                     ==
+                          :-  %scalar3
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.t 'hello']
+                                      else=[~.t 'goodbye']
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar4
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.t 'world']
+                                      else=[~.t 'mars']
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar5
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.da ~2026.3.15..10.30.45]
+                                      else=[~.da ~2026.3.16..10.30.45]
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar6
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.dr ~d1]
+                                      else=[~.dr ~d2]
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    ==
                           ==
+::
+++  builtin-node-num
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.ud 3]
+    else=[~.ud 4]
+  ==
+::
+++  builtin-node-text-1
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.t 'hello']
+    else=[~.t 'goodbye']
+  ==
+::
+++  builtin-node-text-2
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.t 'world']
+    else=[~.t 'mars']
+  ==
+::
+++  builtin-node-date
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.da ~2026.3.15..10.30.45]
+    else=[~.da ~2026.3.16..10.30.45]
+  ==
+::
+++  builtin-node-duration
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.dr ~d1]
+    else=[~.dr ~d2]
+  ==
 ::
 ::
 ::  :::::::::::::::::::::::::::
@@ -6093,6 +6255,102 @@
         :-  [%subtract-time dt-u-col-2 dt-u-col-2]
             [~.dr 0]
     ==
+  ==
+::
+++  test-embedded-by-name-builtin-functions
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-embedded-scalar-name
+        :-  [%abs [%scalar-name %scalar1]]
+            [~.ud 3]
+    :-  %left-embedded-scalar-names
+        :-  [%left [%scalar-name %scalar3] [%scalar-name %scalar1]]
+            [~.t 'hel']
+    :-  %concat-embedded-scalar-names
+        :-  [%concat ~[[%scalar-name %scalar3] [%scalar-name %scalar4]]]
+            [~.t 'helloworld']
+    :-  %string-embedded-scalar-name
+        :-  [%string [%scalar-name %scalar1]]
+            [~.t '3']
+    :-  %string-concat-embedded-scalar-names
+        :-  [%string-concat ~[[%scalar-name %scalar3] [%scalar-name %scalar4]] [~.t ', ']]
+            [~.t 'hello, world']
+    :-  %year-embedded-scalar-name
+        :-  [%year [%scalar-name %scalar5]]
+            [~.ud 2.026]
+    :-  %add-time-embedded-scalar-names
+        :-  [%add-time [%scalar-name %scalar5] [%scalar-name %scalar6]]
+            [~.da ~2026.3.16..10.30.45]
+  ==
+  ==
+::
+++  test-embedded-by-node-builtin-functions
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-embedded-scalar-node
+        :-  [%abs builtin-node-num]
+            [~.ud 3]
+    :-  %left-embedded-scalar-nodes
+        :-  [%left builtin-node-text-1 builtin-node-num]
+            [~.t 'hel']
+    :-  %concat-embedded-scalar-nodes
+        :-  [%concat ~[builtin-node-text-1 builtin-node-text-2]]
+            [~.t 'helloworld']
+    :-  %string-embedded-scalar-node
+        :-  [%string builtin-node-num]
+            [~.t '3']
+    :-  %string-concat-embedded-scalar-nodes
+        :-  [%string-concat ~[builtin-node-text-1 builtin-node-text-2] [~.t ', ']]
+            [~.t 'hello, world']
+    :-  %year-embedded-scalar-node
+        :-  [%year builtin-node-date]
+            [~.ud 2.026]
+    :-  %add-time-embedded-scalar-nodes
+        :-  [%add-time builtin-node-date builtin-node-duration]
+            [~.da ~2026.3.16..10.30.45]
+  ==
+  ==
+::
+++  test-embedded-by-cte-column-builtin-functions
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-embedded-cte-column
+        :-  [%abs builtin-cte-num]
+            [~.ud 3]
+    :-  %left-embedded-cte-columns
+        :-  [%left builtin-cte-text-1 builtin-cte-num]
+            [~.t 'hel']
+    :-  %concat-embedded-cte-columns
+        :-  [%concat ~[builtin-cte-text-1 builtin-cte-text-2]]
+            [~.t 'helloworld']
+    :-  %string-embedded-cte-column
+        :-  [%string builtin-cte-num]
+            [~.t '3']
+    :-  %string-concat-embedded-cte-columns
+        :-  [%string-concat ~[builtin-cte-text-1 builtin-cte-text-2] [~.t ', ']]
+            [~.t 'hello, world']
+    :-  %year-embedded-cte-column
+        :-  [%year builtin-cte-date]
+            [~.ud 2.026]
+    :-  %add-time-embedded-cte-columns
+        :-  [%add-time builtin-cte-date builtin-cte-duration]
+            [~.da ~2026.3.16..10.30.45]
+  ==
   ==
 ::
 ::  :::::::::::::::::::::::::::::::::::::::::::

@@ -43,6 +43,44 @@
     data=(malt (limo kvp))
   ==
 ::
+::  make a CTE map-meta keyed by cte name + column name
+++  mk-cte-map-meta
+  |=  [cte=@tas columns=(list column:ast)]
+  ^-  qualified-map-meta
+  %+  roll  columns
+  |=  [col=column:ast map-meta=qualified-map-meta]
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
+  %^  ~(put bi:mip +.map-meta)
+      [%cte-name cte]
+      name.col
+      [type.col addr.col]
+::
+::  wrap a single indexed row as a one-row CTE relation
+++  mk-single-row-cte
+  |=  [cte=@tas columns=(list column:ast) row=indexed-row]
+  ^-  full-relation
+  :*  %full-relation
+      [%cte-name cte]
+      :~  :*  %set-table
+              join=~
+              relation=~
+              schema-tmsp=~
+              data-tmsp=~
+              columns=columns
+              predicate=~
+              rowcount=1
+              map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
+              pri-indx=~
+              pri-indexed=*(tree [(list @) (map @tas @)])
+              indexed-rows=~[row]
+              joined-rows=~
+              ==
+      ==
+      (mk-cte-map-meta cte columns)
+      ~
+      ==
+::
 ++  q-col-1             [%qualified-column qualified-table-1 %col1 ~]
 ++  q-col-2             [%qualified-column qualified-table-1 %col2 ~]
 ++  q-col-3             [%qualified-column qualified-table-1 %col3 ~]
@@ -81,7 +119,23 @@
                              [%col6 ~[qualified-table-1]]
                            ==
 ::
-++  table-named-ctes        *named-ctes
+++  if-cte-columns
+  %-  addr-columns
+  :~  [%column %value ~.ud 0]
+      ==
+::
+++  if-cte-row
+  %-  mk-indexed-row
+  :~  [%value 3]
+      ==
+::
+++  if-cte-value  [%cte-column %if-cte %value]
+::
+++  table-named-ctes
+  %-  malt
+  %-  limo
+  :~  [%if-cte (mk-single-row-cte %if-cte if-cte-columns if-cte-row)]
+  ==
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
@@ -1107,6 +1161,25 @@
                       %col2
                       ~
               ==
+            [~.ud 3]
+  ==
+  ==
+::
+++  test-embedded-by-cte-column-if
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  then - embedded cte column
+    :-  %embedded-cte-column
+        :-  [%if-then-else true-predicate if-cte-value q-col-2]
+            [~.ud 3]
+    ::  else - embedded cte column
+    :-  %embedded-cte-column
+        :-  [%if-then-else false-predicate q-col-2 if-cte-value]
             [~.ud 3]
   ==
   ==
