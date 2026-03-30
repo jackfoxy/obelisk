@@ -40,6 +40,38 @@
   "(col1 @t, col3 @t, col4 @t) ".
   "PRIMARY KEY (col1)"
 ::
+++  create-scalar-joined-tables
+  "CREATE TABLE db1..scalar-a ".
+  "(col1 @t, col2 @da, col3 @ud, col4 @t) ".
+  "PRIMARY KEY (col1); ".
+  "CREATE TABLE db1..scalar-b ".
+  "(col1 @t, col2 @ud, col3 @da, col4 @t) ".
+  "PRIMARY KEY (col1)"
+::
+++  insert-scalar-joined-tables
+  "INSERT INTO scalar-a".
+  " VALUES".
+  " ('A', ~2024.1.1, 1, 'alpha')".
+  " ('B', ~2024.1.2, 2, 'bravo')".
+  " ('C', ~2024.1.3, 3, 'charlie')".
+  " ('D', ~2024.1.4, 4, 'delta')".
+  " ('E', ~2024.1.5, 5, 'echo'); ".
+  "INSERT INTO scalar-b".
+  " VALUES".
+  " ('U', 1, ~2024.1.10, 'red')".
+  " ('V', 2, ~2024.1.11, 'blue')"
+::
+++  scalar-row-a-red      :-  %vector  :~  [%col1 [~.t 'A']]  [%col4 [~.t 'red']]   ==
+++  scalar-row-a-blue     :-  %vector  :~  [%col1 [~.t 'A']]  [%col4 [~.t 'blue']]  ==
+++  scalar-row-b-red      :-  %vector  :~  [%col1 [~.t 'B']]  [%col4 [~.t 'red']]   ==
+++  scalar-row-b-blue     :-  %vector  :~  [%col1 [~.t 'B']]  [%col4 [~.t 'blue']]  ==
+++  scalar-row-c-red      :-  %vector  :~  [%col1 [~.t 'C']]  [%col4 [~.t 'red']]   ==
+++  scalar-row-c-blue     :-  %vector  :~  [%col1 [~.t 'C']]  [%col4 [~.t 'blue']]  ==
+++  scalar-row-d-red      :-  %vector  :~  [%col1 [~.t 'D']]  [%col4 [~.t 'red']]   ==
+++  scalar-row-d-blue     :-  %vector  :~  [%col1 [~.t 'D']]  [%col4 [~.t 'blue']]  ==
+++  scalar-row-e-red      :-  %vector  :~  [%col1 [~.t 'E']]  [%col4 [~.t 'red']]   ==
+++  scalar-row-e-blue     :-  %vector  :~  [%col1 [~.t 'E']]  [%col4 [~.t 'blue']]  ==
+::
 ::  EQ
 ::
 ::  WHERE <column> = <literal>
@@ -12679,33 +12711,6 @@
               ==
       ==
 ::
-:::: following test-scalar-07 in tests/lib/predicate.hoon create new scalar
-:::: predicate tests
-:::: 1. each from clause has a join of two tables 
-:::: 2. the joined rows should total 10
-:::: 3. each query has two CTEs, one returns one row and the other 3 rows
-:::: 4. test must cover predicate equality and the following datum pairs
-::::    scalar scalar
-::::    literal scalar
-::::    scalar literal
-::::    scalar column
-::::    column scalar
-:::: 5. each scalar must incorporate one column from each joined table and a
-::::    column from the 1-row CTE
-:::: 6. provide test cases for a case scalar (both forms) and an if-then-else
-::::    scalar
-:::: 7. cover each of the scalar forms with each form in #4 above
-:::: 8. creat tests for IN (list) predicate where list is a column from 3-row
-::::    CTE. Cover each scalar case from #6
-:::: 9. all tests must  return more than zero and fewer than 10 rows
-::::
-::::
-::::
-:::: refer to desk/lib/scalars.hoon and desk/doc/usr/reference/scalars.md and 
-:::: sur/ast.hoon
-::::
-:::: any questions?
-:::: show me the plan first
 ::  WHERE <scalar-fn> = <scalar-fn>
 ++  test-scalar-07
   =|  run=@ud
@@ -12746,6 +12751,796 @@
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
+              ==
+      ==
+::
+::  searched CASE scalar predicates on joined rows with singleton and list CTEs
+++  test-scalar-case-search-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE ".
+                               "WHEN T2.col4 = 'red' AND one-cte.col4 = 'bravo' ".
+                               "THEN T1.col3 ".
+                               "ELSE T1.col3 + 1 END ".
+                  "right-scalar CASE ".
+                                "WHEN T1.col4 = 'bravo' AND T2.col4 = 'red' ".
+                                "THEN one-cte.col3 ".
+                                "ELSE T1.col3 + 2 END ".
+          "WHERE left-scalar = right-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-b-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-case-search-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE ".
+                               "WHEN T2.col4 = 'red' AND one-cte.col4 = 'bravo' ".
+                               "THEN T1.col3 ".
+                               "ELSE T1.col3 + 1 END ".
+          "WHERE 1 = left-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-case-search-02
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE ".
+                               "WHEN T2.col4 = 'red' AND one-cte.col4 = 'bravo' ".
+                               "THEN T1.col3 ".
+                               "ELSE T1.col3 + 1 END ".
+          "WHERE left-scalar = 6 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-e-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-case-search-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE ".
+                               "WHEN T2.col4 = 'red' AND one-cte.col4 = 'bravo' ".
+                               "THEN T1.col3 ".
+                               "ELSE T1.col3 + 1 END ".
+          "WHERE left-scalar = T2.col2 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-a-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+++  test-scalar-case-search-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE ".
+                               "WHEN T2.col4 = 'red' AND one-cte.col4 = 'bravo' ".
+                               "THEN T1.col3 ".
+                               "ELSE T1.col3 + 1 END ".
+          "WHERE T2.col2 = left-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-a-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+++  test-scalar-case-search-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE ".
+                               "WHEN T2.col4 = 'red' AND one-cte.col4 = 'bravo' ".
+                               "THEN T1.col3 ".
+                               "ELSE T1.col3 + 1 END ".
+          "WHERE left-scalar IN list-cte.col3 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-b-red
+                      scalar-row-a-blue
+                      scalar-row-c-red
+                      scalar-row-b-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 5]
+              ==
+      ==
+::
+::  simple CASE scalar predicates on joined rows with singleton and list CTEs
+++  test-scalar-case-simple-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                               "WHEN 'red-bravo' THEN T1.col2 ".
+                               "WHEN 'blue-bravo' THEN T2.col3 ".
+                               "ELSE one-cte.col2 END ".
+                  "right-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                                "WHEN 'red-bravo' THEN one-cte.col2 ".
+                                "WHEN 'blue-bravo' THEN one-cte.col2 ".
+                                "ELSE T1.col2 END ".
+          "WHERE left-scalar = right-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-b-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-case-simple-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                               "WHEN 'red-bravo' THEN T1.col2 ".
+                               "WHEN 'blue-bravo' THEN T2.col3 ".
+                               "ELSE one-cte.col2 END ".
+          "WHERE ~2024.1.11 = left-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-blue
+                      scalar-row-b-blue
+                      scalar-row-c-blue
+                      scalar-row-d-blue
+                      scalar-row-e-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 5]
+              ==
+      ==
+::
+++  test-scalar-case-simple-02
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                               "WHEN 'red-bravo' THEN T1.col2 ".
+                               "WHEN 'blue-bravo' THEN T2.col3 ".
+                               "ELSE one-cte.col2 END ".
+          "WHERE left-scalar = ~2024.1.3 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-c-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-case-simple-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                               "WHEN 'red-bravo' THEN T1.col2 ".
+                               "WHEN 'blue-bravo' THEN T2.col3 ".
+                               "ELSE one-cte.col2 END ".
+          "WHERE left-scalar = T1.col2 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-b-red
+                      scalar-row-c-red
+                      scalar-row-d-red
+                      scalar-row-e-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 5]
+              ==
+      ==
+::
+++  test-scalar-case-simple-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                               "WHEN 'red-bravo' THEN T1.col2 ".
+                               "WHEN 'blue-bravo' THEN T2.col3 ".
+                               "ELSE one-cte.col2 END ".
+          "WHERE T2.col3 = left-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-blue
+                      scalar-row-b-blue
+                      scalar-row-c-blue
+                      scalar-row-d-blue
+                      scalar-row-e-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 5]
+              ==
+      ==
+::
+++  test-scalar-case-simple-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar CASE STRING-CONCAT(T2.col4, one-cte.col4, '-') ".
+                               "WHEN 'red-bravo' THEN T1.col2 ".
+                               "WHEN 'blue-bravo' THEN T2.col3 ".
+                               "ELSE one-cte.col2 END ".
+          "WHERE left-scalar IN list-cte.col2 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-b-red
+                      scalar-row-c-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  if-then-else scalar predicates on joined rows with singleton and list CTEs
+++  test-scalar-if-then-else-00
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar IF T1.col4 = 'alpha' ".
+                                "OR T2.col4 = one-cte.col4 ".
+                              "THEN T2.col3 ".
+                              "ELSE one-cte.col2 ENDIF ".
+                  "right-scalar IF T1.col4 = 'alpha' ".
+                                 "AND T2.col4 = 'red' ".
+                               "THEN one-cte.col2 ".
+                               "ELSE T2.col3 ENDIF ".
+          "WHERE left-scalar = right-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-if-then-else-01
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar IF T1.col4 = 'alpha' ".
+                                "OR T2.col4 = one-cte.col4 ".
+                              "THEN T2.col3 ".
+                              "ELSE one-cte.col2 ENDIF ".
+          "WHERE ~2024.1.2 = left-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-b-red
+                      scalar-row-b-blue
+                      scalar-row-c-red
+                      scalar-row-c-blue
+                      scalar-row-d-red
+                      scalar-row-d-blue
+                      scalar-row-e-red
+                      scalar-row-e-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 8]
+              ==
+      ==
+::
+++  test-scalar-if-then-else-02
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar IF T1.col4 = 'alpha' ".
+                                "OR T2.col4 = one-cte.col4 ".
+                              "THEN T2.col3 ".
+                              "ELSE one-cte.col2 ENDIF ".
+          "WHERE left-scalar = ~2024.1.10 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-scalar-if-then-else-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar IF T1.col4 = 'alpha' ".
+                                "OR T2.col4 = one-cte.col4 ".
+                              "THEN T2.col3 ".
+                              "ELSE one-cte.col2 ENDIF ".
+          "WHERE left-scalar = T2.col3 SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-a-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+++  test-scalar-if-then-else-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+                "WHERE col1 = 'B' ".
+                "SELECT col2, col3, col4) AS one-cte, ".
+                "(FROM scalar-a ".
+                "WHERE col1 IN ('A', 'B', 'C') ".
+                "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar IF T1.col4 = 'alpha' ".
+                                "OR T2.col4 = one-cte.col4 ".
+                              "THEN T2.col3 ".
+                              "ELSE one-cte.col2 ENDIF ".
+          "WHERE T2.col3 = left-scalar SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-a-red
+                      scalar-row-a-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 2]
+              ==
+      ==
+::
+++  test-scalar-if-then-else-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM scalar-a ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4) AS one-cte, ".
+          "(FROM scalar-a ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4) AS list-cte ".
+          "FROM scalar-a T1 CROSS JOIN scalar-b T2 ".
+          "SCALARS left-scalar IF T1.col4 = 'alpha' ".
+          "OR T2.col4 = one-cte.col4 ".
+          "THEN T2.col3 ".
+          "ELSE one-cte.col2 ENDIF ".
+          "WHERE left-scalar IN list-cte.col2 ".
+          "SELECT T1.col1, T2.col4"
+      ::
+      :-  %results
+          :~  [%message 'SELECT']
+              :-  %result-set
+                  :~  scalar-row-b-red
+                      scalar-row-b-blue
+                      scalar-row-c-red
+                      scalar-row-c-blue
+                      scalar-row-d-red
+                      scalar-row-d-blue
+                      scalar-row-e-red
+                      scalar-row-e-blue
+                      ==
+              [%server-time ~2012.5.3]
+              [%message 'db1.dbo.scalar-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%message 'db1.dbo.scalar-b']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 8]
               ==
       ==
 ::

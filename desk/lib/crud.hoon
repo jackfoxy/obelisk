@@ -559,6 +559,17 @@
   ==
 ::
 ++  order-results
+  ::  sort comparator for select-results table metadata output.
+  ::  returns %.y if p should appear before q in the results list.
+  ::  priority order (highest to lowest), all within the same enclosing scope:
+  ::    1. ship: reverse-aor order on biff'd ship atom
+  ::    2. database: reverse-aor within same ship
+  ::    3. namespace: reverse-aor within same ship+database
+  ::    4. table name: reverse-aor within same ship+database+namespace
+  ::    5. schema-time: more recent first 
+  ::                    within same ship+database+namespace+name
+  ::    6. data-time: more recent first 
+  ::                  within same ship+database+namespace+name+schema-time
   |=  $:  p=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
           q=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
           ==
@@ -580,15 +591,29 @@
           =(namespace.qualified-table.p namespace.qualified-table.q)
           !(aor name.qualified-table.p name.qualified-table.q)
           ==                                                           %.y
-  ?:  (gth schema-tmsp.p schema-tmsp.q)                                %.y
-  ?:  &(=(schema-tmsp.p schema-tmsp.q) (gth data-tmsp.p data-tmsp.q))  %.y
+  ?:  ?&  .=  (biff ship.qualified-table.p same) 
+              (biff ship.qualified-table.q same)
+          =(database.qualified-table.p database.qualified-table.q)
+          =(namespace.qualified-table.p namespace.qualified-table.q)
+          =(name.qualified-table.p name.qualified-table.q)
+          (gth schema-tmsp.p schema-tmsp.q)
+          ==                                                           %.y
+  ?:  ?&  .=  (biff ship.qualified-table.p same) 
+              (biff ship.qualified-table.q same)
+          =(database.qualified-table.p database.qualified-table.q)
+          =(namespace.qualified-table.p namespace.qualified-table.q)
+          =(name.qualified-table.p name.qualified-table.q)
+          =(schema-tmsp.p schema-tmsp.q)
+          (gth data-tmsp.p data-tmsp.q)
+          ==                                                           %.y
   %.n
 ::
 ++  pick-from-object
   |=  [a=set-table sources-state=(set [qualified-table:ast @da @da])]
   ^-  (set [qualified-table:ast @da @da])
   ?~  relation.a    sources-state
-  %-  ~(put in sources-state)  :+  (need relation.a)
+  =/  qt  (need relation.a)
+  %-  ~(put in sources-state)  :+  qt(alias ~)
                            (need schema-tmsp.a)
                            (need data-tmsp.a)
 ::

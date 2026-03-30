@@ -2827,11 +2827,18 @@
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
+  =/  finalized-predicate
+    %:  finalize-predicate  if.cooked-if
+                            table.aliases
+                            scalar.aliases
+                            cte.aliases
+                            cte-col.aliases
+                            ==
   =/  finalized-then
     (finalize-scalar-param then.cooked-if aliases)
   =/  finalized-else
     (finalize-scalar-param else.cooked-if aliases)
-  [%if-then-else if.cooked-if finalized-then finalized-else]
+  [%if-then-else finalized-predicate finalized-then finalized-else]
 ++  finalize-case
   |=  [cooked-case=case-helper aliases=alias-maps]
   ^-  case:ast
@@ -2844,14 +2851,21 @@
     ^-  (list case-when-then:ast)
     ?~  cases.cooked-case
       ~
+    =/  cwt=case-when-then-helper  i.cases.cooked-case
+    =/  when-cwt  when.cwt
     =/  finalized-when  
-      ?:  ?=(scalar-param when.i.cases.cooked-case)
-        (finalize-scalar-param when.i.cases.cooked-case aliases)
-      when.i.cases.cooked-case
+      ?:  ?=(scalar-param when-cwt)
+        (finalize-scalar-param when-cwt aliases)
+      %:  finalize-predicate  when-cwt
+                              table.aliases
+                              scalar.aliases
+                              cte.aliases
+                              cte-col.aliases
+                              ==
     =/  finalized-case-when-then
       :+  %case-when-then
           finalized-when
-          (finalize-scalar-param then.i.cases.cooked-case aliases)
+          (finalize-scalar-param then.cwt aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff

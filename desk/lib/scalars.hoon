@@ -2497,22 +2497,27 @@
 ++  got-qualified-col-type
   |=  [=map-meta col=qualified-column:ast]
   ^-  @ta
+  =/  normalized-col=qualified-column:ast
+    col(qualifier (normalize-qt-alias qualifier.col))
+
   ?:  =(%qualified-map-meta -.map-meta)
-    -:(~(got bi:mip +:;;(qualified-map-meta map-meta)) qualifier.col name.col)
-  -:(~(got by +:;;(unqualified-map-meta map-meta)) name.col)
+    -:(~(got bi:mip +:;;(qualified-map-meta map-meta)) qualifier.normalized-col name.normalized-col)
+  -:(~(got by +:;;(unqualified-map-meta map-meta)) name.normalized-col)
 ::
 ++  got-column-dime
   |=  [=map-meta col=qualified-column:ast =data-row] 
   ^-  dime
-  ~|  "got-column-dime: failed for {<col>}"
+  =/  normalized-col=qualified-column:ast
+    col(qualifier (normalize-qt-alias qualifier.col))
+  ~|  "got-column-dime: failed for {<normalized-col>}"
   ?-  -.data-row
       %joined-row
-        :-  (got-qualified-col-type map-meta col)
-            (~(got bi:mip data.data-row) qualifier.col name.col)
+        :-  (got-qualified-col-type map-meta normalized-col)
+            (~(got bi:mip data.data-row) qualifier.normalized-col name.normalized-col)
       ::
       %indexed-row
-        :-  (got-qualified-col-type map-meta col)
-            (~(got by data.data-row) name.col)
+        :-  (got-qualified-col-type map-meta normalized-col)
+            (~(got by data.data-row) name.normalized-col)
       ==
 ::
 ++  evaluate-datum
@@ -2539,6 +2544,9 @@
     ::
     dime
       datum
+    ::
+    cte-column:ast
+      (resolve-cte-column datum named-ctes)
     ::
     qualified-column:ast
       :+  %fn
