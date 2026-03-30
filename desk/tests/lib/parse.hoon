@@ -475,7 +475,7 @@
     " CAsCADE  oN  UPdATE  CAScADE "
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: drop 2 foreign keys, extra spaces
 ++  test-alter-table-06
@@ -755,7 +755,7 @@
     "as of now"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: add 2 foreign keys as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-table-19
@@ -805,7 +805,7 @@
     "as of ~2023.12.25..7.15.0..1ef5"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: add 2 foreign keys as of 5 days ago
 ++  test-alter-table-20
@@ -855,7 +855,7 @@
     "as of 5 days ago"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: drop 2 foreign keys as of now
 ++  test-alter-table-21
@@ -1003,7 +1003,7 @@
 :: fail when database name is not a term
 ++  test-fail-create-database-01
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'dummy') "cReate datAbase  My-database")
+  |.  (parse:parse(default-database 'dummy') "cReate datAbase  My-database")
 ::
 :: create index
 ::
@@ -1147,7 +1147,7 @@
 ++  test-create-namespace-02
   %+  expect-eq
     !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') "create namespace ns1 aS oF now")
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 aS oF now")
 ::
 :: as of now qualified name
 ++  test-create-namespace-03
@@ -1467,7 +1467,7 @@
     "on delete no action; "
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... references  ns.fk-table  on update no action on delete cascade
 ++  test-create-table-02
@@ -1512,7 +1512,7 @@
     "on delete cascade"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... references fk-table on update cascade on delete no action
 ++  test-create-table-03
@@ -1553,7 +1553,7 @@
     "reFerences fk-table (col19, col20) on update cascade on delete no action"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... single column indices... references fk-table on update cascade
 ++  test-create-table-04
@@ -1593,7 +1593,7 @@
     "on update cascade"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table... table ... single column indices... references fk-table
 ++  test-create-table-05
@@ -1632,7 +1632,7 @@
     "reFerences fk-table (col20) "
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table...  no foreign key
 ++  test-create-table-06
@@ -1656,7 +1656,7 @@
     "create table my-table (col1 @t,col2 @p,col3 @ud) primary key (col1,col2)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table...  2 foreign keys
 ++  test-create-table-07
@@ -1710,7 +1710,7 @@
     "reFerences fk-table2 (col19, col20)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: fail when database qualifier on foreign key table db.ns.fk-table
 ::
@@ -1738,7 +1738,7 @@
     "primary key (col1,col2) AS of now"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table as of ns-qualified name as of datetime
 ++  test-create-table-09
@@ -1765,7 +1765,7 @@
     "as     OF ~2023.12.25..7.15.0..1ef5"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table as of db-qualified name
 ++  test-create-table-10
@@ -1792,7 +1792,7 @@
     "aS Of 5 seconds ago"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: create table as of db-ns-qualified name
 ++  test-create-table-11
@@ -1819,7 +1819,7 @@
     "as of 15 minutes ago"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ++  test-fail-create-table-12
   =/  urql
     "create table my-table ".
@@ -1828,7 +1828,7 @@
     "foreign key fk (col2 desc) ".
     "reFerences db.ns.fk-table (col20) "
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') urql)
+  |.  (parse:parse(default-database 'other-db') urql)
 ::
 :: fail when database qualifier on foreign key table db..fk-table
 ++  test-fail-create-table-13
@@ -1839,7 +1839,7 @@
     "foreign key fk (col2 desc) ".
     "reFerences db..fk-table (col20) "
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') urql)
+  |.  (parse:parse(default-database 'other-db') urql)
 ::
 :: delete
 ::
@@ -1934,7 +1934,7 @@
   =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
     !>  ~[expected1 expected2]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: delete with predicate as of now
 ++  test-delete-01
@@ -2150,7 +2150,7 @@
 :: fail when database is not a term
 ++  test-fail-drop-database-3
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP DATABASE nAme")
+  |.  (parse:parse(default-database 'other-db') "DROP DATABASE nAme")
 ::
 :: drop index
 ::
@@ -2257,7 +2257,7 @@
 ++  test-drop-namespace-02
   %+  expect-eq
     !>  ~[[%drop-namespace database-name='db' name='name' force=%.n as-of=~]]
-    !>  ~>  %bout  (parse:parse(default-database 'other-db') "drop namespace db.name")
+    !>  (parse:parse(default-database 'other-db') "drop namespace db.name")
 ::
 ::  name, as of now
 ++  test-drop-namespace-03
@@ -2401,12 +2401,12 @@
 :: fail when database qualifier is not a term
 ++  test-fail-drop-namespace-15
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP NAMESPACE Db.name")
+  |.  (parse:parse(default-database 'other-db') "DROP NAMESPACE Db.name")
 ::
 :: fail when namespace is not a term
 ++  test-fail-drop-namespace-16
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP NAMESPACE nAme")
+  |.  (parse:parse(default-database 'other-db') "DROP NAMESPACE nAme")
 ::
 :: drop table
 ::
@@ -2617,22 +2617,22 @@
 :: fail when database qualifier is not a term
 ++  test-fail-drop-table-13
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP table Db.ns.name")
+  |.  (parse:parse(default-database 'other-db') "DROP table Db.ns.name")
 ::
 :: fail when namespace qualifier is not a term
 ++  test-fail-drop-table-14
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP table db.nS.name")
+  |.  (parse:parse(default-database 'other-db') "DROP table db.nS.name")
 ::
 :: fail when table name is not a term
 ++  test-fail-drop-table-15
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP table db.ns.nAme")
+  |.  (parse:parse(default-database 'other-db') "DROP table db.ns.nAme")
 ::
 :: fail when table name is qualified with ship
 ++  test-fail-drop-table-16
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP table ~zod.db.ns.name")
+  |.  (parse:parse(default-database 'other-db') "DROP table ~zod.db.ns.name")
 ::
 :: drop view
 ::
@@ -2744,22 +2744,22 @@
 :: fail when database qualifier is not a term
 ++  test-fail-drop-view-8
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP VIEW Db.ns.name")
+  |.  (parse:parse(default-database 'other-db') "DROP VIEW Db.ns.name")
 ::
 :: fail when namespace qualifier is not a term
 ++  test-fail-drop-view-9
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP VIEW db.nS.name")
+  |.  (parse:parse(default-database 'other-db') "DROP VIEW db.nS.name")
 ::
 :: fail when view name is not a term
 ++  test-fail-drop-view-10
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP VIEW db.ns.nAme")
+  |.  (parse:parse(default-database 'other-db') "DROP VIEW db.ns.nAme")
 ::
 :: fail when view name is qualified with ship
 ++  test-fail-drop-view-11
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'other-db') "DROP view ~zod.db.ns.name")
+  |.  (parse:parse(default-database 'other-db') "DROP view ~zod.db.ns.name")
 ::
 :: insert
 ::
@@ -2859,7 +2859,7 @@
     "valueS ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)"
   %+  expect-eq
     !>  ~[expected1 expected2]
-    !>  ~>  %bout  (parse:parse(default-database 'other-db') (weld urql1 (weld ";" urql2)))
+    !>  (parse:parse(default-database 'other-db') (weld urql1 (weld ";" urql2)))
 ::
 :: no columns, 3 rows
 ++  test-insert-01
@@ -2916,7 +2916,7 @@
     "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: no columns, 3 rows, as of now
 ++  test-insert-02
@@ -2973,7 +2973,7 @@
     "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: no columns, 3 rows, as of ~2023.12.25..7.15.0..1ef5
 ++  test-insert-03
@@ -3030,7 +3030,7 @@
     "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: no columns, 3 rows, as of 5 days ago
 ++  test-insert-04
@@ -3087,7 +3087,7 @@
     "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: no columns, 3 rows, as of now
 ++  test-insert-05
@@ -3140,7 +3140,7 @@
     "  (default,.195.198.143.90, 195.198.143.900)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'other-db') urql)
+    !>  (parse:parse(default-database 'other-db') urql)
 ::
 :: no columns, 3 rows, as of now
 ++  test-insert-06
@@ -3193,7 +3193,7 @@
     "  (default,.195.198.143.90, 195.198.143.900)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'other-db') urql)
+    !>  (parse:parse(default-database 'other-db') urql)
 ::
 :: no columns, 3 rows, as of offset
 ++  test-insert-07
@@ -3246,7 +3246,7 @@
     "  (default,.195.198.143.90, 195.198.143.900)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'other-db') urql)
+    !>  (parse:parse(default-database 'other-db') urql)
 ::
 :: every column type, no spaces around values
 ++  test-insert-08
@@ -3303,7 +3303,7 @@
     "-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: every column type, spaces on all sides of values, comma inside cord
 ++  test-insert-09
@@ -3361,7 +3361,7 @@
     " -20 , --20 , e2O.l4Xpm , pm.l4e2O.l4Xpm )"
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+    !>  (parse:parse(default-database 'db1') urql)
 ::
 :: every numeric type, no spaces around values
 ++  test-insert-10
@@ -3404,7 +3404,7 @@
             ".~-3.14,0x12.6401,10.1011,-20,--20,e2O.l4Xpm,pm.l4e2O.l4Xpm)"
   %+  expect-eq
       !>  expected
-      !>  ~>  %bout  (parse:parse(default-database 'db1') urql)
+      !>  (parse:parse(default-database 'db1') urql)
 ::
 :: truncate table
 ::
@@ -3543,22 +3543,22 @@
 :: fail when database qualifier is not a term
 ++  test-fail-truncate-table-01
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'dummy') "truncate table Db.ns.name")
+  |.  (parse:parse(default-database 'dummy') "truncate table Db.ns.name")
 ::
 :: fail when namespace qualifier is not a term
 ++  test-fail-truncate-table-02
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'dummy') "truncate table db.nS.name")
+  |.  (parse:parse(default-database 'dummy') "truncate table db.nS.name")
 ::
 :: fail when table name is not a term
 ++  test-fail-truncate-table-03
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'dummy') "truncate table db.ns.nAme")
+  |.  (parse:parse(default-database 'dummy') "truncate table db.ns.nAme")
 ::
 :: fail when table name is not a term
 ++  test-fail-truncate-table-04
   %-  expect-fail
-  |.  ~>  %bout  (parse:parse(default-database 'dummy') "truncate table db.ns.nAme")
+  |.  (parse:parse(default-database 'dummy') "truncate table db.ns.nAme")
 ::
 :: fail when ship is invalid
 ++  test-fail-truncate-table-05
@@ -3717,7 +3717,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top, trailing whitespace
 ++  test-select-02
@@ -3730,7 +3730,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top
 ++  test-select-03
@@ -3743,7 +3743,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top, trailing whitespace
 ++  test-select-04
@@ -3756,7 +3756,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top
 ++  test-select-05
@@ -3769,7 +3769,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select, trailing whitespace
 ++  test-select-06
@@ -3781,7 +3781,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select
 ++  test-select-07
@@ -3793,7 +3793,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  select top, simple columns
 ++  test-select-08
@@ -3856,7 +3856,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  from foo select top, simple columns, trailing space, no internal space
 ++  test-select-09
@@ -3912,7 +3912,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aliased format 1 columns
 ++  test-select-10
@@ -3963,7 +3963,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aliased format 1, top, columns, no whitespace
 ++  test-select-11
@@ -4013,7 +4013,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed all, object all, object alias all, column, aliased column
 ++  test-select-12
@@ -4026,7 +4026,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::::
 ::::  , top, mixed all, object all, object alias all, column, aliased column, no whitespace
 ++  test-select-13
@@ -4039,7 +4039,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 
 ::::  to do: revive tests when group by implemented 
 ::::
@@ -4050,7 +4050,7 @@
 ::              "select  foo , COUNT(foo) as CountFoo, cOUNT( bar) ,sum(bar ) , sum( foobar ) as foobar "
 ::  %+  expect-eq
 ::    !>  ~[[%selection ctes=~ [[%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=~ columns=aggregates] ~] ~ ~]]]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+::    !>  (parse:parse(default-database 'db1') select)
 ::::
 ::::  , top, mixed aggregates, no whitespace
 ::++  test-select-15
@@ -4059,55 +4059,55 @@
 ::              "select top 10 foo,COUNT(foo) as CountFoo,cOUNT( bar),sum(bar ),sum( foobar ) as foobar"
 ::  %+  expect-eq
 ::    !>  ~[[%selection ctes=~ [[%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] columns=aggregates] ~] ~ ~]]]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+::    !>  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no top parameter, trailing whitespace
 ++  test-fail-select-16
     =/  select  "select top   * "
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no column selection, trailing whitespace
 ++  test-fail-select-01
     =/  select  "select top 10   "
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no column selection, trailing whitespace
 ++  test-fail-select-02
     =/  select  "select top 10    "
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no top parameter, trailing whitespace
 ++  test-fail-select-03
     =/  select  "select top   * "
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no top parameter
 ++  test-fail-select-04
     =/  select  "select top   *"
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail no column selection, trailing whitespace
 ++  test-fail-select-05
     =/  select  "select         "
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no column selection
 ++  test-fail-select-06
     =/  select  "select top 10"
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 :: fail no column selection
 ++  test-fail-select-07
     =/  select  "select"
     %-  expect-fail
-    |.  ~>  %bout  (parse:parse(default-database 'db1') select)
+    |.  (parse:parse(default-database 'db1') select)
 ::
 ::  group and order by
 ::
@@ -4147,7 +4147,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  group by, no whitespace, with predicate
 ::  to do: fix when GROUP BY enabled
@@ -4156,7 +4156,7 @@
 ::  =/  select  "from foo where T1.foo = T2.bar group by db.ns.table.col,T1.foo,3,4 select *"
 ::  %+  expect-eq
 ::    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=pred group-by=group-by having=~ select=select-all-columns order-by=~] ~ ~]]]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+::    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  order by
 ++  test-order-by-01
@@ -4170,7 +4170,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  order by, no whitespace
 ++  test-order-by-02
@@ -4184,7 +4184,7 @@
         ==
   %+  expect-eq
     !>  ~[[%selection ctes=~ [query ~ ~]]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 :: update
 ::
@@ -4648,7 +4648,7 @@
 ::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']] new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::
 ::++  test-merge-02
@@ -4663,7 +4663,7 @@
 ::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']] new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::
 ::++  test-merge-03
@@ -4680,7 +4680,7 @@
 ::    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='src' alias=~] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::  query row tests, uncomment when query row implemented
 ::::
@@ -4696,7 +4696,7 @@
 ::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 :::: merge target passthru alias
 ::++  test-merge-05
@@ -4710,7 +4710,7 @@
 ::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 :::: merge target passthru unaliased
 ::++  test-merge-06
@@ -4724,7 +4724,7 @@
 ::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::merge source passthru alias AS
 ::++  test-merge-07
@@ -4740,7 +4740,7 @@
 ::    [%selection ctes=~ [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::merge source passthru alias AS
 ::++  test-merge-08
@@ -4756,7 +4756,7 @@
 ::    [%selection ctes=~ [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 ::::
 ::::merge source passthru alias AS
 ::++  test-merge-09
@@ -4772,7 +4772,7 @@
 ::    [%selection ctes=~ [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
-::    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+::    !>  (parse:parse(default-database 'db1') query)
 :: to do: tests for merge to new file
 ::
 :: block comment
@@ -4979,7 +4979,7 @@
 ++  test-line-cmnt-03
   %+  expect-eq
     !>  ~[[%create-namespace database-name='db1' name='ns1' as-of=~]]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') "create namespace ns1 ::line cmnt")
+    !>  (parse:parse(default-database 'db1') "create namespace ns1 ::line cmnt")
 ++  test-line-cmnt-04
   %+  expect-eq
     !>  ~[t1a t2 t3]

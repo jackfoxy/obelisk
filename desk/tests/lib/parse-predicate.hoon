@@ -288,7 +288,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-02
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo<>bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
@@ -318,7 +318,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-03
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
@@ -348,7 +348,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-04
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo >bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gt foo bar]
@@ -378,7 +378,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-05
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lt foo bar]
@@ -408,7 +408,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-06
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo>= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
@@ -438,7 +438,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-07
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!< bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
@@ -468,7 +468,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-08
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
@@ -498,7 +498,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-09
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo !> bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
@@ -528,7 +528,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-10
   =/  query  "FROM foo WHERE foobar EQUIV bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%equiv foobar bar]
@@ -548,7 +548,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-11
   =/  query  "FROM foo WHERE foobar NOT EQUIV bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%not-equiv foobar bar]
@@ -568,7 +568,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  remaining simple predicates, varying spacing and keywork casing
 ++  test-predicate-12
@@ -604,7 +604,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-13
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE foobar  Not  Between foo   bar ".
@@ -638,7 +638,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-14
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE foobar  Between foo  And bar ".
@@ -672,7 +672,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-15
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE foobar between foo  And bar ".
@@ -706,7 +706,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-16
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE T1.foo>=aLl bar ".
@@ -739,7 +739,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-17
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE T1.foo nOt In bar ".
@@ -772,7 +772,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-18
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE T1.foo not in (1,2,3) ".
@@ -805,7 +805,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-19
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE T1.foo in bar ".
@@ -838,7 +838,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-20
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE T1.foo in (1,2,3) ".
@@ -871,7 +871,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-21
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE NOT  EXISTS  T1.foo ".
@@ -904,7 +904,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-22
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE NOT  exists  foo ".
@@ -937,7 +937,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-23
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE EXISTS T1.foo ".
@@ -970,7 +970,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-24
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar ".
     " WHERE EXISTS  foo ".
@@ -1003,7 +1003,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  test conjunctions, varying spacing and keyword casing
 ++  test-predicate-25
@@ -1038,7 +1038,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 :: expected/actual match
 ++  test-predicate-26
@@ -1081,7 +1081,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 :: expected/actual match
 ++  test-predicate-27
@@ -1118,7 +1118,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 :: expected/actual match
 ++  test-predicate-28
@@ -1157,7 +1157,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 :: expected/actual match
 ++  test-predicate-29
@@ -1199,7 +1199,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 :: simple nesting
 ++  test-predicate-30
@@ -1250,7 +1250,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  nesting
 ++  test-predicate-31
@@ -1291,7 +1291,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  simple nesting, superfluous () around entire predicate
 ++  test-predicate-32
@@ -1329,7 +1329,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  aggregate inequality
 ++  test-predicate-33
@@ -1352,7 +1352,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aggregate inequality, no whitespace
 ++  test-predicate-34
@@ -1375,7 +1375,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aggregate equality
 ++  test-predicate-35
@@ -1398,7 +1398,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') select)
+    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  complext predicate, bug test
 ++  test-predicate-36
@@ -1464,7 +1464,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  outer parens
 ++  test-predicate-37
@@ -1498,7 +1498,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  NOT unary operator
 ::
@@ -1535,7 +1535,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-39
   =/  query
         "FROM adoptions T1 WHERE NOT (foo = bar) SELECT *"
@@ -1569,7 +1569,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ++  test-predicate-40
   =/  query
@@ -1606,7 +1606,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ++  test-predicate-41
   =/  query
@@ -1643,7 +1643,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ++  test-predicate-42
   =/  query  "FROM adoptions AS T1 ".
     " WHERE not NOT  EXISTS  T1.foo ".
@@ -1669,7 +1669,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  complext predicate with NOT
 ++  test-predicate-43
@@ -1743,7 +1743,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  cte column predicate helpers
 ::
@@ -1821,7 +1821,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  2: <cte>.<col> = <literal>
 ++  test-predicate-45
@@ -1846,7 +1846,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  3: <literal> = <cte>.<col>
 ++  test-predicate-46
@@ -1871,7 +1871,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  4: <cte>.<col> = <column>
 ++  test-predicate-47
@@ -1896,7 +1896,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  5: <column> = <cte>.<col>
 ++  test-predicate-48
@@ -1921,7 +1921,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  6: <literal> in <cte>.<col>
 ++  test-predicate-49
@@ -1946,7 +1946,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  7: <column> in <cte>.<col>
 ++  test-predicate-50
@@ -1971,7 +1971,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  test cte column in predicate, joined tables
 ::
@@ -2000,7 +2000,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  2: <cte1>.<col> = <literal>
 ++  test-predicate-52
@@ -2027,7 +2027,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  3: <literal> = <cte1>.<col>
 ++  test-predicate-53
@@ -2054,7 +2054,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  4: <cte1>.<col> = <column>
 ++  test-predicate-54
@@ -2081,7 +2081,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  5: <column> = <cte2>.<col>
 ++  test-predicate-55
@@ -2108,7 +2108,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  6: <literal> in <cte1>.<col>
 ++  test-predicate-56
@@ -2135,7 +2135,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  7: <column> in <cte2>.<col>
 ++  test-predicate-57
@@ -2162,7 +2162,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  cte with named columns helpers
 ::
@@ -2215,7 +2215,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  2: <cte>.<col> = <literal>
 ++  test-predicate-59
@@ -2240,7 +2240,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  3: <literal> = <cte>.<col>
 ++  test-predicate-60
@@ -2265,7 +2265,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  4: <cte>.<col> = <column>
 ++  test-predicate-61
@@ -2290,7 +2290,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  5: <column> = <cte>.<col>
 ++  test-predicate-62
@@ -2315,7 +2315,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  6: <literal> in <cte>.<col>
 ++  test-predicate-63
@@ -2340,7 +2340,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  7: <column> in <cte>.<col>
 ++  test-predicate-64
@@ -2365,7 +2365,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  test cte column in predicate, joined tables, named cte columns
 ::
@@ -2394,7 +2394,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  2: <cte1>.<col> = <literal>
 ++  test-predicate-66
@@ -2421,7 +2421,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  3: <literal> = <cte1>.<col>
 ++  test-predicate-67
@@ -2448,7 +2448,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  4: <cte1>.<col> = <column>
 ++  test-predicate-68
@@ -2475,7 +2475,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  5: <column> = <cte2>.<col>
 ++  test-predicate-69
@@ -2502,7 +2502,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  6: <literal> in <cte1>.<col>
 ++  test-predicate-70
@@ -2529,7 +2529,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  7: <column> in <cte2>.<col>
 ++  test-predicate-71
@@ -2556,7 +2556,7 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 ::
 ::  bare hyphenated unqualified column in predicate
 ++  test-predicate-72
@@ -2580,5 +2580,5 @@
                 ~
   %+  expect-eq
     !>  ~[expected]
-    !>  ~>  %bout  (parse:parse(default-database 'db1') query)
+    !>  (parse:parse(default-database 'db1') query)
 --
