@@ -2081,6 +2081,217 @@
     ==
   ==
 ::
+:: parser-migrated arithmetic fail tests now belong at scalar preparation time
+::
+++  test-fail-arithmetic-00
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%concat ~[[~.t 'hello'] [~.t 'world']]] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-01
+  %+  expect-fail-message
+    'number system conflict: ~.t %hep ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %hep [%left [~.t 'hello'] [~.ud 2]] [~.ud 5]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-02
+  %+  expect-fail-message
+    'number system conflict: ~.ud %tar ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %tar [~.ud 10] [%right [~.t 'world'] [~.ud 3]]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-03
+  %+  expect-fail-message
+    'number system conflict: ~.t %fas ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [%substring [~.t 'hello'] [~.ud 1] `[~.ud 3]] [~.ud 2]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-04
+  %+  expect-fail-message
+    'number system conflict: ~.ud %ket ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %ket [~.ud 2] [%trim [~.t '  hello  '] ~]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-05
+  %+  expect-fail-message
+    'number system conflict: ~.getutcdate %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%getutcdate ~] [~.ud 100]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-06
+  %+  expect-fail-message
+    '~.t %lus ~.t : ~.t not a supported number system, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%left [~.t 'abc'] [~.ud 1]] [%right [~.t 'xyz'] [~.ud 1]]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-07
+  %+  expect-fail-message
+    'number system conflict: ~.ud %lus ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %tar [%arithmetic %lus [~.ud 5] [%concat ~[[~.t 'a'] [~.t 'b']]]] [~.ud 2]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-08
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%lower [~.t 'hello']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-09
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%upper [~.t 'hello']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-10
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%reverse [~.t 'hello']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-11
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%ltrim [~.t 'hello'] ~] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-12
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%rtrim [~.t 'hello'] ~] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-13
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%replace [~.t 'hello'] [~.t 'll'] [~.t 'LL']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-14
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%replicate [~.t 'hello'] [~.ud 3]] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-15
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%quotestring [~.t 'hello'] ~] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-16
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%string [~.ud 3]] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-17
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%string-concat ~[[~.t 'a'] [~.t 'b']] [~.t ' ']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-18
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%stuff [~.t 'hello'] [~.ud 2] [~.ud 3] [~.t 'xx']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              ==
+::
 ++  test-fail-arithmetic-ns-conflict
   %+  expect-fail-message
     'number system conflict: ~.rd %lus ~.ud'

@@ -641,6 +641,7 @@
       ==
 ::
 +$  scalar-node  $%  scalar-function
+                     scalar-name
                      datum
                      ==
 ::

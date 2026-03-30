@@ -2802,6 +2802,7 @@
   ?:  ?=(dime cooked-param)
     cooked-param
   ?:  ?=(qualified-column:ast cooked-param)  cooked-param
+  ?:  ?=(cte-column:ast cooked-param)  cooked-param
   ?.  ?=(unqualified-column:ast cooked-param)  !!
   =/  maybe-table
         ?~  alias.cooked-param  ~
@@ -2824,6 +2825,15 @@
       [%cte-column (need maybe-cte) name.cooked-param]
     [%scalar-name name.cooked-param]
   [%qualified-column (need maybe-table) column=name.cooked-param alias=~]
+::  finalize a scalar-node helper into a scalar-node
+++  finalize-scalar-node
+  |=  [cooked-node=scalar-node-helper aliases=alias-maps]
+  ^-  scalar-node:ast
+  ?:  ?=(scalar-param cooked-node)
+    (finalize-scalar-param cooked-node aliases)
+  %^  produce-scalar-fn  -.cooked-node
+                         +.cooked-node
+                         aliases
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
@@ -2835,9 +2845,9 @@
                             cte-col.aliases
                             ==
   =/  finalized-then
-    (finalize-scalar-param then.cooked-if aliases)
+    (finalize-scalar-node then.cooked-if aliases)
   =/  finalized-else
-    (finalize-scalar-param else.cooked-if aliases)
+    (finalize-scalar-node else.cooked-if aliases)
   [%if-then-else finalized-predicate finalized-then finalized-else]
 ++  finalize-case
   |=  [cooked-case=case-helper aliases=alias-maps]
@@ -2845,7 +2855,7 @@
   =/  finalized-target
     ?~  target.cooked-case
       ~
-    (some (finalize-scalar-param (need target.cooked-case) aliases))
+    (some (finalize-scalar-node (need target.cooked-case) aliases))
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
@@ -2854,8 +2864,8 @@
     =/  cwt=case-when-then-helper  i.cases.cooked-case
     =/  when-cwt  when.cwt
     =/  finalized-when  
-      ?:  ?=(scalar-param when-cwt)
-        (finalize-scalar-param when-cwt aliases)
+      ?:  ?=(scalar-node-helper when-cwt)
+        (finalize-scalar-node when-cwt aliases)
       %:  finalize-predicate  when-cwt
                               table.aliases
                               scalar.aliases
@@ -2865,13 +2875,13 @@
     =/  finalized-case-when-then
       :+  %case-when-then
           finalized-when
-          (finalize-scalar-param then.cwt aliases)
+          (finalize-scalar-node then.cwt aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
-    |=  else=scalar-param
-    (some (finalize-scalar-param else aliases))
+    |=  else=scalar-node-helper
+    (some (finalize-scalar-node else aliases))
   [%case finalized-target finalized-cases finalized-else]
 ++  finalize-coalesce
   |=  [cooked-coalesce=coalesce-helper aliases=alias-maps]
@@ -2879,8 +2889,8 @@
   =/  finalized-data
     %+  turn
       data.cooked-coalesce
-      |=  param=scalar-param
-      (finalize-scalar-param param aliases)
+      |=  param=scalar-node-helper
+      (finalize-scalar-node param aliases)
   :-  %coalesce
       finalized-data
 ++  produce-scalar-fn
@@ -5205,6 +5215,8 @@
   ^-  scalar-param
   ?:  ?=(dime parsed)
     parsed
+  ?:  ?=(cte-column:ast parsed)
+    parsed
   ::  remaining cases are qualified-column or unqualified-column
   ::  from parse-qualified-column
   ?:  ?=([%unqualified-column *] parsed)
@@ -5212,6 +5224,21 @@
   ?:  ?=([%qualified-column *] parsed)
     ;;(qualified-column:ast parsed)
   ~|("cannot cook-scalar-param  {<parsed>}" !!)
+::  scalar-node sites can take a datum-like scalar param or a nested scalar fn
+++  cook-scalar-node
+  |=  parsed=*
+  ^-  scalar-node-helper
+  ?:  ?=(scalar-param parsed)
+    parsed
+  ?:  ?=([%unqualified-column *] parsed)
+    (cook-scalar-param parsed)
+  ?:  ?=([%qualified-column *] parsed)
+    (cook-scalar-param parsed)
+  ?:  ?=(cte-column:ast parsed)
+    parsed
+  ?:  ?=(raw-scalar-fn parsed)
+    parsed
+  ~|("cannot cook-case-node  {<parsed>}" !!)
 ++  get-datum-for-predicate
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
@@ -5226,13 +5253,35 @@
     ;~(sfix parse-scalar-param whitespace)
     parse-scalar-param
   ==
+::  for scalar-node positions in scalar functions
+++  parse-scalar-node-core  ~+
+  ;~  pose
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~  pfix
+      (jester 'case')
+      ;~  pose
+        (stag %simple-case parse-simple-case)
+        (stag %searched-case parse-searched-case)
+      ==
+    ==
+    parse-coalesce
+    parse-standalone-builtin-scalar-fn
+    parse-builtin-scalar-fn
+    parse-scalar-param
+  ==
+++  parse-scalar-node  ~+
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  (parse-scalar-node-core rest)
 ++  cook-if
   |=  parsed=*
   ^-  if-then-else-helper
   =/  raw-then  +>-.parsed
-  =/  cooked-then  (cook-scalar-param raw-then)
+  =/  cooked-then  (cook-scalar-node raw-then)
   =/  raw-else  +>+>-.parsed
-  =/  cooked-else  (cook-scalar-param raw-else)
+  =/  cooked-else  (cook-scalar-node raw-else)
   :^  %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
     cooked-then
@@ -5241,45 +5290,45 @@
   ;~  plug
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    parse-scalar-param
+    parse-scalar-node
     ;~(pfix whitespace (cold %else (jester 'else')))
-    parse-scalar-param
+    parse-scalar-node
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
 ++  parse-when-then-datum
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
-    parse-scalar-param
+    parse-scalar-node
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-aggregate parse-scalar-param)
+    parse-scalar-node
   ==
 ++  parse-when-then-predicate
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-aggregate parse-scalar-param)
+    parse-scalar-node
   ==
 ++  parse-case-else
   ;~  plug
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pfix whitespace ;~(pose parse-aggregate parse-scalar-param))
+    ;~(pfix whitespace parse-scalar-node)
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
 ++  cook-case
   |=  parsed=*
   ~+
   =/  fn-name  -.parsed
-  =/  [cooked-target=(unit scalar-param) rest=*]
+  =/  [cooked-target=(unit scalar-node-helper) rest=*]
     ?:  =(fn-name %simple-case)
-      [(some (cook-scalar-param +<.parsed)) +>.parsed]
+      [(some (cook-scalar-node +<.parsed)) +>.parsed]
     [~ +.parsed]
   =/  cases  (cook-case-when-then-list fn-name -.rest)
-  =/  [cooked-else=(unit scalar-param) rest=*]
+  =/  [cooked-else=(unit scalar-node-helper) rest=*]
     ?@  +.rest
       [~ rest]
     ?:  =(%else +<.rest)
-      [(some (cook-scalar-param +>-.rest)) +>.rest]
+      [(some (cook-scalar-node +>-.rest)) +>.rest]
     ~|("cannot cook else: unexpected atom: {<+<.rest>}" !!)
   ?:  =(+.rest %end)
     [%case-helper cooked-target cases cooked-else]
@@ -5295,11 +5344,11 @@
   =/  raw-then  ->+>.case-when-then-list
   =/  cooked-when  
     ?:  =(case-type %simple-case)
-      (cook-scalar-param raw-when)
+      (cook-scalar-node raw-when)
     ?:  =(case-type %searched-case)
       (produce-predicate (predicate-list raw-when))
     ~|("unknown case type {<case-type>}" !!)
-  =/  cooked-then  (cook-scalar-param raw-then)
+  =/  cooked-then  (cook-scalar-node raw-then)
   =/  cooked-case-when-then
     [%case-when-then-helper cooked-when cooked-then]
   [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
@@ -5307,7 +5356,7 @@
 ++  parse-simple-case
   ::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
   ;~  plug
-    parse-scalar-param
+    parse-scalar-node
     (star parse-when-then-datum)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
@@ -5323,10 +5372,10 @@
   |=  parsed=*
   ^-  coalesce-helper
   =/  coalesce-params     |-
-                          ^-  (list scalar-param)
+                          ^-  (list scalar-node-helper)
                           ?~  parsed
                             ~
-                          [(cook-scalar-param -.parsed) $(parsed +.parsed)]
+                          [(cook-scalar-node -.parsed) $(parsed +.parsed)]
   ?~  coalesce-params     ~|("COALESCE requires at least 2 parameters" !!)
   ?~  t.coalesce-params   ~|("COALESCE requires at least 2 parameters" !!)
   :-  %coalesce-helper
@@ -5334,7 +5383,7 @@
 ++  parse-coalesce  ~+
   ;~  plug
     (cold %coalesce (jester %coalesce))
-    (parse-n-params ;~(pose parse-aggregate parse-scalar-param))
+    (parse-n-params parse-scalar-node)
   ==
 ::
 ++  handle-arithmetic-parens  ~+
@@ -5488,12 +5537,11 @@
   |=  [ops=* min-prec=@ud aliases=alias-maps]
   ^-  [tree=(tree $?(arithmetic-op:ast scalar-node:ast)) remaining=*]
   =/  tr=(tree $?(arithmetic-op:ast scalar-node:ast))
-    ?:  ?=(dime -.ops)
-      [-.ops ~ ~]
-    ?:  ?|(?=(qualified-column:ast -.ops) ?=(unqualified-column:ast -.ops))
-      [(finalize-param -.ops aliases) ~ ~]
-    ?:  ?=([%builtin-fn [@tas *]] -.ops)
-      [(finalize-math-builtin-fn ->.ops aliases) ~ ~]
+    ?:  ?=(scalar-param -.ops)
+      [(finalize-scalar-param -.ops aliases) ~ ~]
+    ?:  ?=(raw-scalar-fn -.ops)
+      =/  raw-fn=raw-scalar-fn  -.ops
+      [(produce-scalar-fn -.raw-fn +.raw-fn aliases) ~ ~]
     =/  nested  (process-arithmetic-list -.ops 0 aliases)
     tree.nested
   |-
@@ -5590,6 +5638,26 @@
     parsed
   (fail tub)
 ::
+++  raw-arithmetic-has-operator
+  |=  raw-body=*
+  ^-  ?
+  ?~  raw-body
+    %.n
+  ?:  ?=(arithmetic-op:ast -.raw-body)
+    %.y
+  $(raw-body +.raw-body)
+::
+++  parse-scalar-node-arithmetic
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (parse-arithmetic tub)
+  ?~  q.parsed
+    parsed
+  =/  raw-body  +.p.u.q.parsed
+  ?:  (raw-arithmetic-has-operator raw-body)
+    parsed
+  (fail tub)
+::
 ++  scalar-stop
   ;~  pose
     ;~(plug whitespace (jester 'where') whitespace)
@@ -5606,9 +5674,10 @@
       ;~  pose
         (stag %simple-case parse-simple-case)
         (stag %searched-case parse-searched-case)
-    ==
+      ==
     ==
     parse-coalesce
+    parse-scalar-node-arithmetic
     parse-standalone-builtin-scalar-fn
     parse-arithmetic
     parse-builtin-scalar-fn
@@ -5796,30 +5865,39 @@
         @
         ==
   ==
-+$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast)
++$  raw-scalar-fn
+  $%  [%if *]
+      [%simple-case *]
+      [%searched-case *]
+      [%coalesce *]
+      [%arithmetic *]
+      [%builtin-fn *]
+      ==
++$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast cte-column:ast)
++$  scalar-node-helper  $%(scalar-param raw-scalar-fn)
 +$  coalesce-helper
   $:
     %coalesce-helper
-    data=(list scalar-param)
+    data=(list scalar-node-helper)
   ==
 +$  if-then-else-helper
   $:
     %if-then-else-helper
     if=predicate:ast
-    then=scalar-param
-    else=scalar-param
+    then=scalar-node-helper
+    else=scalar-node-helper
   ==
 +$  case-helper
   $:
     %case-helper
-    target=(unit scalar-param)
+    target=(unit scalar-node-helper)
     cases=(list case-when-then-helper)
-    else=(unit scalar-param)
+    else=(unit scalar-node-helper)
   ==
 +$  case-when-then-helper
   $:
     %case-when-then-helper
-    when=$%(scalar-param predicate:ast)
-    then=scalar-param
+    when=$%(scalar-node-helper predicate:ast)
+    then=scalar-node-helper
   ==
 --
