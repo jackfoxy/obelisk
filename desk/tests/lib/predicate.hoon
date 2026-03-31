@@ -12802,13 +12802,12 @@
                           "WHEN T2.col5 = 1 THEN one-cte.col2 ".
                           "WHEN T1.col5 = 3 THEN T2.col2 ".
                           "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    5
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-b-v
+    3
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         ==
@@ -12827,7 +12826,8 @@
                          "WHEN T1.col5 = 1 THEN T2.col2 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND 1 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND 1 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -12848,7 +12848,8 @@
                          "WHEN T1.col5 = 1 THEN T2.col2 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = 6 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 6 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -12869,11 +12870,15 @@
                          "WHEN T1.col5 = 1 THEN T2.col2 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    1
+    4
     :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
         ==
   ==
 ::
@@ -12890,13 +12895,12 @@
                          "WHEN T1.col5 = 1 THEN T2.col2 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    6
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-b-v
+    4
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         scalar-row-c-w
@@ -12916,14 +12920,12 @@
                          "WHEN T1.col5 = 1 THEN T2.col2 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    9
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-a-x
-        scalar-row-b-v
+    6
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         scalar-row-c-w
@@ -12950,13 +12952,12 @@
                           "WHEN T2.col5 = 1 THEN one-cte.col3 ".
                           "WHEN T1.col5 = 3 THEN T2.col3 ".
                           "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    5
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-b-v
+    3
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         ==
@@ -12975,7 +12976,8 @@
                          "WHEN T1.col5 = 1 THEN T2.col3 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND 'u' = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND 'u' = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -12996,7 +12998,8 @@
                          "WHEN T1.col5 = 1 THEN T2.col3 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'cobra' SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'cobra' ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -13017,11 +13020,15 @@
                          "WHEN T1.col5 = 1 THEN T2.col3 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    1
+    4
     :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
         ==
   ==
 ::
@@ -13038,13 +13045,12 @@
                          "WHEN T1.col5 = 1 THEN T2.col3 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    6
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-b-v
+    4
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         scalar-row-c-w
@@ -13064,14 +13070,12 @@
                          "WHEN T1.col5 = 1 THEN T2.col3 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    9
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-a-x
-        scalar-row-b-v
+    6
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         scalar-row-c-w
@@ -13098,13 +13102,12 @@
                           "WHEN T2.col5 = 1 THEN one-cte.col4 ".
                           "WHEN T1.col5 = 3 THEN T2.col4 ".
                           "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    5
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-b-v
+    3
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         ==
@@ -13123,7 +13126,8 @@
                          "WHEN T1.col5 = 1 THEN T2.col4 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND ~2024.1.1 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND ~2024.1.1 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -13144,7 +13148,8 @@
                          "WHEN T1.col5 = 1 THEN T2.col4 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.6 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.6 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -13165,11 +13170,15 @@
                          "WHEN T1.col5 = 1 THEN T2.col4 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    1
+    4
     :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
         ==
   ==
 ::
@@ -13186,13 +13195,12 @@
                          "WHEN T1.col5 = 1 THEN T2.col4 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    6
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-b-v
+    4
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         scalar-row-c-w
@@ -13212,14 +13220,12 @@
                          "WHEN T1.col5 = 1 THEN T2.col4 ".
                          "WHEN T2.col5 = 4 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
-    9
-    :~  scalar-row-a-v
-        scalar-row-a-w
-        scalar-row-a-x
-        scalar-row-b-v
+    6
+    :~  scalar-row-b-v
         scalar-row-b-w
         scalar-row-b-x
         scalar-row-c-w
@@ -13251,7 +13257,8 @@
                          "WHEN 1 THEN T1.col2 ".
                          "WHEN 2 THEN one-cte.col2 ".
                          "ELSE T2.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13274,7 +13281,8 @@
                          "WHEN 2 THEN T2.col2 ".
                          "WHEN 1 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND 7 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND 7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13298,7 +13306,8 @@
                          "WHEN 1 THEN T2.col2 ".
                          "WHEN 2 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = 6 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 6 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     2
@@ -13320,7 +13329,8 @@
                          "WHEN 1 THEN T2.col2 ".
                          "WHEN 2 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13344,7 +13354,8 @@
                          "WHEN 1 THEN T2.col2 ".
                          "WHEN 2 THEN one-cte.col2 ".
                          "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     6
@@ -13374,7 +13385,8 @@
                         "WHEN 1 THEN T2.col2 ".
                         "WHEN 2 THEN one-cte.col2 ".
                         "ELSE T1.col2 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     6
@@ -13409,7 +13421,8 @@
                          "WHEN 1 THEN T1.col3 ".
                          "WHEN 2 THEN one-cte.col3 ".
                          "ELSE T2.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13432,7 +13445,8 @@
                          "WHEN 2 THEN T2.col3 ".
                          "WHEN 1 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND 'x' = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND 'x' = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13456,7 +13470,8 @@
                          "WHEN 1 THEN T2.col3 ".
                          "WHEN 2 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'cobra' SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'cobra' ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     2
@@ -13478,7 +13493,8 @@
                          "WHEN 1 THEN T2.col3 ".
                          "WHEN 2 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13502,7 +13518,8 @@
                          "WHEN 1 THEN T2.col3 ".
                          "WHEN 2 THEN one-cte.col3 ".
                          "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     6
@@ -13532,7 +13549,8 @@
                         "WHEN 1 THEN T2.col3 ".
                         "WHEN 2 THEN one-cte.col3 ".
                         "ELSE T1.col3 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     6
@@ -13567,7 +13585,8 @@
                          "WHEN 1 THEN T1.col4 ".
                          "WHEN 2 THEN one-cte.col4 ".
                          "ELSE T2.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13590,7 +13609,8 @@
                          "WHEN 2 THEN T2.col4 ".
                          "WHEN 1 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND ~2024.1.7 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND ~2024.1.7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13614,7 +13634,8 @@
                          "WHEN 1 THEN T2.col4 ".
                          "WHEN 2 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.6 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.6 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     2
@@ -13636,7 +13657,8 @@
                          "WHEN 1 THEN T2.col4 ".
                          "WHEN 2 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13660,7 +13682,8 @@
                          "WHEN 1 THEN T2.col4 ".
                          "WHEN 2 THEN one-cte.col4 ".
                          "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     6
@@ -13690,7 +13713,8 @@
                         "WHEN 1 THEN T2.col4 ".
                         "WHEN 2 THEN one-cte.col4 ".
                         "ELSE T1.col4 END ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     6
@@ -13714,13 +13738,15 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col2 ".
                         "ELSE T1.col2 ENDIF ".
             "right-scalar IF T1.col5 = one-cte.col5 OR T2.col5 = 3 ".
                          "THEN T1.col2 ".
                          "ELSE one-cte.col2 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13739,10 +13765,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col2 ".
                         "ELSE T1.col2 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND 7 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND 7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13762,10 +13790,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col2 ".
                         "ELSE T1.col2 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = 1 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 1 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -13782,10 +13812,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col2 ".
                         "ELSE T1.col2 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     7
@@ -13808,10 +13840,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col2 ".
                         "ELSE T1.col2 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13830,10 +13864,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col2 ".
                         "ELSE T1.col2 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13853,13 +13889,15 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col3 ".
                         "ELSE T1.col3 ENDIF ".
             "right-scalar IF T1.col5 = one-cte.col5 OR T2.col5 = 3 ".
                          "THEN T1.col3 ".
                          "ELSE one-cte.col3 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13878,10 +13916,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col3 ".
                         "ELSE T1.col3 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND 'x' = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND 'x' = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -13901,10 +13941,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col3 ".
                         "ELSE T1.col3 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'u' SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'u' ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -13921,10 +13963,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col3 ".
                         "ELSE T1.col3 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     7
@@ -13947,10 +13991,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col3 ".
                         "ELSE T1.col3 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13969,10 +14015,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col3 ".
                         "ELSE T1.col3 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -13992,13 +14040,15 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col4 ".
                         "ELSE T1.col4 ENDIF ".
             "right-scalar IF T1.col5 = one-cte.col5 OR T2.col5 = 3 ".
                          "THEN T1.col4 ".
                          "ELSE one-cte.col4 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -14017,10 +14067,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col4 ".
                         "ELSE T1.col4 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND ~2024.1.7 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND ~2024.1.7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     4
@@ -14040,10 +14092,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col4 ".
                         "ELSE T1.col4 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.1 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.1 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     1
@@ -14060,10 +14114,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col4 ".
                         "ELSE T1.col4 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     7
@@ -14086,10 +14142,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col4 ".
                         "ELSE T1.col4 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
@@ -14108,10 +14166,12 @@
           "WHERE col1 IN ('A', 'B', 'C') ".
           "SELECT col2, col3, col4, col5) AS list-cte ".
     "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
-    "SCALARS left-scalar IF T1.col5 = 1 OR T2.col5 = one-cte.col5 + 2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
                         "THEN T2.col4 ".
                         "ELSE T1.col4 ENDIF ".
-    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 SELECT T1.col1, T2.col3"
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 ".
+    "SELECT T1.col1, T2.col3"
   %:  run-scalar-joined-test
     query
     3
