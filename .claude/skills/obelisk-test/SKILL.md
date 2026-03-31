@@ -97,10 +97,10 @@ A `cmd-result` is a tagged union with `%results` head followed by a list of resu
 
 ```hoon
 :-  %results
-    :~  [%message 'SELECT']                :: or 'INSERT INTO db1.dbo.my-table', etc.
+    :~  [%action 'SELECT']           :: or 'INSERT INTO db1.dbo.my-table', etc.
         [%result-set <list of vectors>]    :: only for SELECT results
         [%server-time ~2012.5.3]
-        [%message 'db1.dbo.my-table']      :: source table(s)
+        [%relation 'db1.dbo.my-table']      :: source table(s)
         [%schema-time ~2012.5.1]
         [%data-time ~2012.5.2]
         [%vector-count 3]
@@ -110,10 +110,10 @@ A `cmd-result` is a tagged union with `%results` head followed by a list of resu
 For JOINed queries, each source table gets its own message/schema-time/data-time block:
 
 ```hoon
-[%message 'db1.dbo.calendar']
+[%relation 'db1.dbo.calendar']
 [%schema-time ~2012.4.30]
 [%data-time ~2012.4.30]
-[%message 'db1.dbo.holiday-calendar']
+[%relation 'db1.dbo.holiday-calendar']
 [%schema-time ~2012.4.30]
 [%data-time ~2012.4.30]
 ```
@@ -141,7 +141,7 @@ INSERT results do not contain a `%result-set`. Instead:
 
 ```hoon
 :-  %results
-    :~  [%message 'INSERT INTO db1.dbo.my-table']
+    :~  [%action 'INSERT INTO db1.dbo.my-table']
         [%server-time ~2012.5.3]
         [%schema-time ~2012.5.1]
         [%data-time ~2012.5.1]
@@ -187,10 +187,10 @@ Or simply:
                 %db1
                 "FROM my-table SELECT *"
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               [%result-set expected-rows]
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.4.30]
                               [%vector-count 7]
@@ -221,7 +221,7 @@ Or simply:
       [~2012.5.4 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results  :: expect-1 (INSERT result)
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.3]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -232,10 +232,10 @@ Or simply:
               ==
       ::
       :-  %results  :: expect-2 (SELECT result)
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]

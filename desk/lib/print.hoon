@@ -20,6 +20,12 @@
   ?~  results  %.y
   =/  b=result  -.results
     ?-  -.b
+      %action
+        ~&  "    [ {<-.b>} {<action.b>} ]"
+        $(results +.results)
+      %relation
+        ~&  "    [ {<-.b>} {<relation.b>} ]"
+        $(results +.results)
       %message
         ~&  "    [ {<-.b>} {<msg.b>} ]"
         $(results +.results)

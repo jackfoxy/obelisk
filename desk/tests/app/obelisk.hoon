@@ -603,7 +603,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE NAMESPACE %ns1']
+                  :~  [%action 'CREATE NAMESPACE %ns1']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
@@ -633,7 +633,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE NAMESPACE %ns1']
+                  :~  [%action 'CREATE NAMESPACE %ns1']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
@@ -664,7 +664,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE TABLE %my-table']
+                  :~  [%action 'CREATE TABLE %my-table']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
@@ -703,7 +703,7 @@
   %+  weld      
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE TABLE %my-table']
+                  :~  [%action 'CREATE TABLE %my-table']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
@@ -744,7 +744,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE TABLE %my-table-2']
+                  :~  [%action 'CREATE TABLE %my-table-2']
                       [%server-time ~2000.1.3]
                       [%schema-time ~2000.1.3]
                       ==
@@ -797,7 +797,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE TABLE %my-table-2']
+                  :~  [%action 'CREATE TABLE %my-table-2']
                       [%server-time ~2000.1.3]
                       [%schema-time ~2000.1.3]
                       ==
@@ -841,12 +841,12 @@
         %+  expect-eq
         !>  :~    
               :-  %results
-                  :~  [%message 'CREATE TABLE %my-table-2']
+                  :~  [%action 'CREATE TABLE %my-table-2']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
               :-  %results
-                  :~  [%message 'CREATE TABLE %my-table']
+                  :~  [%action 'CREATE TABLE %my-table']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
@@ -889,12 +889,12 @@
         %+  expect-eq
           !>  :~    
               :-  %results
-                  :~  [%message 'CREATE TABLE %my-table']
+                  :~  [%action 'CREATE TABLE %my-table']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
               :-  %results
-                  :~  [%message 'CREATE TABLE %my-table-2']
+                  :~  [%action 'CREATE TABLE %my-table-2']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
@@ -960,7 +960,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'DROP TABLE %my-table']
+                  :~  [%action 'DROP TABLE %my-table']
                       [%server-time ~2000.1.3]
                       [%schema-time ~2000.1.3]
                       ==
@@ -1027,7 +1027,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'DROP TABLE %my-table']
+                  :~  [%action 'DROP TABLE %my-table']
                       [%server-time ~2000.1.4]
                       [%schema-time ~2000.1.4]
                       [%data-time ~2000.1.4]
@@ -1099,7 +1099,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'TRUNCATE TABLE db1.dbo.my-table']
+                  :~  [%action 'TRUNCATE TABLE db1.dbo.my-table']
                       [%message 'no data in table to truncate']
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov3)
@@ -1158,7 +1158,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'TRUNCATE TABLE db1.dbo.my-table']
+                  :~  [%action 'TRUNCATE TABLE db1.dbo.my-table']
                       [%server-time ~2000.1.4]
                       [%data-time ~2000.1.4]
                       [%vector-count 1]
@@ -1238,7 +1238,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE NAMESPACE %ns2']
+                  :~  [%action 'CREATE NAMESPACE %ns2']
                       [%server-time ~2000.1.3]
                       [%schema-time ~2023.7.9..22.35.36..7e90]
                       ==
@@ -1280,7 +1280,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'CREATE TABLE %my-table-2']
+                  :~  [%action 'CREATE TABLE %my-table-2']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2023.7.9..22.35.36..7e90]
                       ==
@@ -1336,7 +1336,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                  :~  [%message 'DROP TABLE %my-table-2']
+                  :~  [%action 'DROP TABLE %my-table-2']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2023.7.9..22.35.38..7e90]
                       ==
@@ -1403,7 +1403,7 @@
   %+  weld
         %+  expect-eq
           !>  :-  %results
-                :~  [%message 'INSERT INTO db1.dbo.my-table']
+                :~  [%action 'INSERT INTO db1.dbo.my-table']
                     [%server-time ~2023.7.9..22.35.36..7e90]
                     [%schema-time ~2023.7.9..22.35.35..7e90]
                     [%data-time ~2023.7.9..22.35.35..7e90]

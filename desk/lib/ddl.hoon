@@ -79,7 +79,7 @@
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-namespace)
   ::
   :+  :-  %results
-          :~  [%message (crip "CREATE NAMESPACE {<name.create-namespace>}")]
+          :~  [%action (crip "CREATE NAMESPACE {<name.create-namespace>}")]
               [%server-time now.bowl]
               [%schema-time sys-time]
               ==
@@ -183,7 +183,7 @@
   =.  state          (update-sys state sys-time)
   ::
   :^  :-  %results
-          :~  [%message (crip "CREATE TABLE {<name.table.create-table>}")]
+          :~  [%action (crip "CREATE TABLE {<name.table.create-table>}")]
               [%server-time now.bowl]
               [%schema-time sys-time]
               ==
@@ -248,14 +248,14 @@
   ::
   :^  ?:  (gth rowcount.file 0)
         :-  %results
-            :~  [%message (crip "DROP TABLE {<name.table.d>}")]
+            :~  [%action (crip "DROP TABLE {<name.table.d>}")]
                 [%server-time now.bowl]
                 [%schema-time sys-time]
                 [%data-time sys-time]
                 [%vector-count rowcount.file]
                 ==
       :-  %results
-          :~  [%message (crip "DROP TABLE {<name.table.d>}")]
+          :~  [%action (crip "DROP TABLE {<name.table.d>}")]
               [%server-time now.bowl]
               [%schema-time sys-time]
               ==

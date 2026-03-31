@@ -34,7 +34,7 @@
           "FROM sys.sys.databases AS OF ~2000.1.4..1.1.1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -86,14 +86,14 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 6]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -137,7 +137,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.4]
               [%vector-count 5]
@@ -167,7 +167,7 @@
       [~2000.1.7 %db1 "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -227,7 +227,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -261,7 +261,7 @@
           "FROM sys.sys.databases AS OF ~2000.1.6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -313,14 +313,14 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 6]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -348,7 +348,7 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 3]
@@ -378,7 +378,7 @@
       [~2000.1.7 %db1 "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -438,7 +438,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -468,7 +468,7 @@
       [~2000.1.7 %db1 "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -520,7 +520,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.5]
               [%vector-count 6]
@@ -542,7 +542,7 @@
       [~2000.1.7 %db1 "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -578,7 +578,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.3]
               [%vector-count 4]
@@ -606,7 +606,7 @@
           "FROM sys.namespaces AS OF ~2000.1.1..1.1.1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -622,14 +622,14 @@
                               ==
                       ==
               [%server-time ~2000.1.2]
-              [%message 'db1.sys.namespaces']
+              [%relation 'db1.sys.namespaces']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 3]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -641,7 +641,7 @@
                               ==
                       ==
               [%server-time ~2000.1.3]
-              [%message 'db1.sys.namespaces']
+              [%relation 'db1.sys.namespaces']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 2]
@@ -664,7 +664,7 @@
       [~2000.1.2 %db1 "FROM db2.sys.namespaces SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -680,7 +680,7 @@
                               ==
                       ==
               [%server-time ~2000.1.2]
-              [%message 'db2.sys.namespaces']
+              [%relation 'db2.sys.namespaces']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 3]
@@ -737,7 +737,7 @@
       [~2000.1.9 %db1 "FROM sys.table-keys AS OF ~2000.1.6 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -776,14 +776,14 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 5]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -815,14 +815,14 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 4]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -889,14 +889,14 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%message 'db1.sys.table-keys']
+              [%relation 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -949,7 +949,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.table-keys']
+              [%relation 'db1.sys.table-keys']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -1006,7 +1006,7 @@
       [~2000.1.11 %db1 "FROM sys.table-keys AS OF ~2000.1.2 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1038,14 +1038,14 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.8]
               [%data-time ~2000.1.8]
               [%vector-count 4]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1084,14 +1084,14 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 5]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1102,14 +1102,14 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.2]
               [%vector-count 1]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1162,14 +1162,14 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.table-keys']
+              [%relation 'db1.sys.table-keys']
               [%schema-time ~2000.1.8]
               [%data-time ~2000.1.8]
               [%vector-count 7]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1236,14 +1236,14 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%message 'db1.sys.table-keys']
+              [%relation 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1261,7 +1261,7 @@
                           ==
                   ==
           [%server-time ~2000.1.11]
-          [%message 'db1.sys.table-keys']
+          [%relation 'db1.sys.table-keys']
           [%schema-time ~2000.1.2]
           [%data-time ~2000.1.2]
           [%vector-count 2]
@@ -1310,7 +1310,7 @@
       [~2000.1.9 %db1 "FROM sys.table-keys SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1349,14 +1349,14 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.8]
               [%vector-count 5]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1423,7 +1423,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.table-keys']
+              [%relation 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
@@ -1467,7 +1467,7 @@
       [~2000.1.9 %db1 "FROM sys.table-keys SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1506,14 +1506,14 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 5]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1580,7 +1580,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.table-keys']
+              [%relation 'db1.sys.table-keys']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 9]
@@ -1617,7 +1617,7 @@
       [~2000.1.7 %db1 "FROM sys.columns AS OF 2000.1.4..1.1.1 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %ref]]
@@ -1691,14 +1691,14 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2000.1.5]
               [%data-time ~2000.1.5]
               [%vector-count 10]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %ref]]
@@ -1751,7 +1751,7 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2000.1.4]
               [%data-time ~2000.1.4]
               [%vector-count 7]
@@ -1800,7 +1800,7 @@
       [~2000.1.8 %db1 "FROM sys.columns AS OF ~2000.1.5 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1860,14 +1860,14 @@
                               ==
                       ==
               [%server-time ~2000.1.7]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 8]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %ref]]
@@ -1941,7 +1941,7 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2000.1.5]
               [%data-time ~2000.1.5]
               [%vector-count 10]
@@ -1983,7 +1983,7 @@
       [~2000.1.9 %db1 "FROM sys.sys-log AS OF ~2000.1.6 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
@@ -2035,14 +2035,14 @@
                               ==
                       ==
               [%server-time ~2000.1.8]
-              [%message 'db1.sys.sys-log']
+              [%relation 'db1.sys.sys-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 8]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
@@ -2088,7 +2088,7 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.sys-log']
+              [%relation 'db1.sys.sys-log']
               [%schema-time ~2000.1.6]
               [%data-time ~2000.1.6]
               [%vector-count 7]
@@ -2134,7 +2134,7 @@
       [~2000.1.10 %db1 "FROM sys.sys-log AS OF ~2000.1.7 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
@@ -2186,14 +2186,14 @@
                               ==
                       ==
               [%server-time ~2000.1.9]
-              [%message 'db1.sys.sys-log']
+              [%relation 'db1.sys.sys-log']
               [%schema-time ~2000.1.8]
               [%data-time ~2000.1.8]
               [%vector-count 8]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
@@ -2245,7 +2245,7 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%message 'db1.sys.sys-log']
+              [%relation 'db1.sys.sys-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.7]
               [%vector-count 8]
@@ -2307,7 +2307,7 @@
       [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.9 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2383,14 +2383,14 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.10]
               [%vector-count 9]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2458,7 +2458,7 @@
                               ==
                       ==
               [%server-time ~2000.1.12]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.9]
               [%vector-count 8]
@@ -2515,7 +2515,7 @@
       [~2000.1.11 %db1 "FROM sys.data-log AS OF ~2000.1.8 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2583,14 +2583,14 @@
                               ==
                       ==
               [%server-time ~2000.1.10]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.9]
               [%vector-count 8]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2650,7 +2650,7 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.8]
               [%vector-count 7]
@@ -2711,7 +2711,7 @@
       [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.9 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2779,14 +2779,14 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.10]
               [%data-time ~2000.1.10]
               [%vector-count 8]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2854,7 +2854,7 @@
                           ==
                   ==
           [%server-time ~2000.1.12]
-          [%message 'db1.sys.data-log']
+          [%relation 'db1.sys.data-log']
           [%schema-time ~2000.1.9]
           [%data-time ~2000.1.9]
           [%vector-count 8]
@@ -2914,7 +2914,7 @@
       [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.8 SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -2990,14 +2990,14 @@
                               ==
                       ==
               [%server-time ~2000.1.11]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.9]
               [%data-time ~2000.1.10]
               [%vector-count 9]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
@@ -3057,7 +3057,7 @@
                               ==
                       ==
               [%server-time ~2000.1.12]
-              [%message 'db1.sys.data-log']
+              [%relation 'db1.sys.data-log']
               [%schema-time ~2000.1.7]
               [%data-time ~2000.1.8]
               [%vector-count 7]

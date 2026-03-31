@@ -73,7 +73,7 @@ Submitting this poke will print to the dojo:
 ```
 %obelisk-result:
   %results
-    [ %message 'created database %db1' ]
+    [ %action 'created database %db1' ]
     [ %server-time ~2024.9.26..21.14.00..7fc8 ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
 ```
@@ -96,13 +96,13 @@ From here on we will dispense with the full poke command and only specify the ur
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       database  sys-agent  sys-tmsp  data-ship  data-agent  data-tmsp
       db1  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
       sys  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
     [ %server-time ~2024.9.26..22.03.39..2233 ]
-    [ %message 'sys.sys.databases' ]
+    [ %relation 'sys.sys.databases' ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
     [ %data-time ~2024.9.26..21.14.00..7fc8 ]
     [ %vector-count 2 ]
@@ -144,11 +144,11 @@ The table's columns are defined by pairs of name/aura separated by comma, and fi
 ```
 %obelisk-result:
   %results
-    [ %message 'CREATE TABLE %my-table-1' ]
+    [ %action 'CREATE TABLE %my-table-1' ]
     [ %server-time ~2024.9.26..22.28.55..f02a ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
   %results
-    [ %message 'CREATE TABLE %my-table-2' ]
+    [ %action 'CREATE TABLE %my-table-2' ]
     [ %server-time ~2024.9.26..22.28.55..f02a ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
 ```
@@ -183,7 +183,7 @@ Provide the comma separated data according to the hoon format for the column's a
 ```
 %obelisk-result:
   %results
-    [ %message 'INSERT INTO %my-table-1' ]
+    [ %action 'INSERT INTO %my-table-1' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.26..22.28.55..f02a ]
@@ -192,7 +192,7 @@ Provide the comma separated data according to the hoon format for the column's a
     [ %message 'table data:' ]
     [ %vector-count 3 ]
   %results
-    [ %message 'INSERT INTO %my-table-2' ]
+    [ %action 'INSERT INTO %my-table-2' ]
     [ %server-time ~2024.9.27..03.31.34..646d ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.26..22.28.55..f02a ]
@@ -217,7 +217,7 @@ WHERE col1 = 'tomorrow';
 ```
 %obelisk-result:
   %results
-    [ %message 'DELETE FROM db2.dbo.my-table-2' ]
+    [ %action 'DELETE FROM db2.dbo.my-table-2' ]
     [ %server-time ~2025.3.31..16.28.20..063c ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.27..03.31.34..646d ]
@@ -237,7 +237,7 @@ TRUNCATE TABLE my-table-1;
 ```
 %obelisk-result:
   %results
-    [ %message 'TRUNCATE TABLE %my-table-1' ]
+    [ %action 'TRUNCATE TABLE %my-table-1' ]
     [ %server-time ~2024.9.27..17.03.38..92af ]
     [ %schema-time ~2024.9.26..22.28.55..f02a ]
     [ %data-time ~2024.9.27..03.31.34..646d ]
@@ -263,7 +263,7 @@ SELECT 0;
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       literal-0
       0
@@ -282,7 +282,7 @@ SELECT 0 AS My-Alias;
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set"
       my-alias
       0
@@ -302,7 +302,7 @@ Unlike the syntax in standard SQL, urQL syntax requires the `FROM` and `WHERE` c
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       date  year  month  month-name  day  day-name  day-of-year  weekday  year-week
       ~1990.1.1  1.990  1  January  1  Monday  1  2  1
@@ -337,7 +337,7 @@ SELECT day-name AS Day;
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       day
       Thursday
@@ -348,7 +348,7 @@ SELECT day-name AS Day;
       Monday
       Sunday
     [ %server-time ~2024.9.30..18.07.14..afcc ]
-    [ %message 'animal-shelter.reference.calendar' ]
+    [ %relation 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2024.9.30..14.15.21..ad17 ]
     [ %data-time ~2024.9.30..14.15.21..ad17 ]
     [ %vector-count 7 ]
@@ -438,7 +438,7 @@ CREATE DATABASE db2 AS OF ~2030.1.1;
 ```
 %obelisk-result:
   %results
-    [ %message 'created database %db2' ]
+    [ %action 'created database %db2' ]
     [ %server-time ~2024.9.29..21.14.00..7fc8 ]
     [ %schema-time ~2030.1.1 ]
 ```
@@ -462,13 +462,13 @@ FROM sys.sys.databases AS OF NOW SELECT *;
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       database  sys-agent  sys-tmsp  data-ship  data-agent  data-tmsp
       db1  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
       sys  /gall/dojo  ~2024.9.26..21.14.00..7fc8  ~zod  /gall/dojo  ~2024.9.26..21.14.00..7fc8
     [ %server-time ~2024.9.26..22.03.39..2233 ]
-    [ %message 'sys.sys.databases' ]
+    [ %relation 'sys.sys.databases' ]
     [ %schema-time ~2024.9.26..21.14.00..7fc8 ]
     [ %data-time ~2024.9.26..21.14.00..7fc8 ]
     [ %vector-count 2 ]
@@ -506,7 +506,7 @@ DROP DATABASE db2;
 ```
 %obelisk-result:
   %results
-    [ %message 'DROP DATABASE %db2' ]
+    [ %action 'DROP DATABASE %db2' ]
     [ %server-time ~2024.10.2..16.31.43..566d ]
     [ %message 'database %db2 dropped' ]
 ```
@@ -543,11 +543,11 @@ VALUES
     [ %server-time ~2024.10.2..16.54.41..df15 ]
     [ %schema-time ~2000.1.1 ]
   %results
-    [ %message 'CREATE TABLE %my-table-1' ]
+    [ %action 'CREATE TABLE %my-table-1' ]
     [ %server-time ~2024.10.2..16.54.41..df15 ]
     [ %schema-time ~2000.1.1 ]
   %results
-    [ %message 'INSERT INTO %my-table-1' ]
+    [ %action 'INSERT INTO %my-table-1' ]
     [ %server-time ~2024.10.2..16.54.41..df15 ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2000.1.1 ]
@@ -556,7 +556,7 @@ VALUES
     [ %message 'table data:' ]
     [ %vector-count 3 ]
   %results
-    [ %message 'INSERT INTO %my-table-1' ]
+    [ %action 'INSERT INTO %my-table-1' ]
     [ %server-time ~2024.10.2..16.54.41..df15 ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2000.1.1 ]
@@ -575,14 +575,14 @@ SELECT *;
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       col1  col2
       next-next day  ~2000.1.3
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.00.48..85c2 ]
-    [ %message 'db2.dbo.my-table-1' ]
+    [ %relation 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]
@@ -601,14 +601,14 @@ We did not need to specify the exact time of the content state, only a time equa
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       col1  col2
       next-next day  ~2000.1.3
       next-today  ~2000.1.1
       next-tomorrow  ~2000.1.2
     [ %server-time ~2024.10.2..17.06.08..4b55 ]
-    [ %message 'db2.dbo.my-table-1' ]
+    [ %relation 'db2.dbo.my-table-1' ]
     [ %schema-time ~2000.1.1 ]
     [ %data-time ~2024.10.2..16.54.41..df15 ]
     [ %vector-count 3 ]

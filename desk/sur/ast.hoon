@@ -1016,6 +1016,8 @@
 +$  cmd-result  [%results (list result)]
 +$  result
   $%
+    [%action action=@t]
+    [%relation relation=@t]
     [%message msg=@t]
     [%vector-count count=@ud]
     [%server-time date=@da]

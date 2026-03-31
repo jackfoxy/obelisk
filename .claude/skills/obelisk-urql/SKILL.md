@@ -347,13 +347,15 @@ All commands return a `cmd-result` (`sur/obelisk.hoon:71`):
 +$  cmd-result  [%results (list result)]
 +$  result
   $%
-    [%message msg=@t]          :: informational string
-    [%vector-count count=@ud]  :: number of rows affected or returned
-    [%server-time date=@da]    :: current server wall-clock time
-    [%security-time date=@da]  :: security timestamp
-    [%schema-time date=@da]    :: schema (DDL) timestamp for queried objects
-    [%data-time date=@da]      :: data (DML) timestamp for queried objects
-    [%result-set (list vector)] :: rows returned by a SELECT
+    [%action action=@t]          :: command or query executed
+    [%relation relation=@t]  :: table used or effected
+    [%message msg=@t]
+    [%vector-count count=@ud]    :: number of rows affected or returned
+    [%server-time date=@da]      :: current server wall-clock time
+    [%security-time date=@da]    :: security timestamp
+    [%schema-time date=@da]      :: schema (DDL) timestamp for queried objects
+    [%data-time date=@da]        :: data (DML) timestamp for queried objects
+    [%result-set (list vector)]  :: rows returned by a SELECT
     ==
 ```
 
@@ -371,7 +373,7 @@ A `vector` is one result row: a non-empty list of `vector-cell` (`sur/obelisk.ho
 **Simple query (no CTEs / single relation):**
 
 ```
-[%message 'SELECT']
+[%action 'SELECT']
 [%result-set (list vector)]
 [%server-time @da]
 [%schema-time @da]
@@ -383,12 +385,12 @@ A `vector` is one result row: a non-empty list of `vector-cell` (`sur/obelisk.ho
 
 ```
 :: per source table (non-CTE, non-sys):
-[%message <database>.<namespace>.<table>]
+[%relation <database>.<namespace>.<table>]
 [%schema-time @da]
 [%data-time @da]
 
 :: then the SELECT block:
-[%message 'SELECT']
+[%action 'SELECT']
 [%result-set (list vector)]
 [%server-time @da]
 [%vector-count @ud]

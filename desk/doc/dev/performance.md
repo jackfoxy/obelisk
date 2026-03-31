@@ -45,7 +45,7 @@ query: s/3.362
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       date  year  month  month-name  day  day-name  day-of-year  weekday  year-week
       ~1993.12.9  1.993  12  December  9  Thursday  343  5  50
@@ -60,7 +60,7 @@ query: s/3.362
      ...
       ~2044.4.9  2.044  4  April  9  Saturday  100  7  15
     [ %server-time ~2025.4.7..20.31.17..ca98 ]
-    [ %message 'animal-shelter.reference.calendar' ]
+    [ %relation 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 21.916 ]
@@ -77,7 +77,7 @@ query: s/2.178
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       day-name
       Tuesday
@@ -88,7 +88,7 @@ query: s/2.178
       Monday
       Sunday
     [ %server-time ~2025.4.7..20.44.08..035d ]
-    [ %message 'animal-shelter.reference.calendar' ]
+    [ %relation 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 7 ]
@@ -107,7 +107,7 @@ query: s/7.073
 ```
 %obelisk-result:
   %results
-    [ %message 'SELECT' ]
+    [ %action 'SELECT' ]
     %result-set
       date  day-name  us-federal-holiday
       ~2025.1.1  Wednesday  New Year's Day
@@ -121,10 +121,10 @@ query: s/7.073
       ~2025.11.11  Tuesday  Veterans Day
       ~2025.1.20  Monday  Birthday of Martin Luther King Jr.
     [ %server-time ~2025.4.7..20.52.53..d6b4 ]
-    [ %message 'animal-shelter.reference.calendar' ]
+    [ %relation 'animal-shelter.reference.calendar' ]
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
-    [ %message 'animal-shelter.reference.calendar-us-fed-holiday' ]
+    [ %relation 'animal-shelter.reference.calendar-us-fed-holiday' ]
     [ %schema-time ~2025.4.7..18.19.48..f509 ]
     [ %data-time ~2025.4.7..18.19.48..f509 ]
     [ %vector-count 10 ]

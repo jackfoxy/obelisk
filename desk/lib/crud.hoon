@@ -77,7 +77,7 @@
         (~(got by files.nxt-data) [namespace.table.d name.table.d])
   ?.  (gth rowcount.file 0)  :: don't bother if table is empty
     :^  :-  %results
-            :~  :-  %message
+            :~  :-  %action
                     %-  crip
                         %+  weld  "TRUNCATE TABLE "
                             (trip (qualified-table-to-cord table.d))
@@ -104,7 +104,7 @@
   =.  state          (update-sys state sys-time)
   ::
   :^  :-  %results
-          :~  :-  %message
+          :~  :-  %action
                   %-  crip
                       %+  weld  "TRUNCATE TABLE "
                           (trip (qualified-table-to-cord table.d))
@@ -203,7 +203,7 @@
                                                                 %insert
                                                                 ==
                             ==
-      :~  :-  %message
+      :~  :-  %action
               %-  crip
                   %+  weld  "INSERT INTO "
                             (trip (qualified-table-to-cord table.ins))
@@ -238,7 +238,7 @@
   ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
     :+  next-data
         state
-        :~  :-  %message
+        :~  :-  %action
                 %-  crip
                     "DELETE FROM {<namespace.table.d>}.{<name.table.d>}"
             [%server-time now.bowl]
@@ -271,7 +271,7 @@
   ?:  =(deleted-rows 0)
     :+  next-data
         state
-        :~  :-  %message
+        :~  :-  %action
                 %-  crip
                     %+  weld  "DELETE FROM "
                               (trip (qualified-table-to-cord table.d))
@@ -296,7 +296,7 @@
   ::
   :+  (~(put by next-data) database.table.d now.bowl)
       (~(put by state) name.db.txn db.txn)
-      :~  :-  %message
+      :~  :-  %action
               %-  crip
                   %+  weld  "DELETE FROM "
                             (trip (qualified-table-to-cord table.d))
@@ -322,7 +322,7 @@
   ?.  (gth rowcount.file.txn 0)  :: don't bother if table is empty
     :+  next-data
         state
-        :~  :-  %message
+        :~  :-  %action
                 %-  crip
                     "UPDATE {<namespace.table.u>}.{<name.table.u>}"
             [%server-time now.bowl]
@@ -370,7 +370,7 @@
   ?:  =(+.rows-count 0)
     :+  next-data
         state
-        :~  :-  %message
+        :~  :-  %action
                 %-  crip
                     %+  weld  "UPDATE "
                               (trip (qualified-table-to-cord table.u))
@@ -411,7 +411,7 @@
   ::
   :+  (~(put by next-data) database.table.u now.bowl)
       (~(put by state) name.db.txn db.txn)
-      :~  :-  %message
+      :~  :-  %action
               %-  crip
                   %+  weld  "UPDATE "
                             (trip (qualified-table-to-cord table.u))
@@ -527,7 +527,7 @@
   ?~  set-tables.join-return  ~|("select-results can't get here" !!)
   |-
   ?~  raw  ?~  out
-             :~  [%message 'SELECT']
+             :~  [%action 'SELECT']
                  :-  %result-set
                      ?~  indexed-rows.i.set-tables.join-return  ~
                      :~  %+  mk-vect
@@ -539,7 +539,7 @@
                  [%data-time created-tmsp:(~(got by server.join-return) %sys)]
                  [%vector-count (lent indexed-rows.i.set-tables.join-return)]
                  ==
-    %-  zing  :~  :~  [%message 'SELECT']
+    %-  zing  :~  :~  [%action 'SELECT']
                       [%result-set vectors]
                       [%server-time now.bowl]
                       ==
@@ -551,7 +551,7 @@
     $(raw t.raw)
   %=  $
     raw  t.raw
-    out  :-  :~  [%message (qualified-table-to-cord -.i.raw)]
+    out  :-  :~  [%relation (qualified-table-to-cord -.i.raw)]
                  [%schema-time +<.i.raw]
                  [%data-time +>.i.raw]
                  ==

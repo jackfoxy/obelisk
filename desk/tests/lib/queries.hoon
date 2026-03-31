@@ -27,7 +27,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -49,7 +49,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -80,7 +80,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT *, *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -114,7 +114,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -145,7 +145,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT my-table.*"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -167,7 +167,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -199,7 +199,7 @@
         [~2012.5.3 %db1 "FROM my-table T1 SELECT T1.*"]
         ::
         :-  %results
-            :~  [%message 'SELECT']
+            :~  [%action 'SELECT']
                 :-  %result-set
                     :~  :-  %vector
                             :~  [%col1 [~.t 'Ace']]
@@ -221,7 +221,7 @@
                                 ==
                         ==
                 [%server-time ~2012.5.3]
-                [%message 'db1.dbo.my-table']
+                [%relation 'db1.dbo.my-table']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
                 [%vector-count 3]
@@ -252,7 +252,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col1,col2,col3,col4"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -274,7 +274,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -307,7 +307,7 @@
           "FROM my-table SELECT col1 as c1,col2 as c2,col3 as c3,col4 as c4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%c1 [~.t 'Ace']]
@@ -329,7 +329,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -351,7 +351,7 @@
       [~2012.5.3 %sys select]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%literal-0 [~.t 430.242.426.723]]
@@ -405,7 +405,7 @@
       [~2012.5.3 %sys select]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%cord1 [~.t 430.242.426.723]]
@@ -468,7 +468,7 @@
                  ".-3.14 as pi, col3, col4, ~2023.12.25"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%cord [~.t 430.158.540.643]]
@@ -502,7 +502,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -533,7 +533,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col4,col3,col2,col1"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col4 [~.t 'row3']]
@@ -555,7 +555,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -588,7 +588,7 @@
           "FROM my-table SELECT col4 as c4,col3 as C3,col2 as c2,col1 as c1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%c4 [~.t 'row3']]
@@ -610,7 +610,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -644,7 +644,7 @@
           "SELECT my-table.col1,my-table.col2,my-table.col3,my-table.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -666,7 +666,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -699,7 +699,7 @@
           "FROM my-table T1 SELECT T1.col1,T1.col2,T1.col3,T1.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -721,7 +721,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -755,7 +755,7 @@
           "SELECT my-table.col4,my-table.col3,my-table.col2,my-table.col1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col4 [~.t 'row3']]
@@ -777,7 +777,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -810,7 +810,7 @@
           "FROM my-table T1 SELECT T1.col4,T1.col3,T1.col2,T1.col1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col4 [~.t 'row3']]
@@ -832,7 +832,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -863,7 +863,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col3,*"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col3 [~.t 'tricolor']]
@@ -888,7 +888,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -919,7 +919,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col3,my-table.*"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col3 [~.t 'tuxedo']]
@@ -944,7 +944,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -975,7 +975,7 @@
       [~2012.5.3 %db1 "FROM my-table T1 SELECT col2, T1.*"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col2 [~.da ~2001.9.19]]
@@ -1000,7 +1000,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -1033,7 +1033,7 @@
           "FROM my-table T1 SELECT *, col2,col4, my-table.*, col1 as C1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1085,7 +1085,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -1118,7 +1118,7 @@
           "FROM my-table T1 SELECT col1 as C1, T1.*, col2,col4, *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%c1 [~.t 'Ace']]
@@ -1170,7 +1170,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -1205,7 +1205,7 @@
       [~2012.5.3 %db1 my-select]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%date ~.da ~2020.12.25]
@@ -1267,7 +1267,7 @@
       [~2012.5.3 %db1 "SELECT 0"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~[[%vector ~[[%literal-0 ~.ud 0]]]]]
               [%server-time ~2012.5.3]
               [%schema-time ~2012.4.30]
@@ -1302,7 +1302,7 @@
       [~2012.5.3 %db1 "FROM db2..my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1324,7 +1324,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db2.dbo.my-table']
+              [%relation 'db2.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -1351,7 +1351,7 @@
           "FROM db2..my-table SELECT *"
       ::
       :~  %results
-          [%message 'SELECT']
+          [%action 'SELECT']
           :-  %result-set
               :~  :-  %vector
                       :~  [%col1 [~.t 'Ace']]
@@ -1373,7 +1373,7 @@
                           ==
                   ==
           [%server-time ~2012.4.29]
-          [%message 'db2.dbo.my-table']
+          [%relation 'db2.dbo.my-table']
           [%schema-time ~2012.4.29]
           [%data-time ~2012.4.29]
           [%vector-count 3]
@@ -1407,7 +1407,7 @@
           "~sampel-palnet as home, T1.*, col2,col4, *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
@@ -1471,7 +1471,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -1488,7 +1488,7 @@
       [~2012.5.3 %db1 "FROM sys.sys.databases V1 select v1.*"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -1508,7 +1508,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -1539,7 +1539,7 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col3,col3"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col3 [~.t 'tricolor']]
@@ -1555,7 +1555,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -1652,19 +1652,19 @@
                   ==
           ==
 ++  time-expected1  :~  %results
-                        [%message 'SELECT']
+                        [%action 'SELECT']
                         [%result-set (weld time-new-rows time-expected-rows)]
                         [%server-time ~2012.5.5]
-                        [%message 'db1.dbo.my-table']
+                        [%relation 'db1.dbo.my-table']
                         [%schema-time ~2012.5.1]
                         [%data-time ~2012.5.3]
                         [%vector-count 5]
                         ==
 ++  time-expected2  :~  %results
-                        [%message 'SELECT']
+                        [%action 'SELECT']
                         [%result-set time-expected-rows]
                         [%server-time ~2012.5.5]
-                        [%message 'db1.dbo.my-table']
+                        [%relation 'db1.dbo.my-table']
                         [%schema-time ~2012.5.1]
                         [%data-time ~2012.5.2]
                         [%vector-count 3]
@@ -1752,10 +1752,10 @@
           "SELECT *, col2,col4, my-table.*, col1 as C1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set (weld time-new-rows time-expected-rows)]
               [%server-time ~2012.5.5]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 5]
@@ -1846,10 +1846,10 @@
           "SELECT *, col2,col4, my-table.*, col1 as C1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set (weld time-new-rows time-expected-rows)]
               [%server-time ~2012.5.5]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 5]
@@ -1940,10 +1940,10 @@
           "SELECT *, col2,col4, my-table.*, col1 as C1"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set (weld time-new-rows time-expected-rows)]
               [%server-time ~2012.5.5]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 5]
@@ -1978,10 +1978,10 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col2"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~[[%vector ~[[%col2 [~.da ~2005.12.19]]]]]]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2012,13 +2012,13 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col3"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  [%vector ~[[%col3 [~.t 'tricolor']]]]
                       [%vector ~[[%col3 [~.t 'tuxedo']]]]
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2049,13 +2049,13 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col3"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  [%vector ~[[%col3 [~.t 'tricolor']]]]
                       [%vector ~[[%col3 [~.t 'tuxedo']]]]
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2086,13 +2086,13 @@
       [~2012.5.3 %db1 "FROM my-table SELECT col2 as c2, col3"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tricolor']]]]
                       [%vector ~[[%c2 [~.da ~2005.12.19]] [%col3 [~.t 'tuxedo']]]]
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2126,7 +2126,7 @@
           "~sampel-palnet as home, col3"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
@@ -2142,7 +2142,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2175,7 +2175,7 @@
           "~sampel-palnet as home"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%literal-0 q=[p=~.da ~2024.10.20]]
@@ -2189,7 +2189,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.tables']
+              [%relation 'db1.sys.tables']
               [%schema-time ~2012.5.2]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3490,39 +3490,39 @@
           ==
 ++  expected-cross
       :~  %results
-          [%message 'SELECT']
+          [%action 'SELECT']
           [%result-set expected-cross-rows]
           [%server-time ~2012.5.3]
-          [%message 'db1.dbo.cross']
+          [%relation 'db1.dbo.cross']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
-          [%message 'db1.dbo.tbl1']
+          [%relation 'db1.dbo.tbl1']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 33]
           ==
 ++  expected-cross-aliased
       :~  %results
-          [%message 'SELECT']
+          [%action 'SELECT']
           [%result-set expected-cross-aliased-rows]
           [%server-time ~2012.5.3]
-          [%message 'db1.dbo.cross']
+          [%relation 'db1.dbo.cross']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.5.2]
-          [%message 'db1.dbo.tbl1']
+          [%relation 'db1.dbo.tbl1']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 20]
           ==
 ++  expected-cross-as-of
       :~  %results
-          [%message 'SELECT']
+          [%action 'SELECT']
           [%result-set expected-cross-as-of-rows]
           [%server-time ~2012.5.4]
-          [%message 'db1.dbo.cross']
+          [%relation 'db1.dbo.cross']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
-          [%message 'db1.dbo.tbl1']
+          [%relation 'db1.dbo.tbl1']
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
           [%vector-count 15]
@@ -3549,7 +3549,7 @@
           "SELECT T1.day-name, T2.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3563,10 +3563,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -3594,7 +3594,7 @@
           "SELECT T1.day-name, T2.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3608,10 +3608,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -3639,7 +3639,7 @@
           "SELECT T2.day-name, T1.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3653,10 +3653,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -3684,7 +3684,7 @@
           "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3700,10 +3700,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -3730,7 +3730,7 @@
           "SELECT T2.day-name, t1.*, t1.us-federal-holiday"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3746,10 +3746,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -3779,7 +3779,7 @@
           "SELECT T1.day-name, t2.*, t2.us-federal-holiday"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3789,10 +3789,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 1]
@@ -3822,7 +3822,7 @@
           "SELECT T2.day-name, t1.*, t1.us-federal-holiday"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -3832,10 +3832,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 1]
@@ -3865,7 +3865,7 @@
           "SELECT T1.day-name AS Day, t2.us-federal-holiday"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day [~.t 'Monday']]
@@ -3873,10 +3873,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 1]
@@ -3906,7 +3906,7 @@
           "SELECT T2.day-name AS Day, t1.us-federal-holiday"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day [~.t 'Monday']]
@@ -3914,10 +3914,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 1]
@@ -3957,26 +3957,26 @@
           "SELECT T1.year, T2.month, T1.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 32]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4016,26 +4016,26 @@
           "SELECT T1.year, T2.month, T1.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1-a]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 25]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4075,26 +4075,26 @@
           "SELECT T2.year, T1.month, T2.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1-a]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 25]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4134,26 +4134,26 @@
           "SELECT T1.year, T2.month, T1.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 32]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4193,26 +4193,26 @@
           "SELECT T1.year, T2.month, T1.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1-a]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 25]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4252,26 +4252,26 @@
           "SELECT T2.year, T1.month, T2.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1-a]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 25]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4311,26 +4311,26 @@
           "SELECT T1.year, T2.month, T1.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 32]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4370,26 +4370,26 @@
           "SELECT T1.year, T2.month, T1.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1-a]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 25]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4429,26 +4429,26 @@
           "SELECT T2.year, T1.month, T2.day, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-1-a]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 25]
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expect-rows-2]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4484,7 +4484,7 @@
           "T2.day As the-day, ~zod, month-name, day-name"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%literal-0 [~.ud 1]]
@@ -4542,10 +4542,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.tbl1']
+              [%relation 'db1.dbo.tbl1']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl2']
+              [%relation 'db1.dbo.tbl2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4578,7 +4578,7 @@
           "SELECT T1.day-name, T2.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Thursday']]
@@ -4738,10 +4738,10 @@
                               ==
                       ==
               [%server-time ~2012.6.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.30]
               [%vector-count 13]
@@ -4859,7 +4859,7 @@
           "SELECT row-name, T1.day-name, T2.*, T3.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%row-name [~.t 'row-3']]
@@ -4885,13 +4885,13 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl3']
+              [%relation 'db1.dbo.tbl3']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -4925,19 +4925,19 @@
           "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-natural-cross-rows]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.cross']
+              [%relation 'db1.dbo.cross']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl3']
+              [%relation 'db1.dbo.tbl3']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -4971,19 +4971,19 @@
           "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-natural-cross-rows]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.cross']
+              [%relation 'db1.dbo.cross']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl3']
+              [%relation 'db1.dbo.tbl3']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -5017,19 +5017,19 @@
           "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-natural-cross-rows]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.cross']
+              [%relation 'db1.dbo.cross']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl3']
+              [%relation 'db1.dbo.tbl3']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 6]
@@ -5072,7 +5072,7 @@
           "SELECT row-name, T1.day-name, T2.*, T3.*, T4.*, cross-42"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%row-name [~.t 'row-3']]
@@ -5256,19 +5256,19 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.cross']
+              [%relation 'db1.dbo.cross']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.cross2']
+              [%relation 'db1.dbo.cross2']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.holiday-calendar']
+              [%relation 'db1.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.tbl3']
+              [%relation 'db1.dbo.tbl3']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 12]
@@ -5305,7 +5305,7 @@
           "SELECT T1.day-name, T2.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%day-name [~.t 'Monday']]
@@ -5319,10 +5319,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db2.dbo.holiday-calendar']
+              [%relation 'db2.dbo.holiday-calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 2]
@@ -5375,7 +5375,7 @@
           "SELECT T1.*, T2.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%pk-rd1 [~.rd .~1.0]]
@@ -5429,10 +5429,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.nj-tbl-a']
+              [%relation 'db1.dbo.nj-tbl-a']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.nj-tbl-b']
+              [%relation 'db1.dbo.nj-tbl-b']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 5]
@@ -5485,7 +5485,7 @@
           "SELECT T1.*, T2.*"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%pk-sd1 [~.sd --9]]
@@ -5539,10 +5539,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.nj-tbl-c']
+              [%relation 'db1.dbo.nj-tbl-c']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
-              [%message 'db1.dbo.nj-tbl-d']
+              [%relation 'db1.dbo.nj-tbl-d']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 5]
@@ -5660,7 +5660,7 @@
           "FROM reference.calendar SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                          :~  [%date [~.da ~1990.1.2]]
@@ -5708,7 +5708,7 @@
                              ==
                       ==
               [%server-time ~2024.8.22..16.11.26]
-              [%message 'animal-shelter.reference.calendar']
+              [%relation 'animal-shelter.reference.calendar']
               [%schema-time ~2024.8.22..15.31.46]
               [%data-time ~2024.8.22..15.31.46]
               [%vector-count 4]

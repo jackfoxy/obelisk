@@ -37,7 +37,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -47,7 +47,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -80,7 +80,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -110,7 +110,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -120,7 +120,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -153,7 +153,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -179,7 +179,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -189,7 +189,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -222,7 +222,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -253,7 +253,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -263,7 +263,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -296,7 +296,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -325,14 +325,14 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
                               [%message msg='no rows updated']
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -365,7 +365,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.4.30]
                               [%vector-count 4]
@@ -394,7 +394,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -404,7 +404,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -437,7 +437,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -466,7 +466,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -476,7 +476,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -509,7 +509,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -540,7 +540,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -550,7 +550,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -583,7 +583,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -615,7 +615,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -625,7 +625,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -658,7 +658,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -687,7 +687,7 @@
               "FROM my-table ".
               "SELECT *"
           ::
-          :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+          :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                             [%server-time date=~2012.5.1]
                             [%schema-time date=~2012.4.30]
                             [%data-time date=~2012.4.30]
@@ -697,7 +697,7 @@
                             [%vector-count count=4]
                             ==
           ::
-          :-  %results  :~  [%message 'SELECT']
+          :-  %results  :~  [%action 'SELECT']
                             :-  %result-set
                                 :~
                                   :-  %vector
@@ -730,7 +730,7 @@
                                           ==
                                   ==
                             [%server-time ~2012.5.3]
-                            [%message 'db1.dbo.my-table']
+                            [%relation 'db1.dbo.my-table']
                             [%schema-time ~2012.4.30]
                             [%data-time ~2012.5.1]
                             [%vector-count 4]
@@ -763,7 +763,7 @@
                 "FROM my-table ".
                 "SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -773,7 +773,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -806,7 +806,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -857,7 +857,7 @@
                 "FROM my-table ".
                 "SELECT *;"
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -897,13 +897,13 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 5]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -936,7 +936,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.4]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.2]
                               [%vector-count 4]
@@ -987,7 +987,7 @@
                 "FROM my-table ".
                 "SELECT *;"
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1027,13 +1027,13 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 5]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1066,7 +1066,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.4]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.2]
                               [%vector-count 4]
@@ -1117,7 +1117,7 @@
                 "FROM my-table ".
                 "SELECT *;"
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1157,13 +1157,13 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 5]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1196,7 +1196,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.4]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.2]
                               [%vector-count 4]
@@ -1239,7 +1239,7 @@
                 "FROM my-table ".
                 "SELECT *;"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -1249,7 +1249,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1282,7 +1282,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1318,7 +1318,7 @@
                 %db1
                 "FROM my-table SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
@@ -1328,7 +1328,7 @@
                               [%vector-count count=4]
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1361,7 +1361,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.5.1]
                               [%vector-count 4]
@@ -1395,14 +1395,14 @@
                 %db1
                 "FROM my-table SELECT *"
             ::
-            :-  %results  :~  [%message msg='UPDATE db1.dbo.my-table']
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
                               [%server-time date=~2012.5.1]
                               [%schema-time date=~2012.4.30]
                               [%data-time date=~2012.4.30]
                               [%message msg='no rows updated']
                               ==
             ::
-            :-  %results  :~  [%message 'SELECT']
+            :-  %results  :~  [%action 'SELECT']
                               :-  %result-set
                                   :~
                                     :-  %vector
@@ -1435,7 +1435,7 @@
                                             ==
                                     ==
                               [%server-time ~2012.5.3]
-                              [%message 'db1.dbo.my-table']
+                              [%relation 'db1.dbo.my-table']
                               [%schema-time ~2012.4.30]
                               [%data-time ~2012.4.30]
                               [%vector-count 4]
