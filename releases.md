@@ -1,5 +1,11 @@
 # Releases
 
+## v0.6 alpha
+
+* UPDATE
+* NOT unary predicate operator fully functional
+* documentation reorganized
+
 ## v0.5 alpha
 
 * SELECT all from table in JOIN
