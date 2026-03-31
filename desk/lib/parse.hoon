@@ -3102,6 +3102,11 @@
         selected  t.selected
         cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
       ==
+    ?:  ?=(selected-cte-column:ast sc)
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
+      ==
     ?:  ?=(selected-aggregate:ast sc)
       ~|("mk-cte-col-map: selected-aggregate not implemented" !!)
     ?:  ?=(selected-value:ast sc)
@@ -3268,7 +3273,7 @@
                   ~|  "column {<name.uqc>} is not produced by CTE ".
                       "{<(need maybe-cte)>}"
                       !!
-                [%cte-column (need maybe-cte) name.uqc]
+                [%selected-cte-column (need maybe-cte) name.uqc `as-alias]
               :^  %qualified-column
                   (need resolved)
                   name.uqc
@@ -3322,7 +3327,7 @@
                   ~|  "column {<name.uqc>} is not produced by CTE ".
                       "{<(need maybe-cte)>}"
                       !!
-                [%cte-column (need maybe-cte) name.uqc]
+                [%selected-cte-column (need maybe-cte) name.uqc ~]
               :^  %qualified-column
                   (need resolved)
                   name.uqc

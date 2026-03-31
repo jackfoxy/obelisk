@@ -140,8 +140,10 @@
   ?:  ?=(selected-value:ast selected-column)
     ?~  alias.selected-column  default
         (crip (cass (trip (need alias.selected-column))))
-  ?:  ?=(cte-column:ast selected-column)
-    (crip (cass (trip name.selected-column)))
+  ?:  ?=(selected-cte-column:ast selected-column)
+    ?~  alias.selected-column
+      (crip (cass (trip name.selected-column)))
+    (crip (cass (trip (need alias.selected-column))))
   ~|("{<selected-column>} not supported" !!)
 ::
 ++  mk-col-lu-data
@@ -217,7 +219,7 @@
       ==
     unqualified-column:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
-    cte-column:ast
+    selected-cte-column:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-aggregate:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
@@ -376,8 +378,8 @@
                 ==
           cells
     ==
-  ?:  ?=(cte-column:ast i.selected)
-    ~|("TO DO: implement cte-column" !!)
+  ?:  ?=(selected-cte-column:ast i.selected)
+    ~|("TO DO: implement selected-cte-column" !!)
   ~|("{<i.selected>} not supported" !!)
 ::
 ++  mk-templ-cell-indexed

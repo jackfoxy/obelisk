@@ -227,8 +227,8 @@
       all-cols  t.all-cols
       b         (~(put by b) name.i.all-cols [name.i.all-cols ~])
     ==
-  ?:  ?=(cte-column:ast a)
-    (~(put by b) name.a [name.a ~])
+  ?:  ?=(selected-cte-column:ast a)
+    (~(put by b) name.a [name.a alias.a])
   b
 ::
 ++  selected-column-to-column
@@ -247,8 +247,8 @@
       (flop columns)
     selected-all-table:ast
       (flop columns)
-    cte-column:ast
-      ~|("TO DO: implement cte-column" !!)
+    selected-cte-column:ast
+      ~|("TO DO: implement selected-cte-column" !!)
     ==
 ::
 ++  relation-vectors

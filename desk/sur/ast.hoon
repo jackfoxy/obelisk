@@ -191,11 +191,17 @@
     top=(unit @ud)
     columns=(list selected-column)
     ==
++$  selected-cte-column
+  $:  %selected-cte-column
+    cte=@tas
+    name=@tas
+    alias=(unit @t)
+    ==
 +$  selected-column
   $%
     qualified-column
     unqualified-column
-    cte-column
+    selected-cte-column
     selected-aggregate
     selected-value
     selected-all

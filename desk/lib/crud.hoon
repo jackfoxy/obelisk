@@ -880,8 +880,8 @@
                   ?~(relation.a b (weld (flop columns.a) b))
     selected-all-table
       (~(got by rel-col-lookup) qualified-table.a)
-    cte-column
-      ~|("TO DO: implement cte-column" !!)
+    selected-cte-column
+      ~|("TO DO: implement selected-cte-column" !!)
     ==
 ::
 ++  mk-cte-column-metas
@@ -930,8 +930,8 @@
                                                 qt
                                                 name.c
                       ==
-                cte-column:ast
-                  ~|("TO DO: implement cte-column" !!)
+                selected-cte-column:ast
+                  ~|("TO DO: implement selected-cte-column" !!)
                 selected-aggregate:ast
                   ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
