@@ -1572,6 +1572,28 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: simple case expression with arithmetic else
+++  test-case-simple-arithmetic-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE foo3 WHEN 1 THEN foo3 ELSE foo2 + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  else-expr
+    [%arithmetic operator=%lus left=unqualified-foo-2 right=literal-1]
+  =/  case
+    :*  %case
+      (some unqualified-foo-3)
+      ~[[%case-when-then literal-1 unqualified-foo-3]]
+      (some else-expr)
+    ==
+  =/  scalars  ~[[%scalar 'foobar' case]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 :: simple case expression with expression, no else
 ++  test-case-simple-02
   ::
@@ -2142,6 +2164,28 @@
       ~
       ~[[%case-when-then simple-true-pred unqualified-foo-3]]
       (some unqualified-foo-3)
+    ==
+  =/  scalars  ~[[%scalar 'foobar' case]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: searched case expression with arithmetic else
+++  test-case-searched-arithmetic-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE WHEN 1 = 1 THEN foo3 ELSE foo2 + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  else-expr
+    [%arithmetic operator=%lus left=unqualified-foo-2 right=literal-1]
+  =/  case
+    :*  %case
+      ~
+      ~[[%case-when-then simple-true-pred unqualified-foo-3]]
+      (some else-expr)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
   =/  expected  (mk-selection scalars ~)

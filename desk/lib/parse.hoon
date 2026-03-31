@@ -5297,21 +5297,21 @@
 ++  parse-when-then-datum
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
-    parse-scalar-node
+    parse-case-branch-scalar-node
     ;~(pfix whitespace (cold %then (jester 'then')))
-    parse-scalar-node
+    parse-case-branch-scalar-node
   ==
 ++  parse-when-then-predicate
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    parse-scalar-node
+    parse-case-branch-scalar-node
   ==
 ++  parse-case-else
   ;~  plug
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pfix whitespace parse-scalar-node)
+    ;~(pfix whitespace parse-case-branch-scalar-node)
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
 ++  cook-case
@@ -5355,7 +5355,7 @@
 ++  parse-simple-case
   ::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
   ;~  plug
-    parse-scalar-node
+    parse-case-branch-scalar-node
     (star parse-when-then-datum)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
@@ -5656,6 +5656,34 @@
   ?:  (raw-arithmetic-has-operator raw-body)
     parsed
   (fail tub)
+::
+++  case-scalar-stop
+  ;~  pose
+    ;~(plug whitespace (jester 'when') whitespace)
+    ;~(plug whitespace (jester 'else') whitespace)
+    ;~(plug whitespace (jester 'end') whitespace)
+  ==
+++  parse-case-branch-arithmetic
+  ;~  plug
+    (easy %arithmetic)
+    %-  star
+      ;~(less case-scalar-stop arithmetic-token)
+  ==
+++  parse-case-branch-scalar-node-arithmetic
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (parse-case-branch-arithmetic tub)
+  ?~  q.parsed
+    parsed
+  =/  raw-body  +.p.u.q.parsed
+  ?:  (raw-arithmetic-has-operator raw-body)
+    parsed
+  (fail tub)
+++  parse-case-branch-scalar-node
+  ;~  pose
+    parse-case-branch-scalar-node-arithmetic
+    parse-scalar-node
+  ==
 ::
 ++  scalar-stop
   ;~  pose
