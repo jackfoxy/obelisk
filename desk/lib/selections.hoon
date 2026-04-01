@@ -1,5 +1,5 @@
 /-  ast, *obelisk, *server-state
-/+  *sys-views, *utils, *predicate, *scalars
+/+  *sys-views, *utils, *predicate, *scalars, mip
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -85,20 +85,23 @@
   :-  :*  %join-return
           state
           ?.  is-cte   set-tables.full-relation
-              (select-for-cte q set-tables.full-relation filter)
+              %-  select-for-cte
+              [q set-tables.full-relation filter named-ctes]
           map-meta.full-relation
           column-metas.full-relation
           ==
       ?:  is-cte  *(list vector)
-      %:  relation-vectors  filter
-                            column-metas.full-relation
-                            ?:  is-cte  map-meta.full-relation
-                            map-meta.i.set-tables.full-relation
-                            ?~  joined-rows.i.set-tables.full-relation
-                              indexed-rows.i.set-tables.full-relation
-                            joined-rows.i.set-tables.full-relation
-                            selected
-                            ==
+      %-  relation-vectors
+      :*  filter
+          column-metas.full-relation
+          ?:  is-cte  map-meta.full-relation
+          map-meta.i.set-tables.full-relation
+          ?~  joined-rows.i.set-tables.full-relation
+            indexed-rows.i.set-tables.full-relation
+          joined-rows.i.set-tables.full-relation
+          selected
+          named-ctes
+          ==
 ::
 ::  Build lookup qualifier by column name for resolving unqualified columns in
 ::  scalar functions on a single relation.
@@ -161,7 +164,7 @@
   ::      =predicate
   ::      pri-indexed=(tree [(list @) (map @tas @)])
   ::  5) row count
-  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?))]
+  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?)) =named-ctes]
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
@@ -169,8 +172,9 @@
   =.  columns.st2     %-  flop
                         ^-  (list column:ast)  %-  zing
                             %+  turn  columns.select.q
-                                      %+  cury  selected-column-to-column
-                                                columns.i.set-tables
+                                      |=  a=selected-column:ast
+                                      %-  selected-column-to-column
+                                      [named-ctes columns.i.set-tables a]
   
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
@@ -232,7 +236,7 @@
   b
 ::
 ++  selected-column-to-column
-  |=  [columns=(list column:ast) =selected-column:ast]
+  |=  [=named-ctes columns=(list column:ast) =selected-column:ast]
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
@@ -248,7 +252,10 @@
     selected-all-table:ast
       (flop columns)
     selected-cte-column:ast
-      ~|("TO DO: implement selected-cte-column" !!)
+      =/  cte-fr  (~(got by named-ctes) cte.selected-column)
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected-column]
+                                                              name.selected-column
+      ~[[%column (heading selected-column name.selected-column) type.ta 0]]
     ==
 ::
 ++  relation-vectors
@@ -259,15 +266,14 @@
           =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
+          =named-ctes
           ==
   ^-  (list vector)
   ?~  rows         *(list vector)
   =/  out-rows     *(set vector)
-  =/  templ-cells=(list templ-cell)  %:  mk-rel-vect-templ  column-metas
-                                          selected
-                                          -.rows
-                                          map-meta
-                                          ==
+  =/  templ-cells=(list templ-cell)
+    %-  mk-rel-vect-templ
+    [column-metas selected -.rows map-meta named-ctes]
   ::
   ?~  templ-cells  ~|("relation-vectors can't get here" !!)
   =/  non-lit  %-  |=  a=(list templ-cell)

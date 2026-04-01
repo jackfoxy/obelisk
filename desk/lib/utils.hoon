@@ -257,12 +257,33 @@
         columns
         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
 ::
+::  Resolve a projected CTE column into a single literal value for SELECT output.
+++  selected-cte-dime
+  |=  [selected=selected-cte-column:ast =named-ctes]
+  ^-  dime
+  =/  cte-fr  (~(got by named-ctes) cte.selected)
+  ?~  set-tables.cte-fr
+    ~|("resolve selected-cte-column: empty set-tables" !!)
+  =/  cte-st  i.set-tables.cte-fr
+  ?.  =(1 rowcount.cte-st)
+    ~|("SELECT cte-column requires exactly 1 row in cte {<cte.selected>}" !!)
+  =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected]
+                                                          name.selected
+  =/  row=data-row  ?~  joined-rows.cte-st
+                      ?~  indexed-rows.cte-st
+                        ~|("resolve selected-cte-column: no rows in cte {<cte.selected>}" !!)
+                      i.indexed-rows.cte-st
+                    i.joined-rows.cte-st
+  =/  x  .*(data.row [%0 addr.ta])
+  [type.ta ?@(x x ;;(@ +.x))]
+::
 ++  mk-rel-vect-templ
   ::  leave output un-flopped so consuming arm does not flop
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
           row=data-row 
           =map-meta
+          =named-ctes
           ==
   ^-  (list templ-cell)
   =/  is-join  =(%joined-row -.row)
@@ -310,6 +331,18 @@
                 0  :: addr
                 :-  (heading i.selected (crip "literal-{<i>}"))
                     [p=+<-.i.selected q=+<+.i.selected]
+            cells
+    ==
+  ?:  ?=(selected-cte-column:ast i.selected)
+    %=  $
+      i         +(i)
+      selected  t.selected
+      cells
+        :-  :^  %templ-cell
+                ~
+                0
+                :-  (heading i.selected name.i.selected)
+                    (selected-cte-dime i.selected named-ctes)
             cells
     ==
   =/  typ-addr  ?:  ?=(qualified-column:ast i.selected)
@@ -378,8 +411,6 @@
                 ==
           cells
     ==
-  ?:  ?=(selected-cte-column:ast i.selected)
-    ~|("TO DO: implement selected-cte-column" !!)
   ~|("{<i.selected>} not supported" !!)
 ::
 ++  mk-templ-cell-indexed

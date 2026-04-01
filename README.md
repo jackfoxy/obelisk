@@ -34,6 +34,8 @@ Reporting documentation bugs is also appreciated.
 
 This project welcomes contributors. Contact the author for more information.
 
+Thanks to @widmes-hassen for his contributions to scalar functions.
+
 ### Using the %hawk UI
 
 To interact with Obelisk from %hawk:

@@ -6037,14 +6037,13 @@
   :*  run
       :+  ~2012.4.30
           %db1
-          %-  zing  :~  "CREATE DATABASE db1;"
-                        "CREATE TABLE foo (col1 @t, col2 @t) PRIMARY KEY (col1);"
-                        "INSERT INTO foo VALUES ('a', 'b');"
-                        "CREATE TABLE foo2 (col3 @t, col4 @t) PRIMARY KEY (col3);"
-                        "INSERT INTO foo2 VALUES ('c', 'd');"
-                        "CREATE TABLE foo3 (col5 @t) PRIMARY KEY (col5);"
-                        "INSERT INTO foo3 VALUES ('e') ('f')"
-                        ==
+          "CREATE DATABASE db1; ".
+          "CREATE TABLE foo (col1 @t, col2 @t) PRIMARY KEY (col1); ".
+          "INSERT INTO foo VALUES ('a', 'b'); ".
+          "CREATE TABLE foo2 (col3 @t, col4 @t) PRIMARY KEY (col3); ".
+          "INSERT INTO foo2 VALUES ('c', 'd'); ".
+          "CREATE TABLE foo3 (col5 @t) PRIMARY KEY (col5); ".
+          "INSERT INTO foo3 VALUES ('e') ('f')"
       ::
       :+  ~2012.5.1
           %db1
@@ -6052,7 +6051,8 @@
           "(FROM foo2 ".
           "SELECT col3, col4, first.col1, first.col2 AS my-col2) as second ".
           "FROM foo3 ".
-          "SELECT col5, first.col1, first.col2, second.col1, second.my-col2 AS my-col-2"
+          "SELECT col5, first.col1, first.col2, second.col1, ".
+          "       second.my-col2 AS my-col-2"
       ::
       :-  %results
           :~  [%action 'SELECT']

@@ -4,13 +4,9 @@ Features coming after v0.5 alpha release.
 
 ## Candidates for beta release
 
-* __UPDATE__ (complete in beta) -- Operates on user-defined tables, not on views; optional predicate
-
-* __Issue #1__ (complete in beta) -- NOT predicate operator not fully functional
-
 * __Common Table Expressions (CTE)__ (complete in beta) -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
-* __Scalar functions__ -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
+* __Scalar functions__ (complete in beta) -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
 
 * __JOIN ON__ -- JOIN ON `<predicate>`
 

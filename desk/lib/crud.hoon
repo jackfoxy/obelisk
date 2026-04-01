@@ -466,12 +466,14 @@
     [join-return ~]
   ?~  set-tables.join-return  [join-return ~]
   :-  join-return
-      %:  joined-result  filter
-                          column-metas.join-return
-                          map-meta.join-return
-                          joined-rows.i.set-tables.join-return
-                          selected
-                          ==
+      %-  joined-result
+      :*  filter
+          column-metas.join-return
+          map-meta.join-return
+          joined-rows.i.set-tables.join-return
+          selected
+          named-ctes
+          ==
 ::
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
@@ -479,15 +481,14 @@
           =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
+          =named-ctes
           ==
   ^-  (list vector)
   ?:  =(~ rows)  ~
   =/  out-rows   *(set vector)
-  =/  cells  %:  mk-rel-vect-templ  qualified-columns
-                                    selected
-                                    -.rows
-                                    map-meta
-                                    ==
+  =/  cells
+    %-  mk-rel-vect-templ
+    [qualified-columns selected -.rows map-meta named-ctes]
   |-
   ?~  rows  ~(tap in out-rows)
   ?.  ?~(filter %.y ((need filter) i.rows))
@@ -790,9 +791,13 @@
   =/  =join-return    -:(do-query query.i.ctes nctes %.y)
   =.  state             server.join-return
   =/  selected          (normalize-selected columns.select.query.i.ctes)
-  =/  set-tables      %^  cte-set-tables  name.i.ctes
-                                          selected
-                                          set-tables.join-return
+  =/  cte-shaped
+    %-  cte-set-tables
+    [name.i.ctes selected set-tables.join-return nctes]
+  =/  set-tables      ?:  (selected-has-cte-column selected)
+                        %-  materialize-cte-set-tables
+                        [name.i.ctes selected nctes join-return cte-shaped]
+                      cte-shaped
   ?~  set-tables      ~|("named-queries can't get here" !!)
   =/  canonical-list  %+  murn  set-tables
                                 |=  s=set-table
@@ -800,19 +805,23 @@
                                 (some [(need relation.s) columns.s])
   =/  canonical-map   (malt canonical-list)
   =/  map-meta        ;;(qualified-map-meta map-meta.join-return)
-  =/  data-row        ?~  joined-rows.i.set-tables
-                        ?~  indexed-rows.i.set-tables
-                          *indexed-row
-                        i.indexed-rows.i.set-tables
-                      i.joined-rows.i.set-tables
-
-  =/  column-metas  %:  mk-cte-column-metas
-                          selected
-                          data-row
-                          ;;(qualified-map-meta map-meta.join-return)
-                          canonical-list
-                          canonical-map
-                          ==
+  =/  column-metas
+    ?:  (selected-has-cte-column selected)
+      (materialized-cte-column-metas name.i.ctes columns.i.set-tables)
+    =/  data-row  ?~  joined-rows.i.set-tables
+                    ?~  indexed-rows.i.set-tables
+                      *indexed-row
+                    i.indexed-rows.i.set-tables
+                  i.joined-rows.i.set-tables
+    %-  mk-cte-column-metas
+    :*  selected
+        data-row
+        ;;(qualified-map-meta map-meta.join-return)
+        canonical-list
+        canonical-map
+        columns.i.set-tables
+        nctes
+        ==
 
   =/  cte-map-meta
     %+  roll  column-metas
@@ -838,7 +847,7 @@
   ==
 ::
 ++  cte-set-tables
-  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table)]
+  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table) =named-ctes]
   ^-  (list set-table)
   ?~  st  ~|("cte-set-tables can't get here" !!)
   ?:  =(~ relation.i.st)  st
@@ -846,17 +855,16 @@
   =.  join.new        ~
   =.  relation.new    ~
   ::
-  =/  f  %+  bake  %+  cury
-                       %+  cury  (cury cte-columns (mk-col-lookup st))
-                                 (mk-rel-col-lookup st)
-                       (flop st)
-                   selected-column:ast
+  =/  f  |=  a=selected-column:ast
+          %-  cte-columns
+          [(mk-col-lookup st) (mk-rel-col-lookup st) named-ctes (flop st) a]
   =.  columns.new  (addr-columns (cte-col-dups name (zing (turn columns f))))
   [new st]
 ::
 ++  cte-columns
   |=  $:  col-lookup=(mip:mip qualified-table:ast @tas @ta)
           rel-col-lookup=(map qualified-table:ast (list column:ast))
+          =named-ctes
           st=(list set-table)
           a=selected-column:ast
           ==
@@ -881,15 +889,20 @@
     selected-all-table
       (~(got by rel-col-lookup) qualified-table.a)
     selected-cte-column
-      ~|("TO DO: implement selected-cte-column" !!)
+      =/  cte-fr  (~(got by named-ctes) cte.a)
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.a]
+                                                              name.a
+      ~[[%column (heading a name.a) type.ta 0]]
     ==
 ::
 ++  mk-cte-column-metas
   |=  $:  sel-cols=(list selected-column:ast)
           =data-row
           map-meta=qualified-map-meta
-          canonical-list=(list [qualified-table *])
-          canonical-map=(map qualified-table (list column:ast))
+          canonical-list=(list [qualified-table:ast *])
+          canonical-map=(map qualified-table:ast (list column:ast))
+          cte-cols=(list column:ast)
+          =named-ctes
           ==
   ^-  (list column-meta)
   =/  f  |=  q=qualified-table:ast
@@ -931,7 +944,22 @@
                                                 name.c
                       ==
                 selected-cte-column:ast
-                  ~|("TO DO: implement selected-cte-column" !!)
+                  =/  out-name  (heading c name.c)
+                  =/  cte-fr  (~(got by named-ctes) cte.c)
+                  =/  cte-ta=typ-addr
+                    %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.c]
+                                                        name.c
+                  =/  qt  ?~  canonical-list
+                            ~|("mk-cte-column-metas: empty canonical-list" !!)
+                          -.i.canonical-list
+                  =/  out-ta  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
+                  :~  :+  :^  %qualified-column
+                              qt
+                              out-name
+                              ?~(alias.c ~ [~ name.c])
+                          type.cte-ta
+                          addr.out-ta
+                      ==
                 selected-aggregate:ast
                   ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
@@ -973,6 +1001,108 @@
                                           qualified-table
                                           name.i.columns
                 metas
+  ==
+::
+++  selected-has-cte-column
+  |=  selected=(list selected-column:ast)
+  ^-  ?
+  |-
+  ?~  selected  %.n
+  ?:  ?=(selected-cte-column:ast i.selected)  %.y
+  $(selected t.selected)
+::
+++  materialized-cte-column-metas
+  |=  [cte=@tas cols=(list column:ast)]
+  ^-  (list column-meta)
+  %+  turn
+      cols
+      |=  c=column:ast
+      :+  [%qualified-column [%qualified-table ~ %cte %cte cte ~] name.c ~]
+          type.c
+          addr.c
+::
+++  materialize-cte-set-tables
+  |=  $:  name=@tas
+          selected=(list selected-column:ast)
+          =named-ctes
+          =join-return
+          set-tables=(list set-table)
+          ==
+  ^-  (list set-table)
+  ?~  set-tables  ~|("materialize-cte-set-tables can't get here" !!)
+  =/  st  i.set-tables
+  =/  out-cols  (addr-columns (cte-col-dups name columns.st))
+  =/  rows=(list data-row)  ?~  joined-rows.st
+                             indexed-rows.st
+                           joined-rows.st
+  =.  columns.st       out-cols
+  =.  relation.st      ~
+  =.  join.st          ~
+  =.  map-meta.st      [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
+  =/  src-map-meta  :-  %unqualified-map-meta
+    %-  malt
+    %+  turn  column-metas.join-return
+    |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
+  =.  indexed-rows.st
+    %-  materialize-cte-indexed-rows
+    [rows pri-indx.st column-metas.join-return src-map-meta selected named-ctes]
+  =.  joined-rows.st   ~
+  =.  rowcount.st      (lent indexed-rows.st)
+  =.  pri-indexed.st   (materialize-cte-pri-index pri-indx.st indexed-rows.st)
+  [st t.set-tables]
+::
+++  materialize-cte-indexed-rows
+  |=  $:  rows=(list data-row)
+          pri=(unit index)
+          column-metas=(list column-meta)
+          =map-meta
+          selected=(list selected-column:ast)
+          =named-ctes
+          ==
+  ^-  (list indexed-row)
+  ?~  rows  ~
+  =/  templ-cells
+    %-  mk-rel-vect-templ
+    [column-metas selected -.rows map-meta named-ctes]
+  =/  key-cols=(unit (list key-column))  ?~(pri ~ [~ key.u.pri])
+  =/  out=(list indexed-row)  ~
+  =/  rows=(list data-row)  rows
+  |-
+  ?~  rows  (flop out)
+  =/  data  (materialize-cte-row i.rows templ-cells)
+  =/  key   ?~  key-cols
+              ~
+            (turn u.key-cols |=(a=key-column (~(got by data) name.a)))
+  %=  $
+    rows  t.rows
+    out   :-  [%indexed-row key data]  out
+  ==
+::
+++  materialize-cte-row
+  |=  [row=data-row templ-cells=(list templ-cell)]
+  ^-  (map @tas @)
+  =/  out  *(map @tas @)
+  |-
+  ?~  templ-cells  out
+  =/  x  ?~  column.i.templ-cells
+            q.q.vc.i.templ-cells
+          .*(data.row [%0 addr.i.templ-cells])
+  %=  $
+    templ-cells  t.templ-cells
+    out          (~(put by out) p.vc.i.templ-cells ?@(x x ;;(@ +.x)))
+  ==
+::
+++  materialize-cte-pri-index
+  |=  [pri=(unit index) rows=(list indexed-row)]
+  ^-  (tree [(list @) (map @tas @)])
+  ?~  pri  ~
+  =/  primary-key  (pri-key key.u.pri)
+  =/  out  *(tree [(list @) (map @tas @)])
+  |-
+  ?~  rows  out
+  %=  $
+    rows  t.rows
+    out   (put:primary-key out key.i.rows data.i.rows)
   ==
 ::
 ++  mk-col-lookup
