@@ -5059,14 +5059,13 @@
         predicate=~
         group-by=~
         having=~
-        :*  %select
+        :+  %select
             top=~
-            columns
-              :~  col3
-                  col4
-                  [%selected-cte-column 'first' 'col1' ~]
-                  [%selected-cte-column 'first' 'col2' [~ 'my-col2']]
-                  ==
+            :~  col3
+                col4
+                [%selected-cte-column 'first' 'col1' ~]
+                [%selected-cte-column 'first' 'col2' [~ 'my-col2']]
+                ==
         order-by=~
         ==
   =/  expected
@@ -5074,7 +5073,6 @@
             ctes=~[[%cte name='first' query=first-cte-query]]
             [query ~ ~]
         ==
-    ==
   %+  expect-eq
     !>  expected
     !>  %-  parse:parse(default-database 'db1')
@@ -5109,14 +5107,13 @@
         predicate=~
         group-by=~
         having=~
-        :*  %select
+        :+  %select
             top=~
-            columns
-              :~  col3
-                  col4
-                  [%selected-cte-column 'first' 'col1' ~]
-                  [%selected-cte-column 'first' 'col2' [~ 'my-col2']]
-                  ==
+            :~  col3
+                col4
+                [%selected-cte-column 'first' 'col1' ~]
+                [%selected-cte-column 'first' 'col2' [~ 'my-col2']]
+                ==
         order-by=~
         ==
   =/  foo3-table
@@ -5136,15 +5133,14 @@
         predicate=~
         group-by=~
         having=~
-        :*  %select
+        :+  %select
             top=~
-            columns
-              :~  col5
-                  [%selected-cte-column 'first' 'col1' ~]
-                  [%selected-cte-column 'first' 'col2' ~]
-                  [%selected-cte-column 'second' 'col1' ~]
-                  [%selected-cte-column 'second' 'my-col2' [~ 'my-col-2']]
-                  ==
+            :~  col5
+                [%selected-cte-column 'first' 'col1' ~]
+                [%selected-cte-column 'first' 'col2' ~]
+                [%selected-cte-column 'second' 'col1' ~]
+                [%selected-cte-column 'second' 'my-col2' [~ 'my-col-2']]
+                ==
         order-by=~
         ==
   =/  expected

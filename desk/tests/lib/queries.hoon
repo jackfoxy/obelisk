@@ -5982,4 +5982,107 @@
       ::
       'column %bad-col does not exist'
       ==
+::
+::  cte column selection - single cte, literal replicated across main table rows
+++  test-cte-col-00
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE foo (col1 @t, col2 @t) PRIMARY KEY (col1);"
+                        "INSERT INTO foo VALUES ('a', 'b');"
+                        "CREATE TABLE foo2 (col3 @t, col4 @t) PRIMARY KEY (col3);"
+                        "INSERT INTO foo2 VALUES ('c', 'd') ('e', 'f')"
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "WITH (FROM foo select col1, col2) as first ".
+          "FROM foo2 ".
+          "SELECT col3, col4, first.col1, first.col2 AS my-col2"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col3 [~.t 'c']]
+                              [%col4 [~.t 'd']]
+                              [%col1 [~.t 'a']]
+                              [%my-col2 [~.t 'b']]
+                              ==
+                      :-  %vector
+                          :~  [%col3 [~.t 'e']]
+                              [%col4 [~.t 'f']]
+                              [%col1 [~.t 'a']]
+                              [%my-col2 [~.t 'b']]
+                              ==
+                      ==
+              [%server-time ~2012.5.1]
+              [%relation 'db1.dbo.foo']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.foo2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  cte column selection - two ctes, cte-on-cte reference, literal replicated
+++  test-cte-col-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE foo (col1 @t, col2 @t) PRIMARY KEY (col1);"
+                        "INSERT INTO foo VALUES ('a', 'b');"
+                        "CREATE TABLE foo2 (col3 @t, col4 @t) PRIMARY KEY (col3);"
+                        "INSERT INTO foo2 VALUES ('c', 'd');"
+                        "CREATE TABLE foo3 (col5 @t) PRIMARY KEY (col5);"
+                        "INSERT INTO foo3 VALUES ('e') ('f')"
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "with (FROM foo select col1, col2) as first, ".
+          "(FROM foo2 ".
+          "SELECT col3, col4, first.col1, first.col2 AS my-col2) as second ".
+          "FROM foo3 ".
+          "SELECT col5, first.col1, first.col2, second.col1, second.my-col2 AS my-col-2"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col5 [~.t 'e']]
+                              [%col1 [~.t 'a']]
+                              [%col2 [~.t 'b']]
+                              [%col1 [~.t 'a']]
+                              [%my-col-2 [~.t 'b']]
+                              ==
+                      :-  %vector
+                          :~  [%col5 [~.t 'f']]
+                              [%col1 [~.t 'a']]
+                              [%col2 [~.t 'b']]
+                              [%col1 [~.t 'a']]
+                              [%my-col-2 [~.t 'b']]
+                              ==
+                      ==
+              [%server-time ~2012.5.1]
+              [%relation 'db1.dbo.foo']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.foo2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.foo3']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
 --
