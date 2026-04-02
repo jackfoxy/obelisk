@@ -1755,11 +1755,11 @@
 ++  unq-col1     [[%unqualified-column 'col1' ~] ~ ~]
 ++  unq-col2     [[%unqualified-column 'col2' ~] ~ ~]
 ++  my-cte-table
-  [%qualified-table ship=~ database='db1' namespace='dbo' name='my-cte' alias=~]
+  [%cte-name name='my-cte']
 ++  cte1-table
-  [%qualified-table ship=~ database='db1' namespace='dbo' name='cte1' alias=~]
+  [%cte-name name='cte1']
 ++  cte2-table
-  [%qualified-table ship=~ database='db1' namespace='dbo' name='cte2' alias=~]
+  [%cte-name name='cte2']
 ++  cte-my-cte
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'

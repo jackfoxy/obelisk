@@ -2782,10 +2782,17 @@
   =/  finalized-joins
     %+  turn  joins.f
     |=  j=joined-relation:ast
-    ?~  predicate.j  j
+    =/  rel=relation:ast
+      ?:  ?&  ?=(qualified-table:ast relation.j)
+              (~(has by cte-map) name.relation.j)
+          ==
+        [%cte-name name.relation.j]
+      relation.j
+    ?~  predicate.j
+      j(relation rel)
     :*  %joined-relation
           join.j
-          relation.j
+          rel
           as-of.j
           %:  finalize-predicate  predicate.j
                                   alias-map

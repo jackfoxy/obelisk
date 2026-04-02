@@ -429,8 +429,15 @@
   ::  any other part of the state
   |=  [q=query:ast =named-ctes is-cte=?]
   ^-  [join-return (list vector)]
-  :: literal only
-  ?~  from.q  (select-literals state columns.select.q is-cte)
+  :: literal/scalar only
+  ?~  from.q
+    =/  resolved-scalars
+      %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
+                                                         named-ctes
+                                                         *qualifier-lookup
+                                                         *qualified-map-meta
+                                                         ==
+    (select-literals state columns.select.q is-cte resolved-scalars)
   :: no joins, it's a single relation
   =/  f  (normalize-from (need from.q))
   ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
@@ -624,8 +631,8 @@
                            (need data-tmsp.a)
 ::
 ++  select-literals
-  ::  selection of literals only, no from clause
-  |=  [=server columns=(list selected-column:ast) is-cte=?]
+  ::  selection of literals/scalars only, no from clause
+  |=  [=server columns=(list selected-column:ast) is-cte=? =resolved-scalars]
   ^-  [join-return (list vector)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
                   "can be accessed"
@@ -633,8 +640,11 @@
   =/  indexed-cols  *(map @tas @)
   =/  columns-out   *(list column:ast)
   =/  i             0
+  =/  empty-row     [%indexed-row ~ *(map @tas @)]
   |-
   ?~  columns
+    =/  addressed-cols  (addr-columns columns-out)
+    =/  map-meta        [%unqualified-map-meta (mk-unqualified-typ-addr-lookup addressed-cols)]
     ?:  is-cte  :-  :*  %join-return
                         server
                         :~  :*  %set-table
@@ -642,10 +652,10 @@
                                 ~
                                 [~ created-tmsp.sys-db]
                                 [~ created-tmsp.sys-db]
-                                columns-out
+                                addressed-cols
                                 ~
                                 1
-                                *unqualified-map-meta
+                                map-meta
                                 ~
                                 *(tree [(list @) (map @tas @)])
                                 ~[[%indexed-row ~ indexed-cols]]
@@ -663,10 +673,10 @@
                     ~
                     [~ created-tmsp.sys-db]
                     [~ created-tmsp.sys-db]
-                    columns-out
+                    addressed-cols
                     ~
                     1
-                    *unqualified-map-meta
+                    map-meta
                     ~
                     *(tree [(list @) (map @tas @)])
                     ~[[%indexed-row ~ indexed-cols]]
@@ -677,20 +687,33 @@
             ~
             ==
         :~  %+  mk-vect
-              columns-out
+              addressed-cols
               indexed-cols
               ==
-  ?.  ?=(selected-value:ast -.columns)
-    ~|("selected value {<-.columns>} not a literal" !!)
-  =/  column-name  ?~  alias.i.columns  (crip "literal-{<i>}")
-                                        (need alias.i.columns)
-  %=  $
-    i             +(i)
-    columns       +.columns
-    columns-out   :-  [%column column-name p.value.i.columns 0]
-                      columns-out
-    indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
-  ==
+  ?:  ?=(selected-value:ast -.columns)
+    =/  column-name  ?~  alias.i.columns  (crip "literal-{<i>}")
+                                          (need alias.i.columns)
+    %=  $
+      i             +(i)
+      columns       +.columns
+      columns-out   :-  [%column column-name p.value.i.columns 0]
+                        columns-out
+      indexed-cols  (~(put by indexed-cols) column-name q.value.i.columns)
+    ==
+  ?:  ?=(selected-scalar:ast -.columns)
+    =/  rs=resolved-scalar
+      ~|  "SELECT: scalar {<name.i.columns>} not found"
+      (~(got by resolved-scalars) name.i.columns)
+    =/  x=dime  (resolve-selected-scalar empty-row rs)
+    =/  column-name  (heading i.columns name.i.columns)
+    %=  $
+      i             +(i)
+      columns       +.columns
+      columns-out   :-  [%column column-name (resolved-scalar-type rs) 0]
+                        columns-out
+      indexed-cols  (~(put by indexed-cols) column-name q.x)
+    ==
+  ~|("selected value/scalar {<-.columns>} not supported without FROM" !!)
 ::
 ++  mk-vect
   |=  [columns=(list column:ast) values=(map @tas @)]
@@ -827,6 +850,7 @@
                   i.joined-rows.i.set-tables
     %-  mk-cte-column-metas
     :*  selected
+        name.i.ctes
         data-row
         ;;(qualified-map-meta map-meta.join-return)
         canonical-list
@@ -915,6 +939,7 @@
 ::
 ++  mk-cte-column-metas
   |=  $:  sel-cols=(list selected-column:ast)
+          cte=@tas
           =data-row
           map-meta=qualified-map-meta
           canonical-list=(list [qualified-table:ast *])
@@ -923,6 +948,13 @@
           =named-ctes
           ==
   ^-  (list column-meta)
+  =/  default-qt  :*  %qualified-table
+                      ship=~
+                      database=%cte
+                      namespace=%cte
+                      name=cte
+                      alias=~
+                  ==
   =/  f  |=  q=qualified-table:ast
          ^-  (list column-meta)
          ~|  "can't lookup {<q>}"
@@ -964,9 +996,7 @@
                 selected-scalar:ast
                   =/  out-name  (heading c name.c)
                   =/  typ-addr  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
-                  =/  qt  ?~  canonical-list
-                            ~|("mk-cte-column-metas: empty canonical-list" !!)
-                          -.i.canonical-list
+                  =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
                   :~  :+  :^  %qualified-column
                               qt
                               out-name
@@ -980,9 +1010,7 @@
                   =/  cte-ta=typ-addr
                     %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.c]
                                                         name.c
-                  =/  qt  ?~  canonical-list
-                            ~|("mk-cte-column-metas: empty canonical-list" !!)
-                          -.i.canonical-list
+                  =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
                   =/  out-ta  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
                   :~  :+  :^  %qualified-column
                               qt

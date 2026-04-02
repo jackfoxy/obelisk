@@ -40,26 +40,14 @@
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (normalize-from (need from.q))
-  =/  query-source  ?:  ?=(qualified-table:ast relation.from)
-                      relation.from
-                    ~|("SELECT: not supported on %query-row" !!)
-  =/  sys-time=@da  (set-tmsp as-of.from now.bowl)
-  =/  db=database   ~|  "SELECT: database {<database.query-source>} ".
-                         "does not exist"
-                        (~(got by state) database.query-source)
-  =/  =schema       ~|  "SELECT: database {<database.query-source>} ".
-                        "doesn't exist at time {<sys-time>}"
-                        (get-schema [sys.db sys-time])
-  =/  =full-relation  %:  got-relation  query-source
-                                        named-ctes
-                                        as-of.from
-                                        db
-                                        schema
-                                        ~
-                                        ~
-                                        *qualified-map-meta
-                                        ~
-                                        ==
+  =/  =full-relation  %:  source-full-relation  relation.from
+                                                named-ctes
+                                                as-of.from
+                                                ~
+                                                ~
+                                                *qualified-map-meta
+                                                ~
+                                                ==
   =/  selected      (normalize-selected columns.select.q)
   =/  qualifier-lookup
         (query-qualifier-lookup set-tables.full-relation)
@@ -413,67 +401,100 @@
                                      ==
                                  joins.from
   =/  relat=joined-relat  -.joined-relations
-  =/  query-source        ?:  ?=(qualified-table:ast relation.relat)
-                            relation.relat
-                          ~|("SELECT: not supported on %query-row" !!)
+  =/  source-db=@tas      (source-db-name relation.relat)
   =.  joined-relations    +.joined-relations
-  =/  sys-time            (set-tmsp as-of.relat now.bowl)
-  =/  db=database         ~|  "SELECT: database {<database.query-source>} ".
-                              "does not exist"
-                          (~(got by state) database.query-source)
-  =/  =schema             ~|  "SELECT: database {<database.query-source>} ".
-                              "doesn't exist at time {<sys-time>}"
-                          (get-schema [sys.db sys-time])
-  =/  =full-relation  %:  got-relation  query-source
-                                        named-ctes
-                                        as-of.relat
-                                        db
-                                        schema
-                                        ~
-                                        ~
-                                        *qualified-map-meta
-                                        ~
-                                        ==
+  =/  =full-relation  %:  source-full-relation  relation.relat
+                                                named-ctes
+                                                as-of.relat
+                                                ~
+                                                ~
+                                                *qualified-map-meta
+                                                ~
+                                                ==
   =/  prior-join          -.set-tables.full-relation
   =/  from-objects        (limo ~[prior-join])
   =/  prev-as-of          as-of.relat
-  =/  prev-db-name=@tas   database.query-source
+  =/  prev-db-name=@tas   source-db
   |-
   ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
-  =.  query-source      ?:  ?=(qualified-table:ast relation.i.joined-relations)
-                          relation.i.joined-relations
-                        ~|("SELECT: not supported on %query-row" !!)
+  =.  source-db         (source-db-name relation.i.joined-relations)
   =/  needs-refresh     ?|  !=(as-of.i.joined-relations prev-as-of)
-                            !=(database.query-source prev-db-name)
+                            !=(source-db prev-db-name)
                              ==
-  =/  new-db=database   ?.  needs-refresh  db
-                        ~|  "SELECT: database {<database.query-source>} ".
-                            "does not exist"
-                        (~(got by state) database.query-source)
-  =/  new-schema=_schema
-        ?.  needs-refresh  schema
-        ~|  "SELECT: database {<database.query-source>} ".
-            "doesn't exist at time ".
-            "{<(set-tmsp as-of.i.joined-relations now.bowl)>}"
-        (get-schema [sys.new-db (set-tmsp as-of.i.joined-relations now.bowl)])
-  =.  full-relation  %:  got-relation  query-source
-                                       named-ctes
-                                       as-of.i.joined-relations
-                                       new-db
-                                       new-schema
-                                       join.i.joined-relations
-                                       predicate.i.joined-relations
-                                       map-meta.full-relation
-                                       column-metas.full-relation
-                                       ==
+  =.  full-relation  %:  source-full-relation  relation.i.joined-relations
+                                                named-ctes
+                                                as-of.i.joined-relations
+                                                join.i.joined-relations
+                                                predicate.i.joined-relations
+                                                map-meta.full-relation
+                                                column-metas.full-relation
+                                                ==
   =.  prior-join       (join-up prior-join -.set-tables.full-relation)
   %=  $
     joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
     prev-as-of         as-of.i.joined-relations
-    prev-db-name       database.query-source
-    db                 new-db
-    schema             new-schema
+    prev-db-name       source-db
+  ==
+::
+++  source-db-name
+  |=  rel=relation:ast
+  ^-  @tas
+  ?-  -.rel
+    %qualified-table
+      database:;;(qualified-table:ast rel)
+    %cte-name
+      %cte
+    %query-row
+      ~|("SELECT: not supported on %query-row" !!)
+  ==
+::
+++  source-full-relation
+  |=  $:  rel=relation:ast
+          =named-ctes
+          as-of=(unit as-of:ast)
+          join=(unit join-type:ast)
+          =predicate
+          map-meta=qualified-map-meta
+          column-metas=(list column-meta)
+          ==
+  ^-  full-relation
+  ?-  -.rel
+    %qualified-table
+      =/  qt=qualified-table:ast  rel
+      =/  sys-time=@da  (set-tmsp as-of now.bowl)
+      =/  db=database   ~|  "SELECT: database {<database.qt>} does not exist"
+                         (~(got by state) database.qt)
+      =/  =schema       ~|  "SELECT: database {<database.qt>} ".
+                          "doesn't exist at time {<sys-time>}"
+                          (get-schema [sys.db sys-time])
+      %:  got-relation  qt
+                        named-ctes
+                        as-of
+                        db
+                        schema
+                        join
+                        predicate
+                        map-meta
+                        column-metas
+                        ==
+    %cte-name
+      =/  qt=qualified-table:ast
+        :*  %qualified-table
+            ship=~
+            database=%cte
+            namespace=%cte
+            name=name:;;(cte-name:ast rel)
+            alias=~
+            ==
+      %:  from-cte  qt
+                    named-ctes
+                    *schema
+                    map-meta
+                    column-metas
+                    ==
+    %query-row
+      ~|("SELECT: not supported on %query-row" !!)
   ==
 ::
 ++  got-relation

@@ -28,6 +28,15 @@
 ::
 ++  literal-1             [~.ud 1]
 ++  literal-2             [~.ud 2]
+::
+++  create-scalar-foo-table
+  "CREATE TABLE foo ".
+  "(foo1 @t, foo2 @ud) ".
+  "PRIMARY KEY (foo1);"
+::
+++  insert-scalar-foo-row
+  "INSERT INTO foo VALUES ('row1', 9);"
+::
 ::  helper gates
 ::
 ::  make a qualified column
@@ -6352,6 +6361,89 @@
             [~.da ~2026.3.16..10.30.45]
   ==
   ==
+::
+::  end-to-end SELECT selected-scalar queries
+::
+++  test-select-scalar-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SCALARS sc1 ABS(-5) SELECT sc1"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%sc1 ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-select-scalar-02
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SCALARS sc1 ABS(-5) SELECT sc1 AS answer"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%answer ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-select-scalar-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-foo-table]
+      ::
+      [~2012.5.2 %db1 insert-scalar-foo-row]
+      ::
+      [~2012.5.3 %db1 "FROM foo SCALARS foo2 ABS(-5) SELECT foo2"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%foo2 ~.ud 9]]]]]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.foo']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-select-scalar-04
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.3
+          %sys
+          "WITH (SCALARS sc1 ABS(-5) SELECT sc1 AS sc-out) AS my-cte ".
+          "FROM my-cte ".
+          "SELECT sc-out"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%sc-out ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%schema-time date=~2012.4.30]
+              [%data-time date=~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
 ::
 ::  :::::::::::::::::::::::::::::::::::::::::::
 ::  ::::  crash / expect-fail tests  ::::
