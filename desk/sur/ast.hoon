@@ -201,11 +201,17 @@
   $%
     qualified-column
     unqualified-column
+    selected-scalar
     selected-cte-column
     selected-aggregate
     selected-value
     selected-all
     selected-all-table
+    ==
++$  selected-scalar
+  $:  %selected-scalar
+    name=@tas
+    alias=(unit @t)
     ==
 +$  unqualified-column
   $:  %unqualified-column

@@ -140,6 +140,10 @@
   ?:  ?=(selected-value:ast selected-column)
     ?~  alias.selected-column  default
         (crip (cass (trip (need alias.selected-column))))
+  ?:  ?=(selected-scalar:ast selected-column)
+    ?~  alias.selected-column
+      (crip (cass (trip name.selected-column)))
+    (crip (cass (trip (need alias.selected-column))))
   ?:  ?=(selected-cte-column:ast selected-column)
     ?~  alias.selected-column
       (crip (cass (trip name.selected-column)))
@@ -219,6 +223,8 @@
       ==
     unqualified-column:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
+    selected-scalar:ast
+      $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-cte-column:ast
       $(out [i.selected-columns out], selected-columns t.selected-columns)
     selected-aggregate:ast
@@ -277,12 +283,26 @@
   =/  x  .*(data.row [%0 addr.ta])
   [type.ta ?@(x x ;;(@ +.x))]
 ::
+++  resolved-scalar-type
+  |=  rs=resolved-scalar
+  ^-  @ta
+  ?:  ?=(dime rs)  -.rs
+  type.rs
+::
+++  resolve-selected-scalar
+  |=  [row=data-row rs=resolved-scalar]
+  ^-  dime
+  ?:  ?=(dime rs)  rs
+  =/  f=$-(data-row dime)  +>.rs
+  (f row)
+::
 ++  mk-rel-vect-templ
   ::  leave output un-flopped so consuming arm does not flop
   |=  $:  cols=(list column-meta)
           selected=(list selected-column:ast)
           row=data-row 
           =map-meta
+          =resolved-scalars
           =named-ctes
           ==
   ^-  (list templ-cell)
@@ -326,11 +346,28 @@
       i         +(i)
       selected  t.selected
       cells
-        :-  :^  %templ-cell
-                ~
-                0  :: addr
-                :-  (heading i.selected (crip "literal-{<i>}"))
-                    [p=+<-.i.selected q=+<+.i.selected]
+        :-  :*  %templ-cell
+                column=~
+                scalar=~
+                addr=0  :: addr
+                vc=[(heading i.selected (crip "literal-{<i>}")) [p=+<-.i.selected q=+<+.i.selected]]
+                ==
+            cells
+    ==
+  ?:  ?=(selected-scalar:ast i.selected)
+    =/  rs=resolved-scalar
+      ~|  "SELECT: scalar {<name.i.selected>} not found"
+      (~(got by resolved-scalars) name.i.selected)
+    %=  $
+      i         +(i)
+      selected  t.selected
+      cells
+        :-  :*  %templ-cell
+                column=~
+                scalar=[~ rs]
+                addr=0
+                vc=[(heading i.selected name.i.selected) [(resolved-scalar-type rs) 0]]
+                ==
             cells
     ==
   ?:  ?=(selected-cte-column:ast i.selected)
@@ -338,11 +375,12 @@
       i         +(i)
       selected  t.selected
       cells
-        :-  :^  %templ-cell
-                ~
-                0
-                :-  (heading i.selected name.i.selected)
-                    (selected-cte-dime i.selected named-ctes)
+        :-  :*  %templ-cell
+                column=~
+                scalar=~
+                addr=0
+                vc=[(heading i.selected name.i.selected) (selected-cte-dime i.selected named-ctes)]
+                ==
             cells
     ==
   =/  typ-addr  ?:  ?=(qualified-column:ast i.selected)
@@ -371,6 +409,7 @@
                         *qualified-table:ast
                         name.i.selected
                         alias.i.selected
+                ~
                 addr.matching
                 [(heading i.selected name.i.selected) [type.matching 0]]
                 ==
@@ -381,6 +420,7 @@
                       *qualified-table:ast
                       name.i.selected
                       alias.i.selected
+              ~
               +:(need typ-addr)
               [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
               ==
@@ -400,12 +440,14 @@
             %:  templ-cell
                   %templ-cell
                   [~ i.selected]
+                  ~
                   addr.typ-addr
                   [(heading i.selected name.i.selected) [type.typ-addr 0]]
                   ==
           %:  templ-cell
                 %templ-cell
                 [~ i.selected]
+                ~
                 +:(need typ-addr)
                 [(heading i.selected name.i.selected) [-:(need typ-addr) 0]]
                 ==
@@ -416,18 +458,22 @@
 ++  mk-templ-cell-indexed
   |=  [col-lookup=(map @tas typ-addr) a=column-meta]
   ^-  templ-cell
-  :^  %templ-cell
-      `-.a 
+  :*  %templ-cell
+      `-.a
+      ~
       addr:(~(got by col-lookup) name.qualified-column.a)
       [name.qualified-column.a [type.a 0]]
+      ==
 ::
 ++  mk-templ-cell-joined
   |=  a=column-meta
   ^-  templ-cell
-  :^  %templ-cell
+  :*  %templ-cell
       `-.a
+      ~
       addr.a
       `vector-cell:ast`[name.qualified-column.a [type.a 0]]
+      ==
 ::
 ++  mk-unqualified-typ-addr-lookup
   |=  a=(list column:ast)

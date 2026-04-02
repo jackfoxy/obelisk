@@ -146,6 +146,7 @@
 +$  templ-cell
   $:  %templ-cell
     column=(unit qualified-column)
+    scalar=(unit resolved-scalar)
     addr=@
     vc=vector-cell
     ==

@@ -472,6 +472,7 @@
           map-meta.join-return
           joined-rows.i.set-tables.join-return
           selected
+          resolved-scalars
           named-ctes
           ==
 ::
@@ -481,6 +482,7 @@
           =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
+          =resolved-scalars
           =named-ctes
           ==
   ^-  (list vector)
@@ -488,7 +490,7 @@
   =/  out-rows   *(set vector)
   =/  cells
     %-  mk-rel-vect-templ
-    [qualified-columns selected -.rows map-meta named-ctes]
+    [qualified-columns selected -.rows map-meta resolved-scalars named-ctes]
   |-
   ?~  rows  ~(tap in out-rows)
   ?.  ?~(filter %.y ((need filter) i.rows))
@@ -501,6 +503,9 @@
       out-rows  (~(put in out-rows) (vector %vector row))
       rows      t.rows
     ==
+  ?^  scalar.i.cols
+    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
   ?~  column.i.cols
     $(cols t.cols, row [vc.i.cols row])
   ::
@@ -791,12 +796,19 @@
   =/  =join-return    -:(do-query query.i.ctes nctes %.y)
   =.  state             server.join-return
   =/  selected          (normalize-selected columns.select.query.i.ctes)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
+  =/  resolved-scalars
+        %:  resolve-query-scalars(state state, bowl bowl)  scalars.query.i.ctes
+                                                           nctes
+                                                           qualifier-lookup
+                                                           map-meta.join-return
+                                                           ==
   =/  cte-shaped
     %-  cte-set-tables
-    [name.i.ctes selected set-tables.join-return nctes]
+    [name.i.ctes selected set-tables.join-return nctes resolved-scalars]
   =/  set-tables      ?:  (selected-has-cte-column selected)
                         %-  materialize-cte-set-tables
-                        [name.i.ctes selected nctes join-return cte-shaped]
+                        [name.i.ctes selected nctes join-return cte-shaped resolved-scalars]
                       cte-shaped
   ?~  set-tables      ~|("named-queries can't get here" !!)
   =/  canonical-list  %+  murn  set-tables
@@ -847,7 +859,7 @@
   ==
 ::
 ++  cte-set-tables
-  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table) =named-ctes]
+  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table) =named-ctes =resolved-scalars]
   ^-  (list set-table)
   ?~  st  ~|("cte-set-tables can't get here" !!)
   ?:  =(~ relation.i.st)  st
@@ -857,7 +869,7 @@
   ::
   =/  f  |=  a=selected-column:ast
           %-  cte-columns
-          [(mk-col-lookup st) (mk-rel-col-lookup st) named-ctes (flop st) a]
+          [(mk-col-lookup st) (mk-rel-col-lookup st) named-ctes resolved-scalars (flop st) a]
   =.  columns.new  (addr-columns (cte-col-dups name (zing (turn columns f))))
   [new st]
 ::
@@ -865,6 +877,7 @@
   |=  $:  col-lookup=(mip:mip qualified-table:ast @tas @ta)
           rel-col-lookup=(map qualified-table:ast (list column:ast))
           =named-ctes
+          =resolved-scalars
           st=(list set-table)
           a=selected-column:ast
           ==
@@ -879,6 +892,11 @@
       ~|("can't be unqualified in join" !!)
     selected-aggregate
       ~|("selected-aggregate not implemented" !!)
+    selected-scalar
+      =/  rs=resolved-scalar
+        ~|  "selected scalar {<name.a>} not in resolved-scalars"
+        (~(got by resolved-scalars) name.a)
+      ~[[%column (heading a name.a) (resolved-scalar-type rs) 0]]
     selected-value
       ~[[%column (need alias.a) p.value.a 0]]
     selected-all
@@ -942,6 +960,19 @@
                           %^  calc-joined-addr  data:;;(joined-row data-row)
                                                 qt
                                                 name.c
+                      ==
+                selected-scalar:ast
+                  =/  out-name  (heading c name.c)
+                  =/  typ-addr  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
+                  =/  qt  ?~  canonical-list
+                            ~|("mk-cte-column-metas: empty canonical-list" !!)
+                          -.i.canonical-list
+                  :~  :+  :^  %qualified-column
+                              qt
+                              out-name
+                              ?~(alias.c ~ [~ name.c])
+                          type.typ-addr
+                          addr.typ-addr
                       ==
                 selected-cte-column:ast
                   =/  out-name  (heading c name.c)
@@ -1027,6 +1058,7 @@
           =named-ctes
           =join-return
           set-tables=(list set-table)
+          =resolved-scalars
           ==
   ^-  (list set-table)
   ?~  set-tables  ~|("materialize-cte-set-tables can't get here" !!)
@@ -1045,7 +1077,7 @@
     |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
   =.  indexed-rows.st
     %-  materialize-cte-indexed-rows
-    [rows pri-indx.st column-metas.join-return src-map-meta selected named-ctes]
+    [rows pri-indx.st column-metas.join-return src-map-meta selected named-ctes resolved-scalars]
   =.  joined-rows.st   ~
   =.  rowcount.st      (lent indexed-rows.st)
   =.  pri-indexed.st   (materialize-cte-pri-index pri-indx.st indexed-rows.st)
@@ -1058,12 +1090,13 @@
           =map-meta
           selected=(list selected-column:ast)
           =named-ctes
+          =resolved-scalars
           ==
   ^-  (list indexed-row)
   ?~  rows  ~
   =/  templ-cells
     %-  mk-rel-vect-templ
-    [column-metas selected -.rows map-meta named-ctes]
+    [column-metas selected -.rows map-meta resolved-scalars named-ctes]
   =/  key-cols=(unit (list key-column))  ?~(pri ~ [~ key.u.pri])
   =/  out=(list indexed-row)  ~
   =/  rows=(list data-row)  rows
@@ -1084,9 +1117,12 @@
   =/  out  *(map @tas @)
   |-
   ?~  templ-cells  out
-  =/  x  ?~  column.i.templ-cells
-            q.q.vc.i.templ-cells
-          .*(data.row [%0 addr.i.templ-cells])
+  =/  x
+    ?^  scalar.i.templ-cells
+      q:(resolve-selected-scalar row (need scalar.i.templ-cells))
+    ?~  column.i.templ-cells
+      q.q.vc.i.templ-cells
+    .*(data.row [%0 addr.i.templ-cells])
   %=  $
     templ-cells  t.templ-cells
     out          (~(put by out) p.vc.i.templ-cells ?@(x x ;;(@ +.x)))

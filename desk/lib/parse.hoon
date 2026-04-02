@@ -2552,7 +2552,7 @@
                             ==
   ?:  =(-<.a %select)
     ~|  "make-query produce-select: {<->.a>}"
-    $(a +.a, select `(produce-select ->.a from alias-map cte-map cte-col-map))
+    $(a +.a, select `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map))
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %qualified-table)
@@ -3107,6 +3107,11 @@
         selected  t.selected
         cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
       ==
+    ?:  ?=(selected-scalar:ast sc)
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
+      ==
     ?:  ?=(selected-aggregate:ast sc)
       ~|("mk-cte-col-map: selected-aggregate not implemented" !!)
     ?:  ?=(selected-value:ast sc)
@@ -3162,6 +3167,7 @@
   |=  $:  a=*
           f=(unit from:ast)
           alias-map=(map @t qualified-table:ast)
+          scalar-map=(map @tas scalar-function:ast)
           cte-map=(map @tas @tas)
           cte-col-map=(map @tas (set @tas))
           ==
@@ -3248,6 +3254,13 @@
       =/  uqc  ;;(unqualified-column:ast -<.a)
       =/  as-alias  ->+.a
       ?~  alias.uqc
+        ?:  ?&  ?~(f %.y %.n)
+                (~(has by scalar-map) name.uqc)
+                ==
+          %=  $
+            columns  [[%selected-scalar name.uqc `as-alias] columns]
+            a  +.a
+          ==
         ::  bare column with AS alias
         %=  $
           columns  [[%unqualified-column name.uqc `as-alias] columns]
@@ -3306,6 +3319,10 @@
     ?:  ?=(unqualified-column:ast -.a)
       =/  uqc  ;;(unqualified-column:ast -.a)
       ?~  alias.uqc
+        ?:  ?&  ?~(f %.y %.n)
+                (~(has by scalar-map) name.uqc)
+                ==
+          $(columns [[%selected-scalar name.uqc ~] columns], a +.a)
         $(columns [uqc columns], a +.a)
       ::  table.column: resolve table alias, then cte-map
       =/  tbl  (need alias.uqc)

@@ -86,7 +86,7 @@
           state
           ?.  is-cte   set-tables.full-relation
               %-  select-for-cte
-              [q set-tables.full-relation filter named-ctes]
+              [q set-tables.full-relation filter named-ctes resolved-scalars]
           map-meta.full-relation
           column-metas.full-relation
           ==
@@ -100,6 +100,7 @@
             indexed-rows.i.set-tables.full-relation
           joined-rows.i.set-tables.full-relation
           selected
+          resolved-scalars
           named-ctes
           ==
 ::
@@ -164,7 +165,7 @@
   ::      =predicate
   ::      pri-indexed=(tree [(list @) (map @tas @)])
   ::  5) row count
-  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?)) =named-ctes]
+  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?)) =named-ctes =resolved-scalars]
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
@@ -174,7 +175,7 @@
                             %+  turn  columns.select.q
                                       |=  a=selected-column:ast
                                       %-  selected-column-to-column
-                                      [named-ctes columns.i.set-tables a]
+                                      [named-ctes columns.i.set-tables a resolved-scalars]
   
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
@@ -236,7 +237,7 @@
   b
 ::
 ++  selected-column-to-column
-  |=  [=named-ctes columns=(list column:ast) =selected-column:ast]
+  |=  [=named-ctes columns=(list column:ast) =selected-column:ast =resolved-scalars]
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
@@ -245,6 +246,11 @@
       (murn columns |=(a=column:ast ?:(=(name.a name.selected-column) `a ~)))
     selected-aggregate:ast
       ~|("{<selected-column>} not supported" !!)
+    selected-scalar:ast
+      =/  rs=resolved-scalar
+        ~|  "{<selected-column>} not in resolved-scalars"
+        (~(got by resolved-scalars) name.selected-column)
+      ~[[%column (heading selected-column name.selected-column) (resolved-scalar-type rs) 0]]
     selected-value:ast
       ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
     selected-all:ast
@@ -266,6 +272,7 @@
           =map-meta
           rows=(list data-row)
           selected=(list selected-column:ast)
+          =resolved-scalars
           =named-ctes
           ==
   ^-  (list vector)
@@ -273,7 +280,7 @@
   =/  out-rows     *(set vector)
   =/  templ-cells=(list templ-cell)
     %-  mk-rel-vect-templ
-    [column-metas selected -.rows map-meta named-ctes]
+    [column-metas selected -.rows map-meta resolved-scalars named-ctes]
   ::
   ?~  templ-cells  ~|("relation-vectors can't get here" !!)
   =/  non-lit  %-  |=  a=(list templ-cell)
@@ -281,7 +288,11 @@
                    ?~  a  ~
                    ?~  column.i.a  $(a t.a)  [~ i.a]
                    templ-cells
-  ?~  non-lit  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+  ?~  non-lit
+    ?-  -.i.rows
+      %joined-row  (joined-results filter ;;((list joined-row) rows) templ-cells)
+      %indexed-row  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+    ==
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
   ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
   (indexed-results filter ;;((list indexed-row) rows) templ-cells)
@@ -309,6 +320,9 @@
       out-rows  (~(put in out-rows) (vector %vector row))
       rows      t.rows
     ==
+  ?^  scalar.i.cols
+    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
   ?~  column.i.cols    :: literal
     $(cols t.cols, row [vc.i.cols row])
   %=  $
@@ -341,6 +355,9 @@
       out-rows  (~(put in out-rows) (vector %vector row))
       rows      t.rows
     ==
+  ?^  scalar.i.cols
+    =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+    $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
   ?~  column.i.cols    :: literal
     $(cols t.cols, row [vc.i.cols row])
   %=  $
