@@ -129,6 +129,11 @@
                         ;~(pfix (jester 'select') (funk "select" (easy ' ')))
                         ==
               ==
+    %:  cold  %query
+              ;~  plug  whitespace
+                        ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
+                        ==
+              ==
     %:  cold  %revoke
               ;~(plug whitespace (jester 'revoke'))
               ==
@@ -1752,6 +1757,7 @@
   ==
 ++  parse-query10  ~+
   ;~  plug
+    ;~(pose parse-scalars (easy ~))
     parse-select
     end-or-next-command
   ==
@@ -2557,7 +2563,14 @@
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %qualified-table)
     ~|  "make-query produce-from qualified-table: {<-.a>}"
-    $(a +.a, from `(produce-from -.a))
+    =/  f  (produce-from -.a)
+    =.  f
+      ?.  ?&  ?=(qualified-table:ast relation.f)
+              (~(has by cte-map) name.relation.f)
+              ==
+        f
+      f(relation [%cte-name name.relation.f])
+    $(a +.a, from `f)
   ?:  =(-<-.a %query-row)
     ~|  "make-query produce-from query-row: {<-.a>}"
     $(a +.a, from `(produce-from -.a))
@@ -3048,7 +3061,7 @@
   ^-  (map @t qualified-table:ast)
   =/  n  (mk-alias-map-joins ~ joins.f)
   ?.  ?=(qualified-table:ast relation.f)
-    ~|("not implemented {<relation.f>}" !!)
+    n
   ?~  alias.relation.f
     n
   %+  ~(put by n)  (fold-key (need alias.relation.f))

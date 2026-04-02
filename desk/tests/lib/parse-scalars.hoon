@@ -254,37 +254,37 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  select a scalar-name directly in the SELECT clause
-::::++  test-scalars-select-01
-::::  =/  query-string
-::::    "SCALARS sc1 ABS(-5) ".
-::::    "SELECT sc1"
-::::  ::
-::::  =/  literal-neg5  [p=~.sd q=-5]
-::::  =/  scalars
-::::    ~[[%scalar 'sc1' [%abs literal-neg5]]]
-::::  =/  expected
-::::    (mk-selection-no-from-columns scalars ~[[%selected-scalar name=%sc1 alias=~]])
-::::  %+  expect-eq
-::::    !>  expected
-::::    !>  (parse:parse(default-database default-db) query-string)
-::::::
-::::::  select a scalar-name directly in the SELECT clause with alias
-::::++  test-scalars-select-02
-::::  =/  query-string
-::::    "SCALARS sc1 ABS(-5) ".
-::::    "SELECT sc1 AS answer"
-::::  ::
-::::  =/  literal-neg5  [p=~.sd q=-5]
-::::  =/  scalars
-::::    ~[[%scalar 'sc1' [%abs literal-neg5]]]
-::::  =/  expected
-::::    %-  mk-selection-no-from-columns
-::::    :*  scalars
-::::        ~[[%selected-scalar name=%sc1 alias=[~ 'answer']]]
-::::        ==
-::::  %+  expect-eq
-::::    !>  expected
-::::    !>  (parse:parse(default-database default-db) query-string)
+++  test-scalars-select-01
+  =/  query-string
+    "SCALARS sc1 ABS(-5) ".
+    "SELECT sc1"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  scalars
+    ~[[%scalar 'sc1' [%abs literal-neg5]]]
+  =/  expected
+    (mk-selection-no-from-columns scalars ~[[%selected-scalar name=%sc1 alias=~]])
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  select a scalar-name directly in the SELECT clause with alias
+++  test-scalars-select-02
+  =/  query-string
+    "SCALARS sc1 ABS(-5) ".
+    "SELECT sc1 AS answer"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  scalars
+    ~[[%scalar 'sc1' [%abs literal-neg5]]]
+  =/  expected
+    %-  mk-selection-no-from-columns
+    :*  scalars
+        ~[[%selected-scalar name=%sc1 alias=[~ 'answer']]]
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  when a FROM exists, bare names keep column precedence even if a scalar matches
 ++  test-scalars-select-03
@@ -307,37 +307,37 @@
     !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  selected-scalar with alias inside a CTE should produce a selectable CTE column
-::::++  test-scalars-select-04
-::::  =/  query-string
-::::    "WITH (SCALARS sc1 ABS(-5) SELECT sc1 AS sc-out) AS my-cte ".
-::::    "FROM my-cte ".
-::::    "SELECT sc-out"
-::::  ::
-::::  =/  literal-neg5  [p=~.sd q=-5]
-::::  =/  cte-scalars
-::::    ~[[%scalar 'sc1' [%abs literal-neg5]]]
-::::  =/  cte-query
-::::    =/  select  [%select top=~ columns=~[[%selected-scalar name=%sc1 alias=[~ 'sc-out']]]]
-::::    :*  %query  from=~  scalars=cte-scalars  ~
-::::        group-by=~  having=~  select  ~
-::::        ==
-::::  =/  ctes
-::::    ~[[%cte name='my-cte' query=cte-query]]
-::::  =/  outer-query
-::::    :*  %query
-::::        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
-::::        scalars=~
-::::        ~
-::::        group-by=~
-::::        having=~
-::::        select=[%select top=~ columns=~[[%unqualified-column name='sc-out' alias=~]]]
-::::        ~
-::::        ==
-::::  =/  expected
-::::    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
-::::  %+  expect-eq
-::::    !>  expected
-::::    !>  (parse:parse(default-database default-db) query-string)
+++  test-scalars-select-04
+  =/  query-string
+    "WITH (SCALARS sc1 ABS(-5) SELECT sc1 AS sc-out) AS my-cte ".
+    "FROM my-cte ".
+    "SELECT sc-out"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  cte-scalars
+    ~[[%scalar 'sc1' [%abs literal-neg5]]]
+  =/  cte-query
+    =/  select  [%select top=~ columns=~[[%selected-scalar name=%sc1 alias=[~ 'sc-out']]]]
+    :*  %query  from=~  scalars=cte-scalars  ~
+        group-by=~  having=~  select  ~
+        ==
+  =/  ctes
+    ~[[%cte name='my-cte' query=cte-query]]
+  =/  outer-query
+    :*  %query
+        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        scalars=~
+        ~
+        group-by=~
+        having=~
+        select=[%select top=~ columns=~[[%unqualified-column name='sc-out' alias=~]]]
+        ~
+        ==
+  =/  expected
+    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  test mixing arithmetic with builtin functions
 ++  test-scalars-03
