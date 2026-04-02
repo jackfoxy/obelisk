@@ -100,7 +100,9 @@
 +$  poke-result  (each (list cmd-result) tang)
 +$  cmd-result  [%results (list result)]
 +$  result
-  $%  [%message msg=@t]
+  $%  [%action action=@t]
+      [%relation relation=@t]
+      [%message msg=@t]
       [%vector-count count=@ud]
       [%server-time date=@da]
       [%schema-time date=@da]
@@ -298,7 +300,6 @@
       =name  "/query-text"
       =placeholder  "FROM ... SELECT *"
       =value  query
-      =white-space  "pre-wrap"
       ;*  ~[;/(query)]
     ==
     ;button.hidden(type "submit");
@@ -355,6 +356,16 @@
 ++  print-result-metadata
   |=  =result
   ?+  -.result  ;div;
+    %action
+      ;div.fr.g1
+        ;div.bold: message:
+        ;div: {(trip action.result)}
+      ==
+    %relation
+      ;div.fr.g1
+        ;div.bold: message:
+        ;div: {(trip relation.result)}
+      ==
     %message
       ;div.fr.g1
         ;div.bold: message:
