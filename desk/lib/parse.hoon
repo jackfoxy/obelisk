@@ -3135,7 +3135,14 @@
     ?:  ?=(selected-aggregate:ast sc)
       ~|("mk-cte-col-map: selected-aggregate not implemented" !!)
     ?:  ?=(selected-value:ast sc)
-      ~|("mk-cte-col-map: selected-value not implemented" !!)
+      ?~  alias.sc
+        %=  $
+          selected  t.selected
+        ==
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key (need alias.sc)))
+      ==
     ~   :: selected-all or selected-all-table: wildcard, skip column validation
   %=  $
     ctes    t.ctes

@@ -432,6 +432,38 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+::  selected-value with alias inside a CTE should produce a selectable CTE column
+++  test-scalars-select-06
+  =/  query-string
+    "WITH (FROM foo SELECT foo2, foo3, 'US' AS country) AS my-cte ".
+    "FROM my-cte ".
+    "SELECT foo2, country"
+  ::
+  =/  literal-us  [p=~.t q='US']
+  =/  cte-query
+    =/  select
+      [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3 [%selected-value value=literal-us alias=[~ 'country']]]]
+    :*  %query  from=[~ [%from relation=relation-1 as-of=~ joins=~]]  scalars=~  ~
+        group-by=~  having=~  select  ~
+        ==
+  =/  ctes
+    ~[[%cte name='my-cte' query=cte-query]]
+  =/  outer-query
+    :*  %query
+        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        scalars=~
+        ~
+        group-by=~
+        having=~
+        select=[%select top=~ columns=~[[%unqualified-column name='foo2' alias=~] [%unqualified-column name='country' alias=~]]]
+        ~
+        ==
+  =/  expected
+    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ::  test mixing arithmetic with builtin functions
 ++  test-scalars-03
   =/  query-string

@@ -829,7 +829,7 @@
   =/  cte-shaped
     %-  cte-set-tables
     [name.i.ctes selected set-tables.join-return nctes resolved-scalars]
-  =/  set-tables      ?:  (selected-has-cte-column selected)
+  =/  set-tables      ?:  (selected-needs-materialization selected)
                         %-  materialize-cte-set-tables
                         [name.i.ctes selected nctes join-return cte-shaped resolved-scalars]
                       cte-shaped
@@ -841,7 +841,7 @@
   =/  canonical-map   (malt canonical-list)
   =/  map-meta        ;;(qualified-map-meta map-meta.join-return)
   =/  column-metas
-    ?:  (selected-has-cte-column selected)
+    ?:  (selected-needs-materialization selected)
       (materialized-cte-column-metas name.i.ctes columns.i.set-tables)
     =/  data-row  ?~  joined-rows.i.set-tables
                     ?~  indexed-rows.i.set-tables
@@ -895,6 +895,7 @@
           %-  cte-columns
           [(mk-col-lookup st) (mk-rel-col-lookup st) named-ctes resolved-scalars (flop st) a]
   =.  columns.new  (addr-columns (cte-col-dups name (zing (turn columns f))))
+  =.  map-meta.new  [%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns.new)]
   [new st]
 ::
 ++  cte-columns
@@ -1022,7 +1023,16 @@
                 selected-aggregate:ast
                   ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
-                  ~|("mk-cte-column-metas {<c>} not supported" !!)
+                  =/  out-name  (heading c (crip "literal"))
+                  =/  out-ta  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
+                  =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
+                  :~  :+  :^  %qualified-column
+                              qt
+                              out-name
+                              ~
+                          type.out-ta
+                          addr.out-ta
+                      ==
                 selected-all:ast
                   %+  roll  canonical-list
                             |=  $:  qt=[q=qualified-table:ast z=*]
@@ -1068,6 +1078,18 @@
   |-
   ?~  selected  %.n
   ?:  ?=(selected-cte-column:ast i.selected)  %.y
+  $(selected t.selected)
+::
+++  selected-needs-materialization
+  ::  CTE must be materialized when selected columns include cte-columns,
+  ::  literal values, or scalars, since these have no real addr in source rows.
+  |=  selected=(list selected-column:ast)
+  ^-  ?
+  |-
+  ?~  selected  %.n
+  ?:  ?=(selected-cte-column:ast i.selected)  %.y
+  ?:  ?=(selected-value:ast i.selected)  %.y
+  ?:  ?=(selected-scalar:ast i.selected)  %.y
   $(selected t.selected)
 ::
 ++  materialized-cte-column-metas

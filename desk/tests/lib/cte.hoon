@@ -790,6 +790,52 @@
                               ==
             ==
 ::
+::  single-table CTE with aliased literal, outer SELECT reuses one table column
+::  and the literal column
+++  test-cte-15
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%date [~.da ~2023.12.25]]
+                    [%country [~.t 'US']]
+                    ==
+            :-  %vector
+                :~  [%date [~.da ~2024.1.1]]
+                    [%country [~.t 'US']]
+                    ==
+            :-  %vector
+                :~  [%date [~.da ~2024.1.15]]
+                    [%country [~.t 'US']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM holiday-calendar ".
+                      "WHERE date >= ~2023.12.25 ".
+                      "SELECT date, us-federal-holiday, 'US' AS country) ".
+                      "AS hol-cte ".
+                "FROM hol-cte ".
+                "SELECT date, country "
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.holiday-calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%vector-count 3]
+                              ==
+            ==
+::
 ::  fail on duplicate column name
 ++  test-fail-cte-00
   =|  run=@ud
@@ -943,31 +989,4 @@
                               "not exist at schema time ~2012.4.30"
                     ==
 ::
-::  fail CTE with literals in inner SELECT
-++  test-fail-cte-06
-  =|  run=@ud
-  %-  failon-1
-        :*  run
-            :+  ~2012.4.30
-                %db1
-                %-  zing  :~  "CREATE DATABASE db1;"
-                              create-calendar
-                              insert-calendar
-                              create-holiday-calendar
-                              insert-holiday-calendar
-                              ==
-            ::
-            :+  ~2012.5.3
-                %db1
-                "WITH (FROM calendar T1 ".
-                      "JOIN holiday-calendar T2 ".
-                      "WHERE T1.day-name = 'Monday' ".
-                      "SELECT T1.date, T2.us-federal-holiday, ".
-                            "'US' AS country, 1 AS is-holiday) ".
-                      "AS my-cte ".
-                "FROM my-cte ".
-                "SELECT date, us-federal-holiday, country, is-holiday "
-            ::
-            %-  crip  "mk-cte-col-map: selected-value not implemented"
-            ==
 --
