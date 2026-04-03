@@ -3274,9 +3274,7 @@
       =/  uqc  ;;(unqualified-column:ast -<.a)
       =/  as-alias  ->+.a
       ?~  alias.uqc
-        ?:  ?&  ?~(f %.y %.n)
-                (~(has by scalar-map) name.uqc)
-                ==
+        ?:  (~(has by scalar-map) name.uqc)
           %=  $
             columns  [[%selected-scalar name.uqc `as-alias] columns]
             a  +.a
@@ -3339,9 +3337,7 @@
     ?:  ?=(unqualified-column:ast -.a)
       =/  uqc  ;;(unqualified-column:ast -.a)
       ?~  alias.uqc
-        ?:  ?&  ?~(f %.y %.n)
-                (~(has by scalar-map) name.uqc)
-                ==
+        ?:  (~(has by scalar-map) name.uqc)
           $(columns [[%selected-scalar name.uqc ~] columns], a +.a)
         $(columns [uqc columns], a +.a)
       ::  table.column: resolve table alias, then cte-map
@@ -5746,8 +5742,8 @@
       ==
     ==
     parse-coalesce
-    parse-scalar-node-arithmetic
     parse-standalone-builtin-scalar-fn
+    parse-scalar-node-arithmetic
     parse-arithmetic
     parse-builtin-scalar-fn
   ==

@@ -175,6 +175,8 @@
 ++  unqualified-foo-3   [%unqualified-column name=%foo3 alias=~]
 ++  unqualified-foo-2   [%unqualified-column name=%foo2 alias=~]
 ++  unqualified-foo-1   [%unqualified-column name=%foo1 alias=~]
+++  selected-scalar-foo-3  [%selected-scalar name=%foo3 alias=~]
+++  selected-scalar-foo-2  [%selected-scalar name=%foo2 alias=~]
 ::
 ++  simple-true-pred       [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=1] ~ ~]]
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
@@ -286,8 +288,99 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
-::  when a FROM exists, bare names keep column precedence even if a scalar matches
+::  select multiple scalar-names directly in a no-from query
 ++  test-scalars-select-03
+  =/  query-string
+    "SCALARS sc1 CONCAT('hello',' world') ".
+    "        sc2 IF 1 = 1 THEN 42 ELSE 0 ENDIF ".
+    "        sc3 20 + 22 END ".
+    "SELECT sc1, sc2, sc3"
+  ::
+  =/  literal-hello  [p=~.t q='hello']
+  =/  literal-world  [p=~.t q=' world']
+  =/  literal-42     [p=~.ud q=42]
+  =/  literal-0      [p=~.ud q=0]
+  =/  literal-20     [p=~.ud q=20]
+  =/  literal-22     [p=~.ud q=22]
+  =/  if-scalar
+    :*  %if-then-else
+      if=simple-true-pred
+      then=literal-42
+      else=literal-0
+    ==
+  =/  arithmetic-scalar
+    [%arithmetic operator=%lus left=literal-20 right=literal-22]
+  =/  scalars
+    :~
+      [%scalar 'sc1' [%concat ~[literal-hello literal-world]]]
+      [%scalar 'sc2' if-scalar]
+      [%scalar 'sc3' arithmetic-scalar]
+    ==
+  =/  expected
+    %-  mk-selection-no-from-columns
+    :*  scalars
+        :~  [%selected-scalar name=%sc1 alias=~]
+            [%selected-scalar name=%sc2 alias=~]
+            [%selected-scalar name=%sc3 alias=~]
+            ==
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  no-from scalar select with text and date IF literal branches
+++  test-scalars-select-03-literals
+  =/  query-string
+    "SCALARS sc1 CONCAT('hello',' world') ".
+    "        sc2 IF 1 = 1 THEN 'yes' ELSE 'no' ENDIF ".
+    "        sc3 IF 1 = 1 THEN ~2024.12.25 ELSE ~2024.12.26 ENDIF ".
+    "        sc4 20 + 22 END ".
+    "SELECT sc1, sc2, sc3, sc4"
+  ::
+  =/  literal-hello  [p=~.t q='hello']
+  =/  literal-world  [p=~.t q=' world']
+  =/  literal-yes    [p=~.t q='yes']
+  =/  literal-no     [p=~.t q='no']
+  =/  literal-date1  [p=~.da q=~2024.12.25]
+  =/  literal-date2  [p=~.da q=~2024.12.26]
+  =/  literal-20     [p=~.ud q=20]
+  =/  literal-22     [p=~.ud q=22]
+  =/  text-if-scalar
+    :*  %if-then-else
+      if=simple-true-pred
+      then=literal-yes
+      else=literal-no
+    ==
+  =/  date-if-scalar
+    :*  %if-then-else
+      if=simple-true-pred
+      then=literal-date1
+      else=literal-date2
+    ==
+  =/  arithmetic-scalar
+    [%arithmetic operator=%lus left=literal-20 right=literal-22]
+  =/  scalars
+    :~
+      [%scalar 'sc1' [%concat ~[literal-hello literal-world]]]
+      [%scalar 'sc2' text-if-scalar]
+      [%scalar 'sc3' date-if-scalar]
+      [%scalar 'sc4' arithmetic-scalar]
+    ==
+  =/  expected
+    %-  mk-selection-no-from-columns
+    :*  scalars
+        :~  [%selected-scalar name=%sc1 alias=~]
+            [%selected-scalar name=%sc2 alias=~]
+            [%selected-scalar name=%sc3 alias=~]
+            [%selected-scalar name=%sc4 alias=~]
+            ==
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  when a FROM exists, scalar names resolve as selected-scalar
+++  test-scalars-select-04
   =/  query-string
     "FROM foo ".
     "SCALARS foo2 ABS(-5) ".
@@ -300,14 +393,14 @@
     %-  mk-selection-columns
     :*  scalars
         ~
-        ~[unqualified-foo-2]
+        ~[selected-scalar-foo-2]
         ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
 ::  selected-scalar with alias inside a CTE should produce a selectable CTE column
-++  test-scalars-select-04
+++  test-scalars-select-05
   =/  query-string
     "WITH (SCALARS sc1 ABS(-5) SELECT sc1 AS sc-out) AS my-cte ".
     "FROM my-cte ".
@@ -2727,7 +2820,9 @@
      [%scalar 'foo5' [%arithmetic operator=%ket left=literal-1 right=literal-1]]
      [%scalar 'foo6' [%arithmetic operator=%cen left=literal-1 right=literal-1]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2796,7 +2891,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2865,7 +2962,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2958,7 +3057,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -3051,7 +3152,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -3171,7 +3274,9 @@
       [%scalar 'foo14' double-nested-right-mixed]
       [%scalar 'foo15' double-nested-right-paren-space]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -3603,7 +3708,9 @@
       [%scalar 'foo31' mixed-modulo-5]
       [%scalar 'foo32' mixed-modulo-6]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)

@@ -6085,4 +6085,183 @@
               [%vector-count 2]
               ==
       ==
+::
+::  scalar-only select, no FROM clause
+++  test-select-scalar-00
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "SCALARS greeting CONCAT('hello',' world') ".
+          "        verdict IF 1 = 1 THEN 'yes' ELSE 'no' ENDIF ".
+          "        holiday IF 1 = 1 THEN ~2024.12.25 ELSE ~2024.12.26 ENDIF ".
+          "        total 20 + 22 END ".
+          "SELECT greeting, verdict, holiday, total"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%greeting [~.t 'hello world']]
+                              [%verdict [~.t 'yes']]
+                              [%holiday [~.da ~2024.12.25]]
+                              [%total [~.ud 42]]
+                              ==
+                      ==
+              [%server-time ~2012.5.1]
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  single-table scalar select with single-row cte column
+++  test-select-scalar-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE pet "
+            "(pet-id @ud, pet-name @t, pet-type @t, born @da, points @ud) "
+            "PRIMARY KEY (pet-id);"
+            "INSERT INTO pet VALUES "
+            "(1, 'Mochi', 'cat', ~2020.3.1, 5) "
+            "(2, 'Bramble', 'dog', ~2018.7.4, 8);"
+            "CREATE TABLE cte-source (cte-note @t) PRIMARY KEY (cte-note);"
+            "INSERT INTO cte-source VALUES ('solo');"
+            ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "WITH (FROM cte-source SELECT cte-note) AS one-cte ".
+          "FROM pet ".
+          "SCALARS pet-label CONCAT(pet-name,' friend') ".
+          "        picked-text IF pet-id = 1 THEN pet-type ELSE pet-name ENDIF ".
+          "        picked-date IF pet-id = 1 THEN born ELSE ~2025.1.1 ENDIF ".
+          "        total-points pet-id + points + 10 END ".
+          "SELECT pet-id, pet-name, 'single-table' AS scope, one-cte.cte-note, ".
+          "       pet-label, picked-text, picked-date, total-points"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pet-id [~.ud 1]]
+                              [%pet-name [~.t 'Mochi']]
+                              [%scope [~.t 'single-table']]
+                              [%cte-note [~.t 'solo']]
+                              [%pet-label [~.t 'Mochi friend']]
+                              [%picked-text [~.t 'cat']]
+                              [%picked-date [~.da ~2020.3.1]]
+                              [%total-points [~.ud 16]]
+                              ==
+                      :-  %vector
+                          :~  [%pet-id [~.ud 2]]
+                              [%pet-name [~.t 'Bramble']]
+                              [%scope [~.t 'single-table']]
+                              [%cte-note [~.t 'solo']]
+                              [%pet-label [~.t 'Bramble friend']]
+                              [%picked-text [~.t 'Bramble']]
+                              [%picked-date [~.da ~2025.1.1]]
+                              [%total-points [~.ud 20]]
+                              ==
+                      ==
+              [%server-time ~2012.5.1]
+              [%relation 'db1.dbo.cte-source']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.pet']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  natural join scalar select with single-row cte column
+++  test-select-scalar-02
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE join-left "
+            "(id @ud, left-name @t, left-date @da, left-points @ud) "
+            "PRIMARY KEY (id);"
+            "CREATE TABLE join-right "
+            "(id @ud, right-name @t, right-date @da, right-points @ud) "
+            "PRIMARY KEY (id);"
+            "INSERT INTO join-left VALUES "
+            "(1, 'sun', ~2023.12.25, 1) "
+            "(2, 'moon', ~2024.1.1, 2);"
+            "INSERT INTO join-right VALUES "
+            "(1, 'rise', ~2024.1.5, 4) "
+            "(2, 'beam', ~2024.1.10, 1);"
+            "CREATE TABLE join-cte-src (cte-tag @t) PRIMARY KEY (cte-tag);"
+            "INSERT INTO join-cte-src VALUES ('join-cte');"
+            ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          "WITH (FROM join-cte-src SELECT cte-tag) AS one-cte ".
+          "FROM join-left T1 ".
+          "JOIN join-right T2 ".
+          "SCALARS joined-label CONCAT(T1.left-name,T2.right-name) ".
+          "        picked-text IF T1.left-points = 1 OR T2.right-points = 4 ".
+          "                    THEN T2.right-name ".
+          "                    ELSE T1.left-name ENDIF ".
+          "        picked-date IF T1.left-points = 1 OR T2.right-points = 4 ".
+          "                    THEN T2.right-date ".
+          "                    ELSE T1.left-date ENDIF ".
+          "        combined-points T1.left-points + T2.right-points + 10 END ".
+          "SELECT T1.id AS join-id, T1.left-name, T2.right-name, ".
+          "       'natural-join' AS scope, one-cte.cte-tag, joined-label, ".
+          "       picked-text, picked-date, combined-points"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%join-id [~.ud 1]]
+                              [%left-name [~.t 'sun']]
+                              [%right-name [~.t 'rise']]
+                              [%scope [~.t 'natural-join']]
+                              [%cte-tag [~.t 'join-cte']]
+                              [%joined-label [~.t 'sunrise']]
+                              [%picked-text [~.t 'rise']]
+                              [%picked-date [~.da ~2024.1.5]]
+                              [%combined-points [~.ud 15]]
+                              ==
+                      :-  %vector
+                          :~  [%join-id [~.ud 2]]
+                              [%left-name [~.t 'moon']]
+                              [%right-name [~.t 'beam']]
+                              [%scope [~.t 'natural-join']]
+                              [%cte-tag [~.t 'join-cte']]
+                              [%joined-label [~.t 'moonbeam']]
+                              [%picked-text [~.t 'moon']]
+                              [%picked-date [~.da ~2024.1.1]]
+                              [%combined-points [~.ud 13]]
+                              ==
+                      ==
+              [%server-time ~2012.5.1]
+              [%relation 'db1.dbo.join-cte-src']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.join-left']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.join-right']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
 --

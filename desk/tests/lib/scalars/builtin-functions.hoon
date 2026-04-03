@@ -6414,7 +6414,7 @@
       ::
       :-  %results
           :~  [%action 'SELECT']
-              [%result-set ~[[%vector ~[[%foo2 ~.ud 9]]]]]
+              [%result-set ~[[%vector ~[[%foo2 ~.sd --5]]]]]
               [%server-time ~2012.5.3]
               [%relation 'db1.dbo.foo']
               [%schema-time ~2012.5.1]
