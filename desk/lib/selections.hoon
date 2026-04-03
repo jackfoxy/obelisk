@@ -158,12 +158,14 @@
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
   =.  relation.st2      ~
+  =/  col-map       (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
+  =/  flipped-cols  (flop columns.i.set-tables)
   =.  columns.st2     %-  flop
                         ^-  (list column:ast)  %-  zing
                             %+  turn  columns.select.q
                                       |=  a=selected-column:ast
                                       %-  selected-column-to-column
-                                      [named-ctes columns.i.set-tables a resolved-scalars]
+                                      [named-ctes col-map flipped-cols a resolved-scalars]
   
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
@@ -225,13 +227,18 @@
   b
 ::
 ++  selected-column-to-column
-  |=  [=named-ctes columns=(list column:ast) =selected-column:ast =resolved-scalars]
+  |=  $:  =named-ctes
+          col-map=(map @tas column:ast)
+          flipped-cols=(list column:ast)
+          =selected-column:ast
+          =resolved-scalars
+          ==
   ^-  (list column:ast)
   ?-  selected-column
     qualified-column:ast
       ~|("{<selected-column>} not supported" !!)
     unqualified-column:ast
-      (murn columns |=(a=column:ast ?:(=(name.a name.selected-column) `a ~)))
+      ~[(~(got by col-map) name.selected-column)]
     selected-aggregate:ast
       ~|("{<selected-column>} not supported" !!)
     selected-scalar:ast
@@ -242,9 +249,9 @@
     selected-value:ast
       ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
     selected-all:ast
-      (flop columns)
+      flipped-cols
     selected-all-table:ast
-      (flop columns)
+      flipped-cols
     selected-cte-column:ast
       =/  cte-fr  (~(got by named-ctes) cte.selected-column)
       =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected-column]
@@ -755,19 +762,21 @@
     ~|("no natural join, missing index: {<prior>} {<this>}" !!)
   =/  this-key   key:(need pri-indx.this)
   =/  prior-key  key:(need pri-indx.prior)
+  =/  rel-prior  (need relation.prior)
+  =/  rel-this   (need relation.this)
   :: perfect natural join
   =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
                       ?~  joined-rows.prior
                         %:  join-pri-key  indexed-rows.prior
-                                          (need relation.prior)
+                                          rel-prior
                                           indexed-rows.this
-                                          (need relation.this)
+                                          rel-this
                                           this-key
                                         ==
                       %:  join-pri-key  joined-rows.prior
-                                        (need relation.prior)
+                                        rel-prior
                                         indexed-rows.this
-                                        (need relation.this)
+                                        rel-this
                                         this-key
                                         ==
   ?:  =(prior-key this-key)
@@ -776,7 +785,7 @@
   ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
               (turn this-key |=(a=key-column [name.a aura.a]))
     ~|  "no natural join or foreign key join, columns do not match: ".
-        "{<(need relation.this)>}"
+        "{<rel-this>}"
         !!
   ::  sort the little one
   =/  the-key  ?:  (gth rowcount.this rowcount.prior)
@@ -787,31 +796,31 @@
           ?~  joined-rows.prior
             %:  join-pri-key  %+  sort  indexed-rows.prior
                                    ~(order data-row-comp (reduce-key the-key))
-                              (need relation.prior)
+                              rel-prior
                               indexed-rows.this
-                              (need relation.this)
+                              rel-this
                               this-key
                               ==
           %:  join-pri-key  %+  sort  joined-rows.prior
                                    ~(order data-row-comp (reduce-key the-key))
-                            (need relation.prior)
+                            rel-prior
                             indexed-rows.this
-                            (need relation.this)
+                            rel-this
                             this-key
                             ==
         ?~  joined-rows.prior
           %:  join-pri-key  indexed-rows.prior
-                            (need relation.prior)
+                            rel-prior
                             %+  sort  indexed-rows.this
                                     ~(order data-row-comp (reduce-key the-key))
-                            (need relation.this)
+                            rel-this
                             prior-key
                             ==
         %:  join-pri-key  joined-rows.prior
-                          (need relation.prior)
+                          rel-prior
                           %+  sort  indexed-rows.this
                                   ~(order data-row-comp (reduce-key the-key))
-                          (need relation.this)
+                          rel-this
                           prior-key
                           ==
   ::

@@ -443,6 +443,31 @@
   ?~  joins.f  (select-relation(state state, bowl bowl) q is-cte named-ctes)
   ::
   =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
+  ?:  is-cte
+    ?~  predicate.q  [join-return ~]
+    =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return columns.select.q)
+    =/  resolved-scalars
+          %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
+                                                             named-ctes
+                                                             qualifier-lookup
+                                                             map-meta.join-return
+                                                             ==
+    =/  filter
+      %:  prepare-predicate
+            %+  normalize-predicate
+                predicate.q
+                qualifier-lookup
+            map-meta.join-return
+            qualifier-lookup
+            named-ctes
+            resolved-scalars
+            ==
+    ?~  set-tables.join-return  [join-return ~]
+    =.  joined-rows.i.set-tables.join-return
+      %+  skim  joined-rows.i.set-tables.join-return
+                |=(a=joined-row (filter a))
+    [join-return ~]
+  ::
   =/  selected          (normalize-selected columns.select.q)
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
   =/  resolved-scalars
@@ -464,13 +489,6 @@
                                               named-ctes
                                               resolved-scalars
                                               ==
-  ?:  is-cte
-    ?~  filter  [join-return ~]
-    ?~  set-tables.join-return  [join-return ~]
-    =.  joined-rows.i.set-tables.join-return
-      %+  skim  joined-rows.i.set-tables.join-return
-                |=(a=joined-row ((need filter) a))
-    [join-return ~]
   ?~  set-tables.join-return  [join-return ~]
   :-  join-return
       %-  joined-result
@@ -586,40 +604,19 @@
   |=  $:  p=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
           q=[=qualified-table:ast schema-tmsp=@da data-tmsp=@da]
           ==
-  ?:  ?!  %+  aor  (biff ship.qualified-table.p same)
-                   (biff ship.qualified-table.q same)                 %.y
-  ?:  ?&  .=  (biff ship.qualified-table.p same)
-              (biff ship.qualified-table.q same)
-              ?!  %+  aor  database.qualified-table.p
-                           database.qualified-table.q
-          ==                                                           %.y
-  ?:  ?&  .=  (biff ship.qualified-table.p same)
-              (biff ship.qualified-table.q same)
-          =(database.qualified-table.p database.qualified-table.q)
-          !(aor namespace.qualified-table.p namespace.qualified-table.q)
-          ==                                                           %.y
-  ?:  ?&  .=  (biff ship.qualified-table.p same) 
-              (biff ship.qualified-table.q same)
-          =(database.qualified-table.p database.qualified-table.q)
-          =(namespace.qualified-table.p namespace.qualified-table.q)
-          !(aor name.qualified-table.p name.qualified-table.q)
-          ==                                                           %.y
-  ?:  ?&  .=  (biff ship.qualified-table.p same) 
-              (biff ship.qualified-table.q same)
-          =(database.qualified-table.p database.qualified-table.q)
-          =(namespace.qualified-table.p namespace.qualified-table.q)
-          =(name.qualified-table.p name.qualified-table.q)
-          (gth schema-tmsp.p schema-tmsp.q)
-          ==                                                           %.y
-  ?:  ?&  .=  (biff ship.qualified-table.p same) 
-              (biff ship.qualified-table.q same)
-          =(database.qualified-table.p database.qualified-table.q)
-          =(namespace.qualified-table.p namespace.qualified-table.q)
-          =(name.qualified-table.p name.qualified-table.q)
-          =(schema-tmsp.p schema-tmsp.q)
-          (gth data-tmsp.p data-tmsp.q)
-          ==                                                           %.y
-  %.n
+  =/  ship-p  (biff ship.qualified-table.p same)
+  =/  ship-q  (biff ship.qualified-table.q same)
+  ?.  =(ship-p ship-q)
+    ?!  (aor ship-p ship-q)
+  ?.  =(database.qualified-table.p database.qualified-table.q)
+    ?!  (aor database.qualified-table.p database.qualified-table.q)
+  ?.  =(namespace.qualified-table.p namespace.qualified-table.q)
+    ?!  (aor namespace.qualified-table.p namespace.qualified-table.q)
+  ?.  =(name.qualified-table.p name.qualified-table.q)
+    ?!  (aor name.qualified-table.p name.qualified-table.q)
+  ?.  =(schema-tmsp.p schema-tmsp.q)
+    (gth schema-tmsp.p schema-tmsp.q)
+  (gth data-tmsp.p data-tmsp.q)
 ::
 ++  pick-from-object
   |=  [a=set-table sources-state=(set [qualified-table:ast @da @da])]
@@ -852,7 +849,7 @@
     :*  selected
         name.i.ctes
         data-row
-        ;;(qualified-map-meta map-meta.join-return)
+        map-meta
         canonical-list
         canonical-map
         columns.i.set-tables
@@ -891,9 +888,12 @@
   =.  join.new        ~
   =.  relation.new    ~
   ::
+  =/  col-lookup      (mk-col-lookup st)
+  =/  rel-col-lookup  (mk-rel-col-lookup st)
+  =/  flipped-st      (flop st)
   =/  f  |=  a=selected-column:ast
           %-  cte-columns
-          [(mk-col-lookup st) (mk-rel-col-lookup st) named-ctes resolved-scalars (flop st) a]
+          [col-lookup rel-col-lookup named-ctes resolved-scalars flipped-st a]
   =.  columns.new  (addr-columns (cte-col-dups name (zing (turn columns f))))
   =.  map-meta.new  [%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns.new)]
   [new st]
@@ -956,6 +956,7 @@
                       name=cte
                       alias=~
                   ==
+  =/  unq-lookup  (mk-unqualified-typ-addr-lookup cte-cols)
   =/  f  |=  q=qualified-table:ast
          ^-  (list column-meta)
          ~|  "can't lookup {<q>}"
@@ -996,7 +997,7 @@
                       ==
                 selected-scalar:ast
                   =/  out-name  (heading c name.c)
-                  =/  typ-addr  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
+                  =/  typ-addr  (~(got by unq-lookup) out-name)
                   =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
                   :~  :+  :^  %qualified-column
                               qt
@@ -1012,7 +1013,7 @@
                     %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.c]
                                                         name.c
                   =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
-                  =/  out-ta  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
+                  =/  out-ta  (~(got by unq-lookup) out-name)
                   :~  :+  :^  %qualified-column
                               qt
                               out-name
@@ -1024,7 +1025,7 @@
                   ~|("mk-cte-column-metas {<c>} not supported" !!)
                 selected-value:ast
                   =/  out-name  (heading c (crip "literal"))
-                  =/  out-ta  (~(got by (mk-unqualified-typ-addr-lookup cte-cols)) out-name)
+                  =/  out-ta  (~(got by unq-lookup) out-name)
                   =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
                   :~  :+  :^  %qualified-column
                               qt
