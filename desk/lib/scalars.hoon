@@ -1155,6 +1155,7 @@
                             resolved-scalars
                             bowl
                             ==
+      ?>  (levy exprs |=(e=resolved-scalar =(~.t ?:(?=(dime e) -.e type.e))))
       ?:  (levy exprs |=(e=resolved-scalar ?=(dime e)))
         :-  ~.t
             %-  crip  %-  zing  %+  turn  exprs
@@ -1193,6 +1194,14 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "LEFT: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.ud ?:(?=(dime int-expr) -.int-expr type.int-expr))
+        ~|  "LEFT: expected @ud integer, got ".
+            "{<?:(?=(dime int-expr) -.int-expr type.int-expr)>}"
+            !!
       =/  do-left
         |=  [str=@t n=@ud]
         (crip (scag n (trip str)))
@@ -1218,6 +1227,10 @@
                                     resolved-scalars
                                     bowl
                                     ==
+      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+        ~|  "LEN: expected @t string, got ".
+            "{<?:(?=(dime expr) -.expr type.expr)>}"
+            !!
       ?:  ?=(dime expr)
         [~.ud (met 3 `@t`+.expr)]
       ?:  ?=([%random *] expr)
@@ -1236,6 +1249,10 @@
                                     resolved-scalars
                                     bowl
                                     ==
+      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+        ~|  "LOWER: expected @t string, got ".
+            "{<?:(?=(dime expr) -.expr type.expr)>}"
+            !!
       ?:  ?=(dime expr)
         [~.t (crip (cass (trip `@t`+.expr)))]
       ?:  ?=([%random *] expr)
@@ -1255,6 +1272,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "LTRIM: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
       =/  raw-pattern  pattern:;;(ltrim:ast scalar)
       =/  is-ws
         |=  c=@t
@@ -1297,6 +1318,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+        ~|  "LTRIM: expected @t pattern, got ".
+            "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
+            !!
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.t (do-ltrim-pat `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
@@ -1328,6 +1353,14 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "PATINDEX: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+        ~|  "PATINDEX: expected @t pattern, got ".
+            "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
+            !!
       =/  do-patindex
         |=  [str=@t pat=@t]
         ^-  @ud
@@ -1358,6 +1391,10 @@
                                 resolved-scalars
                                 bowl
                                 ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "QUOTESTRING: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
       =/  raw-quote  quote:;;(quotestring:ast scalar)
       =/  do-quote
         |=  [str=@t open=@t close=@t]
@@ -1386,6 +1423,14 @@
                                           resolved-scalars
                                           bowl
                                           ==
+      ?.  =(~.t ?:(?=(dime open-expr) -.open-expr type.open-expr))
+        ~|  "QUOTESTRING: expected @t open, got ".
+            "{<?:(?=(dime open-expr) -.open-expr type.open-expr)>}"
+            !!
+      ?.  =(~.t ?:(?=(dime close-expr) -.close-expr type.close-expr))
+        ~|  "QUOTESTRING: expected @t close, got ".
+            "{<?:(?=(dime close-expr) -.close-expr type.close-expr)>}"
+            !!
       ?:  &(?=(dime str-expr) &(?=(dime open-expr) ?=(dime close-expr)))
         [~.t (do-quote `@t`+.str-expr `@t`+.open-expr `@t`+.close-expr)]
       ?:  ?=([%random *] str-expr)
@@ -1427,6 +1472,18 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "REPLACE: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+        ~|  "REPLACE: expected @t pattern, got ".
+            "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
+            !!
+      ?.  =(~.t ?:(?=(dime rep-expr) -.rep-expr type.rep-expr))
+        ~|  "REPLACE: expected @t replacement, got ".
+            "{<?:(?=(dime rep-expr) -.rep-expr type.rep-expr)>}"
+            !!
       =/  do-replace
         |=  [str=@t pat=@t rep=@t]
         ^-  @t
@@ -1476,6 +1533,14 @@
                                 resolved-scalars
                                 bowl
                                 ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "REPLICATE: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.ud ?:(?=(dime int-expr) -.int-expr type.int-expr))
+        ~|  "REPLICATE: expected @ud integer, got ".
+            "{<?:(?=(dime int-expr) -.int-expr type.int-expr)>}"
+            !!
       =/  do-replicate
         |=  [str=@t n=@ud]
         ^-  @t
@@ -1507,6 +1572,10 @@
                                     resolved-scalars
                                     bowl
                                     ==
+      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+        ~|  "REVERSE: expected @t string, got ".
+            "{<?:(?=(dime expr) -.expr type.expr)>}"
+            !!
       ?:  ?=(dime expr)
         [~.t (crip (flop (trip `@t`+.expr)))]
       ?:  ?=([%random *] expr)
@@ -1532,6 +1601,14 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "RIGHT: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.ud ?:(?=(dime int-expr) -.int-expr type.int-expr))
+        ~|  "RIGHT: expected @ud integer, got ".
+            "{<?:(?=(dime int-expr) -.int-expr type.int-expr)>}"
+            !!
       =/  do-right
         |=  [str=@t n=@ud]
         ^-  @t
@@ -1561,6 +1638,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "RTRIM: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
       =/  raw-pattern  pattern:;;(rtrim:ast scalar)
       =/  is-ws
         |=  c=@t
@@ -1603,6 +1684,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+        ~|  "RTRIM: expected @t pattern, got ".
+            "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
+            !!
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.t (do-rtrim-pat `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
@@ -1654,6 +1739,11 @@
                                           resolved-scalars
                                           bowl
                                           ==
+      ?>  (levy arg-exprs |=(e=resolved-scalar =(~.t ?:(?=(dime e) -.e type.e))))
+      ?.  =(~.t ?:(?=(dime delim-expr) -.delim-expr type.delim-expr))
+        ~|  "STRING-CONCAT: expected @t delimiter, got ".
+            "{<?:(?=(dime delim-expr) -.delim-expr type.delim-expr)>}"
+            !!
       =/  do-join
         |=  [tapes=(list tape) d=tape]
         ^-  tape
@@ -1718,6 +1808,22 @@
                                           resolved-scalars
                                           bowl
                                           ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "STUFF: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.ud ?:(?=(dime start-expr) -.start-expr type.start-expr))
+        ~|  "STUFF: expected @ud start, got ".
+            "{<?:(?=(dime start-expr) -.start-expr type.start-expr)>}"
+            !!
+      ?.  =(~.ud ?:(?=(dime len-expr) -.len-expr type.len-expr))
+        ~|  "STUFF: expected @ud length, got ".
+            "{<?:(?=(dime len-expr) -.len-expr type.len-expr)>}"
+            !!
+      ?.  =(~.t ?:(?=(dime rep-expr) -.rep-expr type.rep-expr))
+        ~|  "STUFF: expected @t replacement, got ".
+            "{<?:(?=(dime rep-expr) -.rep-expr type.rep-expr)>}"
+            !!
       =/  do-stuff
         |=  [str=@t start=@ud len=@ud rep=@t]
         ^-  @t
@@ -1771,6 +1877,14 @@
                                           resolved-scalars
                                           bowl
                                           ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "SUBSTRING: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
+      ?.  =(~.ud ?:(?=(dime start-expr) -.start-expr type.start-expr))
+        ~|  "SUBSTRING: expected @ud integer, got ".
+            "{<?:(?=(dime start-expr) -.start-expr type.start-expr)>}"
+            !!
       =/  raw-length  length:;;(substring:ast scalar)
       =/  do-sub
         |=  [str=@t start=@ud mlen=(unit @ud)]
@@ -1800,6 +1914,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.ud ?:(?=(dime len-expr) -.len-expr type.len-expr))
+        ~|  "SUBSTRING: expected @ud length, got ".
+            "{<?:(?=(dime len-expr) -.len-expr type.len-expr)>}"
+            !!
       ?:  &(?=(dime str-expr) &(?=(dime start-expr) ?=(dime len-expr)))
         [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))]
       ?:  ?=([%random *] str-expr)
@@ -1827,6 +1945,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
+        ~|  "TRIM: expected @t string, got ".
+            "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
+            !!
       =/  raw-pattern  pattern:;;(trim:ast scalar)
       =/  is-ws
         |=  c=@t
@@ -1870,6 +1992,10 @@
                                         resolved-scalars
                                         bowl
                                         ==
+      ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
+        ~|  "TRIM: expected @t pattern, got ".
+            "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
+            !!
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.t (do-trim-pat `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
@@ -1892,6 +2018,10 @@
                                     resolved-scalars
                                     bowl
                                     ==
+      ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
+        ~|  "UPPER: expected @t string, got ".
+            "{<?:(?=(dime expr) -.expr type.expr)>}"
+            !!
       ?:  ?=(dime expr)
         [~.t (crip (cuss (trip `@t`+.expr)))]
       ?:  ?=([%random *] expr)
