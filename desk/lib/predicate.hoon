@@ -684,6 +684,8 @@
   ^-  @ta
   ?:  ?=(dime rs)
     -.rs
+  ::?:  ?=([%random *] rs)
+  ::  ~|("random not implemented" !!)
   type.rs
 ::
 ++  apply-resolved-scalar
@@ -691,6 +693,8 @@
   ^-  dime
   ?:  ?=(dime resolved-scalar)
     resolved-scalar
+  ?:  ?=([%random *] resolved-scalar)
+    ~|("random not implemented" !!)
   (f.resolved-scalar data-row)
 ::
 ++  prepare-unqualified

@@ -287,12 +287,14 @@
   |=  rs=resolved-scalar
   ^-  @ta
   ?:  ?=(dime rs)  -.rs
+  ?:  ?=([%random *] rs)  ~|("random not implemented" !!)
   type.rs
 ::
 ++  resolve-selected-scalar
   |=  [row=data-row rs=resolved-scalar]
   ^-  dime
   ?:  ?=(dime rs)  rs
+  ?:  ?=([%random *] rs)  ~|("random not implemented" !!)
   =/  f=$-(data-row dime)  +>.rs
   (f row)
 ::
