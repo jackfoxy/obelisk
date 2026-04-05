@@ -287,7 +287,6 @@
   |=  rs=resolved-scalar
   ^-  @ta
   ?:  ?=(dime rs)  -.rs
-  ?:  ?=([%random *] rs)  ~|("random not implemented" !!)
   type.rs
 ::
 ++  resolve-selected-scalar

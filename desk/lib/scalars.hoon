@@ -1680,7 +1680,7 @@
                  %-  trip  ^-  @t
                           ?:  ?=(dime e)  +.e
                           ?:  ?=([%random *] e)
-                            ~|("random not implemented" !!)
+                            ~|("STRING-CONCAT: random not implemented" !!)
                           +:(f.e data-row)
       =/  d
             %-  trip

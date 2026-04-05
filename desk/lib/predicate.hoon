@@ -684,8 +684,6 @@
   ^-  @ta
   ?:  ?=(dime rs)
     -.rs
-  ::?:  ?=([%random *] rs)
-  ::  ~|("random not implemented" !!)
   type.rs
 ::
 ++  apply-resolved-scalar
