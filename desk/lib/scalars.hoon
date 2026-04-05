@@ -84,7 +84,7 @@
       ?:  ?=(dime expr)
         [~.ud y:(yore `@da`+.expr)]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("YEAR: random not implemented" !!)
       :+  %fn
           ~.ud
           |=  =data-row
@@ -105,7 +105,7 @@
       ?:  ?=(dime expr)
         [~.ud m:(yore `@da`+.expr)]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("MONTH: random not implemented" !!)
       :+  %fn
           ~.ud
           |=  =data-row
@@ -131,7 +131,7 @@
       ?:  ?=(dime expr)
         (do-day +.expr)
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("DAY: random not implemented" !!)
       :+  %fn
           ~.ud
           |=  =data-row
@@ -157,7 +157,7 @@
       ?:  ?=(dime expr)
         (do-hour +.expr)
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("HOUR: random not implemented" !!)
       :+  %fn
           ~.ud
           |=  =data-row
@@ -183,7 +183,7 @@
       ?:  ?=(dime expr)
         (do-minute +.expr)
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("MINUTE: random not implemented" !!)
       :+  %fn
           ~.ud
           |=  =data-row
@@ -209,7 +209,7 @@
       ?:  ?=(dime expr)
         (do-second +.expr)
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("SECOND: random not implemented" !!)
       :+  %fn
           ~.ud
           |=  =data-row
@@ -244,9 +244,9 @@
       ?:  &(?=(dime expr) ?=(dime duration))
         [expr-aura (add +.expr +.duration)]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("ADD-TIME: random not implemented" !!)
       ?:  ?=([%random *] duration)
-        ~|("random not implemented" !!)
+        ~|("ADD-TIME: random not implemented" !!)
       :+  %fn
           expr-aura
           |=  =data-row
@@ -283,9 +283,9 @@
       ?:  &(?=(dime expr) ?=(dime duration))
         [expr-aura (sub +.expr +.duration)]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("SUBTRACT-TIME: random not implemented" !!)
       ?:  ?=([%random *] duration)
-        ~|("random not implemented" !!)
+        ~|("SUBTRACT-TIME: random not implemented" !!)
       :+  %fn
           expr-aura
           |=  =data-row
@@ -1161,7 +1161,7 @@
                                           |=  e=resolved-scalar
                                           (trip `@t`+:;;(dime e))
       ?:  (lien exprs |=(e=resolved-scalar ?=([%random *] e)))
-        ~|("random not implemented" !!)
+        ~|("CONCAT: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1174,7 +1174,7 @@
                                   %-  trip  ^-  @t
                                             ?:  ?=(dime e)  +.e
                                             ?:  ?=([%random *] e)
-                                              ~|("random not implemented" !!)
+                                              ~|("CONCAT: random not implemented" !!)
                                             +:(f.e data-row)
   ::
     %left
@@ -1199,9 +1199,9 @@
       ?:  &(?=(dime str-expr) ?=(dime int-expr))
         [~.t (do-left `@t`+.str-expr `@ud`+.int-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("LEFT: random not implemented" !!)
       ?:  ?=([%random *] int-expr)
-        ~|("random not implemented" !!)
+        ~|("LEFT: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1221,7 +1221,7 @@
       ?:  ?=(dime expr)
         [~.ud (met 3 `@t`+.expr)]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("LEN: random not implemented" !!)
       :+  %fn  ~.ud
       |=  =data-row
       ^-  dime
@@ -1239,7 +1239,7 @@
       ?:  ?=(dime expr)
         [~.t (crip (cass (trip `@t`+.expr)))]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("LOWER: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1285,7 +1285,7 @@
         ?:  ?=(dime str-expr)
           [~.t (do-ltrim-ws `@t`+.str-expr)]
         ?:  ?=([%random *] str-expr)
-          ~|("random not implemented" !!)
+          ~|("LTRIM: random not implemented" !!)
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
@@ -1300,9 +1300,9 @@
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.t (do-ltrim-pat `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("LTRIM: random not implemented" !!)
       ?:  ?=([%random *] pat-expr)
-        ~|("random not implemented" !!)
+        ~|("LTRIM: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1337,9 +1337,9 @@
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.ud (do-patindex `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("PATINDEX: random not implemented" !!)
       ?:  ?=([%random *] pat-expr)
-        ~|("random not implemented" !!)
+        ~|("PATINDEX: random not implemented" !!)
       :+  %fn  ~.ud
       |=  =data-row
       ^-  dime
@@ -1367,7 +1367,7 @@
         ?:  ?=(dime str-expr)
           [~.t (do-quote `@t`+.str-expr '[' ']')]
         ?:  ?=([%random *] str-expr)
-          ~|("random not implemented" !!)
+          ~|("QUOTESTRING: random not implemented" !!)
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
@@ -1389,11 +1389,11 @@
       ?:  &(?=(dime str-expr) &(?=(dime open-expr) ?=(dime close-expr)))
         [~.t (do-quote `@t`+.str-expr `@t`+.open-expr `@t`+.close-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("QUOTESTRING: random not implemented" !!)
       ?:  ?=([%random *] open-expr)
-        ~|("random not implemented" !!)
+        ~|("QUOTESTRING: random not implemented" !!)
       ?:  ?=([%random *] close-expr)
-        ~|("random not implemented" !!)
+        ~|("QUOTESTRING: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1445,11 +1445,11 @@
       ?:  &(?=(dime str-expr) &(?=(dime pat-expr) ?=(dime rep-expr)))
         [~.t (do-replace `@t`+.str-expr `@t`+.pat-expr `@t`+.rep-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("REPLACE: random not implemented" !!)
       ?:  ?=([%random *] pat-expr)
-        ~|("random not implemented" !!)
+        ~|("REPLACE: random not implemented" !!)
       ?:  ?=([%random *] rep-expr)
-        ~|("random not implemented" !!)
+        ~|("REPLACE: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1488,9 +1488,9 @@
       ?:  &(?=(dime str-expr) ?=(dime int-expr))
         [~.t (do-replicate `@t`+.str-expr `@ud`+.int-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("REPLICATE: random not implemented" !!)
       ?:  ?=([%random *] int-expr)
-        ~|("random not implemented" !!)
+        ~|("REPLICATE: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1510,7 +1510,7 @@
       ?:  ?=(dime expr)
         [~.t (crip (flop (trip `@t`+.expr)))]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("REVERSE: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1541,9 +1541,9 @@
       ?:  &(?=(dime str-expr) ?=(dime int-expr))
         [~.t (do-right `@t`+.str-expr `@ud`+.int-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("RIGHT: random not implemented" !!)
       ?:  ?=([%random *] int-expr)
-        ~|("random not implemented" !!)
+        ~|("RIGHT: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1591,7 +1591,7 @@
         ?:  ?=(dime str-expr)
           [~.t (do-rtrim-ws `@t`+.str-expr)]
         ?:  ?=([%random *] str-expr)
-          ~|("random not implemented" !!)
+          ~|("RTRIM: random not implemented" !!)
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
@@ -1606,9 +1606,9 @@
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.t (do-rtrim-pat `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("RTRIM: random not implemented" !!)
       ?:  ?=([%random *] pat-expr)
-        ~|("random not implemented" !!)
+        ~|("RTRIM: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1628,7 +1628,7 @@
       ?:  ?=(dime expr)
         [~.t (crip (scow `@tas`-.expr +.expr))]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("STRING: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1669,9 +1669,9 @@
         =/  d      (trip `@t`+:;;(dime delim-expr))
         [~.t (crip (do-join tapes d))]
       ?:  (lien arg-exprs |=(e=resolved-scalar ?=([%random *] e)))
-        ~|("random not implemented" !!)
+        ~|("STRING-CONCAT: random not implemented" !!)
       ?:  ?=([%random *] delim-expr)
-        ~|("random not implemented" !!)
+        ~|("STRING-CONCAT: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1735,13 +1735,13 @@
                           `@t`+.rep-expr
                           ==
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("STUFF: random not implemented" !!)
       ?:  ?=([%random *] start-expr)
-        ~|("random not implemented" !!)
+        ~|("STUFF: random not implemented" !!)
       ?:  ?=([%random *] len-expr)
-        ~|("random not implemented" !!)
+        ~|("STUFF: random not implemented" !!)
       ?:  ?=([%random *] rep-expr)
-        ~|("random not implemented" !!)
+        ~|("STUFF: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1783,9 +1783,9 @@
         ?:  &(?=(dime str-expr) ?=(dime start-expr))
           [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr ~)]
         ?:  ?=([%random *] str-expr)
-          ~|("random not implemented" !!)
+          ~|("SUBSTRING: random not implemented" !!)
         ?:  ?=([%random *] start-expr)
-          ~|("random not implemented" !!)
+          ~|("SUBSTRING: random not implemented" !!)
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
@@ -1803,11 +1803,11 @@
       ?:  &(?=(dime str-expr) &(?=(dime start-expr) ?=(dime len-expr)))
         [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("SUBSTRING: random not implemented" !!)
       ?:  ?=([%random *] start-expr)
-        ~|("random not implemented" !!)
+        ~|("SUBSTRING: random not implemented" !!)
       ?:  ?=([%random *] len-expr)
-        ~|("random not implemented" !!)
+        ~|("SUBSTRING: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1858,7 +1858,7 @@
         ?:  ?=(dime str-expr)
           [~.t (do-trim-ws `@t`+.str-expr)]
         ?:  ?=([%random *] str-expr)
-          ~|("random not implemented" !!)
+          ~|("TRIM: random not implemented" !!)
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
@@ -1873,9 +1873,9 @@
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
         [~.t (do-trim-pat `@t`+.str-expr `@t`+.pat-expr)]
       ?:  ?=([%random *] str-expr)
-        ~|("random not implemented" !!)
+        ~|("TRIM: random not implemented" !!)
       ?:  ?=([%random *] pat-expr)
-        ~|("random not implemented" !!)
+        ~|("TRIM: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1895,7 +1895,7 @@
       ?:  ?=(dime expr)
         [~.t (crip (cuss (trip `@t`+.expr)))]
       ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
+        ~|("UPPER: random not implemented" !!)
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -2654,9 +2654,7 @@
                     ^-  [@ta resolved-scalar]
                     ?:  ?=(dime item)
                       [-.item item]
-                    ?:  ?=([%random *] item)
-                      ~|("random not implemented" !!)
-                    [+<.item item]
+                    [type.item item]
   ::  walk the list, tracking expected type, verifying consistency,
   ::  and accumulating the (possibly-substituted) output list
   =/  expected  *(unit @ta)
