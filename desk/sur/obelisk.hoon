@@ -136,16 +136,7 @@
 ::
 +$  named-ctes  (map @tas full-relation)
 ::
-+$  random
-  $+  random
-  $:  %random
-    type=@ta
-    low=scalar-node
-    high=scalar-node
-  ==
-::
 +$  resolved-scalar  $%  [%fn type=@ta f=$-(data-row dime)]
-                         random
                          dime
                          ==
 ::

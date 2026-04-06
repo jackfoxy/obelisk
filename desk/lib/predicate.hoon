@@ -691,8 +691,6 @@
   ^-  dime
   ?:  ?=(dime resolved-scalar)
     resolved-scalar
-  ?:  ?=([%random *] resolved-scalar)
-    ~|("random not implemented" !!)
   (f.resolved-scalar data-row)
 ::
 ++  prepare-unqualified
