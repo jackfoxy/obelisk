@@ -26,6 +26,98 @@
           =bowl:gall
           ==
   ^-  resolved-scalar
+  =/  simple-rounding-ops
+    |=  $:  op-name=@tas
+            expr=resolved-scalar
+            rd-adjust=$-([@rd @rd] @rd)
+            ==
+    ^-  resolved-scalar
+    =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+    ?.  ?=(number-systems number-system)
+      ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
+          "need ?(~.rd ~.sd ~.ud)"
+          !!
+    ?:  ?=(dime expr)
+      ?-  number-system
+          %rd
+            =/  int  (san:rd (need (toi:rd +.expr)))
+            [number-system (rd-adjust int +.expr)]
+          %sd  expr
+          %ud  expr
+          ==
+    ?:  ?=([%random *] expr)
+      ~|("random not implemented" !!)
+    :+  %fn
+      type.expr
+      |=  =data-row
+      ^-  dime
+      =/  datum  +:(f.expr data-row)
+      ?-  number-system
+          %rd
+            =/  int  (san:rd (need (toi:rd datum)))
+            [number-system (rd-adjust int datum)]
+          %sd  (f.expr data-row)
+          %ud  (f.expr data-row)
+          ==
+  =/  prepare-time-arith-op
+    |=  $:  op-name=@tas
+            expr=resolved-scalar
+            duration=resolved-scalar
+            op-fn=$-([@ @] @)
+            ==
+    ^-  resolved-scalar
+    =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
+    =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
+    ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
+      ~|  "{<expr-aura>} not a supported type for {<op-name>} time-expression,".
+          " need @da or @dr"
+          !!
+    ?.  =(~.dr dur-aura)
+      ~|  "{<dur-aura>} not a supported type for {<op-name>} duration, ".
+          "need @dr"
+          !!
+    ?:  &(?=(dime expr) ?=(dime duration))
+      [expr-aura (op-fn +.expr +.duration)]
+    ?:  ?=([%random *] expr)
+      ~|("random not implemented" !!)
+    ?:  ?=([%random *] duration)
+      ~|("random not implemented" !!)
+    :+  %fn
+      expr-aura
+      |=  =data-row
+      ^-  dime
+      =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
+      =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
+      [expr-aura (op-fn e d)]
+=/  prepare-rd-trig-op
+    |=  $:  op-name=@tas
+            expr=resolved-scalar
+            rd-fn=$-(@rd @rd)
+            ==
+    ^-  resolved-scalar
+    =/  number-system  ?:(?=(dime expr) -.expr type.expr)
+    ?.  ?=(number-systems number-system)
+      ~|  "{<number-system>} not a supported number system for {<op-name>}, ".
+          "need ?(~.rd ~.sd ~.ud)"
+          !!
+    =/  do-op
+      |=  [ns=number-systems val=@]  ^-  dime
+      =/  rd-val
+        ?-  ns
+            %rd  `@rd`val
+            %sd  (san:rd `@s`val)
+            %ud  (sun:rd val)
+            ==
+      [~.rd (rd-fn rd-val)]
+    ?:  ?=(dime expr)
+      (do-op number-system +.expr)
+    ?:  ?=([%random *] expr)
+      ~|("random not implemented" !!)
+    :+  %fn
+      ~.rd
+      |=  =data-row
+      ^-  dime
+      (do-op number-system +:(f.expr data-row))
   ?-  -.scalar
   ::
     %arithmetic
@@ -231,29 +323,7 @@
                                         resolved-scalars
                                         bowl
                                         ==
-      =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
-      =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
-      ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
-        ~|  "{<expr-aura>} not a supported type for %add-time time-expression,".
-            " need @da or @dr"
-            !!
-      ?.  =(~.dr dur-aura)
-        ~|  "{<dur-aura>} not a supported type for %add-time duration, ".
-            "need @dr"
-            !!
-      ?:  &(?=(dime expr) ?=(dime duration))
-        [expr-aura (add +.expr +.duration)]
-      ?:  ?=([%random *] expr)
-        ~|("ADD-TIME: random not implemented" !!)
-      ?:  ?=([%random *] duration)
-        ~|("ADD-TIME: random not implemented" !!)
-      :+  %fn
-          expr-aura
-          |=  =data-row
-          ^-  dime
-          =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
-          =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
-          [expr-aura (add e d)]
+      (prepare-time-arith-op %add-time expr duration add)
   ::
     %subtract-time
       =/  expr  %:  evaluate-datum  time-expression:;;(subtract-time:ast scalar)
@@ -270,29 +340,7 @@
                                         resolved-scalars
                                         bowl
                                         ==
-      =/  expr-aura  ?:(?=(dime expr) -.expr type.expr)
-      =/  dur-aura   ?:(?=(dime duration) -.duration type.duration)
-      ?.  ?|(=(~.da expr-aura) =(~.dr expr-aura))
-        ~|  "{<expr-aura>} not a supported type for %subtract-time ".
-            "time-expression, need @da or @dr"
-            !!
-      ?.  =(~.dr dur-aura)
-        ~|  "{<dur-aura>} not a supported type for %subtract-time duration, ".
-            "need @dr"
-            !!
-      ?:  &(?=(dime expr) ?=(dime duration))
-        [expr-aura (sub +.expr +.duration)]
-      ?:  ?=([%random *] expr)
-        ~|("SUBTRACT-TIME: random not implemented" !!)
-      ?:  ?=([%random *] duration)
-        ~|("SUBTRACT-TIME: random not implemented" !!)
-      :+  %fn
-          expr-aura
-          |=  =data-row
-          ^-  dime
-          =/  e  ?:(?=(dime expr) +.expr +:(f.expr data-row))
-          =/  d  ?:(?=(dime duration) +.duration +:(f.duration data-row))
-          [expr-aura (sub e d)]
+      (prepare-time-arith-op %subtract-time expr duration sub)
   ::
   ::  numeric functions
   ::
@@ -531,29 +579,7 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %sin, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      =/  do-sin
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (~(sin rd:math [%z .~1e-15]) rd-val)]
-      ?:  ?=(dime expr)
-        (do-sin number-system +.expr)
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        ~.rd
-        |=  =data-row
-        ^-  dime
-        (do-sin number-system +:(f.expr data-row))
+      (prepare-rd-trig-op %sin expr ~(sin rd:math [%z .~1e-15]))
   ::
     %cos
       =/  expr  %:  evaluate-datum  numeric-expression:;;(cos:ast scalar)
@@ -563,29 +589,7 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %cos, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      =/  do-cos
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (~(cos rd:math [%z .~1e-15]) rd-val)]
-      ?:  ?=(dime expr)
-        (do-cos number-system +.expr)
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        ~.rd
-        |=  =data-row
-        ^-  dime
-        (do-cos number-system +:(f.expr data-row))
+      (prepare-rd-trig-op %cos expr ~(cos rd:math [%z .~1e-15]))
   ::
     %tan
       =/  expr  %:  evaluate-datum  numeric-expression:;;(tan:ast scalar)
@@ -595,29 +599,7 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %tan, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      =/  do-tan
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (~(tan rd:math [%z .~1e-15]) rd-val)]
-      ?:  ?=(dime expr)
-        (do-tan number-system +.expr)
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        ~.rd
-        |=  =data-row
-        ^-  dime
-        (do-tan number-system +:(f.expr data-row))
+      (prepare-rd-trig-op %tan expr ~(tan rd:math [%z .~1e-15]))
   ::
     %asin
       =/  expr  %:  evaluate-datum  numeric-expression:;;(asin:ast scalar)
@@ -627,29 +609,7 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %asin, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      =/  do-asin
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (~(asin rd:math [%z .~1e-15]) rd-val)]
-      ?:  ?=(dime expr)
-        (do-asin number-system +.expr)
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        ~.rd
-        |=  =data-row
-        ^-  dime
-        (do-asin number-system +:(f.expr data-row))
+      (prepare-rd-trig-op %asin expr ~(asin rd:math [%z .~1e-15]))
   ::
     %acos
       =/  expr  %:  evaluate-datum  numeric-expression:;;(acos:ast scalar)
@@ -659,29 +619,7 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %acos, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      =/  do-acos
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (~(acos rd:math [%z .~1e-15]) rd-val)]
-      ?:  ?=(dime expr)
-        (do-acos number-system +.expr)
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        ~.rd
-        |=  =data-row
-        ^-  dime
-        (do-acos number-system +:(f.expr data-row))
+      (prepare-rd-trig-op %acos expr ~(acos rd:math [%z .~1e-15]))
   ::
     %atan
       =/  expr  %:  evaluate-datum  numeric-expression:;;(atan:ast scalar)
@@ -691,29 +629,7 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %atan, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      =/  do-atan
-        |=  [ns=number-systems val=@]  ^-  dime
-        =/  rd-val
-          ?-  ns
-              %rd  `@rd`val
-              %sd  (san:rd `@s`val)
-              %ud  (sun:rd val)
-              ==
-        [~.rd (~(atan rd:math [%z .~1e-15]) rd-val)]
-      ?:  ?=(dime expr)
-        (do-atan number-system +.expr)
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        ~.rd
-        |=  =data-row
-        ^-  dime
-        (do-atan number-system +:(f.expr data-row))
+      (prepare-rd-trig-op %atan expr ~(atan rd:math [%z .~1e-15]))
   ::
     %atan2
       =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(atan2:ast scalar)
@@ -772,47 +688,14 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %floor, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      ?:  ?=(dime expr)
-        ?-  number-system
-            ::
-            %rd
-              =/  int  (san:rd (need (toi:rd +.expr)))
-              =/  dcm  (sub:rd +.expr int)
-              :-  number-system
-                  ?:  =(0 dcm)  int
-                  ?:  (sig:rd +.expr)  int
-                  (sub:rd int .~1)
-            ::
-            %sd  expr
-            ::
-            %ud  expr
-            ==
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        type.expr
-        |=  =data-row
-        ^-  dime
-        ?-  number-system
-            ::
-            %rd
-              =/  datum  +:(f.expr data-row)
-              =/  int  (san:rd (need (toi:rd datum)))
-              =/  dcm  (sub:rd datum int)
-              :-  number-system
-                  ?:  =(0 dcm)  int
-                  ?:  (sig:rd datum)  int
-                  (sub:rd int .~1)
-            ::
-            %sd  (f.expr data-row)
-            ::
-            %ud  (f.expr data-row)
-            ==
+      =/  floor-adjust
+        |=  [int=@rd datum=@rd]
+        ^-  @rd
+        =/  dcm  (sub:rd datum int)
+        ?:  =(0 dcm)  int
+        ?:  (sig:rd datum)  int
+        (sub:rd int .~1)
+      (simple-rounding-ops %floor expr floor-adjust)
   ::
     %ceiling
       =/  expr  %:  evaluate-datum  numeric-expression:;;(ceiling:ast scalar)
@@ -822,47 +705,14 @@
                                     resolved-scalars
                                     bowl
                                     ==
-      =/  number-system  ?:(?=(dime expr) -.expr type.expr)
-      ?.  ?=(number-systems number-system)
-        ~|  "{<number-system>} not a supported number system for %ceiling, ".
-            "need ?(~.rd ~.sd ~.ud)"
-            !!
-      ?:  ?=(dime expr)
-        ?-  number-system
-            ::
-            %rd
-              =/  int  (san:rd (need (toi:rd +.expr)))
-              =/  dcm  (sub:rd +.expr int)
-              :-  number-system
-                  ?:  =(0 dcm)  int
-                  ?:  (sig:rd +.expr)  (add:rd int .~1)
-                  int
-            ::
-            %sd  expr
-            ::
-            %ud  expr
-            ==
-      ?:  ?=([%random *] expr)
-        ~|("random not implemented" !!)
-      :+  %fn
-        type.expr
-        |=  =data-row
-        ^-  dime
-        ?-  number-system
-            ::
-            %rd
-              =/  datum  +:(f.expr data-row)
-              =/  int  (san:rd (need (toi:rd datum)))
-              =/  dcm  (sub:rd datum int)
-              :-  number-system
-                  ?:  =(0 dcm)  int
-                  ?:  (sig:rd datum)  (add:rd int .~1)
-                  int
-            ::
-            %sd  (f.expr data-row)
-            ::
-            %ud  (f.expr data-row)
-            ==
+      =/  ceiling-adjust
+        |=  [int=@rd datum=@rd]
+        ^-  @rd
+        =/  dcm  (sub:rd datum int)
+        ?:  =(0 dcm)  int
+        ?:  (sig:rd datum)  (add:rd int .~1)
+        int
+      (simple-rounding-ops %ceiling expr ceiling-adjust)
   ::
     %round
       =/  expr  %:  evaluate-datum  numeric-expression:;;(round:ast scalar)
