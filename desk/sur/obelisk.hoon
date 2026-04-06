@@ -150,7 +150,8 @@
     addr=@
     vc=vector-cell
     ==
-
+::
++$  seed  @uvJ
 ::
 ::  common metadata for DELETE, INSERT, UPDATE
 +$  txn-meta

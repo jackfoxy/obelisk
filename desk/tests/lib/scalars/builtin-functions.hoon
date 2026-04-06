@@ -1963,6 +1963,7 @@
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -1975,8 +1976,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar2
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -1989,8 +1992,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar3
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -2003,8 +2008,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar4
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -2017,8 +2024,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar5
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -2031,8 +2040,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar6
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -2045,6 +2056,7 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -6462,6 +6474,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-month-unsupported-type
@@ -6475,6 +6488,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-day-unsupported-type
@@ -6488,6 +6502,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-hour-unsupported-type
@@ -6501,6 +6516,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-minute-unsupported-type
@@ -6514,6 +6530,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-second-unsupported-type
@@ -6527,6 +6544,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-add-time-bad-time-expression
@@ -6540,6 +6558,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-add-time-bad-duration
@@ -6553,6 +6572,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-subtract-time-bad-time-expression
@@ -6569,6 +6589,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-subtract-time-bad-duration
@@ -6582,6 +6603,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ::  unsupported number system tests (one per function, using @t literal)
@@ -6597,6 +6619,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-unsupported-ns
@@ -6610,6 +6633,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-rand-not-implemented
@@ -6623,6 +6647,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-max-ns-conflict
@@ -6636,6 +6661,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-max-unsupported-ns
@@ -6649,6 +6675,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-min-ns-conflict
@@ -6662,6 +6689,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-min-unsupported-ns
@@ -6675,6 +6703,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-degrees-unsupported-ns
@@ -6688,6 +6717,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sin-unsupported-ns
@@ -6701,6 +6731,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-cos-unsupported-ns
@@ -6714,6 +6745,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-tan-unsupported-ns
@@ -6727,6 +6759,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-asin-unsupported-ns
@@ -6740,6 +6773,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-acos-unsupported-ns
@@ -6753,6 +6787,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-atan-unsupported-ns
@@ -6766,6 +6801,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-atan2-unsupported-ns
@@ -6779,6 +6815,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-floor-unsupported-ns
@@ -6792,6 +6829,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-ceiling-unsupported-ns
@@ -6805,6 +6843,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-round-unsupported-ns
@@ -6818,6 +6857,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-round-bad-length-type
@@ -6831,6 +6871,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sign-unsupported-ns
@@ -6844,6 +6885,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sqrt-unsupported-ns
@@ -6857,6 +6899,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ::  log special cases
@@ -6872,6 +6915,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-zero-rd-runtime
@@ -6884,10 +6928,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(0) is not a number'
-    |.  (apply-scalar sqrt-qual-table-row fn)
+    |.  (apply-scalar sqrt-qual-table-row +.fn)
 ::
 ++  test-fail-log-zero-sd-prepare
   %+  expect-fail-message
@@ -6900,6 +6945,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-zero-sd-runtime
@@ -6912,10 +6958,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(0) is not a number'
-    |.  (apply-scalar sqrt-qual-table-row fn)
+    |.  (apply-scalar sqrt-qual-table-row +.fn)
 ::
 ++  test-fail-log-zero-ud-prepare
   %+  expect-fail-message
@@ -6928,6 +6975,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-zero-ud-runtime
@@ -6940,10 +6988,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(0) is not a number'
-    |.  (apply-scalar sqrt-qual-table-row fn)
+    |.  (apply-scalar sqrt-qual-table-row +.fn)
 ::
 ++  test-fail-log-negative-rd-prepare
   %+  expect-fail-message
@@ -6956,6 +7005,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-negative-rd-runtime
@@ -6968,10 +7018,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(.~-1) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 ::
 ++  test-fail-log-negative-sd-prepare
   %+  expect-fail-message
@@ -6984,6 +7035,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-negative-sd-runtime
@@ -6996,10 +7048,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(-4) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 ::
 ::  sqrt special cases
 ::
@@ -7014,6 +7067,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sqrt-negative-rd-runtime
@@ -7026,10 +7080,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'sqrt(.~-1) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 ::
 ++  test-fail-sqrt-negative-sd-prepare
   %+  expect-fail-message
@@ -7042,6 +7097,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sqrt-negative-sd-runtime
@@ -7054,8 +7110,9 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'sqrt(-4) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 --

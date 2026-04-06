@@ -150,6 +150,7 @@
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -162,6 +163,7 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -1198,6 +1200,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-too-many-tables
@@ -1214,5 +1217,6 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 --

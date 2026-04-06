@@ -143,6 +143,7 @@
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     :: evals to 3
                                     ^-  scalar-function:ast
@@ -156,6 +157,7 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -213,6 +215,7 @@
 ++  rd-resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -225,6 +228,7 @@
                                     rd-qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -268,6 +272,7 @@
 ++  sd-resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -280,6 +285,7 @@
                                     sd-qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -2232,6 +2238,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-01
@@ -2243,6 +2250,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-02
@@ -2254,6 +2262,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-03
@@ -2265,6 +2274,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-04
@@ -2276,6 +2286,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-05
@@ -2287,6 +2298,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-06
@@ -2298,6 +2310,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-07
@@ -2309,6 +2322,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-08
@@ -2320,6 +2334,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-09
@@ -2331,6 +2346,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-10
@@ -2342,6 +2358,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-11
@@ -2353,6 +2370,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-12
@@ -2364,6 +2382,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-13
@@ -2375,6 +2394,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-14
@@ -2386,6 +2406,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-15
@@ -2397,6 +2418,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-16
@@ -2408,6 +2430,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-17
@@ -2419,6 +2442,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-18
@@ -2430,6 +2454,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-ns-conflict
@@ -2441,6 +2466,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-unsupported-ns
@@ -2452,6 +2478,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-neg-exp-prepare
@@ -2463,6 +2490,7 @@
               ctes  qual-lookup  rd-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-neg-exp-runtime
@@ -2473,10 +2501,11 @@
           ctes  qual-lookup  rd-qual-map-meta
           rd-resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'negative exponent [p=~.sd q=1] not supported'
-    |.  (apply-scalar rd-table-row fn)
+    |.  (apply-scalar rd-table-row +.fn)
 ::
 ++  test-fail-arithmetic-remainder-rd-prepare
   %+  expect-fail-message
@@ -2487,6 +2516,7 @@
               ctes  qual-lookup  rd-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-remainder-rd-runtime
@@ -2497,10 +2527,11 @@
           ctes  qual-lookup  rd-qual-map-meta
           rd-resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'remainder not implemented for @rd'
-    |.  (apply-scalar rd-table-row fn)
+    |.  (apply-scalar rd-table-row +.fn)
 ::
 ++  test-fail-arithmetic-div-zero-ud-literal
   %+  expect-fail-message
@@ -2511,6 +2542,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-div-zero-rd-literal
@@ -2522,6 +2554,7 @@
               ctes  qual-lookup  rd-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-div-zero-sd-literal
@@ -2533,6 +2566,7 @@
               ctes  qual-lookup  sd-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-div-zero-ud-column
@@ -2543,10 +2577,11 @@
           ctes  qual-lookup  qual-map-meta
           resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'division by zero'
-    |.  (apply-scalar table-row fn)
+    |.  (apply-scalar table-row +.fn)
 ::
 ++  test-fail-arithmetic-div-zero-rd-column
   =/  fn
@@ -2556,10 +2591,11 @@
           ctes  qual-lookup  rd-qual-map-meta
           rd-resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'division by zero'
-    |.  (apply-scalar rd-table-row fn)
+    |.  (apply-scalar rd-table-row +.fn)
 ::
 ++  test-fail-arithmetic-div-zero-sd-column
   =/  fn
@@ -2569,10 +2605,11 @@
           ctes  qual-lookup  sd-unqual-map-meta
           sd-resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'division by zero'
-    |.  (apply-scalar sd-table-row fn)
+    |.  (apply-scalar sd-table-row +.fn)
 ::
 ++  test-fail-arithmetic-sub-underflow-literal
   %+  expect-fail-message
@@ -2583,6 +2620,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-sub-underflow-column
@@ -2593,8 +2631,9 @@
           ctes  qual-lookup  qual-map-meta
           resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'subtraction underflow'
-    |.  (apply-scalar table-row fn)
+    |.  (apply-scalar table-row +.fn)
 --

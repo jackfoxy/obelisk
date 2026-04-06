@@ -125,19 +125,22 @@
           ==
   ^-  resolved-scalars
   =/  out  *resolved-scalars
+  =/  =seed  eny.bowl
   |-
   ?~  scalars  out
-  =/  resolved=resolved-scalar
-        %:  prepare-scalar  f.i.scalars
-                            named-ctes
-                            qualifier-lookup
-                            map-meta
-                            out
-                            bowl
-                            ==
+  =/  ps  %:  prepare-scalar  f.i.scalars
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              out
+                              bowl
+                              seed
+                              ==
+  =.  seed  -.ps
   %=  $
     scalars  t.scalars
-    out      (~(put by out) name.i.scalars resolved)
+    out      (~(put by out) name.i.scalars +.ps)
+    seed     seed
   ==
 ::
 ++  select-for-cte

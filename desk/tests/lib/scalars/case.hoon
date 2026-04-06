@@ -158,6 +158,7 @@
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -170,8 +171,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar2
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -184,6 +187,7 @@
                                     unqual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -1924,6 +1928,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-simple-empty-cases
@@ -1937,6 +1942,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-simple-when-predicate
@@ -1954,6 +1960,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-searched-no-match
@@ -1970,10 +1977,11 @@
           qual-map-meta
           resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'no case matched'
-    |.  (apply-scalar table-row fn)
+    |.  (apply-scalar table-row +.fn)
 ::
 ++  test-fail-simple-no-match
   =/  fn
@@ -1989,10 +1997,11 @@
           qual-map-meta
           resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'no case matched'
-    |.  (apply-scalar table-row fn)
+    |.  (apply-scalar table-row +.fn)
 ::
 ++  test-fail-inconsistent-then-types
   %+  expect-fail-message
@@ -2012,6 +2021,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-case-no-table
@@ -2032,6 +2042,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-case-too-many-tables
@@ -2052,5 +2063,6 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 --

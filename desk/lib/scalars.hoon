@@ -22,8 +22,9 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
   =/  simple-rounding-ops
     |=  $:  op-name=@tas
             expr=resolved-scalar
@@ -111,6 +112,7 @@
   ?-  -.scalar
   ::
     %arithmetic
+      :-  seed
       %:  prepare-arithmetic  scalar
                               named-ctes
                               qualifier-lookup
@@ -121,6 +123,7 @@
 
   ::
     %case
+      :-  seed
       %:  prepare-case  scalar
                         named-ctes
                         qualifier-lookup
@@ -130,6 +133,7 @@
                         ==
   ::
     %coalesce
+      :-  seed
       %:  prepare-coalesce  scalar
                             named-ctes
                             qualifier-lookup
@@ -139,6 +143,7 @@
                             ==
   ::
     %if-then-else
+      :-  seed
       %:  prepare-if-then-else  scalar
                                 named-ctes
                                 qualifier-lookup
@@ -150,21 +155,25 @@
   ::  data functions
   ::
     %getutcdate
-      [~.da now.bowl]
+      [seed [~.da now.bowl]]
   ::
     %year
-      =/  expr  %:  evaluate-datum  date:;;(year:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  date:;;(year:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  aura  ?:(?=(dime expr) -.expr type.expr)
       ?.  =(~.da aura)
         ~|("{<aura>} not a supported type for %year, need @da" !!)
       ?:  ?=(dime expr)
-        [~.ud y:(yore `@da`+.expr)]
+        [seed [~.ud y:(yore `@da`+.expr)]]
+      :-  seed
       :+  %fn
           ~.ud
           |=  =data-row
@@ -172,18 +181,22 @@
           [~.ud y:(yore `@da`+:(f.expr data-row))]
   ::
     %month
-      =/  expr  %:  evaluate-datum  date:;;(month:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  date:;;(month:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  aura  ?:(?=(dime expr) -.expr type.expr)
       ?.  =(~.da aura)
         ~|("{<aura>} not a supported type for %month, need @da" !!)
       ?:  ?=(dime expr)
-        [~.ud m:(yore `@da`+.expr)]
+        [seed [~.ud m:(yore `@da`+.expr)]]
+      :-  seed
       :+  %fn
           ~.ud
           |=  =data-row
@@ -191,13 +204,16 @@
           [~.ud m:(yore `@da`+:(f.expr data-row))]
   ::
     %day
-      =/  expr  %:  evaluate-datum  time-expression:;;(day:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  time-expression:;;(day:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  aura  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(time-element:ast aura)
         ~|("{<aura>} not a supported type for %day, need @da or @dr" !!)
@@ -207,7 +223,8 @@
             %dr  |=(val=@ [~.ud (div `@dr`val ~d1)])
             ==
       ?:  ?=(dime expr)
-        (do-day +.expr)
+        [seed (do-day +.expr)]
+      :-  seed
       :+  %fn
           ~.ud
           |=  =data-row
@@ -215,13 +232,16 @@
           (do-day +:(f.expr data-row))
   ::
     %hour
-      =/  expr  %:  evaluate-datum  time-expression:;;(hour:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  time-expression:;;(hour:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  aura  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(time-element:ast aura)
         ~|("{<aura>} not a supported type for %hour, need @da or @dr" !!)
@@ -231,7 +251,8 @@
             %dr  |=(val=@ [~.ud (div `@dr`val ~h1)])
             ==
       ?:  ?=(dime expr)
-        (do-hour +.expr)
+        [seed (do-hour +.expr)]
+      :-  seed
       :+  %fn
           ~.ud
           |=  =data-row
@@ -239,13 +260,16 @@
           (do-hour +:(f.expr data-row))
   ::
     %minute
-      =/  expr  %:  evaluate-datum  time-expression:;;(minute:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  time-expression:;;(minute:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  aura  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(time-element:ast aura)
         ~|("{<aura>} not a supported type for %minute, need @da or @dr" !!)
@@ -255,7 +279,8 @@
             %dr  |=(val=@ [~.ud (div `@dr`val ~m1)])
             ==
       ?:  ?=(dime expr)
-        (do-minute +.expr)
+        [seed (do-minute +.expr)]
+      :-  seed
       :+  %fn
           ~.ud
           |=  =data-row
@@ -263,13 +288,16 @@
           (do-minute +:(f.expr data-row))
   ::
     %second
-      =/  expr  %:  evaluate-datum  time-expression:;;(second:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  time-expression:;;(second:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  aura  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(time-element:ast aura)
         ~|("{<aura>} not a supported type for %second, need @da or @dr" !!)
@@ -279,7 +307,8 @@
             %dr  |=(val=@ [~.ud (div `@dr`val ~s1)])
             ==
       ?:  ?=(dime expr)
-        (do-second +.expr)
+        [seed (do-second +.expr)]
+      :-  seed
       :+  %fn
           ~.ud
           |=  =data-row
@@ -287,55 +316,73 @@
           (do-second +:(f.expr data-row))
   ::
     %add-time
-      =/  expr  %:  evaluate-datum  time-expression:;;(add-time:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      =/  duration  %:  evaluate-datum  duration:;;(add-time:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  time-expression:;;(add-time:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  duration:;;(add-time:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  duration=resolved-scalar  +.ps
+      :-  seed
       (prepare-time-arith-op %add-time expr duration add)
   ::
     %subtract-time
-      =/  expr  %:  evaluate-datum  time-expression:;;(subtract-time:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      =/  duration  %:  evaluate-datum  duration:;;(subtract-time:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  time-expression:;;(subtract-time:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  duration:;;(subtract-time:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  duration=resolved-scalar  +.ps
+      :-  seed
       (prepare-time-arith-op %subtract-time expr duration sub)
   ::
   ::  numeric functions
   ::
     %abs
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(abs:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(abs:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %abs, ".
             "need ?(~.rd ~.sd ~.ud)"
             !!
       ?:  ?=(dime expr)
+        :-  seed
         ?-  number-system
             ::
             %rd  :-  number-system
@@ -345,6 +392,7 @@
             ::
             %ud  expr
             ==
+      :-  seed
       :+  %fn
         type.expr
         |=  =data-row
@@ -360,13 +408,16 @@
             ==
   ::
     %log
-      =/  expr  %:  evaluate-datum  float-expression:;;(log:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  float-expression:;;(log:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %log, ".
@@ -393,7 +444,8 @@
               [~.rd (~(log rd:math [%z .~1e-15]) (sun:rd val))]
             ==
       ?:  ?=(dime expr)
-        (do-log number-system +.expr)
+        [seed (do-log number-system +.expr)]
+      :-  seed
       :+  %fn
         ~.rd
         |=  =data-row
@@ -401,23 +453,29 @@
         (do-log number-system +:(f.expr data-row))
   ::
     %e
-      [~.rd .~2.718281828459045]
+      [seed [~.rd .~2.718281828459045]]
   ::
     %max
-      =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(max:ast scalar)
-                                     named-ctes
-                                     qualifier-lookup
-                                     map-meta
-                                     resolved-scalars
-                                     bowl
-                                     ==
-      =/  expr2  %:  evaluate-datum  numeric-expression-2:;;(max:ast scalar)
-                                     named-ctes
-                                     qualifier-lookup
-                                     map-meta
-                                     resolved-scalars
-                                     bowl
-                                     ==
+      =/  ps  %:  evaluate-datum  numeric-expression-1:;;(max:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr1=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  numeric-expression-2:;;(max:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  =(ns1 ns2)
@@ -434,7 +492,8 @@
             %ud  ?:  (gte a b)  a  b
             ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        [ns1 (max-val +.expr1 +.expr2)]
+        [seed [ns1 (max-val +.expr1 +.expr2)]]
+      :-  seed
       :+  %fn
         ns1
         |=  =data-row
@@ -444,20 +503,26 @@
         [ns1 (max-val v1 v2)]
   ::
     %min
-      =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
-                                     named-ctes
-                                     qualifier-lookup
-                                     map-meta
-                                     resolved-scalars
-                                     bowl
-                                     ==
-      =/  expr2  %:  evaluate-datum  numeric-expression-2:;;(min:ast scalar)
-                                     named-ctes
-                                     qualifier-lookup
-                                     map-meta
-                                     resolved-scalars
-                                     bowl
-                                     ==
+      =/  ps  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr1=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  numeric-expression-2:;;(min:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  =(ns1 ns2)
@@ -474,7 +539,8 @@
             %ud  ?:  (gte a b)  b  a
             ==
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        [ns1 (min-val +.expr1 +.expr2)]
+        [seed [ns1 (min-val +.expr1 +.expr2)]]
+      :-  seed
       :+  %fn
         ns1
         |=  =data-row
@@ -484,25 +550,28 @@
         [ns1 (min-val v1 v2)]
   ::
     %phi
-      [~.rd .~1.618033988749895]
+      [seed [~.rd .~1.618033988749895]]
   ::
     %pi
-      [~.rd .~3.141592653589793]
+      [seed [~.rd .~3.141592653589793]]
   ::
     %rand
       ~|("%rand not implemented" !!)
   ::
     %tau
-      [~.rd .~6.283185307179586]
+      [seed [~.rd .~6.283185307179586]]
   ::
     %degrees
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(degrees:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(degrees:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %degrees, ".
@@ -528,7 +597,8 @@
             %ud  [ns (abs:si `@s`(need (toi:rd (add:rd res-rd .~0.5))))]
             ==
       ?:  ?=(dime expr)
-        (do-degrees number-system +.expr)
+        [seed (do-degrees number-system +.expr)]
+      :-  seed
       :+  %fn
         number-system
         |=  =data-row
@@ -536,80 +606,104 @@
         (do-degrees number-system +:(f.expr data-row))
   ::
     %sin
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(sin:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      (prepare-rd-trig-op %sin expr ~(sin rd:math [%z .~1e-15]))
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(sin:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      :-  seed
+      (prepare-rd-trig-op %sin +.ps ~(sin rd:math [%z .~1e-15]))
   ::
     %cos
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(cos:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      (prepare-rd-trig-op %cos expr ~(cos rd:math [%z .~1e-15]))
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(cos:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      :-  seed
+      (prepare-rd-trig-op %cos +.ps ~(cos rd:math [%z .~1e-15]))
   ::
     %tan
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(tan:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      (prepare-rd-trig-op %tan expr ~(tan rd:math [%z .~1e-15]))
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(tan:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      :-  seed
+      (prepare-rd-trig-op %tan +.ps ~(tan rd:math [%z .~1e-15]))
   ::
     %asin
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(asin:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      (prepare-rd-trig-op %asin expr ~(asin rd:math [%z .~1e-15]))
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(asin:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      :-  seed
+      (prepare-rd-trig-op %asin +.ps ~(asin rd:math [%z .~1e-15]))
   ::
     %acos
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(acos:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      (prepare-rd-trig-op %acos expr ~(acos rd:math [%z .~1e-15]))
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(acos:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      :-  seed
+      (prepare-rd-trig-op %acos +.ps ~(acos rd:math [%z .~1e-15]))
   ::
     %atan
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(atan:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
-      (prepare-rd-trig-op %atan expr ~(atan rd:math [%z .~1e-15]))
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(atan:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      :-  seed
+      (prepare-rd-trig-op %atan +.ps ~(atan rd:math [%z .~1e-15]))
   ::
     %atan2
-      =/  expr1  %:  evaluate-datum  numeric-expression-1:;;(atan2:ast scalar)
-                                     named-ctes
-                                     qualifier-lookup
-                                     map-meta
-                                     resolved-scalars
-                                     bowl
-                                     ==
-      =/  expr2  %:  evaluate-datum  numeric-expression-2:;;(atan2:ast scalar)
-                                     named-ctes
-                                     qualifier-lookup
-                                     map-meta
-                                     resolved-scalars
-                                     bowl
-                                     ==
+      =/  ps  %:  evaluate-datum  numeric-expression-1:;;(atan2:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr1=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  numeric-expression-2:;;(atan2:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr2=resolved-scalar  +.ps
       =/  ns1  ?:(?=(dime expr1) -.expr1 type.expr1)
       =/  ns2  ?:(?=(dime expr2) -.expr2 type.expr2)
       ?.  ?=(number-systems ns1)
@@ -631,7 +725,8 @@
         |=  [y=@ x=@]  ^-  dime
         [~.rd (~(atan2 rd:math [%z .~1e-15]) (to-rd ns1 y) (to-rd ns2 x))]
       ?:  &(?=(dime expr1) ?=(dime expr2))
-        (do-atan2 +.expr1 +.expr2)
+        [seed (do-atan2 +.expr1 +.expr2)]
+      :-  seed
       :+  %fn
         ~.rd
         |=  =data-row
@@ -641,13 +736,16 @@
         (do-atan2 y x)
   ::
     %floor
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(floor:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(floor:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  floor-adjust
         |=  [int=@rd datum=@rd]
         ^-  @rd
@@ -655,16 +753,20 @@
         ?:  =(0 dcm)  int
         ?:  (sig:rd datum)  int
         (sub:rd int .~1)
+      :-  seed
       (simple-rounding-ops %floor expr floor-adjust)
   ::
     %ceiling
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(ceiling:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(ceiling:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  ceiling-adjust
         |=  [int=@rd datum=@rd]
         ^-  @rd
@@ -672,28 +774,35 @@
         ?:  =(0 dcm)  int
         ?:  (sig:rd datum)  (add:rd int .~1)
         int
+      :-  seed
       (simple-rounding-ops %ceiling expr ceiling-adjust)
   ::
     %round
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(round:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(round:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %round, ".
             "need ?(~.rd ~.sd ~.ud)"
             !!
-      =/  len-expr  %:  evaluate-datum  length:;;(round:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  length:;;(round:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  len-expr=resolved-scalar  +.ps
       =/  len-type  ?:(?=(dime len-expr) -.len-expr type.len-expr)
       ?.  |(=(~.ud len-type) =(~.sd len-type))
         ~|  "round: length must be @ud or @sd, got {<len-type>}"  !!
@@ -756,41 +865,43 @@
         =/  half   (div scale 2)
         (mul (div (add `@ud`datum half) scale) scale)
       ?:  ?=(dime expr)
-        ?-  number-system
-            ::
-            %rd
-              ?.  ?=(dime len-expr)
-                :+  %fn  number-system
-                |=  =data-row
-                ^-  dime
-                =/  [is-pos=? mag=@ud]
-                      (extract-len-info +:(f.len-expr data-row))
-                [number-system (round-rd +.expr is-pos mag)]
-              =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
-              [number-system (round-rd +.expr is-pos mag)]
-            ::
-            %sd
-              ?.  ?=(dime len-expr)
-                :+  %fn  number-system
-                |=  =data-row
-                ^-  dime
-                =/  [is-pos=? mag=@ud]
-                      (extract-len-info +:(f.len-expr data-row))
-                [number-system (round-sd +.expr is-pos mag)]
-              =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
-              [number-system (round-sd +.expr is-pos mag)]
-            ::
-            %ud
-              ?.  ?=(dime len-expr)
-                :+  %fn  number-system
-                |=  =data-row
-                ^-  dime
-                =/  [is-pos=? mag=@ud]
-                      (extract-len-info +:(f.len-expr data-row))
-                [number-system (round-ud +.expr is-pos mag)]
-              =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
-              [number-system (round-ud +.expr is-pos mag)]
-            ==
+        :-  seed
+            ?-  number-system
+                ::
+                %rd
+                  ?.  ?=(dime len-expr)
+                    :+  %fn  number-system
+                    |=  =data-row
+                    ^-  dime
+                    =/  [is-pos=? mag=@ud]
+                          (extract-len-info +:(f.len-expr data-row))
+                    [number-system (round-rd +.expr is-pos mag)]
+                  =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
+                  [number-system (round-rd +.expr is-pos mag)]
+                ::
+                %sd
+                  ?.  ?=(dime len-expr)
+                    :+  %fn  number-system
+                    |=  =data-row
+                    ^-  dime
+                    =/  [is-pos=? mag=@ud]
+                          (extract-len-info +:(f.len-expr data-row))
+                    [number-system (round-sd +.expr is-pos mag)]
+                  =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
+                  [number-system (round-sd +.expr is-pos mag)]
+                ::
+                %ud
+                  ?.  ?=(dime len-expr)
+                    :+  %fn  number-system
+                    |=  =data-row
+                    ^-  dime
+                    =/  [is-pos=? mag=@ud]
+                          (extract-len-info +:(f.len-expr data-row))
+                    [number-system (round-ud +.expr is-pos mag)]
+                  =/  [is-pos=? mag=@ud]  (extract-len-info +.len-expr)
+                  [number-system (round-ud +.expr is-pos mag)]
+                ==
+      :-  seed
       :+  %fn
         type.expr
         |=  =data-row
@@ -805,19 +916,23 @@
             ==
   ::
     %sign
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(sign:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(sign:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sign, ".
             "need ?(~.rd ~.sd ~.ud)"
             !!
       ?:  ?=(dime expr)
+        :-  seed
         ?-  number-system
             ::
             %rd
@@ -839,6 +954,7 @@
                 [number-system 0]
               [number-system 1]
             ==
+      :-  seed
       :+  %fn
         type.expr
         |=  =data-row
@@ -868,19 +984,23 @@
             ==
   ::
     %sqrt
-      =/  expr  %:  evaluate-datum  float-expression:;;(sqrt:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  float-expression:;;(sqrt:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       =/  number-system  ?:(?=(dime expr) -.expr type.expr)
       ?.  ?=(number-systems number-system)
         ~|  "{<number-system>} not a supported number system for %sqrt, ".
             "need ?(~.rd ~.sd ~.ud)"
             !!
       ?:  ?=(dime expr)
+        :-  seed
         ?-  number-system
             ::
             %rd
@@ -905,6 +1025,7 @@
               ?~  toi-result  ~|  "sqrt({<+.expr>}) is not a number"  !!
               [number-system (abs:si u.toi-result)]
             ==
+      :-  seed
       :+  %fn
         type.expr
         |=  =data-row
@@ -931,7 +1052,7 @@
             %ud
               =/  datum  +:(f.expr data-row)
               ?:  =(0 datum)  [number-system 0]
-              ?:  =(1 datum)  [number-system 1] 
+              ?:  =(1 datum)  [number-system 1]
               =/  toi-result  (toi:rd (sqt:rd (sun:rd datum)))
               ?~  toi-result  ~|  "sqrt({<datum>}) is not a number"  !!
               [number-system (abs:si u.toi-result)]
@@ -944,19 +1065,23 @@
       =/  exprs
         %+  turn  ;;((list scalar-node) args:;;(concat:ast scalar))
         |=  arg=*
-        %:  evaluate-datum  arg
-                            named-ctes
-                            qualifier-lookup
-                            map-meta
-                            resolved-scalars
-                            bowl
-                            ==
+        =/  ps  %:  evaluate-datum  arg
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    seed
+                                    ==
+        +.ps
       ?>  (levy exprs |=(e=resolved-scalar =(~.t ?:(?=(dime e) -.e type.e))))
       ?:  (levy exprs |=(e=resolved-scalar ?=(dime e)))
+        :-  seed
         :-  ~.t
             %-  crip  %-  zing  %+  turn  exprs
                                           |=  e=resolved-scalar
                                           (trip `@t`+:;;(dime e))
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -972,20 +1097,26 @@
   ::
     %left
       ::  LEFT(str, n) returns the leftmost n characters of str
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(left:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
-      =/  int-expr  %:  evaluate-datum  integer-expression:;;(left:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(left:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  integer-expression:;;(left:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  int-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "LEFT: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -998,7 +1129,8 @@
         |=  [str=@t n=@ud]
         (crip (scag n (trip str)))
       ?:  &(?=(dime str-expr) ?=(dime int-expr))
-        [~.t (do-left `@t`+.str-expr `@ud`+.int-expr)]
+        [seed [~.t (do-left `@t`+.str-expr `@ud`+.int-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1008,19 +1140,23 @@
   ::
     %len
       ::  LEN(str) returns the number of characters as an unsigned integer
-      =/  expr  %:  evaluate-datum  string-expression:;;(len:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(len:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
         ~|  "LEN: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
       ?:  ?=(dime expr)
-        [~.ud (met 3 `@t`+.expr)]
+        [seed [~.ud (met 3 `@t`+.expr)]]
+      :-  seed
       :+  %fn  ~.ud
       |=  =data-row
       ^-  dime
@@ -1028,19 +1164,23 @@
   ::
     %lower
       ::  LOWER(str) converts all uppercase characters in str to lowercase
-      =/  expr  %:  evaluate-datum  string-expression:;;(lower:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(lower:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
         ~|  "LOWER: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
       ?:  ?=(dime expr)
-        [~.t (crip (cass (trip `@t`+.expr)))]
+        [seed [~.t (crip (cass (trip `@t`+.expr)))]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1049,13 +1189,16 @@
     %ltrim
       ::  LTRIM(str[, pattern]) removes leading whitespace (default)
       ::                        or leading occurrences of pattern
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(ltrim:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(ltrim:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "LTRIM: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1088,24 +1231,29 @@
         (crip (drop-pat (trip pat) (trip str)))
       ?~  raw-pattern
         ?:  ?=(dime str-expr)
-          [~.t (do-ltrim-ws `@t`+.str-expr)]
+          [seed [~.t (do-ltrim-ws `@t`+.str-expr)]]
+        :-  seed
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
         [~.t (do-ltrim-ws `@t`+:(f.str-expr data-row))]
-      =/  pat-expr  %:  evaluate-datum  u.raw-pattern
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  u.raw-pattern
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  pat-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "LTRIM: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
-        [~.t (do-ltrim-pat `@t`+.str-expr `@t`+.pat-expr)]
+        [seed [~.t (do-ltrim-pat `@t`+.str-expr `@t`+.pat-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1116,21 +1264,27 @@
     %patindex
       ::  PATINDEX(str, pattern) returns 1-based starting position of pattern
       ::                         in str, or 0 if not found
-      =/  str-expr
+      =/  ps
             %:  evaluate-datum  string-expression:;;(patindex:ast scalar)
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
                                 bowl
+                                seed
                                 ==
-      =/  pat-expr  %:  evaluate-datum  pattern:;;(patindex:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  pattern:;;(patindex:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  pat-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "PATINDEX: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1146,7 +1300,8 @@
         ?~  pos  0
         +(u.pos)
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
-        [~.ud (do-patindex `@t`+.str-expr `@t`+.pat-expr)]
+        [seed [~.ud (do-patindex `@t`+.str-expr `@t`+.pat-expr)]]
+      :-  seed
       :+  %fn  ~.ud
       |=  =data-row
       ^-  dime
@@ -1157,14 +1312,17 @@
     %quotestring
       ::  QUOTESTRING(str[, open, close]) wraps str in delimiters;
       ::                                  default delimiters are '[' and ']'
-      =/  str-expr
+      =/  ps
             %:  evaluate-datum  string-expression:;;(quotestring:ast scalar)
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
                                 bowl
+                                seed
                                 ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "QUOTESTRING: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1176,25 +1334,32 @@
         (crip (weld (weld (trip open) (trip str)) (trip close)))
       ?~  raw-quote
         ?:  ?=(dime str-expr)
-          [~.t (do-quote `@t`+.str-expr '[' ']')]
+          [seed [~.t (do-quote `@t`+.str-expr '[' ']')]]
+        :-  seed
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
         [~.t (do-quote `@t`+:(f.str-expr data-row) '[' ']')]
-      =/  open-expr   %:  evaluate-datum  -.u.raw-quote
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
-      =/  close-expr  %:  evaluate-datum  +.u.raw-quote
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
+      =/  ps   %:  evaluate-datum  -.u.raw-quote
+                                   named-ctes
+                                   qualifier-lookup
+                                   map-meta
+                                   resolved-scalars
+                                   bowl
+                                   seed
+                                   ==
+      =.  seed  -.ps
+      =/  open-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  +.u.raw-quote
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  close-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime open-expr) -.open-expr type.open-expr))
         ~|  "QUOTESTRING: expected @t open, got ".
             "{<?:(?=(dime open-expr) -.open-expr type.open-expr)>}"
@@ -1204,7 +1369,8 @@
             "{<?:(?=(dime close-expr) -.close-expr type.close-expr)>}"
             !!
       ?:  &(?=(dime str-expr) &(?=(dime open-expr) ?=(dime close-expr)))
-        [~.t (do-quote `@t`+.str-expr `@t`+.open-expr `@t`+.close-expr)]
+        [seed [~.t (do-quote `@t`+.str-expr `@t`+.open-expr `@t`+.close-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1217,27 +1383,36 @@
     %replace
       ::  REPLACE(str, pattern, replacement) replaces all occurrences of pattern
       ::                                     in str with replacement
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(replace:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
-      =/  pat-expr  %:  evaluate-datum  pattern:;;(replace:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
-      =/  rep-expr  %:  evaluate-datum  replacement:;;(replace:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(replace:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  pattern:;;(replace:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  pat-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  replacement:;;(replace:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  rep-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "REPLACE: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1266,7 +1441,8 @@
           (weld r $(s (slag n `tape`s)))
         (crip result)
       ?:  &(?=(dime str-expr) &(?=(dime pat-expr) ?=(dime rep-expr)))
-        [~.t (do-replace `@t`+.str-expr `@t`+.pat-expr `@t`+.rep-expr)]
+        [seed [~.t (do-replace `@t`+.str-expr `@t`+.pat-expr `@t`+.rep-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1277,22 +1453,28 @@
   ::
     %replicate
       ::  REPLICATE(str, n) repeats str n times
-      =/  str-expr
+      =/  ps
             %:  evaluate-datum  string-expression:;;(replicate:ast scalar)
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
                                 bowl
+                                seed
                                 ==
-      =/  int-expr
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps
             %:  evaluate-datum  integer-expression:;;(replicate:ast scalar)
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
                                 bowl
+                                seed
                                 ==
+      =.  seed  -.ps
+      =/  int-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "REPLICATE: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1311,7 +1493,8 @@
           (weld s $(n (dec n)))
         (crip result)
       ?:  &(?=(dime str-expr) ?=(dime int-expr))
-        [~.t (do-replicate `@t`+.str-expr `@ud`+.int-expr)]
+        [seed [~.t (do-replicate `@t`+.str-expr `@ud`+.int-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1321,19 +1504,23 @@
   ::
     %reverse
       ::  REVERSE(str) returns the characters of str in reverse order
-      =/  expr  %:  evaluate-datum  string-expression:;;(reverse:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(reverse:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
         ~|  "REVERSE: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
       ?:  ?=(dime expr)
-        [~.t (crip (flop (trip `@t`+.expr)))]
+        [seed [~.t (crip (flop (trip `@t`+.expr)))]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1341,20 +1528,26 @@
   ::
     %right
       ::  RIGHT(str, n) returns the rightmost n characters of str
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(right:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
-      =/  int-expr  %:  evaluate-datum  integer-expression:;;(right:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(right:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  integer-expression:;;(right:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  int-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "RIGHT: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1370,7 +1563,8 @@
         =/  len=@ud  (lent s)
         (crip ?:((gte n len) s (slag (sub len n) s)))
       ?:  &(?=(dime str-expr) ?=(dime int-expr))
-        [~.t (do-right `@t`+.str-expr `@ud`+.int-expr)]
+        [seed [~.t (do-right `@t`+.str-expr `@ud`+.int-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1381,13 +1575,16 @@
     %rtrim
       ::  RTRIM(str[, pattern]) removes trailing whitespace (default)
       ::                        or trailing occurrences of pattern
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(rtrim:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(rtrim:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "RTRIM: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1420,24 +1617,29 @@
         (crip (flop (drop-pat (flop (trip pat)) (flop (trip str)))))
       ?~  raw-pattern
         ?:  ?=(dime str-expr)
-          [~.t (do-rtrim-ws `@t`+.str-expr)]
+          [seed [~.t (do-rtrim-ws `@t`+.str-expr)]]
+        :-  seed
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
         [~.t (do-rtrim-ws `@t`+:(f.str-expr data-row))]
-      =/  pat-expr  %:  evaluate-datum  u.raw-pattern
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  u.raw-pattern
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  pat-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "RTRIM: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
-        [~.t (do-rtrim-pat `@t`+.str-expr `@t`+.pat-expr)]
+        [seed [~.t (do-rtrim-pat `@t`+.str-expr `@t`+.pat-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1447,15 +1649,19 @@
   ::
     %string
       ::  STRING(numeric) converts a numeric value to its string representation
-      =/  expr  %:  evaluate-datum  numeric-expression:;;(string:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  numeric-expression:;;(string:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       ?:  ?=(dime expr)
-        [~.t (crip (scow `@tas`-.expr +.expr))]
+        [seed [~.t (crip (scow `@tas`-.expr +.expr))]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1467,20 +1673,25 @@
       =/  arg-exprs
         %+  turn  ;;((list scalar-node) args:;;(string-concat:ast scalar))
         |=  arg=*
-        %:  evaluate-datum  arg
-                            named-ctes
-                            qualifier-lookup
-                            map-meta
-                            resolved-scalars
-                            bowl
-                            ==
-      =/  delim-expr  %:  evaluate-datum  delimiter:;;(string-concat:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
+        =/  ps  %:  evaluate-datum  arg
+                                    named-ctes
+                                    qualifier-lookup
+                                    map-meta
+                                    resolved-scalars
+                                    bowl
+                                    seed
+                                    ==
+        +.ps
+      =/  ps  %:  evaluate-datum  delimiter:;;(string-concat:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  delim-expr=resolved-scalar  +.ps
       ?>  (levy arg-exprs |=(e=resolved-scalar =(~.t ?:(?=(dime e) -.e type.e))))
       ?.  =(~.t ?:(?=(dime delim-expr) -.delim-expr type.delim-expr))
         ~|  "STRING-CONCAT: expected @t delimiter, got ".
@@ -1496,10 +1707,13 @@
       ?:  ?&  (levy arg-exprs |=(e=resolved-scalar ?=(dime e)))
               ?=(dime delim-expr)
               ==
-        =/  tapes
-          (turn arg-exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))
-        =/  d      (trip `@t`+:;;(dime delim-expr))
-        [~.t (crip (do-join tapes d))]
+        :-  seed
+        :-  ~.t
+            =/  tapes
+              (turn arg-exprs |=(e=resolved-scalar (trip `@t`+:;;(dime e))))
+            =/  d      (trip `@t`+:;;(dime delim-expr))
+            (crip (do-join tapes d))
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1516,34 +1730,46 @@
     %stuff
       ::  STUFF(str, start, length, replace) deletes length chars at start
       ::                                     (1-based) and inserts replace
-      =/  str-expr    %:  evaluate-datum  string-expression:;;(stuff:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
-      =/  start-expr  %:  evaluate-datum  start:;;(stuff:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
-      =/  len-expr    %:  evaluate-datum  length:;;(stuff:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
-      =/  rep-expr    %:  evaluate-datum  replace:;;(stuff:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(stuff:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  start:;;(stuff:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  start-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  length:;;(stuff:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  len-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  replace:;;(stuff:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  rep-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "STUFF: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1570,12 +1796,14 @@
       ?:  ?&  ?=(dime str-expr)
               &(?=(dime start-expr) &(?=(dime len-expr) ?=(dime rep-expr)))
               ==
+        :-  seed
         :-  ~.t
             %:  do-stuff  `@t`+.str-expr
                           `@ud`+.start-expr
                           `@ud`+.len-expr
                           `@t`+.rep-expr
                           ==
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1590,21 +1818,27 @@
       ::  SUBSTRING(str, start[, length]) returns substring starting
       ::                                  at start (1-based index);
       ::  if length is omitted, returns from start to end of str
-      =/  str-expr
+      =/  ps
             %:  evaluate-datum  string-expression:;;(substring:ast scalar)
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
                                 bowl
+                                seed
                                 ==
-      =/  start-expr  %:  evaluate-datum  start:;;(substring:ast scalar)
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  start:;;(substring:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  start-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "SUBSTRING: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1623,7 +1857,8 @@
         (crip (scag u.mlen from))
       ?~  raw-length
         ?:  &(?=(dime str-expr) ?=(dime start-expr))
-          [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr ~)]
+          [seed [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr ~)]]
+        :-  seed
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
@@ -1631,19 +1866,23 @@
         =/  start
               `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
         [~.t (do-sub str start ~)]
-      =/  len-expr  %:  evaluate-datum  u.raw-length
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  u.raw-length
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  len-expr=resolved-scalar  +.ps
       ?.  =(~.ud ?:(?=(dime len-expr) -.len-expr type.len-expr))
         ~|  "SUBSTRING: expected @ud length, got ".
             "{<?:(?=(dime len-expr) -.len-expr type.len-expr)>}"
             !!
       ?:  &(?=(dime str-expr) &(?=(dime start-expr) ?=(dime len-expr)))
-        [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))]
+        [seed [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1656,13 +1895,16 @@
     %trim
       ::  TRIM(str[, pattern]) removes leading and trailing whitespace
       ::                       or pattern occurrences from str
-      =/  str-expr  %:  evaluate-datum  string-expression:;;(trim:ast scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(trim:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  str-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime str-expr) -.str-expr type.str-expr))
         ~|  "TRIM: expected @t string, got ".
             "{<?:(?=(dime str-expr) -.str-expr type.str-expr)>}"
@@ -1696,24 +1938,29 @@
         (crip (flop (drop-pat (flop p) (flop (drop-pat p (trip str))))))
       ?~  raw-pattern
         ?:  ?=(dime str-expr)
-          [~.t (do-trim-ws `@t`+.str-expr)]
+          [seed [~.t (do-trim-ws `@t`+.str-expr)]]
+        :-  seed
         :+  %fn  ~.t
         |=  =data-row
         ^-  dime
         [~.t (do-trim-ws `@t`+:(f.str-expr data-row))]
-      =/  pat-expr  %:  evaluate-datum  u.raw-pattern
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        ==
+      =/  ps  %:  evaluate-datum  u.raw-pattern
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  pat-expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime pat-expr) -.pat-expr type.pat-expr))
         ~|  "TRIM: expected @t pattern, got ".
             "{<?:(?=(dime pat-expr) -.pat-expr type.pat-expr)>}"
             !!
       ?:  &(?=(dime str-expr) ?=(dime pat-expr))
-        [~.t (do-trim-pat `@t`+.str-expr `@t`+.pat-expr)]
+        [seed [~.t (do-trim-pat `@t`+.str-expr `@t`+.pat-expr)]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1723,19 +1970,23 @@
   ::
     %upper
       ::  UPPER(str) converts all lowercase characters in str to uppercase
-      =/  expr  %:  evaluate-datum  string-expression:;;(upper:ast scalar)
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
+      =/  ps  %:  evaluate-datum  string-expression:;;(upper:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =.  seed  -.ps
+      =/  expr=resolved-scalar  +.ps
       ?.  =(~.t ?:(?=(dime expr) -.expr type.expr))
         ~|  "UPPER: expected @t string, got ".
             "{<?:(?=(dime expr) -.expr type.expr)>}"
             !!
       ?:  ?=(dime expr)
-        [~.t (crip (cuss (trip `@t`+.expr)))]
+        [seed [~.t (crip (cuss (trip `@t`+.expr)))]]
+      :-  seed
       :+  %fn  ~.t
       |=  =data-row
       ^-  dime
@@ -1759,20 +2010,24 @@
   :: are qualified, thus this function would need to have two lookup
   :: types? one for the predicate and one for the arguments. To simplify
   :: for now we always raise the predicates to qualified columns
-  =/  then  %:  evaluate-datum  then.scalar
-                                named-ctes
-                                qualifier-lookup
-                                map-meta
-                                resolved-scalars
-                                bowl
-                                ==
-  =/  else  %:  evaluate-datum  else.scalar
-                                named-ctes
-                                qualifier-lookup
-                                map-meta
-                                resolved-scalars
-                                bowl
-                                ==
+  =/  then=resolved-scalar
+    %-  tail  %:  evaluate-datum  then.scalar
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        bowl
+                        *seed
+                        ==
+  =/  else=resolved-scalar
+    %-  tail  %:  evaluate-datum  else.scalar
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
         ~[then else]
@@ -1841,23 +2096,25 @@
   =/  then-dos
     %+  turn  cases
     |=  cwt=case-when-then:ast
-    %:  evaluate-datum  then.cwt
-                        named-ctes
-                        qualifier-lookup
-                        map-meta
-                        resolved-scalars
-                        bowl
-                        ==
+    %-  tail  %:  evaluate-datum  then.cwt
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
       ?~  else.scalar  then-dos
-      :-  %:  evaluate-datum  (need else.scalar)
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              bowl
-                              ==
+      :-  %-  tail  %:  evaluate-datum  (need else.scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        *seed
+                                        ==
           then-dos
       ~
       named-ctes
@@ -1900,19 +2157,22 @@
     |=  cwt=case-when-then:ast
     ?:  ?=(ops-and-conjs:ast -.when.cwt)
       ~|("when predicate not allowed in simple case" !!)
-    %:  evaluate-datum  ;;(scalar-node when.cwt)
-                        named-ctes
-                        qualifier-lookup
-                        map-meta
-                        resolved-scalars
-                        bowl
-                        ==
-  =/  target  %:  evaluate-datum  (need target.scalar)
+    %-  tail  %:  evaluate-datum  ;;(scalar-node when.cwt)
                                   named-ctes
                                   qualifier-lookup
                                   map-meta
                                   resolved-scalars
                                   bowl
+                                  *seed
+                                  ==
+  =/  target=resolved-scalar
+    %-  tail  %:  evaluate-datum  (need target.scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
                                   ==
   =/  [cmp-typ=@ta cmp-valid=(list resolved-scalar)]
     %:  check-consistent-types
@@ -1926,23 +2186,25 @@
   =/  then-dos
     %+  turn  cases
     |=  cwt=case-when-then:ast
-    %:  evaluate-datum  then.cwt
-                        named-ctes
-                        qualifier-lookup
-                        map-meta
-                        resolved-scalars
-                        bowl
-                        ==
+    %-  tail  %:  evaluate-datum  then.cwt
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
       ?~  else.scalar  then-dos
-      :-  %:  evaluate-datum  (need else.scalar)
-                              named-ctes
-                              qualifier-lookup
-                              map-meta
-                              resolved-scalars
-                              bowl
-                              ==
+      :-  %-  tail  %:  evaluate-datum  (need else.scalar)
+                                        named-ctes
+                                        qualifier-lookup
+                                        map-meta
+                                        resolved-scalars
+                                        bowl
+                                        *seed
+                                        ==
           then-dos
       ~
       named-ctes
@@ -1992,21 +2254,25 @@
                                              named-ctes
                                              resolved-scalars
                                              ==
+                      %-  tail
                       %:  evaluate-datum  then.cwt
-                                          named-ctes
-                                          qualifier-lookup
-                                          map-meta
-                                          resolved-scalars
-                                          bowl
-                                          ==
+                                         named-ctes
+                                         qualifier-lookup
+                                         map-meta
+                                         resolved-scalars
+                                         bowl
+                                         *seed
+                                         ==
   ?~  else.scalar  fns
-  =/  else-rs  %:  evaluate-datum  (need else.scalar)
-                                   named-ctes
-                                   qualifier-lookup
-                                   map-meta
-                                   resolved-scalars
-                                   bowl
-                                   ==
+  =/  else-rs=resolved-scalar
+    %-  tail  %:  evaluate-datum  (need else.scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
       ~[[|=(=data-row %.y) else-rs]]
@@ -2026,24 +2292,26 @@
   =/  eq-pred
     |=  [target=* when=* =data-row]
     ^-  ?
-    =/  target-val
-          %+  apply-scalar  data-row
-                            %:  evaluate-datum  target
-                                                named-ctes
-                                                qualifier-lookup
-                                                map-meta
-                                                resolved-scalars
-                                                bowl
-                                                ==
-    =/  when-val
-          %+  apply-scalar  data-row
-                            %:  evaluate-datum  when
-                                                named-ctes
-                                                qualifier-lookup
-                                                map-meta
-                                                resolved-scalars
-                                                bowl
-                                                ==
+    =/  target-ps
+          %:  evaluate-datum  target
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              *seed
+                              ==
+    =/  target-val  %+  apply-scalar  data-row  +.target-ps
+    =/  when-ps
+          %:  evaluate-datum  when
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              *seed
+                              ==
+    =/  when-val  %+  apply-scalar  data-row  +.when-ps
     =(target-val when-val)
   =/  fns  %+  turn  cases.scalar
                      |=  cwt=case-when-then:ast
@@ -2064,21 +2332,25 @@
                                       ;;(scalar-node:ast when.cwt)
                                       data-row
                          ::
+                         %-  tail
                          %:  evaluate-datum  then.cwt
-                                             named-ctes
-                                             qualifier-lookup
-                                             map-meta
-                                             resolved-scalars
-                                             bowl
-                                             ==
+                                            named-ctes
+                                            qualifier-lookup
+                                            map-meta
+                                            resolved-scalars
+                                            bowl
+                                            *seed
+                                            ==
   ?~  else.scalar  fns
-  =/  else-rs  %:  evaluate-datum  (need else.scalar)
-                                   named-ctes
-                                   qualifier-lookup
-                                   map-meta
-                                   resolved-scalars
-                                   bowl
-                                   ==
+  =/  else-rs=resolved-scalar
+    %-  tail  %:  evaluate-datum  (need else.scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
       ~[[|=(=data-row %.y) else-rs]]
@@ -2095,13 +2367,15 @@
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types  %+  turn  data.scalar
                                           |=  item=*
+                                          %-  tail
                                           %:  evaluate-datum  item
-                                                              named-ctes
-                                                              qualifier-lookup
-                                                              map-meta
-                                                              resolved-scalars
-                                                              bowl
-                                                              ==
+                                                             named-ctes
+                                                             qualifier-lookup
+                                                             map-meta
+                                                             resolved-scalars
+                                                             bowl
+                                                             *seed
+                                                             ==
                                   ~
                                   named-ctes
                                   map-meta
@@ -2133,20 +2407,24 @@
         =bowl:gall
       ==
   ^-  resolved-scalar
-  =/  l  %:  evaluate-datum  left.scalar
-                             named-ctes
-                             qualifier-lookup
-                             map-meta
-                             resolved-scalars
-                             bowl
-                             ==
-  =/  r  %:  evaluate-datum  right.scalar
-                             named-ctes
-                             qualifier-lookup
-                             map-meta
-                             resolved-scalars
-                             bowl
-                             ==
+  =/  l=resolved-scalar
+    %-  tail  %:  evaluate-datum  left.scalar
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
+  =/  r=resolved-scalar
+    %-  tail  %:  evaluate-datum  right.scalar
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  *seed
+                                  ==
   =/  l-number-system  ?:  ?=(dime l)  -.l
                        type.l
   =/  r-number-system  ?:  ?=(dime r)  -.r
@@ -2528,17 +2806,20 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
   ~|  "evaluate-datum: failed {<datum>}"
   ?:  ?=(scalar-name:ast datum)    :: must be before dime
+    :-  seed
     ~|  "scalar {<name.datum>} not found"
         (~(got by resolved-scalars) name.datum)
   ?:  ?=(dime datum)
-    datum
+    [seed datum]
   ?:  ?=(cte-column:ast datum)
-    (resolve-cte-column datum named-ctes)
+    [seed (resolve-cte-column datum named-ctes)]
   ?:  ?=(qualified-column:ast datum)
+    :-  seed
     :+  %fn
         %+  got-qualified-col-type  map-meta
                                     ;;(qualified-column:ast datum)
@@ -2553,6 +2834,7 @@
     ?:  (gth (lent table-list) 1)  ~|("too many tables!" !!)
     =/  column=qualified-column:ast
       [%qualified-column -.table-list name:;;(unqualified-column:ast datum) ~]
+    :-  seed
     :+  %fn
         (got-qualified-col-type map-meta column)
         |=  =data-row
@@ -2563,5 +2845,6 @@
                       map-meta
                       resolved-scalars
                       bowl
+                      seed
                       ==
 --

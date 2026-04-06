@@ -1474,17 +1474,19 @@
           =data-row
           row=table-test-row
          ==
+  =/  my-bowl  (bowl [0 ~2026.4.21])
   =/  scalar-to-apply
     %:  prepare-scalar  fn.row
                         named-ctes
                         qualifier-lookup
                         map-meta
                         resolved-scalars
-                        (bowl [0 ~2026.4.21])
+                        my-bowl
+                        eny.my-bowl
                         ==
   %+  expect-eq
     !>  expected.row
-    !>  (apply-scalar data-row scalar-to-apply)
+    !>  (apply-scalar data-row +.scalar-to-apply)
 ::
 ::  row structure:
 ::  [@tas(test-name) [fn expected]]
