@@ -136,8 +136,13 @@
       :-  %.y
           ::~&  "{<->->+.rtree>}"   :: from objects
           ::~>  %bout.[0 %select]
-          =/  rt  (do-query -.rtree named-ctes %.n)
-          [next-data ->-.rt (select-results named-ctes -.rt +.rt)]
+          =/  q=query:ast  -.rtree
+          =/  rt  (do-query q named-ctes %.n)
+          =/  results  (select-results named-ctes -.rt +.rt)
+          :+  next-data  ->-.rt
+          ?.  (selection-has-rand scalars.q ctes.selection)
+            results
+          [[%message 'warning: results are non-deterministic'] results]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       !!
@@ -1341,6 +1346,104 @@
   |=  [key=@tas column-lookup=(map @tas [aura @])]
   ^-  [@tas @]
   [key +:(~(got by column-lookup) key)]
+::
+++  selection-has-rand
+  |=  [scalars=(list scalar:ast) ctes=(list cte:ast)]
+  ^-  ?
+  ?|  (scalars-have-rand scalars)
+      (lien ctes |=(c=cte:ast (scalars-have-rand scalars.query.c)))
+  ==
+::
+++  scalars-have-rand
+  |=  scalars=(list scalar:ast)
+  ^-  ?
+  (lien scalars |=(s=scalar:ast (node-has-rand `scalar-node:ast`f.s)))
+::
+++  node-has-rand
+  |=  sn=scalar-node:ast
+  ^-  ?
+  ?:  ?=([%rand *] sn)  %.y
+  %+  lien  (scalar-node-children sn)
+  |=(n=scalar-node:ast ^$(sn n))
+::
+++  scalar-node-children
+  |=  sn=scalar-node:ast
+  ^-  (list scalar-node:ast)
+  ::  exclude dime and scalar-name (atom payloads, no children)
+  ::  also excludes concat with empty args (no children)
+  ?:  ?=(@ +.sn)  ~
+  ?+  -.sn  ~
+    %arithmetic     ~[left.sn right.sn]
+    %if-then-else   ~[then.sn else.sn]
+  ::
+    %case
+      %+  weld  ?~(target.sn ~ ~[u.target.sn])
+      %+  weld  (turn cases.sn |=(cwt=case-when-then:ast then.cwt))
+      ?~(else.sn ~ ~[u.else.sn])
+  ::
+    %coalesce  data.sn
+  ::  datetime
+    %year      ~[date.sn]
+    %month     ~[date.sn]
+    %day       ~[time-expression.sn]
+    %hour      ~[time-expression.sn]
+    %minute    ~[time-expression.sn]
+    %second    ~[time-expression.sn]
+  ::
+    %add-time       ~[time-expression.sn duration.sn]
+    %subtract-time  ~[time-expression.sn duration.sn]
+  ::  math
+    %abs       ~[numeric-expression.sn]
+    %acos      ~[numeric-expression.sn]
+    %asin      ~[numeric-expression.sn]
+    %atan      ~[numeric-expression.sn]
+    %ceiling   ~[numeric-expression.sn]
+    %cos       ~[numeric-expression.sn]
+    %degrees   ~[numeric-expression.sn]
+    %floor     ~[numeric-expression.sn]
+    %sign      ~[numeric-expression.sn]
+    %sin       ~[numeric-expression.sn]
+    %tan       ~[numeric-expression.sn]
+    %sqrt      ~[float-expression.sn]
+    %atan2     ~[numeric-expression-1.sn numeric-expression-2.sn]
+    %max       ~[numeric-expression-1.sn numeric-expression-2.sn]
+    %min       ~[numeric-expression-1.sn numeric-expression-2.sn]
+    %round     ~[numeric-expression.sn length.sn]
+  ::
+    %log
+      ?~(base.sn ~[float-expression.sn] ~[float-expression.sn u.base.sn])
+  ::  string
+    %len       ~[string-expression.sn]
+    %lower     ~[string-expression.sn]
+    %reverse   ~[string-expression.sn]
+    %upper     ~[string-expression.sn]
+    %string    ~[numeric-expression.sn]
+  ::
+    %left       ~[string-expression.sn integer-expression.sn]
+    %patindex   ~[string-expression.sn pattern.sn]
+    %replicate  ~[string-expression.sn integer-expression.sn]
+    %right      ~[string-expression.sn integer-expression.sn]
+  ::
+    %ltrim
+      ?~(pattern.sn ~[string-expression.sn] ~[string-expression.sn u.pattern.sn])
+    %rtrim
+      ?~(pattern.sn ~[string-expression.sn] ~[string-expression.sn u.pattern.sn])
+    %trim
+      ?~(pattern.sn ~[string-expression.sn] ~[string-expression.sn u.pattern.sn])
+    %substring
+      ?~  length.sn  ~[string-expression.sn start.sn]
+      ~[string-expression.sn start.sn u.length.sn]
+  ::
+    %replace  ~[string-expression.sn pattern.sn replacement.sn]
+    %stuff    ~[string-expression.sn start.sn length.sn replace.sn]
+  ::
+    %concat       args.sn
+    %string-concat
+      ?@(args.sn ~[delimiter.sn] [delimiter.sn args.sn])
+    %quotestring
+      ?~  quote.sn  ~[string-expression.sn]
+      ~[string-expression.sn -.u.quote.sn +.u.quote.sn]
+  ==
 ::
 ++  rdc-set-func
   |=  =(tree set-function:ast)
