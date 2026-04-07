@@ -6636,20 +6636,6 @@
               eny:(bowl [0 ~2026.4.21])
               ==
 ::
-++  test-fail-rand-not-implemented
-  %+  expect-fail-message
-    '%rand not implemented'
-    |.  %:  prepare-scalar
-              ^-  scalar-function:ast
-              [%rand [~.ud 1] [~.ud 2]]
-              table-named-ctes
-              *qualifier-lookup
-              qual-map-meta
-              *(map @tas resolved-scalar)
-              (bowl [0 ~2026.4.21])
-              eny:(bowl [0 ~2026.4.21])
-              ==
-::
 ++  test-fail-max-ns-conflict
   %+  expect-fail-message
     'max: type conflict: ~.rd vs ~.ud'

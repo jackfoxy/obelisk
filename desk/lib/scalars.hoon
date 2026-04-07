@@ -531,7 +531,89 @@
       [seed [~.rd .~3.141592653589793]]
   ::
     %rand
-      ~|("%rand not implemented" !!)
+      =/  ps  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  seed
+                                  ==
+      =/  low=resolved-scalar  +.ps
+      =/  ps  %:  evaluate-datum  numeric-expression-2:;;(min:ast scalar)
+                                  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  bowl
+                                  -.ps
+                                  ==
+      =/  high=resolved-scalar  +.ps
+      =/  ns1  ?:(?=(dime low) -.low type.low)
+      =/  ns2  ?:(?=(dime high) -.high type.high)
+      ?.  =(ns1 ns2)
+        ~|  "min: type conflict: {<ns1>} vs {<ns2>}"  !!
+      ?.  ?=(number-systems ns1)
+        ~|  "{<ns1>} not a supported number system for %min, ".
+            "need ?(~.rd ~.sd ~.ud)"
+            !!
+      
+      =.  high  ?.  ?=(%rd ns1)  high
+              ?:  ?=(dime high)
+                =/  int  (san:rd (need (toi:rd +.high)))
+                =/  dcm  (sub:rd +.high int)
+                high(+ ?:(=(0 dcm) `@`int ?:((sig:rd +.high) `@`(add:rd int .~1) `@`int)))
+              high
+      =.  low  ?.  ?=(%rd ns1)  low
+             ?:  ?=(dime low)
+               =/  dat  `@rd`+.low
+               =/  int  (san:rd (need (toi:rd dat)))
+               =/  dcm  (sub:rd dat int)
+               low(+ ?:(=(0 dcm) `@`int ?:((sig:rd dat) `@`int `@`(sub:rd int .~1))))
+             low
+      =/  rng       ~(. og seed)
+      =/  new-seed  +>-:(rads:rng 100)
+      :-  -.ps
+            :+  %fn
+                ns1
+                |=  =data-row
+                ^-  dime
+                =/  the-seed  (mix new-seed (sham data.data-row))
+                =/  rng       ~(. og the-seed)
+                ::
+                =/  lo  ?:  ?=(dime low)  +.low
+                        +:(f.low data-row)
+                =/  hi  ?:  ?=(dime high)  +.high
+                        +:(f.high data-row)
+                ::
+              
+                =/  diff=@ud  ?-  ns1
+                      %rd
+                        =/  d  (sub:rd `@rd`+.hi `@rd`+.lo)
+                        ?:  (lth:rd d .~1)
+                          ~|("RAND: {<high>} not greater than {<low>}" !!)
+                        (abs:si `@s`(need (toi:rd d)))
+                      %sd
+                        ?.  =((cmp:si `@sd`+.lo `@sd`+.hi) --1)
+                          ~|("RAND: {<high>} not greater than {<low>}" !!)
+                        =/  d  (dif:si `@sd`+.hi `@sd`+.lo)
+                        (abs:si d)
+                      %ud
+                        ?:  (gte `@ud`+.lo `@ud`+.hi)
+                          ~|("RAND: {<high>} not greater than {<low>}" !!)
+                        (sub `@ud`+.hi `@ud`+.lo)
+                      ==
+                ::
+                =/  r         -:(rads:rng diff)
+                ::
+                ?-  ns1
+                  %rd
+                    [ns1 (add:rd `@rd`+.lo (sun:rd r))]
+                  %sd
+                    [ns1 (sum:si `@sd`+.lo (sun:si r))]
+                  %ud
+                    [ns1 (add `@ud`+.lo r)]
+                  ==
   ::
     %tau
       [seed [~.rd .~6.283185307179586]]
