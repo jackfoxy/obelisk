@@ -1553,6 +1553,122 @@
   :-  result
   $(rows +.rows)
 ::
+::  rand test helpers
+::
+::  a single range bound for a rand column: column name + low + high
++$  rand-range  [col=@tas ns=@tas lo=@ hi=@]
+::
+::  check a single value is within [lo, hi] for its number system
+++  in-range
+  |=  [ns=@tas val=@ lo=@ hi=@]
+  ^-  ?
+  ?+  ns  !!
+      %ud  &((gte val lo) (lte val hi))
+      %sd
+    =/  lo-ok  |(=((cmp:si `@sd`lo `@sd`val) --1) =(lo val))
+    =/  hi-ok  |(=((cmp:si `@sd`val `@sd`hi) --1) =(val hi))
+    &(lo-ok hi-ok)
+      %rd
+    &((gte:rd `@rd`val `@rd`lo) (lte:rd `@rd`val `@rd`hi))
+  ==
+::
+::  check all rand columns in a single vector row
+++  check-rand-row
+  |=  [row=(lest vector-cell) ranges=(list rand-range)]
+  ^-  tang
+  =/  row-map=(map @tas dime)
+    %-  malt
+    %+  turn  `(list vector-cell)`row
+    |=(vc=vector-cell [p.vc q.vc])
+  %-  zing
+  %+  turn  ranges
+  |=  rr=rand-range
+  =/  cell  (~(got by row-map) col.rr)
+  ?.  (in-range ns.rr +.cell lo.rr hi.rr)
+    =/  msg
+      "rand {<col.rr>}: {<cell>} not in ".
+      "[{<[-.cell lo.rr]>}, {<[-.cell hi.rr]>}]"
+    ~[leaf+msg]
+  ~
+::
+::  check all rand columns across all rows in a result-set
+++  check-rand-rows
+  |=  [rows=(list vector) ranges=(list rand-range)]
+  ^-  tang
+  %-  zing
+  %+  turn  rows
+  |=  row=vector
+  (check-rand-row +.row ranges)
+::
+::  extract result-set from a cmd-result, returning non-result-set results
+::  and the result-set rows separately
+++  split-results
+  |=  results=(list result)
+  ^-  [(list result) (list vector)]
+  =/  out-results  *(list result)
+  =/  out-vectors  *(list vector)
+  |-
+  ?~  results
+    [(flop out-results) out-vectors]
+  =/  res  i.results
+  ?:  =(%result-set -.res)
+    $(results t.results, out-vectors ;;((list vector) +.res))
+  $(results t.results, out-results [res out-results])
+::
+::  eval-rand-results: like eval-results but checks rand ranges instead
+::  of exact result-set match.
+::  expected-meta: cmd-result with non-result-set results only (no %result-set)
+::  actual: the full cmd-result from the query
+::  ranges: the rand column ranges to check
+++  eval-rand-results
+  |=  $:  expected-meta=cmd-result:ast
+          actual=cmd-result:ast
+          ranges=(list rand-range)
+          ==
+  ^-  tang
+  =/  actual-split  (split-results +.actual)
+  %+  weld
+    %+  expect-eq
+      !>  expected-meta
+      !>  [%results -.actual-split]
+    (check-rand-rows +.actual-split ranges)
+::
+++  exec-rand-0-1
+  ::  init + 1 resolve → check rand results
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expected-meta=cmd-result:ast
+          ranges=(list rand-range)
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+      %obelisk-action
+      !>  [%tape2 db.resolve uql.resolve]
+  ::
+  (eval-rand-results expected-meta ;;(cmd-result:ast ->+>+>+<.mov2) ranges)
+::
+++  debug-rand-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expected-meta=cmd-result:ast
+          ranges=(list rand-range)
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+                %obelisk-action
+                !>([%test db.resolve uql.resolve])
+::
 ::  parse test helper
 ::
 ++  failon-parse

@@ -7101,4 +7101,331 @@
   %+  expect-fail-message
     'sqrt(-4) is not a number'
     |.  (apply-scalar fail-qual-table-row +.fn)
+::
+::  :::::::::::::::::::::::::::::::::::
+::  ::::   RAND TESTS              ::::
+::  :::::::::::::::::::::::::::::::::::
+::
+::  table helpers for rand tests
+::
+++  create-rand-tbl
+  "CREATE TABLE rand-tbl ".
+  "(id @ud, val @t) ".
+  "PRIMARY KEY (id);"
+::
+++  insert-rand-tbl
+  "INSERT INTO rand-tbl VALUES ".
+  "(1, 'a') (2, 'b') (3, 'c') (4, 'd') (5, 'e') ".
+  "(6, 'f') (7, 'g') (8, 'h') (9, 'i') (10, 'j');"
+::
+++  create-rand-tbl-a
+  "CREATE TABLE rand-tbl-a ".
+  "(id @ud, col-a @t) ".
+  "PRIMARY KEY (id);"
+::
+++  insert-rand-tbl-a
+  "INSERT INTO rand-tbl-a VALUES ".
+  "(1, 'a1') (2, 'a2') (3, 'a3') (4, 'a4') (5, 'a5') ".
+  "(6, 'a6') (7, 'a7') (8, 'a8') (9, 'a9') (10, 'a10');"
+::
+++  create-rand-tbl-b
+  "CREATE TABLE rand-tbl-b ".
+  "(id @ud, col-b @t) ".
+  "PRIMARY KEY (id);"
+::
+++  insert-rand-tbl-b
+  "INSERT INTO rand-tbl-b VALUES ".
+  "(1, 'b1') (2, 'b2') (3, 'b3') (4, 'b4') (5, 'b5') ".
+  "(6, 'b6') (7, 'b7') (8, 'b8') (9, 'b9') (10, 'b10');"
+::
+::  RAND scalar aliases used in SELECT
+::
+++  rand-scalars
+  "SCALARS ".
+  "r-ud1 RAND(0, 1) ".
+  "r-sd1 RAND(-0, --1) ".
+  "r-sd2 RAND(-1, --0) ".
+  "r-ud2 RAND(2, 12) ".
+  "r-sd3 RAND(--2, --8) ".
+  "r-sd4 RAND(-5, -2) ".
+  "r-sd5 RAND(-2, --2) ".
+  "r-rd1 RAND(.~0, .~1) ".
+  "r-rd2 RAND(.~-0.3, .~0) ".
+  "r-rd3 RAND(.~2.3, .~11.4) ".
+  "r-rd4 RAND(.~-2, .~3) ".
+  "r-rd5 RAND(.~-9.1, .~2.3) "
+::
+::  expected ranges for the 12 RAND columns
+::  for @rd, use the adjusted (floored/ceilinged) bounds
+::
+++  rand-ranges
+  ^-  (list rand-range)
+  :~  [%r-ud1 %ud 0 1]
+      [%r-sd1 %sd -0 --1]
+      [%r-sd2 %sd -1 --0]
+      [%r-ud2 %ud 2 12]
+      [%r-sd3 %sd --2 --8]
+      [%r-sd4 %sd -5 -2]
+      [%r-sd5 %sd -2 --2]
+      [%r-rd1 %rd .~0 .~1]
+      [%r-rd2 %rd .~-1 .~0]
+      [%r-rd3 %rd .~2 .~12]
+      [%r-rd4 %rd .~-2 .~3]
+      [%r-rd5 %rd .~-10 .~3]
+  ==
+::
+::  rand from a single table, 10 rows
+::
+++  test-rand-single-table
+  =|  run=@ud
+  %-  exec-rand-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-rand-tbl
+                        insert-rand-tbl
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          %-  zing  :~  "FROM rand-tbl "
+                        rand-scalars
+                        "SELECT val, r-ud1, r-sd1, r-sd2, r-ud2, ".
+                        "r-sd3, r-sd4, r-sd5, r-rd1, r-rd2, r-rd3, ".
+                        "r-rd4, r-rd5"
+                        ==
+      ::
+      :-  %results
+          :~  [%message 'warning: results are non-deterministic']
+              [%action 'SELECT']
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.rand-tbl']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 10]
+              ==
+      ::
+      rand-ranges
+      ==
+::
+::  rand from a natural join, 10 rows
+::
+++  test-rand-natural-join
+  =|  run=@ud
+  %-  exec-rand-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-rand-tbl-a
+                        insert-rand-tbl-a
+                        create-rand-tbl-b
+                        insert-rand-tbl-b
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          %-  zing  :~  "FROM rand-tbl-a ".
+                        "NATURAL JOIN rand-tbl-b "
+                        rand-scalars
+                        "SELECT col-a, col-b, r-ud1, r-sd1, r-sd2, ".
+                        "r-ud2, r-sd3, r-sd4, r-sd5, r-rd1, r-rd2, ".
+                        "r-rd3, r-rd4, r-rd5"
+                        ==
+      ::
+      :-  %results
+          :~  [%message 'warning: results are non-deterministic']
+              [%action 'SELECT']
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.rand-tbl-a']
+              [%relation 'db1.dbo.rand-tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 10]
+              ==
+      ::
+      rand-ranges
+      ==
+::
+::  :::::::::::::::::::::::::::::::::::::::::::
+::  ::::  RAND crash / expect-fail tests  ::::
+::  :::::::::::::::::::::::::::::::::::::::::::
+::
+::  type conflict: @ud vs @sd
+++  test-fail-rand-type-conflict
+  %+  expect-fail-message
+    'min: type conflict'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%rand [~.ud 0] [~.sd --1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+::  unsupported type: @t
+++  test-fail-rand-unsupported-type
+  %+  expect-fail-message
+    'not a supported number system for %min'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%rand [~.t 'a'] [~.t 'z']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+::  @ud: high not greater than low (prepare-time, literals)
+++  test-fail-rand-ud-prepare
+  %+  expect-fail-message
+    'RAND:'
+    |.  =/  fn
+          %:  prepare-scalar
+                ^-  scalar-function:ast
+                [%rand [~.ud 5] [~.ud 2]]
+                table-named-ctes
+                *qualifier-lookup
+                qual-map-meta
+                *(map @tas resolved-scalar)
+                (bowl [0 ~2026.4.21])
+                eny:(bowl [0 ~2026.4.21])
+                ==
+        (apply-scalar table-row +.fn)
+::
+::  @sd: high not greater than low (prepare-time, literals)
+++  test-fail-rand-sd-prepare
+  %+  expect-fail-message
+    'RAND:'
+    |.  =/  fn
+          %:  prepare-scalar
+                ^-  scalar-function:ast
+                [%rand [~.sd --5] [~.sd --2]]
+                table-named-ctes
+                *qualifier-lookup
+                qual-map-meta
+                *(map @tas resolved-scalar)
+                (bowl [0 ~2026.4.21])
+                eny:(bowl [0 ~2026.4.21])
+                ==
+        (apply-scalar table-row +.fn)
+::
+::  @rd: high not greater than low (prepare-time, literals)
+++  test-fail-rand-rd-prepare
+  %+  expect-fail-message
+    'RAND:'
+    |.  =/  fn
+          %:  prepare-scalar
+                ^-  scalar-function:ast
+                [%rand [~.rd .~5] [~.rd .~2]]
+                table-named-ctes
+                *qualifier-lookup
+                qual-map-meta
+                *(map @tas resolved-scalar)
+                (bowl [0 ~2026.4.21])
+                eny:(bowl [0 ~2026.4.21])
+                ==
+        (apply-scalar table-row +.fn)
+::
+::  @ud: high not greater than low (runtime, column references)
+::
+++  rand-fail-ud-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.ud 0]
+                      [%column %col2 ~.ud 0]
+                      ==
+          ==
+::
+++  rand-fail-ud-row  %-  mk-indexed-row
+                      :~  [%col1 5]
+                          [%col2 2]
+                          ==
+::
+++  test-fail-rand-ud-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%rand q-col-1 q-col-2]
+          table-named-ctes
+          *qualifier-lookup
+          rand-fail-ud-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'RAND:'
+    |.  (apply-scalar rand-fail-ud-row +.fn)
+::
+::  @sd: high not greater than low (runtime, column references)
+::
+++  rand-fail-sd-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.sd 0]
+                      [%column %col2 ~.sd 0]
+                      ==
+          ==
+::
+++  rand-fail-sd-row  %-  mk-indexed-row
+                      :~  [%col1 --5]
+                          [%col2 --2]
+                          ==
+::
+++  test-fail-rand-sd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%rand q-col-1 q-col-2]
+          table-named-ctes
+          *qualifier-lookup
+          rand-fail-sd-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'RAND:'
+    |.  (apply-scalar rand-fail-sd-row +.fn)
+::
+::  @rd: high not greater than low (runtime, column references)
+::
+++  rand-fail-rd-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      ==
+          ==
+::
+++  rand-fail-rd-row  %-  mk-indexed-row
+                      :~  [%col1 .~5]
+                          [%col2 .~2]
+                          ==
+::
+++  test-fail-rand-rd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%rand q-col-1 q-col-2]
+          table-named-ctes
+          *qualifier-lookup
+          rand-fail-rd-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'RAND:'
+    |.  (apply-scalar rand-fail-rd-row +.fn)
 --
