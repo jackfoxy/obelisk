@@ -112,45 +112,45 @@
   ?-  -.scalar
   ::
     %arithmetic
-      :-  seed
-          %:  prepare-arithmetic  scalar
-                                  named-ctes
-                                  qualifier-lookup
-                                  map-meta
-                                  resolved-scalars
-                                  bowl
-                                  ==
+      %:  prepare-arithmetic  scalar
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              seed
+                              ==
 
   ::
     %case
-      :-  seed
-          %:  prepare-case  scalar
+      %:  prepare-case  scalar
+                        named-ctes
+                        qualifier-lookup
+                        map-meta
+                        resolved-scalars
+                        bowl
+                        seed
+                        ==
+  ::
+    %coalesce
+      %:  prepare-coalesce  scalar
                             named-ctes
                             qualifier-lookup
                             map-meta
                             resolved-scalars
                             bowl
+                            seed
                             ==
   ::
-    %coalesce
-      :-  seed
-          %:  prepare-coalesce  scalar
+    %if-then-else
+      %:  prepare-if-then-else  scalar
                                 named-ctes
                                 qualifier-lookup
                                 map-meta
                                 resolved-scalars
                                 bowl
+                                seed
                                 ==
-  ::
-    %if-then-else
-      :-  seed
-          %:  prepare-if-then-else  scalar
-                                    named-ctes
-                                    qualifier-lookup
-                                    map-meta
-                                    resolved-scalars
-                                    bowl
-                                    ==
   ::
   ::  data functions
   ::
@@ -1928,8 +1928,9 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
   :: prepare-predicate switches on map-meta to evaluate its arguments
   :: (so if it gets a qualified lookup type it will expect qualified
   :: columns, and same for unqual)  however we can have cases when we have
@@ -1937,24 +1938,26 @@
   :: are qualified, thus this function would need to have two lookup
   :: types? one for the predicate and one for the arguments. To simplify
   :: for now we always raise the predicates to qualified columns
-  =/  then=resolved-scalar
-    %-  tail  %:  evaluate-datum  then.scalar
-                        named-ctes
-                        qualifier-lookup
-                        map-meta
-                        resolved-scalars
-                        bowl
-                        *seed
-                        ==
-  =/  else=resolved-scalar
-    %-  tail  %:  evaluate-datum  else.scalar
-                                  named-ctes
-                                  qualifier-lookup
-                                  map-meta
-                                  resolved-scalars
-                                  bowl
-                                  *seed
-                                  ==
+  =/  ps  %:  evaluate-datum  then.scalar
+                      named-ctes
+                      qualifier-lookup
+                      map-meta
+                      resolved-scalars
+                      bowl
+                      seed
+                      ==
+  =.  seed  -.ps
+  =/  then=resolved-scalar  +.ps
+  =/  ps  %:  evaluate-datum  else.scalar
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+  =.  seed  -.ps
+  =/  else=resolved-scalar  +.ps
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
         ~[then else]
@@ -1971,15 +1974,16 @@
                                named-ctes
                                resolved-scalars
                                ==
-  :+  %fn
-      typ
-      |=  =data-row
-      ^-  dime
-      =/  resolved  ?:((pred-result data-row) then else)
-      ?:  ?=(dime resolved)  resolved
-      ?:  =(%fn -.resolved)
-        (f.resolved data-row)
-      ~|("if-then-else: can't get here" !!)
+  :-  seed
+      :+  %fn
+          typ
+          |=  =data-row
+          ^-  dime
+          =/  resolved  ?:((pred-result data-row) then else)
+          ?:  ?=(dime resolved)  resolved
+          ?:  =(%fn -.resolved)
+            (f.resolved data-row)
+          ~|("if-then-else: can't get here" !!)
 ::
 ++  prepare-case
   ::  dispatch to searched or simple form based on target presence
@@ -1989,8 +1993,9 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
   ?~  target.scalar
     %:  prepare-case-searched  scalar
                                named-ctes
@@ -1998,6 +2003,7 @@
                                map-meta
                                resolved-scalars
                                bowl
+                               seed
                                ==
   %:  prepare-case-simple  scalar
                            named-ctes
@@ -2005,6 +2011,7 @@
                            map-meta
                            resolved-scalars
                            bowl
+                           seed
                            ==
 ::
 ++  prepare-case-searched
@@ -2015,34 +2022,45 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
   ::  check all then-values and else share a common type; capture return type
-  =/  then-dos
-    %+  turn  cases
-    |=  cwt=case-when-then:ast
-    %-  tail  %:  evaluate-datum  then.cwt
-                                  named-ctes
-                                  qualifier-lookup
-                                  map-meta
-                                  resolved-scalars
-                                  bowl
-                                  *seed
-                                  ==
+  =/  loop-ps
+    =|  acc=(list resolved-scalar)
+    =/  items=(list case-when-then:ast)  cases
+    |-  ^-  [@uvJ (list resolved-scalar)]
+    ?~  items  [seed (flop acc)]
+    =/  ps  %:  evaluate-datum  then.i.items
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    =.  seed  -.ps
+    $(items t.items, acc [+.ps acc])
+  =.  seed  -.loop-ps
+  =/  then-dos=(list resolved-scalar)  +.loop-ps
+  =/  else-ps
+    ?~  else.scalar  [seed then-dos]
+    =/  ps  %:  evaluate-datum  (need else.scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    [-.ps [+.ps then-dos]]
+  =.  seed  -.else-ps
+  =/  all-dos=(list resolved-scalar)  +.else-ps
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
-      ?~  else.scalar  then-dos
-      :-  %-  tail  %:  evaluate-datum  (need else.scalar)
-                                        named-ctes
-                                        qualifier-lookup
-                                        map-meta
-                                        resolved-scalars
-                                        bowl
-                                        *seed
-                                        ==
-          then-dos
+      all-dos
       ~
       named-ctes
       map-meta
@@ -2054,17 +2072,19 @@
                                            map-meta
                                            resolved-scalars
                                            bowl
+                                           seed
                                            ==
-  :+  %fn
-      typ
-      |=  =data-row
-      ^-  dime
-      |-
-      ?~  fns-to-apply  ~|("no case matched" !!)
-      =/  fn-datum  -.fns-to-apply
-      ?:  (-.fn-datum data-row)
-        (apply-scalar data-row +.fn-datum)
-      $(fns-to-apply +.fns-to-apply)
+  :-  seed
+      :+  %fn
+          typ
+          |=  =data-row
+          ^-  dime
+          |-
+          ?~  fns-to-apply  ~|("no case matched" !!)
+          =/  fn-datum  -.fns-to-apply
+          ?:  (-.fn-datum data-row)
+            (apply-scalar data-row +.fn-datum)
+          $(fns-to-apply +.fns-to-apply)
 ::
 ++  prepare-case-simple
   ::  simple form: CASE <expression> WHEN <expression> THEN ... END
@@ -2074,32 +2094,41 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
   =/  cases  cases.scalar
   ?~  cases  ~|("cases can't be empty" !!)
   ::  check that target and all when-values share a common type
-  =/  when-dos  %+  turn  cases
-                          |=  cwt=case-when-then:ast
-                          ?:  ?=(ops-and-conjs:ast -.when.cwt)
-                            ~|("when predicate not allowed in simple case" !!)
-                          %-  tail  %:  evaluate-datum  ;;(scalar-node when.cwt)
-                                                        named-ctes
-                                                        qualifier-lookup
-                                                        map-meta
-                                                        resolved-scalars
-                                                        bowl
-                                                        *seed
-                                                        ==
-  =/  target=resolved-scalar
-    %-  tail  %:  evaluate-datum  (need target.scalar)
-                                  named-ctes
-                                  qualifier-lookup
-                                  map-meta
-                                  resolved-scalars
-                                  bowl
-                                  *seed
-                                  ==
+  =/  loop-ps
+    =|  acc=(list resolved-scalar)
+    =/  items=(list case-when-then:ast)  cases
+    |-  ^-  [@uvJ (list resolved-scalar)]
+    ?~  items  [seed (flop acc)]
+    ?:  ?=(ops-and-conjs:ast -.when.i.items)
+      ~|("when predicate not allowed in simple case" !!)
+    =/  ps  %:  evaluate-datum  ;;(scalar-node when.i.items)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    =.  seed  -.ps
+    $(items t.items, acc [+.ps acc])
+  =.  seed  -.loop-ps
+  =/  when-dos=(list resolved-scalar)  +.loop-ps
+  =/  ps  %:  evaluate-datum  (need target.scalar)
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              seed
+                              ==
+  =.  seed  -.ps
+  =/  target=resolved-scalar  +.ps
   =/  [cmp-typ=@ta cmp-valid=(list resolved-scalar)]
     %:  check-consistent-types
         [target when-dos]
@@ -2109,28 +2138,39 @@
         resolved-scalars
         ==
   ::  check all then-values and else share a common type; capture return type
-  =/  then-dos  %+  turn  cases
-                          |=  cwt=case-when-then:ast
-                          %-  tail  %:  evaluate-datum  then.cwt
-                                                        named-ctes
-                                                        qualifier-lookup
-                                                        map-meta
-                                                        resolved-scalars
-                                                        bowl
-                                                        *seed
-                                                        ==
+  =/  loop-ps
+    =|  acc=(list resolved-scalar)
+    =/  items=(list case-when-then:ast)  cases
+    |-  ^-  [@uvJ (list resolved-scalar)]
+    ?~  items  [seed (flop acc)]
+    =/  ps  %:  evaluate-datum  then.i.items
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    =.  seed  -.ps
+    $(items t.items, acc [+.ps acc])
+  =.  seed  -.loop-ps
+  =/  then-dos=(list resolved-scalar)  +.loop-ps
+  =/  else-ps
+    ?~  else.scalar  [seed then-dos]
+    =/  ps  %:  evaluate-datum  (need else.scalar)
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    [-.ps [+.ps then-dos]]
+  =.  seed  -.else-ps
+  =/  all-dos=(list resolved-scalar)  +.else-ps
   =/  [typ=@ta validated=(list resolved-scalar)]
     %:  check-consistent-types
-          ?~  else.scalar  then-dos
-          :-  %-  tail  %:  evaluate-datum  (need else.scalar)
-                                            named-ctes
-                                            qualifier-lookup
-                                            map-meta
-                                            resolved-scalars
-                                            bowl
-                                            *seed
-                                            ==
-              then-dos
+          all-dos
           ~
           named-ctes
           map-meta
@@ -2142,17 +2182,19 @@
                                          map-meta
                                          resolved-scalars
                                          bowl
+                                         seed
                                          ==
-  :+  %fn
-      typ
-      |=  =data-row
-      ^-  dime
-      |-
-      ?~  fns-to-apply  ~|("no case matched" !!)
-      =/  fn-datum  -.fns-to-apply
-      ?:  (-.fn-datum data-row)
-        (apply-scalar data-row +.fn-datum)
-      $(fns-to-apply +.fns-to-apply)
+  :-  seed
+      :+  %fn
+          typ
+          |=  =data-row
+          ^-  dime
+          |-
+          ?~  fns-to-apply  ~|("no case matched" !!)
+          =/  fn-datum  -.fns-to-apply
+          ?:  (-.fn-datum data-row)
+            (apply-scalar data-row +.fn-datum)
+          $(fns-to-apply +.fns-to-apply)
 ::
 ++  case-searched-fns
   ::  build (predicate resolved-scalar) pairs for the simple CASE form;
@@ -2165,39 +2207,46 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
-  =/  fns=(list [$-(data-row ?) resolved-scalar])
-        %+  turn  cases.scalar
-                  |=  cwt=case-when-then:ast
-                  =/  qualified-pred
-                        %+  normalize-predicate  ;;(predicate:ast when.cwt)
-                                                 qualifier-lookup
-                  :-  %:  prepare-predicate  qualified-pred
-                                             map-meta
-                                             qualifier-lookup
-                                             named-ctes
-                                             resolved-scalars
-                                             ==
-                      %-  tail
-                      %:  evaluate-datum  then.cwt
-                                         named-ctes
-                                         qualifier-lookup
-                                         map-meta
-                                         resolved-scalars
-                                         bowl
-                                         *seed
-                                         ==
+  =/  loop-ps
+    =|  acc=(list [$-(data-row ?) resolved-scalar])
+    =/  items  cases.scalar
+    |-  ^-  [@uvJ (list [$-(data-row ?) resolved-scalar])]
+    ?~  items  [seed (flop acc)]
+    =/  qualified-pred
+          %+  normalize-predicate  ;;(predicate:ast when.i.items)
+                                   qualifier-lookup
+    =/  pred  %:  prepare-predicate  qualified-pred
+                                     map-meta
+                                     qualifier-lookup
+                                     named-ctes
+                                     resolved-scalars
+                                     ==
+    =/  ps  %:  evaluate-datum  then.i.items
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    =.  seed  -.ps
+    $(items t.items, acc [[pred +.ps] acc])
+  =.  seed  -.loop-ps
+  =/  fns=(list [$-(data-row ?) resolved-scalar])  +.loop-ps
   ?~  else.scalar  fns
-  =/  else-rs=resolved-scalar
-        %-  tail  %:  evaluate-datum  (need else.scalar)
-                                      named-ctes
-                                      qualifier-lookup
-                                      map-meta
-                                      resolved-scalars
-                                      bowl
-                                      *seed
-                                      ==
+  =/  ps  %:  evaluate-datum  (need else.scalar)
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              seed
+                              ==
+  =.  seed  -.ps
+  =/  else-rs=resolved-scalar  +.ps
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
       ~[[|=(=data-row %.y) else-rs]]
@@ -2212,6 +2261,7 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
   ^-  (list [$-(data-row ?) resolved-scalar])
   =/  eq-pred  |=  [target=* when=* =data-row]
@@ -2222,7 +2272,7 @@
                                                  map-meta
                                                  resolved-scalars
                                                  bowl
-                                                 *seed
+                                                 seed
                                                  ==
                =/  target-val  (apply-scalar data-row +.target-ps)
                =/  when-ps  %:  evaluate-datum  when
@@ -2231,47 +2281,55 @@
                                                map-meta
                                                resolved-scalars
                                                bowl
-                                               *seed
+                                               seed
                                                ==
                =/  when-val  %+  apply-scalar  data-row  +.when-ps
                =(target-val when-val)
-  =/  fns  %+  turn  cases.scalar
-                     |=  cwt=case-when-then:ast
-                     :-  ?:  ?=(ops-and-conjs:ast -.when.cwt)
-                           |=  =data-row
-                           =/  qualified-pred
-                             %+  normalize-predicate  ;;(predicate:ast when.cwt)
-                                                      qualifier-lookup
-                           %-  %:  prepare-predicate  qualified-pred
-                                                      map-meta
-                                                      qualifier-lookup
-                                                      named-ctes
-                                                      resolved-scalars
-                                                      ==
-                               data-row
-                         |=  =data-row
-                          %^  eq-pred  (need target.scalar)
-                                      ;;(scalar-node:ast when.cwt)
-                                      data-row
-                         ::
-                         %-  tail
-                         %:  evaluate-datum  then.cwt
-                                            named-ctes
-                                            qualifier-lookup
-                                            map-meta
-                                            resolved-scalars
-                                            bowl
-                                            *seed
-                                            ==
+  =/  loop-ps
+    =|  acc=(list [$-(data-row ?) resolved-scalar])
+    =/  items  cases.scalar
+    |-  ^-  [@uvJ (list [$-(data-row ?) resolved-scalar])]
+    ?~  items  [seed (flop acc)]
+    =/  pred=$-(data-row ?)
+          ?:  ?=(ops-and-conjs:ast -.when.i.items)
+            |=  =data-row
+            =/  qualified-pred
+              %+  normalize-predicate  ;;(predicate:ast when.i.items)
+                                       qualifier-lookup
+            %-  %:  prepare-predicate  qualified-pred
+                                       map-meta
+                                       qualifier-lookup
+                                       named-ctes
+                                       resolved-scalars
+                                       ==
+                data-row
+          |=  =data-row
+           %^  eq-pred  (need target.scalar)
+                       ;;(scalar-node:ast when.i.items)
+                       data-row
+    =/  ps  %:  evaluate-datum  then.i.items
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    =.  seed  -.ps
+    $(items t.items, acc [[pred +.ps] acc])
+  =.  seed  -.loop-ps
+  =/  fns=(list [$-(data-row ?) resolved-scalar])  +.loop-ps
   ?~  else.scalar  fns
-  =/  else-rs=resolved-scalar  %-  tail  %:  evaluate-datum  (need else.scalar)
-                                                             named-ctes
-                                                             qualifier-lookup
-                                                             map-meta
-                                                             resolved-scalars
-                                                             bowl
-                                                             *seed
-                                                             ==
+  =/  ps  %:  evaluate-datum  (need else.scalar)
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              seed
+                              ==
+  =.  seed  -.ps
+  =/  else-rs=resolved-scalar  +.ps
   %+  weld  fns
   ^-  (list [$-(data-row ?) resolved-scalar])
       ~[[|=(=data-row %.y) else-rs]]
@@ -2283,20 +2341,27 @@
           =map-meta
           =resolved-scalars
           =bowl:gall
+          =seed
           ==
-  ^-  resolved-scalar
+  ^-  [@uvJ resolved-scalar]
+  =/  loop-ps
+    =|  acc=(list resolved-scalar)
+    =/  items  data.scalar
+    |-  ^-  [@uvJ (list resolved-scalar)]
+    ?~  items  [seed (flop acc)]
+    =/  ps  %:  evaluate-datum  i.items
+                                named-ctes
+                                qualifier-lookup
+                                map-meta
+                                resolved-scalars
+                                bowl
+                                seed
+                                ==
+    =.  seed  -.ps
+    $(items t.items, acc [+.ps acc])
+  =.  seed  -.loop-ps
   =/  [typ=@ta validated=(list resolved-scalar)]
-    %:  check-consistent-types  %+  turn  data.scalar
-                                          |=  item=*
-                                          %-  tail
-                                          %:  evaluate-datum  item
-                                                             named-ctes
-                                                             qualifier-lookup
-                                                             map-meta
-                                                             resolved-scalars
-                                                             bowl
-                                                             *seed
-                                                             ==
+    %:  check-consistent-types  +.loop-ps
                                 ~
                                 named-ctes
                                 map-meta
@@ -2304,7 +2369,7 @@
                                 ==
   ::  first item is a concrete value: return it immediately as resolved-scalar
   ?~  validated  ~|("no non-null value found in row" !!)
-  ?:  ?=(dime i.validated)  i.validated
+  ?:  ?=(dime i.validated)  [seed i.validated]
   ::  otherwise build a %fn that walks validated at runtime per data-row,
   ::  returning the first non-null value; the list-walk is captured in the gate
   =/  fn  |=  [datums=(list resolved-scalar) =data-row]
@@ -2315,7 +2380,7 @@
           ?~  datums  ~|("coalesce: no non-null value found in row" !!)
           ?:  ?=(dime i.datums)  i.datums
           (f.i.datums data-row)
-  [%fn typ |=(=data-row (fn validated data-row))]
+  [seed %fn typ |=(=data-row (fn validated data-row))]
 ::
 ++  prepare-arithmetic
   |=  $:
@@ -2325,26 +2390,29 @@
         =map-meta
         =resolved-scalars
         =bowl:gall
+        =seed
       ==
-  ^-  resolved-scalar
-  =/  l=resolved-scalar
-    %-  tail  %:  evaluate-datum  left.scalar
-                                  named-ctes
-                                  qualifier-lookup
-                                  map-meta
-                                  resolved-scalars
-                                  bowl
-                                  *seed
-                                  ==
-  =/  r=resolved-scalar
-    %-  tail  %:  evaluate-datum  right.scalar
-                                  named-ctes
-                                  qualifier-lookup
-                                  map-meta
-                                  resolved-scalars
-                                  bowl
-                                  *seed
-                                  ==
+  ^-  [@uvJ resolved-scalar]
+  =/  ps  %:  evaluate-datum  left.scalar
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              seed
+                              ==
+  =.  seed  -.ps
+  =/  l=resolved-scalar  +.ps
+  =/  ps  %:  evaluate-datum  right.scalar
+                              named-ctes
+                              qualifier-lookup
+                              map-meta
+                              resolved-scalars
+                              bowl
+                              seed
+                              ==
+  =.  seed  -.ps
+  =/  r=resolved-scalar  +.ps
   =/  l-number-system  ?:  ?=(dime l)  -.l
                        type.l
   =/  r-number-system  ?:  ?=(dime r)  -.r
@@ -2383,6 +2451,7 @@
                               ?:  (check-sub-underflow left right)
                                 ~|("subtraction underflow" !!)
                               [left right]
+  :-  seed
   ?-  operator.scalar
       ::
       %lus
