@@ -7239,6 +7239,8 @@
               [%action 'SELECT']
               [%server-time ~2012.5.3]
               [%relation 'db1.dbo.rand-tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
               [%relation 'db1.dbo.rand-tbl-b']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]

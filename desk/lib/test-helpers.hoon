@@ -1565,8 +1565,8 @@
   ?+  ns  !!
       %ud  &((gte val lo) (lte val hi))
       %sd
-    =/  lo-ok  |(=((cmp:si `@sd`lo `@sd`val) --1) =(lo val))
-    =/  hi-ok  |(=((cmp:si `@sd`val `@sd`hi) --1) =(val hi))
+    =/  lo-ok  |(=((cmp:si `@sd`lo `@sd`val) -1) =(lo val))
+    =/  hi-ok  |(=((cmp:si `@sd`val `@sd`hi) -1) =(val hi))
     &(lo-ok hi-ok)
       %rd
     &((gte:rd `@rd`val `@rd`lo) (lte:rd `@rd`val `@rd`hi))
@@ -1574,12 +1574,14 @@
 ::
 ::  check all rand columns in a single vector row
 ++  check-rand-row
-  |=  [row=(lest vector-cell) ranges=(list rand-range)]
+  |=  $:  row=(lest vector-cell:ast)
+          ranges=(list rand-range)
+          ==
   ^-  tang
   =/  row-map=(map @tas dime)
     %-  malt
-    %+  turn  `(list vector-cell)`row
-    |=(vc=vector-cell [p.vc q.vc])
+    %+  turn  `(list vector-cell:ast)`row
+    |=(vc=vector-cell:ast [p.vc q.vc])
   %-  zing
   %+  turn  ranges
   |=  rr=rand-range
@@ -1591,42 +1593,45 @@
     ~[leaf+msg]
   ~
 ::
-::  check all rand columns across all rows in a result-set
+::  check all rand columns across all rows
 ++  check-rand-rows
-  |=  [rows=(list vector) ranges=(list rand-range)]
+  |=  $:  rows=(list vector:ast)
+          ranges=(list rand-range)
+          ==
   ^-  tang
   %-  zing
   %+  turn  rows
-  |=  row=vector
+  |=  row=vector:ast
   (check-rand-row +.row ranges)
 ::
-::  extract result-set from a cmd-result, returning non-result-set results
-::  and the result-set rows separately
+::  extract result-set from a cmd-result, returning
+::  non-result-set results and result-set rows separately
 ++  split-results
-  |=  results=(list result)
-  ^-  [(list result) (list vector)]
-  =/  out-results  *(list result)
-  =/  out-vectors  *(list vector)
+  |=  results=(list result:ast)
+  ^-  [(list result:ast) (list vector:ast)]
+  =/  out-results  *(list result:ast)
+  =/  out-vectors  *(list vector:ast)
   |-
   ?~  results
     [(flop out-results) out-vectors]
   =/  res  i.results
   ?:  =(%result-set -.res)
-    $(results t.results, out-vectors ;;((list vector) +.res))
+    %=  $
+      results     t.results
+      out-vectors  ;;((list vector:ast) +.res)
+    ==
   $(results t.results, out-results [res out-results])
 ::
-::  eval-rand-results: like eval-results but checks rand ranges instead
-::  of exact result-set match.
-::  expected-meta: cmd-result with non-result-set results only (no %result-set)
-::  actual: the full cmd-result from the query
-::  ranges: the rand column ranges to check
+::  eval-rand-results: like eval-results but checks rand
+::  ranges instead of exact result-set match.
 ++  eval-rand-results
   |=  $:  expected-meta=cmd-result:ast
           actual=cmd-result:ast
           ranges=(list rand-range)
           ==
   ^-  tang
-  =/  actual-split  (split-results +.actual)
+  =/  actual-split
+    (split-results `(list result:ast)`+.actual)
   %+  weld
     %+  expect-eq
       !>  expected-meta

@@ -531,7 +531,7 @@
       [seed [~.rd .~3.141592653589793]]
   ::
     %rand
-      =/  ps  %:  evaluate-datum  numeric-expression-1:;;(min:ast scalar)
+      =/  ps  %:  evaluate-datum  numeric-expression-1:;;(rand:ast scalar)
                                   named-ctes
                                   qualifier-lookup
                                   map-meta
@@ -540,7 +540,7 @@
                                   seed
                                   ==
       =/  low=resolved-scalar  +.ps
-      =/  ps  %:  evaluate-datum  numeric-expression-2:;;(min:ast scalar)
+      =/  ps  %:  evaluate-datum  numeric-expression-2:;;(rand:ast scalar)
                                   named-ctes
                                   qualifier-lookup
                                   map-meta
@@ -557,7 +557,6 @@
         ~|  "{<ns1>} not a supported number system for %min, ".
             "need ?(~.rd ~.sd ~.ud)"
             !!
-      
       =.  high  ?.  ?=(%rd ns1)  high
               ?:  ?=(dime high)
                 =/  int  (san:rd (need (toi:rd +.high)))
@@ -586,33 +585,32 @@
                 =/  hi  ?:  ?=(dime high)  +.high
                         +:(f.high data-row)
                 ::
-              
                 =/  diff=@ud  ?-  ns1
                       %rd
-                        =/  d  (sub:rd `@rd`+.hi `@rd`+.lo)
+                        =/  d  (sub:rd `@rd`hi `@rd`lo)
                         ?:  (lth:rd d .~1)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
                         (abs:si `@s`(need (toi:rd d)))
                       %sd
-                        ?.  =((cmp:si `@sd`+.lo `@sd`+.hi) --1)
+                        ?.  =((cmp:si `@sd`hi `@sd`lo) --1)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
-                        =/  d  (dif:si `@sd`+.hi `@sd`+.lo)
+                        =/  d  (dif:si `@sd`hi `@sd`lo)
                         (abs:si d)
                       %ud
-                        ?:  (gte `@ud`+.lo `@ud`+.hi)
+                        ?:  (gte `@ud`lo `@ud`hi)
                           ~|("RAND: {<high>} not greater than {<low>}" !!)
-                        (sub `@ud`+.hi `@ud`+.lo)
+                        (sub `@ud`hi `@ud`lo)
                       ==
                 ::
                 =/  r         -:(rads:rng diff)
                 ::
                 ?-  ns1
                   %rd
-                    [ns1 (add:rd `@rd`+.lo (sun:rd r))]
+                    [ns1 (add:rd `@rd`lo (sun:rd r))]
                   %sd
-                    [ns1 (sum:si `@sd`+.lo (sun:si r))]
+                    [ns1 (sum:si `@sd`lo (sun:si r))]
                   %ud
-                    [ns1 (add `@ud`+.lo r)]
+                    [ns1 (add `@ud`lo r)]
                   ==
   ::
     %tau
