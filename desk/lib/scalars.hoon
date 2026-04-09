@@ -602,7 +602,7 @@
                         (sub `@ud`hi `@ud`lo)
                       ==
                 ::
-                =/  r         -:(rads:rng diff)
+                =/  r         -:(rads:rng (add diff 1))
                 ::
                 ?-  ns1
                   %rd

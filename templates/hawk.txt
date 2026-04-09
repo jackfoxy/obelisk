@@ -89,16 +89,9 @@
 ::
 ::
 +$  server  (map @tas *)
-++  print-vector
-  |=  =vector
-  ;tr
-    ;*
-    %+  turn  +.vector
-    |=  cell=vector-cell
-    ;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
-  ==
-+$  poke-result  (each (list cmd-result) tang)
+::
 +$  cmd-result  [%results (list result)]
+::
 +$  result
   $%  [%action action=@t]
       [%relation relation=@t]
@@ -109,8 +102,11 @@
       [%data-time date=@da]
       [%result-set (list vector)]
       ==
+::
 +$  vector-cell  [p=@tas q=dime]
+::
 +$  vector  [%vector (lest vector-cell)]
+::
 ++  query-obelisk
   |=  [id=@ta query=tape]
   =/  m  (strand ,poke-result)
@@ -127,7 +123,24 @@
   ?~  res=(mole |.((poke-result +:vase)))
     `[%fail [%malformed-obelisk-response ~]]
   `[%done u.res]
-  ::
+::
++$  poke-result  (each (list cmd-result) tang)
+::
+++  print-vector
+  |=  =vector
+  ;tr
+    ;*
+    %+  turn  +.vector
+    |=  cell=vector-cell
+    ::;td.p1.bd1(style "white-space: nowrap;"): {(scow q.cell)}
+    ;td.p1.bd1(style "white-space: nowrap;"): {(text (dime-to-vase q.cell))}
+  ==
+::
+++  dime-to-vase
+  |=  d=dime
+  ^-  vase
+  ?>  ((sane %tas) p.d)
+  [[%atom `@tas`p.d ~] q.d]
 ::
 ::
 ::::::::::::::::::::::::::::::::::::::
