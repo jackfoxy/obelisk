@@ -92,31 +92,31 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
-  ?:  =(database.table.create-table %sys)
+  ?:  =(database.qualified-table.create-table %sys)
         ~|("cannot create table in %sys database" !!)
-  =/  db  ~|  "CREATE TABLE: database {<database.table.create-table>} ".
-              "does not exist"
-              (~(got by state) database.table.create-table)
+  =/  db  ~|  "CREATE TABLE: database ".
+              "{<database.qualified-table.create-table>} does not exist"
+              (~(got by state) database.qualified-table.create-table)
   =/  sys-time  (set-tmsp as-of.create-table now.bowl)
   =/  nxt-schema=schema
-        ~|  "CREATE TABLE: {<name.table.create-table>} as-of schema ".
+        ~|  "CREATE TABLE: {<name.qualified-table.create-table>} as-of schema ".
             "time out of order"
             %:  get-next-schema  sys.db
                                  next-schemas
                                  sys-time
-                                 database.table.create-table
+                                 database.qualified-table.create-table
                                  ==
   =/  nxt-data=data
-        ~|  "CREATE TABLE: {<name.table.create-table>} as-of data ".
+        ~|  "CREATE TABLE: {<name.qualified-table.create-table>} as-of data ".
             "time out of order"
             %:  get-next-data  content.db
                                next-data
                                sys-time
-                               database.table.create-table
+                               database.qualified-table.create-table
                                ==
   ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.table.create-table)
-    ~|  "CREATE TABLE: namespace {<namespace.table.create-table>} ".
+  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.create-table)
+    ~|  "CREATE TABLE: namespace {<namespace.qualified-table.create-table>} ".
         "does not exist"
         !!
   =/  col-set  (name-set (silt columns.create-table))
@@ -145,11 +145,12 @@
             ~
             ==
   =/  tables
-    ~|  "CREATE TABLE: {<name.table.create-table>} ".
-        "exists in {<namespace.table.create-table>}"
+    ~|  "CREATE TABLE: {<name.qualified-table.create-table>} ".
+        "exists in {<namespace.qualified-table.create-table>}"
     %:  map-insert
         tables.nxt-schema
-        [namespace.table.create-table name.table.create-table]
+        :-  namespace.qualified-table.create-table
+            name.qualified-table.create-table
         table
     ==
   =.  tables.nxt-schema      tables
@@ -165,11 +166,12 @@
                 ~
                 ==
   =/  files
-    ~|  "CREATE TABLE: {<name.table.create-table>} ".
-        "exists in {<namespace.table.create-table>}"
+    ~|  "CREATE TABLE: {<name.qualified-table.create-table>} ".
+        "exists in {<namespace.qualified-table.create-table>}"
     %:  map-insert
         files.nxt-data
-        [namespace.table.create-table name.table.create-table]
+        :-  namespace.qualified-table.create-table
+            name.qualified-table.create-table
         file
     ==
   =.  files.nxt-data       files
@@ -183,12 +185,14 @@
   =.  state          (update-sys state sys-time)
   ::
   :^  :-  %results
-          :~  [%action (crip "CREATE TABLE {<name.table.create-table>}")]
+          :~  :-  %action
+                  %-  crip
+                  "CREATE TABLE {<name.qualified-table.create-table>}"
               [%server-time now.bowl]
               [%schema-time sys-time]
               ==
-      (~(put by next-schemas) database.table.create-table sys-time)
-      (~(put by next-data) database.table.create-table sys-time)
+      (~(put by next-schemas) database.qualified-table.create-table sys-time)
+      (~(put by next-data) database.qualified-table.create-table sys-time)
       (~(put by state) name.db db)
 ::
 ++  drop-tbl
@@ -197,45 +201,53 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
-  =/  db  ~|  "DROP TABLE: database {<database.table.d>} does not exist"
-             (~(got by state) database.table.d)
+  =/  db  ~|  "DROP TABLE: database ".
+              "{<database.qualified-table.d>} does not exist"
+             (~(got by state) database.qualified-table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
   =/  nxt-schema=schema
-        ~|  "DROP TABLE: {<name.table.d>} as-of schema time out of order"
+        ~|  "DROP TABLE: {<name.qualified-table.d>} ".
+            "as-of schema time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
                               sys-time
-                              database.table.d
+                              database.qualified-table.d
                               ==
   =/  nxt-data=data
-        ~|  "DROP TABLE: {<name.table.d>} as-of data time out of order"
+        ~|  "DROP TABLE: {<name.qualified-table.d>} ".
+            "as-of data time out of order"
           %:  get-next-data  content.db
                               next-data
                               sys-time
-                              database.table.d
+                              database.qualified-table.d
                               ==
   ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
-    ~|("DROP TABLE: namespace {<namespace.table.d>} does not exist" !!)
+  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.d)
+    ~|  "DROP TABLE: namespace ".
+        "{<namespace.qualified-table.d>} does not exist"
+        !!
   ::
   =/  tables
-    ~|  "DROP TABLE: {<name.table.d>} does not exist in {<namespace.table.d>}"
+    ~|  "DROP TABLE: {<name.qualified-table.d>} ".
+        "does not exist in {<namespace.qualified-table.d>}"
     %+  map-delete
         tables.nxt-schema
-        [namespace.table.d name.table.d]
+        [namespace.qualified-table.d name.qualified-table.d]
   =.  tables.nxt-schema      tables
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
   ::
   =/  file
-        ~|  "DROP TABLE: {<namespace.table.d>}.{<name.table.d>} does not exist"
-            (~(got by files.nxt-data) [namespace.table.d name.table.d])
+        ~|  "DROP TABLE: {<namespace.qualified-table.d>}".
+            ".{<name.qualified-table.d>} does not exist"
+        %-  ~(got by files.nxt-data)
+        [namespace.qualified-table.d name.qualified-table.d]
   ?:  ?&((gth rowcount.file 0) =(force.d %.n))
-    ~|("DROP TABLE: {<name.table.d>} has data, use FORCE to DROP" !!)
+    ~|("DROP TABLE: {<name.qualified-table.d>} has data, use FORCE to DROP" !!)
   =/  files
     %+  map-delete
         files.nxt-data
-        [namespace.table.d name.table.d]
+        [namespace.qualified-table.d name.qualified-table.d]
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
@@ -248,19 +260,19 @@
   ::
   :^  ?:  (gth rowcount.file 0)
         :-  %results
-            :~  [%action (crip "DROP TABLE {<name.table.d>}")]
+            :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
                 [%server-time now.bowl]
                 [%schema-time sys-time]
                 [%data-time sys-time]
                 [%vector-count rowcount.file]
                 ==
       :-  %results
-          :~  [%action (crip "DROP TABLE {<name.table.d>}")]
+          :~  [%action (crip "DROP TABLE {<name.qualified-table.d>}")]
               [%server-time now.bowl]
               [%schema-time sys-time]
               ==
-      (~(put by next-schemas) database.table.d sys-time)
-      (~(put by next-data) database.table.d sys-time)
+      (~(put by next-schemas) database.qualified-table.d sys-time)
+      (~(put by next-data) database.qualified-table.d sys-time)
       (~(put by state) name.db db)
 ::
 ++  map-insert
@@ -294,5 +306,6 @@
   |*  a=(set)
   ~+   :: keep, seems to make small difference
   ^-  (set @tas)
+  ~|  "CREATE TABLE: error in column names {<a>}"
   (~(run in a) |=(b=* ?@(b !! ?@(+<.b +<.b !!))))
 --

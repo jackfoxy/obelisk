@@ -69,6 +69,7 @@
     ==
 ::
 +$  set-table
+  $+  set-table
   $:  %set-table
     join=(unit join-type)
     relation=(unit qualified-table)
@@ -85,15 +86,18 @@
     ==
 ::
 +$  column-meta
+  $+  column-meta
   $:  =qualified-column
       type=@ta
       addr=@
       ==
 +$  qualified-map-meta
+  $+  qualified-map-meta
   $:  %qualified-map-meta
     (mip qualifier @tas typ-addr)
     ==
 +$  unqualified-map-meta
+  $+  unqualified-map-meta
   $:  %unqualified-map-meta
     (map @tas typ-addr)
     ==
@@ -104,6 +108,7 @@
 +$  qualifier  $%(qualified-table cte-name)
 ::
 +$  joined-row
+  $+  joined-row
   $:  %joined-row
     key=(list @)
     data=(mip qualified-table @tas @)
@@ -111,6 +116,7 @@
 +$  data-row  $%(joined-row indexed-row)
 ::
 +$  join-return
+  $+  join-return
   $:  %join-return
     =server
     set-tables=(list set-table)
@@ -119,6 +125,7 @@
     ==
 ::
 +$  joined-relat
+  $+  joined-relat
   $:  %joined-relat
     join=(unit join-type)
     =relation
@@ -127,6 +134,7 @@
     ==
 ::
 +$  full-relation
+  $+  full-relation
   $:  %full-relation
     =qualifier
     set-tables=(list set-table)
@@ -144,6 +152,7 @@
 ::
 ::  template for selected column from qualified-column objects
 +$  templ-cell
+  $+  templ-cell
   $:  %templ-cell
     column=(unit qualified-column)
     scalar=(unit resolved-scalar)
@@ -155,6 +164,7 @@
 ::
 ::  common metadata for DELETE, INSERT, UPDATE
 +$  txn-meta
+  $+  txn-meta
   $:  %txn-meta
     db=database
     tbl-key=[@tas @tas]
@@ -165,6 +175,7 @@
     ==
 ::
 +$  table-return
+  $+  table-return
   $:  [@da ? @ud]
       changed-schemas=(map @tas @da)
       changed-data=(map @tas @da)

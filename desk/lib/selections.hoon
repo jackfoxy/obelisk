@@ -666,11 +666,11 @@
   =/  cross-joins  *(list joined-relat)
   |-
   ?~  joins  (flop (weld cross-joins joined-relations))
-  ?:  ?=(%cross-join join.i.joins)
+  ?:  ?=(%cross-join join-type.i.joins)
     %=  $
       joins  t.joins
       cross-joins  :-  :*  %joined-relat
-                           `join.i.joins
+                           `join-type.i.joins
                            (normalize-relation relation.i.joins)
                            as-of.i.joins
                            predicate.i.joins
@@ -679,7 +679,7 @@
     ==  %=  $
     joins  t.joins
     joined-relations  :-  :*  %joined-relat
-                              `join.i.joins
+                              `join-type.i.joins
                                 (normalize-relation relation.i.joins)
                                 as-of.i.joins
                                 predicate.i.joins

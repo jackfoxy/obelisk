@@ -11214,9 +11214,6 @@
           "comparing columns of different auras: %col1 type=~.t %col2 type=~.da"
       ==
 ::
-::  qualified predicates
-::  to do: implement name qualified in parse
-::
 ::  alias qualified single table
 ++  test-qualified-01
   =|  run=@ud

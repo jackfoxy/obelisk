@@ -2225,7 +2225,7 @@
                               ==
                         -.a
                     ==
-  !!
+  ~|('produced delete {<a>}' !!)
 ::
 ++  qualify-predicate
   |=  [p=predicate:ast =qualified-table:ast]
@@ -2791,7 +2791,7 @@
     ?~  predicate.j
       j(relation rel)
     :*  %joined-relation
-          join.j
+          join-type.j
           rel
           as-of.j
           %:  finalize-predicate  predicate.j
@@ -3728,7 +3728,7 @@
   ==
 ++  sear-numbers  ~+                               :: works for predicate values
   |=  a=(list @t)
-  =/  parsed  (numeric-parser [[1 1] a])      :: to do: this is inside-out
+  =/  parsed  (numeric-parser [[1 1] a])
   ?~  q.parsed  ~
   (some (wonk parsed))
 ++  sear-ud  ~+                                    :: only accepts @ud results
@@ -3738,7 +3738,7 @@
   =/  result  (wonk parsed)
   ?.  ?=([%ud @] result)  ~
   (some result)
-++  numeric-characters  ~+       ::to do:  likely source of slow parse, rewrite?
+++  numeric-characters  ~+
   ::  including base-64 characters
   %-  star  ;~  pose  (shim 48 57)
                       (shim 65 90)
@@ -3751,7 +3751,7 @@
                       tis
                       ==
 ++  parse-value-literal  ~+
-  ;~  pose  non-numeric-parser    :: \/ to do: this is inside-out
+  ;~  pose  non-numeric-parser
             (sear sear-numbers numeric-characters)        :: all numeric parsers
             ==
 ++  insert-value-literal-leading-char
@@ -3765,7 +3765,7 @@
   ==
 ++  insert-value-default
   ;~  pose
-    (cold %default (jester 'default'))  :: \/ to do: inside-out
+    (cold %default (jester 'default'))
     ;~  pose  non-numeric-parser
               %+  cook  |=  a=(list @t)
                             ~|  "error on numeric parser {<a>} "
@@ -3839,6 +3839,7 @@
 ++  cook-referential-integrity
   |=  a=*
   ?:  ?=([[@ @] @ @] [a])                  :: <type> cascade, <type> cascade
+    ~|  "cook-referential-integrity {<a>}"
     ?:  =(%delete -<.a)
       ?:  =(%update +<.a)
         ~[%delete-cascade %update-cascade]
@@ -5594,7 +5595,7 @@
   =/  next-operator
     ?:  ?=(arithmetic-op:ast +<.ops)
       `arithmetic-op:ast`+<.ops
-    !!
+    ~|("process-arithmetic-list {<ops>}" !!)
   =/  current-op-prec  (compute-precedence next-operator)
   ?:  (gte current-op-prec min-prec)
     =/  next-min-prec  (calculate-min-precedence next-operator)
@@ -5612,7 +5613,7 @@
   =/  nested  (process-arithmetic-list ops-and-operators 0 aliases) 
   =/  op-tree  tree.nested
   ?@  op-tree
-    !!
+    ~|("process-arithmetic-list {<parsed>}" !!)
   ?:  ?=(arithmetic-op:ast n.op-tree)
     :^  %arithmetic
         n.op-tree

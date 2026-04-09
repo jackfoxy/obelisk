@@ -32,9 +32,11 @@ Features coming after v0.5 alpha release.
 
 * __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
 
+* __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems
+
 ## other functionality
 
-* __Temporary tables__ -- similar to INSERT format.
+* __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs.
 
 * __Partial Natural key JOIN__ -- e.g. (co11, col2, col3) JOIN (col1, col2)
 

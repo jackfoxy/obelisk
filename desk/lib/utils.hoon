@@ -65,7 +65,7 @@
 ++  get-next-schema
   ::  gets the schema with the highest timestamp for mutation
   ::  if schema is already mutated
-  ::    then sys-time may = tmsp.schema  !!!!!!
+  ::    then sys-time may = tmsp.schema
   ::  else sys-time must be > tmsp.schema
   |=  $:  sys=((mop @da schema) gth)
           next-schemas=(map @tas @da)
@@ -197,7 +197,7 @@
       as-of.from
       %+  turn  joins.from  |=  j=joined-relation:ast
                             :*  %joined-relation
-                                join.j
+                                join-type.j
                                 (normalize-relation relation.j)
                                 as-of.j
                                 predicate.j

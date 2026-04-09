@@ -45,42 +45,49 @@
           next-data=(map @tas @da)
           ==
   ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
-  =/  db  ~|  "TRUNCATE TABLE: database {<database.table.d>} does not exist"
-             (~(got by state) database.table.d)
+  =/  db  ~|  "TRUNCATE TABLE: database ".
+              "{<database.qualified-table.d>} does not exist"
+             (~(got by state) database.qualified-table.d)
   =/  sys-time  (set-tmsp as-of.d now.bowl)
   =/  nxt-schema=schema
-        ~|  "TRUNCATE TABLE: {<name.table.d>} as-of schema time out of order"
+        ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
+            "as-of schema time out of order"
           %:  get-next-schema  sys.db
                               next-schemas
                               sys-time
-                              database.table.d
+                              database.qualified-table.d
                               ==
   =/  nxt-data=data
-        ~|  "TRUNCATE TABLE: {<name.table.d>} as-of data time out of order"
+        ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
+            "as-of data time out of order"
             %:  get-next-data  content.db
                                next-data
                                sys-time
-                               database.table.d
+                               database.qualified-table.d
                                ==
   ::
-  ?.  (~(has by namespaces.nxt-schema) namespace.table.d)
-    ~|("TRUNCATE TABLE: namespace {<namespace.table.d>} does not exist" !!)
+  ?.  (~(has by namespaces.nxt-schema) namespace.qualified-table.d)
+    ~|  "TRUNCATE TABLE: namespace ".
+        "{<namespace.qualified-table.d>} does not exist"
+        !!
   ::
   =/  tables
-    ~|  "TRUNCATE TABLE: {<name.table.d>} ".
-        "does not exists in {<namespace.table.d>}"
+    ~|  "TRUNCATE TABLE: {<name.qualified-table.d>} ".
+        "does not exists in {<namespace.qualified-table.d>}"
     %-  ~(got by tables:nxt-schema)
-        [namespace.table.d name.table.d]
+        [namespace.qualified-table.d name.qualified-table.d]
   ::
   =/  file
-    ~|  "TRUNCATE TABLE: {<namespace.table.d>}.{<name.table.d>} does not exist"
-        (~(got by files.nxt-data) [namespace.table.d name.table.d])
+    ~|  "TRUNCATE TABLE: {<namespace.qualified-table.d>}".
+        ".{<name.qualified-table.d>} does not exist"
+    %-  ~(got by files.nxt-data)
+    [namespace.qualified-table.d name.qualified-table.d]
   ?.  (gth rowcount.file 0)  :: don't bother if table is empty
     :^  :-  %results
             :~  :-  %action
                     %-  crip
                         %+  weld  "TRUNCATE TABLE "
-                            (trip (qualified-table-to-cord table.d))
+                            (trip (qualified-table-to-cord qualified-table.d))
                 [%message 'no data in table to truncate']
                 ==
         next-schemas
@@ -93,7 +100,9 @@
   =.  indexed-rows.file    ~
   =.  rowcount.file        0
   =.  tmsp.file            sys-time
-  =/  files  (~(put by files.nxt-data) [namespace.table.d name.table.d] file)
+  =/  files  %+  ~(put by files.nxt-data)
+                 [namespace.qualified-table.d name.qualified-table.d]
+             file
   =.  files.nxt-data       files
   =.  ship.nxt-data        src.bowl
   =.  provenance.nxt-data  sap.bowl
@@ -107,13 +116,13 @@
           :~  :-  %action
                   %-  crip
                       %+  weld  "TRUNCATE TABLE "
-                          (trip (qualified-table-to-cord table.d))
+                          (trip (qualified-table-to-cord qualified-table.d))
               [%server-time now.bowl]
               [%data-time sys-time]
               [%vector-count dropped-rows]
               ==
       next-schemas
-      (~(put by next-data) database.table.d sys-time)
+      (~(put by next-data) database.qualified-table.d sys-time)
       (~(put by state) name.db db)
 ::
 ++  do-selection
@@ -145,14 +154,19 @@
           [[%message 'warning: results are non-deterministic'] results]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
-      !!
+      ~|("merge not implemented" !!)
     ==
 ::
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
-    :: to do: aura validation? (isn't this covered in testing? see roadmap)
   ^-  [(map @tas @da) server (list result:ast)]
-  =/  txn  (common-txn "INSERT" state now.bowl table.ins as-of.ins next-schemas)
+  =/  txn  %:  common-txn  "INSERT"
+                           state
+                           now.bowl
+                           qualified-table.ins
+                           as-of.ins
+                           next-schemas
+                           ==
   ::
   =.  tmsp.file.txn            now.bowl
   =.  ship.nxt-data.txn        src.bowl
@@ -186,7 +200,7 @@
   ::
   |-
   ?~  value-table
-    :+  (~(put by next-data) database.table.ins now.bowl)
+    :+  (~(put by next-data) database.qualified-table.ins now.bowl)
       :: %:  upd-indices-views to do: revisit when there are views & indices
       %+  ~(put by state)  name.db.txn
                            %=  db.txn
@@ -211,7 +225,7 @@
       :~  :-  %action
               %-  crip
                   %+  weld  "INSERT INTO "
-                            (trip (qualified-table-to-cord table.ins))
+                            (trip (qualified-table-to-cord qualified-table.ins))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
@@ -236,7 +250,7 @@
   =/  txn  %:  common-txn  "DELETE FROM"
                            state
                            now.bowl
-                           table.d
+                           qualified-table.d
                            as-of.d
                            next-schemas
                            ==
@@ -245,7 +259,9 @@
         state
         :~  :-  %action
                 %-  crip
-                    "DELETE FROM {<namespace.table.d>}.{<name.table.d>}"
+                    "DELETE FROM ".
+                    "{<namespace.qualified-table.d>}".
+                    ".{<name.qualified-table.d>}"
             [%server-time now.bowl]
             [%schema-time tmsp.table.txn]
             [%data-time tmsp.file.txn]
@@ -279,7 +295,7 @@
         :~  :-  %action
                 %-  crip
                     %+  weld  "DELETE FROM "
-                              (trip (qualified-table-to-cord table.d))
+                              (trip (qualified-table-to-cord qualified-table.d))
             [%server-time now.bowl]
             [%schema-time tmsp.table.txn]
             [%data-time tmsp.file.txn]
@@ -287,9 +303,10 @@
             ==
   =.  rowcount.file.txn        rowcount
   =.  tmsp.file.txn            now.bowl
-  =/  files                    %+  ~(put by files.nxt-data.txn)
-                                   [namespace.table.d name.table.d]
-                                   file.txn
+  =/  files  %+  ~(put by files.nxt-data.txn)
+                 :-  namespace.qualified-table.d
+                     name.qualified-table.d
+             file.txn
   =.  files.nxt-data.txn       files
   =.  ship.nxt-data.txn        src.bowl
   =.  provenance.nxt-data.txn  sap.bowl
@@ -299,12 +316,12 @@
   =.  view-cache.db.txn  (upd-view-caches state db.txn now.bowl ~ %delete)
   =.  state          (update-sys state now.bowl)
   ::
-  :+  (~(put by next-data) database.table.d now.bowl)
+  :+  (~(put by next-data) database.qualified-table.d now.bowl)
       (~(put by state) name.db.txn db.txn)
       :~  :-  %action
               %-  crip
                   %+  weld  "DELETE FROM "
-                            (trip (qualified-table-to-cord table.d))
+                            (trip (qualified-table-to-cord qualified-table.d))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
@@ -320,7 +337,7 @@
   =/  txn  %:  common-txn  "UPDATE"
                            state
                            now.bowl
-                           table.u
+                           qualified-table.u
                            as-of.u
                            next-schemas
                            ==
@@ -329,7 +346,9 @@
         state
         :~  :-  %action
                 %-  crip
-                    "UPDATE {<namespace.table.u>}.{<name.table.u>}"
+                    "UPDATE ".
+                    "{<namespace.qualified-table.u>}".
+                    ".{<name.qualified-table.u>}"
             [%server-time now.bowl]
             [%schema-time tmsp.table.txn]
             [%data-time tmsp.file.txn]
@@ -348,7 +367,7 @@
                                           (named-queries ctes.u *named-ctes)
                                           *resolved-scalars
                                           ==
-  =/  updates  %:  mk-updates  table.u
+  =/  updates  %:  mk-updates  qualified-table.u
                                columns.u
                                values.u
                                :-  %unqualified-map-meta
@@ -378,7 +397,7 @@
         :~  :-  %action
                 %-  crip
                     %+  weld  "UPDATE "
-                              (trip (qualified-table-to-cord table.u))
+                              (trip (qualified-table-to-cord qualified-table.u))
             [%server-time now.bowl]
             [%schema-time tmsp.table.txn]
             [%data-time tmsp.file.txn]
@@ -401,9 +420,10 @@
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =.  indexed-rows.file.txn    new-indexed-rows
   =.  tmsp.file.txn            now.bowl
-  =/  files                    %+  ~(put by files.nxt-data.txn)
-                                   [namespace.table.u name.table.u]
-                                   file.txn
+  =/  files  %+  ~(put by files.nxt-data.txn)
+                 :-  namespace.qualified-table.u
+                     name.qualified-table.u
+             file.txn
   ::
   =.  files.nxt-data.txn       files
   =.  ship.nxt-data.txn        src.bowl
@@ -414,12 +434,12 @@
   =.  view-cache.db.txn  (upd-view-caches state db.txn now.bowl ~ %update)
   =.  state          (update-sys state now.bowl)
   ::
-  :+  (~(put by next-data) database.table.u now.bowl)
+  :+  (~(put by next-data) database.qualified-table.u now.bowl)
       (~(put by state) name.db.txn db.txn)
       :~  :-  %action
               %-  crip
                   %+  weld  "UPDATE "
-                            (trip (qualified-table-to-cord table.u))
+                            (trip (qualified-table-to-cord qualified-table.u))
           [%server-time now.bowl]
           [%schema-time tmsp.table.txn]
           [%data-time source-content-time.txn]
