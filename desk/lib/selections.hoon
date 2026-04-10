@@ -92,9 +92,162 @@
           named-ctes
           ==
 ::
-::  Build lookup qualifier by column name for resolving unqualified columns in
-::  scalar functions on a single relation.
+++  join-all
+  ::  server state returned because we may have updated the view cache
+  |=  [q=query:ast =named-ctes]
+  ^-  join-return
+  =/  from  (normalize-from (need from.q))
+  =/  joined-relations=(list joined-relat)
+        %+  mk-joined-relations  :*  %joined-relat
+                                     ~
+                                     relation.from
+                                     as-of.from
+                                     ~
+                                     ==
+                                 joins.from
+  =/  relat=joined-relat  -.joined-relations
+  =/  source-db=@tas      (source-db-name relation.relat)
+  =.  joined-relations    +.joined-relations
+  =/  =full-relation  %:  source-full-relation  relation.relat
+                                                named-ctes
+                                                as-of.relat
+                                                ~
+                                                ~
+                                                *qualified-map-meta
+                                                ~
+                                                ==
+  =/  prior-join          -.set-tables.full-relation
+  =/  from-objects        (limo ~[prior-join])
+  =/  prev-as-of          as-of.relat
+  =/  prev-db-name=@tas   source-db
+  |-
+  ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
+  =.  source-db         (source-db-name relation.i.joined-relations)
+  =/  needs-refresh     ?|  !=(as-of.i.joined-relations prev-as-of)
+                            !=(source-db prev-db-name)
+                             ==
+  =.  full-relation  %:  source-full-relation  relation.i.joined-relations
+                                                named-ctes
+                                                as-of.i.joined-relations
+                                                join.i.joined-relations
+                                                predicate.i.joined-relations
+                                                map-meta.full-relation
+                                                column-metas.full-relation
+                                                ==
+  =.  prior-join       (join-up prior-join -.set-tables.full-relation)
+  %=  $
+    joined-relations   +.joined-relations
+    from-objects       [prior-join from-objects]
+    prev-as-of         as-of.i.joined-relations
+    prev-db-name       source-db
+  ==
+::
+++  join-natural
+  |=  [prior=set-table this=set-table]
+  ^-  set-table
+  ::join on foreign keys (to do)
+  ::
+  ::join on primary key
+  ?:  &(=(~ pri-indx.prior) =(~ pri-indx.this))
+    ~|("no natural join, missing index: {<prior>} {<this>}" !!)
+  =/  this-key   key:(need pri-indx.this)
+  =/  prior-key  key:(need pri-indx.prior)
+  =/  rel-prior  (need relation.prior)
+  =/  rel-this   (need relation.this)
+  :: perfect natural join
+  =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
+                      ?~  joined-rows.prior
+                        %:  join-pri-key  indexed-rows.prior
+                                          rel-prior
+                                          indexed-rows.this
+                                          rel-this
+                                          this-key
+                                        ==
+                      %:  join-pri-key  joined-rows.prior
+                                        rel-prior
+                                        indexed-rows.this
+                                        rel-this
+                                        this-key
+                                        ==
+  ?:  =(prior-key this-key)
+    (joined-set-table this -.count-and-rows +.count-and-rows)
+  ::  key is same column sequence, but different ordering
+  ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
+              (turn this-key |=(a=key-column [name.a aura.a]))
+    ~|  "no natural join or foreign key join, columns do not match: ".
+        "{<rel-this>}"
+        !!
+  ::  sort the little one
+  =/  the-key  ?:  (gth rowcount.this rowcount.prior)
+                 this-key
+               prior-key
+  =.  count-and-rows
+        ?:  (gth rowcount.this rowcount.prior)
+          ?~  joined-rows.prior
+            %:  join-pri-key  %+  sort  indexed-rows.prior
+                                   ~(order data-row-comp (reduce-key the-key))
+                              rel-prior
+                              indexed-rows.this
+                              rel-this
+                              this-key
+                              ==
+          %:  join-pri-key  %+  sort  joined-rows.prior
+                                   ~(order data-row-comp (reduce-key the-key))
+                            rel-prior
+                            indexed-rows.this
+                            rel-this
+                            this-key
+                            ==
+        ?~  joined-rows.prior
+          %:  join-pri-key  indexed-rows.prior
+                            rel-prior
+                            %+  sort  indexed-rows.this
+                                    ~(order data-row-comp (reduce-key the-key))
+                            rel-this
+                            prior-key
+                            ==
+        %:  join-pri-key  joined-rows.prior
+                          rel-prior
+                          %+  sort  indexed-rows.this
+                                  ~(order data-row-comp (reduce-key the-key))
+                          rel-this
+                          prior-key
+                          ==
+  ::
+  (joined-set-table this -.count-and-rows +.count-and-rows)
+::
+++  cross-join
+  |=  [prior=set-table this=set-table]
+  ^-  set-table
+  =/  a=(list data-row)  ?~  joined-rows.prior
+                           indexed-rows.prior
+                         joined-rows.prior
+  =/  out-rows           *(list joined-row)
+  =/  i  0
+  ::
+  |-
+  ?~  a  (joined-set-table this i out-rows)
+  =/  b  indexed-rows.this
+  |-
+  ?~  b  ^$(a t.a)
+  %=  $ 
+    out-rows  :-  ?:  ?=(%joined-row -.i.a)
+                    :+  %joined-row
+                        ~
+                        (~(put by data.i.a) (need relation.this) data.i.b)
+                  %:  joined-from-indexed  i.a
+                                           (need relation.prior)
+                                           i.b
+                                           (need relation.this)
+                                           ==
+                  out-rows
+    b  t.b
+    i  +(i)
+  ==
+::
 ++  query-qualifier-lookup
+  ::  Build lookup qualifier by column name for resolving unqualified columns in
+  ::  scalar functions on a single relation.
   |=  sources=(list set-table)
   ^-  qualifier-lookup
   =/  lookup  *qualifier-lookup
@@ -365,8 +518,8 @@
               row
   ==
 ::
-::  recalculate addr for joined data structure
 ++  recalc-addr
+  ::  recalculate addr for joined data structure
   |=  [=set-table =full-relation from-objects=(list set-table)]
   ?~  joined-rows.set-table
     :*  %join-return
@@ -396,56 +549,6 @@
                     +.r
                     -.r
                     ==
-::
-++  join-all
-  ::  server state returned because we may have updated the view cache
-  |=  [q=query:ast =named-ctes]
-  ^-  join-return
-  =/  from  (normalize-from (need from.q))
-  =/  joined-relations=(list joined-relat)
-        %+  mk-joined-relations  :*  %joined-relat
-                                     ~
-                                     relation.from
-                                     as-of.from
-                                     ~
-                                     ==
-                                 joins.from
-  =/  relat=joined-relat  -.joined-relations
-  =/  source-db=@tas      (source-db-name relation.relat)
-  =.  joined-relations    +.joined-relations
-  =/  =full-relation  %:  source-full-relation  relation.relat
-                                                named-ctes
-                                                as-of.relat
-                                                ~
-                                                ~
-                                                *qualified-map-meta
-                                                ~
-                                                ==
-  =/  prior-join          -.set-tables.full-relation
-  =/  from-objects        (limo ~[prior-join])
-  =/  prev-as-of          as-of.relat
-  =/  prev-db-name=@tas   source-db
-  |-
-  ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
-  =.  source-db         (source-db-name relation.i.joined-relations)
-  =/  needs-refresh     ?|  !=(as-of.i.joined-relations prev-as-of)
-                            !=(source-db prev-db-name)
-                             ==
-  =.  full-relation  %:  source-full-relation  relation.i.joined-relations
-                                                named-ctes
-                                                as-of.i.joined-relations
-                                                join.i.joined-relations
-                                                predicate.i.joined-relations
-                                                map-meta.full-relation
-                                                column-metas.full-relation
-                                                ==
-  =.  prior-join       (join-up prior-join -.set-tables.full-relation)
-  %=  $
-    joined-relations   +.joined-relations
-    from-objects       [prior-join from-objects]
-    prev-as-of         as-of.i.joined-relations
-    prev-db-name       source-db
-  ==
 ::
 ++  source-db-name
   |=  rel=relation:ast
@@ -721,113 +824,10 @@
       (cross-join prior this)
   ==
 ::
-++  cross-join
-  |=  [prior=set-table this=set-table]
-  ^-  set-table
-  =/  a=(list data-row)  ?~  joined-rows.prior
-                           indexed-rows.prior
-                         joined-rows.prior
-  =/  out-rows           *(list joined-row)
-  =/  i  0
-  ::
-  |-
-  ?~  a  (joined-set-table this i out-rows)
-  =/  b  indexed-rows.this
-  |-
-  ?~  b  ^$(a t.a)
-  %=  $ 
-    out-rows  :-  ?:  ?=(%joined-row -.i.a)
-                    :+  %joined-row
-                        ~
-                        (~(put by data.i.a) (need relation.this) data.i.b)
-                  %:  joined-from-indexed  i.a
-                                           (need relation.prior)
-                                           i.b
-                                           (need relation.this)
-                                           ==
-                  out-rows
-    b  t.b
-    i  +(i)
-  ==
-::
 ++  reduce-ord-col
   |=  a=ordered-column:ast
   ^-  @tas
   name.a
-::
-++  join-natural
-  |=  [prior=set-table this=set-table]
-  ^-  set-table
-  ::join on foreign keys (to do)
-  ::
-  ::join on primary key
-  ?:  &(=(~ pri-indx.prior) =(~ pri-indx.this))
-    ~|("no natural join, missing index: {<prior>} {<this>}" !!)
-  =/  this-key   key:(need pri-indx.this)
-  =/  prior-key  key:(need pri-indx.prior)
-  =/  rel-prior  (need relation.prior)
-  =/  rel-this   (need relation.this)
-  :: perfect natural join
-  =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
-                      ?~  joined-rows.prior
-                        %:  join-pri-key  indexed-rows.prior
-                                          rel-prior
-                                          indexed-rows.this
-                                          rel-this
-                                          this-key
-                                        ==
-                      %:  join-pri-key  joined-rows.prior
-                                        rel-prior
-                                        indexed-rows.this
-                                        rel-this
-                                        this-key
-                                        ==
-  ?:  =(prior-key this-key)
-    (joined-set-table this -.count-and-rows +.count-and-rows)
-  ::  key is same column sequence, but different ordering
-  ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
-              (turn this-key |=(a=key-column [name.a aura.a]))
-    ~|  "no natural join or foreign key join, columns do not match: ".
-        "{<rel-this>}"
-        !!
-  ::  sort the little one
-  =/  the-key  ?:  (gth rowcount.this rowcount.prior)
-                 this-key
-               prior-key
-  =.  count-and-rows
-        ?:  (gth rowcount.this rowcount.prior)
-          ?~  joined-rows.prior
-            %:  join-pri-key  %+  sort  indexed-rows.prior
-                                   ~(order data-row-comp (reduce-key the-key))
-                              rel-prior
-                              indexed-rows.this
-                              rel-this
-                              this-key
-                              ==
-          %:  join-pri-key  %+  sort  joined-rows.prior
-                                   ~(order data-row-comp (reduce-key the-key))
-                            rel-prior
-                            indexed-rows.this
-                            rel-this
-                            this-key
-                            ==
-        ?~  joined-rows.prior
-          %:  join-pri-key  indexed-rows.prior
-                            rel-prior
-                            %+  sort  indexed-rows.this
-                                    ~(order data-row-comp (reduce-key the-key))
-                            rel-this
-                            prior-key
-                            ==
-        %:  join-pri-key  joined-rows.prior
-                          rel-prior
-                          %+  sort  indexed-rows.this
-                                  ~(order data-row-comp (reduce-key the-key))
-                          rel-this
-                          prior-key
-                          ==
-  ::
-  (joined-set-table this -.count-and-rows +.count-and-rows)
 ::
 ++  joined-set-table
   |=  [st=set-table row-count=@ud joined-rows=(list joined-row)]

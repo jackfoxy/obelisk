@@ -38,8 +38,6 @@ Features coming after v0.5 alpha release.
 
 * __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs.
 
-* __Partial Natural key JOIN__ -- e.g. (co11, col2, col3) JOIN (col1, col2)
-
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
 * __Additional system views__ -- security, views, etc.
@@ -50,7 +48,11 @@ Features coming after v0.5 alpha release.
 
 * __Foreign Keys__ -- enforce referential integrity and allow natural join even when names do not match.
 
+* __@rh, @rs, @rq arithmetic__ -- @rh, @rs, @rq 
+
 * __Suppport Paths__  -- %hawk compatibility support path to select server components.
+
+* __Regex__ -- predicate matching and scalar support
 
 * __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will.
 
@@ -61,6 +63,8 @@ Features coming after v0.5 alpha release.
 * __Localization of date/time__ -- pass timezoneoffset @dr to server
 
 * __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
+
+* __String formatting__ -- date formatting, other string formatting
 
 * __Pivoting__ -- similar to SQL.
 
