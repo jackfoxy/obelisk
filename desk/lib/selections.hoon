@@ -163,20 +163,86 @@
                                           rel-this
                                           this-key
                                         ==
-                      %:  join-pri-key  joined-rows.prior
-                                        rel-prior
-                                        indexed-rows.this
-                                        rel-this
-                                        this-key
-                                        ==
+                      %:  join-partial-key  joined-rows.prior
+                                            rel-prior
+                                            indexed-rows.this
+                                            rel-this
+                                            this-key
+                                            ~
+                                            ~
+                                            ==
   ?:  =(prior-key this-key)
     (joined-set-table this -.count-and-rows +.count-and-rows)
   ::  key is same column sequence, but different ordering
   ?:  ?!  .=  (turn prior-key |=(a=key-column [name.a aura.a]))
               (turn this-key |=(a=key-column [name.a aura.a]))
-    ~|  "no natural join or foreign key join, columns do not match: ".
-        "{<rel-this>}"
-        !!
+    ::  partial key match
+    =/  plen  (leading-prefix-len prior-key this-key)
+    ?:  =(0 plen)
+      ~|  "no natural join or foreign key join, columns do not match: ".
+          "{<rel-this>}"
+          !!
+    =/  prior-prefix  (scag plen prior-key)
+    =/  this-prefix   (scag plen this-key)
+    =/  noncontig     (find-noncontig-matches prior-key this-key plen)
+    =/  nonkey-cols   (find-nonkey-matches prior this prior-key this-key)
+    ::  check for ambiguous non-key columns in multi-table join result
+    =/  ambig-col  (find-ambig-nonkey joined-rows.prior nonkey-cols)
+    ?^  ambig-col
+      ~|  %-  crip
+          %+  weld  "natural join: column %"
+          %+  weld  (trip u.ambig-col)
+                    " occurs in multiple tables"
+      !!
+    ::  check if prefix needs re-sort (different ASC/DESC)
+    =/  needs-resort  ?!  .=  %+  turn  prior-prefix
+                                  |=(a=key-column ascending.a)
+                              %+  turn  this-prefix
+                                  |=(a=key-column ascending.a)
+    =/  sort-prefix   ?:  (gth rowcount.this rowcount.prior)
+                        this-prefix
+                      prior-prefix
+    =/  used-prefix   ?:  needs-resort  sort-prefix
+                      prior-prefix
+    =/  prior-rows=(list data-row)
+      ?~  joined-rows.prior  indexed-rows.prior
+      joined-rows.prior
+    =.  count-and-rows
+      ?:  needs-resort
+        ?:  (gth rowcount.this rowcount.prior)
+          ::  sort prior by this's prefix order
+          %:  join-partial-key
+            %+  sort  prior-rows
+              ~(order prefix-row-comp [plen (reduce-key sort-prefix)])
+            rel-prior
+            indexed-rows.this
+            rel-this
+            sort-prefix
+            nonkey-cols
+            noncontig
+            ==
+        ::  sort this by prior's prefix order
+        %:  join-partial-key
+          prior-rows
+          rel-prior
+          %+  sort  indexed-rows.this
+            ~(order prefix-row-comp [plen (reduce-key sort-prefix)])
+          rel-this
+          sort-prefix
+          nonkey-cols
+          noncontig
+          ==
+      ::  same order, no re-sort needed
+      %:  join-partial-key
+        prior-rows
+        rel-prior
+        indexed-rows.this
+        rel-this
+        prior-prefix
+        nonkey-cols
+        noncontig
+        ==
+    (joined-set-table-pk this -.count-and-rows +.count-and-rows used-prefix)
   ::  sort the little one
   =/  the-key  ?:  (gth rowcount.this rowcount.prior)
                  this-key
@@ -191,13 +257,15 @@
                               rel-this
                               this-key
                               ==
-          %:  join-pri-key  %+  sort  joined-rows.prior
-                                   ~(order data-row-comp (reduce-key the-key))
-                            rel-prior
-                            indexed-rows.this
-                            rel-this
-                            this-key
-                            ==
+          %:  join-partial-key  %+  sort  joined-rows.prior
+                                     ~(order data-row-comp (reduce-key the-key))
+                              rel-prior
+                              indexed-rows.this
+                              rel-this
+                              this-key
+                              ~
+                              ~
+                              ==
         ?~  joined-rows.prior
           %:  join-pri-key  indexed-rows.prior
                             rel-prior
@@ -206,13 +274,15 @@
                             rel-this
                             prior-key
                             ==
-        %:  join-pri-key  joined-rows.prior
-                          rel-prior
-                          %+  sort  indexed-rows.this
-                                  ~(order data-row-comp (reduce-key the-key))
-                          rel-this
-                          prior-key
-                          ==
+        %:  join-partial-key  joined-rows.prior
+                              rel-prior
+                              %+  sort  indexed-rows.this
+                                      ~(order data-row-comp (reduce-key the-key))
+                              rel-this
+                              prior-key
+                              ~
+                              ~
+                              ==
   ::
   (joined-set-table this -.count-and-rows +.count-and-rows)
 ::
@@ -900,6 +970,259 @@
     ?:  ->.k  (gth -.p -.q)
     (lth -.p -.q)
   --
+++  prefix-row-comp
+  ::
+  ::  comparator for sorting by leading prefix columns only
+  |_  [plen=@ud index=(list [@ta ?])]
+  ++  order
+    |=  [a=[data-row] b=[data-row]]
+    =/  p  (scag plen key.a)
+    =/  q  (scag plen key.b)
+    =/  k=(list [@ta ?])  index
+    |-  ^-  ?
+    ?~  p  %.n
+    ?:  =(-.p -.q)  $(k +.k, p +.p, q +.q)
+    ?:  =(-<.k %t)  (alpha -.q -.p)
+    ?:  =(-<.k %rd)
+      ?:  ->.k  (gth:rd -.p -.q)
+      (lth:rd -.p -.q)
+    ?:  =(-<.k %sd)
+      ?:  ->.k  =((cmp:si `@s`-.p `@s`-.q) --1)
+      =((cmp:si `@s`-.p `@s`-.q) -1)
+    ?:  ->.k  (gth -.p -.q)
+    (lth -.p -.q)
+  --
+::
+++  joined-set-table-pk
+  ::  build result set-table for partial key join
+  |=  $:  st=set-table
+          row-count=@ud
+          joined-rows=(list joined-row)
+          pk=(list key-column)
+          ==
+  ^-  set-table
+  =.  rowcount.st     row-count
+  =.  joined-rows.st  joined-rows
+  =.  pri-indx.st     [~ [%index %.y pk]]
+  st
+::
+++  leading-prefix-len
+  ::  count leading columns matching by name+aura
+  |=  [a=(list key-column) b=(list key-column)]
+  ^-  @ud
+  =/  i  0
+  |-
+  ?~  a  i
+  ?~  b  i
+  ?.  =([name.i.a aura.i.a] [name.i.b aura.i.b])  i
+  $(a t.a, b t.b, i +(i))
+::
+++  find-noncontig-matches
+  ::  find key column matches beyond the leading prefix
+  ::  returns (list [prior-key-pos this-key-pos])
+  |=  $:  prior-key=(list key-column)
+          this-key=(list key-column)
+          plen=@ud
+          ==
+  ^-  (list [@ud @ud])
+  =/  prior-rest  (slag plen prior-key)
+  =/  this-rest   (slag plen this-key)
+  ::  build lookup from name+aura to absolute position for prior's remaining cols
+  =/  prior-lookup=(map [@tas @ta] @ud)
+    %-  malt
+    =/  idx  plen
+    =/  rest  prior-rest
+    =/  out  *(list [[@tas @ta] @ud])
+    |-
+    ?~  rest  out
+    $(out [[[name.i.rest aura.i.rest] idx] out], rest t.rest, idx +(idx))
+  ::  walk this-rest and find matches
+  =/  out  *(list [@ud @ud])
+  =/  this-idx  plen
+  |-
+  ?~  this-rest  (flop out)
+  =/  prior-idx  (~(get by prior-lookup) [name.i.this-rest aura.i.this-rest])
+  =.  out  ?~  prior-idx  out
+           [[u.prior-idx this-idx] out]
+  $(this-rest t.this-rest, this-idx +(this-idx))
+::
+++  find-nonkey-matches
+  ::  find non-key columns matching by name+type between two set-tables
+  |=  $:  prior=set-table
+          this=set-table
+          prior-key=(list key-column)
+          this-key=(list key-column)
+          ==
+  ^-  (list @tas)
+  =/  prior-key-names  (silt (turn prior-key |=(a=key-column name.a)))
+  =/  this-key-names   (silt (turn this-key |=(a=key-column name.a)))
+  =/  prior-nonkey  %+  skip  columns.prior
+                    |=(c=column:ast (~(has in prior-key-names) name.c))
+  =/  this-nonkey   %+  skip  columns.this
+                    |=(c=column:ast (~(has in this-key-names) name.c))
+  =/  this-lookup   (malt (turn this-nonkey |=(c=column:ast [name.c type.c])))
+  %+  murn  prior-nonkey
+  |=  c=column:ast
+  ^-  (unit @tas)
+  =/  match  (~(get by this-lookup) name.c)
+  ?~  match  ~
+  ?.  =(u.match type.c)  ~
+  [~ name.c]
+::
+++  find-ambig-nonkey
+  ::  check if any non-key column exists in multiple source tables
+  |=  [jrows=(list joined-row) cols=(list @tas)]
+  ^-  (unit @tas)
+  ?~  jrows  ~
+  =/  rels  ~(tap by data.i.jrows)
+  |-
+  ?~  cols  ~
+  =/  cnt  %+  roll  rels
+    |=  [r=[qualified-table:ast (map @tas @)] cnt=@ud]
+    ?:  (~(has by +.r) i.cols)  +(cnt)
+    cnt
+  ?:  (gth cnt 1)  [~ i.cols]
+  $(cols t.cols)
+::
+++  get-col-from-row
+  ::  extract a column value from any data-row by name
+  |=  [col=@tas row=data-row]
+  ^-  (unit @)
+  ?:  ?=(%indexed-row -.row)
+    (~(get by data.row) col)
+  ::  joined-row: search all relations in the mip
+  ?>  ?=(%joined-row -.row)
+  =/  rels  ~(tap by data.row)
+  |-
+  ?~  rels  ~
+  =/  val  (~(get by q.i.rels) col)
+  ?^  val  val
+  $(rels t.rels)
+::
+++  collect-group-a
+  ::  collect consecutive data-rows sharing the same prefix key
+  |=  [rows=(list data-row) prefix=(list @) plen=@ud]
+  ^-  [(list data-row) (list data-row)]
+  =/  group  *(list data-row)
+  |-
+  ?~  rows  [(flop group) ~]
+  ?.  =(prefix (scag plen key.i.rows))  [(flop group) rows]
+  $(group [i.rows group], rows t.rows)
+::
+++  collect-group-b
+  ::  collect consecutive indexed-rows sharing the same prefix key
+  |=  [rows=(list indexed-row) prefix=(list @) plen=@ud]
+  ^-  [(list indexed-row) (list indexed-row)]
+  =/  group  *(list indexed-row)
+  |-
+  ?~  rows  [(flop group) ~]
+  ?.  =(prefix (scag plen key.i.rows))  [(flop group) rows]
+  $(group [i.rows group], rows t.rows)
+::
+++  join-partial-key
+  ::  merge-join on shared prefix key with group-based cross product
+  |=  $:  a=(list data-row)
+          a-qual=qualified-table:ast
+          b=(list indexed-row)
+          b-qual=qualified-table:ast
+          prefix-key=(list key-column)
+          nonkey-cols=(list @tas)
+          noncontig=(list [@ud @ud])
+          ==
+  ^-  [@ud (list joined-row)]
+  =/  c  *(list joined-row)
+  =/  i  0
+  =/  plen  (lent prefix-key)
+  =/  prefix-idx  (reduce-key prefix-key)
+  ::
+  |-
+  ?~  a  [i (flop c)]
+  ?~  b  [i (flop c)]
+  =/  pa  (scag plen key.i.a)
+  =/  pb  (scag plen key.i.b)
+  ?:  =(pa pb)
+    ::  collect all consecutive rows with same prefix from each side
+    =/  ga  (collect-group-a a pa plen)
+    =/  gb  (collect-group-b b pa plen)
+    ::  cross-product with filtering
+    =/  cross  %:  cross-filter
+                 -.ga
+                 -.gb
+                 a-qual
+                 b-qual
+                 pa
+                 nonkey-cols
+                 noncontig
+                 ==
+    %=  $
+      a  +.ga
+      b  +.gb
+      c  (weld -.cross c)
+      i  (add i +.cross)
+    ==
+  ?:  (~(order idx-comp prefix-idx) pa pb)
+    $(a t.a)
+  $(b t.b)
+::
+++  cross-filter
+  ::  cross-product of two groups, filtering on non-key and non-contiguous matches
+  |=  $:  ga=(list data-row)
+          gb=(list indexed-row)
+          a-qual=qualified-table:ast
+          b-qual=qualified-table:ast
+          prefix=(list @)
+          nonkey-cols=(list @tas)
+          noncontig=(list [@ud @ud])
+          ==
+  ^-  [(list joined-row) @ud]
+  =/  out  *(list joined-row)
+  =/  cnt  0
+  |-
+  ?~  ga  [out cnt]
+  =/  b-rows  gb
+  |-
+  ?~  b-rows  ^$(ga t.ga)
+  ::  check non-contiguous key column matches
+  ?.  (check-noncontig key.i.ga key.i.b-rows noncontig)
+    $(b-rows t.b-rows)
+  ::  check non-key column matches
+  ?.  (check-nonkey-cols i.ga i.b-rows nonkey-cols)
+    $(b-rows t.b-rows)
+  ::  emit joined row with PREFIX key
+  =/  jr=joined-row
+    ?:  ?=(%joined-row -.i.ga)
+      [%joined-row prefix (~(put by data.i.ga) b-qual data.i.b-rows)]
+    :+  %joined-row
+      prefix
+      %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.ga))
+      [b-qual data.i.b-rows]
+  %=  $
+    out    [jr out]
+    cnt    +(cnt)
+    b-rows  t.b-rows
+  ==
+::
+++  check-noncontig
+  ::  verify non-contiguous key column pairs match
+  |=  [a-key=(list @) b-key=(list @) pairs=(list [@ud @ud])]
+  ^-  ?
+  ?~  pairs  %.y
+  ?.  =((snag -.i.pairs a-key) (snag +.i.pairs b-key))
+    %.n
+  $(pairs t.pairs)
+::
+++  check-nonkey-cols
+  ::  verify non-key column values match between rows
+  |=  [a=data-row b=indexed-row cols=(list @tas)]
+  ^-  ?
+  ?~  cols  %.y
+  =/  a-val  (get-col-from-row i.cols a)
+  =/  b-val  (~(get by data.b) i.cols)
+  ?~  a-val  %.n
+  ?~  b-val  %.n
+  ?.  =(u.a-val u.b-val)  %.n
+  $(cols t.cols)
+::
 ++  get-schema
     |=  [sys=((mop @da schema) gth) time=@da]
     ^-  schema

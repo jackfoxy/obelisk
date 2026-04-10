@@ -5549,6 +5549,917 @@
               ==
       ==
 ::
+::  partial key, 2-col PK matches 1-col PK leading prefix, same order, 1:many
+++  test-join-31
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, label-b @t) "
+            "PRIMARY KEY (pk1 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, label-a) VALUES "
+            "(1, 10, 'a1') "
+            "(1, 20, 'a2') "
+            "(2, 30, 'a3') "
+            "(3, 40, 'a4') "
+            "(3, 50, 'a5') "
+            "(4, 60, 'a6');"
+            "INSERT INTO tbl-b (pk1, label-b) VALUES "
+            "(1, 'b1') "
+            "(3, 'b2') "
+            "(5, 'b3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 3]]
+                              [%pk2 [~.ud 40]]
+                              [%label-a [~.t 'a4']]
+                              [%pk1 [~.ud 3]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 3]]
+                              [%pk2 [~.ud 50]]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 3]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  partial key, 2-col PK matches 1-col PK leading prefix, inverted order, 1:many
+++  test-join-32
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, label-b @t) "
+            "PRIMARY KEY (pk1 DESC);"
+            "INSERT INTO tbl-a (pk1, pk2, label-a) VALUES "
+            "(1, 10, 'a1') "
+            "(1, 20, 'a2') "
+            "(2, 30, 'a3') "
+            "(3, 40, 'a4') "
+            "(3, 50, 'a5') "
+            "(4, 60, 'a6');"
+            "INSERT INTO tbl-b (pk1, label-b) VALUES "
+            "(1, 'b1') "
+            "(3, 'b2') "
+            "(5, 'b3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 3]]
+                              [%pk2 [~.ud 40]]
+                              [%label-a [~.t 'a4']]
+                              [%pk1 [~.ud 3]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 3]]
+                              [%pk2 [~.ud 50]]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 3]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  partial key, 3-col PK matches 2-col PK leading prefix, same order, 1:many
+++  test-join-33
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, pk3 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC, pk3 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, pk2 @ud, label-b @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, pk3, label-a) VALUES "
+            "(1, 10, 100, 'a1') "
+            "(1, 10, 200, 'a2') "
+            "(1, 20, 300, 'a3') "
+            "(2, 10, 400, 'a4') "
+            "(2, 20, 500, 'a5') "
+            "(3, 30, 600, 'a6');"
+            "INSERT INTO tbl-b (pk1, pk2, label-b) VALUES "
+            "(1, 10, 'b1') "
+            "(1, 20, 'b2') "
+            "(2, 20, 'b3') "
+            "(4, 10, 'b4');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 100]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 200]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 300]]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 500]]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  partial key, 3-col PK matches 2-col PK leading prefix, inverted order, 1:many
+++  test-join-34
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, pk3 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC, pk3 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, pk2 @ud, label-b @t) "
+            "PRIMARY KEY (pk1 DESC, pk2 DESC);"
+            "INSERT INTO tbl-a (pk1, pk2, pk3, label-a) VALUES "
+            "(1, 10, 100, 'a1') "
+            "(1, 10, 200, 'a2') "
+            "(1, 20, 300, 'a3') "
+            "(2, 10, 400, 'a4') "
+            "(2, 20, 500, 'a5') "
+            "(3, 30, 600, 'a6');"
+            "INSERT INTO tbl-b (pk1, pk2, label-b) VALUES "
+            "(1, 10, 'b1') "
+            "(1, 20, 'b2') "
+            "(2, 20, 'b3') "
+            "(4, 10, 'b4');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 100]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 200]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 300]]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 500]]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  partial key, 2-col PK matches 1-col PK leading prefix + non-key column match, same order
+++  test-join-35
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, val @t, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, val @t, label-b @t) "
+            "PRIMARY KEY (pk1 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, val, label-a) VALUES "
+            "(1, 10, 'x', 'a1') "
+            "(1, 20, 'y', 'a2') "
+            "(2, 30, 'x', 'a3') "
+            "(3, 40, 'x', 'a4') "
+            "(3, 50, 'y', 'a5');"
+            "INSERT INTO tbl-b (pk1, val, label-b) VALUES "
+            "(1, 'x', 'b1') "
+            "(3, 'y', 'b2') "
+            "(5, 'x', 'b3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%val [~.t 'x']]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%val [~.t 'x']]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 3]]
+                              [%pk2 [~.ud 50]]
+                              [%val [~.t 'y']]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 3]]
+                              [%val [~.t 'y']]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  partial key, 2-col PK matches 1-col PK leading prefix + non-key column match, inverted order
+++  test-join-36
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, val @t, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, val @t, label-b @t) "
+            "PRIMARY KEY (pk1 DESC);"
+            "INSERT INTO tbl-a (pk1, pk2, val, label-a) VALUES "
+            "(1, 10, 'x', 'a1') "
+            "(1, 20, 'y', 'a2') "
+            "(2, 30, 'x', 'a3') "
+            "(3, 40, 'x', 'a4') "
+            "(3, 50, 'y', 'a5');"
+            "INSERT INTO tbl-b (pk1, val, label-b) VALUES "
+            "(1, 'x', 'b1') "
+            "(3, 'y', 'b2') "
+            "(5, 'x', 'b3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%val [~.t 'x']]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%val [~.t 'x']]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 3]]
+                              [%pk2 [~.ud 50]]
+                              [%val [~.t 'y']]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 3]]
+                              [%val [~.t 'y']]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  partial key, 3-col PK matches 2-col PK leading prefix + non-key column match, same order
+++  test-join-37
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, pk3 @ud, val @t, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC, pk3 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, pk2 @ud, val @t, label-b @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, pk3, val, label-a) VALUES "
+            "(1, 10, 100, 'x', 'a1') "
+            "(1, 10, 200, 'y', 'a2') "
+            "(1, 20, 300, 'x', 'a3') "
+            "(2, 10, 400, 'x', 'a4') "
+            "(2, 20, 500, 'y', 'a5');"
+            "INSERT INTO tbl-b (pk1, pk2, val, label-b) VALUES "
+            "(1, 10, 'y', 'b1') "
+            "(1, 20, 'x', 'b2') "
+            "(2, 20, 'y', 'b3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 200]]
+                              [%val [~.t 'y']]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%val [~.t 'y']]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 300]]
+                              [%val [~.t 'x']]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%val [~.t 'x']]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 500]]
+                              [%val [~.t 'y']]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%val [~.t 'y']]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  partial key, 3-col PK matches 2-col PK leading prefix + non-key column match, inverted order
+++  test-join-38
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, pk3 @ud, val @t, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC, pk3 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, pk2 @ud, val @t, label-b @t) "
+            "PRIMARY KEY (pk1 DESC, pk2 DESC);"
+            "INSERT INTO tbl-a (pk1, pk2, pk3, val, label-a) VALUES "
+            "(1, 10, 100, 'x', 'a1') "
+            "(1, 10, 200, 'y', 'a2') "
+            "(1, 20, 300, 'x', 'a3') "
+            "(2, 10, 400, 'x', 'a4') "
+            "(2, 20, 500, 'y', 'a5');"
+            "INSERT INTO tbl-b (pk1, pk2, val, label-b) VALUES "
+            "(1, 10, 'y', 'b1') "
+            "(1, 20, 'x', 'b2') "
+            "(2, 20, 'y', 'b3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 200]]
+                              [%val [~.t 'y']]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%val [~.t 'y']]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 300]]
+                              [%val [~.t 'x']]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%val [~.t 'x']]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 500]]
+                              [%val [~.t 'y']]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%val [~.t 'y']]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  non-contiguous key match, 3-col PK cols 1&3 match 2-col PK,
+::  slow path: merge on leading col 1, filter on col 3 within groups
+++  test-join-39
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, pk3 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC, pk3 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, pk3 @ud, label-b @t) "
+            "PRIMARY KEY (pk1 ASC, pk3 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, pk3, label-a) VALUES "
+            "(1, 10, 100, 'a1') "
+            "(1, 10, 200, 'a2') "
+            "(1, 20, 100, 'a3') "
+            "(2, 10, 300, 'a4') "
+            "(2, 20, 100, 'a5') "
+            "(3, 10, 200, 'a6');"
+            "INSERT INTO tbl-b (pk1, pk3, label-b) VALUES "
+            "(1, 100, 'b1') "
+            "(1, 200, 'b2') "
+            "(2, 100, 'b3') "
+            "(3, 300, 'b4');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 100]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%pk3 [~.ud 100]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%pk3 [~.ud 200]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk3 [~.ud 200]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 100]]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 1]]
+                              [%pk3 [~.ud 100]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 20]]
+                              [%pk3 [~.ud 100]]
+                              [%label-a [~.t 'a5']]
+                              [%pk1 [~.ud 2]]
+                              [%pk3 [~.ud 100]]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  many:many partial key, 2-col PK matches 2-col PK on 1-col leading prefix,
+::  multiple rows on both sides produce cross product within each key group
+++  test-join-40
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, pk2b @ud, label-b @t) "
+            "PRIMARY KEY (pk1 ASC, pk2b ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, label-a) VALUES "
+            "(1, 10, 'a1') "
+            "(1, 20, 'a2') "
+            "(2, 30, 'a3') "
+            "(4, 40, 'a4');"
+            "INSERT INTO tbl-b (pk1, pk2b, label-b) VALUES "
+            "(1, 100, 'b1') "
+            "(1, 200, 'b2') "
+            "(1, 300, 'b3') "
+            "(2, 400, 'b4') "
+            "(5, 500, 'b5');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2b [~.ud 100]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2b [~.ud 200]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2b [~.ud 300]]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2b [~.ud 100]]
+                              [%label-b [~.t 'b1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2b [~.ud 200]]
+                              [%label-b [~.t 'b2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%pk2b [~.ud 300]]
+                              [%label-b [~.t 'b3']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 30]]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 2]]
+                              [%pk2b [~.ud 400]]
+                              [%label-b [~.t 'b4']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 7]
+              ==
+      ==
+::
+::  3-table partial key join, A(2-col PK) JOIN B(1-col PK) JOIN C(1-col PK),
+::  leading prefix match on pk1 at each step
+++  test-join-41
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, label-b @t) "
+            "PRIMARY KEY (pk1 ASC);"
+            "CREATE TABLE db1..tbl-c "
+            "(pk1 @ud, label-c @t) "
+            "PRIMARY KEY (pk1 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, label-a) VALUES "
+            "(1, 10, 'a1') "
+            "(1, 20, 'a2') "
+            "(2, 30, 'a3') "
+            "(2, 40, 'a4') "
+            "(3, 50, 'a5') "
+            "(4, 60, 'a6');"
+            "INSERT INTO tbl-b (pk1, label-b) VALUES "
+            "(1, 'b1') "
+            "(2, 'b2') "
+            "(3, 'b3') "
+            "(5, 'b4');"
+            "INSERT INTO tbl-c (pk1, label-c) VALUES "
+            "(1, 'c1') "
+            "(2, 'c2') "
+            "(6, 'c3');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "JOIN tbl-c T3 ".
+          "SELECT T1.*, T2.*, T3.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 10]]
+                              [%label-a [~.t 'a1']]
+                              [%pk1 [~.ud 1]]
+                              [%label-b [~.t 'b1']]
+                              [%pk1 [~.ud 1]]
+                              [%label-c [~.t 'c1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 1]]
+                              [%pk2 [~.ud 20]]
+                              [%label-a [~.t 'a2']]
+                              [%pk1 [~.ud 1]]
+                              [%label-b [~.t 'b1']]
+                              [%pk1 [~.ud 1]]
+                              [%label-c [~.t 'c1']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 30]]
+                              [%label-a [~.t 'a3']]
+                              [%pk1 [~.ud 2]]
+                              [%label-b [~.t 'b2']]
+                              [%pk1 [~.ud 2]]
+                              [%label-c [~.t 'c2']]
+                              ==
+                      :-  %vector
+                          :~  [%pk1 [~.ud 2]]
+                              [%pk2 [~.ud 40]]
+                              [%label-a [~.t 'a4']]
+                              [%pk1 [~.ud 2]]
+                              [%label-b [~.t 'b2']]
+                              [%pk1 [~.ud 2]]
+                              [%label-c [~.t 'c2']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tbl-c']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud
@@ -5621,6 +6532,42 @@
           "no natural join or foreign key join, columns do not match: ".
           "[%qualified-table ship=~ database=%db1 namespace=%dbo ".
           "name=%calendar alias=~]"
+      ==
+::
+::  fail on ambiguous non-key column in multi-table natural join
+++  test-fail-join-03
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..tbl-a "
+            "(pk1 @ud, pk2 @ud, val @ud, label-a @t) "
+            "PRIMARY KEY (pk1 ASC, pk2 ASC);"
+            "CREATE TABLE db1..tbl-b "
+            "(pk1 @ud, val @ud, label-b @t) "
+            "PRIMARY KEY (pk1 ASC);"
+            "CREATE TABLE db1..tbl-c "
+            "(pk1 @ud, pk3 @ud, val @ud, label-c @t) "
+            "PRIMARY KEY (pk1 ASC, pk3 ASC);"
+            "INSERT INTO tbl-a (pk1, pk2, val, label-a) VALUES "
+            "(1, 10, 100, 'a1');"
+            "INSERT INTO tbl-b (pk1, val, label-b) VALUES "
+            "(1, 100, 'b1');"
+            "INSERT INTO tbl-c (pk1, pk3, val, label-c) VALUES "
+            "(1, 200, 100, 'c1');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-a T1 ".
+          "JOIN tbl-b T2 ".
+          "JOIN tbl-c T3 ".
+          "SELECT T1.*, T2.*, T3.*"
+      ::
+      'natural join: column %val occurs in multiple tables'
       ==
 ::
 ::  bugs
@@ -5900,7 +6847,7 @@
       ==
 ::
 ::  fail on bad column name in join WHERE bad column = literal
-++  test-fail-join-03
+++  test-fail-join-04
   =|  run=@ud
   %-  failon-1
   :*  run
@@ -5921,7 +6868,7 @@
       ==
 ::
 ::  fail on bad column name in join WHERE literal = bad column
-++  test-fail-join-04
+++  test-fail-join-05
   =|  run=@ud
   %-  failon-1
   :*  run
@@ -5942,7 +6889,7 @@
       ==
 ::
 ::  fail on bad column name in join WHERE bad column = good column
-++  test-fail-join-05
+++  test-fail-join-06
   =|  run=@ud
   %-  failon-1
   :*  run
@@ -5963,7 +6910,7 @@
       ==
 ::
 ::  fail on bad column name in join WHERE good column = bad column
-++  test-fail-join-06
+++  test-fail-join-07
   =|  run=@ud
   %-  failon-1
   :*  run

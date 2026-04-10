@@ -5,6 +5,6 @@
   version+[0 0 9]
   website+'https://github.com/jackfoxy/obelisk'
   license+'MIT+n https://github.com/jackfoxy/obelisk/blob/master/LICENSE.md'
-  image+'https://raw.githubusercontent.com/jackfoxy/obelisk/refs/heads/beta/public/obelisk-icon.png'
+  image+'https://raw.githubusercontent.com/jackfoxy/obelisk/refs/heads/master/public/obelisk-icon.png'
   site+/~~/~/obelisk
 ==
