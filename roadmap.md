@@ -8,11 +8,11 @@ Features coming after v0.5 alpha release.
 
 * __Scalar functions__ (complete in beta) -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
 
-* __JOIN ON__ -- JOIN ON `<predicate>`
-
-* __partial pri key natural join__ -- natural join on beginning of primary key
+* __partial pri key natural join__ (complete in beta) -- natural join on beginning of primary key
 
 * __Any natural join__ -- natural join on any column(s) match
+
+* __JOIN ON__ -- JOIN ON `<predicate>`
 
 * __Set operators__ -- UNION, INTERSECT, EXCEPT
 
