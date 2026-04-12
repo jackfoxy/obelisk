@@ -194,6 +194,35 @@
 ++  print-header
   |=  [=server default-db=(unit term)]
   ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3);")
+    ;details#file-menu.rel(style "position: relative; display: inline-block;")
+      ;summary.underline(style "list-style: none; cursor: pointer; display: inline-block;")
+        ;span: File
+      ==
+      ;div.abs.b2.bd1.br1.fc(style "position: absolute; z-index: 10; min-width: 12rem; top: calc(100% + 0.25rem); left: 0;")
+        ;button.wf.p-1.hover(type "button", onclick "newEditorTab()", style "text-align: left;"): New
+        ;button.wf.p-1.hover(type "button", disabled "", style "text-align: left;"): Open...
+        ;button.wf.p-1.hover(type "button", onclick "submitSavePanel()", style "text-align: left;"): Save
+        ;button.wf.p-1.hover(type "button", onclick "toggleSaveAsPanel()", style "text-align: left;"): Save As...
+        ;button.wf.p-1.hover(type "button", onclick "closeCurrentTab()", style "text-align: left;"): Close
+        ;form#save-panel-form.fc.g1.loader.p2.b1
+          =method  "post"
+          =action  "/apps/hawk/code{(spud here)}/script-1"
+          =target  "save-panel-target"
+          =onsubmit  "prepareExportForm(this)"
+          =style  "display: none;"
+          ;div.s-2.o7: Save main panel to child path
+          ;input#save-panel-child.br1.bd1.p-1.wfc(name "_child-path", value "script-1", placeholder "script-1");
+          ;input.hidden(name "code", value "");
+          ;input.hidden(name "/protocol", value "/text/plain");
+          ;button.p-1.bd1.br1.b2.hover.loader(type "submit")
+            ;span.loaded.fr.ac.g1
+              ;span: Save
+            ==
+            ;span.loading: ...
+          ==
+        ==
+      ==
+    ==
     ;button#run-btn.p-1.bd1.br1.b2.hover.loader
       =onclick  "$('#query-form').find('[type=submit]').click()"
       ;span.loaded.fr.ac.g2
@@ -205,18 +234,7 @@
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Parse
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Import
-    ;form
-      =method  "post"
-      =action  "/apps/hawk/code{(spud here)}/script-1"
-      =hx-on-htmx-config-request  "exportScript(event)"
-      =hx-swap  "none"
-      ;button.p-1.bd1.br1.b2.hover.loader(disabled "")  :: XX broken
-        ;span.loaded.fr.ac.g1
-          ;span: Export
-        ==
-        ;span.loading: ...
-      ==
-    ==
+    ;iframe.hidden(name "save-panel-target");
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;div.grow;
@@ -396,6 +414,10 @@
     =hx-on-htmx-config-request  "configRequest(event); $('#query-text').focus()"
     =hx-on-htmx-after-request  "$('#query-text').focus();"
     ;input.hidden(name "/", value "query");
+    ;div#query-tabs.fr.ac.px-1.pt-1.scroll-x(style "border-bottom: 1px solid var(--b3); gap: 0.375rem;")
+      ;div#query-tabs-list.fr.ac(style "gap: 0.375rem;");
+      ;button#query-tab-add.px-2.py-1.bd1.br1.hover(type "button", onclick "newEditorTab()", style "margin-bottom: 1px;"): +
+    ==
     ;textarea#query-text.p3.grow.b0(hx-preserve "")
       =aura  "t-multi"
       =name  "/query-text"
@@ -524,16 +546,166 @@
     ;+  ;/  %-  trip
     '''
     function configRequest(e) {
+      syncEditorTabs();
       e.detail.parameters['schema-open'] = $('#h-schema').is('[open]')
       e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '0.3';
       e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
       let selection = window.getSelection()
       e.detail.parameters['/selected-query-text'] = selection.toString();
     }
-    function exportScript(e) {
-      let script = $('#query-text').val()
-      e.detail.parameters['code'] = script;
-      e.detail.parameters['/protocol'] = '/text/plain';
+    function prepareExportForm(form) {
+      const childInput = form.querySelector('#save-panel-child');
+      const rawChild = (childInput && childInput.value ? childInput.value : 'script-1').trim();
+      const parts = rawChild.split('/').map((part) => part.trim()).filter(Boolean);
+      const safeChild = (parts.length ? parts : ['script-1']).map(encodeURIComponent).join('/');
+      const codeInput = form.querySelector('[name="code"]');
+      if (codeInput) {
+        codeInput.value = $('#query-text').val() || '';
+      }
+      form.action = '/apps/hawk/code{(spud here)}/' + safeChild;
+    }
+    function submitSavePanel() {
+      const form = document.getElementById('save-panel-form');
+      if (!form) {
+        return;
+      }
+      syncEditorTabs();
+      prepareExportForm(form);
+      if (form.requestSubmit) {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+      closeFileMenu(form);
+    }
+    function toggleSaveAsPanel() {
+      const form = document.getElementById('save-panel-form');
+      if (!form) {
+        return;
+      }
+      const hidden = (form.style.display === 'none' || form.style.display === '');
+      form.style.display = hidden ? 'flex' : 'none';
+      if (hidden) {
+        const input = form.querySelector('#save-panel-child');
+        if (input) {
+          input.focus();
+          input.select();
+        }
+      }
+    }
+    function closeFileMenu(el) {
+      const details = el.closest('details');
+      if (details) {
+        details.removeAttribute('open');
+      }
+    }
+    function getEditorTabs() {
+      if (!window.obeliskEditorTabs) {
+        const textarea = document.getElementById('query-text');
+        const initial = textarea ? (textarea.value || '') : '';
+        window.obeliskEditorTabs = {
+          active: 0,
+          nextId: 2,
+          tabs: [{id: 1, title: 'Tab 1', code: initial}]
+        };
+      }
+      return window.obeliskEditorTabs;
+    }
+    function syncEditorTabs() {
+      const state = getEditorTabs();
+      const textarea = document.getElementById('query-text');
+      if (!textarea || !state.tabs.length) {
+        return;
+      }
+      state.tabs[state.active].code = textarea.value || '';
+    }
+    function focusQueryEditor() {
+      const textarea = document.getElementById('query-text');
+      if (textarea) {
+        textarea.focus();
+      }
+    }
+    function activateEditorTab(index) {
+      const state = getEditorTabs();
+      if (index < 0 || index >= state.tabs.length) {
+        return;
+      }
+      syncEditorTabs();
+      state.active = index;
+      renderEditorTabs();
+      focusQueryEditor();
+    }
+    function newEditorTab() {
+      const state = getEditorTabs();
+      syncEditorTabs();
+      const id = state.nextId++;
+      state.tabs.push({id, title: 'Tab ' + id, code: ''});
+      state.active = state.tabs.length - 1;
+      renderEditorTabs();
+      focusQueryEditor();
+      const details = document.getElementById('file-menu');
+      if (details) {
+        details.removeAttribute('open');
+      }
+    }
+    function closeCurrentTab() {
+      const state = getEditorTabs();
+      syncEditorTabs();
+      if (state.tabs.length <= 1) {
+        const id = state.nextId++;
+        state.tabs = [{id, title: 'Tab ' + id, code: ''}];
+        state.active = 0;
+      } else {
+        state.tabs.splice(state.active, 1);
+        state.active = Math.max(0, state.active - 1);
+      }
+      renderEditorTabs();
+      const details = document.getElementById('file-menu');
+      if (details) {
+        details.removeAttribute('open');
+      }
+      focusQueryEditor();
+    }
+    function renderEditorTabs() {
+      const state = getEditorTabs();
+      const list = document.getElementById('query-tabs-list');
+      const textarea = document.getElementById('query-text');
+      if (!list || !textarea) {
+        return;
+      }
+      list.innerHTML = '';
+      state.tabs.forEach((tab, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'px-3 py-1 bd1 hover mono';
+        button.style.borderRadius = '0.5rem 0.5rem 0 0';
+        button.style.marginBottom = '-1px';
+        button.style.borderBottom = '1px solid var(--b3)';
+        button.textContent = tab.title;
+        if (index === state.active) {
+          button.classList.add('b2');
+          button.style.borderBottom = '1px solid var(--b2)';
+          button.style.position = 'relative';
+          button.style.top = '1px';
+        } else {
+          button.style.opacity = '0.8';
+        }
+        button.addEventListener('click', () => activateEditorTab(index));
+        list.appendChild(button);
+      });
+      textarea.value = state.tabs[state.active] ? state.tabs[state.active].code : '';
+    }
+    function setupEditorTabs() {
+      const textarea = document.getElementById('query-text');
+      const list = document.getElementById('query-tabs-list');
+      if (!textarea || !list) {
+        return;
+      }
+      if (!window.obeliskEditorTabsReady) {
+        window.obeliskEditorTabsReady = true;
+        textarea.addEventListener('input', () => syncEditorTabs());
+      }
+      renderEditorTabs();
     }
 
     if (!window.obeliskKeyHandler) {
@@ -544,6 +716,7 @@
         }
       })
     }
+    setTimeout(setupEditorTabs, 0);
     '''
   ==
   ::
