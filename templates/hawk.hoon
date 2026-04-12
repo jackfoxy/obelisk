@@ -151,6 +151,50 @@
     (~(get by (malt a.g.el)) %val)
   crip
 ::
+++  child-node
+  |=  [tree=file pax=path]
+  ^-  (unit file)
+  ?~  pax  `tree
+  ?~  next=(~(get by dir.tree) i.pax)  ~
+  $(tree u.next, pax t.pax)
+::
+++  collect-child-paths
+  |=  [tree=file prefix=path]
+  ^-  (list path)
+  (collect-child-path-segs tree prefix (sort ~(tap in ~(key by dir.tree)) aor))
+::
+++  collect-child-path-segs
+  |=  [tree=file prefix=path segs=(list @tas)]
+  ^-  (list path)
+  ?~  segs  ~
+  =/  seg=@tas  i.segs
+  =/  child=file  (~(got by dir.tree) seg)
+  =/  rel=path  (snoc prefix seg)
+  =/  current=(list path)  ?:(?=(^ fil.child) ~[rel] ~)
+  (weld current (weld (collect-child-paths child rel) $(segs t.segs)))
+::
+++  descendant-child-paths
+  ^-  (list path)
+  ?~  node=(child-node the-file here)  ~
+  (collect-child-paths u.node ~)
+::
+++  relative-path-text
+  |=  pax=path
+  ^-  tape
+  ?~  pax  ""
+  ?~  t.pax
+    (trip i.pax)
+  (weld (trip i.pax) (weld "/" $(pax t.pax)))
+::
+++  print-existing-child-paths
+  ^-  manx
+  ;div#existing-child-paths.hidden
+    ;*
+    %+  turn  descendant-child-paths
+    |=  pax=path
+    ;input.existing-child-path(type "hidden", value (relative-path-text pax));
+  ==
+::
 ::
 ::
 ::::::::::::::::::::::::::::::::::::::
@@ -193,28 +237,29 @@
   ::
 ++  print-header
   |=  [=server default-db=(unit term)]
-  ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3);")
-    ;details#file-menu.rel(style "position: relative; display: inline-block;")
-      ;summary.underline(style "list-style: none; cursor: pointer; display: inline-block;")
+    ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3);")
+      ;div#file-menu-backdrop.hidden(onclick "closeFileMenu()", style "position: fixed; inset: 0; z-index: 9;");
+      ;div#file-menu.rel(style "position: relative; display: inline-block;", data-open "false")
+      ;button#file-menu-toggle.underline(type "button", onclick "return toggleFileMenu()", aria-expanded "false", style "cursor: pointer; display: inline-block; position: relative; z-index: 11;")
         ;span: File
       ==
-      ;div.abs.b2.bd1.br1.fc(style "position: absolute; z-index: 10; min-width: 12rem; top: calc(100% + 0.25rem); left: 0;")
-        ;button.wf.p-1.hover(type "button", onclick "newEditorTab()", style "text-align: left;"): New
-        ;button.wf.p-1.hover(type "button", disabled "", style "text-align: left;"): Open...
-        ;button.wf.p-1.hover(type "button", onclick "submitSavePanel()", style "text-align: left;"): Save
-        ;button.wf.p-1.hover(type "button", onclick "toggleSaveAsPanel()", style "text-align: left;"): Save As...
-        ;button.wf.p-1.hover(type "button", onclick "closeCurrentTab()", style "text-align: left;"): Close
-        ;form#save-panel-form.fc.g1.loader.p2.b1
+      ;div#file-menu-panel.abs.b2.bd1.br1.fc.hidden(style "position: absolute; z-index: 11; min-width: 12rem; top: calc(100% + 0.25rem); left: 0;")
+        ;button#new-tab-menu-item.wf.p-1.hover(type "button", onclick "return newEditorTab()", style "text-align: left;"): New
+        ;button.wf.p-1.hover(type "button", style "text-align: left;"): Open...
+        ;button#save-tab-menu-item.wf.p-1.hover(type "button", onclick "submitSavePanel(); return false;", style "text-align: left;"): Save
+        ;button#save-as-menu-item.wf.p-1.hover(type "button", onclick "toggleSaveAsPanel(); return false;", style "text-align: left;"): Save As...
+        ;button#close-tab-menu-item.wf.p-1.hover(type "button", onclick "closeCurrentTab(); return false;", style "text-align: left;"): Close
+        ;form#save-panel-form.fc.g1.loader.p2.b1.hidden
           =method  "post"
           =action  "/apps/hawk/code{(spud here)}/script-1"
+          =data-base-action  "/apps/hawk/code{(spud here)}"
           =target  "save-panel-target"
-          =onsubmit  "prepareExportForm(this)"
-          =style  "display: none;"
-          ;div.s-2.o7: Save main panel to child path
+          =onsubmit  "event.preventDefault(); submitSavePanel(event); return false;"
+          ;div.s-2.o7: Save current tab to child path
           ;input#save-panel-child.br1.bd1.p-1.wfc(name "_child-path", value "script-1", placeholder "script-1");
           ;input.hidden(name "code", value "");
           ;input.hidden(name "/protocol", value "/text/plain");
-          ;button.p-1.bd1.br1.b2.hover.loader(type "submit")
+          ;button#save-panel-submit.p-1.bd1.br1.b2.hover.loader(type "button", onclick "submitSavePanel(event); return false;")
             ;span.loaded.fr.ac.g1
               ;span: Save
             ==
@@ -223,6 +268,11 @@
         ==
       ==
     ==
+    ;div#save-toast.hidden.mono.bd1.br1.p-2.b2(style "display: inline-block;")
+      ;span#save-toast-text;
+    ==
+    ;iframe.hidden(name "save-panel-target");
+    ;+  print-existing-child-paths
     ;button#run-btn.p-1.bd1.br1.b2.hover.loader
       =onclick  "$('#query-form').find('[type=submit]').click()"
       ;span.loaded.fr.ac.g2
@@ -234,7 +284,6 @@
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Parse
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Import
-    ;iframe.hidden(name "save-panel-target");
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;div.grow;
@@ -554,50 +603,240 @@
       e.detail.parameters['/selected-query-text'] = selection.toString();
     }
     function prepareExportForm(form) {
+      const state = getEditorTabs();
+      const activeTab = state.tabs[state.active];
       const childInput = form.querySelector('#save-panel-child');
-      const rawChild = (childInput && childInput.value ? childInput.value : 'script-1').trim();
-      const parts = rawChild.split('/').map((part) => part.trim()).filter(Boolean);
-      const safeChild = (parts.length ? parts : ['script-1']).map(encodeURIComponent).join('/');
+      const fallbackChild = activeTab ? currentTabPath(activeTab) : 'script-1';
+      const rawChild = childInput && childInput.value ? childInput.value : fallbackChild;
+      const displayPath = normalizeChildPath(rawChild || fallbackChild);
+      const safeChild = displayPath.split('/').map(encodeURIComponent).join('/');
+      const baseAction = form.getAttribute('data-base-action') || '';
       const codeInput = form.querySelector('[name="code"]');
       if (codeInput) {
         codeInput.value = $('#query-text').val() || '';
       }
-      form.action = '/apps/hawk/code{(spud here)}/' + safeChild;
+      if (childInput) {
+        childInput.value = displayPath;
+      }
+      form.action = baseAction + '/' + safeChild;
+      return {
+        displayPath,
+        safePath: safeChild,
+      };
     }
-    function submitSavePanel() {
-      const form = document.getElementById('save-panel-form');
-      if (!form) {
+    function normalizeChildPath(rawChild) {
+      const parts = String(rawChild || '').split('/').map((part) => part.trim()).filter(Boolean);
+      return (parts.length ? parts : ['script-1']).join('/');
+    }
+    function readKnownChildPaths() {
+      return Array.from(document.querySelectorAll('#existing-child-paths .existing-child-path'))
+        .map((input) => normalizeChildPath(input.value))
+        .filter(Boolean);
+    }
+    function getKnownChildPaths() {
+      if (!window.obeliskKnownChildPaths) {
+        window.obeliskKnownChildPaths = new Set();
+      }
+      readKnownChildPaths().forEach((path) => window.obeliskKnownChildPaths.add(path));
+      return window.obeliskKnownChildPaths;
+    }
+    function knownChildPathExists(path) {
+      return getKnownChildPaths().has(normalizeChildPath(path));
+    }
+    function registerKnownChildPath(path) {
+      if (!path) {
         return;
       }
-      syncEditorTabs();
-      prepareExportForm(form);
-      if (form.requestSubmit) {
-        form.requestSubmit();
-      } else {
-        form.submit();
+      getKnownChildPaths().add(normalizeChildPath(path));
+    }
+    function scriptPathNumber(path) {
+      const match = /^script-(\d+)$/.exec(path || '');
+      return match ? parseInt(match[1], 10) : 0;
+    }
+    function currentTabPath(tab) {
+      return normalizeChildPath((tab && (tab.savedPath || tab.draftPath)) ? (tab.savedPath || tab.draftPath) : 'script-1');
+    }
+    function nextScriptPath(skipTabId) {
+      const state = getEditorTabs();
+      const taken = new Set();
+      let nextNum = 1;
+      getKnownChildPaths().forEach((path) => {
+        taken.add(path);
+        nextNum = Math.max(nextNum, scriptPathNumber(path) + 1);
+      });
+      state.tabs.forEach((tab) => {
+        if (skipTabId && tab.id === skipTabId) {
+          return;
+        }
+        if (tab.savedPath) {
+          taken.add(normalizeChildPath(tab.savedPath));
+        }
+        if (tab.draftPath) {
+          taken.add(normalizeChildPath(tab.draftPath));
+        }
+        nextNum = Math.max(nextNum, scriptPathNumber(tab.savedPath) + 1, scriptPathNumber(tab.draftPath) + 1);
+      });
+      while (taken.has('script-' + nextNum)) {
+        nextNum += 1;
       }
-      closeFileMenu(form);
+      return 'script-' + nextNum;
+    }
+    function ensureTabDraftPath(tab, force) {
+      if (!tab || tab.savedPath) {
+        return false;
+      }
+      if (!force && tab.draftPath) {
+        return false;
+      }
+      const nextPath = nextScriptPath(force ? tab.id : null);
+      if (tab.draftPath === nextPath) {
+        return false;
+      }
+      tab.draftPath = nextPath;
+      return true;
+    }
+    function setFileMenuOpen(open) {
+      const menu = document.getElementById('file-menu');
+      const panel = document.getElementById('file-menu-panel');
+      const toggle = document.getElementById('file-menu-toggle');
+      const backdrop = document.getElementById('file-menu-backdrop');
+      if (!menu || !panel || !toggle || !backdrop) {
+        return;
+      }
+      menu.setAttribute('data-open', open ? 'true' : 'false');
+      backdrop.classList.toggle('hidden', !open);
+      panel.classList.toggle('hidden', !open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (!open) {
+        hideSaveAsPanel();
+      }
+    }
+    function toggleFileMenu() {
+      const menu = document.getElementById('file-menu');
+      const isOpen = !!menu && menu.getAttribute('data-open') === 'true';
+      setFileMenuOpen(!isOpen);
+      return false;
+    }
+    function hideSaveAsPanel() {
+      const form = document.getElementById('save-panel-form');
+      if (form) {
+        form.classList.add('hidden');
+      }
+    }
+    function setBusyCursor(active) {
+      const cursor = active ? 'progress' : '';
+      document.documentElement.style.cursor = cursor;
+      if (document.body) {
+        document.body.style.cursor = cursor;
+      }
+    }
+    async function submitSavePanel(e) {
+      if (e) {
+        e.preventDefault();
+      }
+      const form = document.getElementById('save-panel-form');
+      if (!form) {
+        return false;
+      }
+      const state = getEditorTabs();
+      const activeTab = state.tabs[state.active];
+      if ((!activeTab || !activeTab.savedPath) && !e) {
+        toggleSaveAsPanel();
+        return false;
+      }
+      const childInput = form.querySelector('#save-panel-child');
+      if (!e && childInput) {
+        childInput.value = activeTab.savedPath;
+      }
+      syncEditorTabs();
+      const meta = prepareExportForm(form);
+      if (e && meta.displayPath !== (activeTab && activeTab.savedPath) && knownChildPathExists(meta.displayPath)) {
+        if (!window.confirm(meta.displayPath + ' already exists. Save anyway?')) {
+          return false;
+        }
+      }
+      const body = new URLSearchParams(new FormData(form));
+      setBusyCursor(true);
+      try {
+        const res = await fetch(form.action, {
+          method: (form.method || 'post').toUpperCase(),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          },
+          body,
+          credentials: 'same-origin',
+        });
+        if (!res.ok) {
+          throw new Error('save failed');
+        }
+        if (activeTab) {
+          activeTab.savedPath = meta.displayPath;
+          activeTab.draftPath = null;
+          activeTab.title = meta.displayPath;
+        }
+        registerKnownChildPath(meta.displayPath);
+        renderEditorTabs();
+        closeFileMenu(form);
+        showSaveToast(meta.displayPath + ' saved');
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setBusyCursor(false);
+      }
+      return false;
     }
     function toggleSaveAsPanel() {
       const form = document.getElementById('save-panel-form');
       if (!form) {
+        return false;
+      }
+      setFileMenuOpen(true);
+      const hidden = form.classList.contains('hidden');
+      if (!hidden) {
+        hideSaveAsPanel();
+        return false;
+      }
+      const state = getEditorTabs();
+      const activeTab = state.tabs[state.active];
+      if (activeTab && !activeTab.savedPath && ensureTabDraftPath(activeTab, true)) {
+        renderEditorTabs();
+      }
+      form.classList.remove('hidden');
+      const input = form.querySelector('#save-panel-child');
+      if (input) {
+        input.value = currentTabPath(activeTab);
+        input.focus();
+        input.select();
+      }
+      return false;
+    }
+    function closeFileMenu(_el) {
+      setFileMenuOpen(false);
+    }
+    function eventInside(node, e) {
+      if (!node || !e) {
+        return false;
+      }
+      if (typeof e.composedPath === 'function') {
+        return e.composedPath().includes(node);
+      }
+      return node.contains(e.target);
+    }
+    function showSaveToast(message) {
+      const toast = document.getElementById('save-toast');
+      const text = document.getElementById('save-toast-text');
+      if (!toast || !text) {
         return;
       }
-      const hidden = (form.style.display === 'none' || form.style.display === '');
-      form.style.display = hidden ? 'flex' : 'none';
-      if (hidden) {
-        const input = form.querySelector('#save-panel-child');
-        if (input) {
-          input.focus();
-          input.select();
-        }
-      }
+      text.textContent = message;
+      toast.classList.remove('hidden');
     }
-    function closeFileMenu(el) {
-      const details = el.closest('details');
-      if (details) {
-        details.removeAttribute('open');
+    function hideSaveToast() {
+      const toast = document.getElementById('save-toast');
+      if (!toast) {
+        return;
       }
+      toast.classList.add('hidden');
     }
     function getEditorTabs() {
       if (!window.obeliskEditorTabs) {
@@ -606,7 +845,7 @@
         window.obeliskEditorTabs = {
           active: 0,
           nextId: 2,
-          tabs: [{id: 1, title: 'Tab 1', code: initial}]
+          tabs: [{id: 1, title: 'Tab 1', code: initial, savedPath: null, draftPath: null}]
         };
       }
       return window.obeliskEditorTabs;
@@ -639,39 +878,45 @@
       const state = getEditorTabs();
       syncEditorTabs();
       const id = state.nextId++;
-      state.tabs.push({id, title: 'Tab ' + id, code: ''});
+      state.tabs.push({id, title: 'Tab ' + id, code: '', savedPath: null, draftPath: null});
       state.active = state.tabs.length - 1;
+      ensureTabDraftPath(state.tabs[state.active]);
       renderEditorTabs();
       focusQueryEditor();
-      const details = document.getElementById('file-menu');
-      if (details) {
-        details.removeAttribute('open');
-      }
+      closeFileMenu();
     }
     function closeCurrentTab() {
       const state = getEditorTabs();
       syncEditorTabs();
       if (state.tabs.length <= 1) {
         const id = state.nextId++;
-        state.tabs = [{id, title: 'Tab ' + id, code: ''}];
+        state.tabs = [{id, title: 'Tab ' + id, code: '', savedPath: null, draftPath: null}];
         state.active = 0;
       } else {
         state.tabs.splice(state.active, 1);
         state.active = Math.max(0, state.active - 1);
       }
+      ensureTabDraftPath(state.tabs[state.active]);
       renderEditorTabs();
-      const details = document.getElementById('file-menu');
-      if (details) {
-        details.removeAttribute('open');
-      }
+      closeFileMenu();
       focusQueryEditor();
     }
     function renderEditorTabs() {
       const state = getEditorTabs();
       const list = document.getElementById('query-tabs-list');
       const textarea = document.getElementById('query-text');
+      const closeItem = document.getElementById('close-tab-menu-item');
+      const saveItem = document.getElementById('save-tab-menu-item');
+      const saveFormInput = document.getElementById('save-panel-child');
       if (!list || !textarea) {
         return;
+      }
+      if (closeItem) {
+        closeItem.disabled = (state.tabs.length <= 1);
+      }
+      if (saveItem) {
+        const activeTab = state.tabs[state.active];
+        saveItem.disabled = !(activeTab && activeTab.savedPath);
       }
       list.innerHTML = '';
       state.tabs.forEach((tab, index) => {
@@ -693,11 +938,16 @@
         button.addEventListener('click', () => activateEditorTab(index));
         list.appendChild(button);
       });
+      if (saveFormInput) {
+        const activeTab = state.tabs[state.active];
+        saveFormInput.value = currentTabPath(activeTab);
+      }
       textarea.value = state.tabs[state.active] ? state.tabs[state.active].code : '';
     }
     function setupEditorTabs() {
       const textarea = document.getElementById('query-text');
       const list = document.getElementById('query-tabs-list');
+      const saveForm = document.getElementById('save-panel-form');
       if (!textarea || !list) {
         return;
       }
@@ -705,9 +955,40 @@
         window.obeliskEditorTabsReady = true;
         textarea.addEventListener('input', () => syncEditorTabs());
       }
+      if (saveForm && !window.obeliskSaveFormReady) {
+        window.obeliskSaveFormReady = true;
+        saveForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          submitSavePanel(e);
+        });
+      }
+      ensureTabDraftPath(getEditorTabs().tabs[getEditorTabs().active]);
       renderEditorTabs();
     }
 
+    if (!window.obeliskFileMenuHandler) {
+      window.obeliskFileMenuHandler = true;
+      const maybeCloseFileMenu = (e) => {
+        const menu = document.getElementById('file-menu');
+        if (!menu || menu.getAttribute('data-open') !== 'true') {
+          return;
+        }
+        if (!eventInside(menu, e)) {
+          closeFileMenu(menu);
+        }
+      };
+      document.addEventListener('pointerdown', maybeCloseFileMenu, true);
+      document.addEventListener('click', maybeCloseFileMenu, true);
+    }
+    if (!window.obeliskToastHandler) {
+      window.obeliskToastHandler = true;
+      document.addEventListener('pointerdown', () => {
+        const toast = document.getElementById('save-toast');
+        if (toast && !toast.classList.contains('hidden')) {
+          hideSaveToast();
+        }
+      }, true);
+    }
     if (!window.obeliskKeyHandler) {
       window.obeliskKeyHandler = true;
       window.addEventListener('keydown', (e) => {
