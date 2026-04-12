@@ -217,6 +217,8 @@
         ;span.loading: ...
       ==
     ==
+    ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
+    ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;div.grow;
     ;+  (print-form-set-default-db server default-db)
   ==
