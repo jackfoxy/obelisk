@@ -274,6 +274,11 @@
     ;div#save-toast.hidden.mono.bd1.br1.p-2.b2(style "position: absolute; top: calc(100% + 0.5rem); left: 0; z-index: 40; display: inline-block;")
       ;span#save-toast-text;
     ==
+    ;div#table-context-menu.hidden.fc.mono.bd1.br1.b2(style "position: fixed; z-index: 60; min-width: 10rem;")
+      ;button#table-context-select.wf.p-1.hover(type "button", onclick "openTableActionTab('SELECT'); return false;", style "text-align: left;"): SELECT
+      ;button#table-context-insert.wf.p-1.hover(type "button", onclick "openTableActionTab('INSERT'); return false;", style "text-align: left;"): INSERT
+      ;button#table-context-create.wf.p-1.hover(type "button", onclick "openTableActionTab('CREATE'); return false;", style "text-align: left;"): CREATE
+    ==
     ;iframe.hidden(name "save-panel-target");
     ;+  print-existing-child-paths
     ;button#run-btn.p-1.bd1.br1.b2.hover.loader
@@ -358,6 +363,14 @@
       ==
   ==
   ::
+++  column-name-csv
+  |=  cols=(list column)
+  ^-  tape
+  ?~  cols  ""
+  ?~  t.cols
+    (trip name.i.cols)
+  (weld (trip name.i.cols) (weld "," $(cols t.cols)))
+::
 ++  namespace-view-names
   |=  [=schema ns=@tas]
   ^-  (list [@tas view])
@@ -426,10 +439,15 @@
                   ;*
                   %+  turn  tables
                   |=  tbl=[@tas table]
-                    ;details
-                      ;summary
-                        ;span.f4.mono: [tbl]
-                        ;span: {(trip -.tbl)}
+                    ;details.rel(style "position: relative;")
+                      ;summary(oncontextmenu "openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}'); return false;", style "padding-right: 2rem;")
+                        ;span.fr.ac.g1(style "display: inline-flex;")
+                          ;span.f4.mono: [tbl]
+                          ;span: {(trip -.tbl)}
+                        ==
+                      ==
+                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
+                        ;span.mono: ...
                       ==
                       ;*  ~[(table-columns +.tbl)]
                     ==
@@ -440,10 +458,15 @@
                   ;*
                   %+  turn  views
                   |=  vw=[@tas view]
-                    ;details
-                      ;summary
-                        ;span.f4.mono: [vw]
-                        ;span: {(trip -.vw)}
+                    ;details.rel(style "position: relative;")
+                      ;summary(oncontextmenu "openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}'); return false;", style "padding-right: 2rem;")
+                        ;span.fr.ac.g1(style "display: inline-flex;")
+                          ;span.f4.mono: [vw]
+                          ;span: {(trip -.vw)}
+                        ==
+                      ==
+                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
+                        ;span.mono: ...
                       ==
                       ;*  ~[(view-columns +.vw)]
                     ==
@@ -853,7 +876,6 @@
         if (activeTab) {
           activeTab.savedPath = meta.displayPath;
           activeTab.draftPath = null;
-          activeTab.title = meta.displayPath;
         }
         registerKnownChildPath(meta.displayPath);
         renderEditorTabs();
@@ -886,14 +908,9 @@
           throw new Error('open failed');
         }
         const code = await res.text();
-        syncEditorTabs();
-        const id = state.nextId++;
-        state.tabs.push({id, title: normalizedPath, code, savedPath: normalizedPath, draftPath: null});
-        state.active = state.tabs.length - 1;
+        createEditorTab(code, normalizedPath);
         registerKnownChildPath(normalizedPath);
-        renderEditorTabs();
         closeFileMenu();
-        focusQueryEditor();
       } catch (err) {
         console.error(err);
       } finally {
@@ -978,7 +995,7 @@
         window.obeliskEditorTabs = {
           active: 0,
           nextId: 2,
-          tabs: [{id: 1, title: 'Tab 1', code: initial, savedPath: null, draftPath: null}]
+          tabs: [{id: 1, title: 'tab-1', code: initial, savedPath: null, draftPath: null}]
         };
       }
       return window.obeliskEditorTabs;
@@ -997,6 +1014,86 @@
         textarea.focus();
       }
     }
+    function createEditorTab(code, savedPath) {
+      const state = getEditorTabs();
+      syncEditorTabs();
+      const id = state.nextId++;
+      state.tabs.push({
+        id,
+        title: 'tab-' + id,
+        code: code || '',
+        savedPath: savedPath || null,
+        draftPath: null
+      });
+      state.active = state.tabs.length - 1;
+      if (!savedPath) {
+        ensureTabDraftPath(state.tabs[state.active]);
+      }
+      renderEditorTabs();
+      focusQueryEditor();
+      return state.tabs[state.active];
+    }
+    function closeTableContextMenu() {
+      const menu = document.getElementById('table-context-menu');
+      if (menu) {
+        menu.classList.add('hidden');
+      }
+      window.obeliskTableContext = null;
+    }
+    function syncTableContextMenu() {
+      const context = window.obeliskTableContext;
+      const insert = document.getElementById('table-context-insert');
+      const create = document.getElementById('table-context-create');
+      if (!context || !insert || !create) {
+        return;
+      }
+      const isView = context.kind === 'view';
+      insert.classList.toggle('hidden', isView);
+      create.disabled = isView;
+    }
+    function openTableContextMenu(e, kind, db, ns, table, columnsCsv) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const menu = document.getElementById('table-context-menu');
+      if (!menu) {
+        return false;
+      }
+      const columns = String(columnsCsv || '')
+        .split(',')
+        .map((column) => column.trim())
+        .filter(Boolean);
+      window.obeliskTableContext = {kind, db, ns, table, columns};
+      syncTableContextMenu();
+      const x = e && typeof e.clientX === 'number' ? e.clientX : 0;
+      const y = e && typeof e.clientY === 'number' ? e.clientY : 0;
+      menu.style.left = x + 'px';
+      menu.style.top = y + 'px';
+      menu.classList.remove('hidden');
+      return false;
+    }
+    function buildTableActionCode(action, context) {
+      if (action !== 'SELECT') {
+        return action + ' not enabled';
+      }
+      return [
+        'FROM ' + context.db + '.' + context.ns + '.' + context.table,
+        '::SCALARS',
+        '::WHERE',
+        'SELECT ' + context.columns.join(', ')
+      ].join('\n');
+    }
+    function openTableActionTab(action) {
+      const context = window.obeliskTableContext;
+      if (!context) {
+        return false;
+      }
+      const code = buildTableActionCode(action, context);
+      closeTableContextMenu();
+      createEditorTab(code, null);
+      return false;
+    }
     function activateEditorTab(index) {
       const state = getEditorTabs();
       if (index < 0 || index >= state.tabs.length) {
@@ -1008,14 +1105,7 @@
       focusQueryEditor();
     }
     function newEditorTab() {
-      const state = getEditorTabs();
-      syncEditorTabs();
-      const id = state.nextId++;
-      state.tabs.push({id, title: 'Tab ' + id, code: '', savedPath: null, draftPath: null});
-      state.active = state.tabs.length - 1;
-      ensureTabDraftPath(state.tabs[state.active]);
-      renderEditorTabs();
-      focusQueryEditor();
+      createEditorTab('', null);
       closeFileMenu();
     }
     function closeCurrentTab() {
@@ -1023,7 +1113,7 @@
       syncEditorTabs();
       if (state.tabs.length <= 1) {
         const id = state.nextId++;
-        state.tabs = [{id, title: 'Tab ' + id, code: '', savedPath: null, draftPath: null}];
+        state.tabs = [{id, title: 'tab-' + id, code: '', savedPath: null, draftPath: null}];
         state.active = 0;
       } else {
         state.tabs.splice(state.active, 1);
@@ -1112,6 +1202,27 @@
       };
       document.addEventListener('pointerdown', maybeCloseFileMenu, true);
       document.addEventListener('click', maybeCloseFileMenu, true);
+    }
+    if (!window.obeliskTableContextMenuHandler) {
+      window.obeliskTableContextMenuHandler = true;
+      document.addEventListener('pointerdown', (e) => {
+        const menu = document.getElementById('table-context-menu');
+        if (!menu || menu.classList.contains('hidden')) {
+          return;
+        }
+        if (!eventInside(menu, e)) {
+          closeTableContextMenu();
+        }
+      }, true);
+      document.addEventListener('contextmenu', (e) => {
+        const menu = document.getElementById('table-context-menu');
+        if (!menu || menu.classList.contains('hidden')) {
+          return;
+        }
+        if (!eventInside(menu, e)) {
+          closeTableContextMenu();
+        }
+      }, true);
     }
     if (!window.obeliskToastHandler) {
       window.obeliskToastHandler = true;
