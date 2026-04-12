@@ -291,7 +291,6 @@
     ==
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Parse
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
-    ;button.p-1.bd1.br1.b2.hover(disabled ""): Import
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;div.grow;
@@ -371,6 +370,25 @@
     (trip name.i.cols)
   (weld (trip name.i.cols) (weld "," $(cols t.cols)))
 ::
+++  column-spec-csv
+  |=  cols=(list column)
+  ^-  tape
+  ?~  cols  ""
+  =/  spec=tape  (weld (trip name.i.cols) (weld ":" (weld "@" (trip type.i.cols))))
+  ?~  t.cols
+    spec
+  (weld spec (weld "," $(cols t.cols)))
+::
+++  key-spec-csv
+  |=  keys=(list key-column)
+  ^-  tape
+  ?~  keys  ""
+  =/  order=tape  ?:(ascending.i.keys "ASC" "DESC")
+  =/  spec=tape  (weld (trip name.i.keys) (weld ":" order))
+  ?~  t.keys
+    spec
+  (weld spec (weld "," $(keys t.keys)))
+::
 ++  namespace-view-names
   |=  [=schema ns=@tas]
   ^-  (list [@tas view])
@@ -440,13 +458,13 @@
                   %+  turn  tables
                   |=  tbl=[@tas table]
                     ;details.rel(style "position: relative;")
-                      ;summary(oncontextmenu "openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}'); return false;", style "padding-right: 2rem;")
+                      ;summary(oncontextmenu "openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}', '{(column-spec-csv columns.+.tbl)}', '{(key-spec-csv key.pri-indx.+.tbl)}'); return false;", style "padding-right: 2rem;")
                         ;span.fr.ac.g1(style "display: inline-flex;")
                           ;span.f4.mono: [tbl]
                           ;span: {(trip -.tbl)}
                         ==
                       ==
-                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
+                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'table', '{(trip term)}', '{(trip ns)}', '{(trip -.tbl)}', '{(column-name-csv columns.+.tbl)}', '{(column-spec-csv columns.+.tbl)}', '{(key-spec-csv key.pri-indx.+.tbl)}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
                         ;span.mono: ...
                       ==
                       ;*  ~[(table-columns +.tbl)]
@@ -459,13 +477,13 @@
                   %+  turn  views
                   |=  vw=[@tas view]
                     ;details.rel(style "position: relative;")
-                      ;summary(oncontextmenu "openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}'); return false;", style "padding-right: 2rem;")
+                      ;summary(oncontextmenu "openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}', '', ''); return false;", style "padding-right: 2rem;")
                         ;span.fr.ac.g1(style "display: inline-flex;")
                           ;span.f4.mono: [vw]
                           ;span: {(trip -.vw)}
                         ==
                       ==
-                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}'); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
+                      ;button(type "button", onclick "event.stopPropagation(); openTableContextMenu(event, 'view', '{(trip term)}', '{(trip ns)}', '{(trip -.vw)}', '{(column-name-csv columns.+.vw)}', '', ''); return false;", style "position: absolute; top: 0.2rem; right: 0.2rem; z-index: 1; padding: 0 0.5rem; line-height: 1;")
                         ;span.mono: ...
                       ==
                       ;*  ~[(view-columns +.vw)]
@@ -1051,7 +1069,7 @@
       insert.classList.toggle('hidden', isView);
       create.disabled = isView;
     }
-    function openTableContextMenu(e, kind, db, ns, table, columnsCsv) {
+    function openTableContextMenu(e, kind, db, ns, table, columnsCsv, columnSpecsCsv, keySpecsCsv) {
       if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1064,7 +1082,23 @@
         .split(',')
         .map((column) => column.trim())
         .filter(Boolean);
-      window.obeliskTableContext = {kind, db, ns, table, columns};
+      const columnSpecs = String(columnSpecsCsv || '')
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+          const [name, type] = entry.split(':');
+          return {name: (name || '').trim(), type: (type || '').trim()};
+        });
+      const keySpecs = String(keySpecsCsv || '')
+        .split(',')
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+        .map((entry) => {
+          const [name, order] = entry.split(':');
+          return {name: (name || '').trim(), order: (order || '').trim()};
+        });
+      window.obeliskTableContext = {kind, db, ns, table, columns, columnSpecs, keySpecs};
       syncTableContextMenu();
       const x = e && typeof e.clientX === 'number' ? e.clientX : 0;
       const y = e && typeof e.clientY === 'number' ? e.clientY : 0;
@@ -1074,15 +1108,39 @@
       return false;
     }
     function buildTableActionCode(action, context) {
+      if (action === 'SELECT') {
+        return [
+          'FROM ' + context.db + '.' + context.ns + '.' + context.table,
+          '::SCALARS',
+          '::WHERE',
+          'SELECT ' + context.columns.join(', ') + ' ;'
+        ].join('\n');
+      }
+      if (action === 'INSERT' && context.kind === 'table') {
+        const valuesLine = '(' + context.columnSpecs.map((column) => '<' + column.type + '>').join(', ') + ')';
+        return [
+          'INSERT INTO ' + context.db + '.' + context.ns + '.' + context.table,
+          '(' + context.columns.join(', ') + ')',
+          'VALUES',
+          valuesLine,
+          valuesLine + ' ;'
+        ].join('\n');
+      }
+      if (action === 'CREATE' && context.kind === 'table') {
+        const columnLines = context.columnSpecs.map((column) => '    ' + column.name + ' ' + column.type).join(',\n');
+        const keyLine = context.keySpecs.map((key) => key.name + ' ' + key.order).join(', ');
+        return [
+          'CREATE TABLE ' + context.db + '.' + context.ns + '.' + context.table,
+          '(',
+          columnLines,
+          ')',
+          'PRIMARY KEY (' + keyLine + ') ;'
+        ].join('\n');
+      }
       if (action !== 'SELECT') {
         return action + ' not enabled';
       }
-      return [
-        'FROM ' + context.db + '.' + context.ns + '.' + context.table,
-        '::SCALARS',
-        '::WHERE',
-        'SELECT ' + context.columns.join(', ')
-      ].join('\n');
+      return action + ' not enabled';
     }
     function openTableActionTab(action) {
       const context = window.obeliskTableContext;
