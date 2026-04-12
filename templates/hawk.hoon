@@ -237,7 +237,7 @@
   ::
 ++  print-header
   |=  [=server default-db=(unit term)]
-    ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3);")
+  ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3); position: relative;")
       ;div#file-menu-backdrop.hidden(onclick "closeFileMenu()", style "position: fixed; inset: 0; z-index: 9;");
       ;div#file-menu.rel(style "position: relative; display: inline-block;", data-open "false")
       ;button#file-menu-toggle.underline(type "button", onclick "return toggleFileMenu()", aria-expanded "false", style "cursor: pointer; display: inline-block; position: relative; z-index: 11;")
@@ -268,7 +268,7 @@
         ==
       ==
     ==
-    ;div#save-toast.hidden.mono.bd1.br1.p-2.b2(style "display: inline-block;")
+    ;div#save-toast.hidden.mono.bd1.br1.p-2.b2(style "position: absolute; top: calc(100% + 0.5rem); left: 0; z-index: 40; display: inline-block;")
       ;span#save-toast-text;
     ==
     ;iframe.hidden(name "save-panel-target");
@@ -730,6 +730,28 @@
         document.body.style.cursor = cursor;
       }
     }
+    function nudgeHawkTreeRefresh() {
+      const notify = (target) => {
+        if (!target || typeof target.dispatchEvent !== 'function') {
+          return;
+        }
+        try {
+          target.dispatchEvent(new Event('focus'));
+          target.dispatchEvent(new Event('resize'));
+          target.dispatchEvent(new PopStateEvent('popstate'));
+        } catch (_err) {
+          // best effort only
+        }
+      };
+      notify(window);
+      try {
+        if (window.parent && window.parent !== window) {
+          notify(window.parent);
+        }
+      } catch (_err) {
+        // ignore cross-frame access issues
+      }
+    }
     async function submitSavePanel(e) {
       if (e) {
         e.preventDefault();
@@ -777,6 +799,7 @@
         registerKnownChildPath(meta.displayPath);
         renderEditorTabs();
         closeFileMenu(form);
+        nudgeHawkTreeRefresh();
         showSaveToast(meta.displayPath + ' saved');
       } catch (err) {
         console.error(err);
