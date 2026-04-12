@@ -83,30 +83,6 @@
   ==
 ::
 ::
-::
-::::::::::::::::::::::::::::::::::::::
-::  obelisk types & wrapper
-::
-::
-+$  server  (map @tas *)
-::
-+$  cmd-result  [%results (list result)]
-::
-+$  result
-  $%  [%action action=@t]
-      [%relation relation=@t]
-      [%message msg=@t]
-      [%vector-count count=@ud]
-      [%server-time date=@da]
-      [%schema-time date=@da]
-      [%data-time date=@da]
-      [%result-set (list vector)]
-      ==
-::
-+$  vector-cell  [p=@tas q=dime]
-::
-+$  vector  [%vector (lest vector-cell)]
-::
 ++  query-obelisk
   |=  [id=@ta query=tape]
   =/  m  (strand ,poke-result)
@@ -269,7 +245,47 @@
       ;option(value (trip term)): {(trip term)}
     ==
   ==
-  ::
+::
+++  current-schema
+  |=  =database
+  ^-  schema
+  =/  schema-key  ((on @da schema) gth)
+  +:(need (pry:schema-key sys.database))
+::
+++  namespace-table-names
+  |=  [=schema ns=@tas]
+  ^-  (list [@tas table])
+  %+  sort
+      %+  turn
+          %+  skim  ~(tap by tables.schema)
+                    |=  [k=[@tas @tas] v=table]
+                    =(ns -.k)
+              |=  [k=[@tas @tas] v=table]
+          [+.k v]
+      |=  [a=[@ *] b=[@ *]]
+      (aor -.a -.b)
+::
+++  print-columns
+  |=  =table
+  ^-  manx
+  =/  foo  %-  malt  %+  turn  key.pri-indx.table
+                         |=(=key-column [name.key-column key-column])
+  ;div.p3.fc.g1
+    ;*
+    %+  turn  columns.table
+    |=  =column
+    =/  aura=tape  (weld "@" (trip type.column))
+    =/  key-col=(unit key-column)  (~(get by foo) name.column)
+    =/  is-index  ?~  key-col  " "
+                  ?:  ascending.u.key-col  "↑"
+                  "↓"
+      ;summary(style "display: grid; grid-template-columns: 4ch 4ch 1fr; column-gap: 1ch; align-items: center;")
+        ;span;
+        ;span.f4.mono(style "text-align: center;"): {(weld is-index aura)}
+        ;span: {(trip name.column)}
+      ==
+  ==
+::
 ++  print-schemas
   |=  [=server default-db=(unit term)]
   ;div.wf.hf.scroll-y.b2
@@ -282,6 +298,8 @@
       ;*
       %+  turn  (sort ~(tap in ~(key by server)) aor)
       |=  =term
+      =/  db=database  ;;(database (~(got by server) term))
+      =/  schema=schema  +:(need (pry:((on @da schema) gth) sys.db))
       ;details
         ;summary
           ;span.f4.mono: [db] 
@@ -289,13 +307,33 @@
           ;+  ?.  =(default-db `term)  ;/("")
           ;span.f3: (default)
         ==
-        ;div.p3
-          ;div: tables
+        ;div.p3.fc.g1
+          ;*
+          %+  turn  (sort ~(tap in ~(key by namespaces.schema)) aor)
+          |=  ns=@tas
+            ;details
+              ;summary
+                ;span.f4.mono: [ns]
+                ;span: {(trip ns)}
+              ==
+              ;div.p3.fc.g1
+                ;*
+                %+  turn  (namespace-table-names schema ns)
+                |=  tbl=[@tas table]
+                  ;details
+                    ;summary
+                      ;span.f4.mono: [tbl]
+                      ;span: {(trip -.tbl)}
+                    ==
+                    ;*  ~[(print-columns +.tbl)]
+                  ==  
+              ==
+          ==
         ==
       ==
     ==
   ==
-  ::
+::
 ++  print-query-form
   |=  [query=tape]
   ;form#query-form.grow.fc.mono.s0.hf
@@ -459,4 +497,113 @@
     '''
   ==
   ::
+::
+::::::::::::::::::::::::::::::::::::::
+::  obelisk types & wrapper
+::
+::
++$  server  (map @tas *)
++$  database
+  $:  %database
+    name=@tas
+    created-provenance=path
+    created-tmsp=@da
+    sys=((mop @da schema) gth)
+    ::content=((mop @da data) gth)
+    content=((mop @da *) gth)
+    ::=view-cache
+    view-cache=*
+    ==
+::
++$  schema
+  $:  %schema
+    provenance=path
+    tmsp=@da
+    =namespaces
+    =tables
+    =views
+  :: permissions   :: maybe at server or database level?
+    ==
++$  table
+  $+  table
+  $:  %table
+    provenance=path
+    tmsp=@da
+    ::=column-lookup
+    column-lookup=*
+    typ-addr-lookup=*
+    pri-indx=index
+    columns=(list column)      ::  canonical column list
+    indices=(list index)      :: to do: indices indexed by (list column)
+    ==
++$  column
+  $+  column
+  $:  %column
+    name=@tas
+    type=@ta
+    addr=@
+    ==
++$  ns-rel-key
+  $:  ns=@tas
+      rel=@tas
+      time=@da
+      ==
+++  ns-rel-comp
+  |=  [p=ns-rel-key q=ns-rel-key]
+  ^-  ?
+  ?.  =(ns.p ns.q)  (gth ns.p ns.q)
+  ?.  =(rel.p rel.q)  (gth rel.p rel.q)
+  (gth time.p time.q)
++$  namespaces  (map @tas @da)
++$  tables  (map [@tas @tas] table)
++$  views  ((mop ns-rel-key view) ns-rel-comp)
++$  view
+  $+  view
+  $:  %view
+    provenance=path
+    tmsp=@da
+    ::=selection
+    ::=column-lookup
+    selection=*
+    column-lookup=*
+    typ-addr-lookup=*
+    columns=(list column)      ::  canonical column list
+    :: to do: replace ordering with index (requires non-unique mop type)
+    ordering=(list *)
+    :: indices
+    ==
++$  index
+  $:  %index
+    unique=?
+    key=(list key-column)
+    ==
++$  key-column
+  $:  %key-column
+    name=@tas
+    =aura
+    ascending=?
+    ==
+::
+::  OUTPUT
+::
++$  cmd-result  [%results (list result)]
++$  result
+  $%
+    [%action action=@t]
+    [%relation relation=@t]
+    [%message msg=@t]
+    [%vector-count count=@ud]
+    [%server-time date=@da]
+    [%security-time date=@da]
+    [%schema-time date=@da]
+    [%data-time date=@da]
+    [%result-set (list vector)]
+    ==
+::
++$  vector-cell  [p=@tas q=dime]
++$  vector
+  $+  vector
+  $:  %vector
+    (lest vector-cell)
+    ==
 --
