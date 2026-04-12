@@ -228,7 +228,7 @@
     =hx-on-htmx-config-request  "configRequest(event)"
     ;input.hidden(name "/", value "set-default-db");
     ;div.p1.loader.mono.s-2
-      ;span.loaded.f3: Default
+      ;span.loaded.f3: Default DB
       ;span.loading.f4: saving..
     ==
     ;select#default-db.br1.bd1.p-1.wfc(val (trip (fall default-db 'sys')))
@@ -265,7 +265,7 @@
       |=  [a=[@ *] b=[@ *]]
       (aor -.a -.b)
 ::
-++  print-columns
+++  table-columns
   |=  =table
   ^-  manx
   =/  foo  %-  malt  %+  turn  key.pri-indx.table
@@ -282,6 +282,36 @@
       ;summary(style "display: grid; grid-template-columns: 4ch 4ch 1fr; column-gap: 1ch; align-items: center;")
         ;span;
         ;span.f4.mono(style "text-align: center;"): {(weld is-index aura)}
+        ;span: {(trip name.column)}
+      ==
+  ==
+  ::
+++  namespace-view-names
+  |=  [=schema ns=@tas]
+  ^-  (list [@tas view])
+  =/  view-key  ((on ns-rel-key view) ns-rel-comp)
+    %+  turn  %+  sort  %+  turn
+                            %+  skim  (tap:view-key views.schema)
+                                      |=  [k=[@tas @tas @da] v=view]
+                                      =(ns -.k)
+                                |=  [k=[@tas @tas @da] v=view]
+                            [+.k v]
+                        |=  [a=[[@tas @da] view] b=[[@tas @da] view]]
+                        ?.  =(-.a -.b)  (aor +<.a +<.b)
+                        (aor -.a -.b)
+              |=  [k=[@tas @da] v=view]
+              [-.k v]
+::
+++  view-columns  
+  |=  =view
+  ^-  manx
+  ;div.p3.fc.g1
+    ;*
+    %+  turn  columns.view
+    |=  =column
+      ;summary(style "display: grid; grid-template-columns: 4ch 4ch 1fr; column-gap: 1ch; align-items: center;")
+        ;span;
+        ;span.f4.mono(style "text-align: center;"): {(weld "@" (trip type.column))}
         ;span: {(trip name.column)}
       ==
   ==
@@ -311,23 +341,41 @@
           ;*
           %+  turn  (sort ~(tap in ~(key by namespaces.schema)) aor)
           |=  ns=@tas
+            =/  tables=(list [@tas table])  (namespace-table-names schema ns)
+            =/  views=(list [@tas view])  (namespace-view-names schema ns)
             ;details
               ;summary
                 ;span.f4.mono: [ns]
                 ;span: {(trip ns)}
               ==
-              ;div.p3.fc.g1
-                ;*
-                %+  turn  (namespace-table-names schema ns)
-                |=  tbl=[@tas table]
-                  ;details
-                    ;summary
-                      ;span.f4.mono: [tbl]
-                      ;span: {(trip -.tbl)}
+              ;+
+                ?~  tables  ;/("")
+                ;div.p3.fc.g1
+                  ;*
+                  %+  turn  tables
+                  |=  tbl=[@tas table]
+                    ;details
+                      ;summary
+                        ;span.f4.mono: [tbl]
+                        ;span: {(trip -.tbl)}
+                      ==
+                      ;*  ~[(table-columns +.tbl)]
                     ==
-                    ;*  ~[(print-columns +.tbl)]
-                  ==  
-              ==
+                ==
+              ;+
+                ?~  views  ;/("")
+                ;div.p3.fc.g1
+                  ;*
+                  %+  turn  views
+                  |=  vw=[@tas view]
+                    ;details
+                      ;summary
+                        ;span.f4.mono: [vw]
+                        ;span: {(trip -.vw)}
+                      ==
+                      ;*  ~[(view-columns +.vw)]
+                    ==
+                ==
           ==
         ==
       ==
