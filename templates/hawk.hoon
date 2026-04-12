@@ -175,8 +175,7 @@
 ::
 ++  descendant-child-paths
   ^-  (list path)
-  ?~  node=(child-node the-file here)  ~
-  (collect-child-paths u.node ~)
+  (collect-child-paths the-file ~)
 ::
 ++  relative-path-text
   |=  pax=path
@@ -245,10 +244,14 @@
       ==
       ;div#file-menu-panel.abs.b2.bd1.br1.fc.hidden(style "position: absolute; z-index: 11; min-width: 12rem; top: calc(100% + 0.25rem); left: 0;")
         ;button#new-tab-menu-item.wf.p-1.hover(type "button", onclick "return newEditorTab()", style "text-align: left;"): New
-        ;button.wf.p-1.hover(type "button", style "text-align: left;"): Open...
+        ;button#open-menu-item.wf.p-1.hover(type "button", onclick "toggleOpenPanel(); return false;", style "text-align: left;"): Open...
         ;button#save-tab-menu-item.wf.p-1.hover(type "button", onclick "submitSavePanel(); return false;", style "text-align: left;"): Save
         ;button#save-as-menu-item.wf.p-1.hover(type "button", onclick "toggleSaveAsPanel(); return false;", style "text-align: left;"): Save As...
         ;button#close-tab-menu-item.wf.p-1.hover(type "button", onclick "closeCurrentTab(); return false;", style "text-align: left;"): Close
+        ;div#open-panel.fc.g1.p2.b1.hidden
+          ;div.s-2.o7: Open child path
+          ;div#open-panel-list.fc(style "max-height: calc(20 * 2rem); overflow-y: auto;");
+        ==
         ;form#save-panel-form.fc.g1.loader.p2.b1.hidden
           =method  "post"
           =action  "/apps/hawk/code{(spud here)}/script-1"
@@ -640,6 +643,19 @@
       readKnownChildPaths().forEach((path) => window.obeliskKnownChildPaths.add(path));
       return window.obeliskKnownChildPaths;
     }
+    function getRenderableChildPaths() {
+      const paths = new Set(readKnownChildPaths());
+      if (window.obeliskKnownChildPaths) {
+        window.obeliskKnownChildPaths.forEach((path) => paths.add(normalizeChildPath(path)));
+      }
+      const state = getEditorTabs();
+      state.tabs.forEach((tab) => {
+        if (tab.savedPath) {
+          paths.add(normalizeChildPath(tab.savedPath));
+        }
+      });
+      return Array.from(paths).sort((a, b) => a.localeCompare(b));
+    }
     function knownChildPathExists(path) {
       return getKnownChildPaths().has(normalizeChildPath(path));
     }
@@ -655,6 +671,18 @@
     }
     function currentTabPath(tab) {
       return normalizeChildPath((tab && (tab.savedPath || tab.draftPath)) ? (tab.savedPath || tab.draftPath) : 'script-1');
+    }
+    function getSortedChildPaths() {
+      return getRenderableChildPaths();
+    }
+    function childCodeUrl(path) {
+      const base = new URL(window.location.href);
+      base.search = '';
+      base.hash = '';
+      const normalizedPath = normalizeChildPath(path);
+      const childUrl = new URL(normalizedPath + '/', base.href);
+      childUrl.search = '?code';
+      return childUrl.toString();
     }
     function nextScriptPath(skipTabId) {
       const state = getEditorTabs();
@@ -709,6 +737,7 @@
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (!open) {
         hideSaveAsPanel();
+        hideOpenPanel();
       }
     }
     function toggleFileMenu() {
@@ -722,6 +751,36 @@
       if (form) {
         form.classList.add('hidden');
       }
+    }
+    function hideOpenPanel() {
+      const panel = document.getElementById('open-panel');
+      if (panel) {
+        panel.classList.add('hidden');
+      }
+    }
+    function renderOpenPanel() {
+      const list = document.getElementById('open-panel-list');
+      if (!list) {
+        return;
+      }
+      list.innerHTML = '';
+      const paths = getSortedChildPaths();
+      if (!paths.length) {
+        const empty = document.createElement('div');
+        empty.className = 'p-1 o7';
+        empty.textContent = 'No child paths yet';
+        list.appendChild(empty);
+        return;
+      }
+      paths.forEach((path) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'wf p-1 hover mono';
+        button.style.textAlign = 'left';
+        button.textContent = path;
+        button.addEventListener('click', () => openChildPath(path));
+        list.appendChild(button);
+      });
     }
     function setBusyCursor(active) {
       const cursor = active ? 'progress' : '';
@@ -808,6 +867,56 @@
       }
       return false;
     }
+    async function openChildPath(path) {
+      const normalizedPath = normalizeChildPath(path);
+      const state = getEditorTabs();
+      const existingIndex = state.tabs.findIndex((tab) => normalizeChildPath(tab.savedPath || '') === normalizedPath);
+      if (existingIndex >= 0) {
+        activateEditorTab(existingIndex);
+        closeFileMenu();
+        return false;
+      }
+      setBusyCursor(true);
+      try {
+        const res = await fetch(childCodeUrl(normalizedPath), {
+          method: 'GET',
+          credentials: 'same-origin',
+        });
+        if (!res.ok) {
+          throw new Error('open failed');
+        }
+        const code = await res.text();
+        syncEditorTabs();
+        const id = state.nextId++;
+        state.tabs.push({id, title: normalizedPath, code, savedPath: normalizedPath, draftPath: null});
+        state.active = state.tabs.length - 1;
+        registerKnownChildPath(normalizedPath);
+        renderEditorTabs();
+        closeFileMenu();
+        focusQueryEditor();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setBusyCursor(false);
+      }
+      return false;
+    }
+    function toggleOpenPanel() {
+      const panel = document.getElementById('open-panel');
+      if (!panel) {
+        return false;
+      }
+      setFileMenuOpen(true);
+      const hidden = panel.classList.contains('hidden');
+      hideSaveAsPanel();
+      if (!hidden) {
+        hideOpenPanel();
+        return false;
+      }
+      renderOpenPanel();
+      panel.classList.remove('hidden');
+      return false;
+    }
     function toggleSaveAsPanel() {
       const form = document.getElementById('save-panel-form');
       if (!form) {
@@ -815,6 +924,7 @@
       }
       setFileMenuOpen(true);
       const hidden = form.classList.contains('hidden');
+      hideOpenPanel();
       if (!hidden) {
         hideSaveAsPanel();
         return false;
