@@ -49,7 +49,7 @@
     [%tape2 default-database=@tas urql=tape]
     [%commands cmds=(list command)]
     [%test default-database=@tas urql=tape]
-    [%parse urql=tape]
+    [%parse default-database=@tas urql=tape]
     ==
 ::
 +$  db-cmd

@@ -79,6 +79,19 @@
         (print-poke-result res)
         parse-default-db
       ==
+      ::
+    [* %parse]
+      =/  full-query  (pib:c /query-text)
+      =/  selected-query  (pib:c /selected-query-text)
+      =/  query
+        ?^  selected-query  selected-query
+        full-query
+      ;<  res=parse-output  bind:m  (parse-obelisk %$ query)
+      %:  print
+        full-query
+        (print-parse-output res)
+        parse-default-db
+      ==
     ::
   ==
 ::
@@ -91,7 +104,8 @@
   ;<  now=@da  bind:m  get-time
   =/  dock  [our %obelisk]
   =/  default  (fall parse-default-db %sys)
-  =/  obelisk-command=cage  obelisk-action/!>([%tape default query])
+  =/  action  [%tape default query]
+  =/  obelisk-command=cage  obelisk-action/!>(action)
   ;<  ~  bind:m  (watch /query/[id] dock /server)
   ;<  ~  bind:m  (poke dock obelisk-command)
   ;<  [mark =vase]  bind:m  (take-fact /query/[id])
@@ -100,7 +114,31 @@
     `[%fail [%malformed-obelisk-response ~]]
   `[%done u.res]
 ::
+::  parse returns [%& (list command)] or [%| tang] on /server.
+++  parse-obelisk
+  |=  [id=@ta query=tape]
+  =/  m  (strand ,parse-output)
+  ^-  form:m
+  ;<  our=@p  bind:m  get-our
+  ;<  now=@da  bind:m  get-time
+  =/  dock  [our %obelisk]
+  =/  default  (fall parse-default-db %sys)
+  =/  action  [%parse default query]
+  =/  obelisk-command=cage  obelisk-action/!>(action)
+  ;<  ~  bind:m  (watch /parse/[id] dock /server)
+  ;<  ~  bind:m  (poke dock obelisk-command)
+  ;<  [mark =vase]  bind:m  (take-fact /parse/[id])
+  |=  tin=strand-input:strand
+  ?~  res=(mole |.((parse-result +:vase)))
+    `[%fail [%malformed-obelisk-response ~]]
+  ?-  -.u.res
+    %.n  `[%done [%.n p.u.res]]
+    %.y  `[%done [%.y (text !>(p.u.res))]]
+  ==
+::
 +$  poke-result  (each (list cmd-result) tang)
++$  parse-result  (each (list *) tang)
++$  parse-output  (each tape tang)
 ::
 ++  print-vector
   |=  =vector
@@ -282,14 +320,14 @@
     ;iframe.hidden(name "save-panel-target");
     ;+  print-existing-child-paths
     ;button#run-btn.p-1.bd1.br1.b2.hover.loader
-      =onclick  "$('#query-form').find('[type=submit]').click()"
+      =onclick  "return submitQueryAction('query')"
       ;span.loaded.fr.ac.g2
         ;span: Run
         ;span.s-2.o6: F5
       ==
       ;span.loading: ...
     ==
-    ;button.p-1.bd1.br1.b2.hover(disabled ""): Parse
+    ;button.p-1.bd1.br1.b2.hover(type "button", onclick "return submitQueryAction('parse')"): Parse
     ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
@@ -506,7 +544,7 @@
     =hx-indicator  "#run-btn"
     =hx-on-htmx-config-request  "configRequest(event); $('#query-text').focus()"
     =hx-on-htmx-after-request  "$('#query-text').focus();"
-    ;input.hidden(name "/", value "query");
+    ;input#query-action.hidden(name "/", value "query");
     ;div#query-tabs.fr.ac.px-1.pt-1.scroll-x(style "border-bottom: 1px solid var(--b3); gap: 0.375rem;")
       ;div#query-tabs-list.fr.ac(style "gap: 0.375rem;");
       ;button#query-tab-add.px-2.py-1.bd1.br1.hover(type "button", onclick "newEditorTab()", style "margin-bottom: 1px;"): +
@@ -630,6 +668,18 @@
       ;*  (turn vectors print-vector)
     ==
   ==
+::
+++  print-parse-output
+  |=  output=parse-output
+  ?-  -.output
+    %.n  (print-tang p.output)
+    %.y
+      ;div#results.grow.b1.mono.s0
+        ;div.scroll-x.scroll-y.p4.pre-wrap(style "white-space: pre-wrap;")
+          {p.output}
+        ==
+      ==
+  ==
 ++  print-script
   ;script
     ::
@@ -645,6 +695,14 @@
       e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
       let selection = window.getSelection()
       e.detail.parameters['/selected-query-text'] = selection.toString();
+    }
+    function submitQueryAction(action) {
+      const input = document.getElementById('query-action');
+      if (input) {
+        input.value = action;
+      }
+      $('#query-form').find('[type=submit]').click();
+      return false;
     }
     function prepareExportForm(form) {
       const state = getEditorTabs();
