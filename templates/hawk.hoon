@@ -345,10 +345,10 @@
       ;span.loaded.f3: Default DB
       ;span.loading.f4: saving..
     ==
-    ;select#default-db.br1.bd1.p-1.wfc(val (trip (fall default-db 'sys')))
+    ;select#default-db.br1.bd1.p-1.wfc(val (trip (fall default-db 'sys')), style "color-scheme: light dark; color: CanvasText; background: Canvas;")
       =name  "default-db"
       =required  ""
-      ;option(value "sys"): sys
+      ;option(value "sys", style "color: CanvasText; background: Canvas;"): sys
       ;*
       %+  turn  (sort ~(tap in ~(key by (~(del by server) %sys))) aor)
       |=  =term
@@ -356,7 +356,7 @@
         ?~  default-db  m
         ?.  =(default-db `term)  m
         m(a.g [[%selected (trip u.default-db)] a.g.m])
-      ;option(value (trip term)): {(trip term)}
+      ;option(value (trip term), style "color: CanvasText; background: Canvas;"): {(trip term)}
     ==
   ==
 ::
