@@ -328,6 +328,7 @@
       ;span.loading: ...
     ==
     ;button.p-1.bd1.br1.b2.hover(type "button", onclick "return submitQueryAction('parse')"): Parse
+    ;button#save-results-btn.p-1.bd1.br1.b2.hover(type "button", onclick "return toggleResultsSavePanel(event)", disabled ""): Save Results
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;div.grow;
@@ -542,7 +543,7 @@
     =hx-post  ""
     =hx-indicator  "#run-btn"
     =hx-on-htmx-config-request  "configRequest(event); $('#query-text').focus()"
-    =hx-on-htmx-after-request  "$('#query-text').focus();"
+    =hx-on-htmx-after-request  "$('#query-text').focus(); syncSaveResultsButton();"
     ;input#query-action.hidden(name "/", value "query");
     ;div#query-tabs.fr.ac.px-1.pt-1.scroll-x(style "border-bottom: 1px solid var(--b3); gap: 0.375rem;")
       ;div#query-tabs-list.fr.ac(style "gap: 0.375rem;");
@@ -698,17 +699,12 @@
           %+  turn  +.cmd-result
           |=(=result (print-result-set result))
         ==
-        ;div.p3(data-tab "Messages")
-          ;*
-          %+  turn  +.cmd-result
-          |=(=result (print-result-metadata result))
-        ==
+      ;div.p3(data-tab "Messages")
+        ;*
+        %+  turn  +.cmd-result
+        |=(=result (print-result-metadata result))
       ==
-    ;+
-      ?:  =(0 num-sets)  ;/("")
-      ;button.results-save-btn.px-2.py-1.bd1.br1.b2.hover(type "button", onclick "toggleResultsSavePanel(event); return false;", style "position: absolute; top: 0; right: 0; z-index: 10;")
-        ;span: Save
-      ==
+    ==
     ;+
       ?:  =(0 num-sets)  ;/("")
       (print-results-save-panel group-id)
@@ -765,7 +761,7 @@
   ::
 ++  print-results-save-panel
   |=  group-id=@ud
-  ;div.results-save-panel.hidden.b2.bd1.br1(style "position: absolute; top: 2rem; right: 0.25rem; z-index: 20; min-width: 16rem; max-width: 20rem;")
+  ;div.results-save-panel.hidden.b2.bd1.br1(style "position: fixed; top: 0; left: 0; z-index: 20; min-width: 16rem; max-width: 20rem;")
     ;form.results-save-panel-form.fc.g1.loader.p2
       =method  "post"
       =action  "/apps/hawk/code{(spud here)}/results-1"
@@ -1097,12 +1093,30 @@
     function getResultsSavePanel(group) {
       return group ? group.querySelector('.results-save-panel') : null;
     }
+    function firstResultsGroup() {
+      return document.querySelector('.result-export-group[data-has-results="true"]');
+    }
+    function syncSaveResultsButton() {
+      const button = document.getElementById('save-results-btn');
+      if (!button) {
+        return;
+      }
+      button.disabled = !firstResultsGroup();
+    }
+    function positionResultsSavePanel(panel, button) {
+      if (!panel || !button) {
+        return;
+      }
+      const rect = button.getBoundingClientRect();
+      panel.style.top = (rect.bottom + 8) + 'px';
+      panel.style.left = Math.max(8, rect.left) + 'px';
+    }
     function toggleResultsSavePanel(e) {
       if (e) {
         e.preventDefault();
       }
-      const btn = e && e.currentTarget ? e.currentTarget : null;
-      const group = btn ? btn.closest('.result-export-group') : null;
+      const btn = (e && e.currentTarget) || document.getElementById('save-results-btn');
+      const group = (btn && btn.closest('.result-export-group')) || firstResultsGroup();
       const panel = getResultsSavePanel(group);
       if (!panel) {
         return false;
@@ -1117,6 +1131,7 @@
             input.value = nextResultsPath();
           }
         }
+        positionResultsSavePanel(panel, btn);
         panel.classList.remove('hidden');
       }
       return false;
@@ -1669,8 +1684,7 @@
             return;
           }
           if (!eventInside(panel, e)) {
-            const btn = panel.closest('.result-export-group');
-            const saveBtn = btn ? btn.querySelector('.results-save-btn') : null;
+            const saveBtn = document.getElementById('save-results-btn');
             if (saveBtn && eventInside(saveBtn, e)) {
               return;
             }
@@ -1687,35 +1701,9 @@
         }
       })
     }
-    function positionResultsSaveButtons() {
-      document.querySelectorAll('.result-export-group').forEach((group) => {
-        const btn = group.querySelector('.results-save-btn');
-        const hawkTabs = group.querySelector('hawk-tabs');
-        if (!btn || !hawkTabs) {
-          return;
-        }
-        if (btn.parentElement !== group) {
-          return;
-        }
-        var tabBar = null;
-        hawkTabs.querySelectorAll('button').forEach((b) => {
-          var txt = b.textContent.trim();
-          if (!tabBar && (txt === 'Results' || txt === 'Messages')) {
-            tabBar = b.parentElement;
-          }
-        });
-        if (tabBar && !tabBar.contains(btn)) {
-          btn.style.position = 'static';
-          btn.style.top = '';
-          btn.style.right = '';
-          btn.style.zIndex = '';
-          tabBar.appendChild(btn);
-        }
-      });
-    }
     setTimeout(setupEditorTabs, 0);
     setTimeout(prepareResultsSaveForms, 0);
-    setTimeout(positionResultsSaveButtons, 100);
+    setTimeout(syncSaveResultsButton, 0);
     '''
   ==
   ::
