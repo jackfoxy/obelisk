@@ -298,7 +298,6 @@
           =onsubmit  "event.preventDefault(); submitSavePanel(event); return false;"
           ;div.s-2.o7: Save current tab to child path
           ;input#save-panel-child.br1.bd1.p-1.wfc(name "_child-path", value "script-1", placeholder "script-1");
-          ;input.hidden(name "code", value "");
           ;input.hidden(name "/protocol", value "/text/plain");
           ;button#save-panel-submit.p-1.bd1.br1.b2.hover.loader(type "button", onclick "submitSavePanel(event); return false;")
             ;span.loaded.fr.ac.g1
@@ -568,6 +567,7 @@
   ::
 ++  print-tang
   |=  =tang
+  =/  tang  (show-crash-messages tang)
   ;div#results.grow.basis-half.b1.mono.s0
     ;div.scroll-x.scroll-y.p4(data-tab "error")
       ;*
@@ -577,10 +577,93 @@
         ;*
         %+  turn  (wash [0 80] tank)
         |=  =tape
-        ;div: {tape}
+        ;div(style "white-space: pre-wrap; min-height: 1em;"): {tape}
       ==
     ==
   ==
+::  Lift crash messages above the raw trace, separated by a blank line.
+++  show-crash-messages
+  |=  trc=tang
+  ^-  tang
+  =/  msgs=(list tank)  (crash-summary-lines trc)
+  ?~  msgs  trc
+  (weld msgs `(list tank)`[leaf+" " leaf+" " trc])
+::
+++  crash-summary-lines
+  |=  trc=tang
+  ^-  (list tank)
+  =|  acc=(list tank)
+  |-
+  ?~  trc  (flop acc)
+  =/  msgs=(list tank)  (crash-summary-from-lines (wash [0 80] i.trc))
+  $(trc t.trc, acc (weld (flop msgs) acc))
+::
+++  crash-summary-from-lines
+  |=  lines=(list tape)
+  ^-  (list tank)
+  =|  acc=(list tank)
+  |-
+  ?~  lines  (flop acc)
+  =/  msg=(unit tape)  (extract-crash-message i.lines)
+  $(lines t.lines, acc ?~(msg acc [leaf+u.msg acc]))
+::
+++  extract-crash-message
+  |=  line=tape
+  ^-  (unit tape)
+  =/  msg=(unit tape)  (extract-quoted-message line)
+  ?^  msg  msg
+  ?:  ?|(=(~ line) (trace-line line) !(tape-has-alpha line))
+      ~
+  `line
+::
+++  extract-quoted-message
+  |=  line=tape
+  ^-  (unit tape)
+  |-
+  ?~  line  ~
+  ?:  =('"' i.line)
+    (collect-until-quote t.line)
+  $(line t.line)
+::
+++  collect-until-quote
+  |=  line=tape
+  ^-  (unit tape)
+  =|  acc=tape
+  =|  escaped=?
+  |-
+  ?~  line  ~
+  ?:  escaped
+    $(line t.line, escaped %.n, acc [i.line acc])
+  ?:  =('\\' i.line)
+    $(line t.line, escaped %.y)
+  ?:  =('"' i.line)
+    `(tape-flop acc)
+  $(line t.line, acc [i.line acc])
+::
+++  trace-line
+  |=  line=tape
+  ^-  ?
+  ?~  line  %.n
+  =('/' i.line)
+::
+++  tape-has-alpha
+  |=  line=tape
+  ^-  ?
+  |-
+  ?~  line  %.n
+  =/  upper=?  ?&((gte i.line 'A') (lte i.line 'Z'))
+  =/  lower=?  ?&((gte i.line 'a') (lte i.line 'z'))
+  ?:  ?|(upper lower)
+    %.y
+  $(line t.line)
+::
+++  tape-flop
+  |=  tp=tape
+  ^-  tape
+  =|  acc=tape
+  |-
+  ?~  tp  acc
+  $(tp t.tp, acc [i.tp acc])
 ++  print-results
   |=  results=(list cmd-result)
   ;div#results.grow.b1.mono.s0.hf
@@ -713,10 +796,6 @@
       const displayPath = normalizeChildPath(rawChild || fallbackChild);
       const safeChild = displayPath.split('/').map(encodeURIComponent).join('/');
       const baseAction = form.getAttribute('data-base-action') || '';
-      const codeInput = form.querySelector('[name="code"]');
-      if (codeInput) {
-        codeInput.value = $('#query-text').val() || '';
-      }
       if (childInput) {
         childInput.value = displayPath;
       }
@@ -935,7 +1014,10 @@
           return false;
         }
       }
-      const body = new URLSearchParams(new FormData(form));
+      const textarea = document.getElementById('query-text');
+      const body = new URLSearchParams();
+      body.set('code', textarea ? (textarea.value || '') : '');
+      body.set('/protocol', '/text/plain');
       setBusyCursor(true);
       try {
         const res = await fetch(form.action, {
@@ -950,6 +1032,7 @@
           throw new Error('save failed');
         }
         if (activeTab) {
+          activeTab.title = meta.displayPath;
           activeTab.savedPath = meta.displayPath;
           activeTab.draftPath = null;
         }
