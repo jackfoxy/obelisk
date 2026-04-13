@@ -141,8 +141,9 @@
 +$  parse-output  (each tape tang)
 ::
 ++  print-vector
-  |=  =vector
+  |=  [num=@ud =vector]
   ;tr
+    ;td.p1.bd1(style "white-space: nowrap; text-align: right;"): {(scow %ud num)}
     ;*
     %+  turn  +.vector
     |=  cell=vector-cell
@@ -742,15 +743,22 @@
     ;table.p3
       =style  "border-collapse: collapse;"
       ;tr
+        ;th.p1.bd1;
         ;*
         ?~  vectors  ~
         %+  turn  +:i.vectors
         |=  cell=vector-cell
         ;th.p1.bd1(style "white-space: nowrap;"): {(trip p.cell)}
       ==
-      ;*  (turn vectors print-vector)
+      ;*  (print-numbered-vectors vectors 1)
     ==
   ==
+::
+++  print-numbered-vectors
+  |=  [vectors=(list vector) num=@ud]
+  ^-  (list manx)
+  ?~  vectors  ~
+  [(print-vector num i.vectors) $(vectors t.vectors, num +(num))]
 ::
 ++  print-parse-output
   |=  output=parse-output
