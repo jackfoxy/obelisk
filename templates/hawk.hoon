@@ -328,7 +328,6 @@
       ;span.loading: ...
     ==
     ;button.p-1.bd1.br1.b2.hover(type "button", onclick "return submitQueryAction('parse')"): Parse
-    ;button.p-1.bd1.br1.b2.hover(disabled ""): Upload file
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
     ;div.grow;
@@ -668,29 +667,56 @@
 ++  print-results
   |=  results=(list cmd-result)
   ;div#results.grow.b1.mono.s0.hf
-    ;*
-    %+  turn  results
-    |=  =cmd-result
-    =/  num-sets=@ud
-      %-  lent
-      %+  skim  +.cmd-result
-      |=  =result
-      =(-.result %result-set)
-    ;hawk-tabs.grow.hf
-      ;+
-        ?:  =(0 num-sets)  ;/("")
+    ;*  (print-numbered-cmd-results results 1)
+  ==
+++  print-numbered-cmd-results
+  |=  [results=(list cmd-result) num=@ud]
+  ^-  (list manx)
+  ?~  results  ~
+  [(print-cmd-result-tabs num i.results) $(results t.results, num +(num))]
+::
+++  print-cmd-result-tabs
+  |=  [group-id=@ud =cmd-result]
+  =/  num-sets=@ud
+    %-  lent
+    %+  skim  +.cmd-result
+    |=  =result
+    =(-.result %result-set)
+  ;div.result-export-group.rel(style "position: relative;")
+    =data-results-group  (scow %ud group-id)
+    =data-has-results  ?:(=(0 num-sets) "false" "true")
+    ;+
+      ?:  =(0 num-sets)
+        ;div.p3
+          ;*
+          %+  turn  +.cmd-result
+          |=(=result (print-result-metadata result))
+        ==
+      ;hawk-tabs.grow.hf
         ;div.p3(data-tab "Results")
           ;*
           %+  turn  +.cmd-result
           |=(=result (print-result-set result))
         ==
-      ;div.p3(data-tab "Messages")
-        ;*
-        %+  turn  +.cmd-result
-        |=(=result (print-result-metadata result))
+        ;div.p3(data-tab "Messages")
+          ;*
+          %+  turn  +.cmd-result
+          |=(=result (print-result-metadata result))
+        ==
       ==
-    ==
+    ;+
+      ?:  =(0 num-sets)  ;/("")
+      ;button.results-save-btn.px-2.py-1.bd1.br1.b2.hover(type "button", onclick "toggleResultsSavePanel(event); return false;", style "position: absolute; top: 0; right: 0; z-index: 10;")
+        ;span: Save
+      ==
+    ;+
+      ?:  =(0 num-sets)  ;/("")
+      (print-results-save-panel group-id)
+    ;+
+      ?:  =(0 num-sets)  ;/("")
+      (print-results-export-data +.cmd-result)
   ==
+::
 ++  print-result-metadata
   |=  =result
   ?+  -.result  ;div;
@@ -737,6 +763,77 @@
       (print-list-vector +.result)
   ==
   ::
+++  print-results-save-panel
+  |=  group-id=@ud
+  ;div.results-save-panel.hidden.b2.bd1.br1(style "position: absolute; top: 2rem; right: 0.25rem; z-index: 20; min-width: 16rem; max-width: 20rem;")
+    ;form.results-save-panel-form.fc.g1.loader.p2
+      =method  "post"
+      =action  "/apps/hawk/code{(spud here)}/results-1"
+      =data-base-action  "/apps/hawk/code{(spud here)}"
+      =onsubmit  "event.preventDefault(); submitResultsSavePanel(event); return false;"
+      ;div.s-2.o7: Save results to child path
+      ;input.results-save-child.br1.bd1.p-1.wfc(name "_child-path", value "results-1", placeholder "results-1");
+      ;div.fc.g1
+        ;div.s-2.o7: Delimiter
+        ;label.fr.ac.g1
+          ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "comma", checked "");
+          ;span: comma
+        ==
+        ;label.fr.ac.g1
+          ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "space");
+          ;span: space
+        ==
+        ;label.fr.ac.g1
+          ;input(type "radio", name "results-delimiter-{(scow %ud group-id)}", value "tab");
+          ;span: tab
+        ==
+      ==
+      ;button.results-save-submit.p-1.bd1.br1.b2.hover.loader(type "button", onclick "submitResultsSavePanel(event); return false;")
+        ;span.loaded.fr.ac.g1
+          ;span: Save
+        ==
+        ;span.loading: ...
+      ==
+    ==
+  ==
+::
+++  print-results-export-data
+  |=  results=(list result)
+  ^-  manx
+  ;div.results-export-data.hidden
+    ;*
+    %+  turn  results
+    |=  =result
+    ?+  -.result  ;/("")
+      %result-set
+        (print-result-export-set +.result)
+    ==
+  ==
+::
+++  print-result-export-set
+  |=  vectors=(list vector)
+  ^-  manx
+  ;div.result-export-set.hidden
+    ;+
+      ?~  vectors
+        ;/("")
+      ;div.result-export-headers.hidden
+        ;*
+        %+  turn  +:i.vectors
+        |=  cell=vector-cell
+        ;textarea.result-export-header.hidden: {(trip p.cell)}
+      ==
+    ;*
+    %+  turn  vectors
+    |=  =vector
+    ;div.result-export-row.hidden
+      ;*
+      %+  turn  +.vector
+      |=  cell=vector-cell
+      ;textarea.result-export-cell.hidden: {(text (dime-to-vase q.cell))}
+    ==
+  ==
+::
 ++  print-list-vector
   |=  vectors=(list vector)
   ;div
@@ -851,10 +948,6 @@
       }
       getKnownChildPaths().add(normalizeChildPath(path));
     }
-    function scriptPathNumber(path) {
-      const match = /^script-(\d+)$/.exec(path || '');
-      return match ? parseInt(match[1], 10) : 0;
-    }
     function currentTabPath(tab) {
       return normalizeChildPath((tab && (tab.savedPath || tab.draftPath)) ? (tab.savedPath || tab.draftPath) : 'script-1');
     }
@@ -870,13 +963,11 @@
       childUrl.search = '?code';
       return childUrl.toString();
     }
-    function nextScriptPath(skipTabId) {
+    function nextNumberedChildPath(prefix, skipTabId) {
       const state = getEditorTabs();
       const taken = new Set();
-      let nextNum = 1;
       getKnownChildPaths().forEach((path) => {
-        taken.add(path);
-        nextNum = Math.max(nextNum, scriptPathNumber(path) + 1);
+        taken.add(normalizeChildPath(path));
       });
       state.tabs.forEach((tab) => {
         if (skipTabId && tab.id === skipTabId) {
@@ -888,12 +979,18 @@
         if (tab.draftPath) {
           taken.add(normalizeChildPath(tab.draftPath));
         }
-        nextNum = Math.max(nextNum, scriptPathNumber(tab.savedPath) + 1, scriptPathNumber(tab.draftPath) + 1);
       });
-      while (taken.has('script-' + nextNum)) {
+      let nextNum = 1;
+      while (taken.has(prefix + '-' + nextNum)) {
         nextNum += 1;
       }
-      return 'script-' + nextNum;
+      return prefix + '-' + nextNum;
+    }
+    function nextScriptPath(skipTabId) {
+      return nextNumberedChildPath('script', skipTabId);
+    }
+    function nextResultsPath() {
+      return nextNumberedChildPath('results');
     }
     function ensureTabDraftPath(tab, force) {
       if (!tab || tab.savedPath) {
@@ -996,6 +1093,130 @@
       } catch (_err) {
         // ignore cross-frame access issues
       }
+    }
+    function getResultsSavePanel(group) {
+      return group ? group.querySelector('.results-save-panel') : null;
+    }
+    function toggleResultsSavePanel(e) {
+      if (e) {
+        e.preventDefault();
+      }
+      const btn = e && e.currentTarget ? e.currentTarget : null;
+      const group = btn ? btn.closest('.result-export-group') : null;
+      const panel = getResultsSavePanel(group);
+      if (!panel) {
+        return false;
+      }
+      const isHidden = panel.classList.contains('hidden');
+      document.querySelectorAll('.results-save-panel').forEach((p) => p.classList.add('hidden'));
+      if (isHidden) {
+        const input = panel.querySelector('.results-save-child');
+        if (input) {
+          const current = (input.value || '').trim();
+          if (!current || current === 'results-1') {
+            input.value = nextResultsPath();
+          }
+        }
+        panel.classList.remove('hidden');
+      }
+      return false;
+    }
+    function prepareResultsSaveForms() {
+      document.querySelectorAll('.results-save-child').forEach((input) => {
+        if (!input) {
+          return;
+        }
+        const current = (input.value || '').trim();
+        if (!current || current === 'results-1') {
+          input.value = nextResultsPath();
+        }
+      });
+    }
+    function resultsDelimiterText(form) {
+      const selected = form ? form.querySelector('input[type="radio"]:checked') : null;
+      const value = selected ? selected.value : 'comma';
+      if (value === 'space') {
+        return ' ';
+      }
+      if (value === 'tab') {
+        return '\t';
+      }
+      return ',';
+    }
+    function textareaValues(node, selector) {
+      return Array.from(node.querySelectorAll(selector)).map((el) => el.value || '');
+    }
+    function buildResultsExportText(group, delimiter) {
+      const sets = Array.from(group.querySelectorAll('.result-export-set'));
+      const chunks = sets.map((set) => {
+        const lines = [];
+        const headers = textareaValues(set, '.result-export-header');
+        if (headers.length) {
+          lines.push(headers.join(delimiter));
+        }
+        Array.from(set.querySelectorAll('.result-export-row')).forEach((row) => {
+          const cells = textareaValues(row, '.result-export-cell');
+          lines.push(cells.join(delimiter));
+        });
+        return lines.join('\n');
+      }).filter(Boolean);
+      return chunks.length ? (chunks.join('\n\n') + '\n') : '';
+    }
+    async function submitResultsSavePanel(e) {
+      if (e) {
+        e.preventDefault();
+      }
+      const target = e && e.currentTarget ? e.currentTarget : null;
+      const form = target ? target.closest('.results-save-panel-form') : document.querySelector('.results-save-panel-form');
+      if (!form) {
+        return false;
+      }
+      const group = form.closest('.result-export-group');
+      if (!group) {
+        return false;
+      }
+      const input = form.querySelector('.results-save-child');
+      const rawChild = input && input.value ? input.value : nextResultsPath();
+      const displayPath = normalizeChildPath(rawChild);
+      const safeChild = displayPath.split('/').map(encodeURIComponent).join('/');
+      const baseAction = form.getAttribute('data-base-action') || '';
+      if (input) {
+        input.value = displayPath;
+      }
+      if (knownChildPathExists(displayPath)) {
+        if (!window.confirm(displayPath + ' already exists. Save anyway?')) {
+          return false;
+        }
+      }
+      const body = new URLSearchParams();
+      body.set('code', buildResultsExportText(group, resultsDelimiterText(form)));
+      body.set('/protocol', '/text/plain');
+      setBusyCursor(true);
+      try {
+        const res = await fetch(baseAction + '/' + safeChild, {
+          method: (form.method || 'post').toUpperCase(),
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+          },
+          body,
+          credentials: 'same-origin',
+        });
+        if (!res.ok) {
+          throw new Error('results save failed');
+        }
+        registerKnownChildPath(displayPath);
+        nudgeHawkTreeRefresh();
+        const panel = form.closest('.results-save-panel');
+        if (panel) {
+          panel.classList.add('hidden');
+        }
+        showSaveToast(displayPath + ' saved');
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setBusyCursor(false);
+      }
+      return false;
     }
     async function submitSavePanel(e) {
       if (e) {
@@ -1440,6 +1661,24 @@
         }
       }, true);
     }
+    if (!window.obeliskResultsSavePanelHandler) {
+      window.obeliskResultsSavePanelHandler = true;
+      document.addEventListener('pointerdown', (e) => {
+        document.querySelectorAll('.results-save-panel').forEach((panel) => {
+          if (panel.classList.contains('hidden')) {
+            return;
+          }
+          if (!eventInside(panel, e)) {
+            const btn = panel.closest('.result-export-group');
+            const saveBtn = btn ? btn.querySelector('.results-save-btn') : null;
+            if (saveBtn && eventInside(saveBtn, e)) {
+              return;
+            }
+            panel.classList.add('hidden');
+          }
+        });
+      }, true);
+    }
     if (!window.obeliskKeyHandler) {
       window.obeliskKeyHandler = true;
       window.addEventListener('keydown', (e) => {
@@ -1448,7 +1687,35 @@
         }
       })
     }
+    function positionResultsSaveButtons() {
+      document.querySelectorAll('.result-export-group').forEach((group) => {
+        const btn = group.querySelector('.results-save-btn');
+        const hawkTabs = group.querySelector('hawk-tabs');
+        if (!btn || !hawkTabs) {
+          return;
+        }
+        if (btn.parentElement !== group) {
+          return;
+        }
+        var tabBar = null;
+        hawkTabs.querySelectorAll('button').forEach((b) => {
+          var txt = b.textContent.trim();
+          if (!tabBar && (txt === 'Results' || txt === 'Messages')) {
+            tabBar = b.parentElement;
+          }
+        });
+        if (tabBar && !tabBar.contains(btn)) {
+          btn.style.position = 'static';
+          btn.style.top = '';
+          btn.style.right = '';
+          btn.style.zIndex = '';
+          tabBar.appendChild(btn);
+        }
+      });
+    }
     setTimeout(setupEditorTabs, 0);
+    setTimeout(prepareResultsSaveForms, 0);
+    setTimeout(positionResultsSaveButtons, 100);
     '''
   ==
   ::
