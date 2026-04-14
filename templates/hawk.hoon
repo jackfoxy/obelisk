@@ -1295,7 +1295,7 @@
     async function openChildPath(path) {
       const normalizedPath = normalizeChildPath(path);
       const state = getEditorTabs();
-      const existingIndex = state.tabs.findIndex((tab) => normalizeChildPath(tab.savedPath || '') === normalizedPath);
+      const existingIndex = state.tabs.findIndex((tab) => tab.savedPath && normalizeChildPath(tab.savedPath) === normalizedPath);
       if (existingIndex >= 0) {
         activateEditorTab(existingIndex);
         closeFileMenu();
@@ -1423,7 +1423,7 @@
       const id = state.nextId++;
       state.tabs.push({
         id,
-        title: 'tab-' + id,
+        title: savedPath || ('tab-' + id),
         code: code || '',
         savedPath: savedPath || null,
         draftPath: null
