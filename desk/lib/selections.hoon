@@ -127,18 +127,21 @@
                                                 map-meta.full-relation
                                                 column-metas.full-relation
                                                 ==
-  =.  prior-join       (join-2-sets prior-join -.set-tables.full-relation)
+  =.  prior-join       %:  join-2-sets  prior-join
+                                       -.set-tables.full-relation
+                                       column-metas.full-relation
+                                       ==
   %=  $
     joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
   ==
 ::
 ++  join-2-sets
-  |=  [prior=set-table this=set-table]
+  |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
   ?-  (need join.this)
     %join
-      ?:  =(~ predicate.this)  (join-natural prior this)
+      ?:  =(~ predicate.this)  (join-natural prior this column-metas)
       ~|("%join with ON predicate not implemented" !!)
     %left-join
       ~|("%left-join not implemented" !!)
@@ -151,12 +154,21 @@
   ==
 ::
 ++  join-natural
-  |=  [prior=set-table this=set-table]
+  |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
   =/  this-key   key:(need pri-indx.this)
   =/  prior-key  key:(need pri-indx.prior)
   =/  rel-prior  (need relation.prior)
   =/  rel-this   (need relation.this)
+  ::  accumulated columns from all prior source tables
+  ::  (used for matching in multi-table joins where columns.prior
+  ::  only has the most recent table's columns)
+  =/  prior-accum-cols=(list column:ast)
+    %+  murn  column-metas
+    |=  cm=column-meta
+    ^-  (unit column:ast)
+    ?:  =(qualifier.qualified-column.cm rel-this)  ~
+    [~ [%column name.qualified-column.cm type.cm addr.cm]]
   :: perfect natural join
   =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
                       ?~  joined-rows.prior
@@ -182,13 +194,30 @@
     ::  partial key match
     =/  plen  (leading-prefix-len prior-key this-key)
     ?:  =(0 plen)
-      ~|  "no natural join or foreign key join, columns do not match: ".
-          "{<rel-this>}"
-          !!
+      ::  no key overlap, hash join on all matching columns
+      =/  match-cols  (find-all-matches prior-accum-cols this)
+      ?~  match-cols
+        ~|  "no natural join or foreign key join, columns do not match: ".
+            "{<rel-this>}"
+            !!
+      ::  check for ambiguous columns in multi-table join
+      =/  ambig-col  (find-ambig-nonkey joined-rows.prior match-cols)
+      ?^  ambig-col
+        ~|  %-  crip
+            %+  weld  "natural join: column %"
+            %+  weld  (trip u.ambig-col)
+                      " occurs in multiple tables"
+            !!
+      =/  prior-rows=(list data-row)
+        ?~  joined-rows.prior  indexed-rows.prior
+        joined-rows.prior
+      =.  count-and-rows
+        (join-hash prior-rows rel-prior indexed-rows.this rel-this match-cols)
+      (joined-set-table this -.count-and-rows +.count-and-rows)
     =/  prior-prefix  (scag plen prior-key)
     =/  this-prefix   (scag plen this-key)
     =/  noncontig     (find-noncontig-matches prior-key this-key plen)
-    =/  nonkey-cols   (find-nonkey-matches prior this prior-key this-key)
+    =/  nonkey-cols   (find-nonkey-matches prior-accum-cols this prior-key this-key)
     ::  check for ambiguous non-key columns in multi-table join result
     =/  ambig-col  (find-ambig-nonkey joined-rows.prior nonkey-cols)
     ?^  ambig-col
@@ -1019,8 +1048,9 @@
   $(this-rest t.this-rest, this-idx +(this-idx))
 ::
 ++  find-nonkey-matches
-  ::  find non-key columns matching by name+type between two set-tables
-  |=  $:  prior=set-table
+  ::  find non-key columns matching by name+type between prior and this
+  ::  prior-cols: accumulated columns from all prior source tables
+  |=  $:  prior-cols=(list column:ast)
           this=set-table
           prior-key=(list key-column)
           this-key=(list key-column)
@@ -1028,7 +1058,7 @@
   ^-  (list @tas)
   =/  prior-key-names  (silt (turn prior-key |=(a=key-column name.a)))
   =/  this-key-names   (silt (turn this-key |=(a=key-column name.a)))
-  =/  prior-nonkey  %+  skip  columns.prior
+  =/  prior-nonkey  %+  skip  prior-cols
                     |=(c=column:ast (~(has in prior-key-names) name.c))
   =/  this-nonkey   %+  skip  columns.this
                     |=(c=column:ast (~(has in this-key-names) name.c))
@@ -1070,6 +1100,72 @@
   =/  val  (~(get by q.i.rels) col)
   ?^  val  val
   $(rels t.rels)
+::
+++  find-all-matches
+  ::  find all columns matching by name+type between prior and this
+  ::  includes key columns (unlike find-nonkey-matches)
+  ::  prior-cols: accumulated columns from all prior source tables
+  |=  [prior-cols=(list column:ast) this=set-table]
+  ^-  (list @tas)
+  =/  this-lookup  (malt (turn columns.this |=(c=column:ast [name.c type.c])))
+  %+  murn  prior-cols
+  |=  c=column:ast
+  ^-  (unit @tas)
+  =/  match  (~(get by this-lookup) name.c)
+  ?~  match  ~
+  ?.  =(u.match type.c)  ~
+  [~ name.c]
+::
+++  extract-match-key
+  ::  extract values for matching columns from a data-row
+  ::  returns ~ if any column is missing
+  |=  [row=data-row cols=(list @tas)]
+  ^-  (unit (list @))
+  =/  vals  *(list @)
+  |-
+  ?~  cols  [~ (flop vals)]
+  =/  v  (get-col-from-row i.cols row)
+  ?~  v  ~
+  $(cols t.cols, vals [u.v vals])
+::
+++  join-hash
+  ::  hash join for tables with no primary key overlap
+  ::  builds hash map on matching columns from b, probes with a
+  |=  $:  a=(list data-row)
+          a-qual=qualified-table:ast
+          b=(list indexed-row)
+          b-qual=qualified-table:ast
+          match-cols=(list @tas)
+          ==
+  ^-  [@ud (list joined-row)]
+  ::  build hash map from b rows keyed by matching column values
+  =/  b-map=(map (list @) (list indexed-row))
+    =/  m  *(map (list @) (list indexed-row))
+    =/  rows  b
+    |-
+    ?~  rows  m
+    =/  hash-key  (extract-match-key i.rows match-cols)
+    ?~  hash-key  $(rows t.rows)
+    =/  existing  (~(gut by m) u.hash-key ~)
+    $(m (~(put by m) u.hash-key [i.rows existing]), rows t.rows)
+  ::  probe a rows against hash map
+  =/  out  *(list joined-row)
+  =/  cnt  0
+  |-
+  ?~  a  [cnt (flop out)]
+  =/  hash-key  (extract-match-key i.a match-cols)
+  ?~  hash-key  $(a t.a)
+  =/  matches  (~(gut by b-map) u.hash-key ~)
+  =/  b-rows  matches
+  |-
+  ?~  b-rows  ^$(a t.a)
+  =/  jr=joined-row
+    ?:  ?=(%joined-row -.i.a)
+      [%joined-row ~ (~(put by data.i.a) b-qual data.i.b-rows)]
+    :+  %joined-row  ~
+    %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a))
+    [b-qual data.i.b-rows]
+  $(b-rows t.b-rows, out [jr out], cnt +(cnt))
 ::
 ++  collect-group
   ::  collect consecutive rows sharing the same prefix key
