@@ -1071,21 +1071,11 @@
   ?^  val  val
   $(rels t.rels)
 ::
-++  collect-group-a
-  ::  collect consecutive data-rows sharing the same prefix key
+++  collect-group
+  ::  collect consecutive rows sharing the same prefix key
   |=  [rows=(list data-row) prefix=(list @) plen=@ud]
   ^-  [(list data-row) (list data-row)]
   =/  group  *(list data-row)
-  |-
-  ?~  rows  [(flop group) ~]
-  ?.  =(prefix (scag plen key.i.rows))  [(flop group) rows]
-  $(group [i.rows group], rows t.rows)
-::
-++  collect-group-b
-  ::  collect consecutive indexed-rows sharing the same prefix key
-  |=  [rows=(list indexed-row) prefix=(list @) plen=@ud]
-  ^-  [(list indexed-row) (list indexed-row)]
-  =/  group  *(list indexed-row)
   |-
   ?~  rows  [(flop group) ~]
   ?.  =(prefix (scag plen key.i.rows))  [(flop group) rows]
@@ -1095,7 +1085,7 @@
   ::  merge-join on shared prefix key with group-based cross product
   |=  $:  a=(list data-row)
           a-qual=qualified-table:ast
-          b=(list indexed-row)
+          b=(list data-row)
           b-qual=qualified-table:ast
           prefix-key=(list key-column)
           nonkey-cols=(list @tas)
@@ -1114,8 +1104,8 @@
   =/  pb  (scag plen key.i.b)
   ?:  =(pa pb)
     ::  collect all consecutive rows with same prefix from each side
-    =/  ga  (collect-group-a a pa plen)
-    =/  gb  (collect-group-b b pa plen)
+    =/  ga  (collect-group a pa plen)
+    =/  gb  (collect-group b pa plen)
     ::  cross-product with filtering
     =/  cross  %:  cross-filter
                  -.ga
@@ -1139,7 +1129,7 @@
 ++  cross-filter
   ::  cross-product of two groups, filtering on non-key and non-contiguous matches
   |=  $:  ga=(list data-row)
-          gb=(list indexed-row)
+          gb=(list data-row)
           a-qual=qualified-table:ast
           b-qual=qualified-table:ast
           prefix=(list @)
@@ -1161,6 +1151,7 @@
   ?.  (check-nonkey-cols i.ga i.b-rows nonkey-cols)
     $(b-rows t.b-rows)
   ::  emit joined row with PREFIX key
+  ?>  ?=(%indexed-row -.i.b-rows)
   =/  jr=joined-row
     ?:  ?=(%joined-row -.i.ga)
       [%joined-row prefix (~(put by data.i.ga) b-qual data.i.b-rows)]
@@ -1185,11 +1176,11 @@
 ::
 ++  check-nonkey-cols
   ::  verify non-key column values match between rows
-  |=  [a=data-row b=indexed-row cols=(list @tas)]
+  |=  [a=data-row b=data-row cols=(list @tas)]
   ^-  ?
   ?~  cols  %.y
   =/  a-val  (get-col-from-row i.cols a)
-  =/  b-val  (~(get by data.b) i.cols)
+  =/  b-val  (get-col-from-row i.cols b)
   ?~  a-val  %.n
   ?~  b-val  %.n
   ?.  =(u.a-val u.b-val)  %.n
