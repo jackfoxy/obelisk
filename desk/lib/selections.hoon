@@ -98,7 +98,7 @@
   ^-  join-return
   =/  from  (normalize-from (need from.q))
   =/  joined-relations=(list joined-relat)
-        %+  mk-joined-relations  :*  %joined-relat
+        %+  cross-joins-to-end  :*  %joined-relat
                                      ~
                                      relation.from
                                      as-of.from
@@ -106,7 +106,6 @@
                                      ==
                                  joins.from
   =/  relat=joined-relat  -.joined-relations
-  =/  source-db=@tas      (source-db-name relation.relat)
   =.  joined-relations    +.joined-relations
   =/  =full-relation  %:  source-full-relation  relation.relat
                                                 named-ctes
@@ -118,14 +117,8 @@
                                                 ==
   =/  prior-join          -.set-tables.full-relation
   =/  from-objects        (limo ~[prior-join])
-  =/  prev-as-of          as-of.relat
-  =/  prev-db-name=@tas   source-db
   |-
   ?~  joined-relations  (recalc-addr prior-join full-relation from-objects)
-  =.  source-db         (source-db-name relation.i.joined-relations)
-  =/  needs-refresh     ?|  !=(as-of.i.joined-relations prev-as-of)
-                            !=(source-db prev-db-name)
-                             ==
   =.  full-relation  %:  source-full-relation  relation.i.joined-relations
                                                 named-ctes
                                                 as-of.i.joined-relations
@@ -134,22 +127,32 @@
                                                 map-meta.full-relation
                                                 column-metas.full-relation
                                                 ==
-  =.  prior-join       (join-up prior-join -.set-tables.full-relation)
+  =.  prior-join       (join-2-sets prior-join -.set-tables.full-relation)
   %=  $
     joined-relations   +.joined-relations
     from-objects       [prior-join from-objects]
-    prev-as-of         as-of.i.joined-relations
-    prev-db-name       source-db
+  ==
+::
+++  join-2-sets
+  |=  [prior=set-table this=set-table]
+  ^-  set-table
+  ?-  (need join.this)
+    %join
+      ?:  =(~ predicate.this)  (join-natural prior this)
+      ~|("%join with ON predicate not implemented" !!)
+    %left-join
+      ~|("%left-join not implemented" !!)
+    %right-join
+      ~|("right-join not implemented" !!)
+    %outer-join
+      ~|("%outer-join not implemented" !!)
+    %cross-join
+      (cross-join prior this)
   ==
 ::
 ++  join-natural
   |=  [prior=set-table this=set-table]
   ^-  set-table
-  ::join on foreign keys (to do)
-  ::
-  ::join on primary key
-  ?:  &(=(~ pri-indx.prior) =(~ pri-indx.this))
-    ~|("no natural join, missing index: {<prior>} {<this>}" !!)
   =/  this-key   key:(need pri-indx.this)
   =/  prior-key  key:(need pri-indx.prior)
   =/  rel-prior  (need relation.prior)
@@ -193,7 +196,7 @@
           %+  weld  "natural join: column %"
           %+  weld  (trip u.ambig-col)
                     " occurs in multiple tables"
-      !!
+          !!
     ::  check if prefix needs re-sort (different ASC/DESC)
     =/  needs-resort  ?!  .=  %+  turn  prior-prefix
                                   |=(a=key-column ascending.a)
@@ -620,18 +623,6 @@
                     -.r
                     ==
 ::
-++  source-db-name
-  |=  rel=relation:ast
-  ^-  @tas
-  ?-  -.rel
-    %qualified-table
-      database:;;(qualified-table:ast rel)
-    %cte-name
-      %cte
-    %query-row
-      ~|("SELECT: not supported on %query-row" !!)
-  ==
-::
 ++  source-full-relation
   |=  $:  rel=relation:ast
           =named-ctes
@@ -661,16 +652,14 @@
                         map-meta
                         column-metas
                         ==
-    %cte-name
-      =/  qt=qualified-table:ast
-        :*  %qualified-table
-            ship=~
-            database=%cte
-            namespace=%cte
-            name=name:;;(cte-name:ast rel)
-            alias=~
-            ==
-      %:  from-cte  qt
+    %cte-name 
+      %:  from-cte  :*  %qualified-table
+                        ship=~
+                        database=%cte
+                        namespace=%cte
+                        name=name:;;(cte-name:ast rel)
+                        alias=~
+                        ==
                     named-ctes
                     *schema
                     map-meta
@@ -708,14 +697,13 @@
                           column-metas
                           ==
   =/  vw2=view  (need vw)
-  =/  r=[? database cache]
-        %:  got-view-cache  db
-                            schema
-                            vw2
-                            :+  namespace.qualified-table
-                                name.qualified-table
-                                sys-time
-                            ==
+  =/  r=[? database cache]  %:  got-view-cache  db
+                                                schema
+                                                vw2
+                                                :+  namespace.qualified-table
+                                                    name.qualified-table
+                                                    sys-time
+                                                ==
   =/  view-content  (need content.+>.r)
   ::
   ::  database view cache may have been populated
@@ -831,7 +819,7 @@
           addr.cm
       ==
 ::
-++  mk-joined-relations
+++  cross-joins-to-end
   ::  put all cross joins at the end of the list
   |=  [relat=joined-relat joins=(list joined-relation:ast)]
   ^-  (list joined-relat)
@@ -844,18 +832,19 @@
       joins  t.joins
       cross-joins  :-  :*  %joined-relat
                            `join-type.i.joins
-                           (normalize-relation relation.i.joins)
-                           as-of.i.joins
-                           predicate.i.joins
-                           ==
+                            relation.i.joins
+                            as-of.i.joins
+                            predicate.i.joins
+                            ==
                        cross-joins
-    ==  %=  $
+    ==
+  %=  $
     joins  t.joins
     joined-relations  :-  :*  %joined-relat
                               `join-type.i.joins
-                                (normalize-relation relation.i.joins)
-                                as-of.i.joins
-                                predicate.i.joins
+                              relation.i.joins
+                              as-of.i.joins
+                              predicate.i.joins
                               ==
                    joined-relations
   ==
@@ -876,23 +865,6 @@
                                                             ==
                                 !!  :: : implement view refresh for non-sys
   [%.y (put-view-cache db vw-cache key) vw-cache]
-::
-++  join-up
-  |=  [prior=set-table this=set-table]
-  ^-  set-table
-  ?-  (need join.this)
-    %join
-      ?:  =(~ predicate.this)  (join-natural prior this)
-      ~|("%join with ON predicate not implemented" !!)
-    %left-join
-      ~|("%left-join not implemented" !!)
-    %right-join
-      ~|("right-join not implemented" !!)
-    %outer-join
-      ~|("%outer-join not implemented" !!)
-    %cross-join
-      (cross-join prior this)
-  ==
 ::
 ++  reduce-ord-col
   |=  a=ordered-column:ast
