@@ -142,7 +142,7 @@
   ?-  (need join.this)
     %join
       ?:  =(~ predicate.this)  (join-natural prior this column-metas)
-      ~|("%join with ON predicate not implemented" !!)
+      (join-predicate prior this column-metas)
     %left-join
       ~|("%left-join not implemented" !!)
     %right-join
@@ -317,6 +317,244 @@
                               ==
   ::
   (joined-set-table this -.count-and-rows +.count-and-rows)
+::
+++  join-predicate
+  ::  predicate join (JOIN ... ON ...)
+  ::  currently only supports equality conditions with AND conjunctions
+  |=  [prior=set-table this=set-table column-metas=(list column-meta)]
+  ^-  set-table
+  =/  rel-prior  (need relation.prior)
+  =/  rel-this   (need relation.this)
+  ::  validate and extract equi-join column pairs from predicate
+  =/  raw-pairs  (extract-equi-pairs predicate.this)
+  ::  resolve unqualified columns, validate existence, assign to prior/this
+  =/  resolved  %+  turn  raw-pairs
+    |=  [l=resolved-on-col r=resolved-on-col]
+    ^-  [@tas @tas]
+    ::  resolve unqualified columns first (with ambiguity check)
+    =.  l  (resolve-on-col l rel-prior rel-this column-metas)
+    =.  r  (resolve-on-col r rel-prior rel-this column-metas)
+    ::  validate both columns exist
+    =/  l-found  (col-exists-any l column-metas)
+    ?.  l-found
+      (on-col-not-found l column-metas)
+    =/  r-found  (col-exists-any r column-metas)
+    ?.  r-found
+      (on-col-not-found r column-metas)
+    ::  type check: both columns must have the same type
+    =/  l-type  (get-on-col-type l column-metas)
+    =/  r-type  (get-on-col-type r column-metas)
+    ?.  =(l-type r-type)
+      ~|  "type mismatch in ON predicate: %{(trip name.l)} is {<l-type>} ".
+          "but %{(trip name.r)} is {<r-type>}"
+          !!
+    ::  determine which column belongs to prior and which to this
+    =/  l-is-this   (col-in-relation l rel-this column-metas)
+    =/  r-is-this   (col-in-relation r rel-this column-metas)
+    ::  l=prior-side, r=this-side
+    ?:  &(?!(l-is-this) r-is-this)  [name.l name.r]
+    ::  l=this-side, r=prior-side
+    ?:  &(l-is-this ?!(r-is-this))  [name.r name.l]
+    ::  both are this-side or both are prior-side
+    ~|("ON predicate must reference columns from different relations" !!)
+  =/  prior-cols  (turn resolved |=(p=[@tas @tas] -.p))
+  =/  this-cols   (turn resolved |=(p=[@tas @tas] +.p))
+  ::  hash join with separate column name lists
+  =/  prior-rows=(list data-row)
+    ?~  joined-rows.prior  indexed-rows.prior
+    joined-rows.prior
+  =/  count-and-rows
+    %:  join-predicate-hash
+      prior-rows
+      rel-prior
+      indexed-rows.this
+      rel-this
+      prior-cols
+      this-cols
+    ==
+  (joined-set-table this -.count-and-rows +.count-and-rows)
+::
++$  resolved-on-col  [qualifier=(unit qualified-table:ast) name=@tas]
+::
+++  extract-equi-pairs
+  ::  walk predicate tree, extract equality column pairs
+  ::  crash if non-eq or non-AND found
+  |=  p=predicate:ast
+  ^-  (list [resolved-on-col resolved-on-col])
+  ?~  p  ~
+  ?.  ?=(ops-and-conjs:ast n.p)
+    ~|("JOIN ON predicate only supports equality and AND conjunctions" !!)
+  ?+  n.p
+    ~|("JOIN ON predicate only supports equality and AND conjunctions" !!)
+    %eq
+      ?~  l.p  ~|("JOIN ON: malformed equality predicate" !!)
+      ?~  r.p  ~|("JOIN ON: malformed equality predicate" !!)
+      =/  lc  (on-pred-to-col n.l.p)
+      =/  rc  (on-pred-to-col n.r.p)
+      ~[[lc rc]]
+    %and
+      ?~  l.p  ~|("JOIN ON: malformed AND predicate" !!)
+      ?~  r.p  ~|("JOIN ON: malformed AND predicate" !!)
+      %+  weld  (extract-equi-pairs l.p)
+                (extract-equi-pairs r.p)
+  ==
+::
+++  on-pred-to-col
+  ::  extract column reference from a predicate leaf node
+  |=  a=predicate-component:ast
+  ^-  resolved-on-col
+  ?:  ?=(qualified-column:ast a)
+    [[~ qualifier.a] name.a]
+  ?:  ?=(unqualified-column:ast a)
+    [~ name.a]
+  ~|("JOIN ON predicate only supports column references" !!)
+::
+++  resolve-on-col
+  ::  resolve an unqualified ON column against available relations
+  ::  crash if ambiguous (exists in multiple relations)
+  |=  $:  col=resolved-on-col
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          column-metas=(list column-meta)
+          ==
+  ^-  resolved-on-col
+  ?^  qualifier.col  col
+  ::  count how many relations have this column
+  =/  matches=(list qualified-table:ast)
+    %+  murn  column-metas
+    |=  cm=column-meta
+    ^-  (unit qualified-table:ast)
+    ?.  =(name.qualified-column.cm name.col)  ~
+    [~ qualifier.qualified-column.cm]
+  ::  deduplicate (same relation may appear multiple times for different columns)
+  =/  unique=(list qualified-table:ast)
+    %+  roll  matches
+    |=  [qt=qualified-table:ast acc=(list qualified-table:ast)]
+    ?:  %+  lien  acc
+        |=(a=qualified-table:ast =(a qt))
+      acc
+    [qt acc]
+  ?~  unique
+    ~|  "column %{(trip name.col)} does not exist"  !!
+  ?:  (gth (lent unique) 1)
+    ~|  "column %{(trip name.col)} is ambiguous in ON predicate"  !!
+  ::  resolved to single relation
+  [qualifier=[~ i.unique] name.col]
+::
+++  col-in-relation
+  ::  check if a resolved column exists in a specific relation
+  |=  [col=resolved-on-col rel=qualified-table:ast column-metas=(list column-meta)]
+  ^-  ?
+  ?^  qualifier.col
+    ::  qualified: check if the qualifier matches this relation
+    .=  (normalize-qt-alias u.qualifier.col)
+        (normalize-qt-alias rel)
+  ::  unqualified: check if column name exists in this relation
+  %+  lien  column-metas
+  |=  cm=column-meta
+  ?&  =(name.qualified-column.cm name.col)
+      .=  (normalize-qt-alias qualifier.qualified-column.cm)
+          (normalize-qt-alias rel)
+  ==
+::
+++  col-exists-any
+  ::  check if a column exists in any relation in column-metas
+  |=  [col=resolved-on-col column-metas=(list column-meta)]
+  ^-  ?
+  ?^  qualifier.col
+    %+  lien  column-metas
+    |=  cm=column-meta
+    ?&  =(name.qualified-column.cm name.col)
+        .=  (normalize-qt-alias qualifier.qualified-column.cm)
+            (normalize-qt-alias u.qualifier.col)
+    ==
+  %+  lien  column-metas
+  |=  cm=column-meta
+  =(name.qualified-column.cm name.col)
+::
+++  on-col-not-found
+  ::  produce specific error when an ON column is not found
+  |=  [col=resolved-on-col column-metas=(list column-meta)]
+  =/  alias-text
+    ?~  qualifier.col  ""
+    ?~  alias.u.qualifier.col
+      (trip name.u.qualifier.col)
+    (trip (need alias.u.qualifier.col))
+  ?~  qualifier.col
+    ~|  "column %{(trip name.col)} does not exist"  !!
+  ::  check if the qualifier (relation) itself is valid
+  =/  rel-exists
+    %+  lien  column-metas
+    |=  cm=column-meta
+    .=  (normalize-qt-alias qualifier.qualified-column.cm)
+        (normalize-qt-alias u.qualifier.col)
+  ?.  rel-exists
+    ~|  "{alias-text} is not a valid relation reference"  !!
+  ::  relation exists but column doesn't
+  ~|  "column %{(trip name.col)} does not exist"  !!
+::
+++  get-on-col-type
+  ::  get the type of a resolved ON column from column-metas
+  |=  [col=resolved-on-col column-metas=(list column-meta)]
+  ^-  @ta
+  ?^  qualifier.col
+    =/  match
+      %+  skim  column-metas
+      |=  cm=column-meta
+      ?&  =(name.qualified-column.cm name.col)
+          .=  (normalize-qt-alias qualifier.qualified-column.cm)
+              (normalize-qt-alias u.qualifier.col)
+      ==
+    ?~  match
+      ~|  "column %{(trip name.col)} does not exist"  !!
+    type.i.match
+  =/  match
+    %+  skim  column-metas
+    |=  cm=column-meta
+    =(name.qualified-column.cm name.col)
+  ?~  match
+    ~|  "column %{(trip name.col)} does not exist"  !!
+  type.i.match
+::
+++  join-predicate-hash
+  ::  hash join for predicate joins with different column names per side
+  ::  builds hash map on this-cols from b, probes with prior-cols from a
+  |=  $:  a=(list data-row)
+          a-qual=qualified-table:ast
+          b=(list indexed-row)
+          b-qual=qualified-table:ast
+          a-cols=(list @tas)
+          b-cols=(list @tas)
+          ==
+  ^-  [@ud (list joined-row)]
+  ::  build hash map from b rows keyed by b-cols values
+  =/  b-map=(map (list @) (list indexed-row))
+    =/  m  *(map (list @) (list indexed-row))
+    =/  rows  b
+    |-
+    ?~  rows  m
+    =/  hash-key  (extract-match-key i.rows b-cols)
+    ?~  hash-key  $(rows t.rows)
+    =/  existing  (~(gut by m) u.hash-key ~)
+    $(m (~(put by m) u.hash-key [i.rows existing]), rows t.rows)
+  ::  probe a rows against hash map using a-cols
+  =/  out  *(list joined-row)
+  =/  cnt  0
+  |-
+  ?~  a  [cnt (flop out)]
+  =/  hash-key  (extract-match-key i.a a-cols)
+  ?~  hash-key  $(a t.a)
+  =/  matches  (~(gut by b-map) u.hash-key ~)
+  =/  b-rows  matches
+  |-
+  ?~  b-rows  ^$(a t.a)
+  =/  jr=joined-row
+    ?:  ?=(%joined-row -.i.a)
+      [%joined-row ~ (~(put by data.i.a) b-qual data.i.b-rows)]
+    :+  %joined-row  ~
+    %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a))
+    [b-qual data.i.b-rows]
+  $(b-rows t.b-rows, out [jr out], cnt +(cnt))
 ::
 ++  cross-join
   |=  [prior=set-table this=set-table]

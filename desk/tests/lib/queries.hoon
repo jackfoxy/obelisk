@@ -7986,6 +7986,1464 @@
       'column %bad-col does not exist'
       ==
 ::
+::  predicate joins (JOIN ... ON)
+::
+::  dept: departments with dept-id PK
+++  create-dept
+  "CREATE TABLE dept ".
+  "(dept-id @ud, dept-name @t) ".
+  "PRIMARY KEY (dept-id);"
+::  dept-ids 1-5; ids 4,5 have no matching employees
+++  insert-dept
+  "INSERT INTO dept VALUES ".
+  "(1, 'Engineering') ".
+  "(2, 'Sales') ".
+  "(3, 'Marketing') ".
+  "(4, 'Legal') ".
+  "(5, 'Finance');"
+::  emp: employees with emp-id PK, dept-ref foreign key to dept (different name)
+++  create-emp
+  "CREATE TABLE emp ".
+  "(emp-id @ud, emp-name @t, dept-ref @ud) ".
+  "PRIMARY KEY (emp-id);"
+::  dept-refs 1,2,3 match dept; dept-ref 99 has no matching dept
+++  insert-emp
+  "INSERT INTO emp VALUES ".
+  "(10, 'Alice', 1) ".
+  "(20, 'Bob', 1) ".
+  "(30, 'Carol', 2) ".
+  "(40, 'Dave', 3) ".
+  "(50, 'Eve', 99);"
+::  proj: projects with proj-id PK, lead-emp foreign key to emp
+++  create-proj
+  "CREATE TABLE proj ".
+  "(proj-id @ud, proj-name @t, lead-emp @ud) ".
+  "PRIMARY KEY (proj-id);"
+::  lead-emp 10,30 match emp; lead-emp 777 has no match
+++  insert-proj
+  "INSERT INTO proj VALUES ".
+  "(100, 'Alpha', 10) ".
+  "(200, 'Beta', 30) ".
+  "(300, 'Gamma', 777);"
+::  tiny-a and tiny-b: single-row tables for edge cases
+++  create-tiny-a
+  "CREATE TABLE tiny-a ".
+  "(ta-id @ud, ta-val @t) ".
+  "PRIMARY KEY (ta-id);"
+++  insert-tiny-a
+  "INSERT INTO tiny-a VALUES (1, 'only-a');"
+++  create-tiny-b
+  "CREATE TABLE tiny-b ".
+  "(tb-id @ud, tb-val @t) ".
+  "PRIMARY KEY (tb-id);"
+++  insert-tiny-b
+  "INSERT INTO tiny-b VALUES (1, 'only-b');"
+::
+::  emp2: employees with compound PK (dept-ref, emp-id) for multi-column tests
+++  create-emp2
+  "CREATE TABLE emp2 ".
+  "(dept-ref @ud, emp-id @ud, emp-name @t) ".
+  "PRIMARY KEY (dept-ref, emp-id);"
+++  insert-emp2
+  "INSERT INTO emp2 VALUES ".
+  "(1, 10, 'Alice') ".
+  "(1, 20, 'Bob') ".
+  "(2, 30, 'Carol') ".
+  "(3, 40, 'Dave') ".
+  "(99, 50, 'Eve');"
+::  dept2: departments with compound PK (region-id, dept-key) for multi-column tests
+++  create-dept2
+  "CREATE TABLE dept2 ".
+  "(region-id @ud, dept-key @ud, dept-label @t) ".
+  "PRIMARY KEY (region-id, dept-key);"
+++  insert-dept2
+  "INSERT INTO dept2 VALUES ".
+  "(1, 10, 'Eng-East') ".
+  "(1, 20, 'Sales-East') ".
+  "(2, 30, 'Mktg-West') ".
+  "(3, 40, 'Legal-South') ".
+  "(5, 50, 'HR-North');"
+::
+::  test-predicate-join-00
+::  single equality ON, same-named key columns match (equivalent to natural join)
+::  verifies basic predicate join works; non-matching rows filtered on both sides
+++  test-predicate-join-00
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-name, T1.dept-ref, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-ref [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-ref [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-ref [~.ud 2]]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              [%dept-ref [~.ud 3]]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-01
+::  single equality ON, one-to-many: multiple emps in same dept
+::  dept-id=1 has two employees (Alice, Bob); non-matching rows on both sides
+++  test-predicate-join-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dept T1 ".
+          "JOIN emp T2 ON T1.dept-id = T2.dept-ref ".
+          "SELECT T1.dept-name, T2.emp-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Alice']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Bob']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Sales']]
+                              [%emp-name [~.t 'Carol']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Marketing']]
+                              [%emp-name [~.t 'Dave']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-02
+::  single equality ON, no matches: join on impossible value
+::  all dept rows and all emp rows are non-matching
+++  test-predicate-join-02
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tiny-a
+                        insert-tiny-a
+                        create-tiny-b
+                        "INSERT INTO tiny-b VALUES (2, 'no-match');"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tiny-a T1 ".
+          "JOIN tiny-b T2 ON T1.ta-id = T2.tb-id ".
+          "SELECT T1.ta-val, T2.tb-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tiny-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tiny-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  test-predicate-join-03
+::  single equality ON, all rows match on both sides
+::  both tables single row with matching key; no non-matching rows
+::  (we still verify the mechanism works with full match)
+++  test-predicate-join-03
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tiny-a
+                        insert-tiny-a
+                        create-tiny-b
+                        insert-tiny-b
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tiny-a T1 ".
+          "JOIN tiny-b T2 ON T1.ta-id = T2.tb-id ".
+          "SELECT T1.ta-val, T2.tb-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ta-val [~.t 'only-a']]
+                              [%tb-val [~.t 'only-b']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tiny-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tiny-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-04
+::  single equality ON non-key columns (join on emp-name = dept-name would be
+::  nonsensical, so use same-type non-key columns)
+::  dept has dept-name @t, emp has emp-name @t; join on non-key @ud columns
+::  uses emp.dept-ref = dept.dept-id which are non-PK from emp's perspective
+::  but PK from dept's perspective; rows with dept-ref 99 and dept-id 4,5 unmatched
+++  test-predicate-join-04
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-id, T1.emp-name, T2.dept-id, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-id [~.ud 10]]
+                              [%emp-name [~.t 'Alice']]
+                              [%dept-id [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 20]]
+                              [%emp-name [~.t 'Bob']]
+                              [%dept-id [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 30]]
+                              [%emp-name [~.t 'Carol']]
+                              [%dept-id [~.ud 2]]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 40]]
+                              [%emp-name [~.t 'Dave']]
+                              [%dept-id [~.ud 3]]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-05
+::  multi-column equality ON: two AND-ed equality conditions
+::  joins emp2(dept-ref, emp-id) with dept2(region-id, dept-key) on both columns
+::  non-matching rows: emp2 (99,50) and dept2 (5,50) have no counterpart
+++  test-predicate-join-05
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp2
+                        insert-emp2
+                        create-dept2
+                        insert-dept2
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp2 T1 ".
+          "JOIN dept2 T2 ".
+          "ON T1.dept-ref = T2.region-id AND T1.emp-id = T2.dept-key ".
+          "SELECT T1.emp-name, T2.dept-label"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-label [~.t 'Eng-East']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-label [~.t 'Sales-East']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-label [~.t 'Mktg-West']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              [%dept-label [~.t 'Legal-South']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-06
+::  different column names: ON T1.dept-ref = T2.dept-id
+::  (key differentiator from natural join which requires same column names)
+::  Eve(dept-ref=99) unmatched on left; Legal(4), Finance(5) unmatched on right
+++  test-predicate-join-06
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-id [~.ud 10]]
+                              [%emp-name [~.t 'Alice']]
+                              [%dept-ref [~.ud 1]]
+                              [%dept-id [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 20]]
+                              [%emp-name [~.t 'Bob']]
+                              [%dept-ref [~.ud 1]]
+                              [%dept-id [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 30]]
+                              [%emp-name [~.t 'Carol']]
+                              [%dept-ref [~.ud 2]]
+                              [%dept-id [~.ud 2]]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 40]]
+                              [%emp-name [~.t 'Dave']]
+                              [%dept-ref [~.ud 3]]
+                              [%dept-id [~.ud 3]]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-07
+::  different column names, multi-column ON
+::  joins emp2(dept-ref, emp-id) with dept2(region-id, dept-key)
+::  both column pairs have different names; non-matching on both sides
+++  test-predicate-join-07
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp2
+                        insert-emp2
+                        create-dept2
+                        insert-dept2
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp2 T1 ".
+          "JOIN dept2 T2 ".
+          "ON T1.dept-ref = T2.region-id AND T1.emp-id = T2.dept-key ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%dept-ref [~.ud 1]]
+                              [%emp-id [~.ud 10]]
+                              [%emp-name [~.t 'Alice']]
+                              [%region-id [~.ud 1]]
+                              [%dept-key [~.ud 10]]
+                              [%dept-label [~.t 'Eng-East']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-ref [~.ud 1]]
+                              [%emp-id [~.ud 20]]
+                              [%emp-name [~.t 'Bob']]
+                              [%region-id [~.ud 1]]
+                              [%dept-key [~.ud 20]]
+                              [%dept-label [~.t 'Sales-East']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-ref [~.ud 2]]
+                              [%emp-id [~.ud 30]]
+                              [%emp-name [~.t 'Carol']]
+                              [%region-id [~.ud 2]]
+                              [%dept-key [~.ud 30]]
+                              [%dept-label [~.t 'Mktg-West']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-ref [~.ud 3]]
+                              [%emp-id [~.ud 40]]
+                              [%emp-name [~.t 'Dave']]
+                              [%region-id [~.ud 3]]
+                              [%dept-key [~.ud 40]]
+                              [%dept-label [~.t 'Legal-South']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-08
+::  both sides have non-matching rows
+::  emp has Eve(dept-ref=99) unmatched; dept has Legal(4), Finance(5) unmatched
+::  verifies filtering works correctly in both directions
+++  test-predicate-join-08
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-id, T1.emp-name, T2.dept-id, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-id [~.ud 10]]
+                              [%emp-name [~.t 'Alice']]
+                              [%dept-id [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 20]]
+                              [%emp-name [~.t 'Bob']]
+                              [%dept-id [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 30]]
+                              [%emp-name [~.t 'Carol']]
+                              [%dept-id [~.ud 2]]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-id [~.ud 40]]
+                              [%emp-name [~.t 'Dave']]
+                              [%dept-id [~.ud 3]]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-09
+::  left side only has unmatched rows
+::  all dept rows match; emp has Eve(dept-ref=99) that doesn't match any dept
+++  test-predicate-join-09
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE dept-small ".
+                        "(dept-id @ud, dept-name @t) ".
+                        "PRIMARY KEY (dept-id);"
+                        "INSERT INTO dept-small VALUES ".
+                        "(1, 'Engineering') ".
+                        "(2, 'Sales') ".
+                        "(3, 'Marketing');"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept-small T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-name, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept-small']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-10
+::  right side only has unmatched rows
+::  all emp rows match a dept; dept has Legal(4), Finance(5) with no matching emp
+++  test-predicate-join-10
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        "CREATE TABLE emp-small ".
+                        "(emp-id @ud, emp-name @t, dept-ref @ud) ".
+                        "PRIMARY KEY (emp-id);"
+                        "INSERT INTO emp-small VALUES ".
+                        "(10, 'Alice', 1) ".
+                        "(20, 'Bob', 2) ".
+                        "(30, 'Carol', 3);"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp-small T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-name, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp-small']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  test-predicate-join-11
+::  inverted FROM/JOIN order: dept first, emp second (vs test-00 emp first)
+::  same data, same result set; verifies join direction doesn't affect results
+::  non-matching rows: Eve(99) on emp side, Legal(4)/Finance(5) on dept side
+++  test-predicate-join-11
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dept T1 ".
+          "JOIN emp T2 ON T1.dept-id = T2.dept-ref ".
+          "SELECT T2.emp-name, T2.dept-ref, T1.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-ref [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-ref [~.ud 1]]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-ref [~.ud 2]]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              [%dept-ref [~.ud 3]]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-12
+::  larger table in FROM, smaller table in JOIN
+::  emp (5 rows) FROM, dept-small (3 rows) JOIN
+::  Eve(dept-ref=99) unmatched on left
+++  test-predicate-join-12
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE dept-sm ".
+                        "(dept-id @ud, dept-name @t) ".
+                        "PRIMARY KEY (dept-id);"
+                        "INSERT INTO dept-sm VALUES ".
+                        "(1, 'Engineering') ".
+                        "(2, 'Sales') ".
+                        "(3, 'Marketing');"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept-sm T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-name, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept-sm']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-13
+::  smaller table in FROM, larger table in JOIN
+::  dept-small (3 rows) FROM, emp (5 rows) JOIN
+::  Eve(dept-ref=99) unmatched on right (JOIN side)
+++  test-predicate-join-13
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE dept-sm2 ".
+                        "(dept-id @ud, dept-name @t) ".
+                        "PRIMARY KEY (dept-id);"
+                        "INSERT INTO dept-sm2 VALUES ".
+                        "(1, 'Engineering') ".
+                        "(2, 'Sales') ".
+                        "(3, 'Marketing');"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dept-sm2 T1 ".
+          "JOIN emp T2 ON T1.dept-id = T2.dept-ref ".
+          "SELECT T1.dept-name, T2.emp-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Alice']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Bob']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Sales']]
+                              [%emp-name [~.t 'Carol']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Marketing']]
+                              [%emp-name [~.t 'Dave']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept-sm2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-14
+::  3-table predicate join: emp -> dept -> proj
+::  FROM emp JOIN dept ON emp.dept-ref=dept.dept-id JOIN proj ON proj.lead-emp=emp.emp-id
+::  non-matching: Eve(99), dept Legal(4)/Finance(5), proj Gamma(lead-emp=777)
+++  test-predicate-join-14
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        create-dept
+                        insert-dept
+                        create-proj
+                        insert-proj
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "JOIN proj T3 ON T3.lead-emp = T1.emp-id ".
+          "SELECT T1.emp-name, T2.dept-name, T3.proj-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-name [~.t 'Engineering']]
+                              [%proj-name [~.t 'Alpha']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-name [~.t 'Sales']]
+                              [%proj-name [~.t 'Beta']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.proj']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  test-predicate-join-15
+::  mixed: natural join first, then predicate join
+::  FROM calendar JOIN holiday-calendar (natural on date PK)
+::  JOIN emp ON ... (predicate join)
+::  uses a bridge table to connect calendar date to emp
+++  test-predicate-join-15
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        create-proj
+                        insert-proj
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dept T1 ".
+          "JOIN emp T2 ON T1.dept-id = T2.dept-ref ".
+          "JOIN proj T3 ON T3.lead-emp = T2.emp-id ".
+          "SELECT T1.dept-name, T2.emp-name, T3.proj-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Alice']]
+                              [%proj-name [~.t 'Alpha']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Sales']]
+                              [%emp-name [~.t 'Carol']]
+                              [%proj-name [~.t 'Beta']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.proj']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  test-predicate-join-16
+::  ON predicate references earlier (non-adjacent) relation in the join stack
+::  FROM dept T1 JOIN emp T2 ON ... JOIN proj T3 ON T3.lead-emp = T1.dept-id
+::  T3's ON references T1 (two positions back), not T2
+::  proj.lead-emp matches dept.dept-id: Alpha(10) no match, Beta(30) no match,
+::  Gamma(777) no match; only matches where lead-emp equals a dept-id value
+++  test-predicate-join-16
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        "CREATE TABLE proj2 ".
+                        "(proj-id @ud, proj-name @t, lead-dept @ud) ".
+                        "PRIMARY KEY (proj-id);"
+                        "INSERT INTO proj2 VALUES ".
+                        "(100, 'Alpha', 1) ".
+                        "(200, 'Beta', 2) ".
+                        "(300, 'Gamma', 777);"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dept T1 ".
+          "JOIN emp T2 ON T1.dept-id = T2.dept-ref ".
+          "JOIN proj2 T3 ON T3.lead-dept = T1.dept-id ".
+          "SELECT T1.dept-name, T2.emp-name, T3.proj-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Alice']]
+                              [%proj-name [~.t 'Alpha']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Engineering']]
+                              [%emp-name [~.t 'Bob']]
+                              [%proj-name [~.t 'Alpha']]
+                              ==
+                      :-  %vector
+                          :~  [%dept-name [~.t 'Sales']]
+                              [%emp-name [~.t 'Carol']]
+                              [%proj-name [~.t 'Beta']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.proj2']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
+::  test-predicate-join-17
+::  predicate join with post-join WHERE filter
+::  join emp to dept on dept-ref=dept-id, then WHERE dept-name = 'Engineering'
+::  non-matching: Eve(99), Legal(4), Finance(5) filtered by join;
+::  Carol(Sales), Dave(Marketing) filtered by WHERE
+++  test-predicate-join-17
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "WHERE T2.dept-name = 'Engineering' ".
+          "SELECT T1.emp-name, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  test-predicate-join-18
+::  predicate join with specific column SELECT (not *)
+::  select only emp-name from left, only dept-name from right
+::  non-matching rows on both sides
+++  test-predicate-join-18
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T2.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-predicate-join-19
+::  self-join with aliases: same table joined to itself on different columns
+::  emp joined to emp: find employees in the same department
+::  ON T1.dept-ref = T2.dept-ref AND T1.emp-id <> T2.emp-id would need inequality,
+::  so instead: self-join on dept-ref, with WHERE to exclude self-pairs
+::  for equality-only path: join on dept-ref = dept-ref (same column, both sides)
+::  non-matching: Eve(dept-ref=99) has no pair
+++  test-predicate-join-19
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN emp T2 ON T1.dept-ref = T2.dept-ref ".
+          "WHERE T1.emp-id < T2.emp-id ".
+          "SELECT T1.emp-name, T2.emp-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%emp-name [~.t 'Bob']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-20
+::  single-row tables on both sides, matching
+::  verifies minimum-size join works correctly
+++  test-predicate-join-20
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-tiny-a
+                        insert-tiny-a
+                        create-tiny-b
+                        insert-tiny-b
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tiny-a T1 ".
+          "JOIN tiny-b T2 ON T1.ta-id = T2.tb-id ".
+          "SELECT T1.*, T2.*"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ta-id [~.ud 1]]
+                              [%ta-val [~.t 'only-a']]
+                              [%tb-id [~.ud 1]]
+                              [%tb-val [~.t 'only-b']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tiny-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.tiny-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-21
+::  unqualified columns in ON that resolve unambiguously
+::  dept-ref only exists in emp, dept-id only exists in dept
+::  non-matching rows on both sides
+++  test-predicate-join-21
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON dept-ref = dept-id ".
+          "SELECT T1.emp-name, T2.dept-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%emp-name [~.t 'Alice']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Bob']]
+                              [%dept-name [~.t 'Engineering']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Carol']]
+                              [%dept-name [~.t 'Sales']]
+                              ==
+                      :-  %vector
+                          :~  [%emp-name [~.t 'Dave']]
+                              [%dept-name [~.t 'Marketing']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dept']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  test-fail-predicate-join-00
+::  ON predicate references non-existent column
+++  test-fail-predicate-join-00
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.bad-col = T2.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      'column %bad-col does not exist'
+      ==
+::
+::  test-fail-predicate-join-01
+::  ON predicate has type mismatch (@t = @ud)
+++  test-fail-predicate-join-01
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.emp-name = T2.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      'type mismatch in ON predicate'
+      ==
+::
+::  test-fail-predicate-join-02
+::  ON predicate references alias not in the join (T3 doesn't exist)
+++  test-fail-predicate-join-02
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref = T3.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      'is not defined'
+      ==
+::
+::  test-fail-predicate-join-03
+::  ambiguous unqualified column in ON (column exists in both tables)
+::  emp has emp-id, if dept also had emp-id it would be ambiguous
+::  use two tables that share a column name
+++  test-fail-predicate-join-03
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE tbl-x ".
+                        "(shared-col @ud, x-val @t) ".
+                        "PRIMARY KEY (shared-col);"
+                        "INSERT INTO tbl-x VALUES (1, 'x1');"
+                        "CREATE TABLE tbl-y ".
+                        "(shared-col @ud, y-val @t) ".
+                        "PRIMARY KEY (shared-col);"
+                        "INSERT INTO tbl-y VALUES (1, 'y1');"
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM tbl-x T1 ".
+          "JOIN tbl-y T2 ON shared-col = T2.shared-col ".
+          "SELECT T1.x-val"
+      ::
+      'column %shared-col is ambiguous in ON predicate'
+      ==
+::
+::  test-fail-predicate-join-04
+::  ON predicate contains inequality operator (not supported in equality+AND path)
+++  test-fail-predicate-join-04
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref > T2.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      'JOIN ON predicate only supports equality and AND conjunctions'
+      ==
+::
+::  test-fail-predicate-join-05
+::  ON predicate contains OR conjunction (not supported in equality+AND path)
+++  test-fail-predicate-join-05
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ".
+          "ON T1.dept-ref = T2.dept-id OR T1.emp-id = T2.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      'JOIN ON predicate only supports equality and AND conjunctions'
+      ==
+::
+::  test-fail-predicate-join-06
+::  ON predicate contains BETWEEN (not supported in equality+AND path)
+++  test-fail-predicate-join-06
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-dept
+                        insert-dept
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.5
+          %db1
+          "FROM emp T1 ".
+          "JOIN dept T2 ON T1.dept-ref BETWEEN 1 AND T2.dept-id ".
+          "SELECT T1.emp-name"
+      ::
+      'JOIN ON predicate only supports equality and AND conjunctions'
+      ==
+::
 ::  cte column selection - single cte, literal replicated across main table rows
 ++  test-cte-col-00
   =|  run=@ud
