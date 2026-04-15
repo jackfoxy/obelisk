@@ -191,6 +191,38 @@
   %+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov2))
             (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov3))
 ::
+++  debug-0-2
+  ::  init + 2 resolve → compare 2 results
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve-1=[tmsp=@da db=@tas uql=tape]
+          resolve-2=[tmsp=@da db=@tas uql=tape]
+          expect-1=cmd-result:ast
+          expect-2=cmd-result:ast
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  ::=^  mov2  agent
+  ::%+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+  ::    %obelisk-action
+  ::    !>  [%tape2 db.resolve-1 uql.resolve-1]
+  ::=^  mov3  agent
+  ::%+  ~(on-poke agent (bowl [run tmsp.resolve-2]))
+  ::    %obelisk-action
+  ::    !>  [%tape2 db.resolve-2 uql.resolve-2]
+  ::::
+  ::%+  weld  (eval-results expect-1 ;;(cmd-result:ast ->+>+>+<.mov2))
+  ::          (eval-results expect-2 ;;(cmd-result:ast ->+>+>+<.mov3))
+
+  ::
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve-1]))
+                %obelisk-action
+                !>([%test db.resolve-1 uql.resolve-1])
+::
 ++  exec-1-1
   ::  init + 1 action + 1 resolve → compare  result
   |=  $:  run=@ud
@@ -213,6 +245,29 @@
       !>  [%tape2 db.resolve uql.resolve]
   ::
   (eval-results expect ;;(cmd-result:ast ->+>+>+<.mov3))
+::
+++  debug-1-1
+  ::  init + 1 action + 1 resolve → compare  result
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          action=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expect=cmd-result:ast
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.action]))
+      %obelisk-action
+      !>  [%tape2 db.action uql.action]
+  ::
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+                %obelisk-action
+                !>([%test db.resolve uql.resolve])
 ::
 ++  exec-1-l
   ::  init + 1 action + 1 resolves → compare 1 result (list cmd-result:ast)
@@ -1419,17 +1474,19 @@
           =data-row
           row=table-test-row
          ==
+  =/  my-bowl  (bowl [0 ~2026.4.21])
   =/  scalar-to-apply
     %:  prepare-scalar  fn.row
                         named-ctes
                         qualifier-lookup
                         map-meta
                         resolved-scalars
-                        (bowl [0 ~2026.4.21])
+                        my-bowl
+                        eny.my-bowl
                         ==
   %+  expect-eq
     !>  expected.row
-    !>  (apply-scalar data-row scalar-to-apply)
+    !>  (apply-scalar data-row +.scalar-to-apply)
 ::
 ::  row structure:
 ::  [@tas(test-name) [fn expected]]
@@ -1463,6 +1520,159 @@
                                 ==
   :-  result
   $(rows +.rows)
+::
+::  debug helper: intentionally expects the wrong crash message so the
+::  underlying crash details are surfaced during development
+++  debug-scalar-tests
+  |=  $:  =named-ctes
+          =qualifier-lookup
+          =map-meta
+          resolved-scalars=(map @tas resolved-scalar)
+          =data-row
+          rows=(list [@tas table-test-row])
+         ==
+  ^-  tang
+  %-  zing
+  |-
+  ?~  rows
+    ~
+  =/  row  -.rows
+  =/  result
+    %+  category
+      (trip -.row)
+    %+  expect-fail-message
+      'debug-scalar-tests dummy message'
+      |.  ~|  (weld "CRASH - " (trip -.row))
+          %:  scalar-test-helper  named-ctes
+                                  qualifier-lookup
+                                  map-meta
+                                  resolved-scalars
+                                  data-row
+                                  +.row
+                                  ==
+  :-  result
+  $(rows +.rows)
+::
+::  rand test helpers
+::
+::  a single range bound for a rand column: column name + low + high
++$  rand-range  [col=@tas ns=@tas lo=@ hi=@]
+::
+::  check a single value is within [lo, hi] for its number system
+++  in-range
+  |=  [ns=@tas val=@ lo=@ hi=@]
+  ^-  ?
+  ?+  ns  !!
+      %ud  &((gte val lo) (lte val hi))
+      %sd
+    =/  lo-ok  |(=((cmp:si `@sd`lo `@sd`val) -1) =(lo val))
+    =/  hi-ok  |(=((cmp:si `@sd`val `@sd`hi) -1) =(val hi))
+    &(lo-ok hi-ok)
+      %rd
+    &((gte:rd `@rd`val `@rd`lo) (lte:rd `@rd`val `@rd`hi))
+  ==
+::
+::  check all rand columns in a single vector row
+++  check-rand-row
+  |=  $:  row=(lest vector-cell:ast)
+          ranges=(list rand-range)
+          ==
+  ^-  tang
+  =/  row-map=(map @tas dime)
+    %-  malt
+    %+  turn  `(list vector-cell:ast)`row
+    |=(vc=vector-cell:ast [p.vc q.vc])
+  %-  zing
+  %+  turn  ranges
+  |=  rr=rand-range
+  =/  cell  (~(got by row-map) col.rr)
+  ?.  (in-range ns.rr +.cell lo.rr hi.rr)
+    =/  msg
+      "rand {<col.rr>}: {<cell>} not in ".
+      "[{<[-.cell lo.rr]>}, {<[-.cell hi.rr]>}]"
+    ~[leaf+msg]
+  ~
+::
+::  check all rand columns across all rows
+++  check-rand-rows
+  |=  $:  rows=(list vector:ast)
+          ranges=(list rand-range)
+          ==
+  ^-  tang
+  %-  zing
+  %+  turn  rows
+  |=  row=vector:ast
+  (check-rand-row +.row ranges)
+::
+::  extract result-set from a cmd-result, returning
+::  non-result-set results and result-set rows separately
+++  split-results
+  |=  results=(list result:ast)
+  ^-  [(list result:ast) (list vector:ast)]
+  =/  out-results  *(list result:ast)
+  =/  out-vectors  *(list vector:ast)
+  |-
+  ?~  results
+    [(flop out-results) out-vectors]
+  =/  res  i.results
+  ?:  =(%result-set -.res)
+    %=  $
+      results     t.results
+      out-vectors  ;;((list vector:ast) +.res)
+    ==
+  $(results t.results, out-results [res out-results])
+::
+::  eval-rand-results: like eval-results but checks rand
+::  ranges instead of exact result-set match.
+++  eval-rand-results
+  |=  $:  expected-meta=cmd-result:ast
+          actual=cmd-result:ast
+          ranges=(list rand-range)
+          ==
+  ^-  tang
+  =/  actual-split
+    (split-results `(list result:ast)`+.actual)
+  %+  weld
+    %+  expect-eq
+      !>  expected-meta
+      !>  [%results -.actual-split]
+    (check-rand-rows +.actual-split ranges)
+::
+++  exec-rand-0-1
+  ::  init + 1 resolve → check rand results
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expected-meta=cmd-result:ast
+          ranges=(list rand-range)
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  =^  mov2  agent
+  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+      %obelisk-action
+      !>  [%tape2 db.resolve uql.resolve]
+  ::
+  (eval-rand-results expected-meta ;;(cmd-result:ast ->+>+>+<.mov2) ranges)
+::
+++  debug-rand-0-1
+  |=  $:  run=@ud
+          init=[tmsp=@da db=@tas uql=tape]
+          resolve=[tmsp=@da db=@tas uql=tape]
+          expected-meta=cmd-result:ast
+          ranges=(list rand-range)
+          ==
+  =^  mov1  agent
+  %+  ~(on-poke agent (bowl [run tmsp.init]))
+      %obelisk-action
+      !>  [%tape2 db.init uql.init]
+  %+  expect-fail-message
+        'placeholder for debugging'
+        |.  %+  ~(on-poke agent (bowl [run tmsp.resolve]))
+                %obelisk-action
+                !>([%test db.resolve uql.resolve])
 ::
 ::  parse test helper
 ::

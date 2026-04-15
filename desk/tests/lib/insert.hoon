@@ -42,7 +42,7 @@
       [~2012.5.4 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.3]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -53,10 +53,10 @@
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -84,7 +84,7 @@
       [~2012.5.4 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.3]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -95,10 +95,10 @@
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -126,7 +126,7 @@
       [~2012.5.4 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.3]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -137,10 +137,10 @@
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -168,7 +168,7 @@
       [~2012.5.4 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.3]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -179,10 +179,10 @@
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -215,7 +215,7 @@
       [~2012.5.5 %db1 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.4]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
@@ -226,7 +226,7 @@
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'cord']]
@@ -250,7 +250,7 @@
                               ==
                       ==
               [%server-time ~2012.5.5]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.4]
               [%vector-count 4]
@@ -280,7 +280,7 @@
       [~2012.5.4 %db2 "FROM my-table SELECT *"]
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db2.dbo.my-table']
+          :~  [%action 'INSERT INTO db2.dbo.my-table']
               [%server-time ~2012.5.3]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -291,10 +291,10 @@
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set expected-2-rows]
               [%server-time ~2012.5.4]
-              [%message 'db2.dbo.my-table']
+              [%relation 'db2.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.3]
               [%vector-count 2]
@@ -318,7 +318,7 @@
           "INSERT INTO db1..my-table VALUES ('cord2') "
       ::
       :~  :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.3]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.2]
@@ -328,7 +328,7 @@
                   [%vector-count 1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.3]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.3]
@@ -363,7 +363,7 @@
           "FROM my-table SELECT *"
       ::
       :~  :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.3]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.2]
@@ -373,7 +373,7 @@
                   [%vector-count 1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.3]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.2]
@@ -385,27 +385,27 @@
           ==
       ::
       :~  :-  %results
-              :~  [%message 'SELECT']
+              :~  [%action 'SELECT']
                   :-  %result-set
                       :~  :-  %vector
                               :~  [%col1 [~.t 'cord2']]
                                   ==
                           ==
                   [%server-time ~2000.1.4]
-                  [%message 'db1.dbo.my-table']
+                  [%relation 'db1.dbo.my-table']
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.3]
                   [%vector-count 1]
                   ==
           :-  %results
-              :~  [%message 'SELECT']
+              :~  [%action 'SELECT']
                   :-  %result-set
                       :~  :-  %vector
                               :~  [%col1 [~.t 'cord2']]
                                   ==
                           ==
                   [%server-time ~2000.1.4]
-                  [%message 'db1.dbo.my-table']
+                  [%relation 'db1.dbo.my-table']
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.3]
                   [%vector-count 1]
@@ -434,7 +434,7 @@
           "INSERT INTO db1..my-table VALUES ('cord2') ('cord3') "
       ::
       :~  :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.3]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.2]
@@ -446,13 +446,13 @@
           ==
       ::
       :~  :-  %results
-              :~  [%message 'TRUNCATE TABLE db1.dbo.my-table']
+              :~  [%action 'TRUNCATE TABLE db1.dbo.my-table']
                   [%server-time date=~2000.1.4]
                   [%data-time date=~2000.1.4]
                   [%vector-count count=1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.4]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.4]
@@ -496,7 +496,7 @@
           "  ('tomorrow', ~2024.9.27)"
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2000.1.4..15.01.02]
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.4..15.01.01]
@@ -532,13 +532,13 @@
       ::
       %-  limo
       :~  :-  %results
-              :~  [%message 'TRUNCATE TABLE db1.dbo.my-table']
+              :~  [%action 'TRUNCATE TABLE db1.dbo.my-table']
                   [%server-time date=~2000.1.4]
                   [%data-time date=~2000.1.4]
                   [%vector-count count=1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db1.dbo.my-table']
+              :~  [%action 'INSERT INTO db1.dbo.my-table']
                   [%server-time ~2000.1.4]
                   [%schema-time ~2000.1.2]
                   [%data-time ~2000.1.3]
@@ -550,7 +550,7 @@
           ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'cord']]
@@ -563,7 +563,7 @@
                               ==
                       ==
               [%server-time ~2000.1.5]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2000.1.2]
               [%data-time ~2000.1.4]
               [%vector-count 3]
@@ -599,12 +599,12 @@
                   [%schema-time ~2000.1.1]
                   ==
           :-  %results
-              :~  [%message 'CREATE TABLE %my-table-1']
+              :~  [%action 'CREATE TABLE %my-table-1']
                   [%server-time ~2005.2.2]
                   [%schema-time ~2000.1.1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+              :~  [%action 'INSERT INTO db2.dbo.my-table-1']
                   [%server-time ~2005.2.2]
                   [%schema-time ~2000.1.1]
                   [%data-time ~2000.1.1]
@@ -614,7 +614,7 @@
                   [%vector-count 3]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+              :~  [%action 'INSERT INTO db2.dbo.my-table-1']
                   [%server-time ~2005.2.2]
                   [%schema-time ~2000.1.1]
                   [%data-time ~2005.2.2]
@@ -655,12 +655,12 @@
                   [%schema-time ~2000.1.1]
                   ==
           :-  %results
-              :~  [%message 'CREATE TABLE %my-table-1']
+              :~  [%action 'CREATE TABLE %my-table-1']
                   [%server-time ~2000.1.1]
                   [%schema-time ~2000.1.1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+              :~  [%action 'INSERT INTO db2.dbo.my-table-1']
                   [%server-time ~2000.1.1]
                   [%schema-time ~2000.1.1]
                   [%data-time ~2000.1.1]
@@ -670,7 +670,7 @@
                   [%vector-count 3]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+              :~  [%action 'INSERT INTO db2.dbo.my-table-1']
                   [%server-time ~2000.1.1]
                   [%schema-time ~2000.1.1]
                   [%data-time ~2000.1.1]
@@ -706,10 +706,10 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.1]
-              [%message 'db2.dbo.my-table-1']
+              [%relation 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 0]
@@ -745,7 +745,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'next-today']]
@@ -761,7 +761,7 @@
                               ==
                       ==
               [%server-time ~2012.5.1]
-              [%message 'db2.dbo.my-table-1']
+              [%relation 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2005.2.2]
               [%vector-count 3]
@@ -800,7 +800,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'next-today']]
@@ -816,7 +816,7 @@
                               ==
                       ==
               [%server-time ~2012.5.2]
-              [%message 'db2.dbo.my-table-1']
+              [%relation 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2012.5.1]
               [%vector-count 3]
@@ -852,7 +852,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'cord2']]
@@ -866,7 +866,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -893,7 +893,7 @@
           "VALUES ('cord',~nomryg-nilref,20) ('Default',Default, 0) "
       ::
       :-  %results
-          :~  [%message 'INSERT INTO db1.dbo.my-table']
+          :~  [%action 'INSERT INTO db1.dbo.my-table']
               [%server-time ~2012.5.2]
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
@@ -940,12 +940,12 @@
                   [%schema-time ~2000.1.1]
                   ==
           :-  %results
-              :~  [%message 'CREATE TABLE %my-table-1']
+              :~  [%action 'CREATE TABLE %my-table-1']
                   [%server-time ~2000.1.1]
                   [%schema-time ~2000.1.1]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+              :~  [%action 'INSERT INTO db2.dbo.my-table-1']
                   [%server-time ~2000.1.1]
                   [%schema-time ~2000.1.1]
                   [%data-time ~2000.1.1]
@@ -955,7 +955,7 @@
                   [%vector-count 3]
                   ==
           :-  %results
-              :~  [%message 'INSERT INTO db2.dbo.my-table-1']
+              :~  [%action 'INSERT INTO db2.dbo.my-table-1']
                   [%server-time ~2000.1.1]
                   [%schema-time ~2000.1.1]
                   [%data-time ~2000.1.1]
@@ -967,7 +967,7 @@
           ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'next-next day2']]
@@ -1003,7 +1003,7 @@
                               ==
                       ==
               [%server-time ~2012.5.1]
-              [%message 'db2.dbo.my-table-1']
+              [%relation 'db2.dbo.my-table-1']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 8]

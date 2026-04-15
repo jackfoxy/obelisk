@@ -4,19 +4,15 @@ Features coming after v0.5 alpha release.
 
 ## Candidates for beta release
 
-* __UPDATE__ (complete in beta) -- Operates on user-defined tables, not on views; optional predicate
-
-* __Issue #1__ (complete in beta) -- NOT predicate operator not fully functional
-
 * __Common Table Expressions (CTE)__ (complete in beta) -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
 
-* __Scalar functions__ -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
+* __Scalar functions__ (complete in beta) -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
 
-* __JOIN ON__ -- JOIN ON `<predicate>`
+* __partial pri key natural join__ (complete in beta) -- natural join on beginning of primary key
 
-* __partial pri key natural join__ -- natural join on beginning of primary key
+* __Any natural join__ (complete in beta) -- natural join on any column(s) match
 
-* __Any natural join__ -- natural join on any column(s) match
+* __JOIN ON__ (complete in beta) -- JOIN ON `<predicate>`
 
 * __Set operators__ -- UNION, INTERSECT, EXCEPT
 
@@ -36,11 +32,11 @@ Features coming after v0.5 alpha release.
 
 * __Set operators__ -- DIVIDED BY, DIVIDED BY WITH REMAINDER
 
+* __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems
+
 ## other functionality
 
-* __Temporary tables__ -- similar to INSERT format.
-
-* __Partial Natural key JOIN__ -- e.g. (co11, col2, col3) JOIN (col1, col2)
+* __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs.
 
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
@@ -52,7 +48,11 @@ Features coming after v0.5 alpha release.
 
 * __Foreign Keys__ -- enforce referential integrity and allow natural join even when names do not match.
 
+* __@rh, @rs, @rq arithmetic__ -- @rh, @rs, @rq 
+
 * __Suppport Paths__  -- %hawk compatibility support path to select server components.
+
+* __Regex__ -- predicate matching and scalar support
 
 * __SELECT `<database>`, SELECT `<namespace>`, SELECT `<table>`__ -- Return the noun of an entire database, namespace, table for export, backup, or any other purpose. It's a noun. Do with it what you will.
 
@@ -63,6 +63,8 @@ Features coming after v0.5 alpha release.
 * __Localization of date/time__ -- pass timezoneoffset @dr to server
 
 * __Advanced aggregate features__ -- DISTINCT, like Grouping Sets, Rollup, Cube, GROUPING function. (cf. Feature T301 'Functional dependencies' from SQL 1999 specification). (Not to be confused with SELECT DISTINCT, which does not exist in %obelisk because every relation is a proper set.)
+
+* __String formatting__ -- date formatting, other string formatting
 
 * __Pivoting__ -- similar to SQL.
 

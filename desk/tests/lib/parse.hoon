@@ -5032,6 +5032,134 @@
 ::
 :: cte validation
 ::
+:: cte columns may appear in a select list outside the from clause
+++  test-cte-column-select-00
+  =/  first-cte-query
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ columns=~[col1 col2]]
+        order-by=~
+        ==
+  =/  foo2-table
+    :*  %qualified-table
+        ship=~
+        database='db1'
+        namespace='dbo'
+        name='foo2'
+        alias=~
+        ==
+  =/  query
+    :*  %query
+        [~ [%from relation=foo2-table as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  col3
+                col4
+                [%selected-cte-column 'first' 'col1' ~]
+                [%selected-cte-column 'first' 'col2' [~ 'my-col2']]
+                ==
+        order-by=~
+        ==
+  =/  expected
+    :~  :+  %selection
+            ctes=~[[%cte name='first' query=first-cte-query]]
+            [query ~ ~]
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  %-  parse:parse(default-database 'db1')
+        "WITH (FROM foo select col1, col2) as first ".
+        "FROM foo2 ".
+        "SELECT col3, col4, first.col1, first.col2 AS my-col2"
+::
+:: cte columns may be re-selected by later ctes and re-referenced with aliases
+++  test-cte-column-select-01
+  =/  first-cte-query
+    :*  %query
+        from-foo
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        [%select top=~ columns=~[col1 col2]]
+        order-by=~
+        ==
+  =/  foo2-table
+    :*  %qualified-table
+        ship=~
+        database='db1'
+        namespace='dbo'
+        name='foo2'
+        alias=~
+        ==
+  =/  second-cte-query
+    :*  %query
+        [~ [%from relation=foo2-table as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  col3
+                col4
+                [%selected-cte-column 'first' 'col1' ~]
+                [%selected-cte-column 'first' 'col2' [~ 'my-col2']]
+                ==
+        order-by=~
+        ==
+  =/  foo3-table
+    :*  %qualified-table
+        ship=~
+        database='db1'
+        namespace='dbo'
+        name='foo3'
+        alias=~
+        ==
+  =/  col5
+    [%unqualified-column column='col5' alias=~]
+  =/  query
+    :*  %query
+        [~ [%from relation=foo3-table as-of=~ joins=~]]
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        :+  %select
+            top=~
+            :~  col5
+                [%selected-cte-column 'first' 'col1' ~]
+                [%selected-cte-column 'first' 'col2' ~]
+                [%selected-cte-column 'second' 'col1' ~]
+                [%selected-cte-column 'second' 'my-col2' [~ 'my-col-2']]
+                ==
+        order-by=~
+        ==
+  =/  expected
+    :~  :*  %selection
+            :~  :*  %cte  name='first'  query=first-cte-query  ==
+                :*  %cte  name='second'  query=second-cte-query  ==
+                ==
+            [query ~ ~]
+        ==
+    ==
+  %+  expect-eq
+    !>  expected
+    !>  %-  parse:parse(default-database 'db1')
+        "with (FROM foo select col1, col2) as first, ".
+        "(FROM foo2 ".
+        "SELECT col3, col4, first.col1, first.col2 AS my-col2) as second ".
+        "FROM foo3 ".
+        "SELECT col5, first.col1, first.col2, second.col1, second.my-col2 AS my-col-2"
+::
 :: fail: cte name conflicts with from alias (case-insensitive)
 ++  test-fail-cte-alias-conflict-00
   %^  failon-parse  'db1'

@@ -195,15 +195,13 @@
       ::    fix when outer joins implemented 
       ::=/  l=datum:ast  ?:  ?=(unqualified-column:ast n.l.p)  n.l.p
       ::             ?:  ?=(qualified-column:ast n.l.p)  n.l.p
-      ::             ?:  ?=(cte-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
       ::             ?:  ?=(dime n.l.p)  n.l.p
       ::             ~|("prepare-binary-op can't get here" !!)
       ::=/  r=datum:ast  ?:  ?=(unqualified-column:ast n.r.p)   n.r.p
-      ::             ?:  ?=(qualified-column:ast  n.r.p)   n.r.p
-      ::             ?:  ?=(cte-name:ast n.l.p)  n.l.p
-      ::             ?:  ?=(scalar-name:ast n.l.p)  n.l.p
-      ::             ?:  ?=(dime  n.r.p)   n.r.p
+      ::             ?:  ?=(qualified-column:ast n.r.p)   n.r.p
+      ::             ?:  ?=(scalar-name:ast n.r.p)   n.r.p
+      ::             ?:  ?=(dime n.r.p)   n.r.p
       ::             ~|("prepare-binary-op can't get here" !!::)
       ::=/  l-exists=?  ?:  ?=(dime l)  %.y
       ::                (~(has by map-meta) name.l)
@@ -289,6 +287,9 @@
   ::  typ derived from left side only;
   ::  computed before in-list so branches can use it
   =/  typ
+    ?:  ?=(scalar-name:ast n.l.p)
+      =/  rs  (resolve-scalar-name n.l.p resolved-scalars)
+      (resolved-scalar-type rs)
     ?:  ?=(dime:ast n.l.p)  -.n.l.p
     ?:  ?&  ?=(qualified-column:ast n.l.p)
             ?=(%qualified-map-meta -.map-meta)
@@ -362,6 +363,14 @@
     %+  bake
           (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
           data-row
+  ?:  ?=(scalar-name:ast n.l.p)
+    =/  rs  (resolve-scalar-name n.l.p resolved-scalars)
+    ?:  ?=(dime rs)
+      (bake (cury (cury (cury lit-list-pred +.rs) typ) in-list) data-row)
+    |=  =data-row
+    ^-  ?
+    =/  dl=dime  (apply-resolved-scalar rs data-row)
+    (lit-list-pred q.dl typ in-list data-row)
   ?:  ?=(dime n.l.p)
     (bake (cury (cury (cury lit-list-pred +.n.l.p) typ) in-list) data-row)
   ~|("prepare-common-list can't get here 6" !!)
@@ -395,8 +404,42 @@
           lit-col=$-([@ @ @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
+  =/  l-scalar=(unit resolved-scalar)
+    ?:  ?=(scalar-name:ast l)
+      (some (resolve-scalar-name l resolved-scalars))
+    ~
+  =/  r-scalar=(unit resolved-scalar)
+    ?:  ?=(scalar-name:ast r)
+      (some (resolve-scalar-name r resolved-scalars))
+    ~
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(dime u.l-scalar)
+          ==
+    $(l ;;(datum:ast u.l-scalar))
+  ?:  ?&  ?=(^ r-scalar)
+          ?=(dime u.r-scalar)
+          ==
+    $(r ;;(datum:ast u.r-scalar))
+  ::  scalar = scalar
+  ?:  &(?=(^ l-scalar) ?=(^ r-scalar))
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    ?:  (types-match lt rt)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (lit-lit q.dl q.dr lt)
+    ~|  "comparing scalars of different auras: {<ln>} type={<lt>} ".
+        "{<rn>} type={<rt>}"
+        !!
   ::  literal = literal
-  ?:  &(?=(dime l) ?=(dime r))
+  ?:  ?&  ?=(dime l)
+          ?=(dime r)
+          ?!(?=(scalar-name:ast l))
+          ?!(?=(scalar-name:ast r))
+          ==
     ?:  (types-match -.l -.r)
       |=(c=data-row (lit-lit +.l +.r -.l))
     ~|("comparing column literals of different auras:  {<l>} {<r>}" !!)
@@ -420,7 +463,10 @@
         "{<-:(~(got bi:mip map-meta) qualifier.r name.r)>}"
         !!
   ::  literal = column
-  ?:  &(?=(dime l) ?=(qualified-column:ast r))
+  ?:  ?&  ?=(dime l)
+          ?!(?=(scalar-name:ast l))
+          ?=(qualified-column:ast r)
+          ==
     ~|  "column {<name.r>} does not exist"
     ?:  (types-match -.l -:(~(got bi:mip map-meta) qualifier.r name.r))
       %+  bake  %+  cury
@@ -433,7 +479,10 @@
         "{<-:(~(got bi:mip map-meta) qualifier.r name.r)>}"
         !!
   ::  column = literal
-  ?:  &(?=(qualified-column:ast l) ?=(dime r))
+  ?:  ?&  ?=(qualified-column:ast l)
+          ?=(dime r)
+          ?!(?=(scalar-name:ast r))
+          ==
     ~|  "column {<name.l>} does not exist"
     ?:  (types-match -:(~(got bi:mip map-meta) qualifier.l name.l) -.r)
       %+  bake  %+  cury
@@ -446,6 +495,62 @@
                 data-row
     ~|  "comparing column to literal of different aura: {<name.l>} ".
         "{<-:(~(got bi:mip map-meta) qualifier.l name.l)>} {<r>}"
+        !!
+  ::  scalar = literal
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(dime r)
+          ==
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    ?:  (types-match lt -.r)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      (lit-lit q.dl +.r lt)
+    ~|  "comparing scalar to literal of different aura: {<ln>} ".
+        "type={<lt>} {<r>}"
+        !!
+  ::  literal = scalar
+  ?:  ?&  ?=(dime l)
+          ?=(^ r-scalar)
+          ==
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    ?:  (types-match -.l rt)
+      |=  c=data-row
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (lit-lit +.l q.dr -.l)
+    ~|  "comparing literal to scalar of different aura: {<l>} {<rn>} ".
+        "type={<rt>}"
+        !!
+  ::  scalar = column
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(qualified-column:ast r)
+          ==
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    =/  rt  ~|  "column {<name.r>} does not exist"
+              -:(~(got bi:mip map-meta) qualifier.r name.r)
+    ?:  (types-match lt rt)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      (lit-col q.dl +:(~(got bi:mip map-meta) qualifier.r name.r) lt c)
+    ~|  "comparing scalar to column of different aura: {<ln>} ".
+        "type={<lt>} {<name.r>} {<rt>}"
+        !!
+  ::  column = scalar
+  ?:  ?&  ?=(qualified-column:ast l)
+          ?=(^ r-scalar)
+          ==
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    =/  lt  ~|  "column {<name.l>} does not exist"
+              -:(~(got bi:mip map-meta) qualifier.l name.l)
+    ?:  (types-match lt rt)
+      |=  c=data-row
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (col-lit +:(~(got bi:mip map-meta) qualifier.l name.l) q.dr rt c)
+    ~|  "comparing column to scalar of different aura: {<name.l>} ".
+        "{<lt>} {<rn>} type={<rt>}"
         !!
   ::  cte-column = cte-column
   ?:  &(?=(cte-column:ast l) ?=(cte-column:ast r))
@@ -497,6 +602,34 @@
     ~|  "comparing column to cte-column of different aura: ".
         "{<name.l>} {<name.r>}"
         !!
+  ::  scalar = cte-column
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(cte-column:ast r)
+          ==
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ?:  (types-match lt p.dr)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      (lit-lit q.dl q.dr lt)
+    ~|  "comparing scalar to cte-column of different aura: {<ln>} ".
+        "type={<lt>} {<name.r>}"
+        !!
+  ::  cte-column = scalar
+  ?:  ?&  ?=(cte-column:ast l)
+          ?=(^ r-scalar)
+          ==
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    ?:  (types-match p.dl rt)
+      |=  c=data-row
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (lit-lit q.dl q.dr p.dl)
+    ~|  "comparing cte-column to scalar of different aura: {<name.l>} ".
+        "{<rn>} type={<rt>}"
+        !!
   ~|("prepare-qualified can't get here" !!)
 ::
 ++  col-name
@@ -514,7 +647,6 @@
   ^-  datum:ast
   ?:  ?=(unqualified-column:ast c)  c
   ?:  ?=(qualified-column:ast c)    c
-  ?:  ?=(cte-name:ast c)            c
   ?:  ?=(cte-column:ast c)          c
   ?:  ?=(scalar-name:ast c)         c
   ?:  ?=(dime c)                    c
@@ -541,6 +673,26 @@
   =/  val=@  ?@(x x ;;(@ +.x))
   [type.ta val]
 ::
+++  resolve-scalar-name
+  |=  [s=scalar-name:ast =resolved-scalars]
+  ^-  resolved-scalar
+  ~|  "scalar {<name.s>} not found"
+      (~(got by resolved-scalars) name.s)
+::
+++  resolved-scalar-type
+  |=  rs=resolved-scalar
+  ^-  @ta
+  ?:  ?=(dime rs)
+    -.rs
+  type.rs
+::
+++  apply-resolved-scalar
+  |=  [=resolved-scalar =data-row]
+  ^-  dime
+  ?:  ?=(dime resolved-scalar)
+    resolved-scalar
+  (f.resolved-scalar data-row)
+::
 ++  prepare-unqualified
   |=  $:  l=datum:ast
           r=datum:ast
@@ -553,8 +705,42 @@
           lit-col=$-([@ @ @ta data-row] ?)
           ==
   ^-  $-(data-row ?)
+  =/  l-scalar=(unit resolved-scalar)
+    ?:  ?=(scalar-name:ast l)
+      (some (resolve-scalar-name l resolved-scalars))
+    ~
+  =/  r-scalar=(unit resolved-scalar)
+    ?:  ?=(scalar-name:ast r)
+      (some (resolve-scalar-name r resolved-scalars))
+    ~
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(dime u.l-scalar)
+          ==
+    $(l ;;(datum:ast u.l-scalar))
+  ?:  ?&  ?=(^ r-scalar)
+          ?=(dime u.r-scalar)
+          ==
+    $(r ;;(datum:ast u.r-scalar))
+  ::  scalar = scalar
+  ?:  &(?=(^ l-scalar) ?=(^ r-scalar))
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    ?:  (types-match lt rt)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (lit-lit q.dl q.dr lt)
+    ~|  "comparing scalars of different auras: {<ln>} type={<lt>} ".
+        "{<rn>} type={<rt>}"
+        !!
   ::  literal = literal
-  ?:  &(?=(dime l) ?=(dime r))
+  ?:  ?&  ?=(dime l)
+          ?=(dime r)
+          ?!(?=(scalar-name:ast l))
+          ?!(?=(scalar-name:ast r))
+          ==
     ?:  (types-match -.l -.r)
       |=(c=data-row (lit-lit +.l +.r -.l))
     ~|("comparing column literals of different auras: {<l>} {<r>}" !!)
@@ -578,7 +764,10 @@
         "{<-:(~(got by map-meta) rn)>}"
         !!
   ::  literal = column
-  ?:  &(?=(dime l) ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r)))
+  ?:  ?&  ?=(dime l)
+          ?!(?=(scalar-name:ast l))
+          ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r))
+          ==
     =/  rn  (col-name r)
     ~|  "column {<rn>} does not exist"
     ?:  (types-match -.l -:(~(got by map-meta) rn))
@@ -590,7 +779,10 @@
         "{<-:(~(got by map-meta) rn)>}"
         !!
   ::  column = literal
-  ?:  &(?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l)) ?=(dime r))
+  ?:  ?&  ?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l))
+          ?=(dime r)
+          ?!(?=(scalar-name:ast r))
+          ==
     =/  ln  (col-name l)
     ~|  "column {<ln>} does not exist"
     ?:  (types-match -:(~(got by map-meta) ln) -.r)
@@ -600,6 +792,62 @@
                 data-row
     ~|  "comparing column to literal of different aura: {<ln>} ".
         "{<-:(~(got by map-meta) ln)>} {<r>}"
+        !!
+  ::  scalar = literal
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(dime r)
+          ==
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    ?:  (types-match lt -.r)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      (lit-lit q.dl +.r lt)
+    ~|  "comparing scalar to literal of different aura: {<ln>} ".
+        "type={<lt>} {<r>}"
+        !!
+  ::  literal = scalar
+  ?:  ?&  ?=(dime l)
+          ?=(^ r-scalar)
+          ==
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    ?:  (types-match -.l rt)
+      |=  c=data-row
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (lit-lit +.l q.dr -.l)
+    ~|  "comparing literal to scalar of different aura: {<l>} {<rn>} ".
+        "type={<rt>}"
+        !!
+  ::  scalar = column
+  ?:  ?&  ?=(^ l-scalar)
+          ?|(?=(qualified-column:ast r) ?=(unqualified-column:ast r))
+          ==
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    =/  rn  (col-name r)
+    ~|  "column {<rn>} does not exist"
+    ?:  (types-match lt -:(~(got by map-meta) rn))
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      (lit-col q.dl +:(~(got by map-meta) rn) lt c)
+    ~|  "comparing scalar to column of different aura: {<ln>} ".
+        "type={<lt>} {<rn>} {<-:(~(got by map-meta) rn)>}"
+        !!
+  ::  column = scalar
+  ?:  ?&  ?|(?=(qualified-column:ast l) ?=(unqualified-column:ast l))
+          ?=(^ r-scalar)
+          ==
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    =/  ln  (col-name l)
+    ~|  "column {<ln>} does not exist"
+    ?:  (types-match -:(~(got by map-meta) ln) rt)
+      |=  c=data-row
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (col-lit +:(~(got by map-meta) ln) q.dr rt c)
+    ~|  "comparing column to scalar of different aura: {<ln>} ".
+        "{<-:(~(got by map-meta) ln)>} {<rn>} type={<rt>}"
         !!
   ::
   ::  cte-column = cte-column
@@ -649,6 +897,34 @@
                     -:(~(got by map-meta) ln)
                 data-row
     ~|("comparing column to cte-column of different aura: {<ln>} {<name.r>}" !!)
+  ::  scalar = cte-column
+  ?:  ?&  ?=(^ l-scalar)
+          ?=(cte-column:ast r)
+          ==
+    =/  ln=@tas  name:;;(scalar-name:ast l)
+    =/  lt  (resolved-scalar-type u.l-scalar)
+    =/  dr=dime  (resolve-cte-column r named-ctes)
+    ?:  (types-match lt p.dr)
+      |=  c=data-row
+      =/  dl=dime  (apply-resolved-scalar u.l-scalar c)
+      (lit-lit q.dl q.dr lt)
+    ~|  "comparing scalar to cte-column of different aura: {<ln>} ".
+        "type={<lt>} {<name.r>}"
+        !!
+  ::  cte-column = scalar
+  ?:  ?&  ?=(cte-column:ast l)
+          ?=(^ r-scalar)
+          ==
+    =/  rn=@tas  name:;;(scalar-name:ast r)
+    =/  dl=dime  (resolve-cte-column l named-ctes)
+    =/  rt  (resolved-scalar-type u.r-scalar)
+    ?:  (types-match p.dl rt)
+      |=  c=data-row
+      =/  dr=dime  (apply-resolved-scalar u.r-scalar c)
+      (lit-lit q.dl q.dr p.dl)
+    ~|  "comparing cte-column to scalar of different aura: {<name.l>} ".
+        "{<rn>} type={<rt>}"
+        !!
   ~|("prepare-unqualified can't get here" !!)
 ::
 ++  apply-datum-op

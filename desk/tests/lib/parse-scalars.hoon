@@ -11,6 +11,11 @@
   |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast)]
   ^-  (list command:ast)
   =/  columns  ~[unqualified-foo-2 unqualified-foo-3]
+  (mk-selection-columns scalars table columns)
+::  same as mk-selection, but with explicit selected columns
+++  mk-selection-columns
+  |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast) columns=(list selected-column:ast)]
+  ^-  (list command:ast)
   =/  select  [%select top=~ columns=columns]
   =/  relation  ?~(table relation-1 (need table))
   =/  from  [%from relation=relation as-of=~ joins=~]
@@ -26,6 +31,48 @@
       ~
     ==
   ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+::  same as mk-selection, but without a FROM clause
+++  mk-selection-no-from-columns
+  |=  [scalars=(list scalar:ast) columns=(list selected-column:ast)]
+  ^-  (list command:ast)
+  =/  select  [%select top=~ columns=columns]
+  =/  query
+    :*
+      %query
+      from=~
+      scalars=scalars
+      ~
+      group-by=~
+      having=~
+      select=select
+      ~
+    ==
+  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+::  same as mk-selection, but with explicit ctes
+++  mk-selection-with-ctes
+  |=  [ctes=(list cte:ast) scalars=(list scalar:ast) table=(unit qualified-table:ast)]
+  ^-  (list command:ast)
+  =/  columns  ~[unqualified-foo-2 unqualified-foo-3]
+  (mk-selection-with-ctes-columns ctes scalars table columns)
+::  same as mk-selection-with-ctes, but with explicit selected columns
+++  mk-selection-with-ctes-columns
+  |=  [ctes=(list cte:ast) scalars=(list scalar:ast) table=(unit qualified-table:ast) columns=(list selected-column:ast)]
+  ^-  (list command:ast)
+  =/  select  [%select top=~ columns=columns]
+  =/  relation  ?~(table relation-1 (need table))
+  =/  from  [%from relation=relation as-of=~ joins=~]
+  =/  query
+    :*
+      %query
+      from=[~ from]
+      scalars=scalars
+      ~
+      group-by=~
+      having=~
+      select=select
+      ~
+    ==
+  ~[[%selection ctes=ctes set-functions=[query ~ ~]]]
 ::
 ::  helper-objects
 ::
@@ -39,6 +86,17 @@
                             name=%foo
                             alias=~
                             ==
+::  CTE helpers
+++  my-cte-foo-2        [%cte-column 'my-cte' 'foo2']
+++  my-cte-foo-3        [%cte-column 'my-cte' 'foo3']
+++  cte-my-cte
+  =/  from-clause  [%from relation=relation-1 as-of=~ joins=~]
+  =/  select  [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3]]
+  :*  %cte  name='my-cte'
+      :*  %query  [~ from-clause]  scalars=~  ~
+          group-by=~  having=~  select  ~
+          ==
+      ==
 ::
 ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
 ::  ~sampel-palnet.db2.dba.table1.bar
@@ -117,6 +175,8 @@
 ++  unqualified-foo-3   [%unqualified-column name=%foo3 alias=~]
 ++  unqualified-foo-2   [%unqualified-column name=%foo2 alias=~]
 ++  unqualified-foo-1   [%unqualified-column name=%foo1 alias=~]
+++  selected-scalar-foo-3  [%selected-scalar name=%foo3 alias=~]
+++  selected-scalar-foo-2  [%selected-scalar name=%foo2 alias=~]
 ::
 ++  simple-true-pred       [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=1] ~ ~]]
 ++  simple-false-pred      [%eq [[p=~.ud q=1] ~ ~] [[p=~.ud q=0] ~ ~]]
@@ -195,18 +255,227 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+::  select a scalar-name directly in the SELECT clause
+++  test-scalars-select-01
+  =/  query-string
+    "SCALARS sc1 ABS(-5) ".
+    "SELECT sc1"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  scalars
+    ~[[%scalar 'sc1' [%abs literal-neg5]]]
+  =/  expected
+    (mk-selection-no-from-columns scalars ~[[%selected-scalar name=%sc1 alias=~]])
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  select a scalar-name directly in the SELECT clause with alias
+++  test-scalars-select-02
+  =/  query-string
+    "SCALARS sc1 ABS(-5) ".
+    "SELECT sc1 AS answer"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  scalars
+    ~[[%scalar 'sc1' [%abs literal-neg5]]]
+  =/  expected
+    %-  mk-selection-no-from-columns
+    :*  scalars
+        ~[[%selected-scalar name=%sc1 alias=[~ 'answer']]]
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  select multiple scalar-names directly in a no-from query
+++  test-scalars-select-03
+  =/  query-string
+    "SCALARS sc1 CONCAT('hello',' world') ".
+    "        sc2 IF 1 = 1 THEN 42 ELSE 0 ENDIF ".
+    "        sc3 20 + 22 END ".
+    "SELECT sc1, sc2, sc3"
+  ::
+  =/  literal-hello  [p=~.t q='hello']
+  =/  literal-world  [p=~.t q=' world']
+  =/  literal-42     [p=~.ud q=42]
+  =/  literal-0      [p=~.ud q=0]
+  =/  literal-20     [p=~.ud q=20]
+  =/  literal-22     [p=~.ud q=22]
+  =/  if-scalar
+    :*  %if-then-else
+      if=simple-true-pred
+      then=literal-42
+      else=literal-0
+    ==
+  =/  arithmetic-scalar
+    [%arithmetic operator=%lus left=literal-20 right=literal-22]
+  =/  scalars
+    :~
+      [%scalar 'sc1' [%concat ~[literal-hello literal-world]]]
+      [%scalar 'sc2' if-scalar]
+      [%scalar 'sc3' arithmetic-scalar]
+    ==
+  =/  expected
+    %-  mk-selection-no-from-columns
+    :*  scalars
+        :~  [%selected-scalar name=%sc1 alias=~]
+            [%selected-scalar name=%sc2 alias=~]
+            [%selected-scalar name=%sc3 alias=~]
+            ==
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  no-from scalar select with text and date IF literal branches
+++  test-scalars-select-03-literals
+  =/  query-string
+    "SCALARS sc1 CONCAT('hello',' world') ".
+    "        sc2 IF 1 = 1 THEN 'yes' ELSE 'no' ENDIF ".
+    "        sc3 IF 1 = 1 THEN ~2024.12.25 ELSE ~2024.12.26 ENDIF ".
+    "        sc4 20 + 22 END ".
+    "SELECT sc1, sc2, sc3, sc4"
+  ::
+  =/  literal-hello  [p=~.t q='hello']
+  =/  literal-world  [p=~.t q=' world']
+  =/  literal-yes    [p=~.t q='yes']
+  =/  literal-no     [p=~.t q='no']
+  =/  literal-date1  [p=~.da q=~2024.12.25]
+  =/  literal-date2  [p=~.da q=~2024.12.26]
+  =/  literal-20     [p=~.ud q=20]
+  =/  literal-22     [p=~.ud q=22]
+  =/  text-if-scalar
+    :*  %if-then-else
+      if=simple-true-pred
+      then=literal-yes
+      else=literal-no
+    ==
+  =/  date-if-scalar
+    :*  %if-then-else
+      if=simple-true-pred
+      then=literal-date1
+      else=literal-date2
+    ==
+  =/  arithmetic-scalar
+    [%arithmetic operator=%lus left=literal-20 right=literal-22]
+  =/  scalars
+    :~
+      [%scalar 'sc1' [%concat ~[literal-hello literal-world]]]
+      [%scalar 'sc2' text-if-scalar]
+      [%scalar 'sc3' date-if-scalar]
+      [%scalar 'sc4' arithmetic-scalar]
+    ==
+  =/  expected
+    %-  mk-selection-no-from-columns
+    :*  scalars
+        :~  [%selected-scalar name=%sc1 alias=~]
+            [%selected-scalar name=%sc2 alias=~]
+            [%selected-scalar name=%sc3 alias=~]
+            [%selected-scalar name=%sc4 alias=~]
+            ==
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  when a FROM exists, scalar names resolve as selected-scalar
+++  test-scalars-select-04
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo2 ABS(-5) ".
+    "SELECT foo2"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  scalars
+    ~[[%scalar 'foo2' [%abs literal-neg5]]]
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars
+        ~
+        ~[selected-scalar-foo-2]
+        ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  selected-scalar with alias inside a CTE should produce a selectable CTE column
+++  test-scalars-select-05
+  =/  query-string
+    "WITH (SCALARS sc1 ABS(-5) SELECT sc1 AS sc-out) AS my-cte ".
+    "FROM my-cte ".
+    "SELECT sc-out"
+  ::
+  =/  literal-neg5  [p=~.sd q=-5]
+  =/  cte-scalars
+    ~[[%scalar 'sc1' [%abs literal-neg5]]]
+  =/  cte-query
+    =/  select  [%select top=~ columns=~[[%selected-scalar name=%sc1 alias=[~ 'sc-out']]]]
+    :*  %query  from=~  scalars=cte-scalars  ~
+        group-by=~  having=~  select  ~
+        ==
+  =/  ctes
+    ~[[%cte name='my-cte' query=cte-query]]
+  =/  outer-query
+    :*  %query
+        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        scalars=~
+        ~
+        group-by=~
+        having=~
+        select=[%select top=~ columns=~[[%unqualified-column name='sc-out' alias=~]]]
+        ~
+        ==
+  =/  expected
+    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  selected-value with alias inside a CTE should produce a selectable CTE column
+++  test-scalars-select-06
+  =/  query-string
+    "WITH (FROM foo SELECT foo2, foo3, 'US' AS country) AS my-cte ".
+    "FROM my-cte ".
+    "SELECT foo2, country"
+  ::
+  =/  literal-us  [p=~.t q='US']
+  =/  cte-query
+    =/  select
+      [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3 [%selected-value value=literal-us alias=[~ 'country']]]]
+    :*  %query  from=[~ [%from relation=relation-1 as-of=~ joins=~]]  scalars=~  ~
+        group-by=~  having=~  select  ~
+        ==
+  =/  ctes
+    ~[[%cte name='my-cte' query=cte-query]]
+  =/  outer-query
+    :*  %query
+        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        scalars=~
+        ~
+        group-by=~
+        having=~
+        select=[%select top=~ columns=~[[%unqualified-column name='foo2' alias=~] [%unqualified-column name='country' alias=~]]]
+        ~
+        ==
+  =/  expected
+    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ::  test mixing arithmetic with builtin functions
 ++  test-scalars-03
   =/  query-string
     "FROM foo ".
-    "SCALARS sc1 BEGIN ABS(-5) + 1 END ".
-    "        sc2 BEGIN FLOOR(.2.8) - CEILING(.1.2) END ".
-    "        sc4 BEGIN LOG(10) / ABS(-5) END ".
-    "        sc5 BEGIN ROUND(.3.7, 0) ^ 2 END ".
-    "        sc6 BEGIN LEN('hello') + DAY(2023.1.15) END ".
-    "        sc7 BEGIN (ABS(-3) + FLOOR(.2.9)) * SQRT(16) END ".
-    "        sc9 BEGIN YEAR(2023.6.20) - MONTH(2023.6.20) END ".
-    "        sc10 BEGIN (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
+    "SCALARS sc1 ABS(-5) + 1 END ".
+    "        sc2 FLOOR(.2.8) - CEILING(.1.2) END ".
+    "        sc4 LOG(10) / ABS(-5) END ".
+    "        sc5 ROUND(.3.7, 0) ^ 2 END ".
+    "        sc6 LEN('hello') + DAY(2023.1.15) END ".
+    "        sc7 (ABS(-3) + FLOOR(.2.9)) * SQRT(16) END ".
+    "        sc9 YEAR(2023.6.20) - MONTH(2023.6.20) END ".
+    "        sc10 (LOG(100) + SIGN(-5)) / (SQRT(9) - 1) END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-05             [p=~.rs q=.5]
@@ -997,6 +1266,46 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: coalesce with cte-column elements
+++  test-coalesce-15
+  ::
+  =/  query-string
+    "WITH (FROM foo SELECT foo2,foo3) AS my-cte ".
+    "FROM foo ".
+    "SCALARS bar COALESCE(my-cte.foo2,foo2,my-cte.foo3) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  coalesce-1
+    [%coalesce ~[my-cte-foo-2 unqualified-foo-2 my-cte-foo-3]]
+  =/  scalars  ~[[%scalar 'bar' coalesce-1]]
+  =/  expected  (mk-selection-with-ctes ~[cte-my-cte] scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: coalesce with inline if scalar element
+++  test-coalesce-16
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar COALESCE(IF 1 = 1 THEN foo3 ELSE foo2 ENDIF,foo2,1) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  inline-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-foo-3]
+      else=[unqualified-foo-2]
+    ==
+  =/  coalesce-1
+    [%coalesce ~[inline-if unqualified-foo-2 literal-1]]
+  =/  scalars  ~[[%scalar 'bar' coalesce-1]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ::  fail on relation not defined
 ++  test-fail-coalesce-01
   ::
@@ -1414,6 +1723,61 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: test if with cte-column branches
+++  test-if-14
+  ::
+  =/  query-string
+    "WITH (FROM foo SELECT foo2,foo3) AS my-cte ".
+    "FROM foo ".
+    "SCALARS bar IF 1 = 1 THEN my-cte.foo2 ELSE my-cte.foo3 ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=my-cte-foo-2
+      else=my-cte-foo-3
+    ==
+  =/  scalars  ~[[%scalar 'bar' if-1]]
+  =/  expected  (mk-selection-with-ctes ~[cte-my-cte] scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: test if with inline scalar-node branches
+++  test-if-15
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar IF 1 = 1 ".
+    "        THEN COALESCE(foo2,1,foo3) ".
+    "        ELSE CASE foo3 WHEN 1 THEN foo2 END ".
+    "        ENDIF ".
+    "SELECT foo2,foo3"
+  ::
+  =/  inline-coalesce
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  inline-case
+    :*
+      %case
+      target=(some unqualified-foo-3)
+      cases=~[[%case-when-then literal-1 unqualified-foo-2]]
+      else=~
+    ==
+  =/  if-1
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=inline-coalesce
+      else=inline-case
+    ==
+  =/  scalars  ~[[%scalar 'bar' if-1]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 ++  test-fail-if-01
   ::
   =/  query-string
@@ -1439,6 +1803,28 @@
       (some unqualified-foo-3)
       ~[[%case-when-then literal-1 unqualified-foo-3]]
       (some unqualified-foo-3)
+    ==
+  =/  scalars  ~[[%scalar 'foobar' case]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression with arithmetic else
+++  test-case-simple-arithmetic-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE foo3 WHEN 1 THEN foo3 ELSE foo2 + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  else-expr
+    [%arithmetic operator=%lus left=unqualified-foo-2 right=literal-1]
+  =/  case
+    :*  %case
+      (some unqualified-foo-3)
+      ~[[%case-when-then literal-1 unqualified-foo-3]]
+      (some else-expr)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
   =/  expected  (mk-selection scalars ~)
@@ -1891,6 +2277,118 @@
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
 ::
+:: simple case expression: inline IF as target element
+++  test-case-simple-17
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar CASE IF 1 = 1 THEN foo3 ELSE foo2 ENDIF ".
+    "            WHEN foo3 THEN foo2 ".
+    "            ELSE foo3 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  target-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-foo-3]
+      else=[unqualified-foo-2]
+    ==
+  =/  case-1
+    :*
+      %case
+      target=(some target-if)
+      cases=~[[%case-when-then unqualified-foo-3 unqualified-foo-2]]
+      else=(some unqualified-foo-3)
+    ==
+  =/  scalars  ~[[%scalar 'bar' case-1]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: cte-column as target and else element
+++  test-case-simple-18
+  ::
+  =/  query-string
+    "WITH (FROM foo SELECT foo2,foo3) AS my-cte ".
+    "FROM foo ".
+    "SCALARS bar CASE my-cte.foo2 WHEN foo2 THEN foo3 ELSE my-cte.foo3 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  case-1
+    :*
+      %case
+      target=(some my-cte-foo-2)
+      cases=~[[%case-when-then unqualified-foo-2 unqualified-foo-3]]
+      else=(some my-cte-foo-3)
+    ==
+  =/  scalars  ~[[%scalar 'bar' case-1]]
+  =/  expected  (mk-selection-with-ctes ~[cte-my-cte] scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: scalar-name in when position
+++  test-case-simple-19
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foo COALESCE(foo2,1,foo3) ".
+    "        bar CASE foo3 WHEN foo THEN foo2 ELSE foo3 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  naked-coalesce
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-foo-3)
+      cases=~[[%case-when-then [%scalar-name name=%foo] unqualified-foo-2]]
+      else=(some unqualified-foo-3)
+    ==
+  =/  scalars
+    :~
+      [%scalar 'foo' naked-coalesce]
+      [%scalar 'bar' case-1]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: simple case expression: inline scalar-node then and else elements
+++  test-case-simple-20
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS bar CASE foo3 ".
+    "            WHEN 1 THEN IF 1 = 1 THEN foo2 ELSE foo3 ENDIF ".
+    "            ELSE COALESCE(foo2,1,foo3) END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  inline-if
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[unqualified-foo-2]
+      else=[unqualified-foo-3]
+    ==
+  =/  inline-coalesce
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  case-1
+    :*
+      %case
+      target=(some unqualified-foo-3)
+      cases=~[[%case-when-then literal-1 inline-if]]
+      else=(some inline-coalesce)
+    ==
+  =/  scalars  ~[[%scalar 'bar' case-1]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
 :: searched case expression with predicate
 ++  test-case-searched-01
   ::
@@ -1904,6 +2402,28 @@
       ~
       ~[[%case-when-then simple-true-pred unqualified-foo-3]]
       (some unqualified-foo-3)
+    ==
+  =/  scalars  ~[[%scalar 'foobar' case]]
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: searched case expression with arithmetic else
+++  test-case-searched-arithmetic-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS foobar CASE WHEN 1 = 1 THEN foo3 ELSE foo2 + 1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  else-expr
+    [%arithmetic operator=%lus left=unqualified-foo-2 right=literal-1]
+  =/  case
+    :*  %case
+      ~
+      ~[[%case-when-then simple-true-pred unqualified-foo-3]]
+      (some else-expr)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
   =/  expected  (mk-selection scalars ~)
@@ -2315,12 +2835,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 + 1 END ".
-    "        foo2 BEGIN 1 - 1 END ".
-    "        foo3 BEGIN 1 / 1 END ".
-    "        foo4 BEGIN 1 * 1 END ".
-    "        foo5 BEGIN 1 ^ 1 END ".
-    "        foo6 BEGIN 1 % 1 END ".
+    "SCALARS foo1 1 + 1 END ".
+    "        foo2 1 - 1 END ".
+    "        foo3 1 / 1 END ".
+    "        foo4 1 * 1 END ".
+    "        foo5 1 ^ 1 END ".
+    "        foo6 1 % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  scalars
@@ -2332,7 +2852,9 @@
      [%scalar 'foo5' [%arithmetic operator=%ket left=literal-1 right=literal-1]]
      [%scalar 'foo6' [%arithmetic operator=%cen left=literal-1 right=literal-1]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2342,12 +2864,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN (1 + 1) + 1 END ".
-    "        foo2 BEGIN (1 - 1) - 1 END ".
-    "        foo3 BEGIN (1 / 1) / 1 END ".
-    "        foo4 BEGIN (1 * 1) * 1 END ".
-    "        foo5 BEGIN (1 ^ 1) ^ 1 END ".
-    "        foo6 BEGIN (1 % 1) % 1 END ".
+    "SCALARS foo1 (1 + 1) + 1 END ".
+    "        foo2 (1 - 1) - 1 END ".
+    "        foo3 (1 / 1) / 1 END ".
+    "        foo4 (1 * 1) * 1 END ".
+    "        foo5 (1 ^ 1) ^ 1 END ".
+    "        foo6 (1 % 1) % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
@@ -2401,7 +2923,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2411,12 +2935,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 + (1 + 1) END ".
-    "        foo2 BEGIN 1 - (1 - 1) END ".
-    "        foo3 BEGIN 1 / (1 / 1) END ".
-    "        foo4 BEGIN 1 * (1 * 1) END ".
-    "        foo5 BEGIN 1 ^ (1 ^ 1) END ".
-    "        foo6 BEGIN 1 % (1 % 1) END ".
+    "SCALARS foo1 1 + (1 + 1) END ".
+    "        foo2 1 - (1 - 1) END ".
+    "        foo3 1 / (1 / 1) END ".
+    "        foo4 1 * (1 * 1) END ".
+    "        foo5 1 ^ (1 ^ 1) END ".
+    "        foo6 1 % (1 % 1) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition
@@ -2470,7 +2994,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2480,12 +3006,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN ((1 * 1) - 1) + 1 END ".
-    "        foo2 BEGIN ((1 + 1) ^ 1) - 1 END ".
-    "        foo3 BEGIN ((1 - 1) * 1) / 1 END ".
-    "        foo4 BEGIN ((1 / 1) + 1) * 1 END ".
-    "        foo5 BEGIN ((1 ^ 1) / 1) ^ 1 END ".
-    "        foo6 BEGIN ((1 % 1) % 1) % 1 END ".
+    "SCALARS foo1 ((1 * 1) - 1) + 1 END ".
+    "        foo2 ((1 + 1) ^ 1) - 1 END ".
+    "        foo3 ((1 - 1) * 1) / 1 END ".
+    "        foo4 ((1 / 1) + 1) * 1 END ".
+    "        foo5 ((1 ^ 1) / 1) ^ 1 END ".
+    "        foo6 ((1 % 1) % 1) % 1 END ".
     "SELECT foo2,foo3"
   ::
   =/  inner-multiplication
@@ -2563,7 +3089,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2573,12 +3101,12 @@
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 + (1 - (1 * 1)) END ".
-    "        foo2 BEGIN 1 - (1 ^ (1 + 1)) END ".
-    "        foo3 BEGIN 1 / (1 * (1 - 1)) END ".
-    "        foo4 BEGIN 1 * (1 + (1 / 1)) END ".
-    "        foo5 BEGIN 1 ^ (1 / (1 ^ 1)) END ".
-    "        foo6 BEGIN 1 % (1 % (1 % 1)) END ".
+    "SCALARS foo1 1 + (1 - (1 * 1)) END ".
+    "        foo2 1 - (1 ^ (1 + 1)) END ".
+    "        foo3 1 / (1 * (1 - 1)) END ".
+    "        foo4 1 * (1 + (1 / 1)) END ".
+    "        foo5 1 ^ (1 / (1 ^ 1)) END ".
+    "        foo6 1 % (1 % (1 % 1)) END ".
     "SELECT foo2,foo3"
   ::
   =/  inner-multiplication
@@ -2656,7 +3184,9 @@
       [%scalar 'foo5' exponentiation]
       [%scalar 'foo6' modulo]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2665,21 +3195,21 @@
 ++  test-arithmetic-6
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1 +1 END ".
-    "        foo2 BEGIN 1  -  1 END ".
-    "        foo3 BEGIN 1 /1 END ".
-    "        foo4 BEGIN 1 *1 END ".
-    "        foo5 BEGIN 1   ^   1 END ".
-    "        foo6 BEGIN (1 +1)+1 END ".
-    "        foo7 BEGIN ( 1 -1 ) - 1 END ".
-    "        foo8 BEGIN (1 / 1)/  1 END ".
-    "        foo9 BEGIN 1 +( 1 + 1 ) END ".
-    "        foo10 BEGIN 1 -(1 -1) END ".
-    "        foo11 BEGIN 1  /  (1 / 1) END ".
-    "        foo12 BEGIN ((1 *1) -1) +1 END ".
-    "        foo13 BEGIN ( ( 1 + 1 ) ^ 1 ) - 1 END ".
-    "        foo14 BEGIN 1 +  (1 -(1 *1)) END ".
-    "        foo15 BEGIN 1 *(  1 +(1 /1)  ) END ".
+    "SCALARS foo1 1 +1 END ".
+    "        foo2 1  -  1 END ".
+    "        foo3 1 /1 END ".
+    "        foo4 1 *1 END ".
+    "        foo5 1   ^   1 END ".
+    "        foo6 (1 +1)+1 END ".
+    "        foo7 ( 1 -1 ) - 1 END ".
+    "        foo8 (1 / 1)/  1 END ".
+    "        foo9 1 +( 1 + 1 ) END ".
+    "        foo10 1 -(1 -1) END ".
+    "        foo11 1  /  (1 / 1) END ".
+    "        foo12 ((1 *1) -1) +1 END ".
+    "        foo13 ( ( 1 + 1 ) ^ 1 ) - 1 END ".
+    "        foo14 1 +  (1 -(1 *1)) END ".
+    "        foo15 1 *(  1 +(1 /1)  ) END ".
     "SELECT foo2,foo3"
   ::
   =/  addition-no-space
@@ -2776,7 +3306,9 @@
       [%scalar 'foo14' double-nested-right-mixed]
       [%scalar 'foo15' double-nested-right-paren-space]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2785,38 +3317,38 @@
 ++  test-arithmetic-7
   =/  query-string
     "FROM foo ".
-    "SCALARS foo1  BEGIN 2 ^ 3 ^ 3 END ".
-    "        foo2  BEGIN 2 ^ (3 ^ 3) END ".
-    "        foo3  BEGIN (2 ^ 3) ^ 3 END ".
-    "        foo4  BEGIN 2 + 3 + 4 END ".
-    "        foo5  BEGIN 2 + (3 + 4) END ".
-    "        foo6  BEGIN (2 + 3) + 4 END ".
-    "        foo7  BEGIN 2 - 3 - 4 END ".
-    "        foo8  BEGIN 2 - (3 - 4) END ".
-    "        foo9  BEGIN (2 - 3) - 4 END ".
-    "        foo10 BEGIN 2 * 3 * 4 END ".
-    "        foo11 BEGIN 2 * (3 * 4) END ".
-    "        foo12 BEGIN (2 * 3) * 4 END ".
-    "        foo13 BEGIN 2 / 3 / 4 END ".
-    "        foo14 BEGIN 2 / (3 / 4) END ".
-    "        foo15 BEGIN (2 / 3) / 4 END ".
-    "        foo16 BEGIN 2 + 3 * 4 END ".
-    "        foo17 BEGIN (2 + 3) * 4 END ".
-    "        foo18 BEGIN 2 * 3 + 4 END ".
-    "        foo19 BEGIN 2 * 3 ^ 4 END ".
-    "        foo20 BEGIN (2 * 3) ^ 4 END ".
-    "        foo21 BEGIN 2 ^ 3 * 4 END ".
-    "        foo22 BEGIN 2 + 3 - 4 * 5 / 2 END ".
-    "        foo23 BEGIN 2 ^ 3 + 4 * 5 - 6 / 2 END ".
-    "        foo24 BEGIN 2 % 3 % 4 END ".
-    "        foo25 BEGIN 2 % (3 % 4) END ".
-    "        foo26 BEGIN (2 % 3) % 4 END ".
-    "        foo27 BEGIN 2 + 3 % 4 END ".
-    "        foo28 BEGIN 2 % 3 + 4 END ".
-    "        foo29 BEGIN 2 * 3 % 4 END ".
-    "        foo30 BEGIN 2 % 3 * 4 END ".
-    "        foo31 BEGIN 2 ^ 3 % 4 END ".
-    "        foo32 BEGIN 2 % 3 ^ 4 END ".
+    "SCALARS foo1  2 ^ 3 ^ 3 END ".
+    "        foo2  2 ^ (3 ^ 3) END ".
+    "        foo3  (2 ^ 3) ^ 3 END ".
+    "        foo4  2 + 3 + 4 END ".
+    "        foo5  2 + (3 + 4) END ".
+    "        foo6  (2 + 3) + 4 END ".
+    "        foo7  2 - 3 - 4 END ".
+    "        foo8  2 - (3 - 4) END ".
+    "        foo9  (2 - 3) - 4 END ".
+    "        foo10 2 * 3 * 4 END ".
+    "        foo11 2 * (3 * 4) END ".
+    "        foo12 (2 * 3) * 4 END ".
+    "        foo13 2 / 3 / 4 END ".
+    "        foo14 2 / (3 / 4) END ".
+    "        foo15 (2 / 3) / 4 END ".
+    "        foo16 2 + 3 * 4 END ".
+    "        foo17 (2 + 3) * 4 END ".
+    "        foo18 2 * 3 + 4 END ".
+    "        foo19 2 * 3 ^ 4 END ".
+    "        foo20 (2 * 3) ^ 4 END ".
+    "        foo21 2 ^ 3 * 4 END ".
+    "        foo22 2 + 3 - 4 * 5 / 2 END ".
+    "        foo23 2 ^ 3 + 4 * 5 - 6 / 2 END ".
+    "        foo24 2 % 3 % 4 END ".
+    "        foo25 2 % (3 % 4) END ".
+    "        foo26 (2 % 3) % 4 END ".
+    "        foo27 2 + 3 % 4 END ".
+    "        foo28 2 % 3 + 4 END ".
+    "        foo29 2 * 3 % 4 END ".
+    "        foo30 2 % 3 * 4 END ".
+    "        foo31 2 ^ 3 % 4 END ".
+    "        foo32 2 % 3 ^ 4 END ".
     "SELECT foo2,foo3"
   ::
   =/  literal-2              [p=~.ud q=2]
@@ -3208,6 +3740,35 @@
       [%scalar 'foo31' mixed-modulo-5]
       [%scalar 'foo32' mixed-modulo-6]
     ==
+  =/  expected
+    %-  mk-selection-columns
+    :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+:: arithmetic expressions with scalar-name operands
+++  test-arithmetic-scalar-node-01
+  ::
+  =/  query-string
+    "FROM foo ".
+    "SCALARS sc1 COALESCE(foo2,1,foo3) ".
+    "        suma sc1 + 1 END ".
+    "        sumb 1 + sc1 END ".
+    "SELECT foo2,foo3"
+  ::
+  =/  sc1-coalesce
+    [%coalesce ~[unqualified-foo-2 literal-1 unqualified-foo-3]]
+  =/  left-add
+    [%arithmetic operator=%lus left=[%scalar-name name=%sc1] right=literal-1]
+  =/  right-add
+    [%arithmetic operator=%lus left=literal-1 right=[%scalar-name name=%sc1]]
+  =/  scalars
+    :~
+      [%scalar 'sc1' sc1-coalesce]
+      [%scalar 'suma' left-add]
+      [%scalar 'sumb' right-add]
+    ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq
     !>  expected
@@ -3223,118 +3784,19 @@
   =/  query-string
     :: commented some out because not sure that we want double spacing
     "FROM foo ".
-    "SCALARS foo1 BEGIN 1+1 END ".
+    "SCALARS foo1 1+1 END ".
     "SELECT foo2,foo3"
   ::
   %+  expect-fail-message
     'PARSER: '
     |.  (parse:parse(default-database default-db) query-string)
 ::
-::  test-fail-arithmetic-* tests verify that non-arithmetic builtin functions
-::  (one that return string and date) can't be used with arithmetic operators
-::
-::  test mixing string function CONCAT with addition operator
+::  test single operand in arithmetic expression
 ++  test-fail-arithmetic-01
   ::
   =/  query-string
     "FROM foo ".
-    "SCALARS foo BEGIN CONCAT('hello', 'world') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %concat in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function LEFT with subtraction operator
-++  test-fail-arithmetic-02
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN LEFT('hello', 2) - 5 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %left in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function RIGHT with multiplication operator
-++  test-fail-arithmetic-03
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN 10 * RIGHT('world', 3) END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %right in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function SUBSTRING with division operator
-++  test-fail-arithmetic-04
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN SUBSTRING('hello', 1, 3) / 2 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %substring in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function TRIM with exponentiation operator
-++  test-fail-arithmetic-05
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN 2 ^ TRIM('  hello  ') END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %trim in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing date function GETUTCDATE with addition operator
-++  test-fail-arithmetic-06
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN GETUTCDATE() + 100 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %getutcdate in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string on both sides of operator
-++  test-fail-arithmetic-07
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN LEFT('abc', 1) + RIGHT('xyz', 1) END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %left in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test nested arithmetic with string function
-++  test-fail-arithmetic-08
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN (5 + CONCAT('a', 'b')) * 2 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %concat in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test single operand in arithmetic expression
-++  test-fail-arithmetic-09
-  ::
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN 42 END ".
+    "SCALARS foo 42 END ".
     "SELECT foo"
   ::
   %+  expect-fail-message
@@ -3945,139 +4407,6 @@
     'COALESCE requires at least 2 parameters'
     |.  (parse:parse(default-database default-db) query-string)
 ::
-::  test mixing string function LOWER with arithmetic operator
-++  test-fail-arithmetic-10
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN LOWER('hello') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %lower in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function UPPER with arithmetic operator
-++  test-fail-arithmetic-11
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN UPPER('hello') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %upper in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function REVERSE with arithmetic operator
-++  test-fail-arithmetic-12
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN REVERSE('hello') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %reverse in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function LTRIM with arithmetic operator
-++  test-fail-arithmetic-13
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN LTRIM('hello') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %ltrim in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function RTRIM with arithmetic operator
-++  test-fail-arithmetic-14
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN RTRIM('hello') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %rtrim in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function PATINDEX with arithmetic operator
-++  test-fail-arithmetic-15
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN PATINDEX('hello','ll') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %patindex in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function REPLACE with arithmetic operator
-++  test-fail-arithmetic-16
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN REPLACE('hello','ll','LL') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %replace in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function REPLICATE with arithmetic operator
-++  test-fail-arithmetic-17
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN REPLICATE('hello',3) + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %replicate in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function QUOTESTRING with arithmetic operator
-++  test-fail-arithmetic-18
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN QUOTESTRING('hello') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %quotestring in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing STRING with arithmetic operator
-++  test-fail-arithmetic-19
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN STRING(3) + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %string in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing STRING-CONCAT with arithmetic operator
-++  test-fail-arithmetic-20
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN STRING-CONCAT('a','b',' ') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    %-  crip  "finalize-math-builtin-fn: cannot use %string-concat in ".
-              "arithmetic expression"
-    |.  (parse:parse(default-database default-db) query-string)
-::
-::  test mixing string function STUFF with arithmetic operator
-++  test-fail-arithmetic-21
-  =/  query-string
-    "FROM foo ".
-    "SCALARS foo BEGIN STUFF('hello',2,3,'xx') + 1 END ".
-    "SELECT foo2,foo3"
-  ::
-  %+  expect-fail-message
-    'finalize-math-builtin-fn: cannot use %stuff in arithmetic expression'
-    |.  (parse:parse(default-database default-db) query-string)
-::
 ::  wrong param count tests — parser rejects before reaching cook,
 ::  which is why these produce PARSER errors rather than the cook messages.
 ::  they serve as regression tests confirming param-count enforcement.
@@ -4225,6 +4554,71 @@
   =/  scalars
     :~
       [%scalar 'st4' [%substring literal-hello literal-2 ~]]
+    ==
+  =/  expected  (mk-selection scalars ~)
+  %+  expect-eq
+    !>  expected
+    !>  (parse:parse(default-database default-db) query-string)
+::
+::  nested scalar-node builtin params
+++  test-builtins-nested-scalar-nodes
+  =/  query-string
+    "FROM foo ".
+    "SCALARS mt-log LOG(ABS(-5),MAX(1,2)) ".
+    "        st-sub SUBSTRING(CASE WHEN 1 = 1 THEN LOWER('hello') ELSE UPPER('world') END,COALESCE(1,2),IF 1 = 1 THEN ABS(3) ELSE ABS(2) ENDIF) ".
+    "        st-sc1 STRING-CONCAT(LOWER('hello'),UPPER('world'),CASE WHEN 1 = 1 THEN ' ' ELSE '-' END) ".
+    "        st-stf STUFF(LOWER('hello'),COALESCE(2,3),IF 1 = 1 THEN 3 ELSE 2 ENDIF,UPPER('xx')) ".
+    "SELECT foo2,foo3"
+  ::
+  =/  literal-neg5      [p=~.sd q=-5]
+  =/  literal-1         [p=~.ud q=1]
+  =/  literal-2         [p=~.ud q=2]
+  =/  literal-3         [p=~.ud q=3]
+  =/  literal-hello     [p=~.t q='hello']
+  =/  literal-world     [p=~.t q='world']
+  =/  literal-space     [p=~.t q=' ']
+  =/  literal-dash      [p=~.t q='-']
+  =/  literal-xx        [p=~.t q='xx']
+  =/  substring-case
+    :*
+      %case
+      target=~
+      cases=~[[%case-when-then simple-true-pred [%lower literal-hello]]]
+      else=(some [%upper literal-world])
+    ==
+  =/  substring-start
+    [%coalesce ~[literal-1 literal-2]]
+  =/  substring-length
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=[%abs literal-3]
+      else=[%abs literal-2]
+    ==
+  =/  string-concat-delim
+    :*
+      %case
+      target=~
+      cases=~[[%case-when-then simple-true-pred literal-space]]
+      else=(some literal-dash)
+    ==
+  =/  stuff-start
+    [%coalesce ~[literal-2 literal-3]]
+  =/  stuff-length
+    :*
+      %if-then-else
+      if=simple-true-pred
+      then=literal-3
+      else=literal-2
+    ==
+  =/  scalars
+    :~
+      [%scalar 'mt-log' [%log [%abs literal-neg5] `[%max literal-1 literal-2]]]
+      [%scalar 'st-sub' [%substring substring-case substring-start `substring-length]]
+      :+  %scalar
+          'st-sc1'
+          [%string-concat ~[[%lower literal-hello] [%upper literal-world]] string-concat-delim]
+      [%scalar 'st-stf' [%stuff [%lower literal-hello] stuff-start stuff-length [%upper literal-xx]]]
     ==
   =/  expected  (mk-selection scalars ~)
   %+  expect-eq

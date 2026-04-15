@@ -129,6 +129,11 @@
                         ;~(pfix (jester 'select') (funk "select" (easy ' ')))
                         ==
               ==
+    %:  cold  %query
+              ;~  plug  whitespace
+                        ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
+                        ==
+              ==
     %:  cold  %revoke
               ;~(plug whitespace (jester 'revoke'))
               ==
@@ -1267,14 +1272,25 @@
                                     ~|  "query parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
-                                        %-  parse-query
-                                              [[1 1] q.q.command-nail]
+                                        ~|  "query parse nail:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                            " ..."
+                                            %-  parse-query
+                                                  [[1 1] q.q.command-nail]
+                                ?~  q.nail
+                                  ~|  "query parse miss:  ".
+                                      "{<`tape`(scag 100 q.q.command-nail)>}".
+                                      " ..."
+                                      !!
                                 [(wonk nail) nail]
       ~|  "query parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
+      =/  produced
+            ~|  "query produce entered"
+                (produce-query ~ parsed)
           %=  $
             script    q.q.u.+3.q:nail
-            commands  [(produce-query ~ parsed) commands]
+            commands  [produced commands]
           ==
     %revoke
       =/  [parsed=* nail=edge]  |-
@@ -1703,122 +1719,45 @@
             ==
 ++  parse-insert  ~+
   ;~  plug
-    ;~  pose
-      ;~  plug
-        ;~(pfix whitespace parse-qualified-table)
-        parse-as-of
-        ;~  pose
-          ;~(plug face-list ;~(pfix whitespace (jester 'values')))
-          ;~(pfix whitespace (jester 'values'))
-          ==
-        ;~  pfix
-          whitespace
-          (more whitespace (ifix [pal par] (more com parse-insert-value)))
-          ==
-      ==
-      ;~  plug
-        ;~(pfix whitespace parse-qualified-table)
-        ;~  pose
-          ;~(plug face-list ;~(pfix whitespace (jester 'values')))
-          ;~(pfix whitespace (jester 'values'))
-          ==
-        ;~  pfix
-          whitespace
-          (more whitespace (ifix [pal par] (more com parse-insert-value)))
-          ==
-      ==
+    ;~  plug
+      ;~(pfix whitespace parse-qualified-table)
+      ;~(pose parse-as-of (easy ~))
+      ;~  pose
+        ;~(plug face-list ;~(pfix whitespace (jester 'values')))
+        ;~(pfix whitespace (jester 'values'))
+        ==
+      ;~  pfix
+        whitespace
+        (more whitespace (ifix [pal par] (more com parse-insert-value)))
+        ==
     ==
     end-or-next-command
   ==
 ++  parse-query  ~+
   ;~  pose
-    parse-query01
-    parse-query02
-    parse-query03
-    parse-query04
-    parse-query05
-    parse-query06
-    parse-query07
-    parse-query08
-    parse-query09
+    parse-from-query
     parse-query10
   ==
-++  parse-query01  ~+
+++  parse-from-query  ~+
   ;~  plug
     parse-object-and-joins
     ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
-    parse-group-by
+    ;~  pose
+      ;~  pfix
+        whitespace
+        ~|  "query where parse: parse-from-query"
+          ;~(plug (cold %where (jester 'where')) parse-predicate)
+      ==
+      (easy ~)
+    ==
+    ;~(pose parse-group-by (easy ~))
     parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query02  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
-    parse-group-by
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query03  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
-    parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query04  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    ;~(pfix whitespace ;~(plug (cold %where (jester 'where')) parse-predicate))
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query05  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query06  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query07  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-group-by
-    parse-select
-    parse-order-by
-    end-or-next-command
-  ==
-++  parse-query08  ~+
-  ;~  plug
-    parse-object-and-joins
-    ;~(pose parse-scalars (easy ~)) :: this makes scalars definition optional
-    parse-group-by
-    parse-select
-    end-or-next-command
-  ==
-++  parse-query09  ~+
-  ;~  plug
-    parse-object-and-joins
-    parse-select
+    ;~(pose parse-order-by (easy ~))
     end-or-next-command
   ==
 ++  parse-query10  ~+
   ;~  plug
+    ;~(pose parse-scalars (easy ~))
     parse-select
     end-or-next-command
   ==
@@ -2042,9 +1981,9 @@
         (jest '=')
         ;~  pfix
             whitespace
-            ;~  pose  parse-qualified-column
+            ;~  pose  (cold %default (jester 'default'))
+                      parse-qualified-column
                       parse-value-literal
-                      (cold %default (jester 'default'))
                       ==
             ==
         ==
@@ -2235,6 +2174,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>-.a))
                               ~
+                              *(map @tas scalar-function:ast)
                               cte-map
                               cte-col-map
                               ==
@@ -2249,6 +2189,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>+<.a))
                               ~
+                              *(map @tas scalar-function:ast)
                               cte-map
                               cte-col-map
                               ==
@@ -2263,6 +2204,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>+<.a))
                               ~
+                              *(map @tas scalar-function:ast)
                               cte-map
                               cte-col-map
                               ==
@@ -2277,12 +2219,13 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>+<.a))
                               ~
+                              *(map @tas scalar-function:ast)
                               cte-map
                               cte-col-map
                               ==
                         -.a
                     ==
-  !!
+  ~|('produced delete {<a>}' !!)
 ::
 ++  qualify-predicate
   |=  [p=predicate:ast =qualified-table:ast]
@@ -2308,6 +2251,20 @@
   =/  table  -<.a
   =/  c      ->.a
   ::
+  ?:  ?=([~ %values *] c)            :: insert rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    ~
+                    [%data +>.c]
+                    ==
+  ?:  ?=([~ [* %values] *] c)        :: insert column names rows
+    %:  insert:ast  %insert
+                    table
+                    ~
+                    `+<-.c
+                    [%data +>.c]
+                    ==
   ?:  ?=([[%as-of %now] %values *] c)  :: insert rows as of now
     %:  insert:ast  %insert
                     table
@@ -2349,20 +2306,6 @@
                     [~ [%as-of-offset ->-.c ->+<.c]]
                     `+<-.c
                     [%data +>.c]
-                    ==
-  ?:  ?=([%values *] c)            :: insert rows
-    %:  insert:ast  %insert
-                    table
-                    ~
-                    ~
-                    [%data +.c]
-                    ==
-  ?:  ?=([[* %values] *] c)        :: insert column names rows
-    %:  insert:ast  %insert
-                    table
-                    ~
-                    `-<.c
-                    [%data +.c]
                     ==
   ~|("Cannot parse insert {<a>}" !!)
 ++  produce-matching-profile
@@ -2562,9 +2505,11 @@
   =/  select     *(unit select:ast)
   =/  order-by   *(list ordering-column:ast)
   =/  alias-map    *(map @t qualified-table:ast)
+  =/  scalar-map   *(map @tas scalar-function:ast)
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
   |-
+  ~|  "make-query a: {<a>}"
   ?~  a  ~|("cannot parse query  {<a>}" !!)
   =.  alias-map  ?~   alias-map
                    ?~   from  ~
@@ -2588,31 +2533,56 @@
           `(finalize-predicates (need from) alias-map cte-map cte-col-map)
         scalars
         ?~  predicate  ~
-          (finalize-predicate predicate alias-map cte-map cte-col-map)
+          %:  finalize-predicate  predicate
+                                  alias-map
+                                  scalar-map
+                                  cte-map
+                                  cte-col-map
+                                  ==
         group-by
         having
         (need select)
         order-by
         ==
   ?:  =(-<.a %scalars)
-    $(a +.a, scalars (produce-scalars -.a alias-map cte-map cte-col-map))
+    =/  produced-scalars  (produce-scalars -.a alias-map cte-map cte-col-map)
+    %=  $
+      a        +.a
+      scalars   produced-scalars
+      scalar-map  (mk-scalar-map produced-scalars)
+    ==
   ?:  =(-<.a %where)        %=  $
                               a          +.a
                               predicate  %-  produce-predicate
                                              (predicate-list ->.a)
                             ==
   ?:  =(-<.a %select)
-    $(a +.a, select `(produce-select ->.a from alias-map cte-map cte-col-map))
+    ~|  "make-query produce-select: {<->.a>}"
+    $(a +.a, select `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map))
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
-  ?:  =(-<-.a %qualified-table)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-.a %query-row)   $(a +.a, from `(produce-from -.a))
-  ?:  =(-<-<.a %qualified-table)  $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-.a %qualified-table)
+    ~|  "make-query produce-from qualified-table: {<-.a>}"
+    =/  f  (produce-from -.a)
+    =.  f
+      ?.  ?&  ?=(qualified-table:ast relation.f)
+              (~(has by cte-map) name.relation.f)
+              ==
+        f
+      f(relation [%cte-name name.relation.f])
+    $(a +.a, from `f)
+  ?:  =(-<-.a %query-row)
+    ~|  "make-query produce-from query-row: {<-.a>}"
+    $(a +.a, from `(produce-from -.a))
+  ?:  =(-<-<.a %qualified-table)
+    ~|  "make-query produce-from nested qualified-table: {<-.a>}"
+    $(a +.a, from `(produce-from -.a))
   ~|("cannot parse query  {<a>}" !!)
 ++  produce-query
   |=  [ctes=(list cte:ast) a=*]
   ~+
   ^-  selection:ast
+  ~|  "produce-query a: {<a>}"
   (selection:ast %selection ctes [(make-query ctes a) ~ ~])
 ::
 ++  produce-from
@@ -2812,17 +2782,29 @@
   =/  finalized-joins
     %+  turn  joins.f
     |=  j=joined-relation:ast
-    ?~  predicate.j  j
+    =/  rel=relation:ast
+      ?:  ?&  ?=(qualified-table:ast relation.j)
+              (~(has by cte-map) name.relation.j)
+          ==
+        [%cte-name name.relation.j]
+      relation.j
+    ?~  predicate.j
+      j(relation rel)
     :*  %joined-relation
-          join.j
-          relation.j
+          join-type.j
+          rel
           as-of.j
-          (finalize-predicate predicate.j alias-map cte-map cte-col-map)
+          %:  finalize-predicate  predicate.j
+                                  alias-map
+                                  *(map @tas scalar-function:ast)
+                                  cte-map
+                                  cte-col-map
+                                  ==
           ==
   [%from relation.f as-of.f finalized-joins]
 +$  alias-maps
   $:  table=(map @t qualified-table:ast)
-      scalar=(map @t scalar-function:ast)
+      scalar=(map @tas scalar-function:ast)
       cte=(map @tas @tas)
       cte-col=(map @tas (set @tas))
       ==
@@ -2840,6 +2822,7 @@
   ?:  ?=(dime cooked-param)
     cooked-param
   ?:  ?=(qualified-column:ast cooked-param)  cooked-param
+  ?:  ?=(cte-column:ast cooked-param)  cooked-param
   ?.  ?=(unqualified-column:ast cooked-param)  !!
   =/  maybe-table
         ?~  alias.cooked-param  ~
@@ -2862,40 +2845,63 @@
       [%cte-column (need maybe-cte) name.cooked-param]
     [%scalar-name name.cooked-param]
   [%qualified-column (need maybe-table) column=name.cooked-param alias=~]
+::  finalize a scalar-node helper into a scalar-node
+++  finalize-scalar-node
+  |=  [cooked-node=scalar-node-helper aliases=alias-maps]
+  ^-  scalar-node:ast
+  ?:  ?=(scalar-param cooked-node)
+    (finalize-scalar-param cooked-node aliases)
+  %^  produce-scalar-fn  -.cooked-node
+                         +.cooked-node
+                         aliases
 ++  finalize-if
   |=  [cooked-if=if-then-else-helper aliases=alias-maps]
   ^-  if-then-else:ast
+  =/  finalized-predicate
+    %:  finalize-predicate  if.cooked-if
+                            table.aliases
+                            scalar.aliases
+                            cte.aliases
+                            cte-col.aliases
+                            ==
   =/  finalized-then
-    (finalize-scalar-param then.cooked-if aliases)
+    (finalize-scalar-node then.cooked-if aliases)
   =/  finalized-else
-    (finalize-scalar-param else.cooked-if aliases)
-  [%if-then-else if.cooked-if finalized-then finalized-else]
+    (finalize-scalar-node else.cooked-if aliases)
+  [%if-then-else finalized-predicate finalized-then finalized-else]
 ++  finalize-case
   |=  [cooked-case=case-helper aliases=alias-maps]
   ^-  case:ast
   =/  finalized-target
     ?~  target.cooked-case
       ~
-    (some (finalize-scalar-param (need target.cooked-case) aliases))
+    (some (finalize-scalar-node (need target.cooked-case) aliases))
   =/  finalized-cases 
     |-
     ^-  (list case-when-then:ast)
     ?~  cases.cooked-case
       ~
+    =/  cwt=case-when-then-helper  i.cases.cooked-case
+    =/  when-cwt  when.cwt
     =/  finalized-when  
-      ?:  ?=(scalar-param when.i.cases.cooked-case)
-        (finalize-scalar-param when.i.cases.cooked-case aliases)
-      when.i.cases.cooked-case
+      ?:  ?=(scalar-node-helper when-cwt)
+        (finalize-scalar-node when-cwt aliases)
+      %:  finalize-predicate  when-cwt
+                              table.aliases
+                              scalar.aliases
+                              cte.aliases
+                              cte-col.aliases
+                              ==
     =/  finalized-case-when-then
       :+  %case-when-then
           finalized-when
-          (finalize-scalar-param then.i.cases.cooked-case aliases)
+          (finalize-scalar-node then.cwt aliases)
     [finalized-case-when-then $(cases.cooked-case t.cases.cooked-case)]
   =/  finalized-else
     %+  biff
       else.cooked-case
-    |=  else=scalar-param
-    (some (finalize-scalar-param else aliases))
+    |=  else=scalar-node-helper
+    (some (finalize-scalar-node else aliases))
   [%case finalized-target finalized-cases finalized-else]
 ++  finalize-coalesce
   |=  [cooked-coalesce=coalesce-helper aliases=alias-maps]
@@ -2903,8 +2909,8 @@
   =/  finalized-data
     %+  turn
       data.cooked-coalesce
-      |=  param=scalar-param
-      (finalize-scalar-param param aliases)
+      |=  param=scalar-node-helper
+      (finalize-scalar-node param aliases)
   :-  %coalesce
       finalized-data
 ++  produce-scalar-fn
@@ -2936,7 +2942,7 @@
           ==
   ^-  (list scalar:ast)
   =/  scalars  +.raw-scalars
-  =/  scalar-map  *(map @t scalar-function:ast)
+  =/  scalar-map  *(map @tas scalar-function:ast)
   =/  finalized-scalars
     ~|  "produce-scalars: no scalars found: {<raw-scalars>}"
     |-
@@ -2944,8 +2950,10 @@
     ?~  scalars
       ~
     =/  parsed-scalar  -.scalars
-    =/  scalar-name  ?:  ?=(@tas -.parsed-scalar)  -.parsed-scalar
-                     ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
+    =/  scalar-name=@tas
+          ?@  -.parsed-scalar
+            `@tas`-.parsed-scalar
+          ~|("can't cast {<-.parsed-scalar>} to @tas" !!)
     =/  fn-name  (@tas +<.parsed-scalar)
     =/  raw-body  +>.parsed-scalar
     ?:  (~(has by scalar-map) scalar-name)
@@ -2964,6 +2972,7 @@
 ++  finalize-predicate
   |=  $:  p=predicate:ast
           alias-map=(map @t qualified-table:ast)
+          scalar-map=(map @tas scalar-function:ast)
           cte-map=(map @tas @tas)
           cte-col-map=(map @tas (set @tas))
           ==
@@ -2972,11 +2981,18 @@
   ::
   |-
   ?~  p  ~
-  p(n (finalize-leaf n.p alias-map cte-map cte-col-map), l $(p l.p), r $(p r.p))
+  =/  final-leaf  %:  finalize-leaf  n.p
+                                     alias-map
+                                     scalar-map
+                                     cte-map
+                                     cte-col-map
+                                     ==
+  p(n final-leaf, l $(p l.p), r $(p r.p))
 ::
 ++  finalize-leaf
   |=  $:  a=predicate-component:ast
           alias-map=(map @t qualified-table:ast)
+          scalar-map=(map @tas scalar-function:ast)
           cte-map=(map @tas @tas)
           cte-col-map=(map @tas (set @tas))
           ==
@@ -2989,7 +3005,9 @@
       a
     unqualified-column:ast
       ?~  alias.a
-        a
+        ?~  (~(get by scalar-map) name.a)
+          a
+        [%scalar-name name.a]
       ::  alias.column: look up alias in alias-map, then cte-map
       =/  maybe-table  (~(get by alias-map) (fold-key (need alias.a)))
       ?~  maybe-table
@@ -3050,7 +3068,7 @@
   ^-  (map @t qualified-table:ast)
   =/  n  (mk-alias-map-joins ~ joins.f)
   ?.  ?=(qualified-table:ast relation.f)
-    ~|("not implemented {<relation.f>}" !!)
+    n
   ?~  alias.relation.f
     n
   %+  ~(put by n)  (fold-key (need alias.relation.f))
@@ -3104,15 +3122,43 @@
         selected  t.selected
         cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
       ==
+    ?:  ?=(selected-cte-column:ast sc)
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
+      ==
+    ?:  ?=(selected-scalar:ast sc)
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key ?~(alias.sc name.sc (need alias.sc))))
+      ==
     ?:  ?=(selected-aggregate:ast sc)
       ~|("mk-cte-col-map: selected-aggregate not implemented" !!)
     ?:  ?=(selected-value:ast sc)
-      ~|("mk-cte-col-map: selected-value not implemented" !!)
+      ?~  alias.sc
+        %=  $
+          selected  t.selected
+        ==
+      %=  $
+        selected  t.selected
+        cols  (~(put in cols) (fold-key (need alias.sc)))
+      ==
     ~   :: selected-all or selected-all-table: wildcard, skip column validation
   %=  $
     ctes    t.ctes
     result  ?~  maybe-col-set  result
             (~(put by result) (fold-key name.c) (need maybe-col-set))
+  ==
+::
+++  mk-scalar-map
+  |=  scalars=(list scalar:ast)
+  ^-  (map @tas scalar-function:ast)
+  =/  result  *(map @tas scalar-function:ast)
+  |-
+  ?~  scalars  result
+  %=  $
+    scalars  t.scalars
+    result   (~(put by result) name.i.scalars f.i.scalars)
   ==
 ::
 ++  mk-obj-name-map
@@ -3148,6 +3194,7 @@
   |=  $:  a=*
           f=(unit from:ast)
           alias-map=(map @t qualified-table:ast)
+          scalar-map=(map @tas scalar-function:ast)
           cte-map=(map @tas @tas)
           cte-col-map=(map @tas (set @tas))
           ==
@@ -3234,6 +3281,11 @@
       =/  uqc  ;;(unqualified-column:ast -<.a)
       =/  as-alias  ->+.a
       ?~  alias.uqc
+        ?:  (~(has by scalar-map) name.uqc)
+          %=  $
+            columns  [[%selected-scalar name.uqc `as-alias] columns]
+            a  +.a
+          ==
         ::  bare column with AS alias
         %=  $
           columns  [[%unqualified-column name.uqc `as-alias] columns]
@@ -3251,12 +3303,15 @@
                       [%qualified-table ~ default-database 'dbo' tbl ~]
                       name.uqc
                       `as-alias
-                =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+                =/  maybe-col-set
+                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
                 ?:  ?&  ?=(^ maybe-col-set)
                         !(~(has in (need maybe-col-set)) (fold-key name.uqc))
                         ==
-                  ~|  "column {<name.uqc>} is not produced by CTE {<(need maybe-cte)>}"  !!
-                [%cte-column (need maybe-cte) name.uqc]
+                  ~|  "column {<name.uqc>} is not produced by CTE ".
+                      "{<(need maybe-cte)>}"
+                      !!
+                [%selected-cte-column (need maybe-cte) name.uqc `as-alias]
               :^  %qualified-column
                   (need resolved)
                   name.uqc
@@ -3289,6 +3344,8 @@
     ?:  ?=(unqualified-column:ast -.a)
       =/  uqc  ;;(unqualified-column:ast -.a)
       ?~  alias.uqc
+        ?:  (~(has by scalar-map) name.uqc)
+          $(columns [[%selected-scalar name.uqc ~] columns], a +.a)
         $(columns [uqc columns], a +.a)
       ::  table.column: resolve table alias, then cte-map
       =/  tbl  (need alias.uqc)
@@ -3302,12 +3359,15 @@
                       [%qualified-table ~ default-database 'dbo' tbl ~]
                       name.uqc
                       ~
-                =/  maybe-col-set  (~(get by cte-col-map) (fold-key (need maybe-cte)))
+                =/  maybe-col-set
+                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
                 ?:  ?&  ?=(^ maybe-col-set)
                         !(~(has in (need maybe-col-set)) (fold-key name.uqc))
                         ==
-                  ~|  "column {<name.uqc>} is not produced by CTE {<(need maybe-cte)>}"  !!
-                [%cte-column (need maybe-cte) name.uqc]
+                  ~|  "column {<name.uqc>} is not produced by CTE ".
+                      "{<(need maybe-cte)>}"
+                      !!
+                [%selected-cte-column (need maybe-cte) name.uqc ~]
               :^  %qualified-column
                   (need resolved)
                   name.uqc
@@ -3363,7 +3423,7 @@
         ~
         (produce-column-sets table +>-.b)
         %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ cte-map cte-col-map)
+            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
             table
         ==
   ?:  ?=([[%as-of @ @] %set * *] b)
@@ -3373,7 +3433,7 @@
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
                     %+  qualify-predicate
-                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ cte-map cte-col-map)
+                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
                         table
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
@@ -3383,7 +3443,7 @@
         [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
         (produce-column-sets table +>-.b)
         %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ cte-map cte-col-map)
+            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
             table
         ==
   :*  %update
@@ -3392,7 +3452,7 @@
       ~
       (produce-column-sets table +<.b)
       %+  qualify-predicate
-          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ cte-map cte-col-map)
+          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
           table
       ==
 ::
@@ -3662,13 +3722,13 @@
                         ==
               ==
     ;~(pose ;~(pfix sig crub-no-text) crub-no-text)  :: @da, @dr, @p
-    (stag %f ;~(pose (cold & (jester 'y')) (cold | (jester 'n'))))  :: @if
+    (stag %f parse-loobean-literal)                                   :: @f
     (stag %is ;~(pfix (just '.') bip:ag))            :: @is
     (stag %if ;~(pfix (just '.') lip:ag))            :: @if
   ==
 ++  sear-numbers  ~+                               :: works for predicate values
   |=  a=(list @t)
-  =/  parsed  (numeric-parser [[1 1] a])      :: to do: this is inside-out
+  =/  parsed  (numeric-parser [[1 1] a])
   ?~  q.parsed  ~
   (some (wonk parsed))
 ++  sear-ud  ~+                                    :: only accepts @ud results
@@ -3678,7 +3738,7 @@
   =/  result  (wonk parsed)
   ?.  ?=([%ud @] result)  ~
   (some result)
-++  numeric-characters  ~+       ::to do:  likely source of slow parse, rewrite?
+++  numeric-characters  ~+
   ::  including base-64 characters
   %-  star  ;~  pose  (shim 48 57)
                       (shim 65 90)
@@ -3691,12 +3751,21 @@
                       tis
                       ==
 ++  parse-value-literal  ~+
-  ;~  pose  non-numeric-parser    :: \/ to do: this is inside-out
+  ;~  pose  non-numeric-parser
             (sear sear-numbers numeric-characters)        :: all numeric parsers
             ==
-++  insert-value  ~+
+++  insert-value-literal-leading-char
+  |=  a=@
+  ^-  ?
+  ?|  =('\'' a)
+      =('~' a)
+      =('.' a)
+      =('-' a)
+      &((gte a '0') (lte a '9'))
+  ==
+++  insert-value-default
   ;~  pose
-    (cold %default (jester 'default'))  :: \/ to do: inside-out
+    (cold %default (jester 'default'))
     ;~  pose  non-numeric-parser
               %+  cook  |=  a=(list @t)
                             ~|  "error on numeric parser {<a>} "
@@ -3704,6 +3773,16 @@
                         numeric-characters
               ==
   ==
+++  insert-value  ~+
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  ?~  q.rest
+    (insert-value-default tub)
+  ?:  (insert-value-literal-leading-char i.q.rest)
+    (parse-value-literal rest)
+  (insert-value-default rest)
 ++  get-value-literal  ~+
   ;~(sfix ;~(pfix whitespace parse-value-literal) whitespace)
 ++  cook-literal-list
@@ -3732,14 +3811,14 @@
               (ifix [pal par] (more com get-value-literal))
               ==
             ==
+++  parse-insert-value-core  ~+
+  ;~(sfix insert-value whitespace)
 ++  parse-insert-value  ~+
   ;~  pose
-    ;~(pfix whitespace ;~(sfix insert-value whitespace))
-    ;~(pfix whitespace insert-value)
-    ;~(sfix insert-value whitespace)
+    parse-insert-value-core
     insert-value
   ==
-::
+::  
 ::  used for various commands
 ::
 ++  cook-column
@@ -3760,6 +3839,7 @@
 ++  cook-referential-integrity
   |=  a=*
   ?:  ?=([[@ @] @ @] [a])                  :: <type> cascade, <type> cascade
+    ~|  "cook-referential-integrity {<a>}"
     ?:  =(%delete -<.a)
       ?:  =(%update +<.a)
         ~[%delete-cascade %update-cascade]
@@ -3788,6 +3868,15 @@
   %+  cook
     |=(a=tape (rap 3 ^-((list ,@) a)))
   ;~(plug alf (star ;~(pose nud alf hep)))
+++  sear-loobean  ~+
+  |=  a=@t
+  ^-  (unit ?)
+  =/  normalized=@t  (crip (cass (trip a)))
+  ?:  =(normalized 'y')  `&
+  ?:  =(normalized 'n')  `|
+  ~
+++  parse-loobean-literal  ~+
+  (sear sear-loobean mixed-case-symbol)
 ++  parse-alias  ~+  ;~(pfix whitespace alias)
 ++  parse-face  ~+  ;~(pfix whitespace sym)
 ++  face-list  ~+
@@ -3954,15 +4043,33 @@
     face-list
   ==
 ::
+++  literal-leading-char
+  |=  a=@
+  ^-  ?
+  ?|  =('\'' a)
+      =('.' a)
+      =('-' a)
+      &((gte a '0') (lte a '9'))
+  ==
+++  parse-scalar-param-default
+  ;~  pose
+    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
+    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
+  ==
 ++  parse-scalar-param  ~+
   :: this version of parse-scalar-param sidesteps the unknown column/cte issue
   :: in qualified columns by parsing qualifiers into their own types
   :: <lowercase-name> unqualified-column
   :: <mixedcase-name> alias
-  ;~  pose
-    ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
-    ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
-  ==
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  ?~  q.rest
+    (parse-scalar-param-default tub)
+  ?:  (literal-leading-char i.q.rest)
+    (parse-value-literal rest)
+  (parse-scalar-param-default tub)
 ++  parse-cord-param  ~+
   ::  accepts column ref or single-quoted cord literal only
   ;~  pose
@@ -4004,11 +4111,30 @@
       (sear sear-numbers numeric-characters)
     ==
   ==
-++  parse-datum-for-predicate  ~+
+++  predicate-literal-leading-char
+  |=  a=@
+  ^-  ?
+  ?|  =('\'' a)
+      =('.' a)
+      =('-' a)
+      &((gte a '0') (lte a '9'))
+  ==
+++  parse-datum-for-predicate-default
   ;~  pose
     ;~(pose ;~(pfix whitespace parse-qualified-column) parse-qualified-column)
     ;~(pose ;~(pfix whitespace parse-value-literal) parse-value-literal)
   ==
+++  parse-datum-for-predicate  ~+
+  ~|  "parse-datum-for-predicate"
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  ?~  q.rest
+    (parse-datum-for-predicate-default tub)
+  ?:  (predicate-literal-leading-char i.q.rest)
+    (parse-value-literal rest)
+  (parse-datum-for-predicate-default tub)
 ++  cook-aggregate
   |=  parsed=*
   [%aggregate -.parsed +.parsed]
@@ -4490,9 +4616,9 @@
     ;~(plug whitespace (jester 'select') whitespace)
     ;~(plug whitespace (jester 'as') whitespace)
     ;~(plug whitespace (jester 'join') whitespace)
-    ;~(plug whitespace (jester 'left') whitespace)
-    ;~(plug whitespace (jester 'right') whitespace)
-    ;~(plug whitespace (jester 'outer') whitespace)
+    ;~(plug whitespace (jester 'left') whitespace (jester 'join') whitespace)
+    ;~(plug whitespace (jester 'right') whitespace (jester 'join') whitespace)
+    ;~(plug whitespace (jester 'outer') whitespace (jester 'join') whitespace)
     ;~(plug whitespace (jester 'then') whitespace)
     ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
   ==
@@ -4728,8 +4854,8 @@
 ::
 ++  finalize-param
   |=  [raw=* aliases=alias-maps]
-  ^-  datum:ast
-  (finalize-scalar-param (cook-scalar-param raw) aliases)
+  ^-  scalar-node:ast
+  (finalize-scalar-node (cook-scalar-node raw) aliases)
 ::
 ++  parse-no-params
   |*  [a=*]
@@ -4968,7 +5094,9 @@
                         (some [q q])
     ?:  =(%three-param param-count)
       :+  %quotestring  (finalize-param -.raw-scalar-body aliases)
-                        (some [(finalize-param +<.raw-scalar-body aliases) (finalize-param +>.raw-scalar-body aliases)])
+                        %-  some
+                              :-  (finalize-param +<.raw-scalar-body aliases)
+                                  (finalize-param +>.raw-scalar-body aliases)
     ~|("QUOTESTRING requires 1, 2, or 3 parameters" !!)
   ?:  =(%string fn-name)
     [%string (finalize-param raw-scalar-body aliases)]
@@ -4985,249 +5113,154 @@
     ==
   ~|("unknown builtin scalar fn {<fn-name>}" !!)
 :: TODO: replace params with parse-scalar-param
-++  parse-builtin-scalar-fn
-  %+  stag
-    %builtin-fn
-    ;~  pose
-      ;~  plug
-        (cold %getutcdate (jester %getutcdate))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %day (jester %day))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %month (jester %month))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %year (jester %year))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %abs (jester %abs))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %floor (jester %floor))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %ceiling (jester %ceiling))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %sign (jester %sign))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %sqrt (jester %sqrt))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %e (jester %e))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %phi (jester %phi))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %pi (jester %pi))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %tau (jester %tau))
-        (stag %no-params (parse-no-params ~))
-      ==
-      ;~  plug
-        (cold %max (jester %max))
+++  parse-builtin-scalar-name
+  ;~  pose
+    (cold %getutcdate (jester %getutcdate))
+    (cold %degrees (jester %degrees))
+    (cold %ceiling (jester %ceiling))
+    (cold %substring (jester %substring))
+    (cold %replicate (jester %replicate))
+    (cold %quotestring (jester %quotestring))
+    (cold %string-concat (jester 'string-concat'))
+    (cold %patindex (jester %patindex))
+    (cold %replace (jester %replace))
+    (cold %reverse (jester %reverse))
+    (cold %atan2 (jester %atan2))
+    (cold %floor (jester %floor))
+    (cold %month (jester %month))
+    (cold %right (jester %right))
+    (cold %round (jester %round))
+    (cold %lower (jester %lower))
+    (cold %upper (jester %upper))
+    (cold %ltrim (jester %ltrim))
+    (cold %rtrim (jester %rtrim))
+    (cold %stuff (jester %stuff))
+    (cold %concat (jester %concat))
+    (cold %string (jester %string))
+    (cold %sign (jester %sign))
+    (cold %sqrt (jester %sqrt))
+    (cold %left (jester %left))
+    (cold %trim (jester %trim))
+    (cold %year (jester %year))
+    (cold %asin (jester %asin))
+    (cold %acos (jester %acos))
+    (cold %atan (jester %atan))
+    (cold %rand (jester %rand))
+    (cold %len (jester %len))
+    (cold %log (jester %log))
+    (cold %day (jester %day))
+    (cold %abs (jester %abs))
+    (cold %max (jester %max))
+    (cold %min (jester %min))
+    (cold %sin (jester %sin))
+    (cold %cos (jester %cos))
+    (cold %tan (jester %tan))
+    (cold %phi (jester %phi))
+    (cold %tau (jester %tau))
+    (cold %pi (jester %pi))
+    (cold %e (jester %e))
+  ==
+++  parse-builtin-scalar-params
+  |=  [fn-name=@tas tub=nail]
+  ^-  (like *)
+  =/  scalar-one-param  (stag %one-param (parse-one-param parse-scalar-node))
+  =/  scalar-two-param
         %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %min (jester %min))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %rand (jester %rand))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %degrees (jester %degrees))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %sin (jester %sin))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %cos (jester %cos))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %tan (jester %tan))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %asin (jester %asin))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %acos (jester %acos))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %atan (jester %atan))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %atan2 (jester %atan2))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %len (jester %len))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %log (jester %log))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %log (jester %log))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %trim (jester %trim))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %trim (jester %trim))
-        (stag %one-param (parse-one-param parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %round (jester %round))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %left (jester %left))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %right (jester %right))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %substring (jester %substring))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-scalar-param
-                                          parse-scalar-param
-                                          parse-scalar-param
-      ==
-      ;~  plug
-        (cold %substring (jester %substring))
-        %+  stag  %two-param
-                  (parse-two-params parse-scalar-param parse-scalar-param)
-      ==
-      ;~  plug
-        (cold %concat (jester %concat))
-        (stag %n-params (parse-n-params parse-scalar-param))
-      ==
-      ;~  plug
-        (cold %lower (jester %lower))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %upper (jester %upper))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %reverse (jester %reverse))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %ltrim (jester %ltrim))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %ltrim (jester %ltrim))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %rtrim (jester %rtrim))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %rtrim (jester %rtrim))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %patindex (jester %patindex))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %replace (jester %replace))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-cord-param
-                                          parse-cord-param
-                                          parse-cord-param
-      ==
-      ;~  plug
-        (cold %replicate (jester %replicate))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-ud-param)
-      ==
-      ;~  plug
-        (cold %stuff (jester %stuff))
-        %+  stag  %four-param
-          %:  parse-four-params  parse-cord-param
-                                 parse-ud-param
-                                 parse-ud-param
-                                 parse-cord-param
-          ==
-      ==
-      ;~  plug
-        (cold %quotestring (jester %quotestring))
-        %+  stag  %three-param
-                  %^  parse-three-params  parse-cord-param
-                                          parse-cord-param
-                                          parse-cord-param
-      ==
-      ;~  plug
-        (cold %quotestring (jester %quotestring))
-        %+  stag  %two-param
-                  (parse-two-params parse-cord-param parse-cord-param)
-      ==
-      ;~  plug
-        (cold %quotestring (jester %quotestring))
-        (stag %one-param (parse-one-param parse-cord-param))
-      ==
-      ;~  plug
-        (cold %string (jester %string))
-        (stag %one-param (parse-one-param parse-numeric-param))
-      ==
-      ;~  plug
-        (cold %string-concat (jester 'string-concat'))
-        (stag %n-params (parse-n-params parse-cord-param))
-      ==
+                  (parse-two-params parse-scalar-node parse-scalar-node)
+  =/  scalar-three-param
+    %+  stag  %three-param
+    %^  parse-three-params  parse-scalar-node
+                            parse-scalar-node
+                            parse-scalar-node
+  =/  cord-one-param  (stag %one-param (parse-one-param parse-scalar-node))
+  =/  cord-two-param
+        (stag %two-param (parse-two-params parse-scalar-node parse-scalar-node))
+  =/  cord-three-param
+    %+  stag  %three-param
+    %^  parse-three-params  parse-scalar-node
+                            parse-scalar-node
+                            parse-scalar-node
+  =/  cord-four-param
+    %+  stag  %four-param
+    %:  parse-four-params  parse-scalar-node
+                           parse-scalar-node
+                           parse-scalar-node
+                           parse-scalar-node
     ==
+  =/  scalar-one-or-two  ;~(pose scalar-two-param scalar-one-param)
+  =/  cord-one-or-two    ;~(pose cord-two-param cord-one-param)
+  =/  cord-one-two-or-three
+    ;~(pose cord-three-param cord-two-param cord-one-param)
+  ?+  fn-name
+    (fail tub)
+    %getutcdate  ((stag %no-params (parse-no-params ~)) tub)
+    %e           ((stag %no-params (parse-no-params ~)) tub)
+    %phi         ((stag %no-params (parse-no-params ~)) tub)
+    %pi          ((stag %no-params (parse-no-params ~)) tub)
+    %tau         ((stag %no-params (parse-no-params ~)) tub)
+    %day         (scalar-one-param tub)
+    %month       (scalar-one-param tub)
+    %year        (scalar-one-param tub)
+    %abs         (scalar-one-param tub)
+    %floor       (scalar-one-param tub)
+    %ceiling     (scalar-one-param tub)
+    %sign        (scalar-one-param tub)
+    %sqrt        (scalar-one-param tub)
+    %degrees     (scalar-one-param tub)
+    %sin         (scalar-one-param tub)
+    %cos         (scalar-one-param tub)
+    %tan         (scalar-one-param tub)
+    %asin        (scalar-one-param tub)
+    %acos        (scalar-one-param tub)
+    %atan        (scalar-one-param tub)
+    %len         (scalar-one-param tub)
+    %lower       (cord-one-param tub)
+    %upper       (cord-one-param tub)
+    %reverse     (cord-one-param tub)
+    %string      (scalar-one-param tub)
+    %max         (scalar-two-param tub)
+    %min         (scalar-two-param tub)
+    %rand        (scalar-two-param tub)
+    %atan2       (scalar-two-param tub)
+    %round       (scalar-two-param tub)
+    %left        (scalar-two-param tub)
+    %right       (scalar-two-param tub)
+    %log         (scalar-one-or-two tub)
+    %trim        (scalar-one-or-two tub)
+    %substring   (;~(pose scalar-three-param scalar-two-param) tub)
+    %concat      ((stag %n-params (parse-n-params parse-scalar-node)) tub)
+    %ltrim       (cord-one-or-two tub)
+    %rtrim       (cord-one-or-two tub)
+    %patindex    (cord-two-param tub)
+    %replace     (cord-three-param tub)
+    %replicate   (scalar-two-param tub)
+    %stuff       (cord-four-param tub)
+    %quotestring  (cord-one-two-or-three tub)
+    %string-concat  ((stag %n-params (parse-n-params parse-scalar-node)) tub)
+  ==
+++  parse-builtin-scalar-fn
+  |=  tub=nail
+  ^-  (like *)
+  =/  name-result  (parse-builtin-scalar-name tub)
+  ?~  q.name-result
+    name-result
+  =/  fn-name  p.u.q.name-result
+  =/  rest  q.u.q.name-result
+  =/  params-result  (parse-builtin-scalar-params fn-name rest)
+  ?~  q.params-result
+    (fail tub)
+  =/  params  p.u.q.params-result
+  =/  tail  q.u.q.params-result
+  :*  p.params-result
+      [~ u=[p=[%builtin-fn [fn-name params]] q=tail]]
+  ==
 ::
 ++  cook-scalar-param
   |=  parsed=*
   ^-  scalar-param
   ?:  ?=(dime parsed)
+    parsed
+  ?:  ?=(cte-column:ast parsed)
     parsed
   ::  remaining cases are qualified-column or unqualified-column
   ::  from parse-qualified-column
@@ -5236,6 +5269,21 @@
   ?:  ?=([%qualified-column *] parsed)
     ;;(qualified-column:ast parsed)
   ~|("cannot cook-scalar-param  {<parsed>}" !!)
+::  scalar-node sites can take a datum-like scalar param or a nested scalar fn
+++  cook-scalar-node
+  |=  parsed=*
+  ^-  scalar-node-helper
+  ?:  ?=(scalar-param parsed)
+    parsed
+  ?:  ?=([%unqualified-column *] parsed)
+    (cook-scalar-param parsed)
+  ?:  ?=([%qualified-column *] parsed)
+    (cook-scalar-param parsed)
+  ?:  ?=(cte-column:ast parsed)
+    parsed
+  ?:  ?=(raw-scalar-fn parsed)
+    parsed
+  ~|("cannot cook-case-node  {<parsed>}" !!)
 ++  get-datum-for-predicate
   ;~  pose
     ;~(sfix parse-qualified-column whitespace)
@@ -5250,13 +5298,35 @@
     ;~(sfix parse-scalar-param whitespace)
     parse-scalar-param
   ==
+::  for scalar-node positions in scalar functions
+++  parse-scalar-node-core  ~+
+  ;~  pose
+    ;~(plug (cold %if (jester 'if')) parse-if)
+    ;~  pfix
+      (jester 'case')
+      ;~  pose
+        (stag %simple-case parse-simple-case)
+        (stag %searched-case parse-searched-case)
+      ==
+    ==
+    parse-coalesce
+    parse-standalone-builtin-scalar-fn
+    parse-builtin-scalar-fn
+    parse-scalar-param
+  ==
+++  parse-scalar-node  ~+
+  |=  tub=nail
+  ^-  (like *)
+  =/  skipped  (whitespace tub)
+  =/  rest  ?~(q.skipped tub q.u.q.skipped)
+  (parse-scalar-node-core rest)
 ++  cook-if
   |=  parsed=*
   ^-  if-then-else-helper
   =/  raw-then  +>-.parsed
-  =/  cooked-then  (cook-scalar-param raw-then)
+  =/  cooked-then  (cook-scalar-node raw-then)
   =/  raw-else  +>+>-.parsed
-  =/  cooked-else  (cook-scalar-param raw-else)
+  =/  cooked-else  (cook-scalar-node raw-else)
   :^  %if-then-else-helper
     (produce-predicate (predicate-list -.parsed))
     cooked-then
@@ -5265,45 +5335,45 @@
   ;~  plug
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    parse-scalar-param
+    parse-scalar-node
     ;~(pfix whitespace (cold %else (jester 'else')))
-    parse-scalar-param
+    parse-scalar-node
     ;~(pfix whitespace (cold %endif (jester 'endif')))
   ==
 ++  parse-when-then-datum
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
-    parse-scalar-param
+    parse-case-branch-scalar-node
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-aggregate parse-scalar-param)
+    parse-case-branch-scalar-node
   ==
 ++  parse-when-then-predicate
   ;~  plug
     ;~(pfix whitespace (cold %when (jester 'when')))
     parse-predicate
     ;~(pfix whitespace (cold %then (jester 'then')))
-    ;~(pose parse-aggregate parse-scalar-param)
+    parse-case-branch-scalar-node
   ==
 ++  parse-case-else
   ;~  plug
     ;~(pfix whitespace (cold %else (jester 'else')))
-    ;~(pfix whitespace ;~(pose parse-aggregate parse-scalar-param))
+    ;~(pfix whitespace parse-case-branch-scalar-node)
     ;~(pfix whitespace (cold %end (jester 'end')))
   ==
 ++  cook-case
   |=  parsed=*
   ~+
   =/  fn-name  -.parsed
-  =/  [cooked-target=(unit scalar-param) rest=*]
+  =/  [cooked-target=(unit scalar-node-helper) rest=*]
     ?:  =(fn-name %simple-case)
-      [(some (cook-scalar-param +<.parsed)) +>.parsed]
+      [(some (cook-scalar-node +<.parsed)) +>.parsed]
     [~ +.parsed]
   =/  cases  (cook-case-when-then-list fn-name -.rest)
-  =/  [cooked-else=(unit scalar-param) rest=*]
+  =/  [cooked-else=(unit scalar-node-helper) rest=*]
     ?@  +.rest
       [~ rest]
     ?:  =(%else +<.rest)
-      [(some (cook-scalar-param +>-.rest)) +>.rest]
+      [(some (cook-scalar-node +>-.rest)) +>.rest]
     ~|("cannot cook else: unexpected atom: {<+<.rest>}" !!)
   ?:  =(+.rest %end)
     [%case-helper cooked-target cases cooked-else]
@@ -5319,11 +5389,11 @@
   =/  raw-then  ->+>.case-when-then-list
   =/  cooked-when  
     ?:  =(case-type %simple-case)
-      (cook-scalar-param raw-when)
+      (cook-scalar-node raw-when)
     ?:  =(case-type %searched-case)
       (produce-predicate (predicate-list raw-when))
     ~|("unknown case type {<case-type>}" !!)
-  =/  cooked-then  (cook-scalar-param raw-then)
+  =/  cooked-then  (cook-scalar-node raw-then)
   =/  cooked-case-when-then
     [%case-when-then-helper cooked-when cooked-then]
   [cooked-case-when-then $(case-when-then-list +.case-when-then-list)]
@@ -5331,7 +5401,7 @@
 ++  parse-simple-case
   ::  CASE <expr> WHEN <expr> THEN <expr> [...] [ELSE <expr>]
   ;~  plug
-    parse-scalar-param
+    parse-case-branch-scalar-node
     (star parse-when-then-datum)
     ;~(pose parse-case-else ;~(pfix whitespace (cold %end (jester 'end'))))
   ==
@@ -5347,10 +5417,10 @@
   |=  parsed=*
   ^-  coalesce-helper
   =/  coalesce-params     |-
-                          ^-  (list scalar-param)
+                          ^-  (list scalar-node-helper)
                           ?~  parsed
                             ~
-                          [(cook-scalar-param -.parsed) $(parsed +.parsed)]
+                          [(cook-scalar-node -.parsed) $(parsed +.parsed)]
   ?~  coalesce-params     ~|("COALESCE requires at least 2 parameters" !!)
   ?~  t.coalesce-params   ~|("COALESCE requires at least 2 parameters" !!)
   :-  %coalesce-helper
@@ -5358,7 +5428,7 @@
 ++  parse-coalesce  ~+
   ;~  plug
     (cold %coalesce (jester %coalesce))
-    (parse-n-params ;~(pose parse-aggregate parse-scalar-param))
+    (parse-n-params parse-scalar-node)
   ==
 ::
 ++  handle-arithmetic-parens  ~+
@@ -5512,10 +5582,11 @@
   |=  [ops=* min-prec=@ud aliases=alias-maps]
   ^-  [tree=(tree $?(arithmetic-op:ast scalar-node:ast)) remaining=*]
   =/  tr=(tree $?(arithmetic-op:ast scalar-node:ast))
-    ?:  ?=(dime -.ops)
-      [-.ops ~ ~]
-    ?:  ?=([%builtin-fn [@tas *]] -.ops)
-      [(finalize-math-builtin-fn ->.ops aliases) ~ ~]
+    ?:  ?=(scalar-param -.ops)
+      [(finalize-scalar-param -.ops aliases) ~ ~]
+    ?:  ?=(raw-scalar-fn -.ops)
+      =/  raw-fn=raw-scalar-fn  -.ops
+      [(produce-scalar-fn -.raw-fn +.raw-fn aliases) ~ ~]
     =/  nested  (process-arithmetic-list -.ops 0 aliases)
     tree.nested
   |-
@@ -5524,7 +5595,7 @@
   =/  next-operator
     ?:  ?=(arithmetic-op:ast +<.ops)
       `arithmetic-op:ast`+<.ops
-    !!
+    ~|("process-arithmetic-list {<ops>}" !!)
   =/  current-op-prec  (compute-precedence next-operator)
   ?:  (gte current-op-prec min-prec)
     =/  next-min-prec  (calculate-min-precedence next-operator)
@@ -5542,7 +5613,7 @@
   =/  nested  (process-arithmetic-list ops-and-operators 0 aliases) 
   =/  op-tree  tree.nested
   ?@  op-tree
-    !!
+    ~|("process-arithmetic-list {<parsed>}" !!)
   ?:  ?=(arithmetic-op:ast n.op-tree)
     :^  %arithmetic
         n.op-tree
@@ -5550,53 +5621,114 @@
         (tree-to-arithmetic r.op-tree)
   ~|("can't do arithmetic with only a single operand: {<n.op-tree>}" !!)
 ::
-++  arithmetic-token
+++  arithmetic-token-core
   ;~  pose
-    ;~(pfix whitespace (cold %end (jester 'end')))
-    ;~(pfix whitespace ;~(plug (cold %if (jester 'if')) parse-if))
+    (cold %end (jester 'end'))
+    (cold %pal pal)
+    (cold %par par)
+    (cold %lus lus)
+    (cold %hep hep)
+    (cold %tar tar)
+    (cold %fas fas)
+    (cold %cen cen)
+    (cold %ket ket)
     ;~(plug (cold %if (jester 'if')) parse-if)
-    ;~  pfix
-      whitespace
-      ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
-    ==
-    ;~  pfix
-      whitespace
-      ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
-    ==
     ;~(plug (cold %simple-case (jester 'case')) parse-simple-case)
     ;~(plug (cold %searched-case (jester 'case')) parse-searched-case)
-    ;~(pfix whitespace parse-coalesce)
-    ;~(pfix whitespace parse-builtin-scalar-fn)
     parse-coalesce
     parse-builtin-scalar-fn
-    (cold %pal ;~(plug whitespace pal))
-    (cold %pal pal)
-    (cold %par ;~(plug whitespace par))
-    (cold %par par)
-    (cold %lus ;~(plug whitespace lus))
-    (cold %lus lus)
-    (cold %hep ;~(plug whitespace hep))
-    (cold %hep hep)
-    (cold %tar ;~(plug whitespace tar))
-    (cold %tar tar)
-    (cold %fas ;~(plug whitespace fas))
-    (cold %fas fas)
-    (cold %cen ;~(plug whitespace cen))
-    (cold %cen cen)
-    (cold %ket ;~(plug whitespace ket))
-    (cold %ket ket)
-    ;~(pfix whitespace parse-scalar-param)
     parse-scalar-param
+  ==
+++  arithmetic-token
+  ;~  pose
+    ;~(pfix whitespace arithmetic-token-core)
+    arithmetic-token-core
   ==
 ::
 ++  parse-arithmetic
   ;~  plug
-    (cold %arithmetic (jester 'begin'))
+    (easy %arithmetic)
     ;~  sfix
       %-  star
         ;~(less scalar-stop arithmetic-token)
       ;~(pfix whitespace (jester 'end'))
     ==
+  ==
+::
+++  arithmetic-continuation
+  ;~  pose
+    ;~(pfix whitespace (jester 'end'))
+    ;~(pfix whitespace lus)
+    ;~(pfix whitespace hep)
+    ;~(pfix whitespace tar)
+    ;~(pfix whitespace fas)
+    ;~(pfix whitespace ket)
+    (jester 'end')
+    lus
+    hep
+    tar
+    fas
+    ket
+  ==
+::
+++  parse-standalone-builtin-scalar-fn
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (parse-builtin-scalar-fn tub)
+  ?~  q.parsed
+    parsed
+  =/  rest  q.u.q.parsed
+  =/  continuation  (arithmetic-continuation rest)
+  ?.  ?=(^ q.continuation)
+    parsed
+  (fail tub)
+::
+++  raw-arithmetic-has-operator
+  |=  raw-body=*
+  ^-  ?
+  ?~  raw-body
+    %.n
+  ?:  ?=(arithmetic-op:ast -.raw-body)
+    %.y
+  $(raw-body +.raw-body)
+::
+++  parse-scalar-node-arithmetic
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (parse-arithmetic tub)
+  ?~  q.parsed
+    parsed
+  =/  raw-body  +.p.u.q.parsed
+  ?:  (raw-arithmetic-has-operator raw-body)
+    parsed
+  (fail tub)
+::
+++  case-scalar-stop
+  ;~  pose
+    ;~(plug whitespace (jester 'when') whitespace)
+    ;~(plug whitespace (jester 'else') whitespace)
+    ;~(plug whitespace (jester 'end') whitespace)
+  ==
+++  parse-case-branch-arithmetic
+  ;~  plug
+    (easy %arithmetic)
+    %-  star
+      ;~(less case-scalar-stop arithmetic-token)
+  ==
+++  parse-case-branch-scalar-node-arithmetic
+  |=  tub=nail
+  ^-  (like *)
+  =/  parsed  (parse-case-branch-arithmetic tub)
+  ?~  q.parsed
+    parsed
+  =/  raw-body  +.p.u.q.parsed
+  ?:  (raw-arithmetic-has-operator raw-body)
+    parsed
+  (fail tub)
+++  parse-case-branch-scalar-node
+  ;~  pose
+    parse-case-branch-scalar-node-arithmetic
+    parse-scalar-node
   ==
 ::
 ++  scalar-stop
@@ -5618,8 +5750,10 @@
       ==
     ==
     parse-coalesce
-    parse-builtin-scalar-fn
+    parse-standalone-builtin-scalar-fn
+    parse-scalar-node-arithmetic
     parse-arithmetic
+    parse-builtin-scalar-fn
   ==
 ++  scalar-body  ;~(pfix whitespace parse-scalar-body)
 ++  parse-scalar
@@ -5627,16 +5761,29 @@
       ;~(pfix whitespace sym)   :: scalar name
       scalar-body               :: scalar function invocation
   ==
+++  query-scalar-stop
+  ;~  pose
+    ;~(plug whitespace (jester 'where') whitespace)
+    ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
+    ;~(plug whitespace (jester 'select') whitespace)
+    ;~(plug whitespace (jester 'order') whitespace (jester 'by') whitespace)
+  ==
 ++  parse-scalars
   ;~  plug
       (cold %scalars ;~(pfix whitespace (jester 'scalars')))
-      (star parse-scalar)
+      %-  star
+      ;~(less query-scalar-stop parse-scalar)
     ==
 ::
 ::  select
 ::
 ++  parse-selection  ~+
   ;~  pose
+    ;~  plug
+      ;~(sfix (stag %f parse-loobean-literal) whitespace)
+      (cold %as (jester 'as'))
+      ;~(pfix whitespace alias)
+    ==
     ;~  plug
       ;~(sfix parse-selected-aggregate whitespace)
       (cold %as (jester 'as'))
@@ -5650,6 +5797,7 @@
       (cold %as (jester 'as'))
       ;~(pfix whitespace alias)
     ==
+    (stag %f parse-loobean-literal)
     ;~(pose parse-qualified-column parse-value-literal)
     (cold %all tar)
   ==
@@ -5790,30 +5938,39 @@
         @
         ==
   ==
-+$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast)
++$  raw-scalar-fn
+  $%  [%if *]
+      [%simple-case *]
+      [%searched-case *]
+      [%coalesce *]
+      [%arithmetic *]
+      [%builtin-fn *]
+      ==
++$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast cte-column:ast)
++$  scalar-node-helper  $%(scalar-param raw-scalar-fn)
 +$  coalesce-helper
   $:
     %coalesce-helper
-    data=(list scalar-param)
+    data=(list scalar-node-helper)
   ==
 +$  if-then-else-helper
   $:
     %if-then-else-helper
     if=predicate:ast
-    then=scalar-param
-    else=scalar-param
+    then=scalar-node-helper
+    else=scalar-node-helper
   ==
 +$  case-helper
   $:
     %case-helper
-    target=(unit scalar-param)
+    target=(unit scalar-node-helper)
     cases=(list case-when-then-helper)
-    else=(unit scalar-param)
+    else=(unit scalar-node-helper)
   ==
 +$  case-when-then-helper
   $:
     %case-when-then-helper
-    when=$%(scalar-param predicate:ast)
-    then=scalar-param
+    when=$%(scalar-node-helper predicate:ast)
+    then=scalar-node-helper
   ==
 --

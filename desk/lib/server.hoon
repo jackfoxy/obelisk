@@ -159,7 +159,7 @@
         cmds          t.cmds
         results  :-
                    :-  %results
-                       :~  [%message (crip "DROP DATABASE {<name.cmd>}")]
+                       :~  [%action (crip "DROP DATABASE {<name.cmd>}")]
                            [%server-time now.bowl]
                            [%message (crip "database {<name.cmd>} dropped")]
                         ==

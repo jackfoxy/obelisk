@@ -294,10 +294,10 @@
   ::
 ++  expected-db
       :~  %results
-          [%message 'SELECT'] 
+          [%action 'SELECT'] 
           [%result-set expected-db-rows]
           [%server-time ~2000.1.2]
-          [%message 'sys.sys.databases']
+          [%relation 'sys.sys.databases']
           [%schema-time ~2000.1.1]
           [%data-time ~2000.1.1]
           [%vector-count 2]
@@ -390,13 +390,13 @@
       [~2000.1.3 %sys "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'DROP DATABASE %db1']
+          :~  [%action 'DROP DATABASE %db1']
               [%server-time ~2000.1.2]
               [%message 'database %db1 dropped']
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %sys]]
@@ -408,7 +408,7 @@
                               ==
                       ==
               [%server-time ~2000.1.3]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.1]
               [%vector-count 1]
@@ -429,13 +429,13 @@
       [~2000.1.4 %sys "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'DROP DATABASE %db1']
+          :~  [%action 'DROP DATABASE %db1']
               [%server-time ~2000.1.3]
               [%message 'database %db1 dropped']
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %sys]]
@@ -455,7 +455,7 @@
                               ==
                       ==
               [%server-time ~2000.1.4]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.2]
               [%vector-count 2]
@@ -484,13 +484,13 @@
       [~2000.1.6 %db2 "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'DROP DATABASE %db1']
+          :~  [%action 'DROP DATABASE %db1']
               [%server-time ~2000.1.5]
               [%message 'database %db1 dropped']
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %sys]]
@@ -510,7 +510,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.4]
               [%vector-count 2]
@@ -535,13 +535,13 @@
       [~2000.1.6 %db2 "FROM sys.sys.databases SELECT *"]
       ::
       :-  %results
-          :~  [%message 'DROP DATABASE %db1']
+          :~  [%action 'DROP DATABASE %db1']
               [%server-time ~2000.1.5]
               [%message 'database %db1 dropped']
               ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%database [~.tas %sys]]
@@ -561,7 +561,7 @@
                               ==
                       ==
               [%server-time ~2000.1.6]
-              [%message 'sys.sys.databases']
+              [%relation 'sys.sys.databases']
               [%schema-time ~2000.1.1]
               [%data-time ~2000.1.4]
               [%vector-count 2]
@@ -706,13 +706,13 @@
           "CREATE TABLE db2.ns1.my-table (col1 @t) PRIMARY KEY (col1)"
       ::
       :-  %results
-          :~  [%message 'CREATE NAMESPACE %ns1']
+          :~  [%action 'CREATE NAMESPACE %ns1']
               [%server-time ~2000.1.3]
               [%schema-time ~2000.1.3]
               ==
       ::
       :-  %results
-          :~  [%message 'CREATE TABLE %my-table']
+          :~  [%action 'CREATE TABLE %my-table']
               [%server-time ~2000.1.4]
               [%schema-time ~2000.1.4]
               ==
@@ -868,7 +868,7 @@
           "CREATE TABLE db2..my-table (col1 @t) PRIMARY KEY (col1)"
       ::
       :-  %results
-          :~  [%message 'CREATE TABLE %my-table']
+          :~  [%action 'CREATE TABLE %my-table']
               [%server-time ~2000.1.3]
               [%schema-time ~2000.1.3]
               ==
@@ -895,7 +895,7 @@
           "AS OF ~2023.7.10;"
       ::
       :-  %results
-          :~  [%message 'CREATE TABLE %my-table-2']
+          :~  [%action 'CREATE TABLE %my-table-2']
               [%server-time ~2000.1.3]
               [%schema-time date=~2023.7.10]
               ==
@@ -1307,7 +1307,7 @@
           "DROP TABLE FORCE db2..my-table"
       ::
       :-  %results
-          :~  [%message 'DROP TABLE %my-table']
+          :~  [%action 'DROP TABLE %my-table']
               [%server-time ~2000.1.5]
               [%schema-time ~2000.1.5]
               [%data-time ~2000.1.5]
@@ -1587,7 +1587,7 @@
           "TRUNCATE TABLE db2..my-table"
       ::
       :-  %results
-          :~  [%message 'TRUNCATE TABLE db2.dbo.my-table']
+          :~  [%action 'TRUNCATE TABLE db2.dbo.my-table']
               [%server-time ~2000.1.5]
               [%data-time ~2000.1.5]
               [%vector-count 1]
@@ -1617,7 +1617,7 @@
           "AS OF ~2023.7.10;"
       ::
       :-  %results
-          :~  [%message 'CREATE TABLE %my-table-2']
+          :~  [%action 'CREATE TABLE %my-table-2']
               [%server-time ~2000.1.3]
               [%schema-time date=~2023.7.10]
               ==

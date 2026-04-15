@@ -347,6 +347,7 @@ SUBTRACT-TIME(~d10, ~d3)
   | SQRT ( <expression> )
   | MAX ( <expression> , <expression> )
   | MIN ( <expression> , <expression> )
+  | RAND ( <expression> , <expression> )
   | DEGREES ( <expression> )
   | SIN ( <expression> )
   | COS ( <expression> )
@@ -502,6 +503,22 @@ Examples:
 MIN(3, 5)           :: @ud → returns 3
 MIN(.~3.5, .~2.1)   :: @rd → returns .~2.1
 MIN(--10, -5)       :: @sd → returns -5
+```
+
+---
+
+**RAND(** `<expression>` **,** `<expression>` **)** returns a random integer in the range [low, high], inclusive on both ends. Both arguments must be the same numeric type and high must be greater than low.
+
+For `@rd` inputs, fractional parts are adjusted so the effective range uses whole numbers: the low bound is rounded down (floor) and the high bound is rounded up (ceiling). The result is always a whole number value within the adjusted range.
+
+Parameters: `@ud`, `@sd`, or `@rd` (both must match)
+Returns: same type as inputs
+
+Examples:
+```
+RAND(1, 10)             :: @ud → returns a random integer from 1 to 10
+RAND(-5, --5)           :: @sd → returns a random integer from -5 to --5
+RAND(.~1.5, .~10.8)    :: @rd → returns a random whole number from .~1.0 to .~11.0
 ```
 
 ---

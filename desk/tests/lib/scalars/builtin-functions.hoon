@@ -28,6 +28,15 @@
 ::
 ++  literal-1             [~.ud 1]
 ++  literal-2             [~.ud 2]
+::
+++  create-scalar-foo-table
+  "CREATE TABLE foo ".
+  "(foo1 @t, foo2 @ud) ".
+  "PRIMARY KEY (foo1);"
+::
+++  insert-scalar-foo-row
+  "INSERT INTO foo VALUES ('row1', 9);"
+::
 ::  helper gates
 ::
 ::  make a qualified column
@@ -42,6 +51,44 @@
     key=(turn kvp |=(e=[@tas @] +.e))
     data=(malt (limo kvp))
   ==
+::
+::  make a CTE map-meta keyed by cte name + column name
+++  mk-cte-map-meta
+  |=  [cte=@tas columns=(list column:ast)]
+  ^-  qualified-map-meta
+  %+  roll  columns
+  |=  [col=column:ast map-meta=qualified-map-meta]
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
+  %^  ~(put bi:mip +.map-meta)
+      [%cte-name cte]
+      name.col
+      [type.col addr.col]
+::
+::  wrap a single indexed row as a one-row CTE relation
+++  mk-single-row-cte
+  |=  [cte=@tas columns=(list column:ast) row=indexed-row]
+  ^-  full-relation
+  :*  %full-relation
+      [%cte-name cte]
+      :~  :*  %set-table
+              join=~
+              relation=~
+              schema-tmsp=~
+              data-tmsp=~
+              columns=columns
+              predicate=~
+              rowcount=1
+              map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
+              pri-indx=~
+              pri-indexed=*(tree [(list @) (map @tas @)])
+              indexed-rows=~[row]
+              joined-rows=~
+              ==
+      ==
+      (mk-cte-map-meta cte columns)
+      ~
+      ==
 ::
 ++  q-col-1           [%qualified-column qualified-table-1 %col1 ~]
 ++  q-col-2           [%qualified-column qualified-table-1 %col2 ~]
@@ -83,7 +130,35 @@
                              [%col6 ~[qualified-table-1]]
                            ==
 ::
-++  table-named-ctes        *named-ctes
+++  builtin-cte-columns
+  %-  addr-columns
+  :~  [%column %num ~.ud 0]
+      [%column %text1 ~.t 0]
+      [%column %text2 ~.t 0]
+      [%column %date ~.da 0]
+      [%column %duration ~.dr 0]
+      ==
+::
+++  builtin-cte-row
+  %-  mk-indexed-row
+  :~  [%num 3]
+      [%text1 'hello']
+      [%text2 'world']
+      [%date ~2026.3.15..10.30.45]
+      [%duration ~d1]
+      ==
+::
+++  builtin-cte-num       [%cte-column %builtin-cte %num]
+++  builtin-cte-text-1    [%cte-column %builtin-cte %text1]
+++  builtin-cte-text-2    [%cte-column %builtin-cte %text2]
+++  builtin-cte-date      [%cte-column %builtin-cte %date]
+++  builtin-cte-duration  [%cte-column %builtin-cte %duration]
+::
+++  table-named-ctes
+  %-  malt
+  %-  limo
+  :~  [%builtin-cte (mk-single-row-cte %builtin-cte builtin-cte-columns builtin-cte-row)]
+  ==
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
@@ -1888,6 +1963,7 @@
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -1900,8 +1976,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar2
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -1914,8 +1992,113 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar3
+                              =<  +
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.t 'hello']
+                                      else=[~.t 'goodbye']
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar4
+                              =<  +
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.t 'world']
+                                      else=[~.t 'mars']
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar5
+                              =<  +
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.da ~2026.3.15..10.30.45]
+                                      else=[~.da ~2026.3.16..10.30.45]
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
+                                    ==
+                          :-  %scalar6
+                              =<  +
+                              %:  prepare-scalar
+                                    ^-  scalar-function:ast
+                                    :*  %if-then-else
+                                      if=true-predicate
+                                      then=[~.dr ~d1]
+                                      else=[~.dr ~d2]
+                                    ==
+                                    table-named-ctes
+                                    qual-lookup
+                                    qual-map-meta
+                                    *(map @tas resolved-scalar)
+                                    (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
+::
+++  builtin-node-num
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.ud 3]
+    else=[~.ud 4]
+  ==
+::
+++  builtin-node-text-1
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.t 'hello']
+    else=[~.t 'goodbye']
+  ==
+::
+++  builtin-node-text-2
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.t 'world']
+    else=[~.t 'mars']
+  ==
+::
+++  builtin-node-date
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.da ~2026.3.15..10.30.45]
+    else=[~.da ~2026.3.16..10.30.45]
+  ==
+::
+++  builtin-node-duration
+  ^-  scalar-function:ast
+  :*  %if-then-else
+    if=true-predicate
+    then=[~.dr ~d1]
+    else=[~.dr ~d2]
+  ==
 ::
 ::
 ::  :::::::::::::::::::::::::::
@@ -6095,6 +6278,185 @@
     ==
   ==
 ::
+++  test-embedded-by-name-builtin-functions
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-embedded-scalar-name
+        :-  [%abs [%scalar-name %scalar1]]
+            [~.ud 3]
+    :-  %left-embedded-scalar-names
+        :-  [%left [%scalar-name %scalar3] [%scalar-name %scalar1]]
+            [~.t 'hel']
+    :-  %concat-embedded-scalar-names
+        :-  [%concat ~[[%scalar-name %scalar3] [%scalar-name %scalar4]]]
+            [~.t 'helloworld']
+    :-  %string-embedded-scalar-name
+        :-  [%string [%scalar-name %scalar1]]
+            [~.t '3']
+    :-  %string-concat-embedded-scalar-names
+        :-  [%string-concat ~[[%scalar-name %scalar3] [%scalar-name %scalar4]] [~.t ', ']]
+            [~.t 'hello, world']
+    :-  %year-embedded-scalar-name
+        :-  [%year [%scalar-name %scalar5]]
+            [~.ud 2.026]
+    :-  %add-time-embedded-scalar-names
+        :-  [%add-time [%scalar-name %scalar5] [%scalar-name %scalar6]]
+            [~.da ~2026.3.16..10.30.45]
+  ==
+  ==
+::
+++  test-embedded-by-node-builtin-functions
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-embedded-scalar-node
+        :-  [%abs builtin-node-num]
+            [~.ud 3]
+    :-  %left-embedded-scalar-nodes
+        :-  [%left builtin-node-text-1 builtin-node-num]
+            [~.t 'hel']
+    :-  %concat-embedded-scalar-nodes
+        :-  [%concat ~[builtin-node-text-1 builtin-node-text-2]]
+            [~.t 'helloworld']
+    :-  %string-embedded-scalar-node
+        :-  [%string builtin-node-num]
+            [~.t '3']
+    :-  %string-concat-embedded-scalar-nodes
+        :-  [%string-concat ~[builtin-node-text-1 builtin-node-text-2] [~.t ', ']]
+            [~.t 'hello, world']
+    :-  %year-embedded-scalar-node
+        :-  [%year builtin-node-date]
+            [~.ud 2.026]
+    :-  %add-time-embedded-scalar-nodes
+        :-  [%add-time builtin-node-date builtin-node-duration]
+            [~.da ~2026.3.16..10.30.45]
+  ==
+  ==
+::
+++  test-embedded-by-cte-column-builtin-functions
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %abs-embedded-cte-column
+        :-  [%abs builtin-cte-num]
+            [~.ud 3]
+    :-  %left-embedded-cte-columns
+        :-  [%left builtin-cte-text-1 builtin-cte-num]
+            [~.t 'hel']
+    :-  %concat-embedded-cte-columns
+        :-  [%concat ~[builtin-cte-text-1 builtin-cte-text-2]]
+            [~.t 'helloworld']
+    :-  %string-embedded-cte-column
+        :-  [%string builtin-cte-num]
+            [~.t '3']
+    :-  %string-concat-embedded-cte-columns
+        :-  [%string-concat ~[builtin-cte-text-1 builtin-cte-text-2] [~.t ', ']]
+            [~.t 'hello, world']
+    :-  %year-embedded-cte-column
+        :-  [%year builtin-cte-date]
+            [~.ud 2.026]
+    :-  %add-time-embedded-cte-columns
+        :-  [%add-time builtin-cte-date builtin-cte-duration]
+            [~.da ~2026.3.16..10.30.45]
+  ==
+  ==
+::
+::  end-to-end SELECT selected-scalar queries
+::
+++  test-select-scalar-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SCALARS sc1 ABS(-5) SELECT sc1"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%sc1 ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-select-scalar-02
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.3 %sys "SCALARS sc1 ABS(-5) SELECT sc1 AS answer"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%answer ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-select-scalar-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-foo-table]
+      ::
+      [~2012.5.2 %db1 insert-scalar-foo-row]
+      ::
+      [~2012.5.3 %db1 "FROM foo SCALARS foo2 ABS(-5) SELECT foo2"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%foo2 ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.foo']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+++  test-select-scalar-04
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.3
+          %sys
+          "WITH (SCALARS sc1 ABS(-5) SELECT sc1 AS sc-out) AS my-cte ".
+          "FROM my-cte ".
+          "SELECT sc-out"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~[[%vector ~[[%sc-out ~.sd --5]]]]]
+              [%server-time ~2012.5.3]
+              [%schema-time date=~2012.4.30]
+              [%data-time date=~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
 ::  :::::::::::::::::::::::::::::::::::::::::::
 ::  ::::  crash / expect-fail tests  ::::
 ::  :::::::::::::::::::::::::::::::::::::::::::
@@ -6112,6 +6474,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-month-unsupported-type
@@ -6125,6 +6488,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-day-unsupported-type
@@ -6138,6 +6502,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-hour-unsupported-type
@@ -6151,6 +6516,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-minute-unsupported-type
@@ -6164,6 +6530,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-second-unsupported-type
@@ -6177,6 +6544,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-add-time-bad-time-expression
@@ -6190,6 +6558,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-add-time-bad-duration
@@ -6203,6 +6572,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-subtract-time-bad-time-expression
@@ -6219,6 +6589,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-subtract-time-bad-duration
@@ -6232,6 +6603,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ::  unsupported number system tests (one per function, using @t literal)
@@ -6247,6 +6619,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-unsupported-ns
@@ -6260,19 +6633,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
-              ==
-::
-++  test-fail-rand-not-implemented
-  %+  expect-fail-message
-    '%rand not implemented'
-    |.  %:  prepare-scalar
-              ^-  scalar-function:ast
-              [%rand [~.ud 1] [~.ud 2]]
-              table-named-ctes
-              *qualifier-lookup
-              qual-map-meta
-              *(map @tas resolved-scalar)
-              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-max-ns-conflict
@@ -6286,6 +6647,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-max-unsupported-ns
@@ -6299,6 +6661,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-min-ns-conflict
@@ -6312,6 +6675,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-min-unsupported-ns
@@ -6325,6 +6689,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-degrees-unsupported-ns
@@ -6338,6 +6703,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sin-unsupported-ns
@@ -6351,6 +6717,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-cos-unsupported-ns
@@ -6364,6 +6731,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-tan-unsupported-ns
@@ -6377,6 +6745,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-asin-unsupported-ns
@@ -6390,6 +6759,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-acos-unsupported-ns
@@ -6403,6 +6773,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-atan-unsupported-ns
@@ -6416,6 +6787,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-atan2-unsupported-ns
@@ -6429,6 +6801,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-floor-unsupported-ns
@@ -6442,6 +6815,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-ceiling-unsupported-ns
@@ -6455,6 +6829,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-round-unsupported-ns
@@ -6468,6 +6843,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-round-bad-length-type
@@ -6481,6 +6857,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sign-unsupported-ns
@@ -6494,6 +6871,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sqrt-unsupported-ns
@@ -6507,6 +6885,7 @@
               qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ::  log special cases
@@ -6522,6 +6901,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-zero-rd-runtime
@@ -6534,10 +6914,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(0) is not a number'
-    |.  (apply-scalar sqrt-qual-table-row fn)
+    |.  (apply-scalar sqrt-qual-table-row +.fn)
 ::
 ++  test-fail-log-zero-sd-prepare
   %+  expect-fail-message
@@ -6550,6 +6931,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-zero-sd-runtime
@@ -6562,10 +6944,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(0) is not a number'
-    |.  (apply-scalar sqrt-qual-table-row fn)
+    |.  (apply-scalar sqrt-qual-table-row +.fn)
 ::
 ++  test-fail-log-zero-ud-prepare
   %+  expect-fail-message
@@ -6578,6 +6961,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-zero-ud-runtime
@@ -6590,10 +6974,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(0) is not a number'
-    |.  (apply-scalar sqrt-qual-table-row fn)
+    |.  (apply-scalar sqrt-qual-table-row +.fn)
 ::
 ++  test-fail-log-negative-rd-prepare
   %+  expect-fail-message
@@ -6606,6 +6991,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-negative-rd-runtime
@@ -6618,10 +7004,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(.~-1) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 ::
 ++  test-fail-log-negative-sd-prepare
   %+  expect-fail-message
@@ -6634,6 +7021,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-log-negative-sd-runtime
@@ -6646,10 +7034,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'log(-4) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 ::
 ::  sqrt special cases
 ::
@@ -6664,6 +7053,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sqrt-negative-rd-runtime
@@ -6676,10 +7066,11 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'sqrt(.~-1) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
 ::
 ++  test-fail-sqrt-negative-sd-prepare
   %+  expect-fail-message
@@ -6692,6 +7083,7 @@
               sqrt-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-sqrt-negative-sd-runtime
@@ -6704,8 +7096,338 @@
           sqrt-qual-map-meta
           *(map @tas resolved-scalar)
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'sqrt(-4) is not a number'
-    |.  (apply-scalar fail-qual-table-row fn)
+    |.  (apply-scalar fail-qual-table-row +.fn)
+::
+::  :::::::::::::::::::::::::::::::::::
+::  ::::   RAND TESTS              ::::
+::  :::::::::::::::::::::::::::::::::::
+::
+::  table helpers for rand tests
+::
+++  create-rand-tbl
+  "CREATE TABLE rand-tbl ".
+  "(id @ud, val @t) ".
+  "PRIMARY KEY (id);"
+::
+++  insert-rand-tbl
+  "INSERT INTO rand-tbl VALUES ".
+  "(1, 'a') (2, 'b') (3, 'c') (4, 'd') (5, 'e') ".
+  "(6, 'f') (7, 'g') (8, 'h') (9, 'i') (10, 'j');"
+::
+++  create-rand-tbl-a
+  "CREATE TABLE rand-tbl-a ".
+  "(id @ud, col-a @t) ".
+  "PRIMARY KEY (id);"
+::
+++  insert-rand-tbl-a
+  "INSERT INTO rand-tbl-a VALUES ".
+  "(1, 'a1') (2, 'a2') (3, 'a3') (4, 'a4') (5, 'a5') ".
+  "(6, 'a6') (7, 'a7') (8, 'a8') (9, 'a9') (10, 'a10');"
+::
+++  create-rand-tbl-b
+  "CREATE TABLE rand-tbl-b ".
+  "(id @ud, col-b @t) ".
+  "PRIMARY KEY (id);"
+::
+++  insert-rand-tbl-b
+  "INSERT INTO rand-tbl-b VALUES ".
+  "(1, 'b1') (2, 'b2') (3, 'b3') (4, 'b4') (5, 'b5') ".
+  "(6, 'b6') (7, 'b7') (8, 'b8') (9, 'b9') (10, 'b10');"
+::
+::  RAND scalar aliases used in SELECT
+::
+++  rand-scalars
+  "SCALARS ".
+  "r-ud1 RAND(0, 1) ".
+  "r-sd1 RAND(-0, --1) ".
+  "r-sd2 RAND(-1, --0) ".
+  "r-ud2 RAND(2, 12) ".
+  "r-sd3 RAND(--2, --8) ".
+  "r-sd4 RAND(-5, -2) ".
+  "r-sd5 RAND(-2, --2) ".
+  "r-rd1 RAND(.~0, .~1) ".
+  "r-rd2 RAND(.~-0.3, .~0) ".
+  "r-rd3 RAND(.~2.3, .~11.4) ".
+  "r-rd4 RAND(.~-2, .~3) ".
+  "r-rd5 RAND(.~-9.1, .~2.3) "
+::
+::  expected ranges for the 12 RAND columns
+::  for @rd, use the adjusted (floored/ceilinged) bounds
+::
+++  rand-ranges
+  ^-  (list rand-range)
+  :~  [%r-ud1 %ud 0 1]
+      [%r-sd1 %sd -0 --1]
+      [%r-sd2 %sd -1 --0]
+      [%r-ud2 %ud 2 12]
+      [%r-sd3 %sd --2 --8]
+      [%r-sd4 %sd -5 -2]
+      [%r-sd5 %sd -2 --2]
+      [%r-rd1 %rd .~0 .~1]
+      [%r-rd2 %rd .~-1 .~0]
+      [%r-rd3 %rd .~2 .~12]
+      [%r-rd4 %rd .~-2 .~3]
+      [%r-rd5 %rd .~-10 .~3]
+  ==
+::
+::  rand from a single table, 10 rows
+::
+++  test-rand-single-table
+  =|  run=@ud
+  %-  exec-rand-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-rand-tbl
+                        insert-rand-tbl
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          %-  zing  :~  "FROM rand-tbl "
+                        rand-scalars
+                        "SELECT val, r-ud1, r-sd1, r-sd2, r-ud2, ".
+                        "r-sd3, r-sd4, r-sd5, r-rd1, r-rd2, r-rd3, ".
+                        "r-rd4, r-rd5"
+                        ==
+      ::
+      :-  %results
+          :~  [%message 'warning: results are non-deterministic']
+              [%action 'SELECT']
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.rand-tbl']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 10]
+              ==
+      ::
+      rand-ranges
+      ==
+::
+::  rand from a natural join, 10 rows
+::
+++  test-rand-natural-join
+  =|  run=@ud
+  %-  exec-rand-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-rand-tbl-a
+                        insert-rand-tbl-a
+                        create-rand-tbl-b
+                        insert-rand-tbl-b
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          %-  zing  :~  "FROM rand-tbl-a ".
+                        "NATURAL JOIN rand-tbl-b "
+                        rand-scalars
+                        "SELECT col-a, col-b, r-ud1, r-sd1, r-sd2, ".
+                        "r-ud2, r-sd3, r-sd4, r-sd5, r-rd1, r-rd2, ".
+                        "r-rd3, r-rd4, r-rd5"
+                        ==
+      ::
+      :-  %results
+          :~  [%message 'warning: results are non-deterministic']
+              [%action 'SELECT']
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.rand-tbl-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.rand-tbl-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 10]
+              ==
+      ::
+      rand-ranges
+      ==
+::
+::  :::::::::::::::::::::::::::::::::::::::::::
+::  ::::  RAND crash / expect-fail tests  ::::
+::  :::::::::::::::::::::::::::::::::::::::::::
+::
+::  type conflict: @ud vs @sd
+++  test-fail-rand-type-conflict
+  %+  expect-fail-message
+    'min: type conflict'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%rand [~.ud 0] [~.sd --1]]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+::  unsupported type: @t
+++  test-fail-rand-unsupported-type
+  %+  expect-fail-message
+    'not a supported number system for %min'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%rand [~.t 'a'] [~.t 'z']]
+              table-named-ctes
+              *qualifier-lookup
+              qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+::  @ud: high not greater than low (prepare-time, literals)
+++  test-fail-rand-ud-prepare
+  %+  expect-fail-message
+    'RAND:'
+    |.  =/  fn
+          %:  prepare-scalar
+                ^-  scalar-function:ast
+                [%rand [~.ud 5] [~.ud 2]]
+                table-named-ctes
+                *qualifier-lookup
+                qual-map-meta
+                *(map @tas resolved-scalar)
+                (bowl [0 ~2026.4.21])
+                eny:(bowl [0 ~2026.4.21])
+                ==
+        (apply-scalar table-row +.fn)
+::
+::  @sd: high not greater than low (prepare-time, literals)
+++  test-fail-rand-sd-prepare
+  %+  expect-fail-message
+    'RAND:'
+    |.  =/  fn
+          %:  prepare-scalar
+                ^-  scalar-function:ast
+                [%rand [~.sd --5] [~.sd --2]]
+                table-named-ctes
+                *qualifier-lookup
+                qual-map-meta
+                *(map @tas resolved-scalar)
+                (bowl [0 ~2026.4.21])
+                eny:(bowl [0 ~2026.4.21])
+                ==
+        (apply-scalar table-row +.fn)
+::
+::  @rd: high not greater than low (prepare-time, literals)
+++  test-fail-rand-rd-prepare
+  %+  expect-fail-message
+    'RAND:'
+    |.  =/  fn
+          %:  prepare-scalar
+                ^-  scalar-function:ast
+                [%rand [~.rd .~5] [~.rd .~2]]
+                table-named-ctes
+                *qualifier-lookup
+                qual-map-meta
+                *(map @tas resolved-scalar)
+                (bowl [0 ~2026.4.21])
+                eny:(bowl [0 ~2026.4.21])
+                ==
+        (apply-scalar table-row +.fn)
+::
+::  @ud: high not greater than low (runtime, column references)
+::
+++  rand-fail-ud-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.ud 0]
+                      [%column %col2 ~.ud 0]
+                      ==
+          ==
+::
+++  rand-fail-ud-row  %-  mk-indexed-row
+                      :~  [%col1 5]
+                          [%col2 2]
+                          ==
+::
+++  test-fail-rand-ud-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%rand q-col-1 q-col-2]
+          table-named-ctes
+          *qualifier-lookup
+          rand-fail-ud-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'RAND:'
+    |.  (apply-scalar rand-fail-ud-row +.fn)
+::
+::  @sd: high not greater than low (runtime, column references)
+::
+++  rand-fail-sd-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.sd 0]
+                      [%column %col2 ~.sd 0]
+                      ==
+          ==
+::
+++  rand-fail-sd-row  %-  mk-indexed-row
+                      :~  [%col1 --5]
+                          [%col2 --2]
+                          ==
+::
+++  test-fail-rand-sd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%rand q-col-1 q-col-2]
+          table-named-ctes
+          *qualifier-lookup
+          rand-fail-sd-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'RAND:'
+    |.  (apply-scalar rand-fail-sd-row +.fn)
+::
+::  @rd: high not greater than low (runtime, column references)
+::
+++  rand-fail-rd-qual-map-meta
+  %-  mk-qualified-map-meta
+      :~  :-  qualified-table-1
+              %-  addr-columns
+                  :~  [%column %col1 ~.rd 0]
+                      [%column %col2 ~.rd 0]
+                      ==
+          ==
+::
+++  rand-fail-rd-row  %-  mk-indexed-row
+                      :~  [%col1 .~5]
+                          [%col2 .~2]
+                          ==
+::
+++  test-fail-rand-rd-runtime
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%rand q-col-1 q-col-2]
+          table-named-ctes
+          *qualifier-lookup
+          rand-fail-rd-qual-map-meta
+          *(map @tas resolved-scalar)
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'RAND:'
+    |.  (apply-scalar rand-fail-rd-row +.fn)
 --

@@ -71,7 +71,7 @@
           "   OR day-name = 'Saturday' "
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.calendar']
+          [%action 'DELETE FROM db1.dbo.calendar']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -100,7 +100,7 @@
           "WHERE day-name = 'asdf'"
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.calendar']
+          [%action 'DELETE FROM db1.dbo.calendar']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -126,7 +126,7 @@
           "WHERE day-name = 'Monday'"
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.calendar']
+          [%action 'DELETE FROM db1.dbo.calendar']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -162,7 +162,7 @@
           "       AND day-of-year = 357) "
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.calendar']
+          [%action 'DELETE FROM db1.dbo.calendar']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -208,7 +208,7 @@
       [~2012.5.4 %db1 "FROM calendar SELECT *"]
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.calendar']
+          [%action 'DELETE FROM db1.dbo.calendar']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -219,7 +219,7 @@
           ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%date [~.da ~2023.12.30]]
@@ -234,7 +234,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -276,7 +276,7 @@
       [~2012.5.4 %db1 "FROM calendar SELECT *"]
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.calendar']
+          [%action 'DELETE FROM db1.dbo.calendar']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -287,7 +287,7 @@
           ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%date [~.da ~2023.12.30]]
@@ -302,7 +302,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -346,7 +346,7 @@
       [~2012.5.4 %db1 "FROM calendar SELECT *"]
       ::
       :~  :-  %results
-              :~  [%message 'DELETE FROM db1.dbo.calendar']
+              :~  [%action 'DELETE FROM db1.dbo.calendar']
                   [%server-time ~2012.5.3]
                   [%schema-time ~2012.4.30]
                   [%data-time ~2012.5.2]
@@ -356,7 +356,7 @@
                   [%vector-count 11]
                   ==
           :-  %results
-              :~  [%message 'DELETE FROM db1.dbo.calendar']
+              :~  [%action 'DELETE FROM db1.dbo.calendar']
                   [%server-time ~2012.5.3]
                   [%schema-time ~2012.4.30]
                   [%data-time ~2012.4.30]
@@ -368,7 +368,7 @@
           ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%date [~.da ~2023.12.30]]
@@ -383,7 +383,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 1]
@@ -423,7 +423,7 @@
       [~2012.5.4 %db1 "FROM calendar SELECT *"]
       ::
       :~  :-  %results
-              :~  [%message 'DELETE FROM db1.dbo.calendar']
+              :~  [%action 'DELETE FROM db1.dbo.calendar']
                   [%server-time ~2012.5.3]
                   [%schema-time ~2012.4.30]
                   [%data-time ~2012.4.30]
@@ -433,7 +433,7 @@
                   [%vector-count 12]
                   ==
           :-  %results
-              :~  [%message 'DELETE FROM db1.dbo.calendar']
+              :~  [%action 'DELETE FROM db1.dbo.calendar']
                   [%server-time ~2012.5.3]
                   [%schema-time ~2012.4.30]
                   [%data-time ~2012.5.3]
@@ -445,7 +445,7 @@
           ==
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%date [~.da ~2023.12.21]]
@@ -526,7 +526,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 7]
@@ -564,7 +564,7 @@
       [~2012.5.4 %db1 "FROM calendar SELECT *"]
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%date [~.da ~2024.1.6]]
@@ -601,7 +601,7 @@
                               ==
                       ==
               [%server-time ~2012.5.4]
-              [%message 'db1.dbo.calendar']
+              [%relation 'db1.dbo.calendar']
               [%schema-time ~2012.4.30]
               [%data-time ~2012.5.3]
               [%vector-count 3]
@@ -637,7 +637,7 @@
           "DELETE FROM my-table WHERE my-cte.col1 = my-cte.col3"
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.my-table']
+          [%action 'DELETE FROM db1.dbo.my-table']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]
@@ -675,7 +675,7 @@
           "DELETE FROM my-table WHERE my-cte.col1 = my-cte.col3"
       ::
       :~  %results
-          [%message 'DELETE FROM db1.dbo.my-table']
+          [%action 'DELETE FROM db1.dbo.my-table']
           [%server-time ~2012.5.3]
           [%schema-time ~2012.4.30]
           [%data-time ~2012.4.30]

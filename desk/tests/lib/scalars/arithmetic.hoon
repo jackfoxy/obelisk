@@ -43,12 +43,51 @@
     data=(malt (limo kvp))
   ==
 ::
+::  make a CTE map-meta keyed by cte name + column name
+++  mk-cte-map-meta
+  |=  [cte=@tas columns=(list column:ast)]
+  ^-  qualified-map-meta
+  %+  roll  columns
+  |=  [col=column:ast map-meta=qualified-map-meta]
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
+  %^  ~(put bi:mip +.map-meta)
+      [%cte-name cte]
+      name.col
+      [type.col addr.col]
+::
+::  wrap a single indexed row as a one-row CTE relation
+++  mk-single-row-cte
+  |=  [cte=@tas columns=(list column:ast) row=indexed-row]
+  ^-  full-relation
+  :*  %full-relation
+      [%cte-name cte]
+      :~  :*  %set-table
+              join=~
+              relation=~
+              schema-tmsp=~
+              data-tmsp=~
+              columns=columns
+              predicate=~
+              rowcount=1
+              map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
+              pri-indx=~
+              pri-indexed=*(tree [(list @) (map @tas @)])
+              indexed-rows=~[row]
+              joined-rows=~
+              ==
+      ==
+      (mk-cte-map-meta cte columns)
+      ~
+      ==
+::
 ::  table testing harness
 ::
 ++  qual-map-meta  %-  mk-qualified-map-meta
                   :~  :-  qualified-table-1
                           %-  addr-columns
-                              :~  [%column %col1 ~.ud 0]
+                              :~  [%column %col0 ~.ud 0]
+                                  [%column %col1 ~.ud 0]
                                   [%column %col2 ~.ud 0]
                                   [%column %col3 ~.ud 0]
                                   ==
@@ -59,6 +98,7 @@
                              %-  addr-columns  :~  [%column %col4 ~.ud 0]
                                                    [%column %col5 ~.ud 0]
                                                    [%column %col6 ~.ud 0]
+                                                   [%column %col7 ~.ud 0]
                                                    ==
 ::
 ++  qual-lookup  %-  malt
@@ -67,23 +107,43 @@
                              [%col4 ~[qualified-table-1]]
                              [%col5 ~[qualified-table-1]]
                              [%col6 ~[qualified-table-1]]
+                             [%col7 ~[qualified-table-1]]
                            ==
 ::
-++  ctes        *named-ctes
+++  arithmetic-cte-columns
+  %-  addr-columns
+  :~  [%column %value ~.ud 0]
+      ==
+::
+++  arithmetic-cte-row
+  %-  mk-indexed-row
+  :~  [%value 3]
+      ==
+::
+++  arithmetic-cte-value  [%cte-column %arithmetic-cte %value]
+::
+++  ctes
+  %-  malt
+  %-  limo
+  :~  [%arithmetic-cte (mk-single-row-cte %arithmetic-cte arithmetic-cte-columns arithmetic-cte-row)]
+  ==
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
+                             [%col0 0]
                              [%col1 1]
                              [%col2 2]
                              [%col3 3]
                              [%col4 4]
                              [%col5 5]
                              [%col6 6]
+                             [%col7 0]
                            ==
 ::
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     :: evals to 3
                                     ^-  scalar-function:ast
@@ -97,6 +157,7 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -113,10 +174,13 @@
 ++  arithmetic-q-col-1  [%qualified-column qualified-table-1 %col1 ~]
 ++  arithmetic-q-col-2  [%qualified-column qualified-table-1 %col2 ~]
 ++  arithmetic-q-col-3  [%qualified-column qualified-table-1 %col3 ~]
+:: zero-valued qualified column for runtime failure tests
+++  arithmetic-q-col-0  [%qualified-column qualified-table-1 %col0 ~]
 ::
 ++  arithmetic-u-col-4  [%unqualified-column %col4 ~]
 ++  arithmetic-u-col-5  [%unqualified-column %col5 ~]
 ++  arithmetic-u-col-6  [%unqualified-column %col6 ~]
+++  arithmetic-u-col-7  [%unqualified-column %col7 ~]
 ::
 ::
 ::
@@ -129,7 +193,8 @@
   %-  mk-qualified-map-meta
   :~  :-  qualified-table-1
           %-  addr-columns
-              :~  [%column %col1 ~.rd 0]
+              :~  [%column %col0 ~.rd 0]
+                  [%column %col1 ~.rd 0]
                   [%column %col2 ~.rd 0]
                   [%column %col3 ~.rd 0]
                   ==
@@ -137,17 +202,20 @@
 ::
 ++  rd-table-row
   %-  mk-indexed-row
-  :~  [%col1 .~1]
+  :~  [%col0 .~0]
+      [%col1 .~1]
       [%col2 .~2]
       [%col3 .~3]
       [%col4 .~4]
       [%col5 .~5]
       [%col6 .~6]
+      [%col7 .~0]
       ==
 ::
 ++  rd-resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -160,6 +228,7 @@
                                     rd-qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -169,6 +238,7 @@
           %-  addr-columns  :~  [%column %col4 ~.rd 0]
                                 [%column %col5 ~.rd 0]
                                 [%column %col6 ~.rd 0]
+                                [%column %col7 ~.rd 0]
                                 ==
 ::
 ::  @sd test values
@@ -180,7 +250,8 @@
   %-  mk-qualified-map-meta
   :~  :-  qualified-table-1
           %-  addr-columns
-              :~  [%column %col1 ~.sd 0]
+              :~  [%column %col0 ~.sd 0]
+                  [%column %col1 ~.sd 0]
                   [%column %col2 ~.sd 0]
                   [%column %col3 ~.sd 0]
                   ==
@@ -188,17 +259,20 @@
 ::
 ++  sd-table-row
   %-  mk-indexed-row
-  :~  [%col1 2]   :: --1
+  :~  [%col0 0]   :: --0
+      [%col1 2]   :: --1
       [%col2 4]   :: --2
       [%col3 6]   :: --3
       [%col4 8]   :: --4
       [%col5 10]  :: --5
       [%col6 12]  :: --6
+      [%col7 0]   :: --0
       ==
 ::
 ++  sd-resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -211,6 +285,7 @@
                                     sd-qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -220,6 +295,7 @@
           %-  addr-columns  :~  [%column %col4 ~.sd 0]
                                 [%column %col5 ~.sd 0]
                                 [%column %col6 ~.sd 0]
+                                [%column %col7 ~.sd 0]
                                 ==
 ::
 ::  tests
@@ -2062,8 +2138,324 @@
                       ~
               ==
             [~.ud 8]
-    ==
   ==
+  ==
+::
+++  test-embedded-by-cte-column-arithmetic
+  %:  run-scalar-tests
+    ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  addition tests
+    :-  %addition-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %lus
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 4]
+    :-  %addition-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %lus
+              literal-value-1
+              arithmetic-cte-value
+              ==
+            [~.ud 4]
+    ::  subtraction tests
+    :-  %subtraction-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %hep
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 2]
+    :-  %subtraction-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %hep
+              [~.ud 5]
+              arithmetic-cte-value
+              ==
+            [~.ud 2]
+    ::  multiplication tests
+    :-  %multiplication-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %tar
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %multiplication-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %tar
+              literal-value-1
+              arithmetic-cte-value
+              ==
+            [~.ud 3]
+    ::  division tests
+    :-  %division-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %fas
+              arithmetic-cte-value
+              literal-value-1
+              ==
+            [~.ud 3]
+    :-  %division-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %fas
+              literal-value-1
+              arithmetic-cte-value
+              ==
+            [~.ud 0]
+    ::  exponentiation tests
+    :-  %exponentiation-embedded-cte-column-literal
+        :-  :*  %arithmetic
+              %ket
+              arithmetic-cte-value
+              literal-value-2
+              ==
+            [~.ud 9]
+    :-  %exponentiation-literal-embedded-cte-column
+        :-  :*  %arithmetic
+              %ket
+              literal-value-2
+              arithmetic-cte-value
+              ==
+            [~.ud 8]
+  ==
+  ==
+::
+:: parser-migrated arithmetic fail tests now belong at scalar preparation time
+::
+++  test-fail-arithmetic-00
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%concat ~[[~.t 'hello'] [~.t 'world']]] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-01
+  %+  expect-fail-message
+    'number system conflict: ~.t %hep ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %hep [%left [~.t 'hello'] [~.ud 2]] [~.ud 5]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-02
+  %+  expect-fail-message
+    'number system conflict: ~.ud %tar ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %tar [~.ud 10] [%right [~.t 'world'] [~.ud 3]]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-03
+  %+  expect-fail-message
+    'number system conflict: ~.t %fas ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [%substring [~.t 'hello'] [~.ud 1] `[~.ud 3]] [~.ud 2]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-04
+  %+  expect-fail-message
+    'number system conflict: ~.ud %ket ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %ket [~.ud 2] [%trim [~.t '  hello  '] ~]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-05
+  %+  expect-fail-message
+    'number system conflict: ~.getutcdate %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%getutcdate ~] [~.ud 100]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-06
+  %+  expect-fail-message
+    '~.t %lus ~.t : ~.t not a supported number system, need ?(~.rd ~.sd ~.ud)'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%left [~.t 'abc'] [~.ud 1]] [%right [~.t 'xyz'] [~.ud 1]]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-07
+  %+  expect-fail-message
+    'number system conflict: ~.ud %lus ~.t'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %tar [%arithmetic %lus [~.ud 5] [%concat ~[[~.t 'a'] [~.t 'b']]]] [~.ud 2]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-08
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%lower [~.t 'hello']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-09
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%upper [~.t 'hello']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-10
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%reverse [~.t 'hello']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-11
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%ltrim [~.t 'hello'] ~] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-12
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%rtrim [~.t 'hello'] ~] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-13
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%replace [~.t 'hello'] [~.t 'll'] [~.t 'LL']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-14
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%replicate [~.t 'hello'] [~.ud 3]] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-15
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%quotestring [~.t 'hello'] ~] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-16
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%string [~.ud 3]] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-17
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%string-concat ~[[~.t 'a'] [~.t 'b']] [~.t ' ']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-18
+  %+  expect-fail-message
+    'number system conflict: ~.t %lus ~.ud'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %lus [%stuff [~.t 'hello'] [~.ud 2] [~.ud 3] [~.t 'xx']] [~.ud 1]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
 ::
 ++  test-fail-arithmetic-ns-conflict
   %+  expect-fail-message
@@ -2074,6 +2466,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-unsupported-ns
@@ -2085,6 +2478,7 @@
               ctes  qual-lookup  qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-neg-exp-prepare
@@ -2096,6 +2490,7 @@
               ctes  qual-lookup  rd-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-neg-exp-runtime
@@ -2106,10 +2501,11 @@
           ctes  qual-lookup  rd-qual-map-meta
           rd-resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'negative exponent [p=~.sd q=1] not supported'
-    |.  (apply-scalar rd-table-row fn)
+    |.  (apply-scalar rd-table-row +.fn)
 ::
 ++  test-fail-arithmetic-remainder-rd-prepare
   %+  expect-fail-message
@@ -2120,6 +2516,7 @@
               ctes  qual-lookup  rd-qual-map-meta
               *(map @tas resolved-scalar)
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-arithmetic-remainder-rd-runtime
@@ -2130,8 +2527,113 @@
           ctes  qual-lookup  rd-qual-map-meta
           rd-resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'remainder not implemented for @rd'
-    |.  (apply-scalar rd-table-row fn)
+    |.  (apply-scalar rd-table-row +.fn)
+::
+++  test-fail-arithmetic-div-zero-ud-literal
+  %+  expect-fail-message
+    'division by zero'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [~.ud 1] [~.ud 0]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-div-zero-rd-literal
+  %+  expect-fail-message
+    'division by zero'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [~.rd .~1] [~.rd .~0]]
+              ctes  qual-lookup  rd-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-div-zero-sd-literal
+  %+  expect-fail-message
+    'division by zero'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %fas [~.sd --1] [~.sd --0]]
+              ctes  qual-lookup  sd-qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-div-zero-ud-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %fas arithmetic-q-col-1 arithmetic-q-col-0]
+          ctes  qual-lookup  qual-map-meta
+          resolved-scalars
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'division by zero'
+    |.  (apply-scalar table-row +.fn)
+::
+++  test-fail-arithmetic-div-zero-rd-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %fas arithmetic-q-col-1 arithmetic-q-col-0]
+          ctes  qual-lookup  rd-qual-map-meta
+          rd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'division by zero'
+    |.  (apply-scalar rd-table-row +.fn)
+::
+++  test-fail-arithmetic-div-zero-sd-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %fas arithmetic-u-col-4 arithmetic-u-col-7]
+          ctes  qual-lookup  sd-unqual-map-meta
+          sd-resolved-scalars
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'division by zero'
+    |.  (apply-scalar sd-table-row +.fn)
+::
+++  test-fail-arithmetic-sub-underflow-literal
+  %+  expect-fail-message
+    'subtraction underflow'
+    |.  %:  prepare-scalar
+              ^-  scalar-function:ast
+              [%arithmetic %hep [~.ud 1] [~.ud 2]]
+              ctes  qual-lookup  qual-map-meta
+              *(map @tas resolved-scalar)
+              (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
+              ==
+::
+++  test-fail-arithmetic-sub-underflow-column
+  =/  fn
+    %:  prepare-scalar
+          ^-  scalar-function:ast
+          [%arithmetic %hep arithmetic-q-col-1 arithmetic-q-col-2]
+          ctes  qual-lookup  qual-map-meta
+          resolved-scalars
+          (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
+          ==
+  %+  expect-fail-message
+    'subtraction underflow'
+    |.  (apply-scalar table-row +.fn)
 --

@@ -81,6 +81,8 @@
       ~
 ++  foobar
   [[%unqualified-column 'foobar' ~] ~ ~]
+++  left-scalar
+  [[%unqualified-column 'left-scalar' ~] ~ ~]
 ++  a1-adoption-email
   :+  :^  %qualified-column
           [%qualified-table ~ %db1 %dbo %adoptions alias=[~ 'A1']]
@@ -1753,11 +1755,11 @@
 ++  unq-col1     [[%unqualified-column 'col1' ~] ~ ~]
 ++  unq-col2     [[%unqualified-column 'col2' ~] ~ ~]
 ++  my-cte-table
-  [%qualified-table ship=~ database='db1' namespace='dbo' name='my-cte' alias=~]
+  [%cte-name name='my-cte']
 ++  cte1-table
-  [%qualified-table ship=~ database='db1' namespace='dbo' name='cte1' alias=~]
+  [%cte-name name='cte1']
 ++  cte2-table
-  [%qualified-table ship=~ database='db1' namespace='dbo' name='cte2' alias=~]
+  [%cte-name name='cte2']
 ++  cte-my-cte
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
@@ -2543,6 +2545,30 @@
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :+  :*  %query
                     from-cte1-join-cte2
+                    scalars=~
+                    pred
+                    group-by=~
+                    having=~
+                    select-all-columns
+                    order-by=~
+                    ==
+                ~
+                ~
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') query)
+::
+::  bare hyphenated unqualified column in predicate
+++  test-predicate-72
+  =/  query
+        "FROM foo WHERE left-scalar = 10 SELECT *"
+  =/  pred=(tree predicate-component:ast)
+        [%eq left-scalar literal-10]
+  =/  expected
+        :+  %selection
+            ctes=~
+            :+  :*  %query
+                    from-foo
                     scalars=~
                     pred
                     group-by=~

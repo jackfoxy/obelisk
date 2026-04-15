@@ -43,6 +43,44 @@
     data=(malt (limo kvp))
   ==
 ::
+::  make a CTE map-meta keyed by cte name + column name
+++  mk-cte-map-meta
+  |=  [cte=@tas columns=(list column:ast)]
+  ^-  qualified-map-meta
+  %+  roll  columns
+  |=  [col=column:ast map-meta=qualified-map-meta]
+  ^-  qualified-map-meta
+  :-  %qualified-map-meta
+  %^  ~(put bi:mip +.map-meta)
+      [%cte-name cte]
+      name.col
+      [type.col addr.col]
+::
+::  wrap a single indexed row as a one-row CTE relation
+++  mk-single-row-cte
+  |=  [cte=@tas columns=(list column:ast) row=indexed-row]
+  ^-  full-relation
+  :*  %full-relation
+      [%cte-name cte]
+      :~  :*  %set-table
+              join=~
+              relation=~
+              schema-tmsp=~
+              data-tmsp=~
+              columns=columns
+              predicate=~
+              rowcount=1
+              map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
+              pri-indx=~
+              pri-indexed=*(tree [(list @) (map @tas @)])
+              indexed-rows=~[row]
+              joined-rows=~
+              ==
+      ==
+      (mk-cte-map-meta cte columns)
+      ~
+      ==
+::
 ++  q-col-1           [%qualified-column qualified-table-1 %col1 ~]
 ++  q-col-2           [%qualified-column qualified-table-1 %col2 ~]
 ++  q-col-3           [%qualified-column qualified-table-1 %col3 ~]
@@ -85,7 +123,26 @@
                              [%col6 ~[qualified-table-1]]
                            ==
 ::
-++  table-named-ctes        *named-ctes
+++  case-cte-columns
+  %-  addr-columns
+  :~  [%column %three ~.ud 0]
+      [%column %four ~.ud 0]
+      ==
+::
+++  case-cte-row
+  %-  mk-indexed-row
+  :~  [%three 3]
+      [%four 4]
+      ==
+::
+++  case-cte-three  [%cte-column %case-cte %three]
+++  case-cte-four   [%cte-column %case-cte %four]
+::
+++  table-named-ctes
+  %-  malt
+  %-  limo
+  :~  [%case-cte (mk-single-row-cte %case-cte case-cte-columns case-cte-row)]
+  ==
 ::
 ++  table-row               %-  mk-indexed-row
                            :~
@@ -101,6 +158,7 @@
 ++  resolved-scalars
   ^-  (map @tas resolved-scalar)
   %-  malt  %-  limo  :~  :-  %scalar1
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -113,8 +171,10 @@
                                     qual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           :-  %scalar2
+                              =<  +
                               %:  prepare-scalar
                                     ^-  scalar-function:ast
                                     :*  %if-then-else
@@ -127,6 +187,7 @@
                                     unqual-map-meta
                                     *(map @tas resolved-scalar)
                                     (bowl [0 ~2026.4.21])
+                                    eny:(bowl [0 ~2026.4.21])
                                     ==
                           ==
 ::
@@ -1745,6 +1806,117 @@
     ==
     ==
 ::
+++  test-qual-embedded-by-cte-column-case
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    qual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    ::  simple case when - embedded cte column in when position
+    :-  %simple-case-target-dime-when-embedded-cte-column
+        :-  :*  %case
+              (some [~.ud 3])
+              ~[[%case-when-then case-cte-three q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-qualified-when-embedded-cte-column
+        :-  :*  %case
+              (some q-col-3)
+              ~[[%case-when-then case-cte-three q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-cte-column-when-embedded-cte-column
+        :-  :*  %case
+              (some case-cte-three)
+              ~[[%case-when-then case-cte-three q-col-1]]
+              ~
+              ==
+            literal-1
+    ::  simple case when - embedded cte column as target
+    :-  %simple-case-target-embedded-cte-column-when-dime
+        :-  :*  %case
+              (some case-cte-three)
+              ~[[%case-when-then [~.ud 3] q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-cte-column-when-qualified-column
+        :-  :*  %case
+              (some case-cte-three)
+              ~[[%case-when-then q-col-3 q-col-1]]
+              ~
+              ==
+            literal-1
+    :-  %simple-case-target-embedded-cte-column-when-embedded-cte-column
+        :-  :*  %case
+              (some case-cte-three)
+              ~[[%case-when-then case-cte-three q-col-1]]
+              ~
+              ==
+            literal-1
+    ::  target - embedded cte column
+    :-  %embedded-cte-column
+        :-  :*  %case
+              (some case-cte-three)
+              ~[[%case-when-then [~.ud 3] q-col-2]]
+              ~
+              ==
+            [~.ud 2]
+    ::  then - embedded cte column
+    :-  %searched-embedded-cte-column
+        :-  :*  %case
+              ~
+              ~[[%case-when-then true-predicate case-cte-three]]
+              ~
+              ==
+            [~.ud 3]
+    :-  %simple-embedded-cte-column
+        :-  :*  %case
+              (some q-col-1)
+              ~[[%case-when-then literal-value-1 case-cte-three]]
+              ~
+              ==
+            [~.ud 3]
+    ::  else - embedded cte column
+    :-  %searched-embedded-cte-column
+        :-  :*  %case
+              ~
+              ~[[%case-when-then false-predicate q-col-2]]
+              (some case-cte-three)
+              ==
+            [~.ud 3]
+    :-  %simple-embedded-cte-column
+        :-  :*  %case
+              (some q-col-1)
+              ~[[%case-when-then literal-value-2 q-col-2]]
+              (some case-cte-three)
+              ==
+            [~.ud 3]
+  ==
+  ==
+::
+++  test-unqual-embedded-by-cte-column-case
+  %:  run-scalar-tests
+    table-named-ctes
+    qual-lookup
+    unqual-map-meta
+    resolved-scalars
+    table-row
+    :~
+    :-  %simple-case-target-embedded-cte-column-when-unqualified-column
+        :-  :*  %case
+              (some case-cte-four)
+              ~[[%case-when-then u-col-4 q-col-1]]
+              ~
+              ==
+            literal-1
+    ==
+    ==
+::
 ++  test-fail-searched-empty-cases
   %+  expect-fail-message
     'cases can\'t be empty'
@@ -1756,6 +1928,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-simple-empty-cases
@@ -1769,6 +1942,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-simple-when-predicate
@@ -1786,6 +1960,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-searched-no-match
@@ -1802,10 +1977,11 @@
           qual-map-meta
           resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'no case matched'
-    |.  (apply-scalar table-row fn)
+    |.  (apply-scalar table-row +.fn)
 ::
 ++  test-fail-simple-no-match
   =/  fn
@@ -1821,10 +1997,11 @@
           qual-map-meta
           resolved-scalars
           (bowl [0 ~2026.4.21])
+          eny:(bowl [0 ~2026.4.21])
           ==
   %+  expect-fail-message
     'no case matched'
-    |.  (apply-scalar table-row fn)
+    |.  (apply-scalar table-row +.fn)
 ::
 ++  test-fail-inconsistent-then-types
   %+  expect-fail-message
@@ -1844,6 +2021,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-case-no-table
@@ -1864,6 +2042,7 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 ::
 ++  test-fail-case-too-many-tables
@@ -1884,5 +2063,6 @@
               qual-map-meta
               resolved-scalars
               (bowl [0 ~2026.4.21])
+              eny:(bowl [0 ~2026.4.21])
               ==
 --

@@ -1,6 +1,7 @@
 ::  Demonstrate unit testing filtered queries on a Gall agent with %obelisk.
 ::
-/+  *test-helpers
+/-  ast, *obelisk
+/+  *predicate, *scalars, *test, *test-helpers, *utils
 |%
 ::
 ++  create-mytable
@@ -27,6 +28,10 @@
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @sd, col3 @sd) ".
   "PRIMARY KEY (col1)"
+++  create-ud-3col-table
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 @ud, col3 @ud, col4 @ud) ".
+  "PRIMARY KEY (col1)"
 ++  create-joined-tables
   "CREATE TABLE db1..my-table ".
   "(col1 @t, col2 @da) ".
@@ -34,6 +39,67 @@
   "CREATE TABLE db1..my-table-2 ".
   "(col1 @t, col3 @t, col4 @t) ".
   "PRIMARY KEY (col1)"
+::
+++  create-scalar-joined-tables
+  "CREATE TABLE db1..my-table ".
+  "(col1 @t, col2 @ud, col3 @t, col4 @da, col5 @ud) ".
+  "PRIMARY KEY (col1); ".
+  "CREATE TABLE db1..my-table-2 ".
+  "(col1 @t, col2 @ud, col3 @t, col4 @da, col5 @ud) ".
+  "PRIMARY KEY (col1)"
+::
+++  insert-scalar-joined-tables
+  "INSERT INTO my-table".
+  " VALUES".
+  " ('A', 2, 'ant', ~2024.1.2, 1)".
+  " ('B', 4, 'bear', ~2024.1.4, 2)".
+  " ('C', 6, 'cobra', ~2024.1.6, 3)".
+  " ('D', 8, 'dove', ~2024.1.8, 4); ".
+  "INSERT INTO my-table-2".
+  " VALUES".
+  " ('U', 1, 'u', ~2024.1.1, 1)".
+  " ('V', 3, 'v', ~2024.1.3, 2)".
+  " ('W', 5, 'w', ~2024.1.5, 3)".
+  " ('X', 7, 'x', ~2024.1.7, 4)"
+::
+++  scalar-row-a-u  :-  %vector  :~  [%col1 [~.t 'A']]  [%col3 [~.t 'u']]  ==
+++  scalar-row-a-v  :-  %vector  :~  [%col1 [~.t 'A']]  [%col3 [~.t 'v']]  ==
+++  scalar-row-a-w  :-  %vector  :~  [%col1 [~.t 'A']]  [%col3 [~.t 'w']]  ==
+++  scalar-row-a-x  :-  %vector  :~  [%col1 [~.t 'A']]  [%col3 [~.t 'x']]  ==
+++  scalar-row-b-v  :-  %vector  :~  [%col1 [~.t 'B']]  [%col3 [~.t 'v']]  ==
+++  scalar-row-b-w  :-  %vector  :~  [%col1 [~.t 'B']]  [%col3 [~.t 'w']]  ==
+++  scalar-row-b-x  :-  %vector  :~  [%col1 [~.t 'B']]  [%col3 [~.t 'x']]  ==
+++  scalar-row-c-w  :-  %vector  :~  [%col1 [~.t 'C']]  [%col3 [~.t 'w']]  ==
+++  scalar-row-c-x  :-  %vector  :~  [%col1 [~.t 'C']]  [%col3 [~.t 'x']]  ==
+++  scalar-row-d-x  :-  %vector  :~  [%col1 [~.t 'D']]  [%col3 [~.t 'x']]  ==
+::
+++  run-scalar-joined-test
+  |=  [query=tape count=@ud expected-rows=(list vector:ast)]
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-scalar-joined-tables]
+      ::
+      [~2012.5.2 %db1 insert-scalar-joined-tables]
+      ::
+      [~2012.5.3 %db1 query]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  expected-rows
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%relation 'db1.dbo.my-table-2']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count count]
+              ==
+      ==
 ::
 ::  EQ
 ::
@@ -59,7 +125,7 @@
           "FROM my-table WHERE col3 = 'tuxedo' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -69,7 +135,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -98,7 +164,7 @@
           "FROM my-table WHERE 'tuxedo' = col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -108,7 +174,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -137,7 +203,7 @@
           "FROM my-table WHERE col1 = col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -147,7 +213,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -168,7 +234,7 @@
           "FROM sys.columns WHERE col-name = 'col3' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -179,7 +245,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 1]
@@ -200,7 +266,7 @@
           "FROM sys.columns WHERE 'col3' = col-name SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -211,7 +277,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 1]
@@ -232,7 +298,7 @@
           "FROM sys.columns WHERE 1 = 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -264,7 +330,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 4]
@@ -292,7 +358,7 @@
           "FROM my-table WHERE col2 = .6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -300,7 +366,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -328,7 +394,7 @@
           "FROM my-table WHERE col2 = .0 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -336,7 +402,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -364,7 +430,7 @@
           "FROM my-table WHERE col2 = .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -372,7 +438,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -400,7 +466,7 @@
           "FROM my-table WHERE col2 = .~0 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -408,7 +474,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -522,7 +588,7 @@
             "WHERE col3 = 'tuxedo' SELECT T1.*, T2.col3, T2.col4"
         ::
         :-  %results
-            :~  [%message 'SELECT']
+            :~  [%action 'SELECT']
                 :-  %result-set
                     :~  :-  %vector
                             :~  [%col1 [~.t 'Angel']]
@@ -532,10 +598,10 @@
                                 ==
                         ==
                 [%server-time ~2012.5.3]
-                [%message 'db1.dbo.my-table']
+                [%relation 'db1.dbo.my-table']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
-                [%message 'db1.dbo.my-table-2']
+                [%relation 'db1.dbo.my-table-2']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
                 [%vector-count 1]
@@ -570,7 +636,7 @@
             "WHERE 'tuxedo' = col3 SELECT T1.*, T2.col3, T2.col4"
         ::
         :-  %results
-            :~  [%message 'SELECT']
+            :~  [%action 'SELECT']
                 :-  %result-set
                     :~  :-  %vector
                             :~  [%col1 [~.t 'Angel']]
@@ -580,10 +646,10 @@
                                 ==
                         ==
                 [%server-time ~2012.5.3]
-                [%message 'db1.dbo.my-table']
+                [%relation 'db1.dbo.my-table']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
-                [%message 'db1.dbo.my-table-2']
+                [%relation 'db1.dbo.my-table-2']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
                 [%vector-count 1]
@@ -618,7 +684,7 @@
           "WHERE T1.col1 = col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -628,10 +694,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -655,10 +721,10 @@
   ::                ==
   ::          ==
   ::=/  expected  :~  %results
-  ::                  [%message 'SELECT']
+  ::                  [%action 'SELECT']
   ::                  [%result-set expected-rows]
   ::                  [%server-time ~2012.5.3]
-  ::                  [%message 'db1.sys.columns']
+  ::                  [%relation 'db1.sys.columns']
   ::                  [%schema-time ~2012.5.1]
   ::                  [%data-time ~2012.5.1]
   ::                  [%vector-count 1]
@@ -809,7 +875,7 @@
           "FROM my-table WHERE col3 <> 'tuxedo' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -825,7 +891,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -854,7 +920,7 @@
           "FROM my-table WHERE 'tuxedo' <> col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -870,7 +936,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -899,7 +965,7 @@
           "FROM my-table WHERE col1 != col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -915,7 +981,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -940,7 +1006,7 @@
           "FROM sys.columns WHERE col-name <> 'col3' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -965,7 +1031,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 3]
@@ -986,7 +1052,7 @@
           "FROM sys.columns WHERE 'col3' <> col-name SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -1011,7 +1077,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 3]
@@ -1032,10 +1098,10 @@
           "FROM sys.columns WHERE 1 != 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 0]
@@ -1063,7 +1129,7 @@
           "FROM my-table WHERE col2 <> .6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row2']]
@@ -1071,7 +1137,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -1099,7 +1165,7 @@
           "FROM my-table WHERE col2 <> .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row2']]
@@ -1107,7 +1173,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -1220,7 +1286,7 @@
           "WHERE col3 <> 'tuxedo' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1236,10 +1302,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1274,7 +1340,7 @@
           "WHERE 'tuxedo' <> col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1290,10 +1356,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1328,7 +1394,7 @@
           "WHERE t1.col1 != col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1344,10 +1410,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1473,7 +1539,7 @@
           "FROM my-table WHERE col3 > 'toledo' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -1489,7 +1555,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1518,7 +1584,7 @@
           "FROM my-table WHERE col2 > ~1999.2.19 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1534,7 +1600,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1563,7 +1629,7 @@
           "FROM my-table WHERE 'tricolor' > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1573,7 +1639,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -1602,7 +1668,7 @@
           "FROM my-table WHERE col3 > col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1618,7 +1684,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1651,7 +1717,7 @@
           "FROM my-table WHERE col1 > 'Abbz' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -1667,7 +1733,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1688,7 +1754,7 @@
           "FROM sys.columns WHERE 'col3' > col-name SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -1706,7 +1772,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 2]
@@ -1727,7 +1793,7 @@
           "FROM sys.columns WHERE 2 > 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -1759,7 +1825,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 4]
@@ -1786,10 +1852,10 @@
           "FROM my-table WHERE .~-3.14 > .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -1816,7 +1882,7 @@
           "FROM my-table WHERE .~3.14 > .~-3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -1824,7 +1890,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -1851,7 +1917,7 @@
           "FROM my-table WHERE .~6.02 > .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -1859,7 +1925,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -1886,10 +1952,10 @@
           "FROM my-table WHERE .~-6.02 > .~-3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -1917,10 +1983,10 @@
           "FROM my-table WHERE col2 > .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -1948,7 +2014,7 @@
           "FROM my-table WHERE col2 > .~-3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -1960,7 +2026,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -1988,7 +2054,7 @@
           "FROM my-table WHERE col2 > .~5.0 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -1996,7 +2062,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2024,7 +2090,7 @@
           "FROM my-table WHERE col2 > .~-5.0 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2032,7 +2098,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2060,10 +2126,10 @@
           "FROM my-table WHERE .~-3.14 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2091,7 +2157,7 @@
           "FROM my-table WHERE .~3.14 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2103,7 +2169,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2131,7 +2197,7 @@
           "FROM my-table WHERE .~5.0 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row2']]
@@ -2139,7 +2205,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2167,7 +2233,7 @@
           "FROM my-table WHERE .~-5.0 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row2']]
@@ -2175,7 +2241,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2202,10 +2268,10 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2232,7 +2298,7 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2241,7 +2307,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2269,7 +2335,7 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2278,7 +2344,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2306,7 +2372,7 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2315,7 +2381,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2342,10 +2408,10 @@
           "FROM my-table WHERE -3 > --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2372,7 +2438,7 @@
           "FROM my-table WHERE --3 > -3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2380,7 +2446,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2407,7 +2473,7 @@
           "FROM my-table WHERE --6 > --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2415,7 +2481,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2442,10 +2508,10 @@
           "FROM my-table WHERE -6 > -3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2473,10 +2539,10 @@
           "FROM my-table WHERE col2 > --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2504,7 +2570,7 @@
           "FROM my-table WHERE col2 > -3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2516,7 +2582,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2544,7 +2610,7 @@
           "FROM my-table WHERE col2 > --5 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2552,7 +2618,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2580,7 +2646,7 @@
           "FROM my-table WHERE col2 > -5 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2588,7 +2654,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2616,10 +2682,10 @@
           "FROM my-table WHERE -3 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2647,7 +2713,7 @@
           "FROM my-table WHERE --3 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2659,7 +2725,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -2687,7 +2753,7 @@
           "FROM my-table WHERE --5 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row2']]
@@ -2695,7 +2761,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2723,7 +2789,7 @@
           "FROM my-table WHERE -5 > col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row2']]
@@ -2731,7 +2797,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2758,10 +2824,10 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -2788,7 +2854,7 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2797,7 +2863,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2825,7 +2891,7 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2834,7 +2900,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2862,7 +2928,7 @@
           "FROM my-table WHERE col2 > col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -2871,7 +2937,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -2984,7 +3050,7 @@
           "WHERE col3 > 'toledo' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -3000,10 +3066,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3038,7 +3104,7 @@
           "WHERE col2 > ~1999.2.19 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3054,10 +3120,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3092,7 +3158,7 @@
           "WHERE 'tricolor' > col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3102,10 +3168,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3140,7 +3206,7 @@
           "WHERE col3 > t1.col1 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3156,10 +3222,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3194,7 +3260,7 @@
           "WHERE T1.col1 > 'Abbz' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3210,10 +3276,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3340,7 +3406,7 @@
           "FROM my-table WHERE col3 < 'toledo' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3350,7 +3416,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3379,7 +3445,7 @@
           "FROM my-table WHERE col2 < ~2001.9.19 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Abby']]
@@ -3389,7 +3455,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3418,7 +3484,7 @@
           "FROM my-table WHERE 'tricolor' < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -3428,7 +3494,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3457,7 +3523,7 @@
           "FROM my-table WHERE col1 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3473,7 +3539,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3506,7 +3572,7 @@
           "FROM my-table WHERE col1 < 'Angel' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -3522,7 +3588,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -3543,7 +3609,7 @@
           "FROM sys.columns WHERE 'col2' < col-name SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -3561,7 +3627,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 2]
@@ -3582,10 +3648,10 @@
           "FROM sys.columns WHERE 2 < 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 0]
@@ -3612,7 +3678,7 @@
           "FROM my-table WHERE .~3.14 < .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -3620,7 +3686,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3647,10 +3713,10 @@
           "FROM my-table WHERE .~3.14 < .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3677,10 +3743,10 @@
           "FROM my-table WHERE .~6.02 < .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3707,7 +3773,7 @@
           "FROM my-table WHERE col2 < .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -3715,7 +3781,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3742,10 +3808,10 @@
           "FROM my-table WHERE col2 < .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3772,10 +3838,10 @@
           "FROM my-table WHERE col2 < .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3802,7 +3868,7 @@
           "FROM my-table WHERE .~3.14 < col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -3810,7 +3876,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3837,10 +3903,10 @@
           "FROM my-table WHERE .~3.14 < col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3867,10 +3933,10 @@
           "FROM my-table WHERE .~6.02 < col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3897,7 +3963,7 @@
           "FROM my-table WHERE col2 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -3906,7 +3972,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -3933,10 +3999,10 @@
           "FROM my-table WHERE col2 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3963,10 +4029,10 @@
           "FROM my-table WHERE col2 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -3993,7 +4059,7 @@
           "FROM my-table WHERE --3 < --6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -4001,7 +4067,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4028,10 +4094,10 @@
           "FROM my-table WHERE --3 < --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4058,10 +4124,10 @@
           "FROM my-table WHERE --6 < --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4088,7 +4154,7 @@
           "FROM my-table WHERE col2 < --6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -4096,7 +4162,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4123,10 +4189,10 @@
           "FROM my-table WHERE col2 < --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4153,10 +4219,10 @@
           "FROM my-table WHERE col2 < --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4183,7 +4249,7 @@
           "FROM my-table WHERE --3 < col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -4191,7 +4257,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4218,10 +4284,10 @@
           "FROM my-table WHERE --3 < col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4248,10 +4314,10 @@
           "FROM my-table WHERE --6 < col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4278,7 +4344,7 @@
           "FROM my-table WHERE col2 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -4287,7 +4353,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4314,10 +4380,10 @@
           "FROM my-table WHERE col2 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4344,10 +4410,10 @@
           "FROM my-table WHERE col2 < col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -4460,7 +4526,7 @@
           "WHERE col3 < 'toledo' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -4470,10 +4536,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4508,7 +4574,7 @@
           "WHERE col2 < ~2001.9.19 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Abby']]
@@ -4518,10 +4584,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4556,7 +4622,7 @@
           "WHERE 'tricolor' < col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -4566,10 +4632,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -4604,7 +4670,7 @@
           "WHERE T1.col1 < col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -4620,10 +4686,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -4658,7 +4724,7 @@
           "WHERE t1.col1 < 'Angel' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -4674,10 +4740,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -4804,7 +4870,7 @@
           "FROM my-table WHERE col3 >= 'tricolor' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -4820,7 +4886,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -4849,7 +4915,7 @@
           "FROM my-table WHERE col2 >= ~1999.2.19 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -4871,7 +4937,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -4900,7 +4966,7 @@
           "FROM my-table WHERE 'tricolor' >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -4916,7 +4982,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -4945,7 +5011,7 @@
           "FROM my-table WHERE col3 >= col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -4967,7 +5033,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -5000,7 +5066,7 @@
           "FROM my-table WHERE col1 >= 'Ace' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -5016,7 +5082,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -5037,7 +5103,7 @@
           "FROM sys.columns WHERE 'col3' >= col-name SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -5062,7 +5128,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 3]
@@ -5083,7 +5149,7 @@
           "FROM sys.columns WHERE 2 >= 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -5115,7 +5181,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 4]
@@ -5142,7 +5208,7 @@
           "FROM my-table WHERE .~3.14 >= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5150,7 +5216,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5177,7 +5243,7 @@
           "FROM my-table WHERE .~6.02 >= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5185,7 +5251,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5212,10 +5278,10 @@
           "FROM my-table WHERE .~3.14 >= .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5242,7 +5308,7 @@
           "FROM my-table WHERE col2 >= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5250,7 +5316,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5277,7 +5343,7 @@
           "FROM my-table WHERE col2 >= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5285,7 +5351,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5312,10 +5378,10 @@
           "FROM my-table WHERE col2 >= .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5342,7 +5408,7 @@
           "FROM my-table WHERE .~3.14 >= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5350,7 +5416,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5377,7 +5443,7 @@
           "FROM my-table WHERE .~6.02 >= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5385,7 +5451,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5412,10 +5478,10 @@
           "FROM my-table WHERE .~3.14 >= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5442,7 +5508,7 @@
           "FROM my-table WHERE col2 >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5451,7 +5517,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5478,7 +5544,7 @@
           "FROM my-table WHERE col2 >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5487,7 +5553,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5514,10 +5580,10 @@
           "FROM my-table WHERE col2 >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5544,7 +5610,7 @@
           "FROM my-table WHERE --3 >= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5552,7 +5618,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5579,7 +5645,7 @@
           "FROM my-table WHERE --6 >= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5587,7 +5653,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5614,10 +5680,10 @@
           "FROM my-table WHERE --3 >= --6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5644,7 +5710,7 @@
           "FROM my-table WHERE col2 >= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5652,7 +5718,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5679,7 +5745,7 @@
           "FROM my-table WHERE col2 >= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5687,7 +5753,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5714,10 +5780,10 @@
           "FROM my-table WHERE col2 >= --6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5744,7 +5810,7 @@
           "FROM my-table WHERE --3 >= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5752,7 +5818,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5779,7 +5845,7 @@
           "FROM my-table WHERE --6 >= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5787,7 +5853,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5814,10 +5880,10 @@
           "FROM my-table WHERE --3 >= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -5844,7 +5910,7 @@
           "FROM my-table WHERE col2 >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5853,7 +5919,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5880,7 +5946,7 @@
           "FROM my-table WHERE col2 >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -5889,7 +5955,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -5916,10 +5982,10 @@
           "FROM my-table WHERE col2 >= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -6032,7 +6098,7 @@
           "WHERE col3 >= 'tricolor' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -6048,10 +6114,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -6086,7 +6152,7 @@
           "WHERE col2 >= ~1999.2.19 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -6108,10 +6174,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -6146,7 +6212,7 @@
           "WHERE 'tricolor' >= col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -6162,10 +6228,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -6200,7 +6266,7 @@
           "WHERE col3 >= t1.col1 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -6222,10 +6288,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -6260,7 +6326,7 @@
           "WHERE t1.col1 >= 'Ace' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -6276,10 +6342,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -6406,7 +6472,7 @@
           "FROM my-table WHERE col3 <= 'ticolor' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -6416,7 +6482,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -6445,7 +6511,7 @@
           "FROM my-table WHERE col2 <= ~2001.9.19 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -6461,7 +6527,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -6490,7 +6556,7 @@
           "FROM my-table WHERE 'tricolor' <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -6506,7 +6572,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -6535,7 +6601,7 @@
           "FROM my-table WHERE col1 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -6557,7 +6623,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -6590,7 +6656,7 @@
           "FROM my-table WHERE col1 <= 'Ace' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -6606,7 +6672,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -6627,7 +6693,7 @@
           "FROM sys.columns WHERE 'col2' <= col-name SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -6652,7 +6718,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 3]
@@ -6673,7 +6739,7 @@
           "FROM sys.columns WHERE 1 <= 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -6705,7 +6771,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 4]
@@ -6732,7 +6798,7 @@
           "FROM my-table WHERE .~3.14 <= .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -6740,7 +6806,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -6767,7 +6833,7 @@
           "FROM my-table WHERE .~3.14 <= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -6775,7 +6841,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -6802,10 +6868,10 @@
           "FROM my-table WHERE .~6.02 <= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -6832,7 +6898,7 @@
           "FROM my-table WHERE col2 <= .~6.02 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -6840,7 +6906,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -6867,7 +6933,7 @@
           "FROM my-table WHERE col2 <= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -6875,7 +6941,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -6902,10 +6968,10 @@
           "FROM my-table WHERE col2 <= .~3.14 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -6932,7 +6998,7 @@
           "FROM my-table WHERE .~3.14 <= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -6940,7 +7006,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -6967,7 +7033,7 @@
           "FROM my-table WHERE .~3.14 <= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -6975,7 +7041,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7002,10 +7068,10 @@
           "FROM my-table WHERE .~6.02 <= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -7032,7 +7098,7 @@
           "FROM my-table WHERE col2 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7041,7 +7107,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7068,7 +7134,7 @@
           "FROM my-table WHERE col2 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7077,7 +7143,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7104,10 +7170,10 @@
           "FROM my-table WHERE col2 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -7134,7 +7200,7 @@
           "FROM my-table WHERE --3 <= --6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7142,7 +7208,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7169,7 +7235,7 @@
           "FROM my-table WHERE --3 <= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7177,7 +7243,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7204,10 +7270,10 @@
           "FROM my-table WHERE --6 <= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -7234,7 +7300,7 @@
           "FROM my-table WHERE col2 <= --6 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7242,7 +7308,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7269,7 +7335,7 @@
           "FROM my-table WHERE col2 <= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7277,7 +7343,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7304,10 +7370,10 @@
           "FROM my-table WHERE col2 <= --3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -7334,7 +7400,7 @@
           "FROM my-table WHERE --3 <= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7342,7 +7408,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7369,7 +7435,7 @@
           "FROM my-table WHERE --3 <= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7377,7 +7443,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7404,10 +7470,10 @@
           "FROM my-table WHERE --6 <= col2 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -7434,7 +7500,7 @@
           "FROM my-table WHERE col2 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7443,7 +7509,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7470,7 +7536,7 @@
           "FROM my-table WHERE col2 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -7479,7 +7545,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7506,10 +7572,10 @@
           "FROM my-table WHERE col2 <= col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -7622,7 +7688,7 @@
           "WHERE col3 <= 'ticolor' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -7632,10 +7698,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -7670,7 +7736,7 @@
           "WHERE col2 <= ~2001.9.19 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -7686,10 +7752,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -7724,7 +7790,7 @@
           "WHERE 'tricolor' <= col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -7740,10 +7806,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -7778,7 +7844,7 @@
           "WHERE T1.col1 <= col3 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -7800,10 +7866,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -7838,7 +7904,7 @@
           "WHERE t1.col1 <= 'Ace' SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -7854,10 +7920,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -7984,7 +8050,7 @@
           "FROM my-table WHERE col3 IN ('ticolor', 'tricolor') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8000,7 +8066,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -8029,7 +8095,7 @@
           "FROM my-table WHERE col2 in(~2001.9.19, ~1999.2.19) SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -8045,7 +8111,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -8075,7 +8141,7 @@
           "IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8097,7 +8163,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -8126,10 +8192,10 @@
           "FROM my-table WHERE col1 IN ('widget', 'bam') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -8157,7 +8223,7 @@
           "FROM my-table WHERE col2 IN (.0, .1.0) SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -8165,7 +8231,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -8193,7 +8259,7 @@
           "FROM my-table WHERE col2 IN (.~0, .~1.0) SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'row1']]
@@ -8201,7 +8267,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -8289,7 +8355,7 @@
           "WHERE col3 IN ('ticolor', 'tricolor') SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8305,10 +8371,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -8343,7 +8409,7 @@
           "WHERE col2 in(~2001.9.19, ~1999.2.19) SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -8359,10 +8425,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -8398,7 +8464,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8420,10 +8486,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -8459,13 +8525,13 @@
             "WHERE t1.col1 IN ('widget', 'bam') SELECT T1.*, T2.col3, T2.col4"
         ::
         :-  %results
-            :~  [%message 'SELECT']
+            :~  [%action 'SELECT']
                 [%result-set ~]
                 [%server-time ~2012.5.3]
-                [%message 'db1.dbo.my-table']
+                [%relation 'db1.dbo.my-table']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
-                [%message 'db1.dbo.my-table-2']
+                [%relation 'db1.dbo.my-table-2']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
                 [%vector-count 0]
@@ -8561,7 +8627,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -8571,7 +8637,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -8601,7 +8667,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8611,7 +8677,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -8641,7 +8707,7 @@
           "NOT IN ('tricolor', 'ticolor', 'tuxedo') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8663,7 +8729,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -8693,10 +8759,10 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -8784,7 +8850,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -8794,10 +8860,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -8833,7 +8899,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8843,10 +8909,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -8882,7 +8948,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -8904,10 +8970,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -8943,13 +9009,13 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -9045,7 +9111,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -9061,7 +9127,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -9091,7 +9157,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -9113,7 +9179,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -9142,7 +9208,7 @@
           "FROM my-table WHERE col1 BETWEEN col3 col4 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -9152,7 +9218,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -9174,7 +9240,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -9192,7 +9258,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 2]
@@ -9335,7 +9401,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -9351,10 +9417,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -9390,7 +9456,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -9412,10 +9478,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -9450,7 +9516,7 @@
           "WHERE t1.col1 BETWEEN col3 col4 SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -9460,10 +9526,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -9627,7 +9693,7 @@
           "AND 'tummy' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -9637,7 +9703,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -9667,10 +9733,10 @@
           "AND 'tuxedos' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -9699,7 +9765,7 @@
           "FROM my-table WHERE col1 NOT BETWEEN col3 col4 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -9715,7 +9781,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -9737,7 +9803,7 @@
           "AND 'col3' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [p=%namespace q=[p=~.tas q=%dbo]]
@@ -9755,7 +9821,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 2]
@@ -9898,7 +9964,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -9908,10 +9974,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -9947,13 +10013,13 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -9989,7 +10055,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10005,10 +10071,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10172,7 +10238,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10188,7 +10254,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10217,7 +10283,7 @@
           "FROM my-table WHERE col1 = col3 OR col3=col4 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -10227,7 +10293,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -10257,7 +10323,7 @@
           "OR (col3='tricolor' AND col4='row1') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10273,7 +10339,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10309,7 +10375,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10325,10 +10391,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10364,7 +10430,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -10374,10 +10440,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -10414,7 +10480,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10430,10 +10496,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10464,7 +10530,7 @@
           "FROM my-table WHERE col3 = 'ticolor' AND col4='row2' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10474,7 +10540,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -10503,7 +10569,7 @@
           "FROM my-table WHERE col1 = col3 AND col4='row3' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -10513,7 +10579,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -10549,7 +10615,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10559,10 +10625,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -10599,7 +10665,7 @@
             "SELECT T1.*, T2.col3, T2.col4"
         ::
         :-  %results
-            :~  [%message 'SELECT']
+            :~  [%action 'SELECT']
                 :-  %result-set
                     :~  :-  %vector
                             :~  [%col1 [~.t 'Angel']]
@@ -10609,10 +10675,10 @@
                                 ==
                         ==
                 [%server-time ~2012.5.3]
-                [%message 'db1.dbo.my-table']
+                [%relation 'db1.dbo.my-table']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
-                [%message 'db1.dbo.my-table-2']
+                [%relation 'db1.dbo.my-table-2']
                 [%schema-time ~2012.5.1]
                 [%data-time ~2012.5.2]
                 [%vector-count 1]
@@ -10643,7 +10709,7 @@
           "FROM my-table WHERE NOT col3 = 'tuxedo' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10659,7 +10725,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10688,7 +10754,7 @@
           "FROM my-table WHERE NOT 'tuxedo' = col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10704,7 +10770,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10733,7 +10799,7 @@
           "FROM my-table WHERE NOT col1 = col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10749,7 +10815,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10779,7 +10845,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Abby']]
@@ -10789,7 +10855,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -10810,10 +10876,10 @@
           "FROM sys.columns WHERE NOT 1 = 1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.sys.columns']
+              [%relation 'db1.sys.columns']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%vector-count 0]
@@ -10899,7 +10965,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10915,10 +10981,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -10954,7 +11020,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -10970,10 +11036,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -11009,7 +11075,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11025,10 +11091,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -11064,7 +11130,7 @@
           "SELECT T1.*, T2.col3, T2.col4"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Abby']]
@@ -11074,10 +11140,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -11148,9 +11214,6 @@
           "comparing columns of different auras: %col1 type=~.t %col2 type=~.da"
       ==
 ::
-::  qualified predicates
-::  to do: implement name qualified in parse
-::
 ::  alias qualified single table
 ++  test-qualified-01
   =|  run=@ud
@@ -11176,7 +11239,7 @@
           "SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11192,7 +11255,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -11230,7 +11293,7 @@
           "FROM my-table WHERE my-cte.col1 = my-cte.col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11246,10 +11309,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -11284,13 +11347,13 @@
           "FROM my-table WHERE my-cte.col1 = my-cte.col3 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -11325,7 +11388,7 @@
           "FROM my-table WHERE my-cte.col1 = 'Angel' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11341,10 +11404,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -11379,13 +11442,13 @@
           "FROM my-table WHERE my-cte.col1 = 'Ace' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -11420,7 +11483,7 @@
           "FROM my-table WHERE 'Angel' = my-cte.col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11436,10 +11499,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -11474,13 +11537,13 @@
           "FROM my-table WHERE 'Ace' = my-cte.col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -11515,7 +11578,7 @@
           "FROM my-table WHERE my-cte.col1 = col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -11523,10 +11586,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -11561,7 +11624,7 @@
           "FROM my-table WHERE col1 = my-cte.col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Angel']]
@@ -11569,10 +11632,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 1]
@@ -11742,7 +11805,7 @@
           "FROM my-table WHERE my-cte.col3 BETWEEN 'tango' AND 'tuxedos' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11758,10 +11821,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -11796,13 +11859,13 @@
           "FROM my-table WHERE my-cte.col3 BETWEEN 'tuxedo' AND 'tuxedos' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -11837,7 +11900,7 @@
           "FROM my-table WHERE my-cte.col3 BETWEEN my-cte.col4 AND 'tummy' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11853,10 +11916,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -11891,7 +11954,7 @@
           "FROM my-table WHERE col1 BETWEEN my-cte.col3 AND 'Angel' SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11903,10 +11966,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -11941,7 +12004,7 @@
           "FROM my-table WHERE col1 BETWEEN my-cte.col3 AND my-cte.col4 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -11953,10 +12016,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -12066,7 +12129,7 @@
           "FROM my-table WHERE my-cte.col3 IN ('ticolor', 'tuxedo') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -12088,7 +12151,7 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -12118,10 +12181,10 @@
           "FROM my-table WHERE my-cte.col3 IN ('tricolor', 'tuxedo') SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -12157,7 +12220,7 @@
           "FROM my-table WHERE cte-a.col3 IN cte-b.col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -12173,10 +12236,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 3]
@@ -12212,13 +12275,13 @@
           "FROM my-table WHERE cte-a.col3 IN cte-b.col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               [%result-set ~]
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 0]
@@ -12252,7 +12315,7 @@
           "FROM my-table WHERE col1 IN my-cte.col1 SELECT *"
       ::
       :-  %results
-          :~  [%message 'SELECT']
+          :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
                           :~  [%col1 [~.t 'Ace']]
@@ -12264,10 +12327,10 @@
                               ==
                       ==
               [%server-time ~2012.5.3]
-              [%message 'db1.dbo.my-table']
+              [%relation 'db1.dbo.my-table']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
-              [%message 'db1.dbo.my-table-2']
+              [%relation 'db1.dbo.my-table-2']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.2]
               [%vector-count 2]
@@ -12352,4 +12415,1798 @@
       %-  crip
           "IN cte-column type ~.da doesn't match left side type ~.t"
       ==
+::
+::  direct predicate scalar-name resolution
+::
+++  mk-predicate-indexed-row
+  |=  kvp=(lest [@tas @])
+  ^-  data-row
+  :*  %indexed-row
+      key=(turn kvp |=(e=[@tas @] +.e))
+      data=(malt (limo kvp))
+  ==
+::
+++  pred-leaf
+  |=  a=predicate-component:ast
+  [a ~ ~]
+::
+++  pred-scalar-row
+  %-  mk-predicate-indexed-row
+  :~
+    [%col1 'Angel']
+    [%col2 ~2001.9.19]
+    [%col3 'tuxedo']
+    [%col4 7]
+    ==
+::
+++  pred-scalar-map-meta
+  ^-  map-meta
+  :-  %unqualified-map-meta
+  %-  mk-unqualified-typ-addr-lookup
+  %-  addr-columns
+  :~  [%column %col1 ~.t 0]
+      [%column %col2 ~.da 0]
+      [%column %col3 ~.t 0]
+      [%column %col4 ~.ud 0]
+      ==
+::
+++  pred-scalar-qualified-table
+  :*  %qualified-table
+      ship=~
+      database=%db1
+      namespace=%dbo
+      name=%my-table
+      alias=~
+      ==
+::
+++  pred-scalar-qualifier-lookup
+  ^-  qualifier-lookup
+  %-  malt
+  %-  limo
+  :~  [%col1 ~[pred-scalar-qualified-table]]
+      [%col2 ~[pred-scalar-qualified-table]]
+      [%col3 ~[pred-scalar-qualified-table]]
+      [%col4 ~[pred-scalar-qualified-table]]
+      ==
+::
+++  pred-scalar-resolved-scalars
+  ^-  resolved-scalars
+  %-  malt
+  %-  limo
+      :~  :-  %scalar-lit
+          [~.t 'tuxedo']
+      :-  %scalar-fn
+          :*  %fn
+            type=~.t
+            |=  row=data-row
+            ^-  dime
+            =/  idx=indexed-row  ?>(?=(%indexed-row -.row) row)
+            [~.t (~(got by data.idx) %col3)]
+          ==
+      :-  %scalar-num
+          :*  %fn
+            type=~.ud
+            |=  row=data-row
+            ^-  dime
+            =/  idx=indexed-row  ?>(?=(%indexed-row -.row) row)
+            [~.ud (~(got by data.idx) %col4)]
+          ==
+      :-  %scalar-date
+          :*  %fn
+            type=~.da
+            |=  row=data-row
+            ^-  dime
+            =/  idx=indexed-row  ?>(?=(%indexed-row -.row) row)
+            [~.da (~(got by data.idx) %col2)]
+          ==
+      ==
+::
+::  scalar test harness rows
+::
+++  scalar-true  [~.t 'true']
+++  scalar-false  [~.t 'false']
+::
+::  WHEN scalar-fn equals text literal
+++  scalar-row-00
+  :-  :*  %if-then-else
+        if=[%eq (pred-leaf [%scalar-name %scalar-fn]) (pred-leaf [~.t 'tuxedo'])]
+        then=scalar-true
+        else=scalar-false
+        ==
+      scalar-true
+::
+::  WHEN text column equals scalar-literal
+++  scalar-row-01
+  :-  :*  %if-then-else
+        if=[%eq (pred-leaf [%unqualified-column %col3 ~]) (pred-leaf [%scalar-name %scalar-lit])]
+        then=scalar-true
+        else=scalar-false
+        ==
+      scalar-true
+::
+::  WHEN scalar-fn is contained in numeric list
+++  scalar-row-02
+  :-  :*  %if-then-else
+        if=[%in (pred-leaf [%scalar-name %scalar-num]) (pred-leaf [%value-literals %ud '5;7'])]
+        then=scalar-true
+        else=scalar-false
+        ==
+      scalar-true
+::
+::  WHERE <scalar-fn> = <literal>
+++  test-scalar-00
+  %:  run-scalar-tests
+    *named-ctes
+    pred-scalar-qualifier-lookup
+    pred-scalar-map-meta
+    pred-scalar-resolved-scalars
+    pred-scalar-row
+    :~  [%scalar-00 scalar-row-00]
+        ==
+  ==
+::
+::  WHERE <column> = <scalar-literal>
+++  test-scalar-01
+  %:  run-scalar-tests
+    *named-ctes
+    pred-scalar-qualifier-lookup
+    pred-scalar-map-meta
+    pred-scalar-resolved-scalars
+    pred-scalar-row
+    :~  [%scalar-01 scalar-row-01]
+        ==
+  ==
+::
+::  WHERE <scalar-fn> IN (list @ud)
+++  test-scalar-02
+  %:  run-scalar-tests
+    *named-ctes
+    pred-scalar-qualifier-lookup
+    pred-scalar-map-meta
+    pred-scalar-resolved-scalars
+    pred-scalar-row
+    :~  [%scalar-02 scalar-row-02]
+        ==
+  ==
+::
+::  WHERE <scalar-fn> = <literal>
+++  test-scalar-03
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE my-scalar = 6 ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <literal> = <scalar-fn>
+++  test-scalar-04
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE 6 = my-scalar ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <scalar-fn> = <column>
+++  test-scalar-05
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE my-scalar = col2 ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <column> = <scalar-fn>
+++  test-scalar-06
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS my-scalar (2 + col3 + col4) / 2 END ".
+          "WHERE col2 = my-scalar ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  WHERE <scalar-fn> = <scalar-fn>
+++  test-scalar-07
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      [~2012.5.1 %db1 create-ud-3col-table]
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO my-table".
+          " VALUES".
+          " ('Abby', 6, 4, 6)".
+          " ('Ace', 9, 5, 9)".
+          " ('Angel', 12, 8, 12)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM my-table ".
+          "SCALARS left-scalar (col2 + col3 + 2) - 6 END ".
+          "right-scalar (col4 * 2 + 0) / 2 END ".
+          "WHERE left-scalar = right-scalar ".
+          "SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'Abby']]
+                              [%col2 [~.ud 6]]
+                              [%col3 [~.ud 4]]
+                              [%col4 [~.ud 6]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.2]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  searched CASE scalar predicates on 10 joined rows with singleton and list CTEs
+::  @ud
+++  test-scalar-case-search-ud-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col2 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+            "right-scalar CASE ".
+                          "WHEN T2.col5 = 1 THEN one-cte.col2 ".
+                          "WHEN T1.col5 = 3 THEN T2.col2 ".
+                          "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        ==
+  ==
+::
+++  test-scalar-case-search-ud-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col2 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND 1 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-a-u
+        ==
+  ==
+::
+++  test-scalar-case-search-ud-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col2 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 6 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-case-search-ud-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col2 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        ==
+  ==
+::
+++  test-scalar-case-search-ud-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col2 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-case-search-ud-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col2 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+::  @t
+++  test-scalar-case-search-t-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col3 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+            "right-scalar CASE ".
+                          "WHEN T2.col5 = 1 THEN one-cte.col3 ".
+                          "WHEN T1.col5 = 3 THEN T2.col3 ".
+                          "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        ==
+  ==
+::
+++  test-scalar-case-search-t-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col3 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND 'u' = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-a-u
+        ==
+  ==
+::
+++  test-scalar-case-search-t-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col3 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'cobra' ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-case-search-t-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col3 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        ==
+  ==
+::
+++  test-scalar-case-search-t-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col3 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-case-search-t-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col3 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+::  @da
+++  test-scalar-case-search-da-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col4 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+            "right-scalar CASE ".
+                          "WHEN T2.col5 = 1 THEN one-cte.col4 ".
+                          "WHEN T1.col5 = 3 THEN T2.col4 ".
+                          "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        ==
+  ==
+::
+++  test-scalar-case-search-da-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col4 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND ~2024.1.1 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-a-u
+        ==
+  ==
+::
+++  test-scalar-case-search-da-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col4 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.6 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-case-search-da-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col4 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        ==
+  ==
+::
+++  test-scalar-case-search-da-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col4 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-case-search-da-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE ".
+                         "WHEN T1.col5 = 1 THEN T2.col4 ".
+                         "WHEN T2.col5 = 4 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+::  simple CASE scalar predicates on 10 joined rows with singleton and list CTEs
+::  @ud
+++  test-scalar-case-simple-ud-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS target-scalar CASE ".
+                          "WHEN T1.col5 = 1 THEN 1 ".
+                          "WHEN T2.col5 = 4 THEN one-cte.col5 ".
+                          "ELSE 3 END ".
+            "left-scalar CASE target-scalar ".
+                        "WHEN 1 THEN T2.col2 ".
+                        "WHEN 2 THEN one-cte.col2 ".
+                        "ELSE T1.col2 END ".
+            "right-scalar CASE target-scalar ".
+                         "WHEN 1 THEN T1.col2 ".
+                         "WHEN 2 THEN one-cte.col2 ".
+                         "ELSE T2.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-ud-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE one-cte.col5 ".
+                         "WHEN 2 THEN T2.col2 ".
+                         "WHEN 1 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND 7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-ud-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE (T1.col5 + T2.col5 - T2.col5 + one-cte.col5 - one-cte.col5) ".
+                         "WHEN 1 THEN T2.col2 ".
+                         "WHEN 2 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 6 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    2
+    :~  scalar-row-c-w
+        scalar-row-c-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-ud-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE T1.col5 ".
+                         "WHEN 1 THEN T2.col2 ".
+                         "WHEN 2 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-ud-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE (T1.col5 + T2.col5 - T2.col5 + one-cte.col5 - one-cte.col5) ".
+                         "WHEN 1 THEN T2.col2 ".
+                         "WHEN 2 THEN one-cte.col2 ".
+                         "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-ud-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS target-scalar CASE ".
+                          "WHEN T1.col5 = 1 THEN 1 ".
+                          "WHEN T2.col5 = 4 THEN one-cte.col5 ".
+                          "ELSE 3 END ".
+            "left-scalar CASE target-scalar ".
+                        "WHEN 1 THEN T2.col2 ".
+                        "WHEN 2 THEN one-cte.col2 ".
+                        "ELSE T1.col2 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+::  @t
+++  test-scalar-case-simple-t-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS target-scalar CASE ".
+                          "WHEN T1.col5 = 1 THEN 1 ".
+                          "WHEN T2.col5 = 4 THEN one-cte.col5 ".
+                          "ELSE 3 END ".
+            "left-scalar CASE target-scalar ".
+                        "WHEN 1 THEN T2.col3 ".
+                        "WHEN 2 THEN one-cte.col3 ".
+                        "ELSE T1.col3 END ".
+            "right-scalar CASE target-scalar ".
+                         "WHEN 1 THEN T1.col3 ".
+                         "WHEN 2 THEN one-cte.col3 ".
+                         "ELSE T2.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-t-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE one-cte.col5 ".
+                         "WHEN 2 THEN T2.col3 ".
+                         "WHEN 1 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND 'x' = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-t-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE (T1.col5 + T2.col5 - T2.col5 + one-cte.col5 - one-cte.col5) ".
+                         "WHEN 1 THEN T2.col3 ".
+                         "WHEN 2 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'cobra' ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    2
+    :~  scalar-row-c-w
+        scalar-row-c-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-t-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE T1.col5 ".
+                         "WHEN 1 THEN T2.col3 ".
+                         "WHEN 2 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-t-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE (T1.col5 + T2.col5 - T2.col5 + one-cte.col5 - one-cte.col5) ".
+                         "WHEN 1 THEN T2.col3 ".
+                         "WHEN 2 THEN one-cte.col3 ".
+                         "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-t-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS target-scalar CASE ".
+                          "WHEN T1.col5 = 1 THEN 1 ".
+                          "WHEN T2.col5 = 4 THEN one-cte.col5 ".
+                          "ELSE 3 END ".
+            "left-scalar CASE target-scalar ".
+                        "WHEN 1 THEN T2.col3 ".
+                        "WHEN 2 THEN one-cte.col3 ".
+                        "ELSE T1.col3 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+::  @da
+++  test-scalar-case-simple-da-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS target-scalar CASE ".
+                          "WHEN T1.col5 = 1 THEN 1 ".
+                          "WHEN T2.col5 = 4 THEN one-cte.col5 ".
+                          "ELSE 3 END ".
+            "left-scalar CASE target-scalar ".
+                        "WHEN 1 THEN T2.col4 ".
+                        "WHEN 2 THEN one-cte.col4 ".
+                        "ELSE T1.col4 END ".
+            "right-scalar CASE target-scalar ".
+                         "WHEN 1 THEN T1.col4 ".
+                         "WHEN 2 THEN one-cte.col4 ".
+                         "ELSE T2.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-da-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE one-cte.col5 ".
+                         "WHEN 2 THEN T2.col4 ".
+                         "WHEN 1 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND ~2024.1.7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-da-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE (T1.col5 + T2.col5 - T2.col5 + one-cte.col5 - one-cte.col5) ".
+                         "WHEN 1 THEN T2.col4 ".
+                         "WHEN 2 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.6 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    2
+    :~  scalar-row-c-w
+        scalar-row-c-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-da-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE T1.col5 ".
+                         "WHEN 1 THEN T2.col4 ".
+                         "WHEN 2 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-da-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS left-scalar CASE (T1.col5 + T2.col5 - T2.col5 + one-cte.col5 - one-cte.col5) ".
+                         "WHEN 1 THEN T2.col4 ".
+                         "WHEN 2 THEN one-cte.col4 ".
+                         "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-case-simple-da-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS target-scalar CASE ".
+                          "WHEN T1.col5 = 1 THEN 1 ".
+                          "WHEN T2.col5 = 4 THEN one-cte.col5 ".
+                          "ELSE 3 END ".
+            "left-scalar CASE target-scalar ".
+                        "WHEN 1 THEN T2.col4 ".
+                        "WHEN 2 THEN one-cte.col4 ".
+                        "ELSE T1.col4 END ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    6
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-b-x
+        scalar-row-c-w
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+::  if-then-else scalar predicates on 10 joined rows with singleton and list CTEs
+::  @ud
+++  test-scalar-if-then-else-ud-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col2 ".
+                        "ELSE T1.col2 ENDIF ".
+            "right-scalar IF T1.col5 = one-cte.col5 OR T2.col5 = 3 ".
+                         "THEN T1.col2 ".
+                         "ELSE one-cte.col2 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-if-then-else-ud-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col2 ".
+                        "ELSE T1.col2 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND 7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-if-then-else-ud-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col2 ".
+                        "ELSE T1.col2 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 1 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-a-u
+        ==
+  ==
+::
+++  test-scalar-if-then-else-ud-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col2 ".
+                        "ELSE T1.col2 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col2 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    7
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-if-then-else-ud-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col2 ".
+                        "ELSE T1.col2 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col2 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-if-then-else-ud-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col2 ".
+                        "ELSE T1.col2 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col2 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+::  @t
+++  test-scalar-if-then-else-t-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col3 ".
+                        "ELSE T1.col3 ENDIF ".
+            "right-scalar IF T1.col5 = one-cte.col5 OR T2.col5 = 3 ".
+                         "THEN T1.col3 ".
+                         "ELSE one-cte.col3 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-if-then-else-t-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col3 ".
+                        "ELSE T1.col3 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND 'x' = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-if-then-else-t-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col3 ".
+                        "ELSE T1.col3 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = 'u' ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-a-u
+        ==
+  ==
+::
+++  test-scalar-if-then-else-t-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col3 ".
+                        "ELSE T1.col3 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col3 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    7
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-if-then-else-t-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col3 ".
+                        "ELSE T1.col3 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col3 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-if-then-else-t-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col3 ".
+                        "ELSE T1.col3 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col3 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+::  @da
+++  test-scalar-if-then-else-da-00
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col4 ".
+                        "ELSE T1.col4 ENDIF ".
+            "right-scalar IF T1.col5 = one-cte.col5 OR T2.col5 = 3 ".
+                         "THEN T1.col4 ".
+                         "ELSE one-cte.col4 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = right-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-if-then-else-da-01
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col4 ".
+                        "ELSE T1.col4 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND ~2024.1.7 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    4
+    :~  scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-if-then-else-da-02
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col4 ".
+                        "ELSE T1.col4 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = ~2024.1.1 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    1
+    :~  scalar-row-a-u
+        ==
+  ==
+::
+++  test-scalar-if-then-else-da-03
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col4 ".
+                        "ELSE T1.col4 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar = T2.col4 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    7
+    :~  scalar-row-a-u
+        scalar-row-a-v
+        scalar-row-a-w
+        scalar-row-a-x
+        scalar-row-b-x
+        scalar-row-c-x
+        scalar-row-d-x
+        ==
+  ==
+::
+++  test-scalar-if-then-else-da-04
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col4 ".
+                        "ELSE T1.col4 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND T1.col4 = left-scalar ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+++  test-scalar-if-then-else-da-05
+  =/  query
+    "WITH (FROM my-table ".
+          "WHERE col1 = 'B' ".
+          "SELECT col2, col3, col4, col5) AS one-cte, ".
+          "(FROM my-table ".
+          "WHERE col1 IN ('A', 'B', 'C') ".
+          "SELECT col2, col3, col4, col5) AS list-cte ".
+    "FROM my-table T1 CROSS JOIN my-table-2 T2 ".
+    "SCALARS plus-two-scalar one-cte.col5 + 2 END ".
+            "left-scalar IF T1.col5 = 1 OR T2.col5 = plus-two-scalar ".
+                        "THEN T2.col4 ".
+                        "ELSE T1.col4 ENDIF ".
+    "WHERE T1.col5 <= T2.col5 AND left-scalar IN list-cte.col4 ".
+    "SELECT T1.col1, T2.col3"
+  %:  run-scalar-joined-test
+    query
+    3
+    :~  scalar-row-b-v
+        scalar-row-b-w
+        scalar-row-c-w
+        ==
+  ==
+::
+::  fail WHERE <scalar-fn> = <column> types differ
+++  test-fail-scalar-00
+  %+  expect-fail-message
+      'comparing scalar to column of different aura: %scalar-date type=~.da %col3 type=~.t'
+      |.
+      =/  pred
+        [%eq (pred-leaf [%scalar-name %scalar-date]) (pred-leaf [%unqualified-column %col3 ~])]
+      =/  gate
+        %:  prepare-predicate  pred
+                               pred-scalar-map-meta
+                               pred-scalar-qualifier-lookup
+                               *named-ctes
+                               pred-scalar-resolved-scalars
+                               ==
+      !>((gate pred-scalar-row))
+::
+::  fail WHERE <scalar-fn> IN (list @ud) types differ
+++  test-fail-scalar-01
+  %+  expect-fail-message
+      'type of IN list incorrect, should be ~.da'
+      |.
+      =/  pred
+        [%in (pred-leaf [%scalar-name %scalar-date]) (pred-leaf [%value-literals %ud '5;7'])]
+      =/  gate
+        %:  prepare-predicate  pred
+                               pred-scalar-map-meta
+                               pred-scalar-qualifier-lookup
+                               *named-ctes
+                               pred-scalar-resolved-scalars
+                               ==
+      !>((gate pred-scalar-row))
 --
