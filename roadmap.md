@@ -10,9 +10,9 @@ Features coming after v0.5 alpha release.
 
 * __partial pri key natural join__ (complete in beta) -- natural join on beginning of primary key
 
-* __Any natural join__ -- natural join on any column(s) match
+* __Any natural join__ (complete in beta) -- natural join on any column(s) match
 
-* __JOIN ON__ -- JOIN ON `<predicate>`
+* __JOIN ON__ (complete in beta) -- JOIN ON `<predicate>`
 
 * __Set operators__ -- UNION, INTERSECT, EXCEPT
 
