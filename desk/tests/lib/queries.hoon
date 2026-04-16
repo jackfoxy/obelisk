@@ -8063,6 +8063,57 @@
   "(2, 30, 'Mktg-West') ".
   "(3, 40, 'Legal-South') ".
   "(5, 50, 'HR-North');"
+::  sys-view predicate-join fixtures
+::  date-catalog: ref-date @da joins sys.tables.tmsp @da (different column names)
+++  create-date-catalog
+  "CREATE TABLE date-catalog ".
+  "(dc-id @ud, ref-date @da, dc-note @t) ".
+  "PRIMARY KEY (dc-id);"
+++  insert-date-catalog
+  "INSERT INTO date-catalog VALUES ".
+  "(1, ~2012.4.30, 'matches emp table') ".
+  "(2, ~2099.1.1, 'no match');"
+::  compound-cat: joins sys.tables on tmsp @da AND row-count @ud (both different names)
+++  create-compound-cat
+  "CREATE TABLE compound-cat ".
+  "(cc-id @ud, ref-date @da, row-count-ref @ud, cc-note @t) ".
+  "PRIMARY KEY (cc-id);"
+++  insert-compound-cat
+  "INSERT INTO compound-cat VALUES ".
+  "(1, ~2012.4.30, 5, 'emp: 5 rows at init') ".
+  "(2, ~2012.4.30, 999, 'wrong count no match');"
+::  ns-date-cat: ns-date @da joins sys.namespaces.tmsp @da (different column names)
+++  create-ns-date-cat
+  "CREATE TABLE ns-date-cat ".
+  "(ndc-id @ud, ns-date @da, ndc-note @t) ".
+  "PRIMARY KEY (ndc-id);"
+++  insert-ns-date-cat
+  "INSERT INTO ns-date-cat VALUES ".
+  "(1, ~2012.4.30, 'matches dbo namespace') ".
+  "(2, ~2099.1.1, 'no match');"
+::  ship-cat: ship-ref @p joins sys.sys.databases.data-ship @p (different column names)
+++  create-ship-cat
+  "CREATE TABLE ship-cat ".
+  "(sc-id @ud, ship-ref @p, sc-note @t) ".
+  "PRIMARY KEY (sc-id);"
+++  insert-ship-cat
+  "INSERT INTO ship-cat VALUES ".
+  "(1, ~zod, 'local ship') ".
+  "(2, ~nec, 'foreign ship no match');"
+::  date-ref-tbl: ref-date @da joins sys.tables.tmsp; owner-id @ud joins emp.emp-id
+++  create-date-ref-tbl
+  "CREATE TABLE date-ref-tbl ".
+  "(drt-id @ud, ref-date @da, owner-id @ud, drt-note @t) ".
+  "PRIMARY KEY (drt-id);"
+++  insert-date-ref-tbl
+  "INSERT INTO date-ref-tbl VALUES ".
+  "(1, ~2012.4.30, 10, 'alice emp table') ".
+  "(2, ~2099.1.1, 99, 'future no match');"
+::  mini-tbl: 2-column table for sys.columns compound join test
+++  create-mini-tbl
+  "CREATE TABLE mini-tbl ".
+  "(mk-id @ud, mk-tag @t) ".
+  "PRIMARY KEY (mk-id);"
 ::
 ::  test-predicate-join-00
 ::  single equality ON, same-named key columns match (equivalent to natural join)
@@ -9266,6 +9317,749 @@
               [%schema-time ~2012.4.30]
               [%data-time ~2012.4.30]
               [%vector-count 4]
+              ==
+      ==
+::
+::  sys-view predicate join tests
+::  ─────────────────────────────────────────────────────────────────────────
+::  Group A: user table JOIN sys view (and inverted) via ON predicate
+::  ─────────────────────────────────────────────────────────────────────────
+::
+::  test-predicate-join-22 (A-0)
+::  user date-catalog JOIN sys.tables ON sys.tables.tmsp = date-catalog.ref-date
+::  date-catalog created in action poke (~2012.5.1) so its own sys.tables entry
+::  has tmsp ~2012.5.1, isolating the match to emp (tmsp ~2012.4.30)
+++  test-predicate-join-22
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-catalog
+                        insert-date-catalog
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM date-catalog T1 ".
+          "JOIN sys.tables T2 ON T2.tmsp = T1.ref-date ".
+          "SELECT T1.ref-date, T1.dc-note, T2.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%dc-note [~.t 'matches emp table']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-23 (A-1)
+::  same as A-0 with tables inverted: sys.tables on left, date-catalog on right
+++  test-predicate-join-23
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-catalog
+                        insert-date-catalog
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.tables T1 ".
+          "JOIN date-catalog T2 ON T1.tmsp = T2.ref-date ".
+          "SELECT T2.ref-date, T2.dc-note, T1.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%dc-note [~.t 'matches emp table']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-24 (A-2)
+::  user date-catalog JOIN sys.tables ON tmsp = ref-date: no rows match
+::  date-catalog has only far-future dates; no sys.tables entry has those tmsp values
+++  test-predicate-join-24
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        create-date-catalog
+                        "INSERT INTO date-catalog VALUES ".
+                        "(1, ~2099.1.1, 'future A') ".
+                        "(2, ~2099.12.31, 'future B');"
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM date-catalog T1 ".
+          "JOIN sys.tables T2 ON T2.tmsp = T1.ref-date ".
+          "SELECT T1.ref-date, T1.dc-note"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set ~]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-catalog']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 0]
+              ==
+      ==
+::
+::  test-predicate-join-25 (A-3)
+::  ns-date-cat JOIN sys.namespaces ON sys.namespaces.tmsp = ns-date-cat.ns-date
+::  sys.namespaces has one row (dbo, ~2012.4.30); row 1 matches, row 2 does not
+++  test-predicate-join-25
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-ns-date-cat
+                        insert-ns-date-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM ns-date-cat T1 ".
+          "JOIN sys.namespaces T2 ON T2.tmsp = T1.ns-date ".
+          "SELECT T1.ns-date, T1.ndc-note, T2.namespace"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ns-date [~.da ~2012.4.30]]
+                              [%ndc-note [~.t 'matches dbo namespace']]
+                              [%namespace [~.tas %dbo]]
+                              ==
+                      :-  %vector
+                          :~  [%ns-date [~.da ~2012.4.30]]
+                              [%ndc-note [~.t 'matches dbo namespace']]
+                              [%namespace [~.tas %sys]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.ns-date-cat']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  test-predicate-join-26 (A-4)
+::  compound ON: compound-cat JOIN sys.tables ON tmsp = ref-date AND row-count = row-count-ref
+::  two equality conditions required simultaneously; row 2 in compound-cat has wrong count
+::  compound-cat created in action poke to isolate emp as the only tmsp match
+++  test-predicate-join-26
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-compound-cat
+                        insert-compound-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM compound-cat T1 ".
+          "JOIN sys.tables T2 ".
+          "ON T2.tmsp = T1.ref-date AND T2.row-count = T1.row-count-ref ".
+          "SELECT T1.ref-date, T1.row-count-ref, T1.cc-note, T2.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%row-count-ref [~.ud 5]]
+                              [%cc-note [~.t 'emp: 5 rows at init']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.compound-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-27 (A-5a)
+::  ship-cat JOIN sys.sys.databases ON data-ship = ship-ref; query issued from %db1
+::  both db1 and sys share data-ship=~zod; ship-cat row 1 joins to both
+++  test-predicate-join-27
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-ship-cat
+                        insert-ship-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM ship-cat T1 ".
+          "JOIN sys.sys.databases T2 ON T2.data-ship = T1.ship-ref ".
+          "SELECT T1.ship-ref, T1.sc-note, T2.database"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ship-ref [~.p ~zod]]
+                              [%sc-note [~.t 'local ship']]
+                              [%database [~.tas %db1]]
+                              ==
+                      :-  %vector
+                          :~  [%ship-ref [~.p ~zod]]
+                              [%sc-note [~.t 'local ship']]
+                              [%database [~.tas %sys]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.ship-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'sys.sys.databases']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  test-predicate-join-28 (A-5b)
+::  same join as A-5a but query issued from %sys context; db1..ship-cat fully qualified
+++  test-predicate-join-28
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-ship-cat
+                        insert-ship-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %sys
+          "FROM db1..ship-cat T1 ".
+          "JOIN sys.sys.databases T2 ON T2.data-ship = T1.ship-ref ".
+          "SELECT T1.ship-ref, T1.sc-note, T2.database"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ship-ref [~.p ~zod]]
+                              [%sc-note [~.t 'local ship']]
+                              [%database [~.tas %db1]]
+                              ==
+                      :-  %vector
+                          :~  [%ship-ref [~.p ~zod]]
+                              [%sc-note [~.t 'local ship']]
+                              [%database [~.tas %sys]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.ship-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'sys.sys.databases']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  ─────────────────────────────────────────────────────────────────────────
+::  Group B: sys view JOIN sys view via ON predicate
+::  ─────────────────────────────────────────────────────────────────────────
+::
+::  test-predicate-join-29 (B-0)
+::  sys.tables JOIN sys.namespaces ON namespace = namespace
+::  emp and dept (both in dbo) each join to the single dbo namespace row
+++  test-predicate-join-29
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        create-dept
+                        insert-dept
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.tables T1 ".
+          "JOIN sys.namespaces T2 ON T1.namespace = T2.namespace ".
+          "SELECT T1.name, T2.tmsp"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%name [~.tas %dept]]
+                              [%tmsp [~.da ~2012.4.30]]
+                              ==
+                      :-  %vector
+                          :~  [%name [~.tas %emp]]
+                              [%tmsp [~.da ~2012.4.30]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  test-predicate-join-30 (B-1)
+::  sys.columns JOIN sys.tables ON namespace = namespace AND name = name
+::  mini-tbl has 2 columns; each column row joins to the single mini-tbl table row
+++  test-predicate-join-30
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-mini-tbl
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.columns T1 ".
+          "JOIN sys.tables T2 ON T1.namespace = T2.namespace AND T1.name = T2.name ".
+          "SELECT T1.col-name, T1.col-type, T2.namespace"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col-name [~.tas %mk-id]]
+                              [%col-type [~.ta 'ud']]
+                              [%namespace [~.tas %dbo]]
+                              ==
+                      :-  %vector
+                          :~  [%col-name [~.tas %mk-tag]]
+                              [%col-type [~.ta 't']]
+                              [%namespace [~.tas %dbo]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.sys.columns']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  ─────────────────────────────────────────────────────────────────────────
+::  Group C: 3-table joins with sys view in the sequence
+::  ─────────────────────────────────────────────────────────────────────────
+::
+::  test-predicate-join-31 (C-0)
+::  3-table: date-ref-tbl JOIN sys.tables ON tmsp = ref-date JOIN emp ON emp-id = owner-id
+::  sys view at middle of the join chain; date-ref-tbl created in action poke to isolate match
+++  test-predicate-join-31
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-ref-tbl
+                        insert-date-ref-tbl
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM date-ref-tbl T1 ".
+          "JOIN sys.tables T2 ON T2.tmsp = T1.ref-date ".
+          "JOIN emp T3 ON T3.emp-id = T1.owner-id ".
+          "SELECT T1.ref-date, T2.name, T3.emp-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%name [~.tas %emp]]
+                              [%emp-name [~.t 'Alice']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-ref-tbl']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-32 (C-1)
+::  3-table: sys.tables JOIN date-ref-tbl ON tmsp = ref-date JOIN emp ON emp-id = owner-id
+::  sys view at head of the join chain; same data, same result as C-0
+++  test-predicate-join-32
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-ref-tbl
+                        insert-date-ref-tbl
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.tables T1 ".
+          "JOIN date-ref-tbl T2 ON T1.tmsp = T2.ref-date ".
+          "JOIN emp T3 ON T3.emp-id = T2.owner-id ".
+          "SELECT T2.ref-date, T1.name, T3.emp-name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%name [~.tas %emp]]
+                              [%emp-name [~.t 'Alice']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-ref-tbl']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.dbo.emp']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  ─────────────────────────────────────────────────────────────────────────
+::  Group D: ON predicate joins in CTEs; joining main sequence to CTEs
+::  ─────────────────────────────────────────────────────────────────────────
+::
+::  test-predicate-join-33 (D-0)
+::  CTE definition contains ON predicate join (compound-cat JOIN sys.tables)
+::  CTE result is cross-joined to main FROM tiny-a
+::  verifies CTE inner query is not limited to single-table FROM
+++  test-predicate-join-33
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-compound-cat
+                        insert-compound-cat
+                        create-tiny-a
+                        insert-tiny-a
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM compound-cat T1 ".
+          "      JOIN sys.tables T2 ".
+          "      ON T2.tmsp = T1.ref-date AND T2.row-count = T1.row-count-ref ".
+          "      SELECT T1.row-count-ref, T2.name) AS meta ".
+          "FROM tiny-a ".
+          "SELECT ta-val, meta.row-count-ref, meta.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ta-val [~.t 'only-a']]
+                              [%row-count-ref [~.ud 5]]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.compound-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.dbo.tiny-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-34 (D-1)
+::  CTE wraps a user table (tiny-a); main FROM has ON join to sys.tables
+::  tests joining in the main sequence to a sys view while a CTE is also present
+++  test-predicate-join-34
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-catalog
+                        insert-date-catalog
+                        create-tiny-a
+                        insert-tiny-a
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM tiny-a SELECT ta-val) AS tiny-cte ".
+          "FROM date-catalog T1 ".
+          "JOIN sys.tables T2 ON T2.tmsp = T1.ref-date ".
+          "SELECT T1.ref-date, T2.name, tiny-cte.ta-val"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%name [~.tas %emp]]
+                              [%ta-val [~.t 'only-a']]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.dbo.tiny-a']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-35 (D-2)
+::  CTE1 has ON join inside (compound-cat JOIN sys.tables)
+::  CTE2 wraps sys.namespaces directly
+::  main FROM joins the two CTEs with ON predicate
+++  test-predicate-join-35
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-compound-cat
+                        insert-compound-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM compound-cat T1 ".
+          "      JOIN sys.tables T2 ".
+          "      ON T2.tmsp = T1.ref-date AND T2.row-count = T1.row-count-ref ".
+          "      SELECT T1.row-count-ref, T2.namespace AS tbl-ns) AS meta, ".
+          "     (FROM sys.namespaces SELECT namespace, tmsp) AS nss ".
+          "FROM meta T1 JOIN nss T2 ON T1.tbl-ns = T2.namespace ".
+          "SELECT T1.row-count-ref, T2.tmsp"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%row-count-ref [~.ud 5]]
+                              [%tmsp [~.da ~2012.4.30]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.compound-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  ─────────────────────────────────────────────────────────────────────────
+::  Group E: AS OF with sys view in ON predicate join
+::  ─────────────────────────────────────────────────────────────────────────
+::
+::  test-predicate-join-36 (E-0)
+::  tbl-cat-aof JOIN sys.tables AS OF ~2012.4.30 ON tmsp = ref-date
+::  mini-aof has 1 row at ~2012.4.30 and 2 rows at query time
+::  AS OF snapshot isolates mini-aof as the only sys.tables match (tbl-cat-aof
+::  didn't exist at ~2012.4.30) and reports row-count=1 not 2
+++  test-predicate-join-36
+  =|  run=@ud
+  %-  exec-2-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        "CREATE TABLE mini-aof "
+                        "(mk-id @ud, mk-tag @t) "
+                        "PRIMARY KEY (mk-id);"
+                        "INSERT INTO mini-aof VALUES (1, 'first-row');"
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  "CREATE TABLE tbl-cat-aof "
+                        "(cat-id @ud, ref-date @da, cat-note @t) "
+                        "PRIMARY KEY (cat-id);"
+                        "INSERT INTO tbl-cat-aof VALUES "
+                        "(1, ~2012.4.30, 'matches mini-aof at init');"
+                        ==
+      ::
+      :+  ~2012.5.2
+          %db1
+          "INSERT INTO mini-aof VALUES (2, 'second-row');"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM tbl-cat-aof T1 ".
+          "JOIN sys.tables AS OF ~2012.4.30 T2 ON T2.tmsp = T1.ref-date ".
+          "SELECT T1.ref-date, T1.cat-note, T2.name, T2.row-count"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%cat-note [~.t 'matches mini-aof at init']]
+                              [%name [~.tas %mini-aof]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.tbl-cat-aof']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
               ==
       ==
 ::

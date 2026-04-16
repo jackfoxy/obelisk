@@ -16,13 +16,42 @@ Obelisk employs a dialect of SQL called "urQL" that provides for these propertie
 
 See [Reference/Preliminaries](/desk/doc/usr/reference/01-preliminaries.md) and the [Users Guide](/desk/doc/sur/users-guide.md) in the docs folder for more information.
 
+### Using the %hawk UI
+
+To interact with Obelisk from %hawk:
+
+- Ensure you have %hawk installed
+  `|install ~dister-migrev-dolseg %hawk`
+- Create an "obelisk" file sibling to the manual in your hawk namespace.
+- Get the latest Obelisk UI template from templates/hawk.hoon in this repo or from https://hawk.computer/~~/templates/ (not guaranteed to be current). Paste the contents into the obelisk hawk file.
+
+Now clicking the Obelisk landscape tile will take you to the Obelisk UI, with UX similar to SQL Studio.
+
+Be patient with the Obelisk UI. It is still beta and under development. You will find the same actions from the %dojo execute much faster. Still the UI is the recommended interface for most direct user interactions with the %obelisk desk.
+
+### Beta release
+
+The beta release is not compatible with any manually installed alpha releases.
+
 ### Sample database
 
 This repository includes a sample database, "animal-shelter", derived from https://github.com/ami-levin/Animal_Shelter.
 
+The recommended way to install the sample database is from the %dojo:
+
+:obelisk &obelisk-action [%tape2 %animal-shelter (reel .^(wain %cx /=obelisk=/gen/animal-shelter/all-animal-shelter/txt) |=([a=cord b=tape] (weld (trip a) b)))]
+
+Depending on your system it will load in about 30 - 40 seconds.
+
+You can also install it from the %hawk UI, but this will be much slower and is not recommended.
+
 ### Developers
 
 Copy sur/ast/hoon to your project to work with Obelisk results.
+
+You are free to poke the %obelisk desk with urQL via the %tape or %tape2 actions or use the API defined in sur/ast/hoon and poke via %commands. There are no scries.
+
+You can also read directly from the server state, although this is not recommended. If you update the server state directly, you are on your own, in other words "strongly discouraged".
 
 ### Bug reporting
 
@@ -36,78 +65,8 @@ This project welcomes contributors. Contact the author for more information.
 
 Thanks to @widmes-hassen for his contributions to scalar functions.
 
-### Using the %hawk UI
+### Roadmap
 
-To interact with Obelisk from %hawk:
+See [the roadmap](/roadmap.md) for upcoming functionality.
 
-- Ensure you have %hawk installed
-  `|install ~dister-migrev-dolseg %hawk`
-- Create an obelisk file sibling to the manual in your hawk namespace.
-- Get the latest Obelisk UI template from https://hawk.computer/~~/templates/ or templates/hawk.txt in this repo. Paste the contents into the obelisk hawk file.
-
-Now clicking the Obelisk landscape tile will take you to the Obelisk UI, with UX similar to SQL Studio.
-
-### Alpha release
-
-The current **v0.5-alpha** release requires manual installation.
-
-See the [releases document](/releases.md) for new functionality.
-
-#### Previous alpha is NOT installed
-
-```
-|new-desk %obelisk
-|mount %obelisk
-```
-
-Clone the Obelisk repo to your machine.
-On the `master` branch find the folder with the desk files and copy to the obelisk desk that you mounted.
-
-```
- cp -rL ~/gitrepos/obelisk/desk/* /path/to/your/pier-ship/obelisk
- ```
-
-```
-|commit %obelisk
-|install our %obelisk
-```
-
-#### Previous alpha is installed
-
-The current release is NOT compatible with the previous release.
-
-If you wish to save data, you will have to back it up and recreate it before nuking the agent. (See below.)
-
-Copy the files to your desk, nuke the agent, and commit the files.
-
-```
-|nuke %obelisk
-|commit %obelisk
-```
-
-Don't worry about the sample animal-shelter database. You can recreate it as before in the new release.
-
-List the databases you have created. Ignore the 'sys' database.
-
-```
-FROM sys.sys.databases SELECT *;
-```
-
-In each database query the metadata views to retrieve your table definitions.
-
-```
-FROM sys.tables SELECT *;
-FROM sys.columns SELECT *;
-```
-
-For each table you want to restore query the data and save the results. You will have to `CREATE` new databases and tables and `INSERT` the saved data.
-
-```
-FROM my-table SELECT *;
-```
-
-### Beta release
-
-The upcoming beta release will likely not be compatible with the current alpha release, but it is planned to be on standard Urbit OTA software distribution, with future release compatibility handled by the OTA.
-
-See [the roadmap](/docs/roadmap.md) for upcoming functionality.
+Your feedback helps determine the future of Obelisk.
