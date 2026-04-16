@@ -104,7 +104,7 @@
   ;<  now=@da  bind:m  get-time
   =/  dock  [our %obelisk]
   =/  default  (fall parse-default-db %sys)
-  =/  action  [%tape default query]
+  =/  action  [%tape2 default query]       ::does not print to dojo
   =/  obelisk-command=cage  obelisk-action/!>(action)
   ;<  ~  bind:m  (watch /query/[id] dock /server)
   ;<  ~  bind:m  (poke dock obelisk-command)

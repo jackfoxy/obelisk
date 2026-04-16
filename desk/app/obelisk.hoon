@@ -66,7 +66,7 @@
         ==
     ==
   ::
-  ::  for testing without printing results
+  ::  action without printing results
   %tape2
     :: uncomment in order to stop on parse error
     ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
