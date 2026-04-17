@@ -3200,6 +3200,34 @@
           cte-col-map=(map @tas (set @tas))
           ==
   ^-  select:ast
+  =/  resolve-tbl-col
+    |=  [tbl=@t col-name=@tas als=(unit @t)]
+    ^-  selected-column:ast
+    =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
+    ?~  resolved
+      =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
+      ?~  maybe-cte
+        :^  %qualified-column
+            [%qualified-table ~ default-database 'dbo' tbl ~]
+            col-name
+            als
+      =/  maybe-col-set
+            (~(get by cte-col-map) (fold-key (need maybe-cte)))
+      ?:  ?&  ?=(^ maybe-col-set)
+              !(~(has in (need maybe-col-set)) (fold-key col-name))
+              ==
+        ~|  "column {<col-name>} is not produced by CTE ".
+            "{<(need maybe-cte)>}"
+            !!
+      [%selected-cte-column (need maybe-cte) col-name als]
+    =/  qt  (need resolved)
+    =.  qt  ?:  (~(has by cte-map) name.qt)
+              qt(database %cte, namespace %cte)
+            qt
+    :^  %qualified-column
+        qt
+        col-name
+        als
   =/  top      *(unit @ud)
   =/  columns  *(list selected-column:ast)
   |-
@@ -3292,36 +3320,9 @@
           columns  [[%unqualified-column name.uqc `as-alias] columns]
           a  +.a
         ==
-      ::  table.column with AS alias: resolve table alias, then cte-map
-      =/  tbl  (need alias.uqc)
-      =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
+      ::  table.column with AS alias
       %=  $
-        columns
-          :-  ?~  resolved
-                =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
-                ?~  maybe-cte
-                  :^  %qualified-column
-                      [%qualified-table ~ default-database 'dbo' tbl ~]
-                      name.uqc
-                      `as-alias
-                =/  maybe-col-set
-                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
-                ?:  ?&  ?=(^ maybe-col-set)
-                        !(~(has in (need maybe-col-set)) (fold-key name.uqc))
-                        ==
-                  ~|  "column {<name.uqc>} is not produced by CTE ".
-                      "{<(need maybe-cte)>}"
-                      !!
-                [%selected-cte-column (need maybe-cte) name.uqc `as-alias]
-              =/  qt  (need resolved)
-              =.  qt  ?:  (~(has by cte-map) name.qt)
-                        qt(database %cte, namespace %cte)
-                      qt
-              :^  %qualified-column
-                  qt
-                  name.uqc
-                  `as-alias
-              columns
+        columns  [(resolve-tbl-col (need alias.uqc) name.uqc `as-alias) columns]
         a  +.a
       ==
     ?:  ?=([qualified-column:ast %as @] -.a)
@@ -3353,35 +3354,8 @@
           $(columns [[%selected-scalar name.uqc ~] columns], a +.a)
         $(columns [uqc columns], a +.a)
       ::  table.column: resolve table alias, then cte-map
-      =/  tbl  (need alias.uqc)
-      =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
       %=  $
-        columns
-          :-  ?~  resolved
-                =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
-                ?~  maybe-cte
-                  :^  %qualified-column
-                      [%qualified-table ~ default-database 'dbo' tbl ~]
-                      name.uqc
-                      ~
-                =/  maybe-col-set
-                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
-                ?:  ?&  ?=(^ maybe-col-set)
-                        !(~(has in (need maybe-col-set)) (fold-key name.uqc))
-                        ==
-                  ~|  "column {<name.uqc>} is not produced by CTE ".
-                      "{<(need maybe-cte)>}"
-                      !!
-                [%selected-cte-column (need maybe-cte) name.uqc ~]
-              =/  qt  (need resolved)
-              =.  qt  ?:  (~(has by cte-map) name.qt)
-                        qt(database %cte, namespace %cte)
-                      qt
-              :^  %qualified-column
-                  qt
-                  name.uqc
-                  ~
-              columns
+        columns  [(resolve-tbl-col (need alias.uqc) name.uqc ~) columns]
         a  +.a
       ==
     ?>  ?=(qualified-column:ast -.a)  $(columns [-.a columns], a +.a)
