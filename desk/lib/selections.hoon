@@ -331,6 +331,9 @@
   =/  resolved  %+  turn  raw-pairs
     |=  [l=resolved-on-col r=resolved-on-col]
     ^-  [@tas @tas]
+    ::  rebrand alias qualifiers to match execution-time relations
+    =.  l  (rebrand-on-col l rel-prior rel-this)
+    =.  r  (rebrand-on-col r rel-prior rel-this)
     ::  resolve unqualified columns first (with ambiguity check)
     =.  l  (resolve-on-col l rel-prior rel-this column-metas)
     =.  r  (resolve-on-col r rel-prior rel-this column-metas)
@@ -408,6 +411,26 @@
   ?:  ?=(unqualified-column:ast a)
     [~ name.a]
   ~|("JOIN ON predicate only supports column references" !!)
+::
+++  rebrand-on-col
+  ::  rebrand a qualifier whose table name matches an execution-time
+  ::  relation but whose database/namespace differ (CTE alias case)
+  |=  [col=resolved-on-col rel-prior=qualified-table:ast rel-this=qualified-table:ast]
+  ^-  resolved-on-col
+  ?~  qualifier.col  col
+  =/  q  u.qualifier.col
+  ?:  .=  (normalize-qt-alias q)
+          (normalize-qt-alias rel-prior)
+    col
+  ?:  .=  (normalize-qt-alias q)
+          (normalize-qt-alias rel-this)
+    col
+  ::  qualifier doesn't match directly; try matching by table name
+  ?:  =(name.q name.rel-prior)
+    col(qualifier [~ rel-prior])
+  ?:  =(name.q name.rel-this)
+    col(qualifier [~ rel-this])
+  col
 ::
 ++  resolve-on-col
   ::  resolve an unqualified ON column against available relations
@@ -666,11 +689,12 @@
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
                                 (cury selected-table-cols columns.i.set-tables)
-  =/  st-key          key:(need pri-indx.i.set-tables)
-  =/  count-key-cols  %^  fold  st-key
-                                *(pair @ud (list key-column))
-                                (cury count-keys selected-cols)
-  =.  pri-indx.st2    ?:  =(p.count-key-cols (lent st-key))
+  =.  pri-indx.st2    ?~  pri-indx.i.set-tables  ~
+                      =/  st-key  key:(need pri-indx.i.set-tables)
+                      =/  count-key-cols  %^  fold  st-key
+                                                    *(pair @ud (list key-column))
+                                                    (cury count-keys selected-cols)
+                      ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
                       ~
   ?~  f  [st2 set-tables]
@@ -750,7 +774,7 @@
       flipped-cols
     selected-cte-column:ast
       =/  cte-fr  (~(got by named-ctes) cte.selected-column)
-      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected-column]
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected-column ~]
                                                               name.selected-column
       ~[[%column (heading selected-column name.selected-column) type.ta 0]]
     ==
@@ -919,16 +943,19 @@
                         map-meta
                         column-metas
                         ==
-    %cte-name 
+    %cte-name
+      =/  cn  ;;(cte-name:ast rel)
       %:  from-cte  :*  %qualified-table
                         ship=~
                         database=%cte
                         namespace=%cte
-                        name=name:;;(cte-name:ast rel)
-                        alias=~
+                        name=name.cn
+                        alias=alias.cn
                         ==
                     named-ctes
                     *schema
+                    join
+                    predicate
                     map-meta
                     column-metas
                     ==
@@ -1020,6 +1047,8 @@
   ?~  tbl  %:  from-cte  qualified-table
                          named-ctes
                          schema
+                         join
+                         predicate
                          map-meta
                          column-metas
                          ==
@@ -1055,31 +1084,36 @@
   |=  $:  =qualified-table:ast
           =named-ctes
           =schema
+          join=(unit join-type:ast)
+          =predicate
           map-meta=qualified-map-meta
           column-metas=(list column-meta)
           ==
   ^-  full-relation
+  =/  norm-qt  (normalize-qt-alias qualified-table)
   =/  cte-fr  ~|  "SELECT: table {<database.qualified-table>}.".
                   "{<namespace.qualified-table>}.{<name.qualified-table>} ".
                   "does not exist at schema time {<tmsp.schema>}"
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr
-  =.  relation.cte-st  [~ qualified-table]
+  =.  relation.cte-st  [~ norm-qt]
+  =.  join.cte-st      join
+  =.  predicate.cte-st  predicate
   =/  cte-col-meta
-    (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table]))
+    (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table ~]))
   :*  %full-relation
-      qualified-table
+      norm-qt
       [cte-st ~]
       :-  %qualified-map-meta
-          (~(put by +.map-meta) qualified-table cte-col-meta)
+          (~(put by +.map-meta) norm-qt cte-col-meta)
       ::  use CTE's original column-metas (correct addr from
       ::  calc-joined-addr for JOINs) rebranded to outer qualified-table
       %+  weld  column-metas
       %+  turn  column-metas.cte-fr
       |=  cm=column-meta
       :+  :^  %qualified-column
-              (normalize-qt-alias qualified-table)
+              norm-qt
               name.qualified-column.cm
               alias.qualified-column.cm
           type.cm

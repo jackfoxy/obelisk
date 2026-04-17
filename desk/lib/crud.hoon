@@ -851,7 +851,10 @@
   =/  cte-shaped
     %-  cte-set-tables
     [name.i.ctes selected set-tables.join-return nctes resolved-scalars]
-  =/  set-tables      ?:  (selected-needs-materialization selected)
+  =/  needs-mat       (selected-needs-materialization selected)
+  =/  has-joined      ?~  set-tables.join-return  %.n
+                      !=(~ joined-rows.i.set-tables.join-return)
+  =/  set-tables      ?:  ?|(needs-mat has-joined)
                         %-  materialize-cte-set-tables
                         [name.i.ctes selected nctes join-return cte-shaped resolved-scalars]
                       cte-shaped
@@ -863,7 +866,7 @@
   =/  canonical-map   (malt canonical-list)
   =/  map-meta        ;;(qualified-map-meta map-meta.join-return)
   =/  column-metas
-    ?:  (selected-needs-materialization selected)
+    ?:  ?|(needs-mat has-joined)
       (materialized-cte-column-metas name.i.ctes columns.i.set-tables)
     =/  data-row  ?~  joined-rows.i.set-tables
                     ?~  indexed-rows.i.set-tables
@@ -889,14 +892,14 @@
               ^-  qualified-map-meta
               :-  %qualified-map-meta
                   %^  ~(put bi:mip +.map-meta)
-                        [%cte-name name.i.ctes]
+                        [%cte-name name.i.ctes ~]
                         name.qualified-column.column-meta
                         [type.column-meta addr.column-meta]
   ::
   %=  $
     nctes  %+  ~(put by nctes)  name.i.ctes
                                 :*  %full-relation
-                                    [%cte-name name.i.ctes]
+                                    [%cte-name name.i.ctes ~]
                                     set-tables
                                     cte-map-meta
                                     column-metas
@@ -958,7 +961,7 @@
       (~(got by rel-col-lookup) qualified-table.a)
     selected-cte-column
       =/  cte-fr  (~(got by named-ctes) cte.a)
-      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.a]
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.a ~]
                                                               name.a
       ~[[%column (heading a name.a) type.ta 0]]
     ==
@@ -1035,7 +1038,7 @@
                   =/  out-name  (heading c name.c)
                   =/  cte-fr  (~(got by named-ctes) cte.c)
                   =/  cte-ta=typ-addr
-                    %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.c]
+                    %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.c ~]
                                                         name.c
                   =/  qt  ?~(canonical-list default-qt -.i.canonical-list)
                   =/  out-ta  (~(got by unq-lookup) out-name)
@@ -1140,6 +1143,7 @@
   ?~  set-tables  ~|("materialize-cte-set-tables can't get here" !!)
   =/  st  i.set-tables
   =/  out-cols  (addr-columns (cte-col-dups name columns.st))
+  =/  has-jr  !=(~ joined-rows.st)
   =/  rows=(list data-row)  ?~  joined-rows.st
                              indexed-rows.st
                            joined-rows.st
@@ -1151,12 +1155,15 @@
     %-  malt
     %+  turn  column-metas.join-return
     |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
+  ::  when materializing joined-rows, the inner query's primary key
+  ::  doesn't apply to the flattened result; skip key extraction
+  =/  mat-pri  ?:  has-jr  ~  pri-indx.st
   =.  indexed-rows.st
     %-  materialize-cte-indexed-rows
-    [rows pri-indx.st column-metas.join-return src-map-meta selected named-ctes resolved-scalars]
+    [rows mat-pri column-metas.join-return src-map-meta selected named-ctes resolved-scalars]
   =.  joined-rows.st   ~
   =.  rowcount.st      (lent indexed-rows.st)
-  =.  pri-indexed.st   (materialize-cte-pri-index pri-indx.st indexed-rows.st)
+  =.  pri-indexed.st   (materialize-cte-pri-index mat-pri indexed-rows.st)
   [st t.set-tables]
 ::
 ++  materialize-cte-indexed-rows

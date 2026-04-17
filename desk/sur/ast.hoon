@@ -152,6 +152,7 @@
   $+  cte-name
   $:  %cte-name
     name=@tas
+    alias=(unit @t)
     ==
 +$  cte-column
   $+  cte-column

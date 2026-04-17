@@ -418,7 +418,7 @@
     ~[[%cte name='my-cte' query=cte-query]]
   =/  outer-query
     :*  %query
-        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
         scalars=~
         ~
         group-by=~
@@ -450,7 +450,7 @@
     ~[[%cte name='my-cte' query=cte-query]]
   =/  outer-query
     :*  %query
-        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
         scalars=~
         ~
         group-by=~

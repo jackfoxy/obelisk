@@ -2564,12 +2564,13 @@
   ?:  =(-<-.a %qualified-table)
     ~|  "make-query produce-from qualified-table: {<-.a>}"
     =/  f  (produce-from -.a)
+    =.  alias-map  (mk-alias-map f)
     =.  f
       ?.  ?&  ?=(qualified-table:ast relation.f)
               (~(has by cte-map) name.relation.f)
               ==
         f
-      f(relation [%cte-name name.relation.f])
+      f(relation [%cte-name name.relation.f alias.relation.f])
     $(a +.a, from `f)
   ?:  =(-<-.a %query-row)
     ~|  "make-query produce-from query-row: {<-.a>}"
@@ -2786,7 +2787,7 @@
       ?:  ?&  ?=(qualified-table:ast relation.j)
               (~(has by cte-map) name.relation.j)
           ==
-        [%cte-name name.relation.j]
+        [%cte-name name.relation.j alias.relation.j]
       relation.j
     ?~  predicate.j
       j(relation rel)
@@ -3312,8 +3313,12 @@
                       "{<(need maybe-cte)>}"
                       !!
                 [%selected-cte-column (need maybe-cte) name.uqc `as-alias]
+              =/  qt  (need resolved)
+              =.  qt  ?:  (~(has by cte-map) name.qt)
+                        qt(database %cte, namespace %cte)
+                      qt
               :^  %qualified-column
-                  (need resolved)
+                  qt
                   name.uqc
                   `as-alias
               columns
@@ -3368,8 +3373,12 @@
                       "{<(need maybe-cte)>}"
                       !!
                 [%selected-cte-column (need maybe-cte) name.uqc ~]
+              =/  qt  (need resolved)
+              =.  qt  ?:  (~(has by cte-map) name.qt)
+                        qt(database %cte, namespace %cte)
+                      qt
               :^  %qualified-column
-                  (need resolved)
+                  qt
                   name.uqc
                   ~
               columns

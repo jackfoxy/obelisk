@@ -186,7 +186,8 @@
   ?:  =(-.relation %qualified-table)
     (normalize-qt-alias ;;(qualified-table:ast relation))
   ?:  =(-.relation %cte-name)
-    [%cte-name (crip (cass (trip name:;;(cte-name:ast relation))))]
+    =/  cn  ;;(cte-name:ast relation)
+    [%cte-name (crip (cass (trip name.cn))) alias.cn]
   ~|("normalize-relation not implemented" !!)
 ::
 ++  normalize-from
@@ -273,7 +274,7 @@
   =/  cte-st  i.set-tables.cte-fr
   ?.  =(1 rowcount.cte-st)
     ~|("SELECT cte-column requires exactly 1 row in cte {<cte.selected>}" !!)
-  =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected]
+  =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected ~]
                                                           name.selected
   =/  row=data-row  ?~  joined-rows.cte-st
                       ?~  indexed-rows.cte-st
@@ -434,15 +435,18 @@
         ~|  "SELECT: column {<name.i.selected>} not found"
         :-
           ?:  is-join
-            =/  typ-addr  %+  ~(got bi:mip +:;;(qualified-map-meta map-meta))
-                              qualifier.i.selected
-                              name.i.selected
+            =/  ta=[@ta @]
+              ?:  =(%qualified-map-meta -.map-meta)
+                %+  ~(got bi:mip +:;;(qualified-map-meta map-meta))
+                    qualifier.i.selected
+                    name.i.selected
+              (~(got by +:;;(unqualified-map-meta map-meta)) name.i.selected)
             %:  templ-cell
                   %templ-cell
                   [~ i.selected]
                   ~
-                  addr.typ-addr
-                  [(heading i.selected name.i.selected) [type.typ-addr 0]]
+                  +.ta
+                  [(heading i.selected name.i.selected) [-.ta 0]]
                   ==
           %:  templ-cell
                 %templ-cell

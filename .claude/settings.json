@@ -14,7 +14,10 @@
       "Read(//mnt/mars/**)",
       "Bash(grep -n '.\\\\{81,\\\\}' /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse-scalars.hoon)",
       "Bash(grep -n \"^\\\\+$\\\\|year\\\\|month\\\\b\\\\|add-time\\\\|subtract-time\\\\|atan2\\\\|round\\\\b\\\\|sqrt\\\\b\\\\|rand\\\\b\\\\|degrees\\\\b\\\\|numeric-expression\\\\|date\\\\b\\\\|time-expression\\\\|float-expression\\\\|length\\\\b\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
-      "Bash(grep -n \"qualifier-lookup\\\\|^\\\\+$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/lib/scalars.hoon)"
+      "Bash(grep -n \"qualifier-lookup\\\\|^\\\\+$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/lib/scalars.hoon)",
+      "Bash(grep -n \"++  database\\\\|+\\\\$  database\\\\|sys.*schema\\\\|get-schema\" /mnt/mars/gitrepos/obelisk/desk/sur/server-state.hoon)",
+      "Bash(grep -n \"cte-name\\\\|+\\\\$  cte-name\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
+      "Bash(grep -n \"qualifier\\\\|+\\\\$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/sur/obelisk.hoon)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"

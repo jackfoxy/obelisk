@@ -1755,11 +1755,11 @@
 ++  unq-col1     [[%unqualified-column 'col1' ~] ~ ~]
 ++  unq-col2     [[%unqualified-column 'col2' ~] ~ ~]
 ++  my-cte-table
-  [%cte-name name='my-cte']
+  [%cte-name name='my-cte' alias=~]
 ++  cte1-table
-  [%cte-name name='cte1']
+  [%cte-name name='cte1' alias=~]
 ++  cte2-table
-  [%cte-name name='cte2']
+  [%cte-name name='cte2' alias=~]
 ++  cte-my-cte
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'

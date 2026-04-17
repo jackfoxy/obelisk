@@ -306,7 +306,7 @@
     ?:  ?=(cte-column:ast n.l.p)
       =/  cte-fr  (~(got by named-ctes) cte.n.l.p)
       =/  ta=typ-addr
-        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.l.p]  name.n.l.p
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.l.p ~]  name.n.l.p
       type.ta
     ~|("prepare-common-list can't get here 5" !!)
   =/  in-list=(list @)
@@ -316,7 +316,7 @@
         ~|("prepare-common-list: empty cte set-tables" !!)
       =/  cte-st  i.set-tables.cte-fr
       =/  ta=typ-addr
-        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p]  name.n.r.p
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p ~]  name.n.r.p
       ?.  (types-match typ type.ta)
         ~|  "IN cte-column type {<type.ta>} ".
             "doesn't match left side type {<typ>}"
@@ -662,7 +662,7 @@
   =/  cte-st  i.set-tables.cte-fr
   ?.  =(1 rowcount.cte-st)
     ~|("cte-column predicate requires exactly 1 row in cte {<cte.col>}" !!)
-  =/  ta=typ-addr   %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.col]
+  =/  ta=typ-addr   %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.col ~]
                                                          name.col
   =/  row=data-row  ?~  joined-rows.cte-st
                       ?~  indexed-rows.cte-st

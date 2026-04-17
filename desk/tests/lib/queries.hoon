@@ -9590,7 +9590,7 @@
               [%data-time ~2012.5.1]
               [%relation 'sys.sys.databases']
               [%schema-time ~2012.4.30]
-              [%data-time ~2012.4.30]
+              [%data-time ~2012.5.1]
               [%vector-count 2]
               ==
       ==
@@ -9635,7 +9635,7 @@
               [%data-time ~2012.5.1]
               [%relation 'sys.sys.databases']
               [%schema-time ~2012.4.30]
-              [%data-time ~2012.4.30]
+              [%data-time ~2012.5.1]
               [%vector-count 2]
               ==
       ==
@@ -9992,7 +9992,7 @@
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
               [%relation 'db1.sys.namespaces']
-              [%schema-time ~2012.4.30]
+              [%schema-time ~2012.5.1]
               [%data-time ~2012.4.30]
               [%relation 'db1.sys.tables']
               [%schema-time ~2012.5.1]
