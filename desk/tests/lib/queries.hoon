@@ -10063,6 +10063,165 @@
               ==
       ==
 ::
+::  test-predicate-join-37 (D-3)
+::  CTE2 itself joins CTE1 (which is a join CTE) with sys.namespaces
+::  tests that a join-CTE can be used as the left side of a join inside
+::  a second CTE — exercises double-materialization path
+++  test-predicate-join-37
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-compound-cat
+                        insert-compound-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM compound-cat T1 ".
+          "      JOIN sys.tables T2 ".
+          "      ON T2.tmsp = T1.ref-date AND T2.row-count = T1.row-count-ref ".
+          "      SELECT T1.row-count-ref, T2.namespace AS tbl-ns) AS meta, ".
+          "     (FROM meta T1 ".
+          "      JOIN sys.namespaces T2 ON T1.tbl-ns = T2.namespace ".
+          "      SELECT T1.row-count-ref, T2.tmsp AS ns-tmsp) AS enriched ".
+          "FROM enriched SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%row-count-ref [~.ud 5]]
+                              [%ns-tmsp [~.da ~2012.4.30]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.compound-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-38 (D-4)
+::  same structure as test-35 but outer SELECT uses column aliases
+::  stresses alias plumbing through the two-CTE join result
+++  test-predicate-join-38
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-compound-cat
+                        insert-compound-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM compound-cat T1 ".
+          "      JOIN sys.tables T2 ".
+          "      ON T2.tmsp = T1.ref-date AND T2.row-count = T1.row-count-ref ".
+          "      SELECT T1.row-count-ref, T2.namespace AS tbl-ns) AS meta, ".
+          "     (FROM sys.namespaces SELECT namespace, tmsp) AS nss ".
+          "FROM meta T1 JOIN nss T2 ON T1.tbl-ns = T2.namespace ".
+          "SELECT T1.row-count-ref AS ref-count, T2.tmsp AS ns-date"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-count [~.ud 5]]
+                              [%ns-date [~.da ~2012.4.30]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.compound-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-39 (D-5)
+::  same structure as test-35 but outer query adds a WHERE predicate
+::  verifies WHERE evaluation works on the materialized result of a two-CTE join
+++  test-predicate-join-39
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-compound-cat
+                        insert-compound-cat
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM compound-cat T1 ".
+          "      JOIN sys.tables T2 ".
+          "      ON T2.tmsp = T1.ref-date AND T2.row-count = T1.row-count-ref ".
+          "      SELECT T1.row-count-ref, T2.namespace AS tbl-ns) AS meta, ".
+          "     (FROM sys.namespaces SELECT namespace, tmsp) AS nss ".
+          "FROM meta T1 JOIN nss T2 ON T1.tbl-ns = T2.namespace ".
+          "WHERE tmsp = ~2012.4.30 ".
+          "SELECT T1.row-count-ref, T2.tmsp"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%row-count-ref [~.ud 5]]
+                              [%tmsp [~.da ~2012.4.30]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.compound-cat']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.namespaces']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
 ::  test-fail-predicate-join-00
 ::  ON predicate references non-existent column
 ++  test-fail-predicate-join-00
