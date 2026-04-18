@@ -275,7 +275,7 @@
   ::
 ++  print-header
   |=  [=server default-db=(unit term)]
-  ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3); position: relative;")
+  ;header.p2.frw.g4.b1(style "border-bottom: 1px solid var(--b3); position: relative;")
       ;div#file-menu-backdrop.hidden(onclick "closeFileMenu()", style "position: fixed; inset: 0; z-index: 9;");
       ;div#file-menu.rel(style "position: relative; display: inline-block;", data-open "false")
       ;button#file-menu-toggle.underline(type "button", onclick "return toggleFileMenu()", aria-expanded "false", style "cursor: pointer; display: inline-block; position: relative; z-index: 11;")
@@ -331,13 +331,12 @@
     ;button#save-results-btn.p-1.bd1.br1.b2.hover(type "button", onclick "return toggleResultsSavePanel(event)", disabled ""): Save Results
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
-    ;div.grow;
     ;+  (print-form-set-default-db server default-db)
   ==
   ::
 ++  print-form-set-default-db
   |=  [=server default-db=(unit term)]
-  ;form.fr.ac.g1(method "post")
+  ;form.fr.ac.g1.pl-2(method "post")
     =hx-trigger  "change from:find select"
     =hx-on-htmx-config-request  "configRequest(event)"
     ;input.hidden(name "/", value "set-default-db");
