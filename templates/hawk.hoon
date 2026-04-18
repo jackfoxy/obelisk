@@ -543,7 +543,7 @@
     =hx-post  ""
     =hx-indicator  "#run-btn"
     =hx-on-htmx-config-request  "configRequest(event); $('#query-text').focus()"
-    =hx-on-htmx-after-request  "$('#query-text').focus(); syncSaveResultsButton();"
+    =hx-on-htmx-after-request  "$('#query-text').focus(); syncSaveResultsButton(); maybeRefreshSchema(window.obeliskLastQuery);"
     ;input#query-action.hidden(name "/", value "query");
     ;div#query-tabs.fr.ac.px-1.pt-1.scroll-x(style "border-bottom: 1px solid var(--b3); gap: 0.375rem;")
       ;div#query-tabs-list.fr.ac(style "gap: 0.375rem;");
@@ -878,7 +878,9 @@
       e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '0.3';
       e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
       let selection = window.getSelection()
-      e.detail.parameters['/selected-query-text'] = selection.toString();
+      const selText = selection.toString();
+      e.detail.parameters['/selected-query-text'] = selText;
+      window.obeliskLastQuery = selText || ($('#query-text').val() || '');
     }
     function submitQueryAction(action) {
       const input = document.getElementById('query-action');
@@ -1632,6 +1634,42 @@
       renderEditorTabs();
     }
 
+    function saveSchemaState() {
+      const result = [];
+      document.querySelectorAll('#schema details').forEach((el) => {
+        const s = el.querySelector(':scope > summary');
+        result.push({key: s ? s.textContent.trim() : '', open: el.open});
+      });
+      return result;
+    }
+    function restoreSchemaState(saved) {
+      const details = Array.from(document.querySelectorAll('#schema details'));
+      saved.forEach(({key, open}) => {
+        if (!key) { return; }
+        const el = details.find((d) => {
+          const s = d.querySelector(':scope > summary');
+          return s && s.textContent.trim() === key;
+        });
+        if (el) { el.open = open; }
+      });
+    }
+    async function maybeRefreshSchema(query) {
+      const lower = (query || '').toLowerCase();
+      if (!lower.includes('create') && !lower.includes('drop')) { return; }
+      const saved = saveSchemaState();
+      try {
+        const res = await fetch(window.location.href, {credentials: 'same-origin'});
+        if (!res.ok) { return; }
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const newSchema = doc.getElementById('schema');
+        const oldSchema = document.getElementById('schema');
+        if (newSchema && oldSchema) {
+          oldSchema.replaceWith(newSchema);
+          restoreSchemaState(saved);
+        }
+      } catch (_err) {}
+    }
     if (!window.obeliskFileMenuHandler) {
       window.obeliskFileMenuHandler = true;
       const maybeCloseFileMenu = (e) => {

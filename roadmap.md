@@ -1,20 +1,5 @@
 # Roadmap
 
-Features coming after v0.5 alpha release.
-
-## Candidates for beta release
-
-* __Common Table Expressions (CTE)__ (complete in beta) -- (WITH clause named subqueries) improved urQL composability and required by the urQL grammar for some predicate operations. (cf. SQL Server and PostgreSQL)
-
-* __Scalar functions__ (complete in beta) -- functions on one row of a relation returning an atomic noun. (thanks to ~widmes-hassen)
-
-* __partial pri key natural join__ (complete in beta) -- natural join on beginning of primary key
-
-* __Any natural join__ (complete in beta) -- natural join on any column(s) match
-
-* __JOIN ON__ (complete in beta) -- JOIN ON `<predicate>`
-
-* __Set operators__ -- UNION, INTERSECT, EXCEPT
 
 ##  V1.0
 
@@ -34,7 +19,7 @@ Features coming after v0.5 alpha release.
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems
 
-## other functionality
+## other planned functionality
 
 * __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs.
 
