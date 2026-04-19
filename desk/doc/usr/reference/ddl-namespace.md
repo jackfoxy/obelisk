@@ -8,7 +8,7 @@ Namespaces group various database components, including tables and views. When n
 
 ```
 <create-namespace> ::= 
-  CREATE NAMESPACE [<database>.] <namespace> [ <as-of-time> ]
+  CREATE NAMESPACE [<database>.] <namespace> [ <as-of> ]
 ```
 
 ### API
@@ -32,7 +32,7 @@ This is a user-defined name for the new namespace. It must adhere to the hoon te
 
 Note: The "sys" namespace is reserved for system use.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of namespace creation. Defaults to NOW (current time). When specified timestamp must be greater than both the latest database schema and content timestamps.
 
 WARNING: It is possible to future date a `CREATE NAMESPACE`. This will lock all schema and data updates in the database until that future time.
@@ -67,8 +67,8 @@ Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
 ```
 <alter-namespace> ::=
   ALTER NAMESPACE [ <database>. ] <namespace>
-    TRANSFER { TABLE | VIEW } [ <db-qualifer> ]{ <table> | <view> }
-    [ <as-of-time> ]
+    TRANSFER { TABLE | VIEW } [ <db-qualifier> ]{ <table> | <view> }
+    [ <as-of> ]
 ```
 
 ### API
@@ -77,7 +77,7 @@ Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
   $:  %alter-namespace
     database-name=@tas
     source-namespace=@tas
-    object-type=object-type
+    object-type=table-or-view
     target-namespace=@tas
     target-name=@tas
     as-of=(unit as-of)
@@ -95,7 +95,7 @@ Indicates the type of the target object.
 **`<table> | <view>`**
 Name of the object to be transferred to the target namespace.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of namespace update. Defaults to NOW (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
 
 ### Remarks
@@ -125,7 +125,7 @@ Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
 ```
 <drop-namespace> ::= 
   DROP NAMESPACE [ FORCE ] [ <database>. ] <namespace>
-  [ <as-of-time> ]
+  [ <as-of> ]
 ```
 
 ### API
@@ -148,7 +148,7 @@ Optionally force deletion of `<namespace>`, dropping all objects associated with
 **`<namespace>`**
 The name of `<namespace>` to delete.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of namespace deletion. Defaults to `NOW` (current time). When specified timestamp must be greater than both the latest database schema and content timestamps. 
 
 ### Remarks

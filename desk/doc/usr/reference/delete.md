@@ -4,7 +4,7 @@ Deletes rows from a `<relation>`.
 
 ```
 <delete> ::=
-  DELETE [ FROM ] <table> [ <as-of-time> ]
+  DELETE [ FROM ] <table> [ <as-of> ]
     WHERE <predicate>
 ```
 ### API
@@ -27,7 +27,7 @@ The target of the `DELETE` operation.
 **`<predicate>`**
 Any valid `<predicate>`, including predicates on CTEs determining rows to delete.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the DELETE operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### Remarks

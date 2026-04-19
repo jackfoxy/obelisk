@@ -147,9 +147,7 @@ Any valid date/time before the time of execution.
 
 Integer seconds, minutes, hours, days, weeks, months, or years before execution time. If months is specified and the time "lands" on a day that is beyond the last day of that month, the date defaults to the last day of the landing month.
 
-**`<inline-scalar>`**
 
-TBD
 
 ## Remarks
 

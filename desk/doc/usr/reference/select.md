@@ -5,17 +5,17 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
 
 ```
 <query> ::=
-  [ FROM <relation> [ <as-of-time> ] [ [AS] <alias> ]
-    { JOIN <relation> [ <as-of-time> ] [ [AS] <alias> ] }
+  [ FROM <relation> [ <as-of> ] [ [AS] <alias> ]
+    { JOIN <relation> [ <as-of> ] [ [AS] <alias> ] }
     | {
         { JOIN | LEFT JOIN | RIGHT JOIN | OUTER JOIN }
-          <relation> [ <as-of-time> ] [ [AS] <alias> ]
+          <relation> [ <as-of> ] [ [AS] <alias> ]
           ON <predicate>
       } 
     [ ...n ]
-    | CROSS JOIN <relation> [ <as-of-time> ] [ [AS] <alias> ]
+    | CROSS JOIN <relation> [ <as-of> ] [ [AS] <alias> ]
   ]
-  [ SCALARS {<name> <scalar-function>} [ ...n ]]
+  [ SCALARS { <name> <scalar-function> } [ ...n ]]
   [ WHERE <predicate> ]
   [ GROUP BY { <qualified-column> 
                | <column-alias> 
@@ -23,8 +23,8 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
     [ HAVING <predicate> ]
   ]
   SELECT [ TOP <n> ]
-    { * | { [<ship-qualifier>]<table-view> | <alias> }.*
-        | <expression> [ AS <column-alias> ]
+    { * | { [<ship-qualifier>]<table-or-view> | <alias> }.*
+        | <scalar-node> [ AS <column-alias> ]
     } [ ,...n ]
   [ ORDER BY 
     {
@@ -32,6 +32,16 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
     }  [ ,...n ]
   ]
 ```
+
+```
+<scalar-node> ::=
+  <scalar-function>
+  | <qualified-column>
+  | <unqualified-column>
+  | <cte-column>
+  | <literal>
+```
+
 `JOIN` is an inner join returning all matching pairs of rows. When specified without `ON <predicate>` it specifies a natural join, indicating the join is performed on matching primary keys. All columns in the keys must match on column name, aura type, and sequence. `ASC | DESC` for the key columns does not have to match
 
 *natural join is the only inner join currently supported in Obelisk*
@@ -52,7 +62,7 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
 
 Cross database joins are permitted, but not cross ship joins.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp for selection of table data. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 `HAVING <predicate>` filters aggregated rows returned from the `<query>`. The column references in the predicate must be either one of the grouping columns or be contained in an aggregate function.
@@ -73,11 +83,11 @@ Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<sel
 
 ```
 <simple-predicate> ::=
-  { expression <binary-operator> expression
+  { expression <binary-op> expression
     | expression [ NOT ] EQUIV expression
     | expression [ NOT ] IN
         { <scalar-query> | ( <value> ,...n ) }
-    | expression <inequality-operator> 
+    | expression <inequality-op> 
         { ALL | ANY} { ( <scalar-query> ) | ( <value> ,...n ) }
     | expression [ NOT ] BETWEEN expression [ AND ] expression
     | [ NOT ] EXISTS { <column value> | <scalar-query> } }
@@ -105,23 +115,13 @@ When applied to a column `EXISTS` tests whether the returned `<row-type>` includ
 `<scalar-query>` is a CTE that selects for one column. Depending on whether the operator expects a set or a value, it operates on the entire result set or on the first row returned, respectively.
 
 ```
-<binary-operator> ::=
+<binary-op> ::=
   { = | <> | != | > | >= | !> | < | <= | !< | EQUIV | NOT EQUIV}
 ```
-Whitespace is not required between operands and binary-operators, except when the left operand is a numeric literal, in which case whitespace is required.
+Whitespace is not required between operands and binary-ops, except when the left operand is a numeric literal, in which case whitespace is required.
 
-`<inequality-operator>` is any `<binary-operator>` other than equality and `EQUIV`.
+`<inequality-op>` is any `<binary-op>` other than equality and `EQUIV`.
 
-```
-<expression> ::=
-  { <qualified-column>
-    | <constant>
-    | <scalar>
-	  | <scalar-query>
-    | <aggregate-function>( { <column> | <scalar> } )
-  }
-```
-*<aggregate-function> is not yet implemente in the urQL parser*
 `<scalar-query>` is a CTE that returns only one column. The first returned value is accepted and subsequent values ignored. Ordering the CTE may be required for predictable results.
 
 ```
@@ -133,7 +133,7 @@ Whitespace is not required between operands and binary-operators, except when th
 
 ```
 <qualified-column> ::=
-[ [ <ship-qualifier> ]<table-view> | <alias> ].<column-name>
+[ [ <ship-qualifier> ]<table-or-view> | <alias> ].<column-name>
 ```
 
 ### API
@@ -176,7 +176,7 @@ The simplest possible query is `SELECT 0`.
 
 `<query>` alone does not change the Obelisk agent state.
 
-*as-of-time currently missing from specification*
+*as-of currently missing from specification*
 
 ### Produced Metadata
 

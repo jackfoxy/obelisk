@@ -9,7 +9,7 @@ Creates a new table within the specified or default database.
 ```
 <create-table> ::=
   CREATE TABLE
-    [ <db-qualifer> ]<table>
+    [ <db-qualifier> ]<table>
     ( <column> <aura>
       [ ,... n ] )
     PRIMARY KEY ( <column> [ ,... n ] )
@@ -18,7 +18,7 @@ Creates a new table within the specified or default database.
         [ ON DELETE { NO ACTION | CASCADE | SET DEFAULT } ]
         [ ON UPDATE { NO ACTION | CASCADE | SET DEFAULT } ] }
       [ ,... n ] ]
-    [ <as-of-time> ]
+    [ <as-of> ]
 ```
 
 ### API
@@ -88,10 +88,10 @@ All the values that make up the foreign key in the referencing row(s) are set to
 
 The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
 
-WARNING: Future `<as-of-time>` is possible, but this sets the database content timestamp to the future, effectively locking the database for content updates until the future date is realized.
+WARNING: Future `<as-of>` is possible, but this sets the database content timestamp to the future, effectively locking the database for content updates until the future date is realized.
 
 ### Remarks
 
@@ -139,8 +139,8 @@ REFERENCES special-offer (product-id, special-offer-id)
 Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
 
 ```
-<alter-> ::=
-  ALTER TABLE [ <db-qualifer> ]{ <table> }
+<alter-table> ::=
+  ALTER TABLE [ <db-qualifier> ]{ <table> }
     { ADD COLUMN ( <column>  <aura> [ ,... n ] )
       | ALTER COLUMN ( <column>  <aura> [ ,... n ] )
       | DROP COLUMN ( <column> [ ,... n ] )
@@ -150,7 +150,7 @@ Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
         [ ON UPDATE { NO ACTION | CASCADE } ]
         [ ,... n ]
       | DROP FOREIGN KEY ( <foreign-key> [ ,... n ] } )
-    [ <as-of-time> ]
+    [ <as-of> ]
 ```
 
 Example:
@@ -225,7 +225,7 @@ All the values that make up the foreign key in the referencing row(s) are set to
 
 The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time.
@@ -262,8 +262,8 @@ Deletes a `<table>` and all associated objects.
 
 ```
 <drop-table> ::= 
-  DROP TABLE [ FORCE ] [ <db-qualifer> ]{ <table> }
-    [ <as-of-time> ]
+  DROP TABLE [ FORCE ] [ <db-qualifier> ]{ <table> }
+    [ <as-of> ]
 ```
 
 ### API
@@ -285,7 +285,7 @@ Optionally force deletion of table when table is populated, used in a view, or u
 **`<table>`**
 Name of `<table>` to delete.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of table deletion. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
 
 ### Remarks

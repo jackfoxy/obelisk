@@ -4,14 +4,14 @@ Inserts rows into a `<table>`.
 
 ```
 <insert> ::=
-  INSERT INTO <table> [ <as-of-time> ]
+  INSERT INTO <table> [ <as-of> ]
     [ ( <column> [ ,...n ] ) ]
-    { VALUES (<scalar-expression> [ ,...n ] ) [ ...n ]
+    { VALUES (<scalar-node> [ ,...n ] ) [ ...n ]
       | <selection> }
 ```
 
 ```
-<scalar-expression> ::=
+<scalar-node> ::=
   { <constant>
     | TBD }
 ```
@@ -36,7 +36,7 @@ The target of the `INSERT` operation.
 **`<column>` [ ,...n ]**
 When present, the column list must account for all column identifiers (names or aliases) in the target. This determines the order in which values are applied in the `<table>`'s data rows. If not specified row values must be in the `<table>`'s canonical column order.
 
-**(`<scalar-expression>` [ ,...n ] ) [ ,...n ]**
+**(`<scalar-node>` [ ,...n ] ) [ ,...n ]**
 *fully supported in urQL parser, only literals supported in Obelisk*
 
 Row(s) of literal values to insert into target. Source auras must match target columnwise.
@@ -48,7 +48,7 @@ Selection creating source `<relation>` to insert into target. Source auras must 
 
 (Selection is a wrapper for query.)
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### Remarks

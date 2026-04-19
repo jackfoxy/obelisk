@@ -4,9 +4,18 @@ Changes content of selected columns in existing rows of a `<relation>`.
 
 ```
 <update> ::=
-  UPDATE [ <ship-qualifier> ] <table> [ <as-of-time> ]
-    SET { <column> = <scalar-expression> } [ ,...n ]
+  UPDATE [ <ship-qualifier> ] <table> [ <as-of> ]
+    SET { <column> = <scalar-node> } [ ,...n ]
     [ WHERE <predicate> ]
+```
+
+```
+<scalar-node> ::=
+  <scalar-function>
+  | <qualified-column>
+  | <unqualified-column>
+  | <cte-column>
+  | <literal>
 ```
 
 ### API
@@ -28,13 +37,13 @@ Changes content of selected columns in existing rows of a `<relation>`.
 **`<table>`**
 The target of the `UPDATE` operation.
 
-**`<scalar-expression>`**
-`<scalar-expression>` is a valid expression within the statement context.
+**`<scalar-node>`**
+`<scalar-node>` is a valid expression within the statement context.
 
 **`<predicate>`**
 Any valid `<predicate>`, including predicates on CTEs.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the UPDATE operation. The resulting content timestamp will be `NOW` (current server time).
 
 ### Remarks

@@ -9,9 +9,9 @@ This command creates an index over selected columns of an existing table.
 ```
 <create-index> ::=
   CREATE [ UNIQUE ] INDEX <index>
-    ON [ <db-qualifer> ] <table>
+    ON [ <db-qualifier> ] <table>
     ( <column> [ ASC | DESC ] [ ,...n ] )
-    [ <as-of-time> ]
+    [ <as-of> ]
 ```
 
 ### Examples
@@ -43,14 +43,14 @@ Specifies that no two rows are permitted to have the same index key value.
 **`<index>`**
 User-defined name for the new index. This name must follow the Hoon term naming standard. Index names are unique within tables.
 
-**`[ <db-qualifer> ] <table>`**
+**`[ <db-qualifier> ] <table>`**
 Name of existing table the index targets.
 If not explicitly qualified, defaults to the Obelisk agent's current database and 'dbo' namespace.
 
 **`<column> [ ASC | DESC ] [ ,...n ] `**
 List of column names in the target table. This list represents the sort hierarchy and optionally specifies the sort direction for each level. The default sorting is `ASC` (ascending).
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of index creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
 
 ### Remarks
@@ -86,10 +86,10 @@ Modifies the structure of an existing `<index>` on a user `<table>` or `<view>`.
 ```
 <alter-index> ::=
   ALTER [ UNIQUE ] INDEX <index>
-    ON [ <db-qualifer> ] <table>
+    ON [ <db-qualifier> ] <table>
     [ ( <column> [ ASC | DESC ] [ ,...n ] ) ]
     { DISABLE | RESUME}
-    [ <as-of-time> ]
+    [ <as-of> ]
 ```
 
 ### API
@@ -112,7 +112,7 @@ Specifies that no two rows are permitted to have the same index key value.
 **`<index>`**
 Specifies the target index.
 
-**`[ <db-qualifer> ] <table>`**
+**`[ <db-qualifier> ] <table>`**
 Name of the underlying object of the index.
 
 **`<column> [ ASC | DESC ] [ ,...n ] `**
@@ -121,7 +121,7 @@ List of column names in the target table. This list represents the sort hierarch
 **`DISABLE | RESUME`**
 Used to disable an active index or resume a disabled index.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of index alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 ### Remarks
@@ -161,8 +161,8 @@ Deletes an existing `<index>`.
 ```
 <drop-index> ::= 
   DROP INDEX <index>
-    ON [ <db-qualifer> ] <table>
-    [ <as-of-time> ]
+    ON [ <db-qualifier> ] <table>
+    [ <as-of> ]
 ```
 
 ### API
@@ -180,10 +180,10 @@ Deletes an existing `<index>`.
 **`<index>`**
 The name of the index to delete.
 
-**`[ <db-qualifer> ] <table>`**
+**`[ <db-qualifier> ] <table>`**
 `<table>` or `<view>` with the named index.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of dropping index. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 ### Remarks

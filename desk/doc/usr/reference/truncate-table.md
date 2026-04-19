@@ -5,7 +5,7 @@ Removes all rows in a base table.
 ```
 <truncate-table> ::=
   TRUNCATE TABLE [ <ship-qualifier> ] <table>
-  [ <as-of-time> ]
+  [ <as-of> ]
 ```
 
 ### API
@@ -23,7 +23,7 @@ Removes all rows in a base table.
 **`<table>`**
 The target table.
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 WARNING: It is possible to future date a `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.

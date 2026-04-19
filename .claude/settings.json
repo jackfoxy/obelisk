@@ -17,7 +17,10 @@
       "Bash(grep -n \"qualifier-lookup\\\\|^\\\\+$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/lib/scalars.hoon)",
       "Bash(grep -n \"++  database\\\\|+\\\\$  database\\\\|sys.*schema\\\\|get-schema\" /mnt/mars/gitrepos/obelisk/desk/sur/server-state.hoon)",
       "Bash(grep -n \"cte-name\\\\|+\\\\$  cte-name\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
-      "Bash(grep -n \"qualifier\\\\|+\\\\$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/sur/obelisk.hoon)"
+      "Bash(grep -n \"qualifier\\\\|+\\\\$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/sur/obelisk.hoon)",
+      "Bash(grep -oE '^\\\\+\\\\$  [a-zA-Z][a-zA-Z0-9-]*' /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
+      "Bash(sed -i 's/binary-operator/binary-op/g' select.md)",
+      "Bash(sed -i 's/inequality-operator/inequality-op/g' select.md)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"

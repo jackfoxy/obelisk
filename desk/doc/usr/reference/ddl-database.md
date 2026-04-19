@@ -6,7 +6,7 @@ Creates a new user-space database on the ship.
 
 ```
 <create-database> ::=
-  CREATE DATABASE <database> [ <as-of-time> ]
+  CREATE DATABASE <database> [ <as-of> ]
 ```
 
 ### API
@@ -24,7 +24,7 @@ Creates a new user-space database on the ship.
 **`<database>`**
 The user-defined name for the new database. It must comply with the Hoon term naming standard. 
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp of database creation. Defaults to `NOW` (current time). Subsequent DDL and data actions must have timestamps greater than this timestamp.
 
 WARNING: It is possible to future date a `CREATE DATABSE`. This will lock all schema and data updates in the database until that future time.

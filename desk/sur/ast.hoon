@@ -68,7 +68,7 @@
 +$  index-action                  ?(%rebuild %disable %resume)
 +$  all-or-any                    ?(%all %any)
 +$  bool-conjunction              ?(%and %or)
-+$  object-type                   ?(%table %view)
++$  table-or-view                 ?(%table %view)
 +$  join-type
   ?(%join %left-join %right-join %outer-join %cross-join)
 ::
@@ -533,7 +533,7 @@
   $:  %alter-namespace
     database-name=@tas
     source-namespace=@tas
-    object-type=object-type
+    object-type=table-or-view
     target-namespace=@tas
     target-name=@tas
     as-of=(unit as-of)
