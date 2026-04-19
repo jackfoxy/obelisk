@@ -125,6 +125,7 @@
               [aor=%.n ascending=%.y offset=2]
               [aor=%.n ascending=%.y offset=5]
               ==
+          ~
           ==
 ++  ns-sys-views
     |*  [db=@tas sys-time=@da]

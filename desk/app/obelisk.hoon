@@ -20,9 +20,9 @@
 ++  on-init  `this(state *state-0)
 ++  on-save   !>(state)
 ++  on-load
-  |=  =old==vase
+  |=  old-state=vase
   ^-  (quip card _this)
-  =/  old  !<(versioned-state old-vase)
+  =/  old  !<(versioned-state old-state)
   |-
   ?-  -.old
     %0  `this(state old)

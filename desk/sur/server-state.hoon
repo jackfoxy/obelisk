@@ -79,7 +79,7 @@
     typ-addr-lookup=(map @tas typ-addr)
     pri-indx=index
     columns=(list column)      ::  canonical column list
-    indices=(list index)      :: to do: indices indexed by (list column)
+    indices=(list index)
     ==
 +$  column-lookup  (map @tas [aura @])
 +$  typ-addr
@@ -121,9 +121,8 @@
     =column-lookup
     typ-addr-lookup=(map @tas typ-addr)
     columns=(list column)      ::  canonical column list
-    :: to do: replace ordering with index (requires non-unique mop type)
     ordering=(list column-order)
-    :: indices
+    indices=(list index)
     ==
 ::
 +$  index
