@@ -1442,6 +1442,78 @@
                               ==
             ==
 ::
+::  no predicate, two columns with scalar expressions
+++  test-update-17
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "UPDATE my-table SET col1='scalar', ".
+                "                    col3=col3+10"
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table ".
+                "SELECT *"
+            ::
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='updated:']
+                              [%vector-count count=4]
+                              [%message msg='table data:']
+                              [%vector-count count=4]
+                              ==
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'scalar']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 30]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'scalar']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 10]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'scalar']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 10]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'scalar']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 10]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
 ::  fail on no predicate, create dup key
 ++  test-fail-update-00
   =|  run=@ud
