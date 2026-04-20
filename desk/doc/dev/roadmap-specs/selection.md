@@ -9,13 +9,12 @@ The `<selection>` statements provides a means of chaining commands on `<relation
   <cmd>
   [ INTO <table>
     | <selection-op> [ ( ] <cmd> [ ) ]
-    | <tee-op> <set-op> [ ( ] <cmd> [ ) ]
   ] [ ...n ]
   [ AS OF [ <as-of-time> ] ]
 ```
 
 ```
-<common-table-expression> ::= <selection> [ AS ] <alias>
+<common-table-expression> ::= ( <query> ) [ AS ] <name>
 ```
 
 A `<selection>` in a CTE cannot include a `WITH` clause.
@@ -66,31 +65,6 @@ This operator performs a relational division on the left `<relation>` as the div
 NOTE: rule for dividing union `<row-type>`s TBD.
 
 
-```
-<pass-thru-op> ::=
-  PASS-THRU
-  | TEE
-  | MULTEE
-```
-```
-<tee-op> ::=
-  TEE
-  | MULTEE
-```
-
-`<pass-thru-op>`s make the left resulting `<relation>` available for consumption by the next `<cmd>` in the `<selection>`. The right side of the statement cannot be nested. The left `<relation>` can be consumed by `*`, in which case column identifiers and `<row-type>` column alignments from the left `<cmd>` apply, or a list of column aliases, in which case all columns produced by the left `<cmd>` must be included in the order produced.  (See the definition of `<relation>` in the Introduction.) In other words the `<row-type>` of the left `<relation>` applies when consumed by the right `<cmd>`.
-
-**PASS-THRU**
-
-The result `<relation>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>`.
-
-**TEE**
-
-The result `<relation>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>` and the left `<relation>` is placed in order in the list of `<relation>`s resulting from the parent `<selection>`.
-
-**MULTEE**
-
-The result `<relation>` of the left sequence of `<cmd>`s in the `<selection>` is available to the next (right) `<cmd>` and the results of each `<row-type>` in the left `<relation>` union type is placed in order in the list of `<relation>`s resulting from the parent `<selection>`. The order of the resulting `<row-type>`s from the union type is arbitrary.
 
 NOTE: deterministic ordering of union type results TBD.
 

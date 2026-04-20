@@ -4,9 +4,15 @@ Changes content of selected columns in existing rows of a `<relation>`.
 
 ```
 <update> ::=
+  [ WITH [ <common-table-expression> [ ,...n ] ] ]
+  [ SCALARS { <name> <scalar-function> } [ ...n ]]
   UPDATE [ <ship-qualifier> ] <table> [ <as-of> ]
     SET { <column> = <scalar-node> } [ ,...n ]
     [ WHERE <predicate> ]
+```
+
+```
+<common-table-expression> ::= ( <query> ) [ AS ] <name>
 ```
 
 ```
@@ -18,18 +24,30 @@ Changes content of selected columns in existing rows of a `<relation>`.
   | <literal>
 ```
 
-### API
+### Examples
 ```
-+$  update
-  $:
-    %update
-    ctes=(list cte)
-    table=qualified-object
-    as-of=(unit as-of)
-    columns=(list @tas)
-    values=(list value-or-default)
-    predicate=(unit predicate)
-  ==
+UPDATE my-table
+:: updates every row
+:: col0 updated to default for column type
+SET col0=DEFAULT,
+    col1='upd1',
+    col3=7,
+    col4=~2025.4.25;
+
+UPDATE my-table 
+SET col0=~1980.1.1,
+    col1='hello',
+    col3=152,
+    col4=~1978.12.31
+WHERE col1='Default'
+  AND col2=~nec;
+
+WITH (FROM my-table-2
+      WHERE col4 = 'row3'
+      SELECT col1, col3) AS my-cte
+UPDATE my-table 
+SET col1='updated'
+WHERE my-cte.col1 = my-cte.col3;
 ```
 
 ### Arguments
@@ -41,10 +59,26 @@ The target of the `UPDATE` operation.
 `<scalar-node>` is a valid expression within the statement context.
 
 **`<predicate>`**
-Any valid `<predicate>`, including predicates on CTEs.
+Any valid `<predicate>`, including predicates on CTEs and/or scalars.
 
 **`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the UPDATE operation. The resulting content timestamp will be `NOW` (current server time).
+
+### API
+```
++$  update
+  $:
+    %update
+    ctes=(list cte)
+    scalars=(list scalar)
+    =qualified-table
+    as-of=(unit as-of)
+    $:  columns=(list qualified-column)
+        values=(list value-or-default)
+        ==
+    =predicate
+  ==
+```
 
 ### Remarks
 

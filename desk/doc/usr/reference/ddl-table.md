@@ -21,17 +21,19 @@ Creates a new table within the specified or default database.
     [ <as-of> ]
 ```
 
-### API
+### Examples
 ```
-+$  create-table
-  $:
-    %update
-    table=qualified-object
-    as-of=(unit as-of)
-    columns=(list @tas)
-    values=(list value-or-default)
-    predicate=(unit predicate)
-  ==
+CREATE TABLE order-detail
+  (invoice-nbr @ud, line-item @ud, product-id @ud, special-offer-id @ud, message @t)
+PRIMARY KEY (invoice-nbr, line-item);
+
+CREATE TABLE db1..tbl-a
+  (pk1 @ud, pk2 @ud, pk3 @ud, label-a @t)
+  PRIMARY KEY (pk1 ASC, pk2 DESC, pk3 ASC);
+
+CREATE TABLE db1..tbl-b
+  (pk1 @ud, pk3 @ud, label-b @t)
+  PRIMARY KEY (pk1 DESC, pk3);
 ```
 
 ### Arguments
@@ -93,6 +95,19 @@ Timestamp of table creation. Defaults to `NOW` (current time). When specified, t
 
 WARNING: Future `<as-of>` is possible, but this sets the database content timestamp to the future, effectively locking the database for content updates until the future date is realized.
 
+### API
+```
++$  create-table
+  $:
+    %create-table
+    =qualified-table
+    as-of=(unit as-of)
+    columns=(list column)
+    pri-indx=(list ordered-column)
+    foreign-keys=(list foreign-key)
+  ==
+```
+
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
@@ -123,15 +138,6 @@ key column not in column definitions `<pri-indx>`
 aura mis-match in `FOREIGN KEY`
 state change after query in script
 
-### Example
-```
-CREATE TABLE order-detail
-  (invoice-nbr @ud, line-item @ud, product-id @ud, special-offer-id @ud, message @t)
-PRIMARY KEY (invoice-nbr, line-item)
-FOREIGN KEY fk-special-offer-order-detail (product-id, specialoffer-id)
-REFERENCES special-offer (product-id, special-offer-id)
-```
-
 ## ALTER TABLE
 
 *supported in urQL parser, not yet supported in Obelisk*
@@ -157,21 +163,6 @@ Example:
 ```
 ALTER TABLE my-table
 DROP FOREIGN KEY fk-1, fk-2
-```
-
-### API
-```
-+$  alter-table
-  $:
-    %alter-table
-    table=qualified-object
-    alter-columns=(list column)
-    add-columns=(list column)
-    drop-columns=(list @tas)
-    add-foreign-keys=(list foreign-key)
-    drop-foreign-keys=(list @tas)
-    as-of=(unit as-of)
-  ==
 ```
 
 ### Arguments
@@ -230,6 +221,21 @@ Timestamp of table alteration. Defaults to `NOW` (current time). When specified,
 
 WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time.
 
+### API
+```
++$  alter-table
+  $:
+    %alter-table
+    =qualified-table
+    alter-columns=(list column)
+    add-columns=(list column)
+    drop-columns=(list @tas)
+    add-foreign-keys=(list foreign-key)
+    drop-foreign-keys=(list @tas)
+    as-of=(unit as-of)
+  ==
+```
+
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
@@ -266,15 +272,12 @@ Deletes a `<table>` and all associated objects.
     [ <as-of> ]
 ```
 
-### API
+### Examples
+
 ```
-+$  drop-table
-  $:
-    %drop-table
-    table=qualified-object
-    force=?
-    as-of=(unit as-of)
-  ==
+"DROP TABLE my-table"
+
+"DROP TABLE FORCE db2..my-table-2"
 ```
 
 ### Arguments
@@ -287,6 +290,17 @@ Name of `<table>` to delete.
 
 **`<as-of>`**
 Timestamp of table deletion. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
+
+### API
+```
++$  drop-table
+  $:
+    %drop-table
+    =qualified-table
+    force=?
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 

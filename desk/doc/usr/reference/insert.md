@@ -16,16 +16,22 @@ Inserts rows into a `<table>`.
     | TBD }
 ```
 
-### API
+## Example
+
 ```
-+$  insert
-  $:
-    %insert
-    table=qualified-object
-    as-of=(unit as-of)
-    columns=(unit (list @tas))
-    values=insert-values
-  ==
+INSERT INTO reference.species-vital-signs-ranges
+  (species, temperature-low, temperature-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high)
+VALUES
+  ('Dog', .99.5, .102.5, 60, 140, 10, 35)
+  ('Cat', .99.5, .102.5, 140, 220, 20, 30)
+  ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
+
+INSERT INTO reference.species-vital-signs-ranges
+:: inserted values are in canonical column order
+VALUES
+  ('Dog', .99.5, .102.5, 60, 140, 10, 35)
+  ('Cat', .99.5, .102.5, 140, 220, 20, 30)
+  ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
 ```
 
 ### Arguments
@@ -50,6 +56,18 @@ Selection creating source `<relation>` to insert into target. Source auras must 
 
 **`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
+
+### API
+```
++$  insert
+  $:
+    %insert
+    =qualified-table
+    as-of=(unit as-of)
+    columns=(unit (list @tas))
+    values=insert-values
+  ==
+```
 
 ### Remarks
 
@@ -86,14 +104,3 @@ incorrect columns specified: `<columns>`
 invalid column: `<column>`
 cannot add duplicate key: `<row-key>`
 `GRANT` permission on `<table>` violated
-
-## Example
-
-```
-INSERT INTO reference.species-vital-signs-ranges
-  (species, temperature-low, temperature-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high)
-VALUES
-  ('Dog', .99.5, .102.5, 60, 140, 10, 35)
-  ('Cat', .99.5, .102.5, 140, 220, 20, 30)
-  ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
-```

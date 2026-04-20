@@ -9,14 +9,9 @@ Creates a new user-space database on the ship.
   CREATE DATABASE <database> [ <as-of> ]
 ```
 
-### API
+### Example
 ```
-+$  create-database
-  $:
-    %create-database
-    name=@tas
-    as-of=(unit <as-of>)
-  ==
+  CREATE DATABASE my-database
 ```
 
 ### Arguments
@@ -28,6 +23,16 @@ The user-defined name for the new database. It must comply with the Hoon term na
 Timestamp of database creation. Defaults to `NOW` (current time). Subsequent DDL and data actions must have timestamps greater than this timestamp.
 
 WARNING: It is possible to future date a `CREATE DATABSE`. This will lock all schema and data updates in the database until that future time.
+
+### API
+```
++$  create-database
+  $:
+    %create-database
+    name=@tas
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 
@@ -45,11 +50,6 @@ database must be created by local agent
 database name cannot be 'sys'
 database `<database>` already exists'
 
-### Example
-```
-  CREATE DATABASE my-database
-```
-
 ## DROP DATABASE
 
 *supported in urQL parser, not yet supported in Obelisk*
@@ -58,6 +58,22 @@ Deletes an existing `<database>` and all associated objects.
 ```
 <drop-database> ::= DROP DATABASE [ FORCE ] <database>
 ```
+
+### Examples
+
+```
+DROP DATABASE db2;
+
+DROP DATABASE FORCE db1;
+```
+
+### Arguments
+
+**`FORCE`**
+Optionally, force deletion of a database.
+
+**`<database>`**
+The name of the database to delete.
 
 ### API
 ```
@@ -68,14 +84,6 @@ Deletes an existing `<database>` and all associated objects.
     force=?
   ==
 ```
-
-### Arguments
-
-**`FORCE`**
-Optionally, force deletion of a database.
-
-**`<database>`**
-The name of the database to delete.
 
 ## Remarks
 This command mutates the state of the Obelisk agent.

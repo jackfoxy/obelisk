@@ -22,19 +22,6 @@ CREATE UNIQUE INDEX ix-vendor-id2 ON dbo.product-vendor
 CREATE INDEX ix-vendor-id3 ON purchasing..product-vendor (vendor-id);
 ```
 
-### API
-
-```
-+$  create-index
-  $:
-    %create-index
-    name=@t
-    object-name=qualified-object
-    is-unique=?
-    columns=(list ordered-column)
-  ==
-```
-
 ### Arguments
 
 **`UNIQUE`**
@@ -52,6 +39,20 @@ List of column names in the target table. This list represents the sort hierarch
 
 **`<as-of>`**
 Timestamp of index creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
+
+### API
+
+```
++$  create-index
+  $:
+    %create-index
+    name=@tas
+    =qualified-table
+    unique=?
+    columns=(list ordered-column)
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 
@@ -73,10 +74,6 @@ create index `<index>`as-of data time out of order
 UNIQUE specified and existing values are not unique for the column(s) specified
 create index state change after query in script
 
-### Example
-
-*missing*
-
 ## ALTER INDEX
 
 *supported in urQL parser, not yet supported in Obelisk*
@@ -90,18 +87,6 @@ Modifies the structure of an existing `<index>` on a user `<table>` or `<view>`.
     [ ( <column> [ ASC | DESC ] [ ,...n ] ) ]
     { DISABLE | RESUME}
     [ <as-of> ]
-```
-
-### API
-```
-+$  alter-index
-  $:
-    %alter-index
-    name=qualified-object
-    object=qualified-object
-    columns=(list ordered-column)
-    action=index-action
-  ==
 ```
 
 ### Arguments
@@ -123,6 +108,20 @@ Used to disable an active index or resume a disabled index.
 
 **`<as-of>`**
 Timestamp of index alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
+
+### API
+```
++$  alter-index
+  $:
+    %alter-index
+    name=qualified-table
+    =qualified-table
+    unique=?
+    columns=(list ordered-column)
+    action=index-action
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 
@@ -148,10 +147,6 @@ alter index `<index>`as-of data time out of order
 UNIQUE specified and existing values are not unique for the column(s) specified
 alter index state change after query in script
 
-### Example
-
-*missing*
-
 ## DROP INDEX
 
 *supported in urQL parser, not yet supported in Obelisk*
@@ -165,16 +160,6 @@ Deletes an existing `<index>`.
     [ <as-of> ]
 ```
 
-### API
-```
-+$  drop-index
-  $:
-    %drop-index
-    name=@tas
-    object=qualified-object
-  ==
-```
-
 ### Arguments
 
 **`<index>`**
@@ -185,6 +170,17 @@ The name of the index to delete.
 
 **`<as-of>`**
 Timestamp of dropping index. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
+
+### API
+```
++$  drop-index
+  $:
+    %drop-index
+    name=@tas
+    =qualified-table
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 
@@ -207,7 +203,3 @@ table does not exist
 drop index `<index>` as-of schema time out of order
 drop index `<index>`as-of data time out of order
 drop index state change after query in script
-
-### Example
-
-*missing*

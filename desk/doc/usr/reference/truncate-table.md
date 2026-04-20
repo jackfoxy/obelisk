@@ -8,14 +8,10 @@ Removes all rows in a base table.
   [ <as-of> ]
 ```
 
-### API
+### Example
+
 ```
-+$  truncate-table
-  $:
-    %truncate-table
-    table=qualified-object
-    as-of=(unit as-of)
-  ==
+TRUNCATE TABLE my-table-1;
 ```
 
 ### Arguments
@@ -27,6 +23,16 @@ The target table.
 Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 WARNING: It is possible to future date a `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
+
+### API
+```
++$  truncate-table
+  $:
+    %truncate-table
+    =qualified-table
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 

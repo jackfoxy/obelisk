@@ -11,13 +11,9 @@ Namespaces group various database components, including tables and views. When n
   CREATE NAMESPACE [<database>.] <namespace> [ <as-of> ]
 ```
 
-### API
+### Example
 ```
-+$  create-namespace 
-    database-name=@tas 
-    name=@tas
-    as-of=(unit as-of)
-  ==
+CREATE NAMESPACE my-namespace
 ```
 
 ### Arguments
@@ -37,6 +33,17 @@ Timestamp of namespace creation. Defaults to NOW (current time). When specified 
 
 WARNING: It is possible to future date a `CREATE NAMESPACE`. This will lock all schema and data updates in the database until that future time.
 
+### API
+```
++$  create-namespace 
+  $:
+    %create-namespace
+    database-name=@tas 
+    name=@tas
+    as-of=(unit as-of)
+  ==
+```
+
 ### Remarks
 
 This command mutates the state of the Obelisk agent. However, it does not generate the *state change after query in script* because it is a trivial change that cannot effect a query.
@@ -55,9 +62,6 @@ namespace `<namespace>` as-of schema time out of order
 namespace `<namespace>` as-of content time out of order
 namespace `<namespace>` already exists
 
-### Example
-`CREATE NAMESPACE my-namespace`
-
 ## ALTER NAMESPACE
 
 *supported in urQL parser, not yet supported in Obelisk*
@@ -69,19 +73,6 @@ Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
   ALTER NAMESPACE [ <database>. ] <namespace>
     TRANSFER { TABLE | VIEW } [ <db-qualifier> ]{ <table> | <view> }
     [ <as-of> ]
-```
-
-### API
-```
-+$  alter-namespace
-  $:  %alter-namespace
-    database-name=@tas
-    source-namespace=@tas
-    object-type=table-or-view
-    target-namespace=@tas
-    target-name=@tas
-    as-of=(unit as-of)
-  ==
 ```
 
 ### Arguments
@@ -97,6 +88,19 @@ Name of the object to be transferred to the target namespace.
 
 **`<as-of>`**
 Timestamp of namespace update. Defaults to NOW (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
+
+### API
+```
++$  alter-namespace
+  $:  %alter-namespace
+    database-name=@tas
+    source-namespace=@tas
+    object-type=table-or-view
+    target-namespace=@tas
+    target-name=@tas
+    as-of=(unit as-of)
+  ==
+```
 
 ### Remarks
 This command mutates the state of the Obelisk agent.
@@ -128,6 +132,17 @@ Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
   [ <as-of> ]
 ```
 
+### Arguments
+
+**`FORCE`**
+Optionally force deletion of `<namespace>`, dropping all objects associated with the namespace.
+
+**`<namespace>`**
+The name of `<namespace>` to delete.
+
+**`<as-of>`**
+Timestamp of namespace deletion. Defaults to `NOW` (current time). When specified timestamp must be greater than both the latest database schema and content timestamps. 
+
 ### API
 ```
 +$  drop-namespace
@@ -139,17 +154,6 @@ Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
     as-of=(unit as-of)
   ==
 ```
-
-### Arguments
-
-**`FORCE`**
-Optionally force deletion of `<namespace>`, dropping all objects associated with the namespace.
-
-**`<namespace>`**
-The name of `<namespace>` to delete.
-
-**`<as-of>`**
-Timestamp of namespace deletion. Defaults to `NOW` (current time). When specified timestamp must be greater than both the latest database schema and content timestamps. 
 
 ### Remarks
 
