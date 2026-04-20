@@ -82,10 +82,15 @@
               ;~(plug whitespace (jester 'create'))
               ==
     %:  cold  %delete
-              ;~(plug whitespace (jester 'delete') whitespace (jester 'from'))
+              (peek ;~(plug whitespace (jester 'delete')))
               ==
     %:  cold  %delete
-              ;~(plug whitespace (jester 'delete'))
+              %-  peek
+              ;~  plug  whitespace
+                        parse-scalars
+                        whitespace
+                        (jester 'delete')
+                        ==
               ==
     %:  cold  %drop-database
               ;~(plug whitespace (jester 'drop') whitespace (jester 'database'))
@@ -129,11 +134,6 @@
                         ;~(pfix (jester 'select') (funk "select" (easy ' ')))
                         ==
               ==
-    %:  cold  %query
-              ;~  plug  whitespace
-                        ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
-                        ==
-              ==
     %:  cold  %revoke
               ;~(plug whitespace (jester 'revoke'))
               ==
@@ -145,7 +145,20 @@
                         ==
               ==
     %:  cold  %update
-              ;~(pfix whitespace (jester 'update'))
+              (peek ;~(plug whitespace (jester 'update')))
+              ==
+    %:  cold  %update
+              %-  peek
+              ;~  plug  whitespace
+                        parse-scalars
+                        whitespace
+                        (jester 'update')
+                        ==
+              ==
+    %:  cold  %query                                  :: scalars+select — must be after %delete/%update
+              ;~  plug  whitespace
+                        ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
+                        ==
               ==
     %:  cold  %with
               ;~(plug whitespace (jester 'with'))
@@ -1533,11 +1546,23 @@
     end-or-next-command
   ==
 ++  parse-delete  ~+
-  ;~  pose
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-3object)
-      ;~(pose parse-scalars (easy ~))
-      parse-as-of
+  %+  cook
+    |=  [sc=* dkw=* qt=* rest=*]
+    [qt sc rest]
+  ;~  plug
+    ;~(pose parse-scalars (easy ~))
+    delete-kw
+    ;~(pfix whitespace parse-qualified-3object)
+    ;~  pose
+      ;~  plug
+        parse-as-of
+        ;~  pfix  whitespace
+                  ;~  plug  (cold %where (jester 'where'))
+                            parse-predicate
+                            end-or-next-command
+                            ==
+                  ==
+        ==
       ;~  pfix  whitespace
                 ;~  plug  (cold %where (jester 'where'))
                           parse-predicate
@@ -1545,17 +1570,7 @@
                           ==
                 ==
       ==
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-3object)
-      ;~(pose parse-scalars (easy ~))
-      ;~  pfix  whitespace
-                ;~  plug  (cold %where (jester 'where'))
-                          parse-predicate
-                          end-or-next-command
-                          ==
-                ==
-      ==
-    ==
+  ==
 ++  parse-drop-database  ~+
   ;~  sfix
     ;~  pose
@@ -1999,11 +2014,16 @@
     update-column-inner
   ==
 ++  parse-update  ~+
+  %+  cook
+    |=  [sc=* ukw=* qt=* rest=*]
+    [qt sc rest]
   ;~  sfix
+    ;~  plug
+      ;~(pose parse-scalars (easy ~))
+      update-kw
+      ;~(pfix whitespace parse-qualified-table)
       ;~  pose
         ;~  plug
-          ;~(pfix whitespace parse-qualified-table)
-          ;~(pose parse-scalars (easy ~))
           parse-as-of
           (cold %set ;~(plug whitespace (jester 'set')))
           (more com update-column)
@@ -2013,8 +2033,6 @@
             ==
         ==
         ;~  plug
-          ;~(pfix whitespace parse-qualified-table)
-          ;~(pose parse-scalars (easy ~))
           (cold %set ;~(plug whitespace (jester 'set')))
           (more com update-column)
           ;~  pose
@@ -2023,17 +2041,22 @@
             ==
         ==
       ==
-      end-or-next-command
+    ==
+    end-or-next-command
   ==
 ++  parse-with  ~+
   ;~  plug
     (more com ;~(pose with-stop parse-cte))
     ;~  pose
       ;~  plug
-        (cold %delete ;~(plug (jester 'delete') whitespace (jester 'from')))
+        %+  cold  %delete
+        %-  peek
+        ;~  plug  ;~(pose parse-scalars (easy ~))
+                  whitespace
+                  (jester 'delete')
+                  ==
         parse-delete
         ==
-      ;~(plug (jester 'delete') parse-delete)
       ;~  plug
         (cold %insert ;~(plug (jester 'insert') whitespace (jester 'into')))
         parse-insert
@@ -2055,7 +2078,15 @@
             ==
           parse-query
           ==
-      ;~(plug (jester 'update') parse-update)
+      ;~  plug
+        %+  cold  %update
+        %-  peek
+        ;~  plug  ;~(pose parse-scalars (easy ~))
+                  whitespace
+                  (jester 'update')
+                  ==
+        parse-update
+        ==
       ==
   ==
 ++  with-stop  ~+
@@ -2173,6 +2204,8 @@
     ?:  ?=([%scalars *] +<.a)
       (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
     ~
+  =/  scalar-map=(map @tas scalar-function:ast)
+    (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
   =.  a  [-.a +>.a]
   ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
@@ -2184,7 +2217,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>-.a))
                               ~
-                              *(map @tas scalar-function:ast)
+                              scalar-map
                               cte-map
                               cte-col-map
                               ==
@@ -2200,7 +2233,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>+<.a))
                               ~
-                              *(map @tas scalar-function:ast)
+                              scalar-map
                               cte-map
                               cte-col-map
                               ==
@@ -2216,7 +2249,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>+<.a))
                               ~
-                              *(map @tas scalar-function:ast)
+                              scalar-map
                               cte-map
                               cte-col-map
                               ==
@@ -2232,7 +2265,7 @@
                         %:  finalize-predicate
                               (produce-predicate (predicate-list +>+<.a))
                               ~
-                              *(map @tas scalar-function:ast)
+                              scalar-map
                               cte-map
                               cte-col-map
                               ==
@@ -3484,6 +3517,22 @@
 ::  parser rules and helpers
 ::
 ++  whitespace  ~+  (star ;~(pose gah (just '\09') (just '\0d')))
+::
+++  peek
+  |*  sef=rule
+  |=  tub=nail
+  =+  vex=(sef tub)
+  ?~  q.vex
+    vex
+  [p=p.vex q=[~ u=[p=p.u.q.vex q=tub]]]
+::
+++  delete-kw  ~+
+  ;~  pose
+    ;~(plug whitespace (jester 'delete') whitespace (jester 'from'))
+    ;~(plug whitespace (jester 'delete'))
+    ==
+::
+++  update-kw  ~+  ;~(plug whitespace (jester 'update'))
 ::
 ++  when
   ::  replace when:so until https://github.com/urbit/urbit/issues/6870
@@ -5771,6 +5820,8 @@
   ==
 ++  query-scalar-stop
   ;~  pose
+    ;~(plug whitespace (jester 'delete') whitespace)
+    ;~(plug whitespace (jester 'update') whitespace)
     ;~(plug whitespace (jester 'where') whitespace)
     ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
     ;~(plug whitespace (jester 'select') whitespace)

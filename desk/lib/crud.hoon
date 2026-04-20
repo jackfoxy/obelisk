@@ -268,16 +268,31 @@
             [%message 'no rows deleted']
             ==
   ::
-  =/  filter=$-(data-row ?)  %:  prepare-predicate
-                                 (pred-unqualify-qualified predicate.d)
-                                 :-  %unqualified-map-meta
-                                     typ-addr-lookup.table.txn
-                                 ~
-                                 (named-queries ctes.d *named-ctes)
-                                 *resolved-scalars
-                                 ==
-  =.  indexed-rows.file.txn  %+  skim  indexed-rows.file.txn
-                                       |=(a=indexed-row !(filter a))
+  =/  named-ctes  (named-queries ctes.d *named-ctes)
+  =/  del-qualifier-lookup=qualifier-lookup
+    %+  roll  columns.table.txn
+              |=  [c=column:ast ql=qualifier-lookup]
+              (~(put by ql) name.c (limo ~[qualified-table.d]))
+  =/  resolved-scalars
+    %:  resolve-query-scalars(state state, bowl bowl)  scalars.d
+                                                       named-ctes
+                                                       del-qualifier-lookup
+                                                       [%unqualified-map-meta typ-addr-lookup.table.txn]
+                                                       ==
+  =/  filter=(unit $-(data-row ?))
+    ?~  predicate.d  ~
+    :-  ~
+        %:  prepare-predicate
+              (pred-unqualify-qualified predicate.d)
+              :-  %unqualified-map-meta
+                  typ-addr-lookup.table.txn
+              ~
+              named-ctes
+              resolved-scalars
+              ==
+  =.  indexed-rows.file.txn  ?~  filter  ~
+                             %+  skim  indexed-rows.file.txn
+                                       |=(a=indexed-row !((need filter) a))
   :: 
   =/  primary-key  (pri-key key.pri-indx.table.txn)
   =/  comparator

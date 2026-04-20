@@ -22,8 +22,14 @@
 ++  on-load
   |=  old-state=vase
   ^-  (quip card _this)
+  ::::=;  r=(each state-0 tang)      ::<== change to new state
+  ::::::=;  r=server      ::<== change to new state
+  ::::    ?:  ?=([%.y ^] r)  this(state p.r)
+  ::::    %-  (slog 'old state corrupt, unable to migrate data' p.r)
+  ::::    this(state *state-0)  ::<== change to new state
+  ::::%-  mule
+  ::::|.
   =/  old  !<(versioned-state old-state)
-  |-
   ?-  -.old
     %0  `this(state old)
     ::  $(old [%1 +.old])

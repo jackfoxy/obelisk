@@ -686,7 +686,7 @@
 ::  WHERE predicate with scalar expression
 ++  test-delete-11
   =|  run=@ud
-  %-  debug-0-1
+  %-  exec-0-1
   :*  run
       :+  ~2012.4.30
           %db1

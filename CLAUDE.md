@@ -35,3 +35,8 @@ Code must handle both cases; `indexed-row.data` is flat; `joined-row.data` is ne
 ### `set-table` lifecycle
 
 Built dynamically during query execution, discarded when complete. Accumulates rows and metadata through FROM, JOIN, WHERE, SELECT phases.
+
+### Builds and Tests
+
+All builds done manually.
+All tests run manyually.

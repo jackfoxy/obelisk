@@ -135,8 +135,6 @@
       ~|("%create-view not implemented" !!)
     %delete
       ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
-      ::=/  ctes=(map @tas [@ud (list indexed-row)])
-      ::      (named-queries ->-.cmds)
       =/  r=[(map @tas @da) server (list result:ast)]
             %^  do-delete(state state, bowl bowl)  i.cmds
                                                    next-data
@@ -231,8 +229,6 @@
       ==
     %update
       ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
-      ::=/  ctes=(map @tas [@ud (list indexed-row)])
-      ::      (named-queries ->-.cmds)
       =/  r=[(map @tas @da) server (list result:ast)]
             %^  do-update(state state, bowl bowl)  i.cmds
                                                    next-data
