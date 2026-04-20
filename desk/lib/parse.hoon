@@ -1536,6 +1536,7 @@
   ;~  pose
     ;~  plug
       ;~(pfix whitespace parse-qualified-3object)
+      ;~(pose parse-scalars (easy ~))
       parse-as-of
       ;~  pfix  whitespace
                 ;~  plug  (cold %where (jester 'where'))
@@ -1546,6 +1547,7 @@
       ==
     ;~  plug
       ;~(pfix whitespace parse-qualified-3object)
+      ;~(pose parse-scalars (easy ~))
       ;~  pfix  whitespace
                 ;~  plug  (cold %where (jester 'where'))
                           parse-predicate
@@ -2001,6 +2003,7 @@
       ;~  pose
         ;~  plug
           ;~(pfix whitespace parse-qualified-table)
+          ;~(pose parse-scalars (easy ~))
           parse-as-of
           (cold %set ;~(plug whitespace (jester 'set')))
           (more com update-column)
@@ -2011,6 +2014,7 @@
         ==
         ;~  plug
           ;~(pfix whitespace parse-qualified-table)
+          ;~(pose parse-scalars (easy ~))
           (cold %set ;~(plug whitespace (jester 'set')))
           (more com update-column)
           ;~  pose
@@ -2165,9 +2169,15 @@
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
   ?>  ?=(qualified-table:ast -.a)
+  =/  scalars=(list scalar:ast)
+    ?:  ?=([%scalars *] +<.a)
+      (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
+    ~
+  =.  a  [-.a +>.a]
   ?:  ?=([* %where * %end-command ~] a)
     %:  delete:ast  %delete
                     ctes
+                    scalars
                     -.a
                     ~
                     %+  qualify-predicate
@@ -2183,6 +2193,7 @@
   ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
     %:  delete:ast  %delete
                     ctes
+                    scalars
                     -.a
                     ~
                     %+  qualify-predicate
@@ -2198,6 +2209,7 @@
   ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
     %:  delete:ast  %delete
                     ctes
+                    scalars
                     -.a
                     [~ +<+.a]
                     %+  qualify-predicate
@@ -2213,6 +2225,7 @@
   ?:  ?=([* [%as-of *] %where * %end-command ~] a)
     %:  delete:ast  %delete
                     ctes
+                    scalars
                     -.a
                     [~ [%as-of-offset +<+<.a +<+>-.a]]
                     %+  qualify-predicate
@@ -3366,10 +3379,15 @@
   =/  table=qualified-table:ast  ?>(?=(qualified-table:ast -.a) -.a)
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
-  =/  b  +.a
+  =/  scalars=(list scalar:ast)
+    ?:  ?=([%scalars *] +<.a)
+      (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
+    ~
+  =/  b  +>.a
   ?:  ?=([%set * ~] b)
     :*  %update
         ctes
+        scalars
         table
         ~
         (produce-column-sets table +<.b)
@@ -3378,6 +3396,7 @@
   ?:  ?=([[%as-of %now] %set * ~] b)
     :*  %update
         ctes
+        scalars
         table
         ~
         (produce-column-sets table +>-.b)
@@ -3386,6 +3405,7 @@
   ?:  ?=([[%as-of @ @] %set * ~] b)
     %:  update:ast  %update
                     ctes
+                    scalars
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
@@ -3394,6 +3414,7 @@
   ?:  ?=([[%as-of *] %set * ~] b)
     %:  update:ast  %update
                     ctes
+                    scalars
                     table
                     [~ [%as-of-offset ->-.b ->+<.b]]
                     (produce-column-sets table +>-.b)
@@ -3402,6 +3423,7 @@
   ?:  ?=([[%as-of %now] %set * *] b)
     :*  %update
         ctes
+        scalars
         table
         ~
         (produce-column-sets table +>-.b)
@@ -3412,6 +3434,7 @@
   ?:  ?=([[%as-of @ @] %set * *] b)
     %:  update:ast  %update
                     ctes
+                    scalars
                     table
                     [~ ->.b]
                     (produce-column-sets table +>-.b)
@@ -3422,6 +3445,7 @@
   ?:  ?=([[%as-of @ @ @] %set * *] b)
     :*  %update
         ctes
+        scalars
         table
         [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
         (produce-column-sets table +>-.b)
@@ -3431,6 +3455,7 @@
         ==
   :*  %update
       ctes
+      scalars
       table
       ~
       (produce-column-sets table +<.b)

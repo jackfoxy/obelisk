@@ -310,6 +310,7 @@
   $+  delete
   $:  %delete
     ctes=(list cte)
+    scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)
     =predicate
@@ -320,6 +321,7 @@
   $+  update
   $:  %update
     ctes=(list cte)
+    scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)
     $:  columns=(list qualified-column)

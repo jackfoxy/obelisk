@@ -1929,8 +1929,8 @@
 ::
 :: delete with predicate 2X
 ++  test-delete-00
-  =/  expected1  [%delete ctes=~ table=foo-table ~ delete-pred]
-  =/  expected2  [%delete ctes=~ table=foobar-table ~ delete-pred2]
+  =/  expected1  [%delete ctes=~ scalars=~ table=foo-table ~ delete-pred]
+  =/  expected2  [%delete ctes=~ scalars=~ table=foobar-table ~ delete-pred2]
   =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
     !>  ~[expected1 expected2]
@@ -1938,7 +1938,7 @@
 ::
 :: delete with predicate as of now
 ++  test-delete-01
-  =/  expected  [%delete ctes=~ table=foo-table ~ delete-pred]
+  =/  expected  [%delete ctes=~ scalars=~ table=foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1948,6 +1948,7 @@
 ++  test-delete-02
   =/  expected  :*  %delete
                     ctes=~
+                    scalars=~
                     table=foo-table
                     [~ [%da ~2023.12.25..7.15.0..1ef5]]
                     delete-pred
@@ -1961,6 +1962,7 @@
 ++  test-delete-03
   =/  expected  :*  %delete
                     ctes=~
+                    scalars=~
                     table=foo-table
                     [~ [%as-of-offset 5 %seconds]]
                     delete-pred
@@ -1972,7 +1974,7 @@
 ::
 :: delete with one cte and predicate
 ++  test-delete-04
-  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred] 
+  =/  expected  [%delete ctes=~[cte-t1] scalars=~ table=foo-table ~ delete-pred] 
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1980,7 +1982,7 @@
 ::
 :: delete with one cte and predicate as of now
 ++  test-delete-05
-  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred]
+  =/  expected  [%delete ctes=~[cte-t1] scalars=~ table=foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1990,6 +1992,7 @@
 ++  test-delete-06
   =/  expected  :*  %delete
                     ctes=~[cte-t1]
+                    scalars=~
                     table=foo-table
                     [~ [%da ~2023.12.25..7.15.0..1ef5]]
                     delete-pred
@@ -2004,6 +2007,7 @@
 ++  test-delete-07
   =/  expected  :*  %delete
                     ctes=~[cte-t1]
+                    scalars=~
                     table=foo-table
                     [~ [%as-of-offset 5 %seconds]]
                     delete-pred
@@ -2018,6 +2022,7 @@
 ++  test-delete-08
   =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
+                    scalars=~
                     table=foo-table
                     ~
                     delete-pred
@@ -2033,6 +2038,7 @@
 ++  test-delete-09
   =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
+                    scalars=~
                     table=foo-table
                     ~
                     delete-pred
@@ -2048,6 +2054,7 @@
 ++  test-delete-10
   =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
+                    scalars=~
                     table=foo-table
                     [~ [%da ~2023.12.25..7.15.0..1ef5]]
                     delete-pred
@@ -2063,6 +2070,7 @@
 ++  test-delete-11
   =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar]
+                    scalars=~
                     table=foo-table
                     [~ [%as-of-offset 5 %seconds]]
                     delete-pred
@@ -2076,7 +2084,7 @@
 ::
 :: delete with three ctes and predicate
 ++  test-delete-12
-  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
+  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] scalars=~ foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2087,7 +2095,7 @@
 ::
 :: delete with three ctes and predicate as of now
 ++  test-delete-13
-  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
+  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] scalars=~ foo-table ~ delete-pred]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2100,6 +2108,7 @@
 ++  test-delete-14
   =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar cte-bar]
+                    scalars=~
                     table=foo-table
                     [~ [%da ~2023.12.25..7.15.0..1ef5]]
                     delete-pred
@@ -2116,6 +2125,7 @@
 ++  test-delete-15
   =/  expected  :*  %delete
                     ctes=~[cte-t1 cte-foobar cte-bar]
+                    scalars=~
                     table=foo-table
                     [~ [%as-of-offset 5 %seconds]]
                     delete-pred
@@ -2127,6 +2137,69 @@
             "(from foobar where col1=2 select col3, col4) as foobar, ".
             "(from bar where col1=col2 select col2) as bar ".
             "delete from foo as of 5 seconds ago where foo=bar"
+::
+:: delete with 2 scalars, no cte
+++  test-delete-16
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                     ==
+               ==
+  =/  expected  :*  %delete
+                    ctes=~
+                    scalars=~[sc1 sc2]
+                    table=foo-table
+                    as-of=~
+                    delete-pred
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "delete from foo where foo=bar"
+::
+:: delete with 2 scalars and 1 cte
+++  test-delete-17
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                   ==
+               ==
+  =/  expected  :*  %delete
+                    ctes=~[cte-t1]
+                    scalars=~[sc1 sc2]
+                    table=foo-table
+                    as-of=~
+                    delete-pred
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 ".
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "delete from foo where foo=bar"
 ::
 :: drop database
 ::
@@ -4201,6 +4274,7 @@
 ++  test-update-00
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col1]
@@ -4216,6 +4290,7 @@
 ++  test-update-01
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col1]
@@ -4231,6 +4306,7 @@
 ++  test-update-02
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col1]
@@ -4246,6 +4322,7 @@
 ++  test-update-03
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col1]
@@ -4261,6 +4338,7 @@
 ++  test-update-04
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4276,6 +4354,7 @@
 ++  test-update-04a
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col4 upd-col3 upd-col1]
@@ -4296,6 +4375,7 @@
 ++  test-update-05
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4311,6 +4391,7 @@
 ++  test-update-06
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4327,6 +4408,7 @@
 ++  test-update-07
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4342,6 +4424,7 @@
 ++  test-update-08
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4357,6 +4440,7 @@
 ++  test-update-09
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4373,6 +4457,7 @@
 ++  test-update-10
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4389,6 +4474,7 @@
 ++  test-update-11
   =/  expected  :*  %update
                     ctes=~
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4405,6 +4491,7 @@
 ++  test-update-12
   =/  expected  :*  %update
                     ctes=~[cte-t1]
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4421,6 +4508,7 @@
 ++  test-update-13
   =/  expected  :*  %update
                     ctes=~[cte-t1]
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4437,6 +4525,7 @@
 ++  test-update-14
   =/  expected  :*  %update
                     ctes=~[cte-t1]
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4454,6 +4543,7 @@
 ++  test-update-15
   =/  expected  :*  %update
                     ctes=~[cte-t1]
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4473,6 +4563,7 @@
 ++  test-update-16
   =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4491,6 +4582,7 @@
 ++  test-update-17
   =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
+                    scalars=~
                     table=foo-table
                     as-of=~
                     :-  columns=~[upd-col3 upd-col1]
@@ -4510,6 +4602,7 @@
 ++  test-update-18
   =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4529,6 +4622,7 @@
 ++  test-update-19
   =/  expected  :*  %update
                     ctes=~[cte-t1 cte-foobar cte-bar]
+                    scalars=~
                     table=foo-table
                     as-of=[~ [%as-of-offset 4 %seconds]]
                     :-  columns=~[upd-col3 upd-col1]
@@ -4543,6 +4637,73 @@
             "(from bar where col1=col2 select col2) as bar ".
             "update foo as of 4 seconds ago set col1=col2, col3 = 'hello' ".
             "where 1 = 1 and col2 = 4"
+::
+:: update with 2 scalars, no cte
+++  test-update-20
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                   ==
+               ==
+  =/  expected  :*  %update
+                    ctes=~
+                    scalars=~[sc1 sc2]
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=update-pred
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "update foo set col1='hello' where 1 = 1 and col2 = 4"
+::
+:: update with 2 scalars and 1 cte
+++  test-update-21
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                   ==
+               ==
+  =/  expected  :*  %update
+                    ctes=~[cte-t1]
+                    scalars=~[sc1 sc2]
+                    table=foo-table
+                    as-of=~
+                    :-  columns=~[upd-col1]
+                        values=~[[value-type=%t value='hello']]
+                    predicate=update-pred
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 ".
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "update foo set col1='hello' where 1 = 1 and col2 = 4"
 ::
 :: merge
 ::

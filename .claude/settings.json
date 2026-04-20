@@ -20,7 +20,10 @@
       "Bash(grep -n \"qualifier\\\\|+\\\\$  qualifier\" /mnt/mars/gitrepos/obelisk/desk/sur/obelisk.hoon)",
       "Bash(grep -oE '^\\\\+\\\\$  [a-zA-Z][a-zA-Z0-9-]*' /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
       "Bash(sed -i 's/binary-operator/binary-op/g' select.md)",
-      "Bash(sed -i 's/inequality-operator/inequality-op/g' select.md)"
+      "Bash(sed -i 's/inequality-operator/inequality-op/g' select.md)",
+      "Bash(grep -n \"value-or-default\\\\|+\\\\$  value\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
+      "Bash(git log *)",
+      "Bash(git stash *)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"
