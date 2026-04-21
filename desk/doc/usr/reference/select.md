@@ -42,9 +42,65 @@ The `<query>` statement provides a means to create `<relation>`s derived from pe
   | <literal>
 ```
 
-`JOIN` is an inner join returning all matching pairs of rows. When specified without `ON <predicate>` it specifies a natural join, indicating the join is performed on matching primary keys. All columns in the keys must match on column name, aura type, and sequence. `ASC | DESC` for the key columns does not have to match
+### Examples
 
-*natural join is the only inner join currently supported in Obelisk*
+```
+SELECT 0;
+```
+
+```
+FROM adoptions A
+SELECT *;
+```
+
+```
+FROM adoptions A
+WHERE A.species = 'Cat'
+SELECT A.name, A.adopter-email, A.adoption-date;
+```
+
+```
+FROM persons P
+JOIN staff S
+SELECT P.first-name, P.last-name, P.email, S.hire-date;
+```
+
+```
+FROM adoptions A
+SCALARS fee-tier IF A.adoption-fee > 75 THEN 'premium' ELSE 'standard' ENDIF
+WHERE A.species = 'Dog'
+SELECT A.name, A.adopter-email, A.adoption-fee, fee-tier;
+```
+
+```
+WITH (FROM persons P
+      JOIN staff S
+      SELECT P.first-name, P.last-name, P.email, S.hire-date) AS shelter-staff
+FROM shelter-staff SS
+WHERE SS.hire-date > ~2018.1.1
+SELECT SS.first-name, SS.last-name, SS.hire-date;
+```
+
+```
+FROM adoptions A
+JOIN vaccinations V
+WHERE A.adoption-date BETWEEN ~2024.1.1 AND ~2024.12.31
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
+
+```
+FROM adoptions A
+JOIN vaccinations V
+  ON A.name = V.name
+ AND A.species = V.species
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
+
+`JOIN` is an inner join returning all matching pairs of rows.
+
+When specified without `ON <predicate>` it is a *natural join*: Obelisk joins on all columns shared between the two objects by matching name and aura type. The columns need not be primary keys. Joining on full primary key columns is most efficient (indexed); joining on a partial primary key (leading columns only — trailing-only subsets are not valid) or on non-key columns requires a scan.
+
+When specified with `ON <predicate>` the predicate may only contain column equality conditions joined by `AND`. No other operators or `OR` conjunctions are permitted in the `ON` predicate. For more complex join conditions use `CROSS JOIN` with a `WHERE` predicate.
 
 `LEFT JOIN` is a left outer join returning all rows from the left table not meeting the join condition, along with all matching pairs of rows.
 
@@ -158,6 +214,10 @@ Any valid `<relation>`.
 
 `<alias>` allows short-hand reference to the `<relation>` in the `SELECT` clause and subsequent `<predicates>`. 
 
+**`SCALARS { <name> <scalar-function> } [ ...n ]`**
+
+Defines named computed expressions evaluated per row. Scalar names may be used in `SELECT` and `WHERE`. Appears after `FROM` and before `WHERE`. See [SCALARS reference](scalars.md).
+
 **`{ <qualified-column> | <column-alias> | <column-ordinal> }`**
 
 Used to select columns for ordering and grouping. `<column-ordinal>`s are 1-based.
@@ -173,6 +233,8 @@ Selects only the first and/or last `n` rows returned by the rest of the query. I
 The `SELECT` clause may choose columns from a single CTE, in which case the `FROM` clause is absent. It may also choose only literal constants and `SCALAR` functions on literals, columns, or scalar queries, in which case it will return a result set of one row.
 
 The simplest possible query is `SELECT 0`.
+
+Column references in `WHERE` predicates must use unqualified column names or the alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates. CTE column references and `SCALARS` names are also valid in predicates.
 
 `<query>` alone does not change the Obelisk agent state.
 
@@ -207,13 +269,3 @@ SELECT:  `<database>`.`<namespace>`.`<table>` does not exist at schema time `<ti
 no natural or foreign key join <object> <object>
 SELECT: column {<column.sel>} must be qualified
 SELECT: column `<column>` not found
-
-
-### Examples
-
-SELECT 0;
-
-FROM reference.calendar T1
-JOIN reference.calendar-us-fed-holiday T2
-WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
-SELECT T1.date, day-name, us-federal-holiday

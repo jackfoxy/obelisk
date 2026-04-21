@@ -38,7 +38,7 @@ DDL commands define databases, their data tables and other components, data mani
 |DELETE            | |
 |INSERT            | |
 |TRUNCATE TABLE    | |
-|UPDATE            |*not implemented*|
+|UPDATE            | |
 
 
 ### Query
@@ -227,6 +227,42 @@ WHERE col1 = 'tomorrow';
     [ %vector-count 2 ]
 ```
 
+## UPDATE
+
+`UPDATE` changes the content of selected columns in existing rows. Unlike `DELETE`, a predicate is optional — omitting it updates every row in the table.
+
+```
+UPDATE my-table-2
+SET col3=99
+WHERE col1 = 'today';
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'UPDATE db1.dbo.my-table-2' ]
+    [ %server-time ~2025.4.1..10.00.00..0000 ]
+    [ %schema-time ~2024.9.26..22.28.55..f02a ]
+    [ %data-time ~2025.3.31..16.28.20..063c ]
+    [ %message 'updated:' ]
+    [ %vector-count 1 ]
+    [ %message 'table data:' ]
+    [ %vector-count 2 ]
+```
+
+The first `%vector-count` is the number of rows changed; the second is the total rows in the table. When no rows match the predicate the message is `'no rows updated'` and no data-time is recorded.
+
+Use the `DEFAULT` keyword in `SET` to reset a column to its aura bunt value.
+
+```
+UPDATE my-table-2
+SET col3=DEFAULT;
+:: updates every row
+```
+
+**Advanced features**
+
+`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/update.md) for full syntax and examples.
+
 ## TRUNCATE TABLE
 
 Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`, which always executes in O(1) time, in other words it is very fast regardless of how much data is in the table.
@@ -244,6 +280,31 @@ TRUNCATE TABLE my-table-1;
     [ %vector-count 3 ]
 ```
 This time *%vector-count* is the number of rows removed.
+
+## DROP TABLE
+
+`DROP TABLE` deletes a table and all its data. It requires `FORCE` if the table contains data, is referenced by a view, or is used in a foreign key. With `FORCE`, dependent views and foreign keys are also dropped.
+
+Since we already truncated `my-table-1` it can be dropped without `FORCE`:
+
+```
+DROP TABLE my-table-1;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'DROP TABLE %my-table-1' ]
+    [ %server-time ~2025.4.2..09.00.00..0000 ]
+    [ %schema-time ~2024.9.26..22.28.55..f02a ]
+    [ %data-time ~2024.9.27..17.03.38..92af ]
+    [ %vector-count 0 ]
+```
+
+Attempting to drop the still-populated `my-table-2` without `FORCE` results in an error. Add `FORCE` to proceed:
+
+```
+DROP TABLE FORCE my-table-2;
+```
 
 # Sample Database
 
@@ -357,9 +418,32 @@ Here is another difference between Obelisk and any SQL RDBMS. Rows returned from
 
 Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order.
 
-## The WHERE clause
+## SCALARS
 
-As with SQL, you can filter query results with a `WHERE` clause.
+The optional `SCALARS` clause defines named computed expressions evaluated per row. It appears after `FROM` and before `WHERE`. Scalar names can be used in both `SELECT` and `WHERE`.
+
+```
+FROM adoptions
+SCALARS full-label CONCAT(name, ' (', species, ')')
+        fee-tier IF adoption-fee > 75 THEN 'premium' ELSE 'standard' ENDIF
+SELECT name, species, adoption-date, full-label, fee-tier;
+```
+
+Scalar function categories:
+
+- **Arithmetic** — `col1 + col2 * 3 END` — supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd`; must end with `END`
+- **String** — `CONCAT(...)`, `TRIM(...)`, `UPPER(...)`, `LOWER(...)`, `REPLACE(...)`, `SUBSTRING(...)`
+- **DateTime** — `YEAR(...)`, `MONTH(...)`, `DAY(...)`, `HOUR(...)`, `MINUTE(...)`, `GETUTCDATE()`
+- **Mathematical** — `ABS(...)`, `SQRT(...)`, `FLOOR(...)`, `CEILING(...)`, `ROUND(...)`, and trig functions
+- **Control flow** — `IF <predicate> THEN ... ELSE ... ENDIF`, `CASE ... END`, `COALESCE(...)`
+
+A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/reference/scalars.md) for full syntax.
+
+## WHERE clause
+
+As with SQL, you can filter query results with a `WHERE` clause. In a query with a `FROM` clause, column references in the predicate must use unqualified column names or the table alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates — always assign and use an alias when disambiguation is needed.
+
+`SCALARS` defined in the same query and CTE columns are also valid in predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'Thursday'
@@ -418,6 +502,41 @@ SELECT *;
 ```
 
 <sup>2</sup> The *NOT* operator currently does not parse in all expected configurations due to a bug.
+
+## WITH clause
+
+A `WITH` clause defines one or more *Common Table Expressions* (CTEs) — named sub-queries whose results can be referenced in the outer query's `FROM`, `WHERE`, or `SELECT`. CTEs are defined once per statement and may chain: a later CTE may reference an earlier one.
+
+```
+WITH (FROM persons P
+      JOIN staff S
+      SELECT P.first-name, P.last-name, P.email, S.hire-date) AS shelter-staff
+FROM shelter-staff
+WHERE hire-date > ~2018.1.1
+SELECT first-name, last-name, hire-date;
+```
+
+The outer `FROM` references the CTE by its name. The inner query follows the same `FROM ... WHERE ... SELECT` syntax as any other query, including joins and aliases.
+
+Key rules:
+
+- Column names within a CTE must be unique. Joins where both tables share a column name (e.g., `date`) must resolve duplicates with aliases: `T1.date AS cal-date, T2.date AS hol-date`.
+- `SELECT *` on a joined CTE is only valid if all column names are unique.
+- A CTE selecting a single column can serve as a set in `WHERE col IN my-cte.col` predicates, or as a singleton value with `=` when the CTE returns exactly one row.
+- CTEs may also appear in `UPDATE` and `DELETE` `WHERE` predicates to filter which rows are modified.
+
+Chained CTEs:
+
+```
+WITH (FROM adoptions
+      WHERE species = 'Dog'
+      SELECT name, adopter-email, adoption-fee) AS dog-adoptions,
+     (FROM dog-adoptions
+      WHERE adoption-fee > 75
+      SELECT name, adopter-email) AS premium-dogs
+FROM premium-dogs
+SELECT *;
+```
 
 # Time Travel
 
@@ -622,7 +741,9 @@ A `JOIN` is a query clause that combines rows from two or more data objects, pos
 
 ## Natural Joins
 
-*Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk determines if the tables share the same primary key, all primary key columns having the same name and aura type. If so it will join on primary keys. It does not matter if the keys' columns ascending/descending ordering differ between the two.  If not joined on primary key it determines if there is a `FOREIGN KEY` (*not yet implemented*) relating the objects.
+*Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk joins on all columns that share the same name and aura type between the two objects. Any matching column names and aura types qualify — the columns need not be primary keys.
+
+Joining on full primary key columns is the most efficient, as the data is indexed on primary keys. Joining on a partial primary key (the leading columns of the key) or on non-key columns requires a scan and is less efficient. A partial key must be the leading columns of the primary key — trailing-only subsets are not valid.
 
 Let's use the system view *sys.table-keys* to find like primary keys.
 
@@ -667,6 +788,29 @@ SELECT T1.date, day-name, us-federal-holiday;
   ~2025.7.4  Friday  Independence Day
   ~2025.11.11  Tuesday  Veterans Day
   ~2025.1.20  Monday  Birthday of Martin Luther King Jr.
+```
+
+## JOIN ON predicate
+
+The `ON` predicate in a join is restricted to equality conditions between columns, combined with `AND`. No other operators or `OR` conjunctions are permitted.
+
+```
+FROM adoptions A
+JOIN vaccinations V
+  ON A.name = V.name
+ AND A.species = V.species
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
+
+For more complex join conditions — such as inequality comparisons, `OR` logic, or expressions — use `CROSS JOIN` combined with a `WHERE` clause to filter the cartesian product:
+
+```
+FROM adoptions A
+CROSS JOIN vaccinations V
+WHERE A.name = V.name
+  AND A.species = V.species
+  AND V.vaccination-time > A.adoption-date
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 ```
 
 ## CROSS JOIN
