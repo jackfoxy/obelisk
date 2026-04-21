@@ -1185,9 +1185,9 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`;;(@ y) `@t`x)
-    ?:  =(typ ~.rd)  (gth:rd x ;;(@ +.y))
-    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ +.y)) --1)
-    (gth x ;;(@ +.y))
+    ?:  =(typ ~.rd)  (gth:rd x ;;(@ y))
+    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
+    (gth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha ;;(@ +.y) ;;(@ +.x))

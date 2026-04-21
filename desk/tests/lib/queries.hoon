@@ -7550,6 +7550,83 @@
               ==
       ==
 ::
+::  CROSS JOIN adoptions × vaccinations (animal-shelter schema subset)
+::  cartesian product 3 × 5 = 15 rows; WHERE filters to post-adoption vaccinations
+::  only rows where name/species match AND vaccination-time > adoption-date pass
+++  test-join-54
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~
+            "CREATE DATABASE db1;"
+            "CREATE TABLE db1..adoptions "
+            "(name @t, species @t, adopter-email @t, adoption-date @da, adoption-fee @ud) "
+            "PRIMARY KEY (name ASC, species ASC, adopter-email ASC);"
+            "CREATE TABLE db1..vaccinations "
+            "(name @t, species @t, vaccination-time @da, vaccine @t, "
+            "batch @t, comments @t, email @t) "
+            "PRIMARY KEY (name ASC, species ASC, vaccine ASC, vaccination-time ASC);"
+            "INSERT INTO adoptions "
+            "(name, species, adopter-email, adoption-date, adoption-fee) VALUES "
+            "('Abby', 'Dog', 'owner1@test.com', ~2018.8.30, 58) "
+            "('Archie', 'Cat', 'owner3@test.com', ~2018.8.30, 82) "
+            "('Ginger', 'Dog', 'owner2@test.com', ~2017.3.7, 79);"
+            "INSERT INTO vaccinations "
+            "(name, species, vaccination-time, vaccine, batch, comments, email) VALUES "
+            "('Abby', 'Dog', ~2017.4.19..9.1.0, 'Distemper Virus', 'N.178784096', 'no comment', 'staff1@s.com') "
+            "('Abby', 'Dog', ~2019.4.19..10.44.0, 'Distemper Virus', 'L.107687717', 'no comment', 'staff2@s.com') "
+            "('Archie', 'Cat', ~2017.11.20..9.35.0, 'Calicivirus', 'J.460970834', 'no comment', 'staff3@s.com') "
+            "('Archie', 'Cat', ~2019.1.15..10.0.0, 'Calicivirus', 'K.123456789', 'no comment', 'staff4@s.com') "
+            "('Ginger', 'Dog', ~2017.3.7..8.33.0, 'Adenovirus', 'B.141623834', 'no comment', 'staff5@s.com');"
+            ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM adoptions A ".
+          "CROSS JOIN vaccinations V ".
+          "WHERE A.name = V.name ".
+          "  AND A.species = V.species ".
+          "  AND V.vaccination-time > A.adoption-date ".
+          "SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%name [~.t 'Abby']]
+                              [%species [~.t 'Dog']]
+                              [%adoption-date [~.da ~2018.8.30]]
+                              [%vaccine [~.t 'Distemper Virus']]
+                              [%vaccination-time [~.da ~2019.4.19..10.44.0]]
+                              ==
+                      :-  %vector
+                          :~  [%name [~.t 'Archie']]
+                              [%species [~.t 'Cat']]
+                              [%adoption-date [~.da ~2018.8.30]]
+                              [%vaccine [~.t 'Calicivirus']]
+                              [%vaccination-time [~.da ~2019.1.15..10.0.0]]
+                              ==
+                      :-  %vector
+                          :~  [%name [~.t 'Ginger']]
+                              [%species [~.t 'Dog']]
+                              [%adoption-date [~.da ~2017.3.7]]
+                              [%vaccine [~.t 'Adenovirus']]
+                              [%vaccination-time [~.da ~2017.3.7..08.33.0]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.adoptions']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.vaccinations']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 3]
+              ==
+      ==
+::
 ::  same object 2X with unqualified column
 ++  test-fail-join-00
   =|  run=@ud
