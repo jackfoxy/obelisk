@@ -522,8 +522,8 @@
 +$  alter-index
   $+  alter-index
   $:  %alter-index
-    name=qualified-table
-    object=qualified-table
+    name=@tas
+    =qualified-table
     columns=(list ordered-column)
     action=index-action
     as-of=(unit as-of)

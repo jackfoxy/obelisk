@@ -147,7 +147,9 @@ INSERT INTO <table> [ <as-of-time> ]
 ### DELETE
 
 ```
-DELETE [ FROM ] <table> [ <as-of-time> ]
+[ WITH [ <common-table-expression> [ ,...n ] ] ]
+[ SCALARS { <name> <scalar-function> } [ ...n ]]
+DELETE [ FROM ] <table> [ <as-of> ]
   WHERE <predicate>
 ```
 
@@ -165,8 +167,10 @@ Executes in O(1) time regardless of data volume.
 ### UPDATE (not yet implemented)
 
 ```
-UPDATE <table> [ <as-of-time> ]
-  SET { <column> = <value> } [ ,...n ]
+[ WITH [ <common-table-expression> [ ,...n ] ] ]
+[ SCALARS { <name> <scalar-function> } [ ...n ]]
+UPDATE [ <ship-qualifier> ] <table> [ <as-of> ]
+  SET { <column> = <scalar-node> } [ ,...n ]
   [ WHERE <predicate> ]
 ```
 

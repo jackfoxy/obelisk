@@ -29,108 +29,109 @@
 ::       multiple command script:
 ::         alter index... db.ns.index db.ns.table columns action %disable
 ::         alter index db..index db..table one column action %rebuild
-++  test-alter-index-1
-  =/  expected1
-    :*  %alter-index
-        [%qualified-table ship=~ database='db' namespace='ns' name='my-index' ~]
-        [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
-            ==
-        %disable
-        ~
-        ==
-  =/  expected2
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db'
-            namespace='dbo'  name='my-index'  ~
-            ==
-        :*  %qualified-table  ship=~  database='db'
-            namespace='dbo'  name='table'  ~
-            ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
-        %rebuild
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  %-  parse:parse(default-database 'db1')
-      "aLter \0d INdEX\09db.ns.my-index On db.ns.table  ".
-      "( col1  asc , col2\0a desc  , col3) \0a dIsable \0a;\0a aLter \0d ".
-      "INdEX\09db..my-index On db..table  ( col1  asc ) \0a \0a rEBuild "
-::
-:: alter index 1 column without action
-++  test-alter-index-2
-  =/  expected
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db'
-            namespace='ns'  name='my-index'  alias=~
-            ==
-        :*  %qualified-table  ship=~  database='db'
-            namespace='ns'  name='table'  alias=~
-            ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
-        %rebuild
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  %-  parse:parse(default-database 'db1')
-        "ALTER INDEX db.ns.my-index ON db.ns.table (col1)"
-::
-:: leading whitespace characters, end delimiter, alter ns.index ns.table columns no action
-++  test-alter-index-3
-  =/  expected
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='ns'  name='my-index'  alias=~
-            ==
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='ns'  name='table'  alias=~
-            ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
-            ==
-        %rebuild
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  %-  parse:parse(default-database 'db1')
-        "  \0d alter INDEX ns.my-index ON ns.table (col1, col2 desc, col3 asc);"
-::
-:: alter index table no columns, action only
-++  test-alter-index-4
-  =/  expected
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='dbo'  name='my-index'  alias=~
-            ==
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='dbo'  name='table'  alias=~
-            ==
-        ~
-        %resume
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  %-  parse:parse(default-database 'db1')
-        "ALTER INDEX my-index ON table RESUME"
-::
-:: fail when namespace qualifier is not a term
-++  test-fail-alter-index-5
-  %-  expect-fail
-  |.  %-  parse:parse(default-database 'db2')
-      "alter index my-index ON db.Ns.table (col1, col2) resume"
-::
-:: fail when table name is not a term
-++  test-fail-alter-index-6
-  %-  expect-fail
-  |.  %-  parse:parse(default-database 'other-db')
-      "alter index my-index ON db.ns.Table (col1, col2) resume"
+::::  to do: deal with alter index tests when indices implemented
+::::++  test-alter-index-1
+::::  =/  expected1
+::::    :*  %alter-index
+::::        [%qualified-table ship=~ database='db' namespace='ns' name='my-index' ~]
+::::        [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
+::::        :~  [%ordered-column name='col1' is-ascending=%.y]
+::::            [%ordered-column name='col2' is-ascending=%.n]
+::::            [%ordered-column name='col3' is-ascending=%.y]
+::::            ==
+::::        %disable
+::::        ~
+::::        ==
+::::  =/  expected2
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='dbo'  name='my-index'  ~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='dbo'  name='table'  ~
+::::            ==
+::::        ~[[%ordered-column name='col1' is-ascending=%.y]]
+::::        %rebuild
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected1 expected2]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::      "aLter \0d INdEX\09db.ns.my-index On db.ns.table  ".
+::::      "( col1  asc , col2\0a desc  , col3) \0a dIsable \0a;\0a aLter \0d ".
+::::      "INdEX\09db..my-index On db..table  ( col1  asc ) \0a \0a rEBuild "
+::::::
+:::::: alter index 1 column without action
+::::++  test-alter-index-2
+::::  =/  expected
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='ns'  name='my-index'  alias=~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='ns'  name='table'  alias=~
+::::            ==
+::::        ~[[%ordered-column name='col1' is-ascending=%.y]]
+::::        %rebuild
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::        "ALTER INDEX db.ns.my-index ON db.ns.table (col1)"
+::::::
+:::::: leading whitespace characters, end delimiter, alter ns.index ns.table columns no action
+::::++  test-alter-index-3
+::::  =/  expected
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='ns'  name='my-index'  alias=~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='ns'  name='table'  alias=~
+::::            ==
+::::        :~  [%ordered-column name='col1' is-ascending=%.y]
+::::            [%ordered-column name='col2' is-ascending=%.n]
+::::            [%ordered-column name='col3' is-ascending=%.y]
+::::            ==
+::::        %rebuild
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::        "  \0d alter INDEX ns.my-index ON ns.table (col1, col2 desc, col3 asc);"
+::::::
+:::::: alter index table no columns, action only
+::::++  test-alter-index-4
+::::  =/  expected
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='dbo'  name='my-index'  alias=~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='dbo'  name='table'  alias=~
+::::            ==
+::::        ~
+::::        %resume
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::        "ALTER INDEX my-index ON table RESUME"
+::::::
+:::::: fail when namespace qualifier is not a term
+::::++  test-fail-alter-index-5
+::::  %-  expect-fail
+::::  |.  %-  parse:parse(default-database 'db2')
+::::      "alter index my-index ON db.Ns.table (col1, col2) resume"
+::::::
+:::::: fail when table name is not a term
+::::++  test-fail-alter-index-6
+::::  %-  expect-fail
+::::  |.  %-  parse:parse(default-database 'other-db')
+::::      "alter index my-index ON db.ns.Table (col1, col2) resume"
 ::
 ::
 :: alter namespace

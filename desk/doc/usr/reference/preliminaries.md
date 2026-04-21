@@ -86,11 +86,11 @@ The following are some common language structures used throughout the reference.
 
 ```
 <cte> ::=
-  <selection> [ AS ] <alias>
+  <query> [ AS ] <alias>
 ```
 **\<cte>** produces a row result set, `<relation>`, for further manipulation by other CTEs, JOINS, SELECT clauses, or predicates.
 
-`<selection> ::=` from selection diagram. (More on `<selection>` under `<relation>`.)
+`<query> ::=` from selection diagram. (More on `<query>` under `<relation>`.)
 
 `<alias> ::= @t` case-agnostic, see alias naming discussion above.
 
@@ -106,13 +106,13 @@ CTEs are always referenced by alias, never inlined.
 
 Each simple row type is itself a set defined by its component columns (and literals). Rows of `<relation>`s that are not also `<table>`s may be of varying length (jagged). Hence the row type of a `<relation>` may be a union type.
 
-The order of rows may be determined in the `<selection>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
+The order of rows may be determined in the `<query>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
 
 When a `<view>`  and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored.
 
 User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 
-The `<selection>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<selection>` statements. This is true because every `<selection>` statement is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
+The `<query>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<query>` statements. This is true because every `<query>` statement is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
 
 More generally, a `<relation>` is a user-defined table, view, common table expression, join, or result of a query. Most importantly, it is a proper set of its rows. 
 
@@ -129,7 +129,7 @@ Specifying **\<as-of>** overrides setting the schema and/or content timestamps i
 
 `NOW` default, current computer time.
 
-`<timestamp>` any valid time in @dr format.
+`<timestamp>` any valid time in @da format.
 
 `n ... AGO` sets the schema and/or content (data) timestamp in state changes back from `NOW` according to the time units specified.
 
@@ -272,7 +272,7 @@ Each user-defined table is typed by its `<row-type>`.
 ```
 A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
 
-Rows from `<view>`s, `<cte>`s, and output from `<selection>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
+Rows from `<view>`s, `<cte>`s, and output from `<query>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
 
 When the `<relation-type>` is a union of `<row-type>`s. There is a `<row-type>` representing the full width of the `SELECT` statement and as many sub-types as necessary to represent any selected unjoined outer `JOIN`s. 
 
@@ -296,7 +296,7 @@ All static types in the Obelisk API are defined in `sur/ast/hoon`.
 
 Even `<table>`s can be typed as sets, because a `SELECT` statement without an `ORDER BY` clause has an undefined row order.
 
-Regardless of the presence of `ORDER BY`, any `<relation>` emitted by any step in a `<selection>`, a CTE, or a `<view>` is a list of `<row-type>` in some (possibly arbitrary) order.
+Regardless of the presence of `ORDER BY`, any `<relation>` emitted by any step in a `<query>`, a CTE, or a `<view>` is a list of `<row-type>` in some (possibly arbitrary) order.
 
 Ultimately, "set" is the most important concept because every `<relation>` will have one unique row value for any given sub-type of `<row-type>`.
 
