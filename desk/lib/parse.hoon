@@ -3416,6 +3416,8 @@
     ?:  ?=([%scalars *] +<.a)
       (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
     ~
+  =/  scalar-map=(map @tas scalar-function:ast)
+    (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
   =/  b  +>.a
   ?:  ?=([%set * ~] b)
     :*  %update
@@ -3423,7 +3425,7 @@
         scalars
         table
         ~
-        (produce-column-sets table +<.b)
+        (produce-column-sets table scalar-map +<.b)
         ~
         ==
   ?:  ?=([[%as-of %now] %set * ~] b)
@@ -3432,7 +3434,7 @@
         scalars
         table
         ~
-        (produce-column-sets table +>-.b)
+        (produce-column-sets table scalar-map +>-.b)
         ~
         ==
   ?:  ?=([[%as-of @ @] %set * ~] b)
@@ -3441,7 +3443,7 @@
                     scalars
                     table
                     [~ ->.b]
-                    (produce-column-sets table +>-.b)
+                    (produce-column-sets table scalar-map +>-.b)
                     ~
                     ==
   ?:  ?=([[%as-of *] %set * ~] b)
@@ -3450,7 +3452,7 @@
                     scalars
                     table
                     [~ [%as-of-offset ->-.b ->+<.b]]
-                    (produce-column-sets table +>-.b)
+                    (produce-column-sets table scalar-map +>-.b)
                     ~
                     ==
   ?:  ?=([[%as-of %now] %set * *] b)
@@ -3459,9 +3461,9 @@
         scalars
         table
         ~
-        (produce-column-sets table +>-.b)
+        (produce-column-sets table scalar-map +>-.b)
         %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
+            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
             table
         ==
   ?:  ?=([[%as-of @ @] %set * *] b)
@@ -3470,9 +3472,9 @@
                     scalars
                     table
                     [~ ->.b]
-                    (produce-column-sets table +>-.b)
+                    (produce-column-sets table scalar-map +>-.b)
                     %+  qualify-predicate
-                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
+                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
                         table
                     ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
@@ -3481,9 +3483,9 @@
         scalars
         table
         [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
-        (produce-column-sets table +>-.b)
+        (produce-column-sets table scalar-map +>-.b)
         %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
+            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
             table
         ==
   :*  %update
@@ -3491,14 +3493,14 @@
       scalars
       table
       ~
-      (produce-column-sets table +<.b)
+      (produce-column-sets table scalar-map +<.b)
       %+  qualify-predicate
-          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
+          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ scalar-map cte-map cte-col-map)
           table
       ==
 ::
 ++  produce-column-sets
-  |=  [table=qualified-table:ast a=*]
+  |=  [table=qualified-table:ast scalar-map=(map @tas scalar-function:ast) a=*]
   ~+
   ^-  [(list qualified-column:ast) (list value-or-default:ast)]
   =/  columns  *(list qualified-column:ast)
@@ -3507,10 +3509,16 @@
   ?:  =(a ~)
     [columns values]
   =/  b  -.a
+  =/  v=value-or-default:ast  ;;(value-or-default:ast +.b)
   %=  $
-      columns  :-  (qualified-column:ast %qualified-column table -.b ~)
-                   columns
-      values   [;;(value-or-default:ast +.b) values]
+      columns  [(qualified-column:ast %qualified-column table -.b ~) columns]
+      values   :-  ?.  ?=([%unqualified-column *] v)
+                      v
+                    =/  uqc=unqualified-column:ast  ;;(unqualified-column:ast v)
+                    ?.  (~(has by scalar-map) name.uqc)
+                      v
+                    [%scalar-name name.uqc]
+               values
       a        +.a
   ==
 ::

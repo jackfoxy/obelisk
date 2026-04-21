@@ -1531,7 +1531,7 @@
             :+  ~2012.5.1
                 %db1
                 "SCALARS add-5 col3 + 5 END ".
-                "        concat STRING-CONCAT(col1, '-updated') ".
+                "        concat STRING-CONCAT(col1, 'updated', '-') ".
                 "UPDATE my-table SET col1=concat, ".
                 "                    col3=add-5 ".
                 "WHERE add-5 > 10 "

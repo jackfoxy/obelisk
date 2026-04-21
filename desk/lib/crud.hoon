@@ -372,6 +372,17 @@
   ::
   ?.  =((lent columns.u) (lent values.u))
     ~|("UPDATE: columns and values mismatch" !!)
+  =/  named-ctes  (named-queries ctes.u *named-ctes)
+  =/  upd-qualifier-lookup=qualifier-lookup
+    %+  roll  columns.table.txn
+              |=  [c=column:ast ql=qualifier-lookup]
+              (~(put by ql) name.c (limo ~[qualified-table.u]))
+  =/  resolved-scalars
+    %:  resolve-query-scalars(state state, bowl bowl)  scalars.u
+                                                       named-ctes
+                                                       upd-qualifier-lookup
+                                                       [%unqualified-map-meta typ-addr-lookup.table.txn]
+                                                       ==
   =/  filter  ?~  predicate.u  ~
               :-  ~
                   %:  prepare-predicate  %-  pred-unqualify-qualified
@@ -379,27 +390,29 @@
                                           :-  %unqualified-map-meta
                                               typ-addr-lookup.table.txn
                                           ~
-                                          (named-queries ctes.u *named-ctes)
-                                          *resolved-scalars
+                                          named-ctes
+                                          resolved-scalars
                                           ==
-  =/  updates  %:  mk-updates  qualified-table.u
-                               columns.u
-                               values.u
-                               :-  %unqualified-map-meta
-                                   typ-addr-lookup.table.txn
-                               ==
+  =/  upd-result  %:  mk-updates  qualified-table.u
+                                  columns.u
+                                  values.u
+                                  :-  %unqualified-map-meta
+                                      typ-addr-lookup.table.txn
+                                  ==
+  =/  static-updates  -.upd-result
+  =/  scalar-updates  +.upd-result
   ::  updating key column requires re-indexing
   =/  aa  %-  silt
               %+  turn
                   key.pri-indx.table.txn
                   |=(a=key-column name.a)
   =/  bb  %-  silt
-              %+  turn
-                  updates
-                  |=(a=[@tas @] -.a)
+              %+  weld
+                  (turn static-updates |=(a=[@tas @] -.a))
+                  (turn scalar-updates |=(a=[@tas @tas] -.a))
   =/  xx  ?:  (gth ~(wyt in (~(int in aa) bb)) 0)  :: update key column?
-            [filter updates key.pri-indx.table.txn columns.table.txn]
-          [filter updates ~ columns.table.txn]
+            [filter static-updates scalar-updates resolved-scalars key.pri-indx.table.txn columns.table.txn]
+          [filter static-updates scalar-updates resolved-scalars ~ columns.table.txn]
   =/  rows-count=[(list indexed-row) @ud]
         %^  spin
               indexed-rows.file.txn
@@ -771,20 +784,28 @@
           count=@ud
           f=(unit $-(data-row ?))
           updates=(list [@tas @])
+          scalar-updates=(list [@tas @tas])
+          rs=resolved-scalars
           key-columns=(list key-column)
           cols=(list column:ast)
           ==
   ^-  [indexed-row @ud]
+  =/  row-scalars=(list [@tas @])
+    %+  turn  scalar-updates
+              |=  [col=@tas sname=@tas]
+              :-  col
+              +:(apply-resolved-scalar (~(got by rs) sname) [%indexed-row key.row data.row])
+  =/  all-updates=(list [@tas @])  (weld updates row-scalars)
   ?~  f
     ?~  key-columns  :-  :+  %indexed-row
                              key.row
-                             (produce-update row updates cols)
+                             (produce-update row all-updates cols)
                          +(count)
-    [(update-key row updates key-columns cols) +(count)]
+    [(update-key row all-updates key-columns cols) +(count)]
   ?.  ((need f) [%indexed-row key.row data.row])  [row count]
-  ?~  key-columns  :-  [%indexed-row key.row (produce-update row updates cols)]
+  ?~  key-columns  :-  [%indexed-row key.row (produce-update row all-updates cols)]
                        +(count)
-  [(update-key row updates key-columns cols) +(count)]
+  [(update-key row all-updates key-columns cols) +(count)]
 ++  update-key
   |=  $:  r=indexed-row
           updates=(list [@tas @])
@@ -816,10 +837,11 @@
           values=(list *)   ::(list value-or-default:ast)
           map-meta=unqualified-map-meta
           ==
-  ^-  (list [@tas @])
-  =/  updates  *(list [@tas @])
+  ^-  [(list [@tas @]) (list [@tas @tas])]
+  =/  updates         *(list [@tas @])
+  =/  scalar-updates  *(list [@tas @tas])
   |-
-  ?~  columns  updates
+  ?~  columns  [updates scalar-updates]
   ?~  values  ~|("mk-updates can't get here" !!)
   ?:  ?=(%default i.values)
     %=  $
@@ -828,6 +850,12 @@
       updates   ?:  =(~.da -:(~(got by +.map-meta) name.i.columns))
                   [[name.i.columns *@da] updates]
                 [[name.i.columns 0] updates]
+    ==
+  ?:  ?=([%scalar-name *] i.values)
+    %=  $
+      columns        t.columns
+      values         t.values
+      scalar-updates  [[name.i.columns ;;(@tas +.i.values)] scalar-updates]
     ==
   ?:  ?=(dime i.values)
     %=  $
