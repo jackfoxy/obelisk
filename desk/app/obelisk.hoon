@@ -22,19 +22,22 @@
 ++  on-load
   |=  old-state=vase
   ^-  (quip card _this)
-  ::::=;  r=(each state-0 tang)      ::<== change to new state
-  ::::::=;  r=server      ::<== change to new state
-  ::::    ?:  ?=([%.y ^] r)  this(state p.r)
-  ::::    %-  (slog 'old state corrupt, unable to migrate data' p.r)
-  ::::    this(state *state-0)  ::<== change to new state
-  ::::%-  mule
-  ::::|.
-  =/  old  !<(versioned-state old-state)
-  ?-  -.old
-    %0  `this(state old)
-    ::  $(old [%1 +.old])
-    ::  %1  `this(state old)
-  ==
+  ::  attempt state reload/migration
+  ::
+  =/  r=(each state-0 tang)
+    %-  mule  |.
+    =/  old  !<(versioned-state old-state)
+    ?-  -.old
+      %0  old
+      :: %1
+    ==
+  ::  if it succeeded, use the old state
+  ::
+  ?:  ?=(%.y -.r)  `this(state p.r)
+  ::  if it failed, bunt the correct state type
+  ::
+  %-  (slog 'old state corrupt, unable to migrate data' ~)
+  `this(state *state-0)
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
