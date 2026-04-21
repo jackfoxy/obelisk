@@ -1,6 +1,6 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
-/-  ast, *server-state
+/-  ast, *server-state-0
 /+  *test, *sys-views
 /=  agent  /app/obelisk
 |%
