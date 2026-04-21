@@ -1070,26 +1070,22 @@
         document.body.style.cursor = cursor;
       }
     }
-    function nudgeHawkTreeRefresh() {
-      const notify = (target) => {
-        if (!target || typeof target.dispatchEvent !== 'function') {
-          return;
-        }
-        try {
-          target.dispatchEvent(new Event('focus'));
-          target.dispatchEvent(new Event('resize'));
-          target.dispatchEvent(new PopStateEvent('popstate'));
-        } catch (_err) {
-          // best effort only
-        }
-      };
-      notify(window);
+    async function nudgeHawkTreeRefresh() {
+      const target = document.querySelector('#tree-tab > .oob');
+      if (!target) return;
       try {
-        if (window.parent && window.parent !== window) {
-          notify(window.parent);
+        const url = window.location.pathname + window.location.search;
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+        const fragment = doc.querySelector('[hx-swap-oob*="#tree-tab > .oob"]');
+        if (!fragment) return;
+        target.innerHTML = fragment.innerHTML;
+        if (typeof htmx !== 'undefined') {
+          htmx.process(target);
         }
       } catch (_err) {
-        // ignore cross-frame access issues
+        // best effort only
       }
     }
     function getResultsSavePanel(group) {
