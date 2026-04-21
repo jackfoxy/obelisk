@@ -23,7 +23,8 @@
       "Bash(sed -i 's/inequality-operator/inequality-op/g' select.md)",
       "Bash(grep -n \"value-or-default\\\\|+\\\\$  value\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
       "Bash(git log *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Edit(/.claude/skills/obelisk-urql/**)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"

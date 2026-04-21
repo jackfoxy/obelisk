@@ -46,11 +46,26 @@ WHERE day-name = 'Sunday'
 ```
 
 ```urQL
+UPDATE my-table-2
+SET col3=99
+WHERE col1 = 'today';
+```
+
+```urQL
+UPDATE my-table-2
+SET col3=DEFAULT;
+```
+
+```urQL
 TRUNCATE TABLE my-table;
 ```
 
 ```urQL
-DROP TABLE FORCE my-table;
+DROP TABLE my-table-1;
+```
+
+```urQL
+DROP TABLE FORCE my-table-2;
 ```
 
 ```urQL
@@ -72,6 +87,13 @@ SELECT *;
 ```
 
 ```urQL
+FROM adoptions A
+SCALARS full-label CONCAT(name, ' (', species, ')')
+        fee-tier IF adoption-fee > 75 THEN 'premium' ELSE 'standard' ENDIF
+SELECT name, species, adoption-date, full-label, fee-tier;
+```
+
+```urQL
 FROM calendar T1
 JOIN holiday-calendar T2
 SELECT T1.day-name, T2.*;
@@ -82,6 +104,21 @@ FROM calendar T1
 JOIN holiday-calendar T2
 WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
 SELECT T1.date, day-name, us-federal-holiday;
+```
+
+```urQL
+FROM adoptions A
+JOIN vaccinations V ON A.name = V.name AND A.species = V.species
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
+
+```urQL
+FROM adoptions A
+CROSS JOIN vaccinations V
+WHERE A.name = V.name
+  AND A.species = V.species
+  AND V.vaccination-time > A.adoption-date
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 ```
 
 ```urQL
@@ -101,6 +138,26 @@ SELECT year, month, day, month-name, cross-key, cross-2, cross-3;
 FROM tbl1
 CROSS JOIN cross-tbl AS OF ~2000.1.3
 SELECT year, month, day, month-name, cross-key, cross-2, cross-3;
+```
+
+```urQL
+WITH (FROM persons P
+      JOIN staff S
+      SELECT P.first-name, P.last-name, P.email, S.hire-date) AS shelter-staff
+FROM shelter-staff
+WHERE hire-date > ~2018.1.1
+SELECT first-name, last-name, hire-date;
+```
+
+```urQL
+WITH (FROM adoptions
+      WHERE species = 'Dog'
+      SELECT name, adopter-email, adoption-fee) AS dog-adoptions,
+     (FROM dog-adoptions
+      WHERE adoption-fee > 75
+      SELECT name, adopter-email) AS premium-dogs
+FROM premium-dogs
+SELECT *;
 ```
 
 ```urQL
