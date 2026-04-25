@@ -1,5 +1,5 @@
 /-  ast, *obelisk
-/+  *scalars,  *test,  *server,  *test-helpers
+/+  *scalars,  *test,  *main,  *test-helpers
 ::
 |%
 ::

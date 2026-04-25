@@ -5453,7 +5453,7 @@
             "FROM foo SELECT * UNION FROM bar SELECT * EXCEPT FROM baz SELECT *"
 ::  CTE with set-op body: WITH (q1 UNION q2) AS cte FROM cte SELECT *
 ++  test-set-op-cte-union-00
-  =/  cte-body=crud-body:ast
+  =/  cte-body=cte-body:ast
     :-  %set-query
     :*  %set-query
         head=foo-set-query

@@ -2217,7 +2217,7 @@
   ?~  a  (flop ctes)
   ?:  ?&(=(%cte -<.a) =(%as ->+<.a))
     =/  cte-chain  ->-.a  :: [first-raw (list [op raw])] from parse-query-chain
-    =/  body=crud-body:ast
+    =/  body=cte-body:ast
           =/  first-raw  -.cte-chain
           =/  raw-tail   +.cte-chain
           ?:  =(raw-tail ~)

@@ -311,12 +311,18 @@
     $?  %union  %except  %intersect  %divided-by  %divide-with-remainder
     ==
 ::
+::  $cte-body: body of a CTE (queries only; no DML to avoid circular type)
++$  cte-body
+  $+  cte-body
+  $%  [%query query]
+      [%set-query set-query]
+  ==
 ::  $cte:
 +$  cte
   $+  cte
   $:  %cte
     name=@tas
-    body=crud-body
+    body=cte-body
     ==
 ::
 ::  data manipulation ASTs
