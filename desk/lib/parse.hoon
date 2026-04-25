@@ -1258,7 +1258,7 @@
             (produce-insert parsed)
       %=  $
         script    q.q.u.+3.q:nail
-        commands  :-  (selection:ast %selection ~ [%insert ins])
+        commands  :-  (crud-txn:ast %crud-txn ~ [%insert ins])
                       commands
       ==
     %merge
@@ -1274,7 +1274,7 @@
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
           %=  $
             script    q.q.u.+3.q:nail
-            commands  :-  %^  selection:ast  %selection
+            commands  :-  %^  crud-txn:ast  %crud-txn
                                              ~
                                              [%merge (produce-merge parsed)]
                           commands
@@ -1397,7 +1397,7 @@
           ?:  =(+<.parsed %insert)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  selection:ast  %selection
+              commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
                                               [%insert (produce-insert +>.parsed)]
                                               ==
@@ -1406,7 +1406,7 @@
           ?:  =(+<.parsed %merge)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  selection:ast  %selection
+              commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
                                               [%merge (produce-merge +>.parsed)]
                                               ==
@@ -2217,7 +2217,7 @@
   ?~  a  (flop ctes)
   ?:  ?&(=(%cte -<.a) =(%as ->+<.a))
     =/  cte-chain  ->-.a  :: [first-raw (list [op raw])] from parse-query-chain
-    =/  body=selection-body:ast
+    =/  body=crud-body:ast
           =/  first-raw  -.cte-chain
           =/  raw-tail   +.cte-chain
           ?:  =(raw-tail ~)
@@ -2672,13 +2672,13 @@
 ++  produce-query
   |=  [ctes=(list cte:ast) a=*]
   ~+
-  ^-  selection:ast
+  ^-  crud-txn:ast
   ~|  "produce-query a: {<a>}"
   :: a = [first-raw (list [op raw])] from parse-query-chain
   =/  first-raw  -.a
   =/  raw-tail   +.a
   ?:  =(raw-tail ~)
-    (selection:ast %selection ctes [%query (make-query ctes first-raw)])
+    (crud-txn:ast %crud-txn ctes [%query (make-query ctes first-raw)])
   =/  head-q  (make-query ctes first-raw)
   =/  tail
     =|  acc=(list [op=set-op:ast =query:ast])
@@ -2688,7 +2688,7 @@
       raw-tail  +.raw-tail
       acc       [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
     ==
-  (selection:ast %selection ctes [%set-query [%set-query head=head-q tail=tail]])
+  (crud-txn:ast %crud-txn ctes [%set-query [%set-query head=head-q tail=tail]])
 ::
 ++  produce-from
   |=  a=*
@@ -5903,7 +5903,7 @@
 ::
 ::  select
 ::
-++  parse-selection  ~+
+++  parse-crud-txn  ~+
   ;~  pose
     ;~  plug
       ;~(sfix (stag %f parse-loobean-literal) whitespace)
@@ -5929,9 +5929,9 @@
   ==
 ++  select-column  ~+
   ;~  pose
-    (ifix [whitespace whitespace] parse-selection)
-    ;~(plug whitespace parse-selection)
-    parse-selection
+    (ifix [whitespace whitespace] parse-crud-txn)
+    ;~(plug whitespace parse-crud-txn)
+    parse-crud-txn
   ==
 ++  select-columns  ~+
   ;~  pose

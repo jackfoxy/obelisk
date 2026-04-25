@@ -57,7 +57,7 @@
     drop-view
     grant
     revoke
-    selection
+    crud-txn
     truncate-table
     update
     ==
@@ -281,17 +281,17 @@
     (list cte)
     ==
 ::
-::  $selection:
-+$  selection
-  $+  selection
-  $:  %selection
+::  $crud-txn:
++$  crud-txn
+  $+  crud-txn
+  $:  %crud-txn
     ctes=(list cte)
-    body=selection-body
+    body=crud-body
     ==
 ::
-::  $selection-body: terminal command of a selection
-+$  selection-body
-  $+  selection-body
+::  $crud-body: terminal command of a crud-txn
++$  crud-body
+  $+  crud-body
   $%  [%query query]
       [%set-query set-query]
       [%insert insert]
@@ -316,7 +316,7 @@
   $+  cte
   $:  %cte
     name=@tas
-    body=selection-body
+    body=crud-body
     ==
 ::
 ::  data manipulation ASTs
@@ -463,12 +463,12 @@
     name=@tas
     ==
 ::
-::  $create-view: persist a selection as a view
+::  $create-view: persist a crud-txn as a view
 +$  create-view
   $+  create-view
   $:  %create-view
     view=qualified-table
-    selection
+    crud-txn
     ==
 ::
 ::  drop ASTs
@@ -580,12 +580,12 @@
     enabled=?
     ==
 ::
-::  $alter-view: view=qualified-table selection
+::  $alter-view: view=qualified-table crud-txn
 +$  alter-view
   $+  alter-view
   $:  %alter-view
     view=qualified-table
-    =selection
+    =crud-txn
     ==
 ::
 ::  SCALARS

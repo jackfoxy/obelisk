@@ -26,7 +26,7 @@
   :*  %view
       provenance                                            ::provenance=path
       tmsp                                                  ::tmsp=@da
-      :+  %selection                                        ::selection
+      :+  %crud-txn                                        ::crud-txn
           ~                                                   ::ctes=(list cte)
           [%query sys-sys-dbs-query]                          ::query
       (malt (spun columns mk-col-lu-data))                  ::column-lookup
@@ -176,7 +176,7 @@
   :*  %view
       provenance                            ::provenance=path
       tmsp                                  ::tmsp=@da
-      :+  %selection                        ::selection
+      :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
           [%query (sys-namespaces-query db)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
@@ -276,7 +276,7 @@
   :*  %view
       provenance                            ::provenance=path
       tmsp                                  ::tmsp=@da
-      :+  %selection                        ::selection
+      :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
           [%query (sys-tables-query db)]      ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
@@ -402,7 +402,7 @@
   :*  %view
       provenance                            ::provenance=path
       tmsp                                  ::tmsp=@da
-      :+  %selection                        ::selection
+      :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
           [%query (sys-tables-query db)]      ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
@@ -538,7 +538,7 @@
   :*  %view
       provenance                            ::provenance=path
       tmsp                                  ::tmsp=@da
-      :+  %selection                        ::selection
+      :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
           [%query (sys-columns-query db)]     ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
@@ -673,7 +673,7 @@
   :*  %view
       provenance                            ::provenance=path
       tmsp                                  ::tmsp=@da
-      :+  %selection                        ::selection
+      :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
           [%query (sys-sys-log-query database)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
@@ -800,7 +800,7 @@
   :*  %view
       provenance                            ::provenance=path
       tmsp                                  ::tmsp=@da
-      :+  %selection                        ::selection
+      :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
           [%query (sys-data-log-query database)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
@@ -926,8 +926,8 @@
 ++  apply-ordering
   |=  v=view
   ^-  view
-  ?.  ?=([%query *] body.selection.v)  v
-  =/  q=query:ast  +.body.selection.v
+  ?.  ?=([%query *] body.crud-txn.v)  v
+  =/  q=query:ast  +.body.crud-txn.v
   ?~  order-by.q  v
   v(ordering (make-ordering columns.v order-by.q))
 ::

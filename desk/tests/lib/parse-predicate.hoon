@@ -263,7 +263,7 @@
         "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -292,7 +292,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo<>bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -321,7 +321,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -350,7 +350,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo >bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gt foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -379,7 +379,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lt foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -408,7 +408,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo>= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -437,7 +437,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!< bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -466,7 +466,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -495,7 +495,7 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo !> bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -524,7 +524,7 @@
   =/  query  "FROM foo WHERE foobar EQUIV bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%equiv foobar bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -543,7 +543,7 @@
   =/  query  "FROM foo WHERE foobar NOT EQUIV bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%not-equiv foobar bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -568,7 +568,7 @@
   =/  pred=(tree predicate-component:ast)
         [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -601,7 +601,7 @@
   =/  pred=(tree predicate-component:ast)
         [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -634,7 +634,7 @@
   =/  pred=(tree predicate-component:ast)
         [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -667,7 +667,7 @@
   =/  pred=(tree predicate-component:ast)
         [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -699,7 +699,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%gte t1-foo [%all bar ~]]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -731,7 +731,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -763,7 +763,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo value-literals]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -795,7 +795,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -827,7 +827,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literals]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -859,7 +859,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists t1-foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -891,7 +891,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -923,7 +923,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists t1-foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -955,7 +955,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -989,7 +989,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-fb-gte-f--fb-lte-b
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1031,7 +1031,7 @@
                 t1-foo2
                 [[%p 0] ~ ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1067,7 +1067,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1105,7 +1105,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1146,7 +1146,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1196,7 +1196,7 @@
                     t1-foo2-eq-zod
                     foo-eq-1
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1236,7 +1236,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      a-a-l-a-o-l-a-a-r-o-r-a-l-o-r-a
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1273,7 +1273,7 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      king-and
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1305,7 +1305,7 @@
   =/  pred=(tree predicate-component:ast)
         [%gt [aggregate-count-foobar ~ ~] literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1327,7 +1327,7 @@
   =/  pred=(tree predicate-component:ast)
         [%gt [aggregate-count-foobar ~ ~] literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1349,7 +1349,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq bar [aggregate-count-foobar ~ ~]]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1392,7 +1392,7 @@
                     [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]
                 [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1437,7 +1437,7 @@
         "SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1479,7 +1479,7 @@
                     ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1512,7 +1512,7 @@
                     ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1548,7 +1548,7 @@
                 ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1584,7 +1584,7 @@
                 ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1609,7 +1609,7 @@
     " SELECT *"
   =/  pred=(tree predicate-component:ast)  [%not [%not-exists t1-foo ~] ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1664,7 +1664,7 @@
                     [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]
                 ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query
@@ -1766,7 +1766,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1790,7 +1790,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1814,7 +1814,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1838,7 +1838,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1862,7 +1862,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1886,7 +1886,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1910,7 +1910,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
             :-  %query
                 :*  %query
@@ -1938,7 +1938,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -1964,7 +1964,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -1990,7 +1990,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -2016,7 +2016,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -2042,7 +2042,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -2068,7 +2068,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -2094,7 +2094,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
             :-  %query
                 :*  %query
@@ -2149,7 +2149,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2173,7 +2173,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2197,7 +2197,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2221,7 +2221,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2245,7 +2245,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2269,7 +2269,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2293,7 +2293,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
             :-  %query
                 :*  %query
@@ -2321,7 +2321,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2347,7 +2347,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2373,7 +2373,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2399,7 +2399,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2425,7 +2425,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2451,7 +2451,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2477,7 +2477,7 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
             :-  %query
                 :*  %query
@@ -2500,7 +2500,7 @@
   =/  pred=(tree predicate-component:ast)
         [%eq left-scalar literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
             :-  %query
                 :*  %query

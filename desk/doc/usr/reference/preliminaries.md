@@ -90,7 +90,7 @@ The following are some common language structures used throughout the reference.
 ```
 **\<cte>** produces a row result set, `<relation>`, for further manipulation by other CTEs, JOINS, SELECT clauses, or predicates.
 
-`<query> ::=` from selection diagram. (More on `<query>` under `<relation>`.)
+`<query> ::=` from crud-txn diagram. (More on `<query>` under `<relation>`.)
 
 `<alias> ::= @t` case-agnostic, see alias naming discussion above.
 
@@ -112,7 +112,7 @@ When a `<view>`  and a `<table>` have the same name within a namespace, `<view>`
 
 User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 
-The `<query>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<query>` statements. This is true because every `<query>` statement is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
+The `<query>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<query>` statements. This is true because every `<query>` statement is idempotent, provided all crud-txn objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
 
 More generally, a `<relation>` is a user-defined table, view, common table expression, join, or result of a query. Most importantly, it is a proper set of its rows. 
 

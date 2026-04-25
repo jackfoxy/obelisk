@@ -1,6 +1,6 @@
 ---
 name: obelisk-test
-description: Writing unit tests for obelisk using the test-helpers library. Covers test helper selection, expected result construction, and failure testing patterns.
+description: Writing unit tests for obelisk using the test-helpers library. Covers test helper crud-txn, expected result construction, and failure testing patterns.
 user-invocable: true
 disable-model-invocation: false
 validated: safe

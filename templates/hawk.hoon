@@ -877,8 +877,8 @@
       e.detail.parameters['schema-open'] = $('#h-schema').is('[open]')
       e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '0.3';
       e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
-      let selection = window.getSelection()
-      const selText = selection.toString();
+      let crud-txn = window.getcrud-txn()
+      const selText = crud-txn.toString();
       e.detail.parameters['/selected-query-text'] = selText;
       window.obeliskLastQuery = selText || ($('#query-text').val() || '');
     }
@@ -1806,9 +1806,9 @@
   $:  %view
     provenance=path
     tmsp=@da
-    ::=selection
+    ::=crud-txn
     ::=column-lookup
-    selection=*
+    crud-txn=*
     column-lookup=*
     typ-addr-lookup=*
     columns=(list column)      ::  canonical column list

@@ -117,7 +117,7 @@
   $:  %view
     provenance=path
     tmsp=@da
-    =selection
+    =crud-txn
     =column-lookup
     typ-addr-lookup=(map @tas typ-addr)
     columns=(list column)      ::  canonical column list

@@ -11,7 +11,7 @@ You can also use the %hawk [template](https://hawk.computer/~~/templates/obelisk
 
 # Commands
 
-Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/Selection. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
+Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/crud-txn. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
 
 DDL commands define databases, their data tables and other components, data manipulation commands are responsible for the content of databases, and `SELECT` performs queries.
 
@@ -83,7 +83,7 @@ Every successful command returns metadata about the state of the server and effe
 
 **%server-time** -- The time, according to the server, the script executed. This corresponds to `now.bowl` in the agent. Unless the command was submitted with an `AS OF` clause (which overrides server time) Obelisk will record this time to any internal timestamps. In this case the time of database creation.
 
-**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and selection commands).<sup>1</sup>
+**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and crud-txn commands).<sup>1</sup>
 
 Let's look at the state of our server by querying a system view on the database schema.
 
@@ -118,7 +118,7 @@ The formatting of *%result-set* is the result of a print utility used by the %ob
 ```
 The first atom is the column label or alias, and the *dime* is the data aura and atom.
 
-We will talk more about selection (querying) later.
+We will talk more about crud-txn (querying) later.
 
 *sys.sys.databases* records a row for every event that mutates the state of the server, in other words every event that changes the state of a database's schema or data contents.
 
@@ -848,7 +848,7 @@ CREATE TABLE db3..my-table-1
 
 The urQL parser in Obelisk is separable from the rest of the system.
 
-When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *selection*.
+When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *crud-txn*.
 
 The parser alone may be run in the dojo from the Obelisk desk as follows:
 
@@ -861,7 +861,7 @@ For instance the joined query we last ran produces the following pretty-printed 
 
 ```
 ~[
-  [ %selection
+  [ %crud-txn
     ctes=~
       set-functions
     { [ %query
@@ -932,7 +932,7 @@ For instance the joined query we last ran produces the following pretty-printed 
         ]
         group-by=~
         having=~
-          selection
+          crud-txn
         [ %select
           top=~
             columns
@@ -977,7 +977,7 @@ For instance the joined query we last ran produces the following pretty-printed 
 > =parse -build-file /=obelisk=/lib/parse/hoon
 > (parse:parse(default-database 'animal-shelter') x)
 ~[
-  [ %selection
+  [ %crud-txn
     ctes=~
       set-functions
     { [ %query
@@ -1047,7 +1047,7 @@ For instance the joined query we last ran produces the following pretty-printed 
         ]
         group-by=~
         having=~
-          selection
+          crud-txn
         [ %select
           top=~
             columns

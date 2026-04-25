@@ -1,14 +1,14 @@
-# Selection
+# crud-txn
 
-The `<selection>` statements provides a means of chaining commands on `<relation>`s produced by any command, either by passing the resulting `<relation>` to the next command -- similar to how CTEs work -- or by applying a set operation on two resulting `<relation>`s. It also provides the framework for declaring `<common-table-expression>`s, which can be consumed by following commands.
+The `<crud-txn>` statements provides a means of chaining commands on `<relation>`s produced by any command, either by passing the resulting `<relation>` to the next command -- similar to how CTEs work -- or by applying a set operation on two resulting `<relation>`s. It also provides the framework for declaring `<common-table-expression>`s, which can be consumed by following commands.
 
 
 ```
-<selection> ::=
+<crud-txn> ::=
   [ WITH [ <common-table-expression> [ ,...n ] ] ]
   <cmd>
   [ INTO <table>
-    | <selection-op> [ ( ] <cmd> [ ) ]
+    | <crud-txn-op> [ ( ] <cmd> [ ) ]
   ] [ ...n ]
   [ AS OF [ <as-of-time> ] ]
 ```
@@ -17,7 +17,7 @@ The `<selection>` statements provides a means of chaining commands on `<relation
 <common-table-expression> ::= ( <query> ) [ AS ] <name>
 ```
 
-A `<selection>` in a CTE cannot include a `WITH` clause.
+A `<crud-txn>` in a CTE cannot include a `WITH` clause.
 
 ```
 <cmd> ::=
@@ -28,12 +28,12 @@ A `<selection>` in a CTE cannot include a `WITH` clause.
   | <update>
 ```
 
-A `<cmd>` is considered terminal when it operates on a `<table>` and potentially mutates its state, whether it mutates `<table>` state or not. A terminal `<cmd>` must be the last step in a `<selection>`, it cannot be grouped by parentheses, and if is not the only `<cmd>` it must have been preceded by a `<pass-thru-op>`. 
+A `<cmd>` is considered terminal when it operates on a `<table>` and potentially mutates its state, whether it mutates `<table>` state or not. A terminal `<cmd>` must be the last step in a `<crud-txn>`, it cannot be grouped by parentheses, and if is not the only `<cmd>` it must have been preceded by a `<pass-thru-op>`. 
 
 The `<query>` command by itself is never terminal. It is terminal when it is followed by `INTO <table>`.
 
 ```
-<selection-op> ::= <set-op> | <pass-thru-op>
+<crud-txn-op> ::= <set-op> | <pass-thru-op>
 ```
 
 ```
@@ -44,7 +44,7 @@ The `<query>` command by itself is never terminal. It is terminal when it is fol
   | DIVIDED BY [ WITH REMAINDER ]
 ```
 
-Set operations between two result `<relations>`. The left `<relation>` represents the running result of the `<selection>` and the right `<relation>` can be the result of nested `<cmd>`s.
+Set operations between two result `<relations>`. The left `<relation>` represents the running result of the `<crud-txn>` and the right `<relation>` can be the result of nested `<cmd>`s.
 
 **UNION**
 
@@ -75,9 +75,9 @@ NOTE: deterministic ordering of union type results TBD.
 
 API:
 ```
-+$  selection
++$  crud-txn
   $:
-  %selection
+  %crud-txn
   ctes=(list <common-table-expression>)
   set-functions=(tree <set-functions>)
   ==
@@ -87,21 +87,21 @@ API:
 
 **`WITH [ <common-table-expression> [ ,...n ] ]`**
 
-The `WITH` clause makes the result `<relation>` of a `<selection>` statement available to the subsequent `<selection>` statements in the `WITH` clause and `<cmd>`s in the main `<selection>` by `<alias>`. `<selection>`s in the `WITH` clause cannot have their own `WITH` clause, rather preceding CTEs within the clause are available and function as a virtual `WITH` clause.
+The `WITH` clause makes the result `<relation>` of a `<crud-txn>` statement available to the subsequent `<crud-txn>` statements in the `WITH` clause and `<cmd>`s in the main `<crud-txn>` by `<alias>`. `<crud-txn>`s in the `WITH` clause cannot have their own `WITH` clause, rather preceding CTEs within the clause are available and function as a virtual `WITH` clause.
 
-When used as a `<common-table-expression>`, `<selection>` output must be a pass-thru virtual-table.
+When used as a `<common-table-expression>`, `<crud-txn>` output must be a pass-thru virtual-table.
 
-When used as a `<common-table-expression>`, `<selection>` cannot include `TEE` and `MULTEE` operators.
+When used as a `<common-table-expression>`, `<crud-txn>` cannot include `TEE` and `MULTEE` operators.
 
 **`INTO <table>`**
 
 This clause inserts the resulting `<relation>` into `<table>`. The associated `<cmd>` is terminal. This is the only case in which `<query>` is terminal.
 
-**`<selection-op> [ ( ] <cmd> [ ) ]`**
+**`<crud-txn-op> [ ( ] <cmd> [ ) ]`**
 
-If `<selection-op>` is a `<set-op>` the result `<relation>` from the left side is applied to the next (right) result or result from next nested `<cmd>`s.
+If `<crud-txn-op>` is a `<set-op>` the result `<relation>` from the left side is applied to the next (right) result or result from next nested `<cmd>`s.
 
-If `<selection-op>` is a `<pass-thru-op>` the result `<relation>` from the left side is available to the next `<cmd>`.
+If `<crud-txn-op>` is a `<pass-thru-op>` the result `<relation>` from the left side is available to the next `<cmd>`.
 
 Nesting left paren `(` can only exist singly, but right paren `)` may be stacked to any depth `...)))`, so long as left and right are matching. In other words nesting can only be applied on the right side.
 
@@ -111,7 +111,7 @@ The `AS OF` provides a means to "travel through time" through the state changes 
 
 If the last `<cmd>` is terminal (i.e. potentially state mutating, see discussion above), the affected `<table>` definition (columns, indices, and foreign keys) must be the same currently and in the `AS OF` time period. Foreign key constraints will operate against the current parent `<table>`s. All other `<database>` state will be in the `AS OF` time period.
 
-Due to possible `<database>` state changes there is no guarantee of the success of an `AS OF` `<selection>`.
+Due to possible `<database>` state changes there is no guarantee of the success of an `AS OF` `<crud-txn>`.
 
 **`<timestamp>`** 
 
@@ -125,9 +125,9 @@ Integer seconds, minutes, hours, days, weeks, months, or years before execution 
 
 ## Remarks
 
-The `<selection>` command potentially results in a state change of the Obelisk agent depending on the `<cmd>` in the last step.
+The `<crud-txn>` command potentially results in a state change of the Obelisk agent depending on the `<cmd>` in the last step.
 
-If a `<cmd>` is terminal it must be the last `<cmd>` in the `<selection>`, cannot be nested by parentheses, and cannot be the right side of a `<set-op>`.
+If a `<cmd>` is terminal it must be the last `<cmd>` in the `<crud-txn>`, cannot be nested by parentheses, and cannot be the right side of a `<set-op>`.
 
 ## Produced Metadata
 
@@ -140,5 +140,5 @@ metadata from last `<cmd>`, if it was not the right side of a `<set-op>`
 mismatch of result `<row-type>` and `<table>`
 `GRANT` permission on `<table>` violated
 unique key violation on `<table>`
-`AS OF` prior to creation of any `<table>` directly or indirectly (through a `<view>`) referenced in the `<selection>`
-any exception for `<cmd>` anywhere in the `<selection>`
+`AS OF` prior to creation of any `<table>` directly or indirectly (through a `<view>`) referenced in the `<crud-txn>`
+any exception for `<cmd>` anywhere in the `<crud-txn>`

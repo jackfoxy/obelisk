@@ -296,7 +296,7 @@ A `<scalar-query>` is a CTE alias that selects one column. It can be used with I
 CTEs are defined with WITH and referenced by alias:
 
 ```
-WITH ( <selection> ) [ AS ] <alias>
+WITH ( <crud-txn> ) [ AS ] <alias>
 ```
 
 - CTEs produce a relation for further use by other CTEs, JOINs, SELECT, or predicates

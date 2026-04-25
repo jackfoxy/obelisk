@@ -36,7 +36,7 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ++  select-relation
-  ::  selection from a single table without joins
+  ::  crud-txn from a single table without joins
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (normalize-from (need from.q))
@@ -660,7 +660,7 @@
   ==
 ::
 ++  select-for-cte
-  ::  cons a set-table of the selection
+  ::  cons a set-table of the crud-txn
   ::  1) object=~
   ::  2) new list of columns
   ::  3) key preserved w/ updated names or not

@@ -10474,7 +10474,7 @@
       'JOIN ON predicate only supports equality and AND conjunctions'
       ==
 ::
-::  cte column selection - single cte, literal replicated across main table rows
+::  cte column crud-txn - single cte, literal replicated across main table rows
 ++  test-cte-col-00
   =|  run=@ud
   %-  exec-0-1
@@ -10521,7 +10521,7 @@
               ==
       ==
 ::
-::  cte column selection - two ctes, cte-on-cte reference, literal replicated
+::  cte column crud-txn - two ctes, cte-on-cte reference, literal replicated
 ++  test-cte-col-01
   =|  run=@ud
   %-  exec-0-1

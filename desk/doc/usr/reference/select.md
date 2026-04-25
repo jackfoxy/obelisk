@@ -119,13 +119,13 @@ When specified with `ON <predicate>` the predicate may only contain column equal
 Cross database joins are permitted, but not cross ship joins.
 
 **`<as-of>`**
-Timestamp for selection of table data. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
+Timestamp for crud-txn of table data. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
 `HAVING <predicate>` filters aggregated rows returned from the `<query>`. The column references in the predicate must be either one of the grouping columns or be contained in an aggregate function.
 
 *supported in urQL parser, not yet supported in Obelisk*
 
-Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<selection>`, unless required by `TOP` specified in the `SELECT` statement.
+Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<crud-txn>`, unless required by `TOP` specified in the `SELECT` statement.
 
 *GROUP BY, ORDER BY, and TOP supported in urQL parser, not yet supported in Obelisk*
 
@@ -202,7 +202,7 @@ Whitespace is not required between operands and binary-ops, except when the left
     predicate=(unit predicate)
     group-by=(list grouping-column)
     having=(unit predicate)
-    selection=select
+    crud-txn=select
     order-by=(list ordering-column)
   ==
 ```
@@ -262,7 +262,7 @@ vector count: <count>
 
 ### Exceptions
 
-(literal only selection) no literal values
+(literal only crud-txn) no literal values
 selected value <value> not a literal
 SELECT: database {<database.query-obj>} does not exist
 SELECT:  `<database>`.`<namespace>`.`<table>` does not exist at schema time `<time>`

@@ -39,7 +39,7 @@ Alter the structure of an existing `<view>`.
   $:
     %alter-view
     view=qualified-object
-    selection
+    crud-txn
   ==
 ```
 
@@ -48,8 +48,8 @@ Alter the structure of an existing `<view>`.
 **`<view>`**
 Specifies the name of the view to alter.
 
-**`<selection>`**
-Refers to the `<selection>` producing the output `<relation>`.
+**`<crud-txn>`**
+Refers to the `<crud-txn>` producing the output `<relation>`.
 
 ## Remarks
 This command mutates the state of the Obelisk agent.

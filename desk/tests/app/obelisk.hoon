@@ -115,7 +115,7 @@
       :*  %view
           [~.test-agent /]
           sys-time
-          :+  %selection
+          :+  %crud-txn
               ~
               [%query sys-sys-dbs-query]
           (malt (spun columns mk-col-lu-data))

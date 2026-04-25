@@ -125,26 +125,26 @@
       (~(put by next-data) database.qualified-table.d sys-time)
       (~(put by state) name.db db)
 ::
-++  do-selection
-  |=  $:  =selection:ast
+++  do-crud-txn
+  |=  $:  =crud-txn:ast
           query-has-run=?
           next-data=(map @tas @da)
           next-schemas=(map @tas @da)
       ==
   ^-  [? [(map @tas @da) server (list result:ast)]]
-  =/  named-ctes   (named-queries ctes.selection *named-ctes)
-  ?-  -.body.selection
+  =/  named-ctes   (named-queries ctes.crud-txn *named-ctes)
+  ?-  -.body.crud-txn
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
-          (do-insert +.body.selection next-data next-schemas)
+          (do-insert +.body.crud-txn next-data next-schemas)
     %query
-      =/  q=query:ast  +.body.selection
+      =/  q=query:ast  +.body.crud-txn
       :-  %.y
           =/  rt  (do-query q named-ctes %.n)
           =/  results  (select-results named-ctes -.rt +.rt)
           :+  next-data  ->-.rt
-          ?.  (selection-has-rand scalars.q ctes.selection)
+          ?.  (crud-txn-has-rand scalars.q ctes.crud-txn)
             results
           [[%message 'warning: results are non-deterministic'] results]
     %set-query
@@ -153,9 +153,9 @@
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       ~|("merge not implemented" !!)
     %delete
-      ~|("DELETE via selection-body not implemented" !!)
+      ~|("DELETE via crud-body not implemented" !!)
     %update
-      ~|("UPDATE via selection-body not implemented" !!)
+      ~|("UPDATE via crud-body not implemented" !!)
   ==
 ::
 ++  do-insert
@@ -682,7 +682,7 @@
                            (need data-tmsp.a)
 ::
 ++  select-literals
-  ::  selection of literals/scalars only, no from clause
+  ::  crud-txn of literals/scalars only, no from clause
   |=  [=server columns=(list selected-column:ast) is-cte=? =resolved-scalars]
   ^-  [join-return (list vector)]
   =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
@@ -1420,7 +1420,7 @@
   ^-  [@tas @]
   [key +:(~(got by column-lookup) key)]
 ::
-++  selection-has-rand
+++  crud-txn-has-rand
   |=  [scalars=(list scalar:ast) ctes=(list cte:ast)]
   ^-  ?
   ?|  (scalars-have-rand scalars)

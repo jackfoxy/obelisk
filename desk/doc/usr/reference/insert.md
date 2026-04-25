@@ -7,7 +7,7 @@ Inserts rows into a `<table>`.
   INSERT INTO <table> [ <as-of> ]
     [ ( <column> [ ,...n ] ) ]
     { VALUES (<scalar-node> [ ,...n ] ) [ ...n ]
-      | <selection> }
+      | <crud-txn> }
 ```
 
 ```
@@ -47,12 +47,12 @@ When present, the column list must account for all column identifiers (names or 
 
 Row(s) of literal values to insert into target. Source auras must match target columnwise.
 
-**`<selection>`**
-*selection supported in urQL parser, not yet supported in Obelisk*
+**`<crud-txn>`**
+*crud-txn supported in urQL parser, not yet supported in Obelisk*
 
-Selection creating source `<relation>` to insert into target. Source auras must match target columnwise.
+crud-txn creating source `<relation>` to insert into target. Source auras must match target columnwise.
 
-(Selection is a wrapper for query.)
+(crud-txn is a wrapper for query.)
 
 **`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
@@ -73,7 +73,7 @@ Timestamp equal to or greater than the table content state upon which to perform
 
 This command mutates the state of the Obelisk agent.
 
-The `VALUES` or `<selection>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
+The `VALUES` or `<crud-txn>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
 
 The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
 

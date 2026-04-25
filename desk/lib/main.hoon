@@ -200,9 +200,9 @@
       ?.  =(our.bowl src.bowl)
             ~|("REVOKE: revoke permissions must be by local agent" !!)
       ~|("%revoke not implemented" !!)
-    %selection
+    %crud-txn
       =/  r=[? [(map @tas @da) server (list result:ast)]]
-            %:  do-selection(state state, bowl bowl)  i.cmds
+            %:  do-crud-txn(state state, bowl bowl)  i.cmds
                                                       query-has-run
                                                       next-data
                                                       next-schemas
