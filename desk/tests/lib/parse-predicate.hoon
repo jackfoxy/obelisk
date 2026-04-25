@@ -265,7 +265,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -284,8 +285,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -295,7 +294,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -314,8 +314,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -325,7 +323,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -344,8 +343,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -355,7 +352,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -374,8 +372,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -385,7 +381,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -404,8 +401,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -415,7 +410,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -434,8 +430,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -445,7 +439,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -464,8 +459,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -475,7 +468,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -494,8 +488,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -505,7 +497,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -524,8 +517,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -535,7 +526,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -544,8 +536,6 @@
                     [%select top=~ columns=~[[%all %all]]]
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -555,7 +545,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -564,8 +555,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -581,7 +570,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -600,8 +590,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -615,7 +603,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -634,8 +623,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -649,7 +636,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -668,8 +656,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -683,7 +669,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -702,8 +689,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -716,7 +701,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -735,8 +721,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -749,7 +733,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -768,8 +753,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -782,7 +765,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -801,8 +785,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -815,7 +797,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -834,8 +817,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -848,7 +829,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -867,8 +849,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -881,7 +861,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -900,8 +881,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -914,7 +893,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -933,8 +913,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -947,7 +925,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -966,8 +945,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -980,7 +957,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -999,8 +977,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1015,7 +991,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1034,8 +1011,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1058,7 +1033,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1077,8 +1053,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1095,7 +1069,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1114,8 +1089,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1134,7 +1107,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1153,8 +1127,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1176,7 +1148,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1195,8 +1168,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1227,7 +1198,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1246,8 +1218,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1268,7 +1238,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1287,8 +1258,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1306,7 +1275,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1325,8 +1295,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1339,7 +1307,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -1348,8 +1317,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') select)
@@ -1362,7 +1329,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -1371,8 +1339,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') select)
@@ -1385,7 +1351,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -1394,8 +1361,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') select)
@@ -1429,7 +1394,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             :*  %qualified-table
@@ -1460,8 +1426,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1475,7 +1439,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1494,8 +1459,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1518,7 +1481,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1531,8 +1495,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1552,7 +1514,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1565,8 +1528,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1589,7 +1550,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1602,8 +1564,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1626,7 +1586,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1639,8 +1600,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1652,7 +1611,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1665,8 +1625,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1708,7 +1666,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             :*  %qualified-table
@@ -1739,8 +1698,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1763,23 +1720,26 @@
 ++  cte-my-cte
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-all-columns  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-all-columns  ~
+              ==
       ==
 ++  cte-cte1
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='cte1'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-all-columns  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-all-columns  ~
+              ==
       ==
 ++  cte-cte2
   =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
   :*  %cte  name='cte2'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-all-columns  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-all-columns  ~
+              ==
       ==
 ++  from-my-cte-outer
   [~ [%from relation=my-cte-table as-of=~ joins=~]]
@@ -1808,7 +1768,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1817,8 +1778,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1833,7 +1792,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1842,8 +1802,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1858,7 +1816,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1867,8 +1826,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1883,7 +1840,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1892,8 +1850,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1908,7 +1864,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1917,8 +1874,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1933,7 +1888,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1942,8 +1898,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1958,7 +1912,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1967,8 +1922,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1987,7 +1940,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -1996,8 +1950,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2014,7 +1966,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2023,8 +1976,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2041,7 +1992,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2050,8 +2002,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2068,7 +2018,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2077,8 +2028,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2095,7 +2044,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2104,8 +2054,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2122,7 +2070,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2131,8 +2080,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2149,7 +2096,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2158,8 +2106,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2171,23 +2117,26 @@
 ++  cte-my-cte-cols
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-col1-col2  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-col1-col2  ~
+              ==
       ==
 ++  cte-cte1-cols
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='cte1'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-col1-col2  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-col1-col2  ~
+              ==
       ==
 ++  cte-cte2-cols
   =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
   :*  %cte  name='cte2'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-col1-col2  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-col1-col2  ~
+              ==
       ==
 ::
 ::  test cte column in predicate, single table, named cte columns
@@ -2202,7 +2151,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2211,8 +2161,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2227,7 +2175,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2236,8 +2185,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2252,7 +2199,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2261,8 +2209,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2277,7 +2223,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2286,8 +2233,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2302,7 +2247,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2311,8 +2257,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2327,7 +2271,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2336,8 +2281,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2352,7 +2295,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2361,8 +2305,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2381,7 +2323,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2390,8 +2333,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2408,7 +2349,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2417,8 +2359,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2435,7 +2375,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2444,8 +2385,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2462,7 +2401,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2471,8 +2411,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2489,7 +2427,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2498,8 +2437,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2516,7 +2453,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2525,8 +2463,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2543,7 +2479,8 @@
   =/  expected
         :+  %selection
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2552,8 +2489,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2567,7 +2502,8 @@
   =/  expected
         :+  %selection
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -2576,8 +2512,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)

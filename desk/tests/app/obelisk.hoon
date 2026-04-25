@@ -117,7 +117,7 @@
           sys-time
           :+  %selection
               ~
-              sys-sys-dbs-query
+              [%query sys-sys-dbs-query]
           (malt (spun columns mk-col-lu-data))
           (mk-unqualified-typ-addr-lookup columns)
           columns

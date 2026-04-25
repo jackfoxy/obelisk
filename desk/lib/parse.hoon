@@ -1258,12 +1258,12 @@
             (produce-insert parsed)
       %=  $
         script    q.q.u.+3.q:nail
-        commands  :-  (selection:ast %selection ~ [ins ~ ~])
+        commands  :-  (selection:ast %selection ~ [%insert ins])
                       commands
       ==
     %merge
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "merge parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1273,22 +1273,22 @@
       ~|  "merge parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
           %=  $
-            script    q.q.u.+3.q:nail 
+            script    q.q.u.+3.q:nail
             commands  :-  %^  selection:ast  %selection
                                              ~
-                                             [(produce-merge parsed) ~ ~]
+                                             [%merge (produce-merge parsed)]
                           commands
           ==
     %query
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "query parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
                                         ~|  "query parse nail:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                             " ..."
-                                            %-  parse-query
+                                            %-  parse-query-chain
                                                   [[1 1] q.q.command-nail]
                                 ?~  q.nail
                                   ~|  "query parse miss:  ".
@@ -1399,8 +1399,8 @@
               script    q.q.u.+3.q:nail
               commands  :-  %:  selection:ast  %selection
                                               (produce-ctes -.parsed)
-                                              [(produce-insert +>.parsed) ~ ~]
-                                              ==        
+                                              [%insert (produce-insert +>.parsed)]
+                                              ==
                             commands
             ==
           ?:  =(+<.parsed %merge)
@@ -1408,7 +1408,7 @@
               script    q.q.u.+3.q:nail
               commands  :-  %:  selection:ast  %selection
                                               (produce-ctes -.parsed)
-                                              [(produce-merge +>.parsed) ~ ~]
+                                              [%merge (produce-merge +>.parsed)]
                                               ==
                             commands
             ==
@@ -1755,6 +1755,34 @@
     parse-from-query
     parse-query10
   ==
+++  parse-set-op-kw  ~+
+  ;~  pose
+    %:  cold  %divide-with-remainder
+              ;~  plug  (jester 'divided')
+                        whitespace
+                        (jester 'by')
+                        whitespace
+                        (jester 'with')
+                        whitespace
+                        (jester 'remainder')
+              ==
+    ==
+    (cold %divided-by ;~(plug (jester 'divided') whitespace (jester 'by')))
+    (cold %union (jester 'union'))
+    (cold %except (jester 'except'))
+    (cold %intersect (jester 'intersect'))
+  ==
+++  parse-query-chain
+  ;~  plug
+    parse-query
+    (star ;~(plug parse-set-op-kw parse-set-op-rhs))
+  ==
+++  parse-set-op-rhs
+  :: subsequent query in a set-op chain: strip optional FROM keyword, then parse
+  ;~  pose
+    ;~(pfix ;~(plug whitespace (jester 'from')) parse-query)
+    parse-query
+  ==
 ++  parse-from-query  ~+
   ;~  plug
     parse-object-and-joins
@@ -2070,13 +2098,13 @@
         parse-merge
         ==
       ;~(plug (jester 'merge') parse-merge)
-      ;~(plug (cold %query ;~(plug (jester 'from'))) parse-query)
+      ;~(plug (cold %query ;~(plug (jester 'from'))) parse-query-chain)
       ;~  plug
           %:  cold
             %query
             ;~(plug ;~(pfix (jester 'select') (funk "select" (easy ' '))))
             ==
-          parse-query
+          parse-query-chain
           ==
       ;~  plug
         %+  cold  %update
@@ -2102,9 +2130,9 @@
   ;~  plug
     (cold %cte ;~(plug whitespace (jest '(')))
     ;~  pose
-      ;~(pfix ;~(whitespace (jester 'from')) parse-query)
-      ;~(pfix (jester 'from') parse-query)
-      parse-query
+      ;~(pfix ;~(whitespace (jester 'from')) parse-query-chain)
+      ;~(pfix (jester 'from') parse-query-chain)
+      parse-query-chain
     ==
     ;~  pose
       ;~(pfix whitespace ;~(pfix (jest ')') ;~(pfix whitespace (jester 'as'))))
@@ -2188,9 +2216,25 @@
   |-
   ?~  a  (flop ctes)
   ?:  ?&(=(%cte -<.a) =(%as ->+<.a))
+    =/  cte-chain  ->-.a  :: [first-raw (list [op raw])] from parse-query-chain
+    =/  body=selection-body:ast
+          =/  first-raw  -.cte-chain
+          =/  raw-tail   +.cte-chain
+          ?:  =(raw-tail ~)
+            [%query (make-query ctes first-raw)]
+          =/  head-q  (make-query ctes first-raw)
+          =/  tail
+            =|  acc=(list [op=set-op:ast =query:ast])
+            |-
+            ?:  =(raw-tail ~)  (flop acc)
+            %=  $
+              raw-tail  +.raw-tail
+              acc  [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
+            ==
+          [%set-query [%set-query head=head-q tail=tail]]
     %=  $
       a  +.a
-      ctes  [(cte:ast %cte ->+>.a (make-query ctes ->-.a)) ctes]
+      ctes  [(cte:ast %cte ->+>.a body) ctes]
     ==
   ~|('cannot produce ctes from parsed:  {<a>}' !!)
 ++  produce-delete
@@ -2630,7 +2674,21 @@
   ~+
   ^-  selection:ast
   ~|  "produce-query a: {<a>}"
-  (selection:ast %selection ctes [(make-query ctes a) ~ ~])
+  :: a = [first-raw (list [op raw])] from parse-query-chain
+  =/  first-raw  -.a
+  =/  raw-tail   +.a
+  ?:  =(raw-tail ~)
+    (selection:ast %selection ctes [%query (make-query ctes first-raw)])
+  =/  head-q  (make-query ctes first-raw)
+  =/  tail
+    =|  acc=(list [op=set-op:ast =query:ast])
+    |-
+    ?:  =(raw-tail ~)  (flop acc)
+    %=  $
+      raw-tail  +.raw-tail
+      acc       [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
+    ==
+  (selection:ast %selection ctes [%set-query [%set-query head=head-q tail=tail]])
 ::
 ++  produce-from
   |=  a=*
@@ -3153,7 +3211,8 @@
   ?~  ctes  result
   =/  c=cte:ast  i.ctes
   =/  maybe-col-set
-    =/  selected  columns.select.query.c
+    ?.  ?=([%query *] body.c)  ~
+    =/  selected  columns.select.body.c
     =/  cols  *(set @tas)
     |-
     ^-  (unit (set @tas))

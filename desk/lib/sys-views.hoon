@@ -28,7 +28,7 @@
       tmsp                                                  ::tmsp=@da
       :+  %selection                                        ::selection
           ~                                                   ::ctes=(list cte)
-          sys-sys-dbs-query                                   ::query
+          [%query sys-sys-dbs-query]                          ::query
       (malt (spun columns mk-col-lu-data))                  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -38,8 +38,8 @@
       ~                                                     ::indices
       ==
 ++  sys-sys-dbs-query
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~           ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -157,8 +157,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-namespaces-view
   ::  view name: sys-namespaces
@@ -180,7 +178,7 @@
       tmsp                                  ::tmsp=@da
       :+  %selection                        ::selection
           ~                                   ::ctes=(list cte)
-          (sys-namespaces-query db)           ::query
+          [%query (sys-namespaces-query db)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -191,8 +189,8 @@
       ==
 ++  sys-namespaces-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~           ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -258,8 +256,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-tables-view
   ::    tables  files
@@ -282,7 +278,7 @@
       tmsp                                  ::tmsp=@da
       :+  %selection                        ::selection
           ~                                   ::ctes=(list cte)
-          (sys-tables-query db)               ::query
+          [%query (sys-tables-query db)]      ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -293,8 +289,8 @@
       ==
 ++  sys-tables-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~            ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -390,8 +386,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-table-keys-view
   ::  *  initial cache key created upon table creation
@@ -410,7 +404,7 @@
       tmsp                                  ::tmsp=@da
       :+  %selection                        ::selection
           ~                                   ::ctes=(list cte)
-          (sys-tables-query db)               ::query
+          [%query (sys-tables-query db)]      ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -421,8 +415,8 @@
       ==
 ++  sys-table-keys-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~            ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -530,8 +524,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-columns-view
   |=  [db=@tas provenance=path tmsp=@da]
@@ -548,7 +540,7 @@
       tmsp                                  ::tmsp=@da
       :+  %selection                        ::selection
           ~                                   ::ctes=(list cte)
-          (sys-columns-query db)              ::query
+          [%query (sys-columns-query db)]     ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -559,8 +551,8 @@
       ==
 ++  sys-columns-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~          ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -668,8 +660,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-sys-log-view
   |=  [database=@tas provenance=path tmsp=@da]
@@ -685,7 +675,7 @@
       tmsp                                  ::tmsp=@da
       :+  %selection                        ::selection
           ~                                   ::ctes=(list cte)
-          (sys-sys-log-query database)         ::query
+          [%query (sys-sys-log-query database)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -696,8 +686,8 @@
       ==
 ++  sys-sys-log-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~            ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -795,8 +785,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-data-log-view
   |=  [database=@tas provenance=path tmsp=@da]
@@ -814,7 +802,7 @@
       tmsp                                  ::tmsp=@da
       :+  %selection                        ::selection
           ~                                   ::ctes=(list cte)
-          (sys-data-log-query database)       ::query
+          [%query (sys-data-log-query database)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -825,8 +813,8 @@
       ==
 ++  sys-data-log-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~           ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -934,16 +922,14 @@
                   %.y     ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  apply-ordering
   |=  v=view
   ^-  view
-  ?~  set-functions.selection.v  ~|("apply-ordering can't get here" !!)
-  =/  qsf=set-function:ast  `set-function:ast`n.set-functions.selection.v
-  ?~  +>+>+>+.qsf  v  
-  v(ordering (make-ordering columns.v +>+>+>+.qsf))
+  ?.  ?=([%query *] body.selection.v)  v
+  =/  q=query:ast  +.body.selection.v
+  ?~  order-by.q  v
+  v(ordering (make-ordering columns.v order-by.q))
 ::
 ++  populate-system-view
   ::  Side effect: populate view-cache

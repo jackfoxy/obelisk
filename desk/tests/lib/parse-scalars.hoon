@@ -30,7 +30,7 @@
       select=select
       ~
     ==
-  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+  ~[[%selection ctes=~ body=[%query query]]]
 ::  same as mk-selection, but without a FROM clause
 ++  mk-selection-no-from-columns
   |=  [scalars=(list scalar:ast) columns=(list selected-column:ast)]
@@ -47,7 +47,7 @@
       select=select
       ~
     ==
-  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
+  ~[[%selection ctes=~ body=[%query query]]]
 ::  same as mk-selection, but with explicit ctes
 ++  mk-selection-with-ctes
   |=  [ctes=(list cte:ast) scalars=(list scalar:ast) table=(unit qualified-table:ast)]
@@ -72,7 +72,7 @@
       select=select
       ~
     ==
-  ~[[%selection ctes=ctes set-functions=[query ~ ~]]]
+  ~[[%selection ctes=ctes body=[%query query]]]
 ::
 ::  helper-objects
 ::
@@ -92,10 +92,12 @@
 ++  cte-my-cte
   =/  from-clause  [%from relation=relation-1 as-of=~ joins=~]
   =/  select  [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3]]
+  =/  q
+    :*  %query  [~ from-clause]  scalars=~  ~
+        group-by=~  having=~  select  ~
+        ==
   :*  %cte  name='my-cte'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select  ~
-          ==
+      body=[%query q]
       ==
 ::
 ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
@@ -415,7 +417,7 @@
         group-by=~  having=~  select  ~
         ==
   =/  ctes
-    ~[[%cte name='my-cte' query=cte-query]]
+    ~[[%cte name='my-cte' body=[%query cte-query]]]
   =/  outer-query
     :*  %query
         from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
@@ -427,7 +429,7 @@
         ~
         ==
   =/  expected
-    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+    ~[[%selection ctes=ctes body=[%query outer-query]]]
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -447,7 +449,7 @@
         group-by=~  having=~  select  ~
         ==
   =/  ctes
-    ~[[%cte name='my-cte' query=cte-query]]
+    ~[[%cte name='my-cte' body=[%query cte-query]]]
   =/  outer-query
     :*  %query
         from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
@@ -459,7 +461,7 @@
         ~
         ==
   =/  expected
-    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+    ~[[%selection ctes=ctes body=[%query outer-query]]]
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)

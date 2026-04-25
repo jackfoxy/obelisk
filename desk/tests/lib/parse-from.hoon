@@ -1737,7 +1737,7 @@
   :~
     :+  %selection
         ctes=~
-        :+  
+        :-  %query
           :*  %query
               :-
                 ~
@@ -1790,15 +1790,13 @@
               [%select top=~ columns=~[[%all %all]]]
               order-by=~
               ==
-          ~
-          ~
     ==
 ::
 ::  EXPECTED with time
 ::
 ++  expected
   |=  [b=$-(as-of query) time=as-of]
-  ~[[%selection ctes=~ [[(b time)] ~ ~]]]
+  ~[[%selection ctes=~ body=[%query (b time)]]]
 ::
 ::
 :: JOIN queries
@@ -1806,31 +1804,31 @@
 ::  from foo (un-aliased)
 ++  test-join-01
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo]]]
     !>  (parse:parse(default-database 'db1') "FROM foo SELECT TOP 10 *")
 ::
 ::  from ns1.foo (un-aliased)
 ++  test-join-02
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-ns1]]]
     !>  (parse:parse(default-database 'db1') "FROM ns1.foo SELECT TOP 10 *")
 ::
 ::  from db2..foo (un-aliased)
 ++  test-join-03
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-db2]]]
     !>  (parse:parse(default-database 'db1') "FROM db2..foo SELECT TOP 10 *")
 ::
 ::  from db2.ns1.foo (un-aliased)
 ++  test-join-04
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-db2-ns1]]]
     !>  (parse:parse(default-database 'db1') "FROM db2.ns1.foo SELECT TOP 10 *")
 ::
 ::  from ~nec.db2..foo (un-aliased)
 ++  test-join-05
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-nec-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-nec-db2]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2..foo SELECT TOP 10 *"
 
@@ -1838,40 +1836,40 @@
 ::  from ~nec.db2.ns1.foo (un-aliased)
 ++  test-join-06
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-nec-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-nec-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2.ns1.foo SELECT TOP 10 *"
 ::
 ::  from foo (aliased)
 ++  test-join-07
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo]]]
     !>  (parse:parse(default-database 'db1') "FROM foo F1 SELECT TOP 10 *")
 ::
 ::  from ns1.foo (aliased)
 ++  test-join-08
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ns1.foo F1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (aliased)
 ++  test-join-09
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-db2]]]
     !>  (parse:parse(default-database 'db1') "FROM db2..foo F1 SELECT TOP 10 *")
 ::
 ::  from db2.ns1.foo (aliased)
 ++  test-join-10
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM db2.ns1.foo F1 SELECT TOP 10 *"
 ::
 ::  from ~nec.db2..foo (aliased)
 ++  test-join-11
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-nec-db2]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2..foo F1 SELECT TOP 10 *"
 
@@ -1879,41 +1877,41 @@
 ::  from ~nec.db2.ns1.foo (aliased)
 ++  test-join-12
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-nec-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2.ns1.foo F1 SELECT TOP 10 *"
 ::
 ::  from foo (aliased as)
 ++  test-join-13
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo]]]
     !>  (parse:parse(default-database 'db1') "FROM foo as F1 SELECT TOP 10 *")
 ::
 ::  from ns1.foo (aliased as)
 ++  test-join-14
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ns1.foo as F1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (aliased as)
 ++  test-join-15
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-db2]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM db2..foo As F1 SELECT TOP 10 *"
 ::
 ::  from db2.ns1.foo (aliased as)
 ++  test-join-16
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM db2.ns1.foo aS F1 SELECT TOP 10 *"
 ::
 ::  from ~nec.db2..foo (aliased as)
 ++  test-join-17
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-nec-db2]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2..foo AS F1 SELECT TOP 10 *"
 
@@ -1921,49 +1919,49 @@
 ::  from ~nec.db2.ns1.foo (aliased as)
 ++  test-join-18
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[aliased-from-foo-nec-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query aliased-from-foo-nec-db2-ns1]]]
     !>    %-  parse:parse(default-database 'db1')
               "FROM ~nec.db2.ns1.foo AS F1 SELECT TOP 10 *"
 ::
 ::  from foo (un-aliased) join bar (un-aliased)
 ++  test-join-19
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo join bar on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ns1.foo (un-aliased) join ns1.bar (un-aliased)
 ++  test-join-20
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ns1.foo join ns1.bar on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (un-aliased) db2..join bar (un-aliased)
 ++  test-join-21
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM db2..foo join db2..bar on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from db2.ns1.foo (un-aliased) join db2.ns1.bar (un-aliased)
 ++  test-join-22
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM db2.ns1.foo join db2.ns1.bar on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (un-aliased)
 ++  test-join-23
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-nec-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-nec-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2..foo join ~nec.db2..bar on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ~nec.db2.ns1.foo (un-aliased) join ~nec.db2.ns1.bar (un-aliased)
 ++  test-join-24
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-nec-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-nec-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar on 1 = 1 ".
             "SELECT TOP 10 *"
@@ -1972,35 +1970,35 @@
 ::  from foo (un-aliased) join bar (aliased)
 ++  test-join-25
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo join bar b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ns1.foo (un-aliased) join ns1.bar (aliased)
 ++  test-join-26
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ns1.foo join ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (un-aliased) join db2..bar (aliased)
 ++  test-join-27
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM db2..foo join db2..bar b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from db2.ns1.foo (un-aliased) db2.ns1.join bar (aliased)
 ++  test-join-28
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM db2.ns1.foo join db2.ns1.bar b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (aliased)
 ++  test-join-29
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-nec-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-nec-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2..foo join ~nec.db2..bar b1 on 1 = 1 SELECT TOP 10 *"
 ::
@@ -2009,7 +2007,7 @@
   %+  expect-eq
     !>  :~  :+  %selection
                 ctes=~
-                [[simple-from-foo-join-bar-aliased-nec-db2-ns1] ~ ~]
+                body=[%query simple-from-foo-join-bar-aliased-nec-db2-ns1]
             ==
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar b1 on 1 = 1 ".
@@ -2018,35 +2016,35 @@
 ::  from foo (un-aliased) join bar (aliased as)
 ++  test-join-31
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM foo join bar  as  b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ns1.foo (un-aliased) join ns1.bar (aliased as)
 ++  test-join-32
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ns1.foo join ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from db2..foo (un-aliased) join db2..bar (aliased as)
 ++  test-join-33
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM db2..foo join db2..bar  as  b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from db2.ns1.foo (un-aliased) join db2.ns1.bar (aliased as)
 ++  test-join-34
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-db2-ns1] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-db2-ns1]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM db2.ns1.foo join db2.ns1.bar  as  b1 on 1 = 1 SELECT TOP 10 *"
 ::
 ::  from ~nec.db2..foo (un-aliased) join ~nec.db2..bar (aliased as)
 ++  test-join-35
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [[simple-from-foo-join-bar-aliased-nec-db2] ~ ~]]]
+    !>  ~[[%selection ctes=~ body=[%query simple-from-foo-join-bar-aliased-nec-db2]]]
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2..foo join ~nec.db2..bar  as  b1 on 1 = 1 ".
             "SELECT TOP 10 *"
@@ -2056,7 +2054,7 @@
   %+  expect-eq
     !>  :~  :+  %selection
                 ctes=~
-                [[simple-from-foo-join-bar-aliased-nec-db2-ns1] ~ ~]
+                body=[%query simple-from-foo-join-bar-aliased-nec-db2-ns1]
             ==
     !>  %-  parse:parse(default-database 'db1')
             "FROM ~nec.db2.ns1.foo join ~nec.db2.ns1.bar  as  b1 on 1 = 1 ".
@@ -2066,7 +2064,8 @@
 ++  test-join-37
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-table-f1-low
@@ -2079,8 +2078,6 @@
                             [%select top=[~ 10] columns=~[[%all %all]]]
                             order-by=~
                             ==
-                        ~
-                        ~
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2090,7 +2087,8 @@
 ++  test-join-38
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-table
@@ -2121,8 +2119,6 @@
                             [%select top=[~ 10] columns=~[[%all %all]]]
                             order-by=~
                             ==
-                        ~
-                        ~
   %+  expect-eq
     !>   ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2132,7 +2128,8 @@
 ++  test-join-39
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-table-f1-low
@@ -2169,8 +2166,6 @@
                             [%select top=[~ 10] columns=~[[%all %all]]]
                             order-by=~
                             ==
-                      ~
-                      ~
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2182,7 +2177,8 @@
   %+  expect-eq
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-alias-y
@@ -2201,8 +2197,6 @@
                             select=select-all-columns
                             order-by=~
                             ==
-                    ~
-                    ~
       !>  ~[expected]
       !>  %-  parse:parse(default-database 'db1')
             "FROM foo as y cross join bar x SELECT *"
@@ -2212,7 +2206,8 @@
   %+  expect-eq
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-alias-y
@@ -2231,8 +2226,6 @@
                             select=select-all-columns
                             order-by=~
                             ==
-                    ~
-                    ~
       !>  ~[expected]
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo y cross join bar as x SELECT *"
@@ -2242,7 +2235,8 @@
   %+  expect-eq
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-table
@@ -2261,8 +2255,6 @@
                             select=select-all-columns
                             order-by=~
                             ==
-                      ~
-                      ~
       !>  ~[expected]
       !>  %-  parse:parse(default-database 'db1')
             "FROM foo cross join bar SELECT *"
@@ -2272,7 +2264,8 @@
   %+  expect-eq
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-table
@@ -2291,8 +2284,6 @@
                             select=select-all-columns
                             order-by=~
                             ==
-                    ~
-                    ~
       !>  ~[expected]
       !>  (parse:parse(default-database 'db1') "FROM foo join bar SELECT *")
 ::
@@ -2301,7 +2292,8 @@
   %+  expect-eq
   =/  expected  :+  %selection
                     ctes=~
-                    :+  :*  %query
+                    :-  %query
+                        :*  %query
                             :-  ~
                                 :^  %from
                                     relation=foo-alias-y
@@ -2320,8 +2312,6 @@
                             select=select-all-columns
                             order-by=~
                             ==
-                    ~
-                    ~
       !>  ~[expected]
       !>  %-  parse:parse(default-database 'db1')
               "FROM foo as y join bar x SELECT *"

@@ -19,6 +19,8 @@
 
 * __Mixed numeric system arithmetic__  -- @rd > @sd > @ud, emit greater of the numeric systems
 
+* __INSERT FROM...SELECT... INTO table__ -- INSERT data defined by a query.
+
 ## other planned functionality
 
 * __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs.
@@ -54,8 +56,6 @@
 * __Pivoting__ -- similar to SQL.
 
 * __Windowing__ -- and windowing functions, similar to SQL.
-
-* __INSERT FROM...SELECT...__ -- INSERT data defined by a query.
 
 * __INSERT `<columns>` ... AS `<name> <key columns>`__ -- Skip CREATE TABLE and define new table in the INSERT command.
 

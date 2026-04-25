@@ -133,29 +133,30 @@
       ==
   ^-  [? [(map @tas @da) server (list result:ast)]]
   =/  named-ctes   (named-queries ctes.selection *named-ctes)
-  =/  rtree        (~(rdc of set-functions.selection) rdc-set-func)
-  ?-  -<.rtree
+  ?-  -.body.selection
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
-          ::~&  "{<->->+>+.rtree>}"   :: table name
-          ::~>  %bout.[0 %insert]
-          (do-insert -.rtree next-data next-schemas)
+          (do-insert +.body.selection next-data next-schemas)
     %query
+      =/  q=query:ast  +.body.selection
       :-  %.y
-          ::~&  "{<->->+.rtree>}"   :: from objects
-          ::~>  %bout.[0 %select]
-          =/  q=query:ast  -.rtree
           =/  rt  (do-query q named-ctes %.n)
           =/  results  (select-results named-ctes -.rt +.rt)
           :+  next-data  ->-.rt
           ?.  (selection-has-rand scalars.q ctes.selection)
             results
           [[%message 'warning: results are non-deterministic'] results]
+    %set-query
+      ~|("SET-QUERY (UNION/EXCEPT/etc.) execution not yet implemented" !!)
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       ~|("merge not implemented" !!)
-    ==
+    %delete
+      ~|("DELETE via selection-body not implemented" !!)
+    %update
+      ~|("UPDATE via selection-body not implemented" !!)
+  ==
 ::
 ++  do-insert
   |=  [ins=insert:ast next-data=(map @tas @da) next-schemas=(map @tas @da)]
@@ -881,12 +882,14 @@
   ^-  named-ctes
   |-
   ?~  ctes            nctes
-  =/  =join-return    -:(do-query query.i.ctes nctes %.y)
+  ?>  ?=([%query *] body.i.ctes)
+  =/  cte-q=query:ast   +.body.i.ctes
+  =/  =join-return    -:(do-query cte-q nctes %.y)
   =.  state             server.join-return
-  =/  selected          (normalize-selected columns.select.query.i.ctes)
+  =/  selected          (normalize-selected columns.select.cte-q)
   =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
   =/  resolved-scalars
-        %:  resolve-query-scalars(state state, bowl bowl)  scalars.query.i.ctes
+        %:  resolve-query-scalars(state state, bowl bowl)  scalars.cte-q
                                                            nctes
                                                            qualifier-lookup
                                                            map-meta.join-return
@@ -1421,7 +1424,10 @@
   |=  [scalars=(list scalar:ast) ctes=(list cte:ast)]
   ^-  ?
   ?|  (scalars-have-rand scalars)
-      (lien ctes |=(c=cte:ast (scalars-have-rand scalars.query.c)))
+      %+  lien  ctes
+        |=  c=cte:ast
+        ?.  ?=([%query *] body.c)  |
+        (scalars-have-rand scalars.+.body.c)
   ==
 ::
 ++  scalars-have-rand
@@ -1514,15 +1520,5 @@
       ?~  quote.sn  ~[string-expression.sn]
       ~[string-expression.sn -.u.quote.sn +.u.quote.sn]
   ==
-::
-++  rdc-set-func
-  |=  =(tree set-function:ast)
-  ?~  tree  ~
-  ::  template
-  ?~  l.tree
-    ?~  r.tree  [n.tree ~ ~]
-    [n.r.tree ~ ~]
-  ?~  r.tree  [n.l.tree ~ ~]
-  [n.r.tree ~ ~]
 --
  

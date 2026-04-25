@@ -24,7 +24,8 @@
       "Bash(grep -n \"value-or-default\\\\|+\\\\$  value\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
       "Bash(git log *)",
       "Bash(git stash *)",
-      "Edit(/.claude/skills/obelisk-urql/**)"
+      "Edit(/.claude/skills/obelisk-urql/**)",
+      "Bash(grep -n '^\\\\s*~$' /mnt/mars/gitrepos/obelisk/desk/lib/sys-views.hoon)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"

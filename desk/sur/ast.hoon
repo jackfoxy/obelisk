@@ -286,7 +286,29 @@
   $+  selection
   $:  %selection
     ctes=(list cte)
-    set-functions=(tree set-function)
+    body=selection-body
+    ==
+::
+::  $selection-body: terminal command of a selection
++$  selection-body
+  $+  selection-body
+  $%  [%query query]
+      [%set-query set-query]
+      [%insert insert]
+      [%delete delete]
+      [%update update]
+      [%merge merge]
+  ==
+::
+::  $set-query: a sequence of queries joined by set operations
++$  set-query
+  $+  set-query
+  $:  %set-query
+    head=query
+    tail=(list [op=set-op =query])
+    ==
++$  set-op
+    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder
     ==
 ::
 ::  $cte:
@@ -294,13 +316,8 @@
   $+  cte
   $:  %cte
     name=@tas
-    =query
+    body=selection-body
     ==
-+$  set-op
-    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder  %into
-    ==
-+$  set-cmd       $%(insert merge query)
-+$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
 ::
