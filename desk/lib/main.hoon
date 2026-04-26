@@ -133,19 +133,6 @@
       ?:  query-has-run
             ~|("CREATE VIEW: state change after query in script" !!)
       ~|("%create-view not implemented" !!)
-    %delete
-      ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
-      =/  r=[(map @tas @da) server (list result:ast)]
-            %^  do-delete(state state, bowl bowl)  i.cmds
-                                                   next-data
-                                                   next-schemas
-      %=  $
-        query-has-run   %.n
-        next-data       -.r
-        state           +<.r
-        cmds            t.cmds
-        results         [[%results +>.r] results]
-      ==
     %drop-database
       ?.  =(our.bowl src.bowl)
             ~|("DROP DATABASE: database must be dropped by local agent" !!)

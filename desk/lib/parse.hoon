@@ -2240,7 +2240,7 @@
 ++  produce-delete
   |=  [ctes=(list cte:ast) a=*]
    ~+
-  ^-  delete:ast
+  ^-  crud-txn:ast
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
   ?>  ?=(qualified-table:ast -.a)
@@ -2252,69 +2252,81 @@
     (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
   =.  a  [-.a +>.a]
   ?:  ?=([* %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    scalars
-                    -.a
-                    ~
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>-.a))
-                              ~
-                              scalar-map
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          ~
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    (produce-predicate (predicate-list +>-.a))
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    scalars
-                    -.a
-                    ~
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>+<.a))
-                              ~
-                              scalar-map
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          ~
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    (produce-predicate (predicate-list +>+<.a))
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    scalars
-                    -.a
-                    [~ +<+.a]
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>+<.a))
-                              ~
-                              scalar-map
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          [~ +<+.a]
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    (produce-predicate (predicate-list +>+<.a))
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ?:  ?=([* [%as-of *] %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    scalars
-                    -.a
-                    [~ [%as-of-offset +<+<.a +<+>-.a]]
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>+<.a))
-                              ~
-                              scalar-map
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          [~ [%as-of-offset +<+<.a +<+>-.a]]
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    (produce-predicate (predicate-list +>+<.a))
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ~|('produced delete {<a>}' !!)
 ::
 ++  qualify-predicate

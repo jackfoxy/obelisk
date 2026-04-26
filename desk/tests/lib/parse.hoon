@@ -1936,8 +1936,8 @@
 ::
 :: delete with predicate 2X
 ++  test-delete-00
-  =/  expected1  [%delete ctes=~ scalars=~ table=foo-table ~ delete-pred]
-  =/  expected2  [%delete ctes=~ scalars=~ table=foobar-table ~ delete-pred2]
+  =/  expected1  [%crud-txn ctes=~ body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
+  =/  expected2  [%crud-txn ctes=~ body=[%delete [%delete scalars=~ table=foobar-table ~ delete-pred2]]]
   =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
     !>  ~[expected1 expected2]
@@ -1945,7 +1945,7 @@
 ::
 :: delete with predicate as of now
 ++  test-delete-01
-  =/  expected  [%delete ctes=~ scalars=~ table=foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~ body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1953,12 +1953,15 @@
 ::
 :: delete with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-02
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -1967,12 +1970,15 @@
 ::
 :: delete with predicate as of 5 seconds ago
 ++  test-delete-03
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -1981,7 +1987,7 @@
 ::
 :: delete with one cte and predicate
 ++  test-delete-04
-  =/  expected  [%delete ctes=~[cte-t1] scalars=~ table=foo-table ~ delete-pred] 
+  =/  expected  [%crud-txn ctes=~[cte-t1] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1989,7 +1995,7 @@
 ::
 :: delete with one cte and predicate as of now
 ++  test-delete-05
-  =/  expected  [%delete ctes=~[cte-t1] scalars=~ table=foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~[cte-t1] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1997,12 +2003,15 @@
 ::
 :: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-06
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2012,12 +2021,15 @@
 ::
 :: delete with one cte and predicate as of 5 seconds ago
 ++  test-delete-07
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2027,13 +2039,7 @@
 ::
 :: delete with two ctes and predicate
 ++  test-delete-08
-  =/  expected  :*  %delete
-                    ctes=~[cte-t1 cte-foobar]
-                    scalars=~
-                    table=foo-table
-                    ~
-                    delete-pred
-                    ==
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2043,13 +2049,7 @@
 ::
 :: delete with two ctes and predicate as of now
 ++  test-delete-09
-  =/  expected  :*  %delete
-                    ctes=~[cte-t1 cte-foobar]
-                    scalars=~
-                    table=foo-table
-                    ~
-                    delete-pred
-                    ==
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2059,12 +2059,15 @@
 ::
 :: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-10
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar]
-                    scalars=~
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2075,12 +2078,15 @@
 ::
 :: delete with two ctes and predicate as of 5 seconds ago
 ++  test-delete-11
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar]
-                    scalars=~
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2091,7 +2097,7 @@
 ::
 :: delete with three ctes and predicate
 ++  test-delete-12
-  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] scalars=~ foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar cte-bar] body=[%delete [%delete scalars=~ foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2102,7 +2108,7 @@
 ::
 :: delete with three ctes and predicate as of now
 ++  test-delete-13
-  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] scalars=~ foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar cte-bar] body=[%delete [%delete scalars=~ foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2113,12 +2119,15 @@
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-14
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    scalars=~
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2130,12 +2139,15 @@
 ::
 :: delete with three ctes and predicate as of 5 seconds ago
 ++  test-delete-15
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    scalars=~
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2163,12 +2175,15 @@
                    right=[p=%ud q=20]
                      ==
                ==
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~[sc1 sc2]
-                    table=foo-table
-                    as-of=~
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2194,12 +2209,15 @@
                    right=[p=%ud q=20]
                    ==
                ==
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~[sc1 sc2]
-                    table=foo-table
-                    as-of=~
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]

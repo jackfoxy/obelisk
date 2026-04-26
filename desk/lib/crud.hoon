@@ -153,7 +153,9 @@
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       ~|("merge not implemented" !!)
     %delete
-      ~|("DELETE via crud-body not implemented" !!)
+      ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
+      :-  %.n
+          (do-delete +.body.crud-txn named-ctes next-data next-schemas)
     %update
       ~|("UPDATE via crud-body not implemented" !!)
   ==
@@ -246,7 +248,7 @@
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ::
 ++  do-delete
-  |=  [d=delete:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
+  |=  [d=delete:ast =named-ctes next-schemas=(map @tas @da) next-data=(map @tas @da)]
   ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  %:  common-txn  "DELETE FROM"
                            state
@@ -269,7 +271,6 @@
             [%message 'no rows deleted']
             ==
   ::
-  =/  named-ctes  (named-queries ctes.d *named-ctes)
   =/  del-qualifier-lookup=qualifier-lookup
     %+  roll  columns.table.txn
               |=  [c=column:ast ql=qualifier-lookup]

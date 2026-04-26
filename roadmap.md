@@ -21,9 +21,11 @@
 
 * __INSERT FROM...SELECT... INTO table__ -- INSERT data defined by a query.
 
+* __SELECT TOP n ...__ -- dependent on total ordering
+
 ## other planned functionality
 
-* __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs.
+* __Temporary tables__ -- similar to INSERT format. Temp relations as CTEs. (possibly in V1.0)
 
 * __Security__ -- (cf. Permissions document) the current permissions model proposal is incomplete, notably lacking per table/view permissions. Currently a foreign ship cannot alter the schema but it can discover the database schemas and modify data.
 
