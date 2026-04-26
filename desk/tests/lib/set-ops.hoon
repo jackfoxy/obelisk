@@ -18,6 +18,10 @@
   "CREATE TABLE diff-order (label @t, id @ud) PRIMARY KEY (label);"
 ++  create-diff-type
   "CREATE TABLE diff-type (id @ux, label @t) PRIMARY KEY (id);"
+++  create-dup-a
+  "CREATE TABLE dup-a (id @ud, label @t, label-alt @t) PRIMARY KEY (id);"
+++  create-dup-b
+  "CREATE TABLE dup-b (id @ud, label @t, label-alt @t) PRIMARY KEY (id);"
 ::
 ++  insert-same-a
   "INSERT INTO same-a VALUES ".
@@ -45,6 +49,16 @@
   "INSERT INTO diff-order VALUES ('alpha', 1);"
 ++  insert-diff-type
   "INSERT INTO diff-type VALUES (0x1, 'alpha');"
+++  insert-dup-a
+  "INSERT INTO dup-a VALUES ".
+  "(1, 'alpha', 'one') ".
+  "(2, 'beta', 'two') ".
+  "(3, 'gamma', 'three');"
+++  insert-dup-b
+  "INSERT INTO dup-b VALUES ".
+  "(2, 'beta', 'two') ".
+  "(3, 'gamma', 'zzz') ".
+  "(4, 'delta', 'four');"
 ::
 ++  setup
   %-  zing
@@ -56,6 +70,8 @@
       create-diff-name
       create-diff-order
       create-diff-type
+      create-dup-a
+      create-dup-b
       insert-same-a
       insert-same-b
       insert-same-c
@@ -63,6 +79,8 @@
       insert-diff-name
       insert-diff-order
       insert-diff-type
+      insert-dup-a
+      insert-dup-b
       ==
 ::
 ++  row-alpha
@@ -110,6 +128,36 @@
       :~  [%id [~.ux 0x1]]
           [%label [~.t 'alpha']]
           ==
+++  row-id-1-twice
+  :-  %vector
+      :~  [%id [~.ud 1]]
+          [%id [~.ud 1]]
+          ==
+++  row-id-2-twice
+  :-  %vector
+      :~  [%id [~.ud 2]]
+          [%id [~.ud 2]]
+          ==
+++  row-id-3-twice
+  :-  %vector
+      :~  [%id [~.ud 3]]
+          [%id [~.ud 3]]
+          ==
+++  row-dup-alpha
+  :-  %vector
+      :~  [%label [~.t 'alpha']]
+          [%label [~.t 'one']]
+          ==
+++  row-dup-beta
+  :-  %vector
+      :~  [%label [~.t 'beta']]
+          [%label [~.t 'two']]
+          ==
+++  row-dup-gamma
+  :-  %vector
+      :~  [%label [~.t 'gamma']]
+          [%label [~.t 'three']]
+          ==
 ::
 ++  rows-a       :~  row-alpha  row-beta  row-gamma  ==
 ++  rows-b       :~  row-beta  row-gamma  row-delta  ==
@@ -133,6 +181,14 @@
       row-alpha-diff-order
       row-alpha-diff-type
       ==
+++  rows-id-id-except
+  :~  row-id-1-twice  ==
+++  rows-id-id-intersect
+  :~  row-id-2-twice  row-id-3-twice  ==
+++  rows-dup-rename-except
+  :~  row-dup-alpha  row-dup-gamma  ==
+++  rows-dup-rename-intersect
+  :~  row-dup-beta  ==
 ::
 ++  result-ab-union
   :-  %results
@@ -887,6 +943,196 @@
               [%data-time ~2012.4.30]
               [%vector-count 0]
               ==
+      ==
+::
+::  Duplicate output names are allowed for EXCEPT when no UNION is present.
+++  test-set-op-duplicate-except-00
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM same-a ".
+          "SELECT id, id ".
+          "EXCEPT ".
+          "FROM same-b ".
+          "SELECT id, id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set rows-id-id-except]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.same-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.same-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  Duplicate output names are allowed for INTERSECT when no UNION is present.
+++  test-set-op-duplicate-intersect-00
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM same-a ".
+          "SELECT id, id ".
+          "INTERSECT ".
+          "FROM same-b ".
+          "SELECT id, id"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set rows-id-id-intersect]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.same-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.same-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  Duplicate names via AS alias are allowed for EXCEPT without UNION.
+++  test-set-op-duplicate-except-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dup-a ".
+          "SELECT label, label-alt AS label ".
+          "EXCEPT ".
+          "FROM dup-b ".
+          "SELECT label, label-alt AS label"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set rows-dup-rename-except]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dup-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.dup-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 2]
+              ==
+      ==
+::
+::  Duplicate names via AS alias are allowed for INTERSECT without UNION.
+++  test-set-op-duplicate-intersect-01
+  =|  run=@ud
+  %-  exec-0-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dup-a ".
+          "SELECT label, label-alt AS label ".
+          "INTERSECT ".
+          "FROM dup-b ".
+          "SELECT label, label-alt AS label"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set rows-dup-rename-intersect]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.dup-a']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%relation 'db1.dbo.dup-b']
+              [%schema-time ~2012.4.30]
+              [%data-time ~2012.4.30]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  UNION in a WITH body rejects selecting the same column twice.
+++  test-fail-set-op-union-duplicate-cte-00
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM same-a ".
+          "      SELECT id, id ".
+          "      UNION ".
+          "      FROM same-b ".
+          "      SELECT id, id) AS u ".
+          "FROM u SELECT *"
+      ::
+      'SET-QUERY UNION: duplicate output column %id in SELECT'
+      ==
+::
+::  Outer UNION rejects selecting the same column twice.
+++  test-fail-set-op-union-duplicate-outer-00
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM same-a ".
+          "SELECT id, id ".
+          "UNION ".
+          "FROM same-b ".
+          "SELECT id, id"
+      ::
+      'SET-QUERY UNION: duplicate output column %id in SELECT'
+      ==
+::
+::  UNION in a WITH body rejects duplicate names introduced by AS alias.
+++  test-fail-set-op-union-duplicate-cte-01
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "WITH (FROM dup-a ".
+          "      SELECT label, label-alt AS label ".
+          "      UNION ".
+          "      FROM dup-b ".
+          "      SELECT label, label-alt AS label) AS u ".
+          "FROM u SELECT *"
+      ::
+      'SET-QUERY UNION: duplicate output column %label in SELECT'
+      ==
+::
+::  Outer UNION rejects duplicate names introduced by AS alias.
+++  test-fail-set-op-union-duplicate-outer-01
+  =|  run=@ud
+  %-  failon-1
+  :*  run
+      [~2012.4.30 %db1 setup]
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM dup-a ".
+          "SELECT label, label-alt AS label ".
+          "UNION ".
+          "FROM dup-b ".
+          "SELECT label, label-alt AS label"
+      ::
+      'SET-QUERY UNION: duplicate output column %label in SELECT'
       ==
 ::
 --

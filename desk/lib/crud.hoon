@@ -574,6 +574,10 @@
   =/  head-vectors=(list vector)  +.head-rt
   =.  state     server.head-jr
   =/  out-cols  (query-output-columns head.sq head-jr head-vectors named-ctes)
+  =/  has-union  (set-query-has-union sq)
+  =.  out-cols
+    ?:  has-union  (check-union-output-names out-cols)
+    out-cols
   =/  out-metas
     %+  turn  out-cols
     |=  c=column:ast
@@ -596,6 +600,11 @@
   =/  next-jr=join-return  -.next-rt
   =/  next-vectors=(list vector)  +.next-rt
   =.  state     server.next-jr
+  =/  next-cols
+    (query-output-columns query.i.rest next-jr next-vectors named-ctes)
+  =.  next-cols
+    ?:  has-union  (check-union-output-names next-cols)
+    next-cols
   %=  $
     rows     %:  apply-set-op  op.i.rest
                               rows
@@ -603,6 +612,29 @@
                               ==
     sources  (weld sources set-tables.next-jr)
     rest     t.rest
+  ==
+::
+++  set-query-has-union
+  |=  sq=set-query:ast
+  ^-  ?
+  %+  lien  tail.sq
+  |=  item=[op=set-op:ast =query:ast]
+  =(%union op.item)
+::
+++  check-union-output-names
+  |=  columns=(list column:ast)
+  ^-  (list column:ast)
+  =/  seen  *(map @tas ~)
+  =/  all-columns  columns
+  |-
+  ?~  columns  all-columns
+  ?:  (~(has by seen) name.i.columns)
+    ~|  "SET-QUERY UNION: duplicate output column ".
+        "{<name.i.columns>} in SELECT"
+        !!
+  %=  $
+    columns  t.columns
+    seen     (~(put by seen) name.i.columns ~)
   ==
 ::
 ++  vectors-to-set
