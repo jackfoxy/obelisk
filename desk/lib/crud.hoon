@@ -157,7 +157,9 @@
       :-  %.n
           (do-delete +.body.crud-txn named-ctes next-data next-schemas)
     %update
-      ~|("UPDATE via crud-body not implemented" !!)
+      ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
+      :-  %.n
+          (do-update +.body.crud-txn named-ctes next-data next-schemas)
   ==
 ::
 ++  do-insert
@@ -349,7 +351,7 @@
           ==
 ::
 ++  do-update
-  |=  [u=update:ast next-schemas=(map @tas @da) next-data=(map @tas @da)]
+  |=  [u=update:ast =named-ctes next-schemas=(map @tas @da) next-data=(map @tas @da)]
   ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  %:  common-txn  "UPDATE"
                            state
@@ -374,7 +376,6 @@
   ::
   ?.  =((lent columns.u) (lent values.u))
     ~|("UPDATE: columns and values mismatch" !!)
-  =/  named-ctes  (named-queries ctes.u *named-ctes)
   =/  upd-qualifier-lookup=qualifier-lookup
     %+  roll  columns.table.txn
               |=  [c=column:ast ql=qualifier-lookup]

@@ -34,10 +34,16 @@ Timestamp equal to or greater than the table content state upon which to perform
 
 ### API
 ```
++$  crud-txn
+  $:
+    %crud-txn
+    ctes=(list cte)
+    body=[%delete delete]
+  ==
+
 +$  delete
   $:
     %delete
-    ctes=(list cte)
     scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)

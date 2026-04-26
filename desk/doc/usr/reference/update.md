@@ -66,10 +66,16 @@ Timestamp equal to or greater than the table content state upon which to perform
 
 ### API
 ```
++$  crud-txn
+  $:
+    %crud-txn
+    ctes=(list cte)
+    body=[%update update]
+  ==
+
 +$  update
   $:
     %update
-    ctes=(list cte)
     scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)

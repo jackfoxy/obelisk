@@ -29,7 +29,8 @@
       "Bash(grep -n \"^\\\\+\\\\$  selection\\\\|^\\\\+\\\\$  crud-txn\\\\|^\\\\+\\\\$  selection-body\\\\|^\\\\+\\\\$  crud-body\" /mnt/mars/gitrepos/obelisk/desk/sur/ast.hoon)",
       "Bash(grep \"^\\\\+\\\\$\\\\|^+\\\\$\")",
       "Bash(git -C /mnt/mars/gitrepos/obelisk diff HEAD~5 -- desk/sur/server-state-0.hoon)",
-      "Bash(git -C /mnt/mars/gitrepos/obelisk show HEAD~5:desk/sur/ast.hoon)"
+      "Bash(git -C /mnt/mars/gitrepos/obelisk show HEAD~5:desk/sur/ast.hoon)",
+      "Bash(grep -n \"ctes=.*scalars=\\\\|%update$\\\\|ctes=.*%update\" /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse.hoon)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"

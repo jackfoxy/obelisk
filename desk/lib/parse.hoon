@@ -3479,7 +3479,7 @@
 ++  produce-update
   |=  [ctes=(list cte:ast) a=*]
   ~+
-  ^-  update:ast
+  ^-  crud-txn:ast
   =/  table=qualified-table:ast  ?>(?=(qualified-table:ast -.a) -.a)
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
@@ -3491,84 +3491,108 @@
     (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
   =/  b  +>.a
   ?:  ?=([%set * ~] b)
-    :*  %update
-        ctes
-        scalars
-        table
-        ~
-        (produce-column-sets table scalar-map +<.b)
-        ~
-        ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              ~
+                              (produce-column-sets table scalar-map +<.b)
+                              ~
+                              ==
+                      ==
   ?:  ?=([[%as-of %now] %set * ~] b)
-    :*  %update
-        ctes
-        scalars
-        table
-        ~
-        (produce-column-sets table scalar-map +>-.b)
-        ~
-        ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              ~
+                              (produce-column-sets table scalar-map +>-.b)
+                              ~
+                              ==
+                      ==
   ?:  ?=([[%as-of @ @] %set * ~] b)
-    %:  update:ast  %update
-                    ctes
-                    scalars
-                    table
-                    [~ ->.b]
-                    (produce-column-sets table scalar-map +>-.b)
-                    ~
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          %:  update:ast  %update
+                                          scalars
+                                          table
+                                          [~ ->.b]
+                                          (produce-column-sets table scalar-map +>-.b)
+                                          ~
+                                          ==
+                      ==
   ?:  ?=([[%as-of *] %set * ~] b)
-    %:  update:ast  %update
-                    ctes
-                    scalars
-                    table
-                    [~ [%as-of-offset ->-.b ->+<.b]]
-                    (produce-column-sets table scalar-map +>-.b)
-                    ~
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          %:  update:ast  %update
+                                          scalars
+                                          table
+                                          [~ [%as-of-offset ->-.b ->+<.b]]
+                                          (produce-column-sets table scalar-map +>-.b)
+                                          ~
+                                          ==
+                      ==
   ?:  ?=([[%as-of %now] %set * *] b)
-    :*  %update
-        ctes
-        scalars
-        table
-        ~
-        (produce-column-sets table scalar-map +>-.b)
-        %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
-            table
-        ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              ~
+                              (produce-column-sets table scalar-map +>-.b)
+                              %+  qualify-predicate
+                                  (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
+                                  table
+                              ==
+                      ==
   ?:  ?=([[%as-of @ @] %set * *] b)
-    %:  update:ast  %update
-                    ctes
-                    scalars
-                    table
-                    [~ ->.b]
-                    (produce-column-sets table scalar-map +>-.b)
-                    %+  qualify-predicate
-                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
-                        table
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          %:  update:ast  %update
+                                          scalars
+                                          table
+                                          [~ ->.b]
+                                          (produce-column-sets table scalar-map +>-.b)
+                                          %+  qualify-predicate
+                                              (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
+                                              table
+                                          ==
+                      ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
-    :*  %update
-        ctes
-        scalars
-        table
-        [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
-        (produce-column-sets table scalar-map +>-.b)
-        %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
-            table
-        ==
-  :*  %update
-      ctes
-      scalars
-      table
-      ~
-      (produce-column-sets table scalar-map +<.b)
-      %+  qualify-predicate
-          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ scalar-map cte-map cte-col-map)
-          table
-      ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
+                              (produce-column-sets table scalar-map +>-.b)
+                              %+  qualify-predicate
+                                  (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
+                                  table
+                              ==
+                      ==
+  %:  crud-txn:ast  %crud-txn
+                    ctes
+                    :-  %update
+                        :*  %update
+                            scalars
+                            table
+                            ~
+                            (produce-column-sets table scalar-map +<.b)
+                            %+  qualify-predicate
+                                (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ scalar-map cte-map cte-col-map)
+                                table
+                            ==
+                    ==
 ::
 ++  produce-column-sets
   |=  [table=qualified-table:ast scalar-map=(map @tas scalar-function:ast) a=*]

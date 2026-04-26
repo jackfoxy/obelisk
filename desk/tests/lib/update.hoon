@@ -1826,42 +1826,45 @@
                     ==
       ::
       :-  ~2012.5.1
-          :-  %commands  :~  :*  %update
+          :-  %commands  :~  :*  %crud-txn
                                  ctes=~
-                                 scalars=~
-                                 :*  %qualified-table
-                                     ship=~
-                                     database=%db1
-                                     namespace=%dbo
-                                     name=%my-table
-                                     alias=~
+                                 :-  %update
+                                 :*  %update
+                                     scalars=~
+                                     :*  %qualified-table
+                                         ship=~
+                                         database=%db1
+                                         namespace=%dbo
+                                         name=%my-table
+                                         alias=~
+                                         ==
+                                     as-of=~
+                                     :-  :~  :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table-1
+                                                     alias=~
+                                                     ==
+                                                 name=%col2
+                                                 alias=~
+                                             :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table
+                                                     alias=~
+                                                     ==
+                                                 name=%col0
+                                                 alias=~
+                                             ==
+                                         :~  [p=~.p q=44]
+                                             [p=~.da q=~1980.1.1]
+                                             ==
+                                     predicate=~
                                      ==
-                                 as-of=~
-                                 :-  :~  :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table-1
-                                                 alias=~
-                                                 ==
-                                             name=%col2
-                                             alias=~
-                                         :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table
-                                                 alias=~
-                                                 ==
-                                             name=%col0
-                                             alias=~
-                                         ==
-                                     :~  [p=~.p q=44]
-                                         [p=~.da q=~1980.1.1]
-                                         ==
-                                 predicate=~
                                  ==
                              ==
       ::
@@ -1885,44 +1888,47 @@
                     ==
       ::
       :-  ~2012.5.1
-          :-  %commands  :~  :*  %update
+          :-  %commands  :~  :*  %crud-txn
                                  ctes=~
-                                 scalars=~
-                                 :*  %qualified-table
-                                     ship=~
-                                     database=%db1
-                                     namespace=%dbo
-                                     name=%my-table
-                                     alias=~
+                                 :-  %update
+                                 :*  %update
+                                     scalars=~
+                                     :*  %qualified-table
+                                         ship=~
+                                         database=%db1
+                                         namespace=%dbo
+                                         name=%my-table
+                                         alias=~
+                                         ==
+                                     as-of=~
+                                     :-  :~  :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table
+                                                     alias=~
+                                                     ==
+                                                 name=%col2
+                                                 alias=~
+                                             :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table
+                                                     alias=~
+                                                     ==
+                                                 name=%col0
+                                                 alias=~
+                                             ==
+                                         :~  [p=~.p q=44]
+                                             [p=~.da q=~1980.1.1]
+                                             [p=~.ud q=44]
+                                             ==
+                                     predicate=~
                                      ==
-                                 as-of=~
-                                 :-  :~  :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table
-                                                 alias=~
-                                                 ==
-                                             name=%col2
-                                             alias=~
-                                         :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table
-                                                 alias=~
-                                                 ==
-                                             name=%col0
-                                             alias=~
-                                         ==
-                                     :~  [p=~.p q=44]
-                                         [p=~.da q=~1980.1.1]
-                                         [p=~.ud q=44]
-                                         ==
-                                 predicate=~
-                                ==
+                                 ==
                              ==
       ::
       'UPDATE: columns and values mismatch'

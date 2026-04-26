@@ -4285,14 +4285,17 @@
 ::
 :: update one column, no predicate
 ++  test-update-00
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4301,14 +4304,17 @@
 ::
 :: update one column, no predicate as of now
 ++  test-update-01
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4317,14 +4323,17 @@
 ::
 :: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-02
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4333,14 +4342,17 @@
 ::
 :: update one column, no predicate as of 4 seconds ago
 ++  test-update-03
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4349,14 +4361,17 @@
 ::
 :: update two columns, no predicate
 ++  test-update-04
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4365,17 +4380,20 @@
 ::
 :: update three columns, no predicate, end of command marker
 ++  test-update-04a
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col4 upd-col3 upd-col1]
-                        :~  %default
-                            [value-type=%ud value=44]
-                            [value-type=%t value='hello']
-                            ==
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col4 upd-col3 upd-col1]
+                            :~  %default
+                                [value-type=%ud value=44]
+                                [value-type=%t value='hello']
+                                ==
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4386,14 +4404,17 @@
 ::
 :: update two columns, no predicate as of now
 ++  test-update-05
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4402,14 +4423,17 @@
 ::
 :: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-06
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4419,14 +4443,17 @@
 ::
 :: update two columns, no predicate as of 4 seconds ago
 ++  test-update-07
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4435,14 +4462,17 @@
 ::
 :: update two columns, with predicate
 ++  test-update-08
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4451,14 +4481,17 @@
 ::
 :: update two columns, with predicate as of now
 ++  test-update-09
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4468,14 +4501,17 @@
 ::
 :: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-10
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4485,14 +4521,17 @@
 ::
 :: update two columns, with predicate as of 4 seconds ago
 ++  test-update-11
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4502,14 +4541,17 @@
 ::
 :: update with one cte and predicate
 ++  test-update-12
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4519,14 +4561,17 @@
 ::
 :: update with one cte and predicate as of now
 ++  test-update-13
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4536,14 +4581,17 @@
 ::
 :: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-14
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4554,14 +4602,17 @@
 ::
 :: update with one cte and predicate as of 4 seconds ago
 ++  test-update-15
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4574,14 +4625,17 @@
 :: if we remove the from statements after the with the test passes
 :: with the parse-scalar rule present
 ++  test-update-16
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4593,14 +4647,17 @@
 ::
 :: update with three ctes and predicate as of now
 ++  test-update-17
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    scalars=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4613,14 +4670,17 @@
 ::
 :: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-18
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4633,14 +4693,17 @@
 ::
 :: update with three ctes and predicate as of 4 seconds ago
 ++  test-update-19
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    scalars=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4669,14 +4732,17 @@
                    right=[p=%ud q=20]
                    ==
                ==
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    scalars=~[sc1 sc2]
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4702,14 +4768,17 @@
                    right=[p=%ud q=20]
                    ==
                ==
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    scalars=~[sc1 sc2]
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]

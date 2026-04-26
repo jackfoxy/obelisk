@@ -214,19 +214,6 @@
         cmds          t.cmds
         results       [-.r results]
       ==
-    %update
-      ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
-      =/  r=[(map @tas @da) server (list result:ast)]
-            %^  do-update(state state, bowl bowl)  i.cmds
-                                                   next-data
-                                                   next-schemas
-      %=  $
-        query-has-run   %.n
-        next-data       -.r
-        state           +<.r
-        cmds            t.cmds
-        results         [[%results +>.r] results]
-      ==
   ==
 ::
 ++  new-database

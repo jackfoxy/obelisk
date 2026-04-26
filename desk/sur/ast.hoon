@@ -1,4 +1,18 @@
-:: abstract syntax trees for urQL parsing and execution
+::  abstract syntax trees for urQL parsing and execution
+::
+::  FOR DEVELOPERS
+::  --------------
+::
+::  Include this file in your projects consuming %obelisk.
+::
+::  Minimally you will need the molds in the OUTPUT section.
+::
+::  You are strongly encouraged to use native urQL for all your interactions
+::  with %obelisk. If you choose to write programs using the API in order to
+::  skip the parse step it is unlikely your efforts will be significantly more
+::  efficient.
+::
+::  If you do choose to interact via the command API ust the %commands poke.
 ::
 |%
 ::
@@ -58,7 +72,6 @@
     revoke
     crud-txn
     truncate-table
-    update
     ==
 ::
 ::  simple union types
@@ -341,7 +354,6 @@
 +$  update
   $+  update
   $:  %update
-    ctes=(list cte)
     scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)
