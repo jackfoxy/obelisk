@@ -171,6 +171,57 @@ FROM My-Cte SELECT *;
 ```
 
 ```urQL
+FROM animals
+WHERE species = 'Dog'
+SELECT name, species
+UNION
+FROM animals
+WHERE species = 'Rabbit'
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+```urQL
+FROM adoptions
+SELECT name, species
+INTERSECT
+FROM vaccinations
+SELECT name, species;
+```
+
+```urQL
+FROM animals
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+```urQL
+WITH (FROM adoptions
+      SELECT name, species
+      INTERSECT
+      FROM vaccinations
+      SELECT name, species) AS adopted-and-vaccinated
+FROM adopted-and-vaccinated
+SELECT *;
+```
+
+```urQL
+WITH (FROM staff-assignments
+      WHERE role = 'Veterinarian'
+      SELECT email) AS vets
+FROM vets
+SELECT email
+UNION
+FROM staff-assignments
+WHERE role = 'Manager'
+SELECT email;
+```
+
+```urQL
 FROM sys.columns
 WHERE name = 'my-table'
 SELECT col-name, col-type;

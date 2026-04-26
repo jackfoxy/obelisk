@@ -184,6 +184,87 @@
      "  AND V.vaccination-time > A.adoption-date ".
      "SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;"
 
+# SET OPERATIONS
+
+=uql "FROM animals ".
+     "WHERE species = 'Dog' ".
+     "SELECT name, species ".
+     "UNION ".
+     "FROM animals ".
+     "WHERE species = 'Rabbit' ".
+     "SELECT name, species ".
+     "EXCEPT ".
+     "FROM adoptions ".
+     "SELECT name, species;"
+
+=uql "FROM animals ".
+     "SELECT name, species ".
+     "UNION ".
+     "FROM adoptions ".
+     "SELECT name AS animal-name, species;"
+
+=uql "FROM adoptions ".
+     "SELECT name, species ".
+     "INTERSECT ".
+     "FROM vaccinations ".
+     "SELECT name, species;"
+
+=uql "FROM animals ".
+     "SELECT name, species ".
+     "EXCEPT ".
+     "FROM adoptions ".
+     "SELECT name, species;"
+
+=uql "FROM staff ".
+     "SELECT email AS contact-email ".
+     "UNION ".
+     "FROM adoptions ".
+     "SELECT adopter-email AS contact-email;"
+
+=uql "FROM adoptions ".
+     "SELECT name, name ".
+     "UNION ".
+     "FROM vaccinations ".
+     "SELECT name, name;"
+
+=uql "WITH (FROM adoptions ".
+     "      SELECT name, species, species AS name ".
+     "      UNION ".
+     "      FROM vaccinations ".
+     "      SELECT name, species, vaccine AS name) AS mixed ".
+     "FROM mixed ".
+     "SELECT *;"
+
+=uql "FROM adoptions ".
+     "SELECT adopter-email AS email ".
+     "EXCEPT ".
+     "FROM staff ".
+     "SELECT email;"
+
+=uql "FROM staff ".
+     "SELECT email ".
+     "INTERSECT ".
+     "FROM vaccinations ".
+     "SELECT email;"
+
+=uql "WITH (FROM adoptions ".
+     "      SELECT name, species ".
+     "      INTERSECT ".
+     "      FROM vaccinations ".
+     "      SELECT name, species) AS adopted-and-vaccinated ".
+     "FROM adopted-and-vaccinated ".
+     "SELECT *;"
+
+=uql "WITH (FROM staff-assignments ".
+     "      WHERE role = 'Veterinarian' ".
+     "      SELECT email) AS vets ".
+     "FROM vets ".
+     "SELECT email ".
+     "UNION ".
+     "FROM staff-assignments ".
+     "WHERE role = 'Manager' ".
+     "SELECT email;"
+
 # comments
 
 =uql "CREATE DATABASE db3; :: this is a line comment".

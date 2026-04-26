@@ -209,6 +209,24 @@ SELECT [ TOP <n> ]
 - GROUP BY, ORDER BY, TOP: parsed but not yet supported in engine
 - aggregate functions: not yet implemented
 
+## set operations
+
+`UNION`, `EXCEPT`, and `INTERSECT` combine complete queries and are
+evaluated left-to-right. Results are true sets: exact duplicate result
+vectors are removed. Equality includes output column names, column order, and
+auras, not just raw values.
+Unlike SQL, operands are not required to return the same row type. `UNION` can
+contain distinct row shapes side by side; `EXCEPT` and `INTERSECT` only match
+complete result vectors that are exactly equal.
+
+- `UNION`: rows from either side
+- `EXCEPT`: rows from the left side not present on the right
+- `INTERSECT`: rows present on both sides
+- set operations may be used in CTE bodies and by outer queries over CTEs
+- if a set query contains `UNION`, every operand `SELECT` must have unique
+  output column names
+- `DIVIDED BY` and `DIVIDED BY WITH REMAINDER` parse but do not execute yet
+
 ## joins
 
 ### natural joins

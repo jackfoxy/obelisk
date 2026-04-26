@@ -817,6 +817,195 @@ SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 
 `CROSS JOIN` takes no predicate and joins every row of the joined object to each and every row of the rest of the selected objects. This is also know as a cartesian join.
 
+# SET OPERATIONS
+
+Set operations combine the rows returned by two or more complete queries. In urQL a set operation is written between queries:
+
+```
+FROM <object>
+WHERE <predicate>
+SELECT <columns>
+UNION
+FROM <object>
+WHERE <predicate>
+SELECT <columns>;
+```
+
+The supported set operations are `UNION`, `EXCEPT`, and `INTERSECT`.
+
+`UNION` returns rows from either side. Exact duplicate rows appear once.
+
+`EXCEPT` starts with the rows on the left and removes any rows that also appear on the right.
+
+`INTERSECT` returns only rows that appear on both sides.
+
+The operations are evaluated left-to-right. This matters when they are chained:
+
+```
+FROM animals
+WHERE species = 'Dog'
+SELECT name, species
+UNION
+FROM animals
+WHERE species = 'Rabbit'
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+This query first forms the set of dogs and rabbits in the shelter, then removes animals that have adoption records. It is not grouped by precedence; it is simply evaluated in the order written.
+
+Set operation results are true sets. Duplicate rows are removed, but equality is exact: the output column names, column order, and aura types are part of the row. These two projections have the same raw values but do not create matching rows because the output column names differ:
+
+```
+FROM animals
+SELECT name, species
+UNION
+FROM adoptions
+SELECT name AS animal-name, species;
+```
+
+Unlike SQL, urQL does not require every operand in a set operation to return the same row type. `UNION` can contain distinct row shapes side by side; `EXCEPT` and `INTERSECT` only match rows whose complete result vectors are exactly equal.
+
+Usually you should give corresponding columns the same names and types, especially when using `EXCEPT` or `INTERSECT`.
+
+```
+FROM adoptions
+SELECT name, species
+INTERSECT
+FROM vaccinations
+SELECT name, species;
+```
+
+The above query returns adopted animals that also have vaccination records.
+
+```
+FROM animals
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+The above query returns animals that do not have adoption records.
+
+## UNION
+
+`UNION` is useful when two queries produce the same kind of row and you want one combined list.
+
+```
+FROM staff
+SELECT email AS contact-email
+UNION
+FROM adoptions
+SELECT adopter-email AS contact-email;
+```
+
+This returns one list of contact email addresses drawn from both staff and adopters. If the same email address appears more than once with the same column name and aura, it appears once in the result.
+
+If a set query contains `UNION`, every `SELECT` in that set query must have unique output column names. Selecting the same column twice, or using `AS` to create the same output name twice, crashes:
+
+```
+FROM adoptions
+SELECT name, name
+UNION
+FROM vaccinations
+SELECT name, name;
+```
+
+```
+SET-QUERY UNION: duplicate output column %name in SELECT
+```
+
+The same rule applies inside a `WITH` clause:
+
+```
+WITH (FROM adoptions
+      SELECT name, species, species AS name
+      UNION
+      FROM vaccinations
+      SELECT name, species, vaccine AS name) AS mixed
+FROM mixed
+SELECT *;
+```
+
+The duplicate-name rule is specific to set queries containing `UNION`. `EXCEPT` and `INTERSECT` by themselves do not impose this additional restriction.
+
+## EXCEPT
+
+`EXCEPT` answers "what is in the first query that is not in the second?"
+
+```
+FROM animals
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+The left side establishes the starting set. An empty right side removes nothing. An empty left side returns an empty result.
+
+`EXCEPT` compares exact result rows. For example, this query will not remove anything unless the adopter email exactly matches a staff email under the same output column name:
+
+```
+FROM adoptions
+SELECT adopter-email AS email
+EXCEPT
+FROM staff
+SELECT email;
+```
+
+## INTERSECT
+
+`INTERSECT` answers "what appears in both queries?"
+
+```
+FROM staff
+SELECT email
+INTERSECT
+FROM vaccinations
+SELECT email;
+```
+
+This returns staff email addresses that also appear as the staff member recorded on a vaccination.
+
+If either side of an `INTERSECT` is empty, the result is empty.
+
+`UNION` with an empty side returns the non-empty side. These empty-set rules are often useful when a `WHERE` predicate happens to match no rows.
+
+## Set Operations in CTEs
+
+Set operations can be used inside `WITH` CTEs, and outer queries can select from those CTEs like any other CTE.
+
+```
+WITH (FROM adoptions
+      SELECT name, species
+      INTERSECT
+      FROM vaccinations
+      SELECT name, species) AS adopted-and-vaccinated
+FROM adopted-and-vaccinated
+SELECT *;
+```
+
+CTEs can also feed outer set operations:
+
+```
+WITH (FROM staff-assignments
+      WHERE role = 'Veterinarian'
+      SELECT email) AS vets
+FROM vets
+SELECT email
+UNION
+FROM staff-assignments
+WHERE role = 'Manager'
+SELECT email;
+```
+
+The metadata returned with a set operation includes the underlying real source tables used by all operands. Internal CTE names are not reported as source relations.
+
+`DIVIDED BY` and `DIVIDED BY WITH REMAINDER` are parsed but are not implemented for execution.
+
 
 # Commenting urQL
 
