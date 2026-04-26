@@ -148,7 +148,16 @@
             results
           [[%message 'warning: results are non-deterministic'] results]
     %set-query
-      ~|("SET-QUERY (UNION/EXCEPT/etc.) execution not yet implemented" !!)
+      =/  sq=set-query:ast  +.body.crud-txn
+      :-  %.y
+          =/  rt  (do-set-query sq named-ctes)
+          =/  results  (select-results named-ctes -.rt +.rt)
+          :+  next-data  ->-.rt
+          ?.  ?|  (set-query-has-rand sq)
+                  (ctes-have-rand ctes.crud-txn)
+              ==
+            results
+          [[%message 'warning: results are non-deterministic'] results]
     %merge
       ?:  query-has-run  ~|("MERGE: state change after query in script" !!)
       ~|("merge not implemented" !!)
@@ -557,6 +566,170 @@
           named-ctes
           ==
 ::
+++  do-set-query
+  |=  [sq=set-query:ast =named-ctes]
+  ^-  [join-return (list vector)]
+  =/  head-rt  (do-query head.sq named-ctes %.n)
+  =/  head-jr=join-return  -.head-rt
+  =/  head-vectors=(list vector)  +.head-rt
+  =.  state     server.head-jr
+  =/  out-cols  (query-output-columns head.sq head-jr head-vectors named-ctes)
+  =/  out-metas
+    %+  turn  out-cols
+    |=  c=column:ast
+    :+  [%qualified-column *qualified-table:ast name.c ~]
+        type.c
+        addr.c
+  =/  rows=(set vector)  (vectors-to-set head-vectors)
+  =/  sources=(list set-table)  set-tables.head-jr
+  =/  rest  tail.sq
+  |-
+  ?~  rest
+    :-  :*  %join-return
+            state
+            sources
+            map-meta.head-jr
+            out-metas
+            ==
+        ~(tap in rows)
+  =/  next-rt  (do-query query.i.rest named-ctes %.n)
+  =/  next-jr=join-return  -.next-rt
+  =/  next-vectors=(list vector)  +.next-rt
+  =.  state     server.next-jr
+  %=  $
+    rows     %:  apply-set-op  op.i.rest
+                              rows
+                              (vectors-to-set next-vectors)
+                              ==
+    sources  (weld sources set-tables.next-jr)
+    rest     t.rest
+  ==
+::
+++  vectors-to-set
+  |=  vectors=(list vector)
+  ^-  (set vector)
+  (~(gas in *(set vector)) vectors)
+::
+++  apply-set-op
+  |=  [op=set-op:ast left=(set vector) right=(set vector)]
+  ^-  (set vector)
+  ?-  op
+    %union
+      (~(uni in left) right)
+    %except
+      (~(dif in left) right)
+    %intersect
+      (~(int in left) right)
+    %divided-by
+      ~|("SET-QUERY DIVIDED BY execution not yet implemented" !!)
+    %divide-with-remainder
+      ~|("SET-QUERY DIVIDE WITH REMAINDER execution not yet implemented" !!)
+  ==
+::
+++  query-output-columns
+  |=  [q=query:ast =join-return vectors=(list vector) =named-ctes]
+  ^-  (list column:ast)
+  ?^  vectors
+    (vector-columns i.vectors)
+  =/  selected  (normalize-selected columns.select.q)
+  =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return selected)
+  =/  resolved-scalars
+        %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
+                                                           named-ctes
+                                                           qualifier-lookup
+                                                           map-meta.join-return
+                                                           ==
+  %-  selected-output-columns
+  [selected column-metas.join-return named-ctes resolved-scalars]
+::
+++  vector-columns
+  |=  v=vector
+  ^-  (list column:ast)
+  %-  addr-columns
+  %+  turn  +.v
+  |=  cell=vector-cell:ast
+  [%column p.cell p.q.cell 0]
+::
+++  selected-output-columns
+  |=  $:  selected=(list selected-column:ast)
+          metas=(list column-meta)
+          =named-ctes
+          =resolved-scalars
+          ==
+  ^-  (list column:ast)
+  =/  out  *(list column:ast)
+  |-
+  ?~  selected  (addr-columns (flop out))
+  ?-  i.selected
+    qualified-column:ast
+      =/  cm
+        %-  head
+        %+  skim  metas
+        |=  cm=column-meta
+        ?&  =(qualifier.i.selected qualifier.qualified-column.cm)
+            =(name.i.selected name.qualified-column.cm)
+        ==
+      %=  $
+        selected  t.selected
+        out       [[%column (heading i.selected name.i.selected) type.cm 0] out]
+      ==
+    unqualified-column:ast
+      =/  cm
+        %-  head
+        %+  skim  metas
+        |=  cm=column-meta
+        =(name.i.selected name.qualified-column.cm)
+      %=  $
+        selected  t.selected
+        out       [[%column (heading i.selected name.i.selected) type.cm 0] out]
+      ==
+    selected-value:ast
+      %=  $
+        selected  t.selected
+        out       [[%column (heading i.selected (crip "literal")) p.value.i.selected 0] out]
+      ==
+    selected-all:ast
+      =/  cols
+        %+  turn  metas
+        |=  cm=column-meta
+        [%column name.qualified-column.cm type.cm 0]
+      %=  $
+        selected  t.selected
+        out       (weld (flop cols) out)
+      ==
+    selected-all-table:ast
+      =/  cols
+        %+  turn
+          %+  skim  metas
+          |=  cm=column-meta
+          =(qualified-table.i.selected qualifier.qualified-column.cm)
+        |=  cm=column-meta
+        [%column name.qualified-column.cm type.cm 0]
+      %=  $
+        selected  t.selected
+        out       (weld (flop cols) out)
+      ==
+    selected-scalar:ast
+      =/  rs=resolved-scalar
+        ~|  "SELECT: scalar {<name.i.selected>} not found"
+        (~(got by resolved-scalars) name.i.selected)
+      %=  $
+        selected  t.selected
+        out       [[%column (heading i.selected name.i.selected) (resolved-scalar-type rs) 0] out]
+      ==
+    selected-cte-column:ast
+      =/  cte-fr  (~(got by named-ctes) cte.i.selected)
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)
+                              [%cte-name cte.i.selected ~]
+                              name.i.selected
+      %=  $
+        selected  t.selected
+        out       [[%column (heading i.selected name.i.selected) type.ta 0] out]
+      ==
+    selected-aggregate:ast
+      ~|("SET-QUERY CTE: aggregate result schema not supported" !!)
+  ==
+::
 ++  joined-result
   |=  $:  filter=(unit $-(data-row ?))
           qualified-columns=(list column-meta)
@@ -615,16 +788,11 @@
   |-
   ?~  raw  ?~  out
              :~  [%action 'SELECT']
-                 :-  %result-set
-                     ?~  indexed-rows.i.set-tables.join-return  ~
-                     :~  %+  mk-vect
-                             columns.i.set-tables.join-return
-                             data.i.indexed-rows.i.set-tables.join-return
-                         ==
+                 [%result-set vectors]
                  [%server-time now.bowl]
                  [%schema-time created-tmsp:(~(got by server.join-return) %sys)]
                  [%data-time created-tmsp:(~(got by server.join-return) %sys)]
-                 [%vector-count (lent indexed-rows.i.set-tables.join-return)]
+                 [%vector-count (lent vectors)]
                  ==
     %-  zing  :~  :~  [%action 'SELECT']
                       [%result-set vectors]
@@ -884,7 +1052,20 @@
   ^-  named-ctes
   |-
   ?~  ctes            nctes
-  ?>  ?=([%query *] body.i.ctes)
+  ?.  ?=([%query *] body.i.ctes)
+    ?>  ?=([%set-query *] body.i.ctes)
+    =/  cte-sq=set-query:ast  +.body.i.ctes
+    =/  sq-rt  (do-set-query cte-sq nctes)
+    =/  sq-jr=join-return  -.sq-rt
+    =/  sq-vectors=(list vector)  +.sq-rt
+    =.  state  server.sq-jr
+    =/  cte-fr
+      %-  set-query-cte-relation
+      [name.i.ctes sq-jr sq-vectors]
+    %=  $
+      nctes  (~(put by nctes) name.i.ctes cte-fr)
+      ctes   +.ctes
+    ==
   =/  cte-q=query:ast   +.body.i.ctes
   =/  =join-return    -:(do-query cte-q nctes %.y)
   =.  state             server.join-return
@@ -951,8 +1132,68 @@
                                     set-tables
                                     cte-map-meta
                                     column-metas
-                                    ==
+                                ==
     ctes   +.ctes
+  ==
+::
+++  set-query-cte-relation
+  |=  [name=@tas =join-return vectors=(list vector)]
+  ^-  full-relation
+  =/  sys-db  ~|  "At least 1 user database must exist before 'sys' database ".
+                  "can be accessed"
+                  (~(got by state) %sys)
+  =/  cols
+    %-  addr-columns
+    %-  cte-col-dups
+    :-  name
+    %+  turn  column-metas.join-return
+    |=  cm=column-meta
+    [%column name.qualified-column.cm type.cm 0]
+  =/  row-data
+    %+  turn  vectors
+    |=  v=vector
+    (vector-indexed-row v)
+  =/  st
+    :*  %set-table
+        ~
+        ~
+        [~ created-tmsp.sys-db]
+        [~ created-tmsp.sys-db]
+        cols
+        ~
+        (lent row-data)
+        [%unqualified-map-meta (mk-unqualified-typ-addr-lookup cols)]
+        ~
+        *(tree [(list @) (map @tas @)])
+        row-data
+        *(list joined-row)
+        ==
+  =/  cte-map-meta
+    %+  roll  cols
+    |=  [c=column:ast map-meta=qualified-map-meta]
+    ^-  qualified-map-meta
+    :-  %qualified-map-meta
+        %^  ~(put bi:mip +.map-meta)
+              [%cte-name name ~]
+              name.c
+              [type.c addr.c]
+  :*  %full-relation
+      [%cte-name name ~]
+      [st set-tables.join-return]
+      cte-map-meta
+      (materialized-cte-column-metas name cols)
+      ==
+::
+++  vector-indexed-row
+  |=  v=vector
+  ^-  indexed-row
+  =/  data  *(map @tas @)
+  =/  cells=(list vector-cell:ast)  +.v
+  |-
+  ?~  cells  [%indexed-row ~ data]
+  %=  $
+    cells  t.cells
+    data   (~(put by data) p.i.cells q.q.i.cells)
   ==
 ::
 ++  cte-set-tables
@@ -1426,11 +1667,32 @@
   |=  [scalars=(list scalar:ast) ctes=(list cte:ast)]
   ^-  ?
   ?|  (scalars-have-rand scalars)
-      %+  lien  ctes
-        |=  c=cte:ast
-        ?.  ?=([%query *] body.c)  |
-        (scalars-have-rand scalars.+.body.c)
+      (ctes-have-rand ctes)
   ==
+::
+++  ctes-have-rand
+  |=  ctes=(list cte:ast)
+  ^-  ?
+  %+  lien  ctes
+  |=  c=cte:ast
+  ?-  -.body.c
+    %query      (query-has-rand +.body.c)
+    %set-query  (set-query-has-rand +.body.c)
+  ==
+::
+++  set-query-has-rand
+  |=  sq=set-query:ast
+  ^-  ?
+  ?|  (query-has-rand head.sq)
+      %+  lien  tail.sq
+      |=  item=[op=set-op:ast =query:ast]
+      (query-has-rand query.item)
+  ==
+::
+++  query-has-rand
+  |=  q=query:ast
+  ^-  ?
+  (scalars-have-rand scalars.q)
 ::
 ++  scalars-have-rand
   |=  scalars=(list scalar:ast)
