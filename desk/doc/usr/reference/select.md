@@ -201,7 +201,7 @@ Avoid using `ORDER BY` in CTEs or in any query prior to the last step in a `<que
 
 `AND` performs logical *AND* on left and right predicates.
 
-`OR` performs logical *OR* on left and right predicates, takes precedence over *AND*.
+`OR` performs logical *OR* on left and right predicates.
 
 `[ NOT ] EQUIV` is a binary operator, similar to (not) equals `<>`, `=`. However, comparing two `NOT EXISTS` yields true.
 

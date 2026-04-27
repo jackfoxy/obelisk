@@ -1,6 +1,6 @@
 # Introduction
 
-If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend.
+If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend. If you are unfamiliar with relational database design we recommend a quick guide to [database design/normalization](https://www.splunk.com/en_us/blog/learn/data-normalization.html).
 
 It is recommended to read the [Preliminaries](/docs/reference/01-preliminaries.md) chapter of the Reference document before proceeding.
 
@@ -813,9 +813,13 @@ WHERE A.name = V.name
 SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
 ```
 
-## CROSS JOIN
+## CROSS JOIN 
 
 `CROSS JOIN` takes no predicate and joins every row of the joined object to each and every row of the rest of the selected objects. This is also know as a cartesian join.
+
+## Outer Joins
+
+While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, but not the Obelisk runtime in the current release, the same result can be obtaind by a `UNION` of `JOIN` followed by a `CROSS JOIN` filtered by a `WHERE` predicate, or just a `CROSS JOIN` with `WHERE` predicate filtering.
 
 # SET OPERATIONS
 
@@ -1042,224 +1046,115 @@ When the parser alone is applied to an urQL script it creates an Obelisk API str
 The parser alone may be run in the dojo from the Obelisk desk as follows:
 
 ```
-=uql "<query goes here>"
+=uql "WITH (FROM staff-assignments ".
+"          WHERE role = 'Veterinarian' ".
+"          SELECT email) AS vets ".
+"FROM vets ".
+"SELECT email ".
+"UNION ".
+"FROM staff-assignments ".
+"WHERE role = 'Manager' ".
+"SELECT email;"
 (parse:parse(default-database 'animal-shelter') uql)
 ```
 
-For instance the joined query we last ran produces the following pretty-printed dojo output:
-
 ```
 ~[
   [ %crud-txn
-    ctes=~
-      set-functions
-    { [ %query
-          from
-        [ ~
-          [ %from
-              object
-            [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-            ]
-            as-of=~
-              joins
-            ~[
-              [ %joined-relation
-                join=%join
-                  object
-                [ %qualified-table
-                    ship=~
-                    database=%animal-shelter
-                    namespace=%reference
-                    name=%calendar-us-fed-holiday
-                    alias=[~ 'T2']
-                ]
-                as-of=~
-                predicate=~
-              ]
-            ]
-          ]
-        ]
-        scalars=~
-          predicate
-        [ ~
-          { [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=~
-              ]
-              column=%date
-              alias=~
-            ]
-            %gte
-            [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
-            %between
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=~
-              ]
-              column=%date
-              alias=~
-            ]
-            %lte
-            [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
-          }
-        ]
-        group-by=~
-        having=~
-          crud-txn
-        [ %select
-          top=~
-            columns
-          ~[
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=~
-              ]
-              column=%date
-              alias=~
-            ]
-            [ %qualified-column
-                qualifier
-              [%qualified-table ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%day-name alias=~]
-              column=%day-name
-              alias=~
-            ]
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%UNKNOWN
-                namespace=%COLUMN-OR-CTE
-                name=%us-federal-holiday
-                alias=~
-              ]
-              column=%us-federal-holiday
-              alias=~
-            ]
-          ]
-        ]
-        order-by=~
-      ]
-    }
-  ]
-]
-> =parse -build-file /=obelisk=/lib/parse/hoon
-> (parse:parse(default-database 'animal-shelter') x)
-~[
-  [ %crud-txn
-    ctes=~
-      set-functions
-    { [ %query
-          from
-        [ ~
-          [ %from
-              object
-            [ %qualified-table
-              ship=~
-              database=%animal-shelter
-              namespace=%reference
-              name=%calendar
-              alias=[~ 'T1']
-            ]
-            as-of=~
-              joins
-            ~[
-              [ %joined-relation
-                join=%join
-                  object
+      ctes
+    ~[
+      [ %cte
+        name=%vets
+          body
+        [ %query
+          [ %query
+              from
+            [ ~
+              [ %from
+                  relation
                 [ %qualified-table
                   ship=~
                   database=%animal-shelter
-                  namespace=%reference
-                  name=%calendar-us-fed-holiday
-                  alias=[~ 'T2']
+                  namespace=%dbo
+                  name=%staff-assignments
+                  alias=~
                 ]
                 as-of=~
-                predicate=~
+                joins=~
               ]
             ]
+            scalars=~
+              predicate
+            { [%unqualified-column name=%role alias=~]
+              %eq
+              [p=~.t q=34.161.114.843.280.767.114.475.234.646]
+            }
+            group-by=~
+            having={}
+              select
+            [ %select
+              top=~
+              columns=~[[%unqualified-column name=%email alias=~]]
+            ]
+            order-by=~
           ]
         ]
-        scalars=~
-          predicate
-        [ ~
-          { [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-              column=%date
-              alias=~
-            ]
-            %gte
-            [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
-            %between
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-              column=%date
-              alias=~
-            ]
-            %lte
-            [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
-          }
-        ]
-        group-by=~
-        having=~
-          crud-txn
-        [ %select
-          top=~
-            columns
-          ~[
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-              column=%date
-              alias=~
-            ]
-            [%unqualified-column column=%day-name alias=~]
-            [%unqualified-column column=%us-federal-holiday alias=~]
-          ]
-        ]
-        order-by=~
       ]
-    }
+    ]
+      body
+    [ %set-query
+      [ %set-query
+          head
+        [ %query
+            from
+          [~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]]
+          scalars=~
+          predicate={}
+          group-by=~
+          having={}
+            select
+          [%select top=~ columns=~[[%unqualified-column name=%email alias=~]]]
+          order-by=~
+        ]
+          tail
+        ~[
+          [ op=%union
+              query
+            [ %query
+                from
+              [ ~
+                [ %from
+                    relation
+                  [ %qualified-table
+                    ship=~
+                    database=%animal-shelter
+                    namespace=%dbo
+                    name=%staff-assignments
+                    alias=~
+                  ]
+                  as-of=~
+                  joins=~
+                ]
+              ]
+              scalars=~
+                predicate
+              { [%unqualified-column name=%role alias=~]
+                %eq
+                [p=~.t q=32.199.642.035.675.469]
+              }
+              group-by=~
+              having={}
+                select
+              [ %select
+                top=~
+                columns=~[[%unqualified-column name=%email alias=~]]
+              ]
+              order-by=~
+            ]
+          ]
+        ]
+      ]
+    ]
   ]
 ]
 ```

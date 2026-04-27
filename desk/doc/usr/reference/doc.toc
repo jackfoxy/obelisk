@@ -3,10 +3,10 @@
 /ddl-namespace/md           DDL Namespace
 /ddl-table/md               DDL Table
 /ddl-index/md               DDL Index
-/insert/md                  Insert
-/update/md                  Update
-/delete/md                  Delete
-/truncate-table/md          Truncate Table
+/dml-insert/md              DML Insert
+/dml-update/md              DML Update
+/dml-delete/md              DML Delete
+/dml-truncate-table/md      DML Truncate Table
 /select/md                  Select
 /scalars/md                 Scalars
 /security-permissions/md    Security Permissions
