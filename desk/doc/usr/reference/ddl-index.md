@@ -1,5 +1,5 @@
 # DDL: Index
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 ## CREATE INDEX
 
@@ -76,7 +76,7 @@ create index state change after query in script
 
 ## ALTER INDEX
 
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Modifies the structure of an existing `<index>` on a user `<table>` or `<view>`.
 
@@ -149,7 +149,7 @@ alter index state change after query in script
 
 ## DROP INDEX
 
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Deletes an existing `<index>`.
 

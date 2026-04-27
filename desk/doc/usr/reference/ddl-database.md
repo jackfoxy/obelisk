@@ -52,7 +52,7 @@ database `<database>` already exists'
 
 ## DROP DATABASE
 
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Deletes an existing `<database>` and all associated objects.
 ```

@@ -12,7 +12,7 @@ Inserts rows into a `<table>`.
 
 ```
 <scalar-node> ::=
-  { <constant>
+  { <literal>
     | TBD }
 ```
 
@@ -48,7 +48,7 @@ When present, the column list must account for all column identifiers (names or 
 Row(s) of literal values to insert into target. Source auras must match target columnwise.
 
 **`<crud-txn>`**
-*crud-txn supported in urQL parser, not yet supported in Obelisk*
+*crud-txn supported in urQL parser, not yet supported in Obelisk runtime*
 
 crud-txn creating source `<relation>` to insert into target. Source auras must match target columnwise.
 

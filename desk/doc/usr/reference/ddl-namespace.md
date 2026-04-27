@@ -64,7 +64,7 @@ namespace `<namespace>` already exists
 
 ## ALTER NAMESPACE
 
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
 
@@ -122,7 +122,7 @@ alter namespace state change after query in script
 
 ## DROP NAMESPACE
 
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Deletes a `<namespace>` and all its associated objects when `FORCE` specified.
 

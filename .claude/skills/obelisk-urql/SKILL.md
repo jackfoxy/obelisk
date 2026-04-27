@@ -139,7 +139,7 @@ INSERT INTO <table> [ <as-of-time> ]
 - if column list is omitted, values must be in the table's canonical column order
 - multiple value rows are NOT comma separated (each row is its own parenthesized group)
 - the DEFAULT keyword specifies the column type's bunt (default) value
-- INSERT from SELECT is parsed but not yet supported in Obelisk engine
+- INSERT from SELECT is parsed but not yet supported in Obelisk runtime
 
 ### DELETE
 

@@ -50,7 +50,7 @@ The list of user-defined column names and associated auras.
 
 For more details on auras, refer to [01-preliminaries](01-preliminaries.md)
 
-*foreign keys supported in urQL parser, not yet supported in Obelisk*
+*foreign keys supported in urQL parser, not yet supported in Obelisk runtime*
 
 **`<foreign-key> ( <column> [ ASC | DESC ] [ ,... n ]`**
 This is a user-defined name for `<foreign-key>`.
@@ -140,7 +140,7 @@ state change after query in script
 
 ## ALTER TABLE
 
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
 
