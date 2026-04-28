@@ -4,28 +4,34 @@ Inserts rows into a `<table>`.
 
 ```
 <insert> ::=
-  INSERT INTO <table> [ <as-of-time> ]
+  INSERT INTO <table> [ <as-of> ]
     [ ( <column> [ ,...n ] ) ]
-    { VALUES (<scalar-expression> [ ,...n ] ) [ ...n ]
-      | <selection> }
+    { VALUES (<scalar-node> [ ,...n ] ) [ ...n ]
+      | <crud-txn> }
 ```
 
 ```
-<scalar-expression> ::=
-  { <constant>
+<scalar-node> ::=
+  { <literal>
     | TBD }
 ```
 
-### API
+## Example
+
 ```
-+$  insert
-  $:
-    %insert
-    table=qualified-object
-    as-of=(unit as-of)
-    columns=(unit (list @tas))
-    values=insert-values
-  ==
+INSERT INTO reference.species-vital-signs-ranges
+  (species, temperature-low, temperature-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high)
+VALUES
+  ('Dog', .99.5, .102.5, 60, 140, 10, 35)
+  ('Cat', .99.5, .102.5, 140, 220, 20, 30)
+  ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
+
+INSERT INTO reference.species-vital-signs-ranges
+:: inserted values are in canonical column order
+VALUES
+  ('Dog', .99.5, .102.5, 60, 140, 10, 35)
+  ('Cat', .99.5, .102.5, 140, 220, 20, 30)
+  ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
 ```
 
 ### Arguments
@@ -36,26 +42,38 @@ The target of the `INSERT` operation.
 **`<column>` [ ,...n ]**
 When present, the column list must account for all column identifiers (names or aliases) in the target. This determines the order in which values are applied in the `<table>`'s data rows. If not specified row values must be in the `<table>`'s canonical column order.
 
-**(`<scalar-expression>` [ ,...n ] ) [ ,...n ]**
+**(`<scalar-node>` [ ,...n ] ) [ ,...n ]**
 *fully supported in urQL parser, only literals supported in Obelisk*
 
 Row(s) of literal values to insert into target. Source auras must match target columnwise.
 
-**`<selection>`**
-*selection supported in urQL parser, not yet supported in Obelisk*
+**`<crud-txn>`**
+*crud-txn supported in urQL parser, not yet supported in Obelisk runtime*
 
-Selection creating source `<relation>` to insert into target. Source auras must match target columnwise.
+crud-txn creating source `<relation>` to insert into target. Source auras must match target columnwise.
 
-(Selection is a wrapper for query.)
+(crud-txn is a wrapper for query.)
 
-**`<as-of-time>`**
+**`<as-of>`**
 Timestamp equal to or greater than the table content state upon which to perform the INSERT operation. The resulting content timestamp will be `NOW` (current server time).
+
+### API
+```
++$  insert
+  $:
+    %insert
+    =qualified-table
+    as-of=(unit as-of)
+    columns=(unit (list @tas))
+    values=insert-values
+  ==
+```
 
 ### Remarks
 
 This command mutates the state of the Obelisk agent.
 
-The `VALUES` or `<selection>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
+The `VALUES` or `<crud-txn>` must provide data for all columns in the expected order, either the order specified by `( <column> [ ,...n ] )` or if not present the inserted columns must be arranged in the canonical order of the target `<table>` columns, i.e. the order in which the columns were specified at table creation time.
 
 The `DEFAULT` keyword may be used instead of a value to specify the column type's bunt (default) value.
 
@@ -86,14 +104,3 @@ incorrect columns specified: `<columns>`
 invalid column: `<column>`
 cannot add duplicate key: `<row-key>`
 `GRANT` permission on `<table>` violated
-
-## Example
-
-```
-INSERT INTO reference.species-vital-signs-ranges
-  (species, temperature-low, temperature-high, heart-rate-low, heart-rate-high, respiratory-rate-low, respiratory-rate-high)
-VALUES
-  ('Dog', .99.5, .102.5, 60, 140, 10, 35)
-  ('Cat', .99.5, .102.5, 140, 220, 20, 30)
-  ('Rabbit', .100.5, .103.5, 120, 150, 30, 60);
-```

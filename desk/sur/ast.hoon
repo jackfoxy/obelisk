@@ -1,4 +1,18 @@
-:: abstract syntax trees for urQL parsing and execution
+::  abstract syntax trees for urQL parsing and execution
+::
+::  FOR DEVELOPERS
+::  --------------
+::
+::  Include this file in your projects consuming %obelisk.
+::
+::  Minimally you will need the molds in the OUTPUT section.
+::
+::  You are strongly encouraged to use native urQL for all your interactions
+::  with %obelisk. If you choose to write programs using the API in order to
+::  skip the parse step it is unlikely your efforts will be significantly more
+::  efficient.
+::
+::  If you do choose to interact via the command API ust the %commands poke.
 ::
 |%
 ::
@@ -49,7 +63,6 @@
     create-namespace
     create-table
     create-view
-    delete
     drop-database
     drop-index
     drop-namespace
@@ -57,9 +70,8 @@
     drop-view
     grant
     revoke
-    selection
+    crud-txn
     truncate-table
-    update
     ==
 ::
 ::  simple union types
@@ -68,7 +80,7 @@
 +$  index-action                  ?(%rebuild %disable %resume)
 +$  all-or-any                    ?(%all %any)
 +$  bool-conjunction              ?(%and %or)
-+$  object-type                   ?(%table %view)
++$  table-or-view                 ?(%table %view)
 +$  join-type
   ?(%join %left-join %right-join %outer-join %cross-join)
 ::
@@ -152,6 +164,7 @@
   $+  cte-name
   $:  %cte-name
     name=@tas
+    alias=(unit @t)
     ==
 +$  cte-column
   $+  cte-column
@@ -193,14 +206,7 @@
     ==
 ::
 ::  $relation:
-+$  relation  $%(qualified-table cte-name query-row)
-::
-+$  query-row     ::  parses, not used for now, may never be used
-  $+  query-row
-  $:  %query-row
-    alias=(unit @t)
-    (list @t)
-    ==
++$  relation  $%(qualified-table cte-name)
 ::
 ::  $select:
 +$  select
@@ -280,26 +286,49 @@
     (list cte)
     ==
 ::
-::  $selection:
-+$  selection
-  $+  selection
-  $:  %selection
+::  $crud-txn:
++$  crud-txn
+  $+  crud-txn
+  $:  %crud-txn
     ctes=(list cte)
-    set-functions=(tree set-function)
+    body=crud-body
     ==
 ::
+::  $crud-body: terminal command of a crud-txn
++$  crud-body
+  $+  crud-body
+  $%  [%query query]
+      [%set-query set-query]
+      [%insert insert]
+      [%delete delete]
+      [%update update]
+      [%merge merge]
+  ==
+::
+::  $set-query: a sequence of queries joined by set operations
++$  set-query
+  $+  set-query
+  $:  %set-query
+    head=query
+    tail=(list [op=set-op =query])
+    ==
++$  set-op
+    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder
+    ==
+::
+::  $cte-body: body of a CTE (queries only; no DML to avoid circular type)
++$  cte-body
+  $+  cte-body
+  $%  [%query query]
+      [%set-query set-query]
+  ==
 ::  $cte:
 +$  cte
   $+  cte
   $:  %cte
     name=@tas
-    =query
+    body=cte-body
     ==
-+$  set-op
-    $?  %union  %except  %intersect  %divided-by  %divide-with-remainder  %into
-    ==
-+$  set-cmd       $%(insert merge query)
-+$  set-function  ?(set-op set-cmd)
 ::
 ::  data manipulation ASTs
 ::
@@ -308,7 +337,7 @@
 +$  delete
   $+  delete
   $:  %delete
-    ctes=(list cte)
+    scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)
     =predicate
@@ -318,7 +347,7 @@
 +$  update
   $+  update
   $:  %update
-    ctes=(list cte)
+    scalars=(list scalar)
     =qualified-table
     as-of=(unit as-of)
     $:  columns=(list qualified-column)
@@ -443,12 +472,12 @@
     name=@tas
     ==
 ::
-::  $create-view: persist a selection as a view
+::  $create-view: persist a crud-txn as a view
 +$  create-view
   $+  create-view
   $:  %create-view
     view=qualified-table
-    selection
+    crud-txn
     ==
 ::
 ::  drop ASTs
@@ -519,8 +548,8 @@
 +$  alter-index
   $+  alter-index
   $:  %alter-index
-    name=qualified-table
-    object=qualified-table
+    name=@tas
+    =qualified-table
     columns=(list ordered-column)
     action=index-action
     as-of=(unit as-of)
@@ -532,7 +561,7 @@
   $:  %alter-namespace
     database-name=@tas
     source-namespace=@tas
-    object-type=object-type
+    object-type=table-or-view
     target-namespace=@tas
     target-name=@tas
     as-of=(unit as-of)
@@ -560,12 +589,12 @@
     enabled=?
     ==
 ::
-::  $alter-view: view=qualified-table selection
+::  $alter-view: view=qualified-table crud-txn
 +$  alter-view
   $+  alter-view
   $:  %alter-view
     view=qualified-table
-    =selection
+    =crud-txn
     ==
 ::
 ::  SCALARS

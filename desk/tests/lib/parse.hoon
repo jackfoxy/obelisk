@@ -29,108 +29,109 @@
 ::       multiple command script:
 ::         alter index... db.ns.index db.ns.table columns action %disable
 ::         alter index db..index db..table one column action %rebuild
-++  test-alter-index-1
-  =/  expected1
-    :*  %alter-index
-        [%qualified-table ship=~ database='db' namespace='ns' name='my-index' ~]
-        [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
-            ==
-        %disable
-        ~
-        ==
-  =/  expected2
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db'
-            namespace='dbo'  name='my-index'  ~
-            ==
-        :*  %qualified-table  ship=~  database='db'
-            namespace='dbo'  name='table'  ~
-            ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
-        %rebuild
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected1 expected2]
-    !>  %-  parse:parse(default-database 'db1')
-      "aLter \0d INdEX\09db.ns.my-index On db.ns.table  ".
-      "( col1  asc , col2\0a desc  , col3) \0a dIsable \0a;\0a aLter \0d ".
-      "INdEX\09db..my-index On db..table  ( col1  asc ) \0a \0a rEBuild "
-::
-:: alter index 1 column without action
-++  test-alter-index-2
-  =/  expected
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db'
-            namespace='ns'  name='my-index'  alias=~
-            ==
-        :*  %qualified-table  ship=~  database='db'
-            namespace='ns'  name='table'  alias=~
-            ==
-        ~[[%ordered-column name='col1' is-ascending=%.y]]
-        %rebuild
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  %-  parse:parse(default-database 'db1')
-        "ALTER INDEX db.ns.my-index ON db.ns.table (col1)"
-::
-:: leading whitespace characters, end delimiter, alter ns.index ns.table columns no action
-++  test-alter-index-3
-  =/  expected
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='ns'  name='my-index'  alias=~
-            ==
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='ns'  name='table'  alias=~
-            ==
-        :~  [%ordered-column name='col1' is-ascending=%.y]
-            [%ordered-column name='col2' is-ascending=%.n]
-            [%ordered-column name='col3' is-ascending=%.y]
-            ==
-        %rebuild
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  %-  parse:parse(default-database 'db1')
-        "  \0d alter INDEX ns.my-index ON ns.table (col1, col2 desc, col3 asc);"
-::
-:: alter index table no columns, action only
-++  test-alter-index-4
-  =/  expected
-    :*  %alter-index
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='dbo'  name='my-index'  alias=~
-            ==
-        :*  %qualified-table  ship=~  database='db1'
-            namespace='dbo'  name='table'  alias=~
-            ==
-        ~
-        %resume
-        ~
-        ==
-  %+  expect-eq
-    !>  ~[expected]
-    !>  %-  parse:parse(default-database 'db1')
-        "ALTER INDEX my-index ON table RESUME"
-::
-:: fail when namespace qualifier is not a term
-++  test-fail-alter-index-5
-  %-  expect-fail
-  |.  %-  parse:parse(default-database 'db2')
-      "alter index my-index ON db.Ns.table (col1, col2) resume"
-::
-:: fail when table name is not a term
-++  test-fail-alter-index-6
-  %-  expect-fail
-  |.  %-  parse:parse(default-database 'other-db')
-      "alter index my-index ON db.ns.Table (col1, col2) resume"
+::::  to do: deal with alter index tests when indices implemented
+::::++  test-alter-index-1
+::::  =/  expected1
+::::    :*  %alter-index
+::::        [%qualified-table ship=~ database='db' namespace='ns' name='my-index' ~]
+::::        [%qualified-table ship=~ database='db' namespace='ns' name='table' ~]
+::::        :~  [%ordered-column name='col1' is-ascending=%.y]
+::::            [%ordered-column name='col2' is-ascending=%.n]
+::::            [%ordered-column name='col3' is-ascending=%.y]
+::::            ==
+::::        %disable
+::::        ~
+::::        ==
+::::  =/  expected2
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='dbo'  name='my-index'  ~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='dbo'  name='table'  ~
+::::            ==
+::::        ~[[%ordered-column name='col1' is-ascending=%.y]]
+::::        %rebuild
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected1 expected2]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::      "aLter \0d INdEX\09db.ns.my-index On db.ns.table  ".
+::::      "( col1  asc , col2\0a desc  , col3) \0a dIsable \0a;\0a aLter \0d ".
+::::      "INdEX\09db..my-index On db..table  ( col1  asc ) \0a \0a rEBuild "
+::::::
+:::::: alter index 1 column without action
+::::++  test-alter-index-2
+::::  =/  expected
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='ns'  name='my-index'  alias=~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db'
+::::            namespace='ns'  name='table'  alias=~
+::::            ==
+::::        ~[[%ordered-column name='col1' is-ascending=%.y]]
+::::        %rebuild
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::        "ALTER INDEX db.ns.my-index ON db.ns.table (col1)"
+::::::
+:::::: leading whitespace characters, end delimiter, alter ns.index ns.table columns no action
+::::++  test-alter-index-3
+::::  =/  expected
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='ns'  name='my-index'  alias=~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='ns'  name='table'  alias=~
+::::            ==
+::::        :~  [%ordered-column name='col1' is-ascending=%.y]
+::::            [%ordered-column name='col2' is-ascending=%.n]
+::::            [%ordered-column name='col3' is-ascending=%.y]
+::::            ==
+::::        %rebuild
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::        "  \0d alter INDEX ns.my-index ON ns.table (col1, col2 desc, col3 asc);"
+::::::
+:::::: alter index table no columns, action only
+::::++  test-alter-index-4
+::::  =/  expected
+::::    :*  %alter-index
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='dbo'  name='my-index'  alias=~
+::::            ==
+::::        :*  %qualified-table  ship=~  database='db1'
+::::            namespace='dbo'  name='table'  alias=~
+::::            ==
+::::        ~
+::::        %resume
+::::        ~
+::::        ==
+::::  %+  expect-eq
+::::    !>  ~[expected]
+::::    !>  %-  parse:parse(default-database 'db1')
+::::        "ALTER INDEX my-index ON table RESUME"
+::::::
+:::::: fail when namespace qualifier is not a term
+::::++  test-fail-alter-index-5
+::::  %-  expect-fail
+::::  |.  %-  parse:parse(default-database 'db2')
+::::      "alter index my-index ON db.Ns.table (col1, col2) resume"
+::::::
+:::::: fail when table name is not a term
+::::++  test-fail-alter-index-6
+::::  %-  expect-fail
+::::  |.  %-  parse:parse(default-database 'other-db')
+::::      "alter index my-index ON db.ns.Table (col1, col2) resume"
 ::
 ::
 :: alter namespace
@@ -1876,11 +1877,13 @@
 ++  delete-pred2
   [%eq [column-bar2 ~ ~] [column-foo4 ~ ~]]
 ++  cte-t1
+  =/  q
+    :*  %query  ~  scalars=~  predicate=~
+        group-by=~  having=~
+        select=select-all-columns  ~
+        ==
   :*  %cte  name='t1'
-      :*  %query  ~  scalars=~  predicate=~
-          group-by=~  having=~
-          select=select-all-columns  ~
-          ==
+      body=[%query q]
       ==
 ++  cte-foobar
   =/  qt
@@ -1890,16 +1893,18 @@
         ==
   =/  from-clause
     [%from relation=qt as-of=~ joins=~]
+  =/  q
+    :*  %query  [~ from-clause]  scalars=~
+        :*  %eq
+            [col1 ~ ~]
+            [[value-type=%ud value=2] ~ ~]
+            ==
+        group-by=~  having=~
+        [%select top=~ columns=~[col3 col4]]
+        ~
+        ==
   :*  %cte  name='foobar'
-      :*  %query  [~ from-clause]  scalars=~
-          :*  %eq
-              [col1 ~ ~]
-              [[value-type=%ud value=2] ~ ~]
-              ==
-          group-by=~  having=~
-          [%select top=~ columns=~[col3 col4]]
-          ~
-          ==
+      body=[%query q]
       ==
 ++  cte-bar
   =/  qt
@@ -1909,13 +1914,15 @@
         ==
   =/  from-clause
     [%from relation=qt as-of=~ joins=~]
+  =/  q
+    :*  %query  [~ from-clause]  scalars=~
+        [%eq [col1 ~ ~] [col2 ~ ~]]
+        group-by=~  having=~
+        [%select top=~ columns=~[col2]]
+        ~
+        ==
   :*  %cte  name='bar'
-      :*  %query  [~ from-clause]  scalars=~
-          [%eq [col1 ~ ~] [col2 ~ ~]]
-          group-by=~  having=~
-          [%select top=~ columns=~[col2]]
-          ~
-          ==
+      body=[%query q]
       ==
 ++  foo-table
   [%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~]
@@ -1929,8 +1936,8 @@
 ::
 :: delete with predicate 2X
 ++  test-delete-00
-  =/  expected1  [%delete ctes=~ table=foo-table ~ delete-pred]
-  =/  expected2  [%delete ctes=~ table=foobar-table ~ delete-pred2]
+  =/  expected1  [%crud-txn ctes=~ body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
+  =/  expected2  [%crud-txn ctes=~ body=[%delete [%delete scalars=~ table=foobar-table ~ delete-pred2]]]
   =/  urql  "delete from foo  where foo=bar; DELETE foobar where bar=foo"
   %+  expect-eq
     !>  ~[expected1 expected2]
@@ -1938,7 +1945,7 @@
 ::
 :: delete with predicate as of now
 ++  test-delete-01
-  =/  expected  [%delete ctes=~ table=foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~ body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1946,11 +1953,15 @@
 ::
 :: delete with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-02
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -1959,11 +1970,15 @@
 ::
 :: delete with predicate as of 5 seconds ago
 ++  test-delete-03
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -1972,7 +1987,7 @@
 ::
 :: delete with one cte and predicate
 ++  test-delete-04
-  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred] 
+  =/  expected  [%crud-txn ctes=~[cte-t1] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1980,7 +1995,7 @@
 ::
 :: delete with one cte and predicate as of now
 ++  test-delete-05
-  =/  expected  [%delete ctes=~[cte-t1] table=foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~[cte-t1] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -1988,11 +2003,15 @@
 ::
 :: delete with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-06
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2002,11 +2021,15 @@
 ::
 :: delete with one cte and predicate as of 5 seconds ago
 ++  test-delete-07
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2016,12 +2039,7 @@
 ::
 :: delete with two ctes and predicate
 ++  test-delete-08
-  =/  expected  :*  %delete
-                    ctes=~[cte-t1 cte-foobar]
-                    table=foo-table
-                    ~
-                    delete-pred
-                    ==
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2031,12 +2049,7 @@
 ::
 :: delete with two ctes and predicate as of now
 ++  test-delete-09
-  =/  expected  :*  %delete
-                    ctes=~[cte-t1 cte-foobar]
-                    table=foo-table
-                    ~
-                    delete-pred
-                    ==
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar] body=[%delete [%delete scalars=~ table=foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2046,11 +2059,15 @@
 ::
 :: delete with two ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-10
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar]
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2061,11 +2078,15 @@
 ::
 :: delete with two ctes and predicate as of 5 seconds ago
 ++  test-delete-11
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar]
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2076,7 +2097,7 @@
 ::
 :: delete with three ctes and predicate
 ++  test-delete-12
-  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar cte-bar] body=[%delete [%delete scalars=~ foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2087,7 +2108,7 @@
 ::
 :: delete with three ctes and predicate as of now
 ++  test-delete-13
-  =/  expected  [%delete ~[cte-t1 cte-foobar cte-bar] foo-table ~ delete-pred]
+  =/  expected  [%crud-txn ctes=~[cte-t1 cte-foobar cte-bar] body=[%delete [%delete scalars=~ foo-table ~ delete-pred]]]
   %+  expect-eq
     !>  ~[expected]
     !>  %-  parse:parse(default-database 'db1')
@@ -2098,11 +2119,15 @@
 ::
 :: delete with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-delete-14
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    table=foo-table
-                    [~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2114,11 +2139,15 @@
 ::
 :: delete with three ctes and predicate as of 5 seconds ago
 ++  test-delete-15
-  =/  expected  :*  %delete
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    table=foo-table
-                    [~ [%as-of-offset 5 %seconds]]
-                    delete-pred
+                    :-  %delete
+                    :*  %delete
+                        scalars=~
+                        table=foo-table
+                        [~ [%as-of-offset 5 %seconds]]
+                        delete-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -2127,6 +2156,75 @@
             "(from foobar where col1=2 select col3, col4) as foobar, ".
             "(from bar where col1=col2 select col2) as bar ".
             "delete from foo as of 5 seconds ago where foo=bar"
+::
+:: delete with 2 scalars, no cte
+++  test-delete-16
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                     ==
+               ==
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %delete
+                    :*  %delete
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        delete-pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "delete from foo where foo=bar"
+::
+:: delete with 2 scalars and 1 cte
+++  test-delete-17
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                   ==
+               ==
+  =/  expected  :*  %crud-txn
+                    ctes=~[cte-t1]
+                    :-  %delete
+                    :*  %delete
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        delete-pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 ".
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "delete from foo where foo=bar"
 ::
 :: drop database
 ::
@@ -2770,9 +2868,10 @@
 ::       3) enforce consistent value counts across rows
 ++  test-insert-00
   =/  expected1
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -2809,12 +2908,11 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  expected2
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -2847,8 +2945,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql1  " iNsert  iNto  db.ns.my-table  ".
     "( col1 ,  col2 ,  col3 ,  col4 ,  col5 ,  col6 ,  col7 ,  col8 ,  col9 )".
     " Values  ".
@@ -2864,9 +2960,10 @@
 :: no columns, 3 rows
 ++  test-insert-01
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db1'
@@ -2907,8 +3004,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert into my-table ".
     "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
     " (default,.195.198.143.90, 195.198.143.900)".
@@ -2921,9 +3016,10 @@
 :: no columns, 3 rows, as of now
 ++  test-insert-02
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db1'
@@ -2964,8 +3060,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert into my-table as of now ".
     "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
     " (default,.195.198.143.90, 195.198.143.900)".
@@ -2978,9 +3072,10 @@
 :: no columns, 3 rows, as of ~2023.12.25..7.15.0..1ef5
 ++  test-insert-03
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db1'
@@ -3021,8 +3116,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert into my-table as of ~2023.12.25..7.15.0..1ef5".
     "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
     " (default,.195.198.143.90, 195.198.143.900)".
@@ -3035,9 +3128,10 @@
 :: no columns, 3 rows, as of 5 days ago
 ++  test-insert-04
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db1'
@@ -3078,8 +3172,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert into my-table  as of 5 days ago".
     "values ('cord',.3.14,-20,20,.3.14,~nomryg-nilref,.-3.14, 'cor\\'d', --3)".
     " (default,.195.198.143.90, 195.198.143.900)".
@@ -3092,9 +3184,10 @@
 :: no columns, 3 rows, as of now
 ++  test-insert-05
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -3131,8 +3224,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert  into  db.ns.my-table as of now ".
     "(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
     " values  ".
@@ -3145,9 +3236,10 @@
 :: no columns, 3 rows, as of now
 ++  test-insert-06
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -3184,8 +3276,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert  into  db.ns.my-table  as of ~2023.12.25..7.15.0..1ef5".
     "(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
     " values ".
@@ -3198,9 +3288,10 @@
 :: no columns, 3 rows, as of offset
 ++  test-insert-07
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -3237,8 +3328,6 @@
                             ==
                         ==
             ==
-        ~
-        ~
   =/  urql  "insert  into  db.ns.my-table as of 5 days ago ".
     "(col1, col2, col3, col4, col5, col6, col7, col8, col9 )".
     " values ".
@@ -3279,9 +3368,10 @@
         [~.uw 1.870.418.170.505.042.572.886]
         ==
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -3293,8 +3383,6 @@
                 columns=~
                 [%data ~[row1]]
                 ==
-            ~
-            ~
   =/  urql  "insert into db.ns.my-table ".
     "values ('cord',~nomryg-nilref,nomryg-nilref,~2020.12.25..7.15.0..1ef5,".
     "2020.12.25..7.15.0..1ef5,~d71.h19.m26.s24..9d55, d71.h19.m26.s24..9d55,".
@@ -3336,9 +3424,10 @@
         [~.uw 1.870.418.170.505.042.572.886]
         ==
   =/  expected
-    :+  %selection
+    :+  %crud-txn
         ctes=~
-        :+  :*  %insert
+        :-  %insert
+            :*  %insert
                 :*  %qualified-table
                     ship=~
                     database='db'
@@ -3350,8 +3439,6 @@
                 columns=~
                 [%data ~[row1]]
                 ==
-            ~
-            ~
   =/  urql  "insert into db.ns.my-table ".
     "values ( 'cor,d' , ~nomryg-nilref , nomryg-nilref , ".
     "~2020.12.25..7.15.0..1ef5 , 2020.12.25..7.15.0..1ef5 , ".
@@ -3367,9 +3454,10 @@
 ++  test-insert-10
   =/  expected
     :~
-      :+  %selection
+      :+  %crud-txn
           ctes=~
-          :+  :*  %insert
+          :-  %insert
+              :*  %insert
                   :*  %qualified-table
                     ship=~
                     database='db'
@@ -3396,8 +3484,6 @@
                             ==
                         ==
               ==
-          ~
-          ~
     ==
   =/  urql  "insert into db.ns.my-table ".
             "values (2.222,2222,195.198.143.900,.3.14,.-3.14,.~3.14,".
@@ -3716,7 +3802,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top, trailing whitespace
@@ -3729,7 +3815,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top
@@ -3742,7 +3828,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top, trailing whitespace
@@ -3755,7 +3841,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select top
@@ -3768,7 +3854,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select, trailing whitespace
@@ -3780,7 +3866,7 @@
         select-all-columns  order-by=~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  star select
@@ -3792,7 +3878,7 @@
         select-all-columns  order-by=~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  select top, simple columns
@@ -3855,7 +3941,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  from foo select top, simple columns, trailing space, no internal space
@@ -3911,7 +3997,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aliased format 1 columns
@@ -3962,7 +4048,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  aliased format 1, top, columns, no whitespace
@@ -4012,7 +4098,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  mixed all, object all, object alias all, column, aliased column
@@ -4025,7 +4111,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::::
 ::::  , top, mixed all, object all, object alias all, column, aliased column, no whitespace
@@ -4038,7 +4124,7 @@
         ~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 
 ::::  to do: revive tests when group by implemented 
@@ -4049,7 +4135,7 @@
 ::              "JOIN tbl2 ".
 ::              "select  foo , COUNT(foo) as CountFoo, cOUNT( bar) ,sum(bar ) , sum( foobar ) as foobar "
 ::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=~ columns=aggregates] ~] ~ ~]]]
+::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=~ columns=aggregates] ~]]]]
 ::    !>  (parse:parse(default-database 'db1') select)
 ::::
 ::::  , top, mixed aggregates, no whitespace
@@ -4058,7 +4144,7 @@
 ::              "JOIN tbl2 ".
 ::              "select top 10 foo,COUNT(foo) as CountFoo,cOUNT( bar),sum(bar ),sum( foobar ) as foobar"
 ::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] columns=aggregates] ~] ~ ~]]]
+::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-aggregate scalars=~ ~ group-by=~ having=~ [%select top=[~ 10] columns=aggregates] ~]]]]
 ::    !>  (parse:parse(default-database 'db1') select)
 ::
 :: fail top, no top parameter, trailing whitespace
@@ -4067,13 +4153,13 @@
     %-  expect-fail
     |.  (parse:parse(default-database 'db1') select)
 ::
-:: fail top, no column selection, trailing whitespace
+:: fail top, no column crud-txn, trailing whitespace
 ++  test-fail-select-01
     =/  select  "select top 10   "
     %-  expect-fail
     |.  (parse:parse(default-database 'db1') select)
 ::
-:: fail top, no column selection, trailing whitespace
+:: fail top, no column crud-txn, trailing whitespace
 ++  test-fail-select-02
     =/  select  "select top 10    "
     %-  expect-fail
@@ -4091,19 +4177,19 @@
     %-  expect-fail
     |.  (parse:parse(default-database 'db1') select)
 ::
-:: fail no column selection, trailing whitespace
+:: fail no column crud-txn, trailing whitespace
 ++  test-fail-select-05
     =/  select  "select         "
     %-  expect-fail
     |.  (parse:parse(default-database 'db1') select)
 ::
-:: fail top, no column selection
+:: fail top, no column crud-txn
 ++  test-fail-select-06
     =/  select  "select top 10"
     %-  expect-fail
     |.  (parse:parse(default-database 'db1') select)
 ::
-:: fail no column selection
+:: fail no column crud-txn
 ++  test-fail-select-07
     =/  select  "select"
     %-  expect-fail
@@ -4146,7 +4232,7 @@
         select=select-all-columns  order-by=~
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  group by, no whitespace, with predicate
@@ -4155,7 +4241,7 @@
 ::  =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
 ::  =/  select  "from foo where T1.foo = T2.bar group by db.ns.table.col,T1.foo,3,4 select *"
 ::  %+  expect-eq
-::    !>  ~[[%selection ctes=~ [[%query from-foo scalars=~ predicate=pred group-by=group-by having=~ select=select-all-columns order-by=~] ~ ~]]]
+::    !>  ~[[%crud-txn ctes=~ body=[%query [%query from-foo scalars=~ predicate=pred group-by=group-by having=~ select=select-all-columns order-by=~]]]]
 ::    !>  (parse:parse(default-database 'db1') select)
 ::
 ::  order by
@@ -4169,7 +4255,7 @@
         select=select-all-columns  order-by
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 ::  order by, no whitespace
@@ -4183,7 +4269,7 @@
         select=select-all-columns  order-by
         ==
   %+  expect-eq
-    !>  ~[[%selection ctes=~ [query ~ ~]]]
+    !>  ~[[%crud-txn ctes=~ body=[%query query]]]
     !>  (parse:parse(default-database 'db1') select)
 ::
 :: update
@@ -4199,13 +4285,17 @@
 ::
 :: update one column, no predicate
 ++  test-update-00
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4214,13 +4304,17 @@
 ::
 :: update one column, no predicate as of now
 ++  test-update-01
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4229,13 +4323,17 @@
 ::
 :: update one column, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-02
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4244,13 +4342,17 @@
 ::
 :: update one column, no predicate as of 4 seconds ago
 ++  test-update-03
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col1]
-                        values=~[[value-type=%t value='hello']]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4259,13 +4361,17 @@
 ::
 :: update two columns, no predicate
 ++  test-update-04
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4274,16 +4380,20 @@
 ::
 :: update three columns, no predicate, end of command marker
 ++  test-update-04a
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col4 upd-col3 upd-col1]
-                        :~  %default
-                            [value-type=%ud value=44]
-                            [value-type=%t value='hello']
-                            ==
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col4 upd-col3 upd-col1]
+                            :~  %default
+                                [value-type=%ud value=44]
+                                [value-type=%t value='hello']
+                                ==
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4294,13 +4404,17 @@
 ::
 :: update two columns, no predicate as of now
 ++  test-update-05
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4309,13 +4423,17 @@
 ::
 :: update two columns, no predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-06
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4325,13 +4443,17 @@
 ::
 :: update two columns, no predicate as of 4 seconds ago
 ++  test-update-07
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=~
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=~
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4340,13 +4462,17 @@
 ::
 :: update two columns, with predicate
 ++  test-update-08
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4355,13 +4481,17 @@
 ::
 :: update two columns, with predicate as of now
 ++  test-update-09
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4371,13 +4501,17 @@
 ::
 :: update two columns, with predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-10
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4387,13 +4521,17 @@
 ::
 :: update two columns, with predicate as of 4 seconds ago
 ++  test-update-11
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4403,13 +4541,17 @@
 ::
 :: update with one cte and predicate
 ++  test-update-12
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4419,13 +4561,17 @@
 ::
 :: update with one cte and predicate as of now
 ++  test-update-13
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4435,13 +4581,17 @@
 ::
 :: update with one cte and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-14
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4452,13 +4602,17 @@
 ::
 :: update with one cte and predicate as of 4 seconds ago
 ++  test-update-15
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1]
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4471,13 +4625,17 @@
 :: if we remove the from statements after the with the test passes
 :: with the parse-scalar rule present
 ++  test-update-16
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4489,13 +4647,17 @@
 ::
 :: update with three ctes and predicate as of now
 ++  test-update-17
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    table=foo-table
-                    as-of=~
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4508,13 +4670,17 @@
 ::
 :: update with three ctes and predicate as of ~2023.12.25..7.15.0..1ef5
 ++  test-update-18
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    table=foo-table
-                    as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4527,13 +4693,17 @@
 ::
 :: update with three ctes and predicate as of 4 seconds ago
 ++  test-update-19
-  =/  expected  :*  %update
+  =/  expected  :*  %crud-txn
                     ctes=~[cte-t1 cte-foobar cte-bar]
-                    table=foo-table
-                    as-of=[~ [%as-of-offset 4 %seconds]]
-                    :-  columns=~[upd-col3 upd-col1]
-                        values=~[[value-type=%t value='hello'] unqlf-2]
-                    predicate=update-pred
+                    :-  %update
+                    :*  %update
+                        scalars=~
+                        table=foo-table
+                        as-of=[~ [%as-of-offset 4 %seconds]]
+                        :-  columns=~[upd-col3 upd-col1]
+                            values=~[[value-type=%t value='hello'] unqlf-2]
+                        predicate=update-pred
+                        ==
                     ==
   %+  expect-eq
     !>  ~[expected]
@@ -4543,6 +4713,79 @@
             "(from bar where col1=col2 select col2) as bar ".
             "update foo as of 4 seconds ago set col1=col2, col3 = 'hello' ".
             "where 1 = 1 and col2 = 4"
+::
+:: update with 2 scalars, no cte
+++  test-update-20
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                   ==
+               ==
+  =/  expected  :*  %crud-txn
+                    ctes=~
+                    :-  %update
+                    :*  %update
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=update-pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "update foo set col1='hello' where 1 = 1 and col2 = 4"
+::
+:: update with 2 scalars and 1 cte
+++  test-update-21
+  =/  sc1  :*  %scalar
+               name='add-10'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=10]
+                   ==
+               ==
+  =/  sc2  :*  %scalar
+               name='add-20'
+               :*  %arithmetic
+                   operator=%lus
+                   left=[%unqualified-column 'col3' ~]
+                   right=[p=%ud q=20]
+                   ==
+               ==
+  =/  expected  :*  %crud-txn
+                    ctes=~[cte-t1]
+                    :-  %update
+                    :*  %update
+                        scalars=~[sc1 sc2]
+                        table=foo-table
+                        as-of=~
+                        :-  columns=~[upd-col1]
+                            values=~[[value-type=%t value='hello']]
+                        predicate=update-pred
+                        ==
+                    ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "with (select *) as t1 ".
+            "scalars add-10 col3 + 10 end add-20 col3 + 20 end ".
+            "update foo set col1='hello' where 1 = 1 and col2 = 4"
 ::
 :: merge
 ::
@@ -4591,7 +4834,7 @@
         [%select top=~ columns=cols]
         order-by=~
         ==
-  [%cte name='T1' query]
+  [%cte name='T1' body=[%query query]]
 ++  cte-bar-foobar-src
   =/  qt-bar
     :*  %qualified-table  ship=~
@@ -4621,7 +4864,7 @@
         [%select top=~ columns=cols]
         order-by=~
         ==
-  [%cte name='src' query]
+  [%cte name='src' body=[%query query]]
 ++  qt-src
   :*  %qualified-table  ship=~
       database='UNKNOWN'  namespace='COLUMN'
@@ -4633,8 +4876,6 @@
   [%qualified-column qualifier=qt-src column='bar' alias=~]
 ++  column-src-foobar
   [%qualified-column qualifier=qt-src column='foobar' alias=~]
-++  passthru-tgt  [%query-row alias=[~ 'tgt'] ~['col1' 'col2' 'col3']]
-++  passthru-src  [%query-row alias=[~ 'src'] ~['col1' 'col2' 'col3']]
 ::::
 ::::
 ::++  test-merge-01
@@ -4645,7 +4886,7 @@
 ::" WHEN MATCHED THEN ".
 ::"    UPDATE SET foobar = src.foo "
 ::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']] new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%crud-txn ctes=~[cte-bar-foobar] body=[%merge [%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']] new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~]]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
@@ -4660,7 +4901,7 @@
 ::"    UPDATE SET foobar = src.foo, ".
 ::"    bar = bar "
 ::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']] new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%crud-txn ctes=~[cte-bar-foobar] body=[%merge [%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=[~ 'tgt']] new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo] ['bar' column-bar]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~]]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
@@ -4677,103 +4918,10 @@
 ::"    INSERT (bar, foobar) ".
 ::"    VALUES (src.bar, 99)"
 ::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar-src] [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='src' alias=~] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
+::    [%crud-txn ctes=~[cte-bar-foobar-src] body=[%merge [%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='src' alias=~] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~]]]
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::  query row tests, uncomment when query row implemented
-::::
-:::: merge target passthru alias AS
-::++  test-merge-04
-::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-::" MERGE INTO (col1,col2,col3) AS tgt ".
-::" USING T1 AS src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED THEN ".
-::"    UPDATE SET foobar = src.foo "
-::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-:::: merge target passthru alias
-::++  test-merge-05
-::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-::" MERGE INTO ( col1, col2 , col3) tgt ".
-::" USING T1 AS src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED THEN ".
-::"    UPDATE SET foobar = src.foo "
-::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-tgt new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-:::: merge target passthru unaliased
-::++  test-merge-06
-::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-::" MERGE INTO (col1, col2 , col3)  ".
-::" USING T1 AS src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED THEN ".
-::"    UPDATE SET foobar = src.foo "
-::  =/  expected
-::    [%selection ctes=~[cte-bar-foobar] [[%merge target-table=passthru-unaliased new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::merge source passthru alias AS
-::++  test-merge-07
-::  =/  query  "MERGE dbo.foo ".
-::" USING (col1, col2 , col3) as src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED AND 1 = 1 THEN ".
-::"    UPDATE SET foobar = src.foobar ".
-::" WHEN NOT MATCHED THEN ".
-::"    INSERT (bar, foobar) ".
-::"    VALUES (src.bar, 99)"
-::  =/  expected
-::    [%selection ctes=~ [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::merge source passthru alias AS
-::++  test-merge-08
-::  =/  query  "MERGE dbo.foo ".
-::" USING (col1, col2 , col3) src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED AND 1 = 1 THEN ".
-::"    UPDATE SET foobar = src.foobar ".
-::" WHEN NOT MATCHED THEN ".
-::"    INSERT (bar, foobar) ".
-::"    VALUES (src.bar, 99)"
-::  =/  expected
-::    [%selection ctes=~ [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::merge source passthru alias AS
-::++  test-merge-09
-::  =/  query  "MERGE dbo.foo ".
-::" USING (col1, col2 , col3) ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED AND 1 = 1 THEN ".
-::"    UPDATE SET foobar = src.foobar ".
-::" WHEN NOT MATCHED THEN ".
-::"    INSERT (bar, foobar) ".
-::"    VALUES (src.bar, 99)"
-::  =/  expected
-::    [%selection ctes=~ [[%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~] ~ ~]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-:: to do: tests for merge to new file
 ::
 :: block comment
 ::
@@ -4909,9 +5057,9 @@
       [%select top=~ columns=s3]  order-by=~
       ==
 ::
-++  t1  [%selection ctes=~ set-functions=[q1 ~ ~]]
-++  t2  [%selection ctes=~ set-functions=[q2 ~ ~]]
-++  t3  [%selection ctes=~ set-functions=[q3 ~ ~]]
+++  t1  [%crud-txn ctes=~ body=[%query q1]]
+++  t2  [%crud-txn ctes=~ body=[%query q2]]
+++  t3  [%crud-txn ctes=~ body=[%query q3]]
 ::
 ++  test-block-cmnt-08
   %+  expect-eq
@@ -4958,10 +5106,10 @@
       [%select top=~ columns=s3b]  order-by=~
       ==
 ::
-++  t1a  [%selection ctes=~ set-functions=[q1a ~ ~]]
-++  t2a  [%selection ctes=~ set-functions=[q2a ~ ~]]
-++  t3a  [%selection ctes=~ set-functions=[q3a ~ ~]]
-++  t3b  [%selection ctes=~ set-functions=[q3b ~ ~]]
+++  t1a  [%crud-txn ctes=~ body=[%query q1a]]
+++  t2a  [%crud-txn ctes=~ body=[%query q2a]]
+++  t3a  [%crud-txn ctes=~ body=[%query q3a]]
+++  t3b  [%crud-txn ctes=~ body=[%query q3b]]
 ::
 ++  test-line-cmnt-00
   %+  expect-eq
@@ -5069,9 +5217,9 @@
         order-by=~
         ==
   =/  expected
-    :~  :+  %selection
-            ctes=~[[%cte name='first' query=first-cte-query]]
-            [query ~ ~]
+    :~  :+  %crud-txn
+            ctes=~[[%cte name='first' body=[%query first-cte-query]]]
+            body=[%query query]
         ==
   %+  expect-eq
     !>  expected
@@ -5144,11 +5292,11 @@
         order-by=~
         ==
   =/  expected
-    :~  :*  %selection
-            :~  :*  %cte  name='first'  query=first-cte-query  ==
-                :*  %cte  name='second'  query=second-cte-query  ==
+    :~  :*  %crud-txn
+            :~  :*  %cte  name='first'  body=[%query first-cte-query]  ==
+                :*  %cte  name='second'  body=[%query second-cte-query]  ==
                 ==
-            [query ~ ~]
+            body=[%query query]
         ==
     ==
   %+  expect-eq
@@ -5159,6 +5307,176 @@
         "SELECT col3, col4, first.col1, first.col2 AS my-col2) as second ".
         "FROM foo3 ".
         "SELECT col5, first.col1, first.col2, second.col1, second.my-col2 AS my-col-2"
+::
+::  set operations
+::
+::  helpers for set-op tests
+++  foo-set-query
+  :*  %query
+      from-foo
+      scalars=~
+      predicate=~
+      group-by=~
+      having=~
+      select-all-columns
+      ~
+      ==
+++  bar-table
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='bar' alias=~]
+++  from-bar
+  [~ [%from relation=bar-table as-of=~ joins=~]]
+++  bar-set-query
+  :*  %query
+      from-bar
+      scalars=~
+      predicate=~
+      group-by=~
+      having=~
+      select-all-columns
+      ~
+      ==
+++  baz-table
+  [%qualified-table ship=~ database='db1' namespace='dbo' name='baz' alias=~]
+++  from-baz
+  [~ [%from relation=baz-table as-of=~ joins=~]]
+++  baz-set-query
+  :*  %query
+      from-baz
+      scalars=~
+      predicate=~
+      group-by=~
+      having=~
+      select-all-columns
+      ~
+      ==
+::  UNION: basic two-query union
+++  test-set-op-union-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%union query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT * UNION FROM bar SELECT *")
+::  UNION: mixed case keyword
+++  test-set-op-union-01
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%union query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT * uNiOn FROM bar SELECT *")
+::  EXCEPT
+++  test-set-op-except-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%except query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT * EXCEPT FROM bar SELECT *")
+::  INTERSECT
+++  test-set-op-intersect-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%intersect query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT * INTERSECT FROM bar SELECT *")
+::  DIVIDED BY (mixed case)
+++  test-set-op-divided-by-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%divided-by query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT * DiViDeD bY FROM bar SELECT *")
+::  DIVIDED BY WITH REMAINDER
+++  test-set-op-divide-with-remainder-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            tail=~[[op=%divide-with-remainder query=bar-set-query]]
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  (parse:parse(default-database 'db1') "FROM foo SELECT * DIVIDED BY WITH REMAINDER FROM bar SELECT *")
+::  Three-query chain: q1 UNION q2 EXCEPT q3
+++  test-set-op-chain-00
+  =/  expected
+    :+  %crud-txn
+        ctes=~
+        :-  %set-query
+        :*  %set-query
+            head=foo-set-query
+            :~  [op=%union query=bar-set-query]
+                [op=%except query=baz-set-query]
+                ==
+            ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "FROM foo SELECT * UNION FROM bar SELECT * EXCEPT FROM baz SELECT *"
+::  CTE with set-op body: WITH (q1 UNION q2) AS cte FROM cte SELECT *
+++  test-set-op-cte-union-00
+  =/  cte-body=cte-body:ast
+    :-  %set-query
+    :*  %set-query
+        head=foo-set-query
+        tail=~[[op=%union query=bar-set-query]]
+        ==
+  =/  cte-name  'u1'
+  =/  cte-table
+    :*  %qualified-table  ship=~
+        database='UNKNOWN'  namespace='COLUMN-OR-CTE'
+        name='u1'  alias=~
+        ==
+  =/  outer-from
+    [~ [%from relation=[%cte-name 'u1' ~] as-of=~ joins=~]]
+  =/  outer-q
+    :*  %query
+        outer-from
+        scalars=~
+        predicate=~
+        group-by=~
+        having=~
+        select-all-columns
+        ~
+        ==
+  =/  expected
+    :+  %crud-txn
+        ctes=~[[%cte name=cte-name body=cte-body]]
+        body=[%query outer-q]
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+            "WITH (FROM foo SELECT * UNION FROM bar SELECT *) AS u1 FROM u1 SELECT *"
 ::
 :: fail: cte name conflicts with from alias (case-insensitive)
 ++  test-fail-cte-alias-conflict-00

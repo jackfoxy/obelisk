@@ -36,9 +36,24 @@
 =uql "DELETE FROM my-table-2".
 " WHERE col1 = 'tomorrow';"
 
+## UPDATE
+
+=uql "UPDATE my-table-2 ".
+"SET col3=99 ".
+"WHERE col1 = 'today';"
+
+=uql "UPDATE my-table-2 ".
+"SET col3=DEFAULT;"
+
 ## TRUNCATE TABLE
 
 =uql "TRUNCATE TABLE my-table-1;"
+
+## DROP TABLE
+
+=uql "DROP TABLE my-table-1;"
+
+=uql "DROP TABLE FORCE my-table-2;"
 
 
 # Sample Database
@@ -55,7 +70,17 @@
 "SELECT *;"
 
 =uql "FROM reference.calendar ".
+"SELECT date, year, month, month-name, day, day-name, day-of-year, weekday, year-week;"
+
+=uql "FROM reference.calendar ".
 "SELECT day-name AS Day;"
+
+## SCALARS
+
+=uql "FROM adoptions ".
+"SCALARS full-label CONCAT(name, ' (', species, ')') ".
+"        fee-tier IF adoption-fee > 75 THEN 'premium' ELSE 'standard' ENDIF ".
+"SELECT name, species, adoption-date, full-label, fee-tier;"
 
 
 # The WHERE clause
@@ -76,6 +101,24 @@
 "       OR day = 3) ".
 "SELECT *;"
 
+## WITH clause
+
+=uql "WITH (FROM persons P ".
+"      JOIN staff S ".
+"      SELECT P.first-name, P.last-name, P.email, S.hire-date) AS shelter-staff ".
+"FROM shelter-staff ".
+"WHERE hire-date > ~2018.1.1 ".
+"SELECT first-name, last-name, hire-date;"
+
+=uql "WITH (FROM adoptions ".
+"      WHERE species = 'Dog' ".
+"      SELECT name, adopter-email, adoption-fee) AS dog-adoptions, ".
+"     (FROM dog-adoptions ".
+"      WHERE adoption-fee > 75 ".
+"      SELECT name, adopter-email) AS premium-dogs ".
+"FROM premium-dogs ".
+"SELECT *;"
+
 
 # Time Travel
 
@@ -94,13 +137,13 @@
 =uql "CREATE DATABASE db2 AS OF ~2000.1.1;".
 "CREATE TABLE db2..my-table-1".
 " (col1 @t, col2 @da) PRIMARY KEY (col1) AS OF ~2000.1.1;".
-"INSERT INTO db2..my-table-1  AS OF ~2000.1.1".
+"INSERT INTO db2..my-table-1 ".
 "  (col1, col2) ".
 "VALUES".
 "  ('today', ~2000.1.1)".
 "  ('tomorrow', ~2000.1.2)".
 "  ('next day', ~2000.1.3);".
-"INSERT INTO db2..my-table-1 ".
+"INSERT INTO db2..my-table-1 AS OF ~2000.1.1 ".
 "  (col1, col2) ".
 "VALUES".
 "  ('next-today', ~2000.1.1)".
@@ -111,7 +154,7 @@
 "SELECT *;"
 
 =uql "FROM db2..my-table-1 ".
-"  AS OF ~2016.11.11 ".
+"  AS OF ~2024.10.3 ".
 "SELECT *;"
 
 
@@ -127,6 +170,100 @@
      "JOIN reference.calendar-us-fed-holiday T2 ".
      "WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31 ".
      "SELECT T1.date, day-name, us-federal-holiday;"
+
+=uql "FROM adoptions A ".
+     "JOIN vaccinations V ".
+     "  ON A.name = V.name ".
+     " AND A.species = V.species ".
+     "SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;"
+
+=uql "FROM adoptions A ".
+     "CROSS JOIN vaccinations V ".
+     "WHERE A.name = V.name ".
+     "  AND A.species = V.species ".
+     "  AND V.vaccination-time > A.adoption-date ".
+     "SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;"
+
+# SET OPERATIONS
+
+=uql "FROM animals ".
+     "WHERE species = 'Dog' ".
+     "SELECT name, species ".
+     "UNION ".
+     "FROM animals ".
+     "WHERE species = 'Rabbit' ".
+     "SELECT name, species ".
+     "EXCEPT ".
+     "FROM adoptions ".
+     "SELECT name, species;"
+
+=uql "FROM animals ".
+     "SELECT name, species ".
+     "UNION ".
+     "FROM adoptions ".
+     "SELECT name AS animal-name, species;"
+
+=uql "FROM adoptions ".
+     "SELECT name, species ".
+     "INTERSECT ".
+     "FROM vaccinations ".
+     "SELECT name, species;"
+
+=uql "FROM animals ".
+     "SELECT name, species ".
+     "EXCEPT ".
+     "FROM adoptions ".
+     "SELECT name, species;"
+
+=uql "FROM staff ".
+     "SELECT email AS contact-email ".
+     "UNION ".
+     "FROM adoptions ".
+     "SELECT adopter-email AS contact-email;"
+
+=uql "FROM adoptions ".
+     "SELECT name, name ".
+     "UNION ".
+     "FROM vaccinations ".
+     "SELECT name, name;"
+
+=uql "WITH (FROM adoptions ".
+     "      SELECT name, species, species AS name ".
+     "      UNION ".
+     "      FROM vaccinations ".
+     "      SELECT name, species, vaccine AS name) AS mixed ".
+     "FROM mixed ".
+     "SELECT *;"
+
+=uql "FROM adoptions ".
+     "SELECT adopter-email AS email ".
+     "EXCEPT ".
+     "FROM staff ".
+     "SELECT email;"
+
+=uql "FROM staff ".
+     "SELECT email ".
+     "INTERSECT ".
+     "FROM vaccinations ".
+     "SELECT email;"
+
+=uql "WITH (FROM adoptions ".
+     "      SELECT name, species ".
+     "      INTERSECT ".
+     "      FROM vaccinations ".
+     "      SELECT name, species) AS adopted-and-vaccinated ".
+     "FROM adopted-and-vaccinated ".
+     "SELECT *;"
+
+=uql "WITH (FROM staff-assignments ".
+     "      WHERE role = 'Veterinarian' ".
+     "      SELECT email) AS vets ".
+     "FROM vets ".
+     "SELECT email ".
+     "UNION ".
+     "FROM staff-assignments ".
+     "WHERE role = 'Manager' ".
+     "SELECT email;"
 
 # comments
 

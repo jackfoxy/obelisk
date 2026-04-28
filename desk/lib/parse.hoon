@@ -82,10 +82,15 @@
               ;~(plug whitespace (jester 'create'))
               ==
     %:  cold  %delete
-              ;~(plug whitespace (jester 'delete') whitespace (jester 'from'))
+              (peek ;~(plug whitespace (jester 'delete')))
               ==
     %:  cold  %delete
-              ;~(plug whitespace (jester 'delete'))
+              %-  peek
+              ;~  plug  whitespace
+                        parse-scalars
+                        whitespace
+                        (jester 'delete')
+                        ==
               ==
     %:  cold  %drop-database
               ;~(plug whitespace (jester 'drop') whitespace (jester 'database'))
@@ -129,11 +134,6 @@
                         ;~(pfix (jester 'select') (funk "select" (easy ' ')))
                         ==
               ==
-    %:  cold  %query
-              ;~  plug  whitespace
-                        ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
-                        ==
-              ==
     %:  cold  %revoke
               ;~(plug whitespace (jester 'revoke'))
               ==
@@ -145,7 +145,20 @@
                         ==
               ==
     %:  cold  %update
-              ;~(pfix whitespace (jester 'update'))
+              (peek ;~(plug whitespace (jester 'update')))
+              ==
+    %:  cold  %update
+              %-  peek
+              ;~  plug  whitespace
+                        parse-scalars
+                        whitespace
+                        (jester 'update')
+                        ==
+              ==
+    %:  cold  %query           :: scalars+select — must be after %delete/%update
+              ;~  plug  whitespace
+                        ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
+                        ==
               ==
     %:  cold  %with
               ;~(plug whitespace (jester 'with'))
@@ -1245,12 +1258,12 @@
             (produce-insert parsed)
       %=  $
         script    q.q.u.+3.q:nail
-        commands  :-  (selection:ast %selection ~ [ins ~ ~])
+        commands  :-  (crud-txn:ast %crud-txn ~ [%insert ins])
                       commands
       ==
     %merge
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "merge parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
@@ -1260,22 +1273,22 @@
       ~|  "merge parse produce phase:  ".
           "{<`tape`(scag 100 q.q.command-nail)>} ..."
           %=  $
-            script    q.q.u.+3.q:nail 
-            commands  :-  %^  selection:ast  %selection
+            script    q.q.u.+3.q:nail
+            commands  :-  %^  crud-txn:ast  %crud-txn
                                              ~
-                                             [(produce-merge parsed) ~ ~]
+                                             [%merge (produce-merge parsed)]
                           commands
           ==
     %query
       =/  [parsed=* nail=edge]  |-
-                                =/  nail  
+                                =/  nail
                                     ~|  "query parse phase:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                         " ..."
                                         ~|  "query parse nail:  ".
                                         "{<`tape`(scag 100 q.q.command-nail)>}".
                                             " ..."
-                                            %-  parse-query
+                                            %-  parse-query-chain
                                                   [[1 1] q.q.command-nail]
                                 ?~  q.nail
                                   ~|  "query parse miss:  ".
@@ -1384,18 +1397,19 @@
           ?:  =(+<.parsed %insert)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  selection:ast  %selection
+              commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
-                                              [(produce-insert +>.parsed) ~ ~]
-                                              ==        
+                                              :-  %insert
+                                                  (produce-insert +>.parsed)
+                                              ==
                             commands
             ==
           ?:  =(+<.parsed %merge)
             %=  $
               script    q.q.u.+3.q:nail
-              commands  :-  %:  selection:ast  %selection
+              commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
-                                              [(produce-merge +>.parsed) ~ ~]
+                                              [%merge (produce-merge +>.parsed)]
                                               ==
                             commands
             ==
@@ -1533,10 +1547,23 @@
     end-or-next-command
   ==
 ++  parse-delete  ~+
-  ;~  pose
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-3object)
-      parse-as-of
+  %+  cook
+    |=  [sc=* dkw=* qt=* rest=*]
+    [qt sc rest]
+  ;~  plug
+    ;~(pose parse-scalars (easy ~))
+    delete-kw
+    ;~(pfix whitespace parse-qualified-3object)
+    ;~  pose
+      ;~  plug
+        parse-as-of
+        ;~  pfix  whitespace
+                  ;~  plug  (cold %where (jester 'where'))
+                            parse-predicate
+                            end-or-next-command
+                            ==
+                  ==
+        ==
       ;~  pfix  whitespace
                 ;~  plug  (cold %where (jester 'where'))
                           parse-predicate
@@ -1544,16 +1571,7 @@
                           ==
                 ==
       ==
-    ;~  plug
-      ;~(pfix whitespace parse-qualified-3object)
-      ;~  pfix  whitespace
-                ;~  plug  (cold %where (jester 'where'))
-                          parse-predicate
-                          end-or-next-command
-                          ==
-                ==
-      ==
-    ==
+  ==
 ++  parse-drop-database  ~+
   ;~  sfix
     ;~  pose
@@ -1738,6 +1756,34 @@
     parse-from-query
     parse-query10
   ==
+++  parse-set-op-kw  ~+
+  ;~  pose
+    %:  cold  %divide-with-remainder
+              ;~  plug  (jester 'divided')
+                        whitespace
+                        (jester 'by')
+                        whitespace
+                        (jester 'with')
+                        whitespace
+                        (jester 'remainder')
+              ==
+    ==
+    (cold %divided-by ;~(plug (jester 'divided') whitespace (jester 'by')))
+    (cold %union (jester 'union'))
+    (cold %except (jester 'except'))
+    (cold %intersect (jester 'intersect'))
+  ==
+++  parse-query-chain
+  ;~  plug
+    parse-query
+    (star ;~(plug parse-set-op-kw parse-set-op-rhs))
+  ==
+++  parse-set-op-rhs
+  :: subsequent query in a set-op chain: strip optional FROM keyword, then parse
+  ;~  pose
+    ;~(pfix ;~(plug whitespace (jester 'from')) parse-query)
+    parse-query
+  ==
 ++  parse-from-query  ~+
   ;~  plug
     parse-object-and-joins
@@ -1903,23 +1949,12 @@
                           ==
                 ==
       ;~  pfix  whitespace
-                ;~  plug  (stag %query-row face-list)
-                          ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
-                          ==
-                ==
-      ;~  pfix  whitespace
                 ;~  plug  parse-qualified-table
                           (cold %as whitespace)
                           ;~(less merge-stop parse-alias)
                           ==
                 ==
-      ;~  pfix  whitespace
-                ;~  plug  (stag %query-row face-list)
-                          ;~(pfix whitespace ;~(less merge-stop parse-alias))
-                          ==
-                ==
       ;~(pfix whitespace parse-qualified-table)
-      ;~(pfix whitespace (stag %query-row face-list))
     ==
     ;~  pose
         ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
@@ -1929,36 +1964,13 @@
                     ==
                   ==
         ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
-                  %:  stag  %query-row
-                            ;~  plug  face-list
-                                      ;~  pfix
-                                        whitespace
-                                        ;~(pfix (jester 'as') parse-alias)
-                                        ==
-                                      ==
-                            ==
-                  ==
-        ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
                   ;~  plug  ;~(pose parse-qualified-table parse-alias)
                             (cold %as whitespace)
                             ;~(less merge-stop parse-alias)
                             ==
                   ==
         ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
-                   %:  stag  %query-row
-                            ;~  plug  face-list
-                                      ;~  pfix
-                                        whitespace
-                                        ;~(less merge-stop parse-alias)
-                                        ==
-                                      ==
-                            ==
-                  ==
-        ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
                   parse-qualified-table
-                  ==
-        ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
-                  (stag %query-row face-list)
                   ==
     ==
     ;~(plug ;~(pfix whitespace (jester 'on')) parse-predicate)
@@ -1997,10 +2009,16 @@
     update-column-inner
   ==
 ++  parse-update  ~+
+  %+  cook
+    |=  [sc=* ukw=* qt=* rest=*]
+    [qt sc rest]
   ;~  sfix
+    ;~  plug
+      ;~(pose parse-scalars (easy ~))
+      update-kw
+      ;~(pfix whitespace parse-qualified-table)
       ;~  pose
         ;~  plug
-          ;~(pfix whitespace parse-qualified-table)
           parse-as-of
           (cold %set ;~(plug whitespace (jester 'set')))
           (more com update-column)
@@ -2010,7 +2028,6 @@
             ==
         ==
         ;~  plug
-          ;~(pfix whitespace parse-qualified-table)
           (cold %set ;~(plug whitespace (jester 'set')))
           (more com update-column)
           ;~  pose
@@ -2019,17 +2036,22 @@
             ==
         ==
       ==
-      end-or-next-command
+    ==
+    end-or-next-command
   ==
 ++  parse-with  ~+
   ;~  plug
     (more com ;~(pose with-stop parse-cte))
     ;~  pose
       ;~  plug
-        (cold %delete ;~(plug (jester 'delete') whitespace (jester 'from')))
+        %+  cold  %delete
+        %-  peek
+        ;~  plug  ;~(pose parse-scalars (easy ~))
+                  whitespace
+                  (jester 'delete')
+                  ==
         parse-delete
         ==
-      ;~(plug (jester 'delete') parse-delete)
       ;~  plug
         (cold %insert ;~(plug (jester 'insert') whitespace (jester 'into')))
         parse-insert
@@ -2043,15 +2065,23 @@
         parse-merge
         ==
       ;~(plug (jester 'merge') parse-merge)
-      ;~(plug (cold %query ;~(plug (jester 'from'))) parse-query)
+      ;~(plug (cold %query ;~(plug (jester 'from'))) parse-query-chain)
       ;~  plug
           %:  cold
             %query
             ;~(plug ;~(pfix (jester 'select') (funk "select" (easy ' '))))
             ==
-          parse-query
+          parse-query-chain
           ==
-      ;~(plug (jester 'update') parse-update)
+      ;~  plug
+        %+  cold  %update
+        %-  peek
+        ;~  plug  ;~(pose parse-scalars (easy ~))
+                  whitespace
+                  (jester 'update')
+                  ==
+        parse-update
+        ==
       ==
   ==
 ++  with-stop  ~+
@@ -2067,9 +2097,9 @@
   ;~  plug
     (cold %cte ;~(plug whitespace (jest '(')))
     ;~  pose
-      ;~(pfix ;~(whitespace (jester 'from')) parse-query)
-      ;~(pfix (jester 'from') parse-query)
-      parse-query
+      ;~(pfix ;~(whitespace (jester 'from')) parse-query-chain)
+      ;~(pfix (jester 'from') parse-query-chain)
+      parse-query-chain
     ==
     ;~  pose
       ;~(pfix whitespace ;~(pfix (jest ')') ;~(pfix whitespace (jester 'as'))))
@@ -2153,78 +2183,122 @@
   |-
   ?~  a  (flop ctes)
   ?:  ?&(=(%cte -<.a) =(%as ->+<.a))
+    =/  cte-chain  ->-.a  :: [first-raw (list [op raw])] from parse-query-chain
+    =/  body=cte-body:ast
+          =/  first-raw  -.cte-chain
+          =/  raw-tail   +.cte-chain
+          ?:  =(raw-tail ~)
+            [%query (make-query ctes first-raw)]
+          =/  head-q  (make-query ctes first-raw)
+          =/  tail
+            =|  acc=(list [op=set-op:ast =query:ast])
+            |-
+            ?:  =(raw-tail ~)  (flop acc)
+            %=  $
+              raw-tail  +.raw-tail
+              acc
+                [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
+            ==
+          [%set-query [%set-query head=head-q tail=tail]]
     %=  $
       a  +.a
-      ctes  [(cte:ast %cte ->+>.a (make-query ctes ->-.a)) ctes]
+      ctes  [(cte:ast %cte ->+>.a body) ctes]
     ==
   ~|('cannot produce ctes from parsed:  {<a>}' !!)
 ++  produce-delete
   |=  [ctes=(list cte:ast) a=*]
    ~+
-  ^-  delete:ast
+  ^-  crud-txn:ast
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
   ?>  ?=(qualified-table:ast -.a)
+  =/  scalars=(list scalar:ast)
+    ?:  ?=([%scalars *] +<.a)
+      (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
+    ~
+  =/  scalar-map=(map @tas scalar-function:ast)
+    (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
+  =.  a  [-.a +>.a]
   ?:  ?=([* %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    -.a
-                    ~
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>-.a))
-                              ~
-                              *(map @tas scalar-function:ast)
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          ~
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    %-  produce-predicate
+                                                        (predicate-list +>-.a)
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ?:  ?=([* [%as-of %now] %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    -.a
-                    ~
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>+<.a))
-                              ~
-                              *(map @tas scalar-function:ast)
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          ~
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    %-  produce-predicate
+                                                        (predicate-list +>+<.a)
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ?:  ?=([* [%as-of [@ @]] %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    -.a
-                    [~ +<+.a]
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>+<.a))
-                              ~
-                              *(map @tas scalar-function:ast)
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          [~ +<+.a]
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    %-  produce-predicate
+                                                        (predicate-list +>+<.a)
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ?:  ?=([* [%as-of *] %where * %end-command ~] a)
-    %:  delete:ast  %delete
-                    ctes
-                    -.a
-                    [~ [%as-of-offset +<+<.a +<+>-.a]]
-                    %+  qualify-predicate
-                        %:  finalize-predicate
-                              (produce-predicate (predicate-list +>+<.a))
-                              ~
-                              *(map @tas scalar-function:ast)
-                              cte-map
-                              cte-col-map
-                              ==
-                        -.a
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %delete
+                          %:  delete:ast  %delete
+                                          scalars
+                                          -.a
+                                          [~ [%as-of-offset +<+<.a +<+>-.a]]
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    %-  produce-predicate
+                                                        (predicate-list +>+<.a)
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                          -.a
+                                          ==
+                      ==
   ~|('produced delete {<a>}' !!)
 ::
 ++  qualify-predicate
@@ -2473,20 +2547,10 @@
       a  +.a
       predicate  (produce-predicate (predicate-list ->.a))
     ==
-  ?:  =(%query-row -<.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
-    ==
   ?:  =(%using -<.a)
     %=  $
       a  +.a
       source-table  `(make-query-object ->.a)
-    ==
-  ?:  =(%query-row -<-.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
     ==
   %=  $
     a  +.a
@@ -2558,22 +2622,24 @@
                             ==
   ?:  =(-<.a %select)
     ~|  "make-query produce-select: {<->.a>}"
-    $(a +.a, select `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map))
+    %=  $
+      a  +.a
+      select
+        `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map)
+    ==
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %qualified-table)
     ~|  "make-query produce-from qualified-table: {<-.a>}"
     =/  f  (produce-from -.a)
+    =.  alias-map  (mk-alias-map f)
     =.  f
       ?.  ?&  ?=(qualified-table:ast relation.f)
               (~(has by cte-map) name.relation.f)
               ==
         f
-      f(relation [%cte-name name.relation.f])
+      f(relation [%cte-name name.relation.f alias.relation.f])
     $(a +.a, from `f)
-  ?:  =(-<-.a %query-row)
-    ~|  "make-query produce-from query-row: {<-.a>}"
-    $(a +.a, from `(produce-from -.a))
   ?:  =(-<-<.a %qualified-table)
     ~|  "make-query produce-from nested qualified-table: {<-.a>}"
     $(a +.a, from `(produce-from -.a))
@@ -2581,9 +2647,23 @@
 ++  produce-query
   |=  [ctes=(list cte:ast) a=*]
   ~+
-  ^-  selection:ast
+  ^-  crud-txn:ast
   ~|  "produce-query a: {<a>}"
-  (selection:ast %selection ctes [(make-query ctes a) ~ ~])
+  :: a = [first-raw (list [op raw])] from parse-query-chain
+  =/  first-raw  -.a
+  =/  raw-tail   +.a
+  ?:  =(raw-tail ~)
+    (crud-txn:ast %crud-txn ctes [%query (make-query ctes first-raw)])
+  =/  head-q  (make-query ctes first-raw)
+  =/  tail
+    =|  acc=(list [op=set-op:ast =query:ast])
+    |-
+    ?:  =(raw-tail ~)  (flop acc)
+    %=  $
+      raw-tail  +.raw-tail
+      acc       [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
+    ==
+  (crud-txn:ast %crud-txn ctes [%set-query [%set-query head=head-q tail=tail]])
 ::
 ++  produce-from
   |=  a=*
@@ -2786,7 +2866,7 @@
       ?:  ?&  ?=(qualified-table:ast relation.j)
               (~(has by cte-map) name.relation.j)
           ==
-        [%cte-name name.relation.j]
+        [%cte-name name.relation.j alias.relation.j]
       relation.j
     ?~  predicate.j
       j(relation rel)
@@ -3106,7 +3186,8 @@
   ?~  ctes  result
   =/  c=cte:ast  i.ctes
   =/  maybe-col-set
-    =/  selected  columns.select.query.c
+    ?.  ?=([%query *] body.c)  ~
+    =/  selected  columns.select.body.c
     =/  cols  *(set @tas)
     |-
     ^-  (unit (set @tas))
@@ -3199,6 +3280,34 @@
           cte-col-map=(map @tas (set @tas))
           ==
   ^-  select:ast
+  =/  resolve-tbl-col
+    |=  [tbl=@t col-name=@tas als=(unit @t)]
+    ^-  selected-column:ast
+    =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
+    ?~  resolved
+      =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
+      ?~  maybe-cte
+        :^  %qualified-column
+            [%qualified-table ~ default-database 'dbo' tbl ~]
+            col-name
+            als
+      =/  maybe-col-set
+            (~(get by cte-col-map) (fold-key (need maybe-cte)))
+      ?:  ?&  ?=(^ maybe-col-set)
+              !(~(has in (need maybe-col-set)) (fold-key col-name))
+              ==
+        ~|  "column {<col-name>} is not produced by CTE ".
+            "{<(need maybe-cte)>}"
+            !!
+      [%selected-cte-column (need maybe-cte) col-name als]
+    =/  qt  (need resolved)
+    =.  qt  ?:  (~(has by cte-map) name.qt)
+              qt(database %cte, namespace %cte)
+            qt
+    :^  %qualified-column
+        qt
+        col-name
+        als
   =/  top      *(unit @ud)
   =/  columns  *(list selected-column:ast)
   |-
@@ -3291,32 +3400,9 @@
           columns  [[%unqualified-column name.uqc `as-alias] columns]
           a  +.a
         ==
-      ::  table.column with AS alias: resolve table alias, then cte-map
-      =/  tbl  (need alias.uqc)
-      =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
+      ::  table.column with AS alias
       %=  $
-        columns
-          :-  ?~  resolved
-                =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
-                ?~  maybe-cte
-                  :^  %qualified-column
-                      [%qualified-table ~ default-database 'dbo' tbl ~]
-                      name.uqc
-                      `as-alias
-                =/  maybe-col-set
-                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
-                ?:  ?&  ?=(^ maybe-col-set)
-                        !(~(has in (need maybe-col-set)) (fold-key name.uqc))
-                        ==
-                  ~|  "column {<name.uqc>} is not produced by CTE ".
-                      "{<(need maybe-cte)>}"
-                      !!
-                [%selected-cte-column (need maybe-cte) name.uqc `as-alias]
-              :^  %qualified-column
-                  (need resolved)
-                  name.uqc
-                  `as-alias
-              columns
+        columns  [(resolve-tbl-col (need alias.uqc) name.uqc `as-alias) columns]
         a  +.a
       ==
     ?:  ?=([qualified-column:ast %as @] -.a)
@@ -3348,116 +3434,164 @@
           $(columns [[%selected-scalar name.uqc ~] columns], a +.a)
         $(columns [uqc columns], a +.a)
       ::  table.column: resolve table alias, then cte-map
-      =/  tbl  (need alias.uqc)
-      =/  resolved  (~(get by alias-map) (crip (cass (trip tbl))))
       %=  $
-        columns
-          :-  ?~  resolved
-                =/  maybe-cte  (~(get by cte-map) (fold-key tbl))
-                ?~  maybe-cte
-                  :^  %qualified-column
-                      [%qualified-table ~ default-database 'dbo' tbl ~]
-                      name.uqc
-                      ~
-                =/  maybe-col-set
-                      (~(get by cte-col-map) (fold-key (need maybe-cte)))
-                ?:  ?&  ?=(^ maybe-col-set)
-                        !(~(has in (need maybe-col-set)) (fold-key name.uqc))
-                        ==
-                  ~|  "column {<name.uqc>} is not produced by CTE ".
-                      "{<(need maybe-cte)>}"
-                      !!
-                [%selected-cte-column (need maybe-cte) name.uqc ~]
-              :^  %qualified-column
-                  (need resolved)
-                  name.uqc
-                  ~
-              columns
+        columns  [(resolve-tbl-col (need alias.uqc) name.uqc ~) columns]
         a  +.a
       ==
     ?>  ?=(qualified-column:ast -.a)  $(columns [-.a columns], a +.a)
 ++  produce-update
   |=  [ctes=(list cte:ast) a=*]
   ~+
-  ^-  update:ast
+  ^-  crud-txn:ast
   =/  table=qualified-table:ast  ?>(?=(qualified-table:ast -.a) -.a)
   =/  cte-map      (mk-cte-map ctes)
   =/  cte-col-map  (mk-cte-col-map ctes)
-  =/  b  +.a
+  =/  scalars=(list scalar:ast)
+    ?:  ?=([%scalars *] +<.a)
+      (produce-scalars +<.a *(map @t qualified-table:ast) cte-map cte-col-map)
+    ~
+  =/  scalar-map=(map @tas scalar-function:ast)
+    (malt (turn scalars |=(s=scalar:ast [name.s f.s])))
+  =/  b  +>.a
   ?:  ?=([%set * ~] b)
-    :*  %update
-        ctes
-        table
-        ~
-        (produce-column-sets table +<.b)
-        ~
-        ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              ~
+                              (produce-column-sets table scalar-map +<.b)
+                              ~
+                              ==
+                      ==
   ?:  ?=([[%as-of %now] %set * ~] b)
-    :*  %update
-        ctes
-        table
-        ~
-        (produce-column-sets table +>-.b)
-        ~
-        ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              ~
+                              (produce-column-sets table scalar-map +>-.b)
+                              ~
+                              ==
+                      ==
   ?:  ?=([[%as-of @ @] %set * ~] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    [~ ->.b]
-                    (produce-column-sets table +>-.b)
-                    ~
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          %:  update:ast  %update
+                                          scalars
+                                          table
+                                          [~ ->.b]
+                                          %^  produce-column-sets  table
+                                                                   scalar-map
+                                                                   +>-.b
+                                          ~
+                                          ==
+                      ==
   ?:  ?=([[%as-of *] %set * ~] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    [~ [%as-of-offset ->-.b ->+<.b]]
-                    (produce-column-sets table +>-.b)
-                    ~
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          %:  update:ast  %update
+                                          scalars
+                                          table
+                                          [~ [%as-of-offset ->-.b ->+<.b]]
+                                          %^  produce-column-sets  table
+                                                                   scalar-map
+                                                                   +>-.b
+                                          ~
+                                          ==
+                      ==
   ?:  ?=([[%as-of %now] %set * *] b)
-    :*  %update
-        ctes
-        table
-        ~
-        (produce-column-sets table +>-.b)
-        %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
-            table
-        ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              ~
+                              (produce-column-sets table scalar-map +>-.b)
+                              %+  qualify-predicate
+                                  %:  finalize-predicate
+                                      (produce-predicate (predicate-list +>+.b))
+                                      ~
+                                      scalar-map
+                                      cte-map
+                                      cte-col-map
+                                      ==
+                                  table
+                              ==
+                      ==
   ?:  ?=([[%as-of @ @] %set * *] b)
-    %:  update:ast  %update
-                    ctes
-                    table
-                    [~ ->.b]
-                    (produce-column-sets table +>-.b)
-                    %+  qualify-predicate
-                        (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
-                        table
-                    ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          %:  update:ast  %update
+                                          scalars
+                                          table
+                                          [~ ->.b]
+                                          %^  produce-column-sets
+                                                table
+                                                scalar-map
+                                                +>-.b
+                                          %+  qualify-predicate
+                                              %:  finalize-predicate
+                                                    %-  produce-predicate
+                                                          (predicate-list +>+.b)
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
+                                              table
+                                          ==
+                      ==
   ?:  ?=([[%as-of @ @ @] %set * *] b)
-    :*  %update
-        ctes
-        table
-        [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
-        (produce-column-sets table +>-.b)
-        %+  qualify-predicate
-            (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
-            table
-        ==
-  :*  %update
-      ctes
-      table
-      ~
-      (produce-column-sets table +<.b)
-      %+  qualify-predicate
-          (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ *(map @tas scalar-function:ast) cte-map cte-col-map)
-          table
-      ==
+    %:  crud-txn:ast  %crud-txn
+                      ctes
+                      :-  %update
+                          :*  %update
+                              scalars
+                              table
+                              [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
+                              (produce-column-sets table scalar-map +>-.b)
+                              %+  qualify-predicate
+                                  %:  finalize-predicate
+                                        %-  produce-predicate
+                                              (predicate-list +>+.b)
+                                        ~
+                                        scalar-map
+                                        cte-map
+                                        cte-col-map
+                                        ==
+                                  table
+                              ==
+                      ==
+  %:  crud-txn:ast  %crud-txn
+                    ctes
+                    :-  %update
+                        :*  %update
+                            scalars
+                            table
+                            ~
+                            (produce-column-sets table scalar-map +<.b)
+                            %+  qualify-predicate
+                                %:  finalize-predicate
+                                      (produce-predicate (predicate-list +>.b))
+                                      ~
+                                      scalar-map
+                                      cte-map
+                                      cte-col-map
+                                      ==
+                                table
+                            ==
+                    ==
 ::
 ++  produce-column-sets
-  |=  [table=qualified-table:ast a=*]
+  |=  [table=qualified-table:ast scalar-map=(map @tas scalar-function:ast) a=*]
   ~+
   ^-  [(list qualified-column:ast) (list value-or-default:ast)]
   =/  columns  *(list qualified-column:ast)
@@ -3466,16 +3600,38 @@
   ?:  =(a ~)
     [columns values]
   =/  b  -.a
+  =/  v=value-or-default:ast  ;;(value-or-default:ast +.b)
   %=  $
-      columns  :-  (qualified-column:ast %qualified-column table -.b ~)
-                   columns
-      values   [;;(value-or-default:ast +.b) values]
+      columns  [(qualified-column:ast %qualified-column table -.b ~) columns]
+      values   :-  ?.  ?=([%unqualified-column *] v)
+                      v
+                    =/  uqc=unqualified-column:ast  ;;(unqualified-column:ast v)
+                    ?.  (~(has by scalar-map) name.uqc)
+                      v
+                    [%scalar-name name.uqc]
+               values
       a        +.a
   ==
 ::
 ::  parser rules and helpers
 ::
 ++  whitespace  ~+  (star ;~(pose gah (just '\09') (just '\0d')))
+::
+++  peek
+  |*  sef=rule
+  |=  tub=nail
+  =+  vex=(sef tub)
+  ?~  q.vex
+    vex
+  [p=p.vex q=[~ u=[p=p.u.q.vex q=tub]]]
+::
+++  delete-kw  ~+
+  ;~  pose
+    ;~(plug whitespace (jester 'delete') whitespace (jester 'from'))
+    ;~(plug whitespace (jester 'delete'))
+    ==
+::
+++  update-kw  ~+  ;~(plug whitespace (jester 'update'))
 ::
 ++  when
   ::  replace when:so until https://github.com/urbit/urbit/issues/6870
@@ -4326,16 +4482,6 @@
       ;~(pfix whitespace ;~(less join-stop parse-alias))
     ==
     parse-qualified-table    :: no alias, no as-of
-    ::    
-    %:  stag
-      %query-row
-      ;~(plug face-list ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias)))
-    ==
-    %:  stag
-      %query-row
-      ;~(plug face-list ;~(pfix whitespace ;~(less join-stop parse-alias)))
-    ==
-    (stag %query-row face-list)
   ==
 ++  parse-join-type  ~+
   ;~  pfix  whitespace
@@ -4413,7 +4559,6 @@
             ==
         ;;(as-of:ast [+<+<.parsed +<+>.parsed])
   ::
-  ?:  =(%query-row -.parsed)  ;;(relation:ast parsed)
   ~|("cannot parse query-object  {<parsed>}" !!)
 ::
 ++  parse-query-object  ~+
@@ -4463,18 +4608,6 @@
     [%qualified-table -.a +<.a +>-.a +>+<.a ~]
   ?:  ?=([~ @tas @tas @tas [~ @t]] a)
     [%qualified-table -.a +<.a +>-.a +>+<.a +>+>.a]
-  ::  %query-row not implemented
-  =/  columns  *(list @t)
-  =/  b       ?:  =(%query-row -.a)  +.a
-              ?:  =(%query-row -<.a)  ->.a  -.a
-  =/  alias   ?:  ?=([%query-row * @] a)  +>.a
-              ?:  =(%query-row -.a)  ~  +.a
-  |-
-  ?~  b
-    ?~  alias
-      (relation:ast [%query-row ~ (flop columns)])
-    (relation:ast [%query-row `alias (flop columns)])
-  ?@  -.b  $(b +.b, columns [-.b columns])
   ~|("cannot make-query-object:  {<a>}" !!)
 ::
 ++  cook-qualified-column
@@ -5763,6 +5896,8 @@
   ==
 ++  query-scalar-stop
   ;~  pose
+    ;~(plug whitespace (jester 'delete') whitespace)
+    ;~(plug whitespace (jester 'update') whitespace)
     ;~(plug whitespace (jester 'where') whitespace)
     ;~(plug whitespace (jester 'group') whitespace (jester 'by') whitespace)
     ;~(plug whitespace (jester 'select') whitespace)
@@ -5777,7 +5912,7 @@
 ::
 ::  select
 ::
-++  parse-selection  ~+
+++  parse-crud-txn  ~+
   ;~  pose
     ;~  plug
       ;~(sfix (stag %f parse-loobean-literal) whitespace)
@@ -5803,9 +5938,9 @@
   ==
 ++  select-column  ~+
   ;~  pose
-    (ifix [whitespace whitespace] parse-selection)
-    ;~(plug whitespace parse-selection)
-    parse-selection
+    (ifix [whitespace whitespace] parse-crud-txn)
+    ;~(plug whitespace parse-crud-txn)
+    parse-crud-txn
   ==
 ++  select-columns  ~+
   ;~  pose
@@ -5946,7 +6081,8 @@
       [%arithmetic *]
       [%builtin-fn *]
       ==
-+$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast cte-column:ast)
++$  scalar-param
+      $?(dime qualified-column:ast unqualified-column:ast cte-column:ast)
 +$  scalar-node-helper  $%(scalar-param raw-scalar-fn)
 +$  coalesce-helper
   $:

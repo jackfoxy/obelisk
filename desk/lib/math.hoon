@@ -243,7 +243,7 @@
   ++  gth  gth:^rs
   ::    +gte:  [@rs @rs] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::    Examples
   ::      > (gte .1 .2)
   ::      %.n
@@ -255,7 +255,7 @@
   ++  gte  gte:^rs
   ::    +geq:  [@rs @rs] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::  Alias for +gte.
   ::    Examples
   ::      > (geq .1 .2)
@@ -475,10 +475,12 @@
     ::    check NaN
     ?.  (^gte (dis 0x7fc0.0000 x) 0)  `@rs`0x7fc0.0000  :: exp(NaN) -> NaN
     ::    check overflow to infinity
-    =/  o-threshold  `@rs`0x42b0.c0a8  ::  88.72283905206835, value above which exp(x) overflows
+    =/  o-threshold  `@rs`0x42b0.c0a8  ::  88.72283905206835, value above which
+                                       ::                     exp(x) overflows
     ?:  (gth x o-threshold)  (mul huge huge)
     ::    check underflow to zero
-    =/  u-threshold  `@rs`0xc2b0.c0a8  ::  -88.72283905206835, value below which exp(x) underflows
+    =/  u-threshold  `@rs`0xc2b0.c0a8  ::  -88.72283905206835, value below which
+                                       ::                      exp(x) underflows
     ?:  (lth x u-threshold)  (mul tiny tiny)
     ::  otherwise, use Taylor series
     =/  p   .1
@@ -1132,7 +1134,7 @@
   ++  gth  gth:^rd
   ::    +gte:  [@rd @rd] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::    Examples
   ::      > (gte .~1 .~2)
   ::      %.n
@@ -1144,7 +1146,7 @@
   ++  gte  gte:^rd
   ::    +geq:  [@rd @rd] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::  Alias for +gte.
   ::    Examples
   ::      > (geq .~1 .~2)
@@ -1348,12 +1350,17 @@
     ?:  =(x 0x7ff0.0000.0000.0000)  `@rd`0x7ff0.0000.0000.0000  :: exp(+inf) -> inf
     ?:  =(x 0xfff0.0000.0000.0000)  .~0.0                       :: exp(-inf) -> 0
     ::    check NaN
-    ?.  (^gte (dis 0x7ff8.0000.0000.0000 x) 0)  `@rd`0x7ff8.0000.0000.0000  :: exp(NaN) -> NaN
+    ?.  (^gte (dis 0x7ff8.0000.0000.0000 x) 0)  `@rd`0x7ff8.0000.0000.0000
+                                                :: exp(NaN) -> NaN
     ::    check overflow to infinity
-    =/  o-threshold  `@rd`0x4086.2e42.fefa.39ef  ::  709.782712893384, value above which exp(x) overflows
+    =/  o-threshold  `@rd`0x4086.2e42.fefa.39ef  ::  709.782712893384,
+                                                 ::  value above which exp(x)
+                                                 ::  overflows
     ?:  (gth x o-threshold)  (mul huge huge)
     ::    check underflow to zero
-    =/  u-threshold  `@rd`0xc086.2e42.fefa.39ef  ::  -709.782712893384, value below which exp(x) underflows
+    =/  u-threshold  `@rd`0xc086.2e42.fefa.39ef  ::  -709.782712893384, 
+                                                 ::  value below which exp(x)
+                                                 ::  underflows
     ?:  (lth x u-threshold)  (mul tiny tiny)
     ::  otherwise, use Taylor series
     =/  p   .~1
@@ -1378,10 +1385,13 @@
     |=  x=@rd  ^-  @rd
     ::  filter out non-finite arguments
     ::    check infinities
-    ?:  =(x 0x7ff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000  :: sin(+inf) -> NaN
-    ?:  =(x 0xfff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000  :: sin(-inf) -> NaN
+    ?:  =(x 0x7ff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000
+                                    :: sin(+inf) -> NaN
+    ?:  =(x 0xfff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000
+                                    :: sin(-inf) -> NaN
     ::    check NaN
-    ?.  (^gte (dis 0x7ff8.0000.0000.0000 x) 0)  `@rd`0x7ff8.0000.0000.0000  :: sin(NaN) -> NaN
+    ?.  (^gte (dis 0x7ff8.0000.0000.0000 x) 0)  `@rd`0x7ff8.0000.0000.0000
+                                                :: sin(NaN) -> NaN
     ::  map into domain
     =.  x  (mod x tau)
     ::  otherwise, use Taylor series
@@ -1410,10 +1420,13 @@
     |=  x=@rd  ^-  @rd
     ::  filter out non-finite arguments
     ::    check infinities
-    ?:  =(x 0x7ff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000  :: cos(+inf) -> NaN
-    ?:  =(x 0xfff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000  :: cos(-inf) -> NaN
+    ?:  =(x 0x7ff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000 
+                                    :: cos(+inf) -> NaN
+    ?:  =(x 0xfff0.0000.0000.0000)  `@rd`0x7ff8.0000.0000.0000
+                                    :: cos(-inf) -> NaN
     ::    check NaN
-    ?.  (^gte (dis 0x7ff8.0000.0000.0000 x) 0)  `@rd`0x7ff8.0000.0000.0000  :: exp(NaN) -> NaN
+    ?.  (^gte (dis 0x7ff8.0000.0000.0000 x) 0)  `@rd`0x7ff8.0000.0000.0000
+                                                :: exp(NaN) -> NaN
     ::  map into domain
     =.  x  (mod x tau)
     ::  otherwise, use Taylor series
@@ -1560,10 +1573,12 @@
     |=  z=@rd  ^-  @rd
     ::  filter out non-finite arguments
     ::    check infinities
-    ?:  =(z 0x7ff0.0000.0000.0000)  `@rd`0x7ff0.0000.0000.0000  :: exp(+inf) -> inf
-    ?:  =(z 0xfff0.0000.0000.0000)  .~0.0                       :: exp(-inf) -> 0
+    ?:  =(z 0x7ff0.0000.0000.0000)  `@rd`0x7ff0.0000.0000.0000
+                                              :: exp(+inf) -> inf
+    ?:  =(z 0xfff0.0000.0000.0000)  .~0.0     :: exp(-inf) -> 0
     ::    check NaN
-    ?.  (^gte (dis 0x7ff8.0000.0000.0000 z) 0)  `@rd`0x7ff8.0000.0000.0000  :: exp(NaN) -> NaN
+    ?.  (^gte (dis 0x7ff8.0000.0000.0000 z) 0)  `@rd`0x7ff8.0000.0000.0000
+                                                :: exp(NaN) -> NaN
     ::  otherwise, use Taylor series
     =/  p   .~0
     =/  po  .~-1
@@ -2000,7 +2015,7 @@
   ++  gth  gth:^rh
   ::    +gte:  [@rh @rh] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::    Examples
   ::      > (gte .~~1 .~~2)
   ::      %.n
@@ -2012,7 +2027,7 @@
   ++  gte  gte:^rh
   ::    +geq:  [@rh @rh] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::  Alias for +gte.
   ::    Examples
   ::      > (geq .~~1 .~~2)
@@ -2216,10 +2231,12 @@
     ::    check NaN
     ?.  (^gte (dis 0x7e00 x) 0)  `@rh`0x7e00  :: exp(NaN) -> NaN
     ::    check overflow to infinity
-    =/  o-threshold  `@rh`0x498c  ::  11.091265424003277, value above which exp(x) overflows
+    =/  o-threshold  `@rh`0x498c  ::  11.091265424003277,
+                                  ::  value above which exp(x) overflows
     ?:  (gth x o-threshold)  (mul huge huge)
     ::    check underflow to zero
-    =/  u-threshold  `@rh`0xc98c  ::  -11.091265424003277, value below which exp(x) underflows
+    =/  u-threshold  `@rh`0xc98c  ::  -11.091265424003277,
+                                  ::  value below which exp(x) underflows
     ?:  (lth x u-threshold)  (mul tiny tiny)
     ::  otherwise, use Taylor series
     =/  p   .~~1
@@ -2471,7 +2488,8 @@
   ++  pow
     |=  [x=@rh n=@rh]  ^-  @rh
     ::  fall through on positive integers (faster)
-    ?:  &(=(n (san (need (toi n)))) (gth n .~~0))  (pow-n x (san (need (toi n))))
+    ?:  &(=(n (san (need (toi n)))) (gth n .~~0))
+      (pow-n x (san (need (toi n))))
     (exp (mul n (log x)))
   ::    +sqrt:  @rh -> @rh
   ::
@@ -2633,7 +2651,8 @@
   ::      > huge
   ::      .~~~1.189731495357231765085759326628007e4932
   ::  Source
-  ++  huge  `@rq`0x7ffe.ffff.ffff.ffff.ffff.ffff.ffff.ffff.ffff  ::  1.18973149535723176508575932662800702e4932
+  ++  huge  `@rq`0x7ffe.ffff.ffff.ffff.ffff.ffff.ffff.ffff.ffff
+            ::  1.18973149535723176508575932662800702e4932
   ::    +tiny:  @rq
   ::
   ::  Returns the value of the smallest representable normal number.
@@ -2641,7 +2660,8 @@
   ::      > tiny
   ::      .~~~3.3621031431120935062626778173217526e-4932
   ::  Source
-  ++  tiny  `@rq`0x1.0000.0000.0000.0000.0000.0000.0000.0000     ::  3.36210314311209350626267781732175260e-4932
+  ++  tiny  `@rq`0x1.0000.0000.0000.0000.0000.0000.0000.0000
+            ::  3.36210314311209350626267781732175260e-4932
   ::
   ::  Operations
   ::
@@ -2658,10 +2678,10 @@
   ::    +bit:  fn -> @rq
   ::
   ::  Returns the floating-point atom of a +$fn representation.
-  ::    Examples
-  ::      > (bit [%f s=%.y e=-112 a=5.192.296.858.534.827.628.530.496.329.220.096])
+  ::  Examples
+  ::   > (bit [%f s=%.y e=-112 a=5.192.296.858.534.827.628.530.496.329.220.096])
   ::      .~~~1
-  ::      > (bit [%f s=%.y e=-112 a=5.711.526.544.388.310.391.383.545.962.142.106])
+  ::   > (bit [%f s=%.y e=-112 a=5.711.526.544.388.310.391.383.545.962.142.106])
   ::      .~~~1.1
   ::  Source
   ++  bit  bit:^rq
@@ -2783,7 +2803,7 @@
   ++  gth  gth:^rq
   ::    +gte:  [@rq @rq] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::    Examples
   ::      > (gte .~~~1 .~~~2)
   ::      %.n
@@ -2795,7 +2815,7 @@
   ++  gte  gte:^rq
   ::    +geq:  [@rq @rq] -> ?
   ::
-  ::  Returns the comparison of two floating-point atoms, greater than or equal to.
+  ::  Returns the comparison of two floating-point atoms, greater than or equal.
   ::  Alias for +gte.
   ::    Examples
   ::      > (geq .~~~1 .~~~2)
@@ -2996,15 +3016,22 @@
     ::  filter out non-finite arguments
     ?:  =(x 0x0)  .~~~1
     ::    check infinities
-    ?:  =(x 0x7fff.0000.0000.0000.0000.0000.0000.0000)  `@rq`0x7fff.0000.0000.0000.0000.0000.0000.0000  :: exp(+inf) -> inf
-    ?:  =(x 0xffff.0000.0000.0000.0000.0000.0000.0000)  .~~~0.0      :: exp(-inf) -> 0
+    ?:  =(x 0x7fff.0000.0000.0000.0000.0000.0000.0000)
+      `@rq`0x7fff.0000.0000.0000.0000.0000.0000.0000  :: exp(+inf) -> inf
+    ?:  =(x 0xffff.0000.0000.0000.0000.0000.0000.0000)
+      .~~~0.0      :: exp(-inf) -> 0
     ::    check NaN
-    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 x) 0)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: exp(NaN) -> NaN
+    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 x) 0)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: exp(NaN) -> NaN
     ::    check overflow to infinity
-    =/  o-threshold  `@rq`0x400c.62e4.2fef.a39e.f357.93c7.6730.0601  ::  1.135652340629414394949193107797e4, value above which exp(x) overflows
+    =/  o-threshold  `@rq`0x400c.62e4.2fef.a39e.f357.93c7.6730.0601
+                      ::  1.135652340629414394949193107797e4, value above which
+                      ::  exp(x) overflows
     ?:  (gth x o-threshold)  (mul huge huge)
     ::    check underflow to zero
-    =/  u-threshold  `@rq`0xc00c.62e4.2fef.a39e.f357.93c7.6730.0601  ::  -1.135652340629414394949193107797e4, value below which exp(x) underflows
+    =/  u-threshold  `@rq`0xc00c.62e4.2fef.a39e.f357.93c7.6730.0601
+                      ::  -1.135652340629414394949193107797e4, value below which
+                      ::  exp(x) underflows
     ?:  (lth x u-threshold)  (mul tiny tiny)
     ::  otherwise, use Taylor series
     =/  p   .~~~1
@@ -3029,10 +3056,13 @@
     |=  x=@rq  ^-  @rq
     ::  filter out non-finite arguments
     ::    check infinities
-    ?:  =(x 0x7fff.0000.0000.0000.0000.0000.0000.0000)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: sin(+inf) -> NaN
-    ?:  =(x 0xffff.0000.0000.0000.0000.0000.0000.0000)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: sin(-inf) -> NaN
+    ?:  =(x 0x7fff.0000.0000.0000.0000.0000.0000.0000)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: sin(+inf) -> NaN
+    ?:  =(x 0xffff.0000.0000.0000.0000.0000.0000.0000)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: sin(-inf) -> NaN
     ::    check NaN
-    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 x) 0)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: sin(NaN) -> NaN
+    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 x) 0)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: sin(NaN) -> NaN
     ::  map into domain
     =.  x  (mod x tau)
     ::  otherwise, use Taylor series
@@ -3061,10 +3091,13 @@
     |=  x=@rq  ^-  @rq
     ::  filter out non-finite arguments
     ::    check infinities
-    ?:  =(x 0x7fff.0000.0000.0000.0000.0000.0000.0000)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: cos(+inf) -> NaN
-    ?:  =(x 0xffff.0000.0000.0000.0000.0000.0000.0000)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: cos(-inf) -> NaN
+    ?:  =(x 0x7fff.0000.0000.0000.0000.0000.0000.0000)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: cos(+inf) -> NaN
+    ?:  =(x 0xffff.0000.0000.0000.0000.0000.0000.0000)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: cos(-inf) -> NaN
     ::    check NaN
-    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 x) 0)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: cos(NaN) -> NaN
+    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 x) 0)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: cos(NaN) -> NaN
     ::  map into domain
     =.  x  (mod x tau)
     ::  otherwise, use Taylor series
@@ -3209,10 +3242,13 @@
     |=  z=@rq  ^-  @rq
     ::  filter out non-finite arguments
     ::    check infinities
-    ?:  =(z 0x7fff.0000.0000.0000.0000.0000.0000.0000)  `@rq`0x7fff.0000.0000.0000.0000.0000.0000.0000  :: exp(+inf) -> inf
-    ?:  =(z 0xffff.0000.0000.0000.0000.0000.0000.0000)  .~~~0.0      :: exp(-inf) -> 0
+    ?:  =(z 0x7fff.0000.0000.0000.0000.0000.0000.0000)
+      `@rq`0x7fff.0000.0000.0000.0000.0000.0000.0000  :: exp(+inf) -> inf
+    ?:  =(z 0xffff.0000.0000.0000.0000.0000.0000.0000)  .~~~0.0
+                                                        :: exp(-inf) -> 0
     ::    check NaN
-    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 z) 0)  `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: exp(NaN) -> NaN
+    ?.  (^gte (dis 0x7fff.8000.0000.0000.0000.0000.0000.0000 z) 0)
+      `@rq`0x7fff.8000.0000.0000.0000.0000.0000.0000  :: exp(NaN) -> NaN
     ::  otherwise, use Taylor series
     =/  p   .~~~0
     =/  po  .~~~-1
@@ -3257,7 +3293,8 @@
   ++  pow
     |=  [x=@rq n=@rq]  ^-  @rq
     ::  fall through on positive integers (faster)
-    ?:  &(=(n (san (need (toi n)))) (gth n .~~~0))  (pow-n x (san (need (toi n))))
+    ?:  &(=(n (san (need (toi n)))) (gth n .~~~0))
+      (pow-n x (san (need (toi n))))
     (exp (mul n (log x)))
   ::    +sqrt:  @rq -> @rq
   ::

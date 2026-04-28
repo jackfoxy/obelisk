@@ -836,6 +836,103 @@
                               ==
             ==
 ::
+::  cte-04 riff: outer WHERE predicate on materialized join-CTE
+::  regression guard — materialized joined-row CTE with predicate filter
+++  test-cte-16
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%cal-date [~.da ~2023.12.25]]
+                    [%day-name [~.t 'Monday']]
+                    [%hol-date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "SELECT T1.date AS cal-date, T1.day-name, ".
+                            "T2.date AS hol-date, ".
+                            "T2.us-federal-holiday) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "WHERE cal-date = ~2023.12.25 ".
+                "SELECT * "
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%relation relation='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 1]
+                              ==
+            ==
+::
+::  cte-04 riff: outer SELECT specific columns (not SELECT *)
+::  regression guard — column projection from materialized join-CTE
+++  test-cte-17
+  =|  run=@ud
+  =/  expected-rows
+        :~  :-  %vector
+                :~  [%cal-date [~.da ~2023.12.25]]
+                    [%us-federal-holiday [~.t 'Christmas Day']]
+                    ==
+            :-  %vector
+                :~  [%cal-date [~.da ~2024.1.1]]
+                    [%us-federal-holiday [~.t 'New Years Day']]
+                    ==
+            ==
+  %-  exec-0-1
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-calendar
+                              insert-calendar
+                              create-holiday-calendar
+                              insert-holiday-calendar
+                              ==
+            ::
+            :+  ~2012.5.3
+                %db1
+                "WITH (FROM calendar T1 ".
+                      "JOIN holiday-calendar T2 ".
+                      "SELECT T1.date AS cal-date, T1.day-name, ".
+                            "T2.date AS hol-date, ".
+                            "T2.us-federal-holiday) ".
+                      "AS my-cte ".
+                "FROM my-cte ".
+                "SELECT cal-date, us-federal-holiday "
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              [%result-set expected-rows]
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.calendar']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.4.30]
+                              [%relation relation='db1.dbo.holiday-calendar']
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%vector-count 2]
+                              ==
+            ==
+::
 ::  fail on duplicate column name
 ++  test-fail-cte-00
   =|  run=@ud

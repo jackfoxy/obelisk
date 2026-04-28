@@ -1,5 +1,16 @@
 # Releases
 
+
+## v0.7 beta
+
+* Common Table Expressions (CTE)
+* Scalar Functions
+* All Natural Joins
+* JOIN ON Predicate
+* Set Operators UNION, INTERSECT, EXCEPT
+* %hawk UI
+* OTA Software Distribution
+
 ## v0.6 alpha
 
 * UPDATE

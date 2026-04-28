@@ -1442,6 +1442,307 @@
                               ==
             ==
 ::
+::  no predicate, two columns with scalar expressions
+++  test-update-17
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "SCALARS add-10 col3 + 10 END ".
+                "        concat STRING-CONCAT(col1, 'scalar', ', ') ".
+                "UPDATE my-table SET col1=concat, ".
+                "                    col3=add-10"
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table ".
+                "SELECT *"
+            ::
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='updated:']
+                              [%vector-count count=4]
+                              [%message msg='table data:']
+                              [%vector-count count=4]
+                              ==
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'cord, scalar']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 30]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default, scalar']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 10]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default, scalar']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 10]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default, scalar']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 10]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
+::  WHERE predicate with scalar expressions
+++  test-update-18
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "SCALARS add-5 col3 + 5 END ".
+                "        concat STRING-CONCAT(col1, 'updated', '-') ".
+                "UPDATE my-table SET col1=concat, ".
+                "                    col3=add-5 ".
+                "WHERE add-5 > 10 "
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table ".
+                "SELECT *"
+            ::
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='updated:']
+                              [%vector-count count=1]
+                              [%message msg='table data:']
+                              [%vector-count count=4]
+                              ==
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'cord-updated']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 25]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
+::  UPDATE with CTE predicate
+::  (column = cte-column singleton: only matching rows updated)
+++  test-update-19
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              create-cte-table
+                              "INSERT INTO my-table-2 VALUES ".
+                                                    "('cord', 'anycol3', 'row3')"
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "WITH (FROM my-table-2 WHERE col4 = 'row3' SELECT col1) AS my-cte ".
+                "UPDATE my-table SET col1='updated' ".
+                "WHERE col1 = my-cte.col1"
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table SELECT *"
+            ::
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='updated:']
+                              [%vector-count count=1]
+                              [%message msg='table data:']
+                              [%vector-count count=4]
+                              ==
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'updated']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 20]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
+::  UPDATE with CTE predicate
+::  (column IN cte-column: only matching rows updated)
+++  test-update-20
+  =|  run=@ud
+  %-  exec-0-2
+        :*  run
+            :+  ~2012.4.30
+                %db1
+                %-  zing  :~  "CREATE DATABASE db1;"
+                              create-table
+                              insert-table
+                              create-cte-table
+                              "INSERT INTO my-table-2 VALUES ".
+                                                    "('cord', 'anycol3', 'row1')"
+                              ==
+            ::
+            :+  ~2012.5.1
+                %db1
+                "WITH (FROM my-table-2 SELECT col1) AS my-cte ".
+                "UPDATE my-table SET col1='updated' ".
+                "WHERE col1 IN my-cte.col1"
+            ::
+            :+  ~2012.5.3
+                %db1
+                "FROM my-table SELECT *"
+            ::
+            :-  %results  :~  [%action action='UPDATE db1.dbo.my-table']
+                              [%server-time date=~2012.5.1]
+                              [%schema-time date=~2012.4.30]
+                              [%data-time date=~2012.4.30]
+                              [%message msg='updated:']
+                              [%vector-count count=1]
+                              [%message msg='table data:']
+                              [%vector-count count=4]
+                              ==
+            ::
+            :-  %results  :~  [%action 'SELECT']
+                              :-  %result-set
+                                  :~
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.3]]
+                                            [%col1 [~.t 'updated']]
+                                            [%col2 [~.p ~nomryg-nilref]]
+                                            [%col3 [~.ud 20]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~zod]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~nec]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    :-  %vector
+                                        :~  [%col0 [~.da ~2010.5.31]]
+                                            [%col1 [~.t 'Default']]
+                                            [%col2 [~.p ~bus]]
+                                            [%col3 [~.ud 0]]
+                                            [%col4 [~.da ~2000.1.1]]
+                                            ==
+                                    ==
+                              [%server-time ~2012.5.3]
+                              [%relation 'db1.dbo.my-table']
+                              [%schema-time ~2012.4.30]
+                              [%data-time ~2012.5.1]
+                              [%vector-count 4]
+                              ==
+            ==
+::
 ::  fail on no predicate, create dup key
 ++  test-fail-update-00
   =|  run=@ud
@@ -1525,41 +1826,45 @@
                     ==
       ::
       :-  ~2012.5.1
-          :-  %commands  :~  :*  %update
+          :-  %commands  :~  :*  %crud-txn
                                  ctes=~
-                                 :*  %qualified-table
-                                     ship=~
-                                     database=%db1
-                                     namespace=%dbo
-                                     name=%my-table
-                                     alias=~
+                                 :-  %update
+                                 :*  %update
+                                     scalars=~
+                                     :*  %qualified-table
+                                         ship=~
+                                         database=%db1
+                                         namespace=%dbo
+                                         name=%my-table
+                                         alias=~
+                                         ==
+                                     as-of=~
+                                     :-  :~  :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table-1
+                                                     alias=~
+                                                     ==
+                                                 name=%col2
+                                                 alias=~
+                                             :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table
+                                                     alias=~
+                                                     ==
+                                                 name=%col0
+                                                 alias=~
+                                             ==
+                                         :~  [p=~.p q=44]
+                                             [p=~.da q=~1980.1.1]
+                                             ==
+                                     predicate=~
                                      ==
-                                 as-of=~
-                                 :-  :~  :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table-1
-                                                 alias=~
-                                                 ==
-                                             name=%col2
-                                             alias=~
-                                         :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table
-                                                 alias=~
-                                                 ==
-                                             name=%col0
-                                             alias=~
-                                         ==
-                                     :~  [p=~.p q=44]
-                                         [p=~.da q=~1980.1.1]
-                                         ==
-                                 predicate=~
                                  ==
                              ==
       ::
@@ -1583,43 +1888,47 @@
                     ==
       ::
       :-  ~2012.5.1
-          :-  %commands  :~  :*  %update
+          :-  %commands  :~  :*  %crud-txn
                                  ctes=~
-                                 :*  %qualified-table
-                                     ship=~
-                                     database=%db1
-                                     namespace=%dbo
-                                     name=%my-table
-                                     alias=~
+                                 :-  %update
+                                 :*  %update
+                                     scalars=~
+                                     :*  %qualified-table
+                                         ship=~
+                                         database=%db1
+                                         namespace=%dbo
+                                         name=%my-table
+                                         alias=~
+                                         ==
+                                     as-of=~
+                                     :-  :~  :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table
+                                                     alias=~
+                                                     ==
+                                                 name=%col2
+                                                 alias=~
+                                             :^  %qualified-column
+                                                 :*  %qualified-table
+                                                     ship=~
+                                                     database=%db1
+                                                     namespace=%dbo
+                                                     name=%my-table
+                                                     alias=~
+                                                     ==
+                                                 name=%col0
+                                                 alias=~
+                                             ==
+                                         :~  [p=~.p q=44]
+                                             [p=~.da q=~1980.1.1]
+                                             [p=~.ud q=44]
+                                             ==
+                                     predicate=~
                                      ==
-                                 as-of=~
-                                 :-  :~  :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table
-                                                 alias=~
-                                                 ==
-                                             name=%col2
-                                             alias=~
-                                         :^  %qualified-column
-                                             :*  %qualified-table
-                                                 ship=~
-                                                 database=%db1
-                                                 namespace=%dbo
-                                                 name=%my-table
-                                                 alias=~
-                                                 ==
-                                             name=%col0
-                                             alias=~
-                                         ==
-                                     :~  [p=~.p q=44]
-                                         [p=~.da q=~1980.1.1]
-                                         [p=~.ud q=44]
-                                         ==
-                                 predicate=~
-                                ==
+                                 ==
                              ==
       ::
       'UPDATE: columns and values mismatch'

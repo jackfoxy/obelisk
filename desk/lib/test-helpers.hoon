@@ -1,5 +1,5 @@
 ::
-/-  ast, *obelisk, *server-state
+/-  ast, *obelisk, *server-state-0
 /+  *test, *scalars, parse
 /=  agent  /app/obelisk
 |%
@@ -486,7 +486,8 @@
 
 ::
 ++  exec-2-ls
-  ::  init + 2 action + 2 resolves → compare 2 results (resolve-1 (list cmd-result:ast) & resolve-2)
+  ::  init + 2 action + 2 resolves → 
+  ::             compare 2 results (resolve-1 (list cmd-result:ast) & resolve-2)
   |=  $:  run=@ud
           init=[tmsp=@da db=@tas uql=tape]
           action-1=[tmsp=@da db=@tas uql=tape]

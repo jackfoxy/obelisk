@@ -1,5 +1,5 @@
 /-  ast, *obelisk
-/+  *scalars,  *test,  *server,  *test-helpers
+/+  *scalars,  *test,  *main,  *test-helpers
 ::
 |%
 ::
@@ -61,7 +61,7 @@
   ^-  qualified-map-meta
   :-  %qualified-map-meta
   %^  ~(put bi:mip +.map-meta)
-      [%cte-name cte]
+      [%cte-name cte ~]
       name.col
       [type.col addr.col]
 ::
@@ -70,7 +70,7 @@
   |=  [cte=@tas columns=(list column:ast) row=indexed-row]
   ^-  full-relation
   :*  %full-relation
-      [%cte-name cte]
+      [%cte-name cte ~]
       :~  :*  %set-table
               join=~
               relation=~

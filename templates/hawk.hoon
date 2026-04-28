@@ -104,7 +104,7 @@
   ;<  now=@da  bind:m  get-time
   =/  dock  [our %obelisk]
   =/  default  (fall parse-default-db %sys)
-  =/  action  [%tape default query]
+  =/  action  [%tape2 default query]       ::does not print to dojo
   =/  obelisk-command=cage  obelisk-action/!>(action)
   ;<  ~  bind:m  (watch /query/[id] dock /server)
   ;<  ~  bind:m  (poke dock obelisk-command)
@@ -275,7 +275,7 @@
   ::
 ++  print-header
   |=  [=server default-db=(unit term)]
-  ;header.p2.frw.g2.b1(style "border-bottom: 1px solid var(--b3); position: relative;")
+  ;header.p2.frw.g4.b1(style "border-bottom: 1px solid var(--b3); position: relative;")
       ;div#file-menu-backdrop.hidden(onclick "closeFileMenu()", style "position: fixed; inset: 0; z-index: 9;");
       ;div#file-menu.rel(style "position: relative; display: inline-block;", data-open "false")
       ;button#file-menu-toggle.underline(type "button", onclick "return toggleFileMenu()", aria-expanded "false", style "cursor: pointer; display: inline-block; position: relative; z-index: 11;")
@@ -331,13 +331,13 @@
     ;button#save-results-btn.p-1.bd1.br1.b2.hover(type "button", onclick "return toggleResultsSavePanel(event)", disabled ""): Save Results
     ;a.underline(href "https://github.com/jackfoxy/obelisk/tree/master/desk/doc/usr/reference/", target "_blank", rel "noopener noreferrer"): Reference
     ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/desk/doc/usr/users-guide.md", target "_blank", rel "noopener noreferrer"): Users Guide
-    ;div.grow;
+    ;a.underline(href "https://github.com/jackfoxy/obelisk/blob/master/roadmap.md", target "_blank", rel "noopener noreferrer"): Roadmap
     ;+  (print-form-set-default-db server default-db)
   ==
   ::
 ++  print-form-set-default-db
   |=  [=server default-db=(unit term)]
-  ;form.fr.ac.g1(method "post")
+  ;form.fr.ac.g1.pl-2(method "post")
     =hx-trigger  "change from:find select"
     =hx-on-htmx-config-request  "configRequest(event)"
     ;input.hidden(name "/", value "set-default-db");
@@ -543,7 +543,7 @@
     =hx-post  ""
     =hx-indicator  "#run-btn"
     =hx-on-htmx-config-request  "configRequest(event); $('#query-text').focus()"
-    =hx-on-htmx-after-request  "$('#query-text').focus(); syncSaveResultsButton();"
+    =hx-on-htmx-after-request  "$('#query-text').focus(); syncSaveResultsButton(); maybeRefreshSchema(window.obeliskLastQuery);"
     ;input#query-action.hidden(name "/", value "query");
     ;div#query-tabs.fr.ac.px-1.pt-1.scroll-x(style "border-bottom: 1px solid var(--b3); gap: 0.375rem;")
       ;div#query-tabs-list.fr.ac(style "gap: 0.375rem;");
@@ -877,8 +877,10 @@
       e.detail.parameters['schema-open'] = $('#h-schema').is('[open]')
       e.detail.parameters['schema-size'] = $('#h-schema').attr('size') || '0.3';
       e.detail.parameters['output-size'] = $('#h-output').attr('size') || '0.3';
-      let selection = window.getSelection()
-      e.detail.parameters['/selected-query-text'] = selection.toString();
+      let crud-txn = window.getcrud-txn()
+      const selText = crud-txn.toString();
+      e.detail.parameters['/selected-query-text'] = selText;
+      window.obeliskLastQuery = selText || ($('#query-text').val() || '');
     }
     function submitQueryAction(action) {
       const input = document.getElementById('query-action');
@@ -1068,26 +1070,22 @@
         document.body.style.cursor = cursor;
       }
     }
-    function nudgeHawkTreeRefresh() {
-      const notify = (target) => {
-        if (!target || typeof target.dispatchEvent !== 'function') {
-          return;
-        }
-        try {
-          target.dispatchEvent(new Event('focus'));
-          target.dispatchEvent(new Event('resize'));
-          target.dispatchEvent(new PopStateEvent('popstate'));
-        } catch (_err) {
-          // best effort only
-        }
-      };
-      notify(window);
+    async function nudgeHawkTreeRefresh() {
+      const target = document.querySelector('#tree-tab > .oob');
+      if (!target) return;
       try {
-        if (window.parent && window.parent !== window) {
-          notify(window.parent);
+        const url = window.location.pathname + window.location.search;
+        const res = await fetch(url, { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+        const fragment = doc.querySelector('[hx-swap-oob*="#tree-tab > .oob"]');
+        if (!fragment) return;
+        target.innerHTML = fragment.innerHTML;
+        if (typeof htmx !== 'undefined') {
+          htmx.process(target);
         }
       } catch (_err) {
-        // ignore cross-frame access issues
+        // best effort only
       }
     }
     function getResultsSavePanel(group) {
@@ -1632,6 +1630,42 @@
       renderEditorTabs();
     }
 
+    function saveSchemaState() {
+      const result = [];
+      document.querySelectorAll('#schema details').forEach((el) => {
+        const s = el.querySelector(':scope > summary');
+        result.push({key: s ? s.textContent.trim() : '', open: el.open});
+      });
+      return result;
+    }
+    function restoreSchemaState(saved) {
+      const details = Array.from(document.querySelectorAll('#schema details'));
+      saved.forEach(({key, open}) => {
+        if (!key) { return; }
+        const el = details.find((d) => {
+          const s = d.querySelector(':scope > summary');
+          return s && s.textContent.trim() === key;
+        });
+        if (el) { el.open = open; }
+      });
+    }
+    async function maybeRefreshSchema(query) {
+      const lower = (query || '').toLowerCase();
+      if (!lower.includes('create') && !lower.includes('drop')) { return; }
+      const saved = saveSchemaState();
+      try {
+        const res = await fetch(window.location.href, {credentials: 'same-origin'});
+        if (!res.ok) { return; }
+        const html = await res.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const newSchema = doc.getElementById('schema');
+        const oldSchema = document.getElementById('schema');
+        if (newSchema && oldSchema) {
+          oldSchema.replaceWith(newSchema);
+          restoreSchemaState(saved);
+        }
+      } catch (_err) {}
+    }
     if (!window.obeliskFileMenuHandler) {
       window.obeliskFileMenuHandler = true;
       const maybeCloseFileMenu = (e) => {
@@ -1772,9 +1806,9 @@
   $:  %view
     provenance=path
     tmsp=@da
-    ::=selection
+    ::=crud-txn
     ::=column-lookup
-    selection=*
+    crud-txn=*
     column-lookup=*
     typ-addr-lookup=*
     columns=(list column)      ::  canonical column list

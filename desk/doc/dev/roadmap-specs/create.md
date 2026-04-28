@@ -45,13 +45,13 @@ TBD
 `CREATE TYPE <type>`
 
 # CREATE VIEW
-A view creates a `<relation>` whose contents (columns and rows) are defined by a `<selection>`.
+A view creates a `<relation>` whose contents (columns and rows) are defined by a `<crud-txn>`.
 
 The possibility of caching of views is TBD.
 
 ```
 <create-view> ::=
-  CREATE VIEW [ <db-qualifer> ]<view> AS <selection>
+  CREATE VIEW [ <db-qualifer> ]<view> AS <crud-txn>
 ```
 
 ## API
@@ -60,7 +60,7 @@ The possibility of caching of views is TBD.
   $:
     %create-view
     view=qualified-object
-    query=selection
+    query=crud-txn
   ==
 ```
 
@@ -69,15 +69,15 @@ The possibility of caching of views is TBD.
 **`<view>`**
 The user-defined name for the new view, which must adhere to the Hoon term naming standard.
 
-**`<selection>`**
-The `<selection>` that produces the output `<relation>`.
+**`<crud-txn>`**
+The `<crud-txn>` that produces the output `<relation>`.
 
 ## Remarks
 This command mutates the state of the Obelisk agent.
 
 Views are read only.
 
-The final step of the `<selection>` must establish unique column names, whether inherited from prior `<relation>`s or aliased columns.
+The final step of the `<crud-txn>` must establish unique column names, whether inherited from prior `<relation>`s or aliased columns.
 
 Views cannot be defined on foreign ship databases.
 
@@ -85,7 +85,7 @@ Views cannot be defined on foreign ship databases.
 
 ## Examples
 
-INSERT `name`, `<selection>`, `<timestamp>` INTO `<database>.sys.views`
+INSERT `name`, `<crud-txn>`, `<timestamp>` INTO `<database>.sys.views`
 INSERT `name`, `<ordinal>`, `<column>` INTO `<database>.sys.view-columns`
 
 ## Exceptions

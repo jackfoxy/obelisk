@@ -1,4 +1,4 @@
-/-  *ast, *obelisk, *server-state
+/-  *ast, *obelisk, *server-state-0
 /+  *utils, mip   :: *mip does not build
 |%
 ::
@@ -306,7 +306,7 @@
     ?:  ?=(cte-column:ast n.l.p)
       =/  cte-fr  (~(got by named-ctes) cte.n.l.p)
       =/  ta=typ-addr
-        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.l.p]  name.n.l.p
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.l.p ~]  name.n.l.p
       type.ta
     ~|("prepare-common-list can't get here 5" !!)
   =/  in-list=(list @)
@@ -316,7 +316,7 @@
         ~|("prepare-common-list: empty cte set-tables" !!)
       =/  cte-st  i.set-tables.cte-fr
       =/  ta=typ-addr
-        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p]  name.n.r.p
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.n.r.p ~]  name.n.r.p
       ?.  (types-match typ type.ta)
         ~|  "IN cte-column type {<type.ta>} ".
             "doesn't match left side type {<typ>}"
@@ -344,24 +344,29 @@
           ?=(%unqualified-map-meta -.map-meta)
           ==
     %+  bake
-          (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
+          %+  cury
+                (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ)
+                in-list
           data-row
   ?:  ?&  ?=(qualified-column:ast n.l.p)
           ?=(%qualified-map-meta -.map-meta)
           ==
-    %+  bake  %+  cury
+    %+  bake
+          %+  cury
+              %+  cury
                   %+  cury
-                      %+  cury
-                            list-pred
-                            +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p)
-                      typ
-                  in-list
-              data-row
+                        list-pred
+                        +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p)
+                  typ
+              in-list
+          data-row
   ?:  ?&  ?=(qualified-column:ast n.l.p)
           ?=(%unqualified-map-meta -.map-meta)
           ==
     %+  bake
-          (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
+          %+  cury
+                (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ)
+                in-list
           data-row
   ?:  ?=(scalar-name:ast n.l.p)
     =/  rs  (resolve-scalar-name n.l.p resolved-scalars)
@@ -662,7 +667,7 @@
   =/  cte-st  i.set-tables.cte-fr
   ?.  =(1 rowcount.cte-st)
     ~|("cte-column predicate requires exactly 1 row in cte {<cte.col>}" !!)
-  =/  ta=typ-addr   %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.col]
+  =/  ta=typ-addr   %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.col ~]
                                                          name.col
   =/  row=data-row  ?~  joined-rows.cte-st
                       ?~  indexed-rows.cte-st
@@ -1185,9 +1190,9 @@
     ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
       ?:  =(x y)  %.n
       (alpha `@t`;;(@ y) `@t`x)
-    ?:  =(typ ~.rd)  (gth:rd x ;;(@ +.y))
-    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ +.y)) --1)
-    (gth x ;;(@ +.y))
+    ?:  =(typ ~.rd)  (gth:rd x ;;(@ y))
+    ?:  =(typ ~.sd)  =((cmp:si `@s`x `@s`;;(@ y)) --1)
+    (gth x ;;(@ y))
   ?:  |(=(typ ~.t) =(typ ~.ta) =(typ ~.tas))
     ?:  =(;;(@ +.x) ;;(@ +.y))  %.n
     (alpha ;;(@ +.y) ;;(@ +.x))

@@ -1,5 +1,5 @@
-/-  *server-state, server-state, *obelisk, ast
-/+  default-agent, dbug, *server, *print
+/-  *server-state-0, server-state-0, *obelisk, ast
+/+  default-agent, dbug, *main, *print
 |%
 +$  versioned-state
   $%  state-0
@@ -17,18 +17,61 @@
 |_  =bowl:gall
 +*  this  .
     default  ~(. (default-agent this %n) bowl)
-++  on-init  `this(state *state-0)
-++  on-save   !>(state)
-++  on-load
-  |=  =old==vase
+++  on-init
   ^-  (quip card _this)
-  =/  old  !<(versioned-state old-vase)
-  |-
-  ?-  -.old
-    %0  `this(state old)
-    ::  $(old [%1 +.old])
-    ::  %1  `this(state old)
-  ==
+  =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
+  =+  .^(dudes=(set [dude:gall ?]) %ge our %base now /$)
+  =/  install-hawk=card
+    :*  %pass
+        /init/hawk/install
+        %agent
+        [our.bowl %hood]
+        %poke
+        %kiln-install
+        !>([%hawk ~dister-migrev-dolseg %hawk])
+    ==
+  =/  hawk-cards=(list card)
+    ?:  |((~(has in dudes) [%hawk &]) (~(has in dudes) [%hawk |]))
+      ~
+    [install-hawk ~]
+  =/  animal-cards=(list card)
+    :~  :*  %pass
+            /init/animal-shelter
+            %arvo
+            %c
+            %warp
+            our.bowl
+            q.byk.bowl
+            ~
+            %sing
+            %x
+            da+now.bowl
+            /gen/animal-shelter/all-animal-shelter/txt
+        ==
+    ==
+  :_  this(state *state-0)
+  (weld hawk-cards animal-cards)
+++  on-save
+  !>(state)
+++  on-load
+  |=  old-state=vase
+  ^-  (quip card _this)
+  ::  attempt state reload/migration
+  ::
+  =/  r=(each state-0 tang)
+    %-  mule  |.
+    =/  old  !<(versioned-state old-state)
+    ?-  -.old
+      %0  old
+      :: %1
+    ==
+  ::  if it succeeded, use the old state
+  ::
+  ?:  ?=(%.y -.r)  `this(state p.r)
+  ::  if it failed, bunt the correct state type
+  ::
+  %-  (slog 'old state corrupt, unable to migrate data' ~)
+  `this(state *state-0)
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
@@ -41,10 +84,8 @@
   ::
   ::  prints results
   %tape
-    :: uncomment in order to stop on parse error
-    ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-        ^-  (each (pair (list cmd-result) server:server-state) tang)
+        ^-  (each (pair (list cmd-result) server:server-state-0) tang)
         %-  mule
           |.
           %:  state-server
@@ -66,12 +107,10 @@
         ==
     ==
   ::
-  ::  for testing without printing results
+  ::  action without printing results
   %tape2
-    :: uncomment in order to stop on parse error
-    ::=/  xx  (parse-urql(state server, bowl bowl) +<.act +>.act)
     =/  virtualized
-      ^-  (each (pair (list cmd-result) server:server-state) tang)
+      ^-  (each (pair (list cmd-result) server:server-state-0) tang)
       %-  mule
       |.
       %:  state-server
@@ -140,7 +179,46 @@
   ?+  path  [~ ~]
     [%x %server ~]  ``noun+!>(server.state)
   ==
-++  on-agent  on-agent:default
-++  on-arvo   on-arvo:default
+++  on-agent
+  |=  [=wire =sign:agent:gall]
+  ^-  (quip card _this)
+  ?+    wire  (on-agent:default wire sign)
+      [%init %animal-shelter %poke ~]
+    `this
+  ::
+      [%init %hawk %install ~]
+    `this
+  ==
+++  on-arvo
+  |=  [=wire =sign-arvo]
+  ^-  (quip card _this)
+  ?+    wire  (on-arvo:default wire sign-arvo)
+      [%init %animal-shelter ~]
+    ?+    -.sign-arvo  (on-arvo:default wire sign-arvo)
+        %clay
+      ?+    -.+.sign-arvo  (on-arvo:default wire sign-arvo)
+          %writ
+        =/  riot=riot:clay  +.+.sign-arvo
+        ?~  riot
+          %-  (slog 'animal-shelter init import file not found' ~)
+          `this
+        =/  cage  r.u.riot
+        ?.  ?=(%txt p.cage)
+          %-  (slog 'animal-shelter init import expected %txt cage' ~)
+          `this
+        =/  txt  !<(wain q.cage)
+        :_  this
+        :~  :*  %pass
+                /init/animal-shelter/poke
+                %agent
+                [our.bowl dap.bowl]
+                %poke
+                %obelisk-action
+                !>([%tape2 %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
+            ==
+        ==
+      ==
+    ==
+  ==
 ++  on-fail   on-fail:default
 --

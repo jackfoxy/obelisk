@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state
+/-  ast, *obelisk, *server-state-0
 /+  *sys-views, *utils, *predicate, *scalars, mip
 |_  [state=server =bowl:gall]
 ::
@@ -36,7 +36,7 @@
   "USE OR OTHER DEALINGS IN THE SOFTWARE."
 ::
 ++  select-relation
-  ::  selection from a single table without joins
+  ::  crud-txn from a single table without joins
   |=  [q=query:ast is-cte=? =named-ctes]
   ^-  [join-return (list vector)]
   =/  from          (normalize-from (need from.q))
@@ -156,8 +156,6 @@
 ++  join-natural
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
-  =/  this-key   key:(need pri-indx.this)
-  =/  prior-key  key:(need pri-indx.prior)
   =/  rel-prior  (need relation.prior)
   =/  rel-this   (need relation.this)
   ::  accumulated columns from all prior source tables
@@ -169,6 +167,12 @@
     ^-  (unit column:ast)
     ?:  =(qualifier.qualified-column.cm rel-this)  ~
     [~ [%column name.qualified-column.cm type.cm addr.cm]]
+  ?~  pri-indx.prior
+    (join-natural-hash prior this rel-prior rel-this prior-accum-cols)
+  ?~  pri-indx.this
+    (join-natural-hash prior this rel-prior rel-this prior-accum-cols)
+  =/  this-key   key:(need pri-indx.this)
+  =/  prior-key  key:(need pri-indx.prior)
   :: perfect natural join
   =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
                       ?~  joined-rows.prior
@@ -217,7 +221,8 @@
     =/  prior-prefix  (scag plen prior-key)
     =/  this-prefix   (scag plen this-key)
     =/  noncontig     (find-noncontig-matches prior-key this-key plen)
-    =/  nonkey-cols   (find-nonkey-matches prior-accum-cols this prior-key this-key)
+    =/  nonkey-cols
+          (find-nonkey-matches prior-accum-cols this prior-key this-key)
     ::  check for ambiguous non-key columns in multi-table join result
     =/  ambig-col  (find-ambig-nonkey joined-rows.prior nonkey-cols)
     ?^  ambig-col
@@ -308,14 +313,43 @@
                             ==
         %:  join-partial-key  joined-rows.prior
                               rel-prior
-                              %+  sort  indexed-rows.this
-                                      ~(order data-row-comp (reduce-key the-key))
+                              %+  sort
+                                    indexed-rows.this
+                                    ~(order data-row-comp (reduce-key the-key))
                               rel-this
                               prior-key
                               ~
                               ~
                               ==
   ::
+  (joined-set-table this -.count-and-rows +.count-and-rows)
+::
+++  join-natural-hash
+  |=  $:  prior=set-table
+          this=set-table
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          prior-accum-cols=(list column:ast)
+          ==
+  ^-  set-table
+  =/  match-cols  (find-all-matches prior-accum-cols this)
+  ?~  match-cols
+    ~|  "no natural join or foreign key join, columns do not match: ".
+        "{<rel-this>}"
+        !!
+  ::  check for ambiguous columns in multi-table join
+  =/  ambig-col  (find-ambig-nonkey joined-rows.prior match-cols)
+  ?^  ambig-col
+    ~|  %-  crip
+        %+  weld  "natural join: column %"
+        %+  weld  (trip u.ambig-col)
+                  " occurs in multiple tables"
+        !!
+  =/  prior-rows=(list data-row)
+    ?~  joined-rows.prior  indexed-rows.prior
+    joined-rows.prior
+  =/  count-and-rows
+    (join-hash prior-rows rel-prior indexed-rows.this rel-this match-cols)
   (joined-set-table this -.count-and-rows +.count-and-rows)
 ::
 ++  join-predicate
@@ -331,6 +365,9 @@
   =/  resolved  %+  turn  raw-pairs
     |=  [l=resolved-on-col r=resolved-on-col]
     ^-  [@tas @tas]
+    ::  rebrand alias qualifiers to match execution-time relations
+    =.  l  (rebrand-on-col l rel-prior rel-this)
+    =.  r  (rebrand-on-col r rel-prior rel-this)
     ::  resolve unqualified columns first (with ambiguity check)
     =.  l  (resolve-on-col l rel-prior rel-this column-metas)
     =.  r  (resolve-on-col r rel-prior rel-this column-metas)
@@ -359,6 +396,21 @@
     ~|("ON predicate must reference columns from different relations" !!)
   =/  prior-cols  (turn resolved |=(p=[@tas @tas] -.p))
   =/  this-cols   (turn resolved |=(p=[@tas @tas] +.p))
+  ?~  pri-indx.prior
+    (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+  ?~  pri-indx.this
+    (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+  (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+::
+++  join-predicate-hash-set
+  |=  $:  prior=set-table
+          this=set-table
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          prior-cols=(list @tas)
+          this-cols=(list @tas)
+          ==
+  ^-  set-table
   ::  hash join with separate column name lists
   =/  prior-rows=(list data-row)
     ?~  joined-rows.prior  indexed-rows.prior
@@ -409,6 +461,29 @@
     [~ name.a]
   ~|("JOIN ON predicate only supports column references" !!)
 ::
+++  rebrand-on-col
+  ::  rebrand a qualifier whose table name matches an execution-time
+  ::  relation but whose database/namespace differ (CTE alias case)
+  |=  $:  col=resolved-on-col
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          ==
+  ^-  resolved-on-col
+  ?~  qualifier.col  col
+  =/  q  u.qualifier.col
+  ?:  .=  (normalize-qt-alias q)
+          (normalize-qt-alias rel-prior)
+    col
+  ?:  .=  (normalize-qt-alias q)
+          (normalize-qt-alias rel-this)
+    col
+  ::  qualifier doesn't match directly; try matching by table name
+  ?:  =(name.q name.rel-prior)
+    col(qualifier [~ rel-prior])
+  ?:  =(name.q name.rel-this)
+    col(qualifier [~ rel-this])
+  col
+::
 ++  resolve-on-col
   ::  resolve an unqualified ON column against available relations
   ::  crash if ambiguous (exists in multiple relations)
@@ -426,7 +501,7 @@
     ^-  (unit qualified-table:ast)
     ?.  =(name.qualified-column.cm name.col)  ~
     [~ qualifier.qualified-column.cm]
-  ::  deduplicate (same relation may appear multiple times for different columns)
+  ::  deduplicate, same relation may appear multiple times for different columns
   =/  unique=(list qualified-table:ast)
     %+  roll  matches
     |=  [qt=qualified-table:ast acc=(list qualified-table:ast)]
@@ -443,7 +518,10 @@
 ::
 ++  col-in-relation
   ::  check if a resolved column exists in a specific relation
-  |=  [col=resolved-on-col rel=qualified-table:ast column-metas=(list column-meta)]
+  |=  $:  col=resolved-on-col
+          rel=qualified-table:ast
+          column-metas=(list column-meta)
+          ==
   ^-  ?
   ?^  qualifier.col
     ::  qualified: check if the qualifier matches this relation
@@ -552,8 +630,9 @@
     ?:  ?=(%joined-row -.i.a)
       [%joined-row ~ (~(put by data.i.a) b-qual data.i.b-rows)]
     :+  %joined-row  ~
-    %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a))
-    [b-qual data.i.b-rows]
+    %-  %~  put  by 
+            (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a)
+        [b-qual data.i.b-rows]
   $(b-rows t.b-rows, out [jr out], cnt +(cnt))
 ::
 ++  cross-join
@@ -637,7 +716,7 @@
   ==
 ::
 ++  select-for-cte
-  ::  cons a set-table of the selection
+  ::  cons a set-table of the crud-txn
   ::  1) object=~
   ::  2) new list of columns
   ::  3) key preserved w/ updated names or not
@@ -649,28 +728,39 @@
   ::      =predicate
   ::      pri-indexed=(tree [(list @) (map @tas @)])
   ::  5) row count
-  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?)) =named-ctes =resolved-scalars]
+  |=  $:  q=query:ast
+          set-tables=(list set-table)
+          f=(unit $-(data-row ?))
+          =named-ctes
+          =resolved-scalars
+          ==
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
   =.  relation.st2      ~
-  =/  col-map       (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
+  =/  col-map  (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
   =/  flipped-cols  (flop columns.i.set-tables)
   =.  columns.st2     %-  flop
                         ^-  (list column:ast)  %-  zing
                             %+  turn  columns.select.q
                                       |=  a=selected-column:ast
                                       %-  selected-column-to-column
-                                      [named-ctes col-map flipped-cols a resolved-scalars]
-  
+                                      :*  named-ctes
+                                          col-map
+                                          flipped-cols
+                                          a
+                                          resolved-scalars
+                                          ==  
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
                                 (cury selected-table-cols columns.i.set-tables)
-  =/  st-key          key:(need pri-indx.i.set-tables)
-  =/  count-key-cols  %^  fold  st-key
-                                *(pair @ud (list key-column))
-                                (cury count-keys selected-cols)
-  =.  pri-indx.st2    ?:  =(p.count-key-cols (lent st-key))
+  =.  pri-indx.st2    ?~  pri-indx.i.set-tables  ~
+                      =/  st-key  key:(need pri-indx.i.set-tables)
+                      =/  count-key-cols
+                            %^  fold  st-key
+                                      *(pair @ud (list key-column))
+                                      (cury count-keys selected-cols)
+                      ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
                       ~
   ?~  f  [st2 set-tables]
@@ -741,7 +831,11 @@
       =/  rs=resolved-scalar
         ~|  "{<selected-column>} not in resolved-scalars"
         (~(got by resolved-scalars) name.selected-column)
-      ~[[%column (heading selected-column name.selected-column) (resolved-scalar-type rs) 0]]
+      :~  :^  %column
+              (heading selected-column name.selected-column)
+              (resolved-scalar-type rs)
+              0
+          ==
     selected-value:ast
       ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
     selected-all:ast
@@ -750,8 +844,9 @@
       flipped-cols
     selected-cte-column:ast
       =/  cte-fr  (~(got by named-ctes) cte.selected-column)
-      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected-column]
-                                                              name.selected-column
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)
+                            [%cte-name cte.selected-column ~]
+                            name.selected-column
       ~[[%column (heading selected-column name.selected-column) type.ta 0]]
     ==
 ::
@@ -781,8 +876,10 @@
                    templ-cells
   ?~  non-lit
     ?-  -.i.rows
-      %joined-row  (joined-results filter ;;((list joined-row) rows) templ-cells)
-      %indexed-row  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+      %joined-row 
+        (joined-results filter ;;((list joined-row) rows) templ-cells)
+      %indexed-row
+        (indexed-results filter ;;((list indexed-row) rows) templ-cells)
     ==
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
   ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
@@ -919,21 +1016,22 @@
                         map-meta
                         column-metas
                         ==
-    %cte-name 
+    %cte-name
+      =/  cn  ;;(cte-name:ast rel)
       %:  from-cte  :*  %qualified-table
                         ship=~
                         database=%cte
                         namespace=%cte
-                        name=name:;;(cte-name:ast rel)
-                        alias=~
+                        name=name.cn
+                        alias=alias.cn
                         ==
                     named-ctes
                     *schema
+                    join
+                    predicate
                     map-meta
                     column-metas
                     ==
-    %query-row
-      ~|("SELECT: not supported on %query-row" !!)
   ==
 ::
 ++  got-relation
@@ -1020,6 +1118,8 @@
   ?~  tbl  %:  from-cte  qualified-table
                          named-ctes
                          schema
+                         join
+                         predicate
                          map-meta
                          column-metas
                          ==
@@ -1055,31 +1155,36 @@
   |=  $:  =qualified-table:ast
           =named-ctes
           =schema
+          join=(unit join-type:ast)
+          =predicate
           map-meta=qualified-map-meta
           column-metas=(list column-meta)
           ==
   ^-  full-relation
+  =/  norm-qt  (normalize-qt-alias qualified-table)
   =/  cte-fr  ~|  "SELECT: table {<database.qualified-table>}.".
                   "{<namespace.qualified-table>}.{<name.qualified-table>} ".
                   "does not exist at schema time {<tmsp.schema>}"
               (~(got by named-ctes) name.qualified-table)
   ?~  set-tables.cte-fr  ~|("from-cte: empty set-tables" !!)
   =/  cte-st  i.set-tables.cte-fr
-  =.  relation.cte-st  [~ qualified-table]
+  =.  relation.cte-st  [~ norm-qt]
+  =.  join.cte-st      join
+  =.  predicate.cte-st  predicate
   =/  cte-col-meta
-    (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table]))
+    (need (~(get by +.map-meta.cte-fr) [%cte-name name.qualified-table ~]))
   :*  %full-relation
-      qualified-table
+      norm-qt
       [cte-st ~]
       :-  %qualified-map-meta
-          (~(put by +.map-meta) qualified-table cte-col-meta)
+          (~(put by +.map-meta) norm-qt cte-col-meta)
       ::  use CTE's original column-metas (correct addr from
       ::  calc-joined-addr for JOINs) rebranded to outer qualified-table
       %+  weld  column-metas
       %+  turn  column-metas.cte-fr
       |=  cm=column-meta
       :+  :^  %qualified-column
-              (normalize-qt-alias qualified-table)
+              norm-qt
               name.qualified-column.cm
               alias.qualified-column.cm
           type.cm
@@ -1182,7 +1287,7 @@
   ^-  joined-row
   :+  %joined-row
       key.a
-      %+  %~  put  by  %+  %~  put  by  *(map qualified-table:ast (map @tas @))
+      %+  %~  put  by  %+  ~(put by *(map qualified-table:ast (map @tas @)))
                            a-qual
                            data.a
           b-qual
@@ -1266,7 +1371,7 @@
   ^-  (list [@ud @ud])
   =/  prior-rest  (slag plen prior-key)
   =/  this-rest   (slag plen this-key)
-  ::  build lookup from name+aura to absolute position for prior's remaining cols
+  ::  lookup from name+aura to absolute position for prior's remaining cols
   =/  prior-lookup=(map [@tas @ta] @ud)
     %-  malt
     =/  idx  plen
@@ -1401,8 +1506,9 @@
     ?:  ?=(%joined-row -.i.a)
       [%joined-row ~ (~(put by data.i.a) b-qual data.i.b-rows)]
     :+  %joined-row  ~
-    %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a))
-    [b-qual data.i.b-rows]
+    %-  %~  put  by
+            (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a)
+        [b-qual data.i.b-rows]
   $(b-rows t.b-rows, out [jr out], cnt +(cnt))
 ::
 ++  collect-group
@@ -1461,7 +1567,8 @@
   $(b t.b)
 ::
 ++  cross-filter
-  ::  cross-product of two groups, filtering on non-key and non-contiguous matches
+  ::  cross-product of two groups,
+  ::filtering on non-key and non-contiguous matches
   |=  $:  ga=(list data-row)
           gb=(list data-row)
           a-qual=qualified-table:ast
@@ -1491,8 +1598,9 @@
       [%joined-row prefix (~(put by data.i.ga) b-qual data.i.b-rows)]
     :+  %joined-row
       prefix
-      %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.ga))
-      [b-qual data.i.b-rows]
+      %-  %~  put  by
+            (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.ga)
+          [b-qual data.i.b-rows]
   %=  $
     out    [jr out]
     cnt    +(cnt)

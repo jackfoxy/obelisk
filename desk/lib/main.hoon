@@ -1,4 +1,4 @@
-/-  ast, *server-state, *obelisk
+/-  ast, *server-state-0, *obelisk
 /+  *sys-views, *ddl, *crud, parse
 |_  [state=server =bowl:gall]
 ::
@@ -133,21 +133,6 @@
       ?:  query-has-run
             ~|("CREATE VIEW: state change after query in script" !!)
       ~|("%create-view not implemented" !!)
-    %delete
-      ?:  query-has-run  ~|("DELETE: state change after query in script" !!)
-      ::=/  ctes=(map @tas [@ud (list indexed-row)])
-      ::      (named-queries ->-.cmds)
-      =/  r=[(map @tas @da) server (list result:ast)]
-            %^  do-delete(state state, bowl bowl)  i.cmds
-                                                   next-data
-                                                   next-schemas
-      %=  $
-        query-has-run   %.n
-        next-data       -.r
-        state           +<.r
-        cmds            t.cmds
-        results         [[%results +>.r] results]
-      ==
     %drop-database
       ?.  =(our.bowl src.bowl)
             ~|("DROP DATABASE: database must be dropped by local agent" !!)
@@ -202,9 +187,9 @@
       ?.  =(our.bowl src.bowl)
             ~|("REVOKE: revoke permissions must be by local agent" !!)
       ~|("%revoke not implemented" !!)
-    %selection
+    %crud-txn
       =/  r=[? [(map @tas @da) server (list result:ast)]]
-            %:  do-selection(state state, bowl bowl)  i.cmds
+            %:  do-crud-txn(state state, bowl bowl)  i.cmds
                                                       query-has-run
                                                       next-data
                                                       next-schemas
@@ -228,21 +213,6 @@
         state         +>+.r
         cmds          t.cmds
         results       [-.r results]
-      ==
-    %update
-      ?:  query-has-run  ~|("UPDATE: state change after query in script" !!)
-      ::=/  ctes=(map @tas [@ud (list indexed-row)])
-      ::      (named-queries ->-.cmds)
-      =/  r=[(map @tas @da) server (list result:ast)]
-            %^  do-update(state state, bowl bowl)  i.cmds
-                                                   next-data
-                                                   next-schemas
-      %=  $
-        query-has-run   %.n
-        next-data       -.r
-        state           +<.r
-        cmds            t.cmds
-        results         [[%results +>.r] results]
       ==
   ==
 ::

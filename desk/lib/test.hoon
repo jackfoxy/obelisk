@@ -84,7 +84,8 @@
             ~&  "expected:  {<(trip msg)>}"
             ~&  "find in tang:  {<(flatten +.b)>}"
 
-          (weld ['expected error message - not found' ~] (show-crash-messages +.b))
+          %+  weld  ['expected error message - not found' ~]
+                    (show-crash-messages +.b)
           ++  flatten
             |=  tang=(list tank)
             =|  res=tape

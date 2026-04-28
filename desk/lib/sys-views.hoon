@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state
+/-  ast, *obelisk, *server-state-0
 /+  *utils
 |%
 ::
@@ -25,20 +25,21 @@
                               ==
   :*  %view
       provenance                                            ::provenance=path
-      tmsp                                                    ::tmsp=@da
-      :+  %selection                                          ::selection
-          ~                                                 ::ctes=(list cte)
-          sys-sys-dbs-query                                   ::query
+      tmsp                                                  ::tmsp=@da
+      :+  %crud-txn                                        ::crud-txn
+          ~                                                   ::ctes=(list cte)
+          [%query sys-sys-dbs-query]                          ::query
       (malt (spun columns mk-col-lu-data))                  ::column-lookup
       %-  malt
         %+  turn  columns
-                  |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                                         ::columns=(list column)
-      ~                                         ::ordering=(list column-order)
+                  |=(a=column:ast [name.a [type.a addr.a]]) ::typ-addr-lookup
+      columns                                           ::columns=(list column)
+      ~                                           ::ordering=(list column-order)
+      ~                                                     ::indices
       ==
 ++  sys-sys-dbs-query
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~           ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -156,8 +157,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-namespaces-view
   ::  view name: sys-namespaces
@@ -175,22 +174,23 @@
                               [%column %tmsp ~.da 0]
                               ==
   :*  %view
-      provenance                     ::provenance=path
-      tmsp                           ::tmsp=@da
-      :+  %selection                 ::selection
-          ~                              ::ctes=(list cte)
-          (sys-namespaces-query db)      ::query
+      provenance                            ::provenance=path
+      tmsp                                  ::tmsp=@da
+      :+  %crud-txn                        ::crud-txn
+          ~                                   ::ctes=(list cte)
+          [%query (sys-namespaces-query db)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
                   |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                        ::columns=(list column)
-      ~                              ::ordering=(list column-order)
+      columns                               ::columns=(list column)
+      ~                                     ::ordering=(list column-order)
+      ~                                     ::indices
       ==
 ++  sys-namespaces-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~           ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -256,8 +256,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-tables-view
   ::    tables  files
@@ -276,22 +274,23 @@
                               [%column %row-count ~.ud 0]
                               ==
   :*  %view
-      provenance                     ::provenance=path
-      tmsp                           ::tmsp=@da
-      :+  %selection                 ::selection
-          ~                              ::ctes=(list cte)
-          (sys-tables-query db)          ::query
+      provenance                            ::provenance=path
+      tmsp                                  ::tmsp=@da
+      :+  %crud-txn                        ::crud-txn
+          ~                                   ::ctes=(list cte)
+          [%query (sys-tables-query db)]      ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
                   |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                        ::columns=(list column)
-      ~                              ::ordering=(list column-order)
+      columns                               ::columns=(list column)
+      ~                                     ::ordering=(list column-order)
+      ~                                     ::indices
       ==
 ++  sys-tables-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~            ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -387,8 +386,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-table-keys-view
   ::  *  initial cache key created upon table creation
@@ -403,22 +400,23 @@
                               [%column %key-ascending ~.f 0]
                               ==
   :*  %view
-      provenance                     ::provenance=path
-      tmsp                           ::tmsp=@da
-      :+  %selection                 ::selection
-          ~                              ::ctes=(list cte)
-          (sys-tables-query db)          ::query
+      provenance                            ::provenance=path
+      tmsp                                  ::tmsp=@da
+      :+  %crud-txn                        ::crud-txn
+          ~                                   ::ctes=(list cte)
+          [%query (sys-tables-query db)]      ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
                   |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                        ::columns=(list column)
-      ~                              ::ordering=(list column-order)
+      columns                               ::columns=(list column)
+      ~                                     ::ordering=(list column-order)
+      ~                                     ::indices
       ==
 ++  sys-table-keys-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~            ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -526,8 +524,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-columns-view
   |=  [db=@tas provenance=path tmsp=@da]
@@ -540,22 +536,23 @@
                               [%column %col-type ~.ta 0]
                               ==
   :*  %view
-      provenance                     ::provenance=path
-      tmsp                           ::tmsp=@da
-      :+  %selection                 ::selection
-          ~                              ::ctes=(list cte)
-          (sys-columns-query db)         ::query
+      provenance                            ::provenance=path
+      tmsp                                  ::tmsp=@da
+      :+  %crud-txn                        ::crud-txn
+          ~                                   ::ctes=(list cte)
+          [%query (sys-columns-query db)]     ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
                   |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                        ::columns=(list column)
-      ~                              ::ordering=(list column-order)
+      columns                               ::columns=(list column)
+      ~                                     ::ordering=(list column-order)
+      ~                                     ::indices
       ==
 ++  sys-columns-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~          ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -663,8 +660,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-sys-log-view
   |=  [database=@tas provenance=path tmsp=@da]
@@ -676,22 +671,23 @@
                               [%column %name ~.tas 0]
                               ==
   :*  %view
-      provenance                     ::provenance=path
-      tmsp                           ::tmsp=@da
-      :+  %selection                 ::selection
-          ~                              ::ctes=(list cte)
-          (sys-sys-log-query database)   ::query
+      provenance                            ::provenance=path
+      tmsp                                  ::tmsp=@da
+      :+  %crud-txn                        ::crud-txn
+          ~                                   ::ctes=(list cte)
+          [%query (sys-sys-log-query database)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
                   |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                        ::columns=(list column)
-      ~                              ::ordering=(list column-order)
+      columns                               ::columns=(list column)
+      ~                                     ::ordering=(list column-order)
+      ~                                     ::indices
       ==
 ++  sys-sys-log-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~            ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -789,8 +785,6 @@
                   %.y  ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  sys-data-log-view
   |=  [database=@tas provenance=path tmsp=@da]
@@ -804,22 +798,23 @@
                               [%column %row-count ~.ud 0]
                               ==
   :*  %view
-      provenance                     ::provenance=path
-      tmsp                           ::tmsp=@da
-      :+  %selection                 ::selection
-          ~                              ::ctes=(list cte)
-          (sys-data-log-query database)  ::query
+      provenance                            ::provenance=path
+      tmsp                                  ::tmsp=@da
+      :+  %crud-txn                        ::crud-txn
+          ~                                   ::ctes=(list cte)
+          [%query (sys-data-log-query database)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
                   |=(a=column:ast [name.a [type.a addr.a]])  ::typ-addr-lookup
-      columns                        ::columns=(list column)
-      ~                              ::ordering=(list column-order)
-        ==
+      columns                               ::columns=(list column)
+      ~                                     ::ordering=(list column-order)
+      ~                                     ::indices
+      ==
 ++  sys-data-log-query
   |=  database=@tas
-  ^-  (tree set-function:ast)
-  :+  :*  %query
+  ^-  query:ast
+  :*  %query
           :-  ~           ::from=(unit from)
               :^  %from
                   :*  %qualified-table  ::relation
@@ -927,16 +922,14 @@
                   %.y     ::ascending=?
               ==
           ==
-      ~
-      ~
 ::
 ++  apply-ordering
   |=  v=view
   ^-  view
-  ?~  set-functions.selection.v  ~|("apply-ordering can't get here" !!)
-  =/  qsf=set-function:ast  `set-function:ast`n.set-functions.selection.v
-  ?~  +>+>+>+.qsf  v  
-  v(ordering (make-ordering columns.v +>+>+>+.qsf))
+  ?.  ?=([%query *] body.crud-txn.v)  v
+  =/  q=query:ast  +.body.crud-txn.v
+  ?~  order-by.q  v
+  v(ordering (make-ordering columns.v order-by.q))
 ::
 ++  populate-system-view
   ::  Side effect: populate view-cache

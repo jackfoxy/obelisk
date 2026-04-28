@@ -1,0 +1,245 @@
+CREATE DATABASE animal-shelter;
+
+CREATE NAMESPACE reference;
+
+CREATE TABLE reference.common-person-names
+(
+  rank  @ud,
+  surname @t,
+  male  @t,
+  female  @t  
+)
+  PRIMARY KEY (rank)
+;
+
+CREATE TABLE reference.species 
+(
+  species @t  
+)
+  PRIMARY KEY (species)
+;
+
+CREATE TABLE reference.species-vital-signs-ranges
+(
+  species          @t,
+  temperature-low      @rs,
+  temperature-high    @rs,
+  heart-rate-low      @ud,
+  heart-rate-high      @ud,
+  respiratory-rate-low  @ud,
+  respiratory-rate-high  @ud
+)
+  PRIMARY KEY (species)
+;
+
+CREATE TABLE reference.breeds
+(
+  species @t,
+  breed  @t,
+  url    @t
+)
+  PRIMARY KEY (species, breed)
+;
+
+CREATE TABLE reference.common-animal-names
+(
+  species @t,
+  rank  @ud,
+  male  @t,
+  female  @t
+)
+  PRIMARY KEY (species, rank)
+;
+
+CREATE TABLE reference.colors 
+(
+  color @t  
+)
+  PRIMARY KEY (color)
+;
+
+CREATE TABLE reference.patterns
+(
+  species @t,
+  pattern @t
+)
+  PRIMARY KEY (species, pattern)
+;
+
+CREATE TABLE reference.vaccines 
+(
+  vaccine @t  
+)
+  PRIMARY KEY (vaccine)
+;
+
+CREATE TABLE reference.species-vaccines
+(
+  species @t,
+  vaccine @t
+)
+  PRIMARY KEY (species, vaccine)
+;
+
+CREATE TABLE reference.states 
+(
+  state    @t, 
+  state-code  @t
+)
+  PRIMARY KEY (state)
+;
+
+CREATE TABLE reference.common-street-names 
+(
+  rank @ud, 
+  street @t
+)
+  PRIMARY KEY (rank)
+;
+
+CREATE TABLE reference.federal-holidays-fixed 
+(
+  holiday      @t, 
+  month      @ud, 
+  day-of-month  @ud
+)
+  PRIMARY KEY (holiday)
+;
+
+CREATE TABLE reference.federal-holidays-floating
+(
+  holiday    @t,
+  month    @ud,
+  date-min  @ud,
+  date-max  @ud,
+  day-of-week @ud
+)
+  PRIMARY KEY (holiday)
+;
+
+CREATE TABLE persons
+(
+  email    @t,
+  first-name  @t,
+  last-name  @t,
+  birth-date  @da,
+  address    @t,
+  state    @t,
+  city    @t,
+  zip-code  @t
+)
+  PRIMARY KEY (email)
+;
+
+CREATE TABLE staff-roles 
+(
+  role @t  
+)
+  PRIMARY KEY (role)
+;
+
+CREATE TABLE staff
+(
+  email    @t,
+  hire-date  @da
+)
+  PRIMARY KEY (email)  
+;
+
+CREATE TABLE staff-assignments
+(
+  email    @t,
+  role    @t,
+  assigned  @da
+)
+  PRIMARY KEY (email, role)
+;
+
+CREATE TABLE adoptions
+(
+  name        @t,
+  species        @t,
+  adopter-email    @t,  
+  adoption-date      @da,
+  adoption-fee      @ud
+)
+  PRIMARY KEY (name, species, adopter-email)
+;
+
+CREATE TABLE vaccinations
+(
+  name        @t,
+  species        @t,
+  vaccination-time  @da,
+  vaccine        @t,
+  batch        @t,
+  comments      @t,
+  email        @t
+)
+  PRIMARY KEY (name, species, vaccine, vaccination-time)
+;
+
+CREATE TABLE reference.cities
+(
+  state    @t,
+  city    @t,
+  county    @t,
+  population  @ud
+)
+  PRIMARY KEY (state, city)
+;
+
+CREATE TABLE reference.city-zip-codes
+(
+  state    @t,
+  city    @t,
+  zip-code  @t    
+)
+  PRIMARY KEY (state, city, zip-code)
+;
+
+CREATE TABLE reference.calendar
+(
+  date        @da,
+  year        @ud,
+  month        @ud,
+  month-name      @t,
+  day          @ud,
+  day-name      @t,
+  day-of-year      @ud,
+  weekday        @ud,
+  year-week      @ud
+)
+  PRIMARY KEY (date)
+;
+
+CREATE TABLE reference.calendar-us-fed-holiday
+(
+  date        @da,
+  us-federal-holiday  @t
+)
+  PRIMARY KEY (date)
+;
+
+CREATE TABLE animals
+(
+  name      @t,
+  species      @t,
+  primary-color  @t,
+  implant-chip-id @t, 
+  gender      @t,
+  birth-date    @da,
+  pattern      @t,
+  admission-date  @da
+)
+  PRIMARY KEY (name, species)
+;
+
+CREATE TABLE animals-breed
+(
+  name      @t,
+  species      @t, 
+  breed      @t
+)
+  PRIMARY KEY (name, species)
+;

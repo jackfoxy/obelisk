@@ -85,12 +85,12 @@ The following are some common language structures used throughout the reference.
 **\<ship-qualifier>** adds ship qualification to the database/namespace qualifier.
 
 ```
-<common-table-expression> ::=
-  <selection> [ AS ] <alias>
+<cte> ::=
+  <query> [ AS ] <alias>
 ```
-**\<common-table-expression>** produces a row result set, `<relation>`, for further manipulation by other CTEs, JOINS, SELECT clauses, or predicates.
+**\<cte>** produces a row result set, `<relation>`, for further manipulation by other CTEs, JOINS, SELECT clauses, or predicates.
 
-`<selection> ::=` from selection diagram. (More on `<selection>` under `<relation>`.)
+`<query> ::=` from crud-txn diagram. (More on `<query>` under `<relation>`.)
 
 `<alias> ::= @t` case-agnostic, see alias naming discussion above.
 
@@ -99,41 +99,41 @@ CTEs are always referenced by alias, never inlined.
 ```
 <relation> ::=
   [ <ship-qualifier> ]{ <table> | <view> }
-  | <common-table-expression>
+  | <cte>
   | *
 ```
 **\<relation>** is sets of data cells arranged as row sets (of one or more row types), either as an interim result type or end result.
 
 Each simple row type is itself a set defined by its component columns (and literals). Rows of `<relation>`s that are not also `<table>`s may be of varying length (jagged). Hence the row type of a `<relation>` may be a union type.
 
-The order of rows may be determined in the `<selection>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
+The order of rows may be determined in the `<query>` command by an ORDER BY clause, and so in the case of ordering `<relation>`s are not strictly *sets* (which have no defined order) in the mathematical sense.
 
 When a `<view>`  and a `<table>` have the same name within a namespace, `<view>` is said to "shadow" `<table>` wherever syntax accepts `<table>` or `<view>`. That is the `<view>` will be referenced and the `<table>` ignored.
 
 User-defined tables, `<table>`, are the sole source of content in an Obelisk database and the only manifestation of `<relation>` that is not the result of some computation (selecting data).
 
-The `<selection>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<selection>` statements. This is true because every `<selection>` statement is idempotent, provided all selection objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
+The `<query>` statement returns a `<relation>`, hence every `<relation>` is typed by one or more equivalent urQL `<query>` statements. This is true because every `<query>` statement is idempotent, provided all crud-txn objects are within the samve database. The idempotence guarantee does not extend to cross-database selections. (More on this in the section on __Time__.)
 
 More generally, a `<relation>` is a user-defined table, view, common table expression, join, or result of a query. Most importantly, it is a proper set of its rows. 
 
 ```
-<as-of-time> ::=
+<as-of> ::=
   AS OF { NOW
           | <timestamp>
           | n { SECOND[S] | MINUTE[S] | HOUR[S] | DAY[S] | WEEK[S] | MONTH[S] | YEAR[S] } AGO
-          | <time-offset>
+          | <as-of-offset>
         }
 ```
 
-Specifying **\<as-of-time>** overrides setting the schema and/or content timestamps in data and schema access and state changes.
+Specifying **\<as-of>** overrides setting the schema and/or content timestamps in data and schema access and state changes.
 
 `NOW` default, current computer time.
 
-`<timestamp>` any valid time in @dr format.
+`<timestamp>` any valid time in @da format.
 
 `n ... AGO` sets the schema and/or content (data) timestamp in state changes back from `NOW` according to the time units specified.
 
-`<time-offset>` any valid timespan in @dr format; sets the schema and/or content timestamp in state changes back from `NOW`.
+`<as-of-offset>` any valid timespan in @dr format; sets the schema and/or content timestamp in state changes back from `NOW`.
 
 ## Literals
 
@@ -272,7 +272,7 @@ Each user-defined table is typed by its `<row-type>`.
 ```
 A user-defined table's definition includes a unique primary row order, the primary key ordering, giving it `list column` type rather than `set column` type. This is not true for all `<relation>` instances, which are always sets, but may have no defined order (i.e. the order in which they appear as results is arbitrary).
 
-Rows from `<view>`s, `<common-table-expression>`s, and output from `<selection>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
+Rows from `<view>`s, `<cte>`s, and output from `<query>`, or any other table<sup>2</sup> that is not a base-table, can only have an immutable row order if it is explicitly specified (i.e., the `SELECT` statement includes an `ORDER BY` clause). In general, these other tables have types that are unions of `<row-type>`s.
 
 When the `<relation-type>` is a union of `<row-type>`s. There is a `<row-type>` representing the full width of the `SELECT` statement and as many sub-types as necessary to represent any selected unjoined outer `JOIN`s. 
 
@@ -296,7 +296,7 @@ All static types in the Obelisk API are defined in `sur/ast/hoon`.
 
 Even `<table>`s can be typed as sets, because a `SELECT` statement without an `ORDER BY` clause has an undefined row order.
 
-Regardless of the presence of `ORDER BY`, any `<relation>` emitted by any step in a `<selection>`, a CTE, or a `<view>` is a list of `<row-type>` in some (possibly arbitrary) order.
+Regardless of the presence of `ORDER BY`, any `<relation>` emitted by any step in a `<query>`, a CTE, or a `<view>` is a list of `<row-type>` in some (possibly arbitrary) order.
 
 Ultimately, "set" is the most important concept because every `<relation>` will have one unique row value for any given sub-type of `<row-type>`.
 
@@ -304,16 +304,16 @@ Ultimately, "set" is the most important concept because every `<relation>` will 
 
 In *urQL* time is both primary and fundamental. Every change of state, whether to a database's schema or content, is indexed by time. Thus every query is idempotent becasue each query is implicitly or explicitly associated with a particular state in the series.
 
-The rules enforcing time primacy in the Obelisk database engine are simple. Each database has a most recent schema time and a most recent content time. Every subsequent state change, whether to schema or content must be subsequent to the latest of the two times. Normally the user never needs to concern himself with this requirement. The database engine just takes care of it because the default `<as-of-time>` for every statement is `NOW`, the host schema time carried in the Obelisk agent's `now.bowl`. *urQL* scripts default every statement in a script (sequence of statements) to `NOW`, so the time result of script execution is as if everything happened _all at once_ even though the statements executed sequentially. Users only need to be aware of this rule when applying `<as-of-time>` to override `NOW`. Violation of time constraints (or any other error) causes the entire script to fail. (Scripts are always atomic.)
+The rules enforcing time primacy in the Obelisk database engine are simple. Each database has a most recent schema time and a most recent content time. Every subsequent state change, whether to schema or content must be subsequent to the latest of the two times. Normally the user never needs to concern himself with this requirement. The database engine just takes care of it because the default `<as-of>` for every statement is `NOW`, the host schema time carried in the Obelisk agent's `now.bowl`. *urQL* scripts default every statement in a script (sequence of statements) to `NOW`, so the time result of script execution is as if everything happened _all at once_ even though the statements executed sequentially. Users only need to be aware of this rule when applying `<as-of>` to override `NOW`. Violation of time constraints (or any other error) causes the entire script to fail. (Scripts are always atomic.)
 
 The `CREATE DATABASE` command sets the first schema and content times to the database creation time.
 
 The second, and last, rule is once you introduce a query returning results into a script, all subsequent statements must also be queries. No further schema or data changes are allowed.
 
-Among the metadata returned by queries is the schema and content times (labelled `schema time` and `data time`) used by the engine to create the query results. The query has a de facto `<as-of-time>` of the latest of the two for each underlying table or view. That is what makes it idempotent. You need to specify this `<as-of-time>` to recreate the same query. By specifying `<as-of-time>` in a query the engine uses the schema and content in effect at that time to create the results.
+Among the metadata returned by queries is the schema and content times (labelled `schema time` and `data time`) used by the engine to create the query results. The query has a de facto `<as-of>` of the latest of the two for each underlying table or view. That is what makes it idempotent. You need to specify this `<as-of>` to recreate the same query. By specifying `<as-of>` in a query the engine uses the schema and content in effect at that time to create the results.
 
 Creating a new `NAMESPACE` or `TABLE` may be back-dated to anytime subsequent to the latest of schema time or content time. The same applies to `TRUNCATE TABLE` which is a special case of zeroing-out the content of a table.
 
 WARNING: It is possible to future date a `CREATE DATABASE`, `CREATE NAMESPACE`, `CREATE TABLE`, or `TABLE TRUNCATE`. This will lock all schema and data updates in the database until that future time.
 
-All other data manipulation commands -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, `NOW`. Use `<as-of-time>` to apply the change to any prior version of the data, thus discarding subsequent content changes.
+All other data manipulation commands -- `INSERT`, `UPDATE`, and `DELETE` -- change the content state in the current system time, `NOW`. Use `<as-of>` to apply the change to any prior version of the data, thus discarding subsequent content changes.

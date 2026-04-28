@@ -3,9 +3,6 @@ name: obelisk-urql
 description: The urql obelisk database scripting language is a dialect of sql. There are a few significant differences.
 user-invocable: true
 disable-model-invocation: false
-validated: safe
-checked-by: ~nomryg-nilref
-
 ---
 
 # obelisk-urql skill
@@ -21,10 +18,10 @@ urQL is derived from SQL with significant variations that enhance readability, p
 urQL syntax requires clauses in the internal evaluation order, not SQL's SELECT-first order:
 
 1. FROM clause (with JOINs)
-2. WHERE clause
-3. GROUP BY clause
-4. HAVING clause
-5. SCALARS clause
+2. SCALARS clause
+3. WHERE clause
+4. GROUP BY clause
+5. HAVING clause
 6. SELECT clause
 7. ORDER BY clause
 
@@ -142,12 +139,14 @@ INSERT INTO <table> [ <as-of-time> ]
 - if column list is omitted, values must be in the table's canonical column order
 - multiple value rows are NOT comma separated (each row is its own parenthesized group)
 - the DEFAULT keyword specifies the column type's bunt (default) value
-- INSERT from SELECT is parsed but not yet supported in Obelisk engine
+- INSERT from SELECT is parsed but not yet supported in Obelisk runtime
 
 ### DELETE
 
 ```
-DELETE [ FROM ] <table> [ <as-of-time> ]
+[ WITH [ <common-table-expression> [ ,...n ] ] ]
+[ SCALARS { <name> <scalar-function> } [ ...n ]]
+DELETE [ FROM ] <table> [ <as-of> ]
   WHERE <predicate>
 ```
 
@@ -162,13 +161,20 @@ TRUNCATE TABLE [ <ship-qualifier> ] <table> [ <as-of-time> ]
 
 Executes in O(1) time regardless of data volume.
 
-### UPDATE (not yet implemented)
+### UPDATE
 
 ```
-UPDATE <table> [ <as-of-time> ]
-  SET { <column> = <value> } [ ,...n ]
+[ WITH [ <common-table-expression> [ ,...n ] ] ]
+[ SCALARS { <name> <scalar-function> } [ ...n ]]
+UPDATE [ <ship-qualifier> ] <table> [ <as-of> ]
+  SET { <column> = <scalar-node> } [ ,...n ]
   [ WHERE <predicate> ]
 ```
+
+- WHERE predicate is optional — omitting it updates every row
+- the DEFAULT keyword in SET resets a column to its aura bunt value
+- WITH CTEs, SCALARS, and AS OF are supported
+- when no rows match the predicate the result message is `'no rows updated'` and no data-time is recorded
 
 ## SELECT (query)
 
@@ -196,24 +202,65 @@ SELECT [ TOP <n> ]
 
 ### current implementation status
 
-- JOIN (inner, no ON predicate): supported
-- JOIN with ON predicate: supported in parser, not in engine
+- JOIN (inner, no ON predicate — natural join): supported
+- JOIN with ON predicate: supported
 - LEFT JOIN, RIGHT JOIN, OUTER JOIN: not yet supported
 - CROSS JOIN: supported
 - GROUP BY, ORDER BY, TOP: parsed but not yet supported in engine
 - aggregate functions: not yet implemented
 
+## set operations
+
+`UNION`, `EXCEPT`, and `INTERSECT` combine complete queries and are
+evaluated left-to-right. Results are true sets: exact duplicate result
+vectors are removed. Equality includes output column names, column order, and
+auras, not just raw values.
+Unlike SQL, operands are not required to return the same row type. `UNION` can
+contain distinct row shapes side by side; `EXCEPT` and `INTERSECT` only match
+complete result vectors that are exactly equal.
+
+- `UNION`: rows from either side
+- `EXCEPT`: rows from the left side not present on the right
+- `INTERSECT`: rows present on both sides
+- set operations may be used in CTE bodies and by outer queries over CTEs
+- if a set query contains `UNION`, every operand `SELECT` must have unique
+  output column names
+- `DIVIDED BY` and `DIVIDED BY WITH REMAINDER` parse but do not execute yet
+
 ## joins
 
 ### natural joins
 
-Joins without an ON predicate. Obelisk automatically joins on matching primary keys (all key columns must match on name, aura type, and sequence; ASC/DESC may differ).
+Joins without an ON predicate. Obelisk joins on all columns shared between the two objects by matching name and aura type. The columns need not be primary keys.
 
-If no matching primary key or foreign key exists, the query crashes.
+- joining on full primary key columns is most efficient (indexed)
+- joining on a partial primary key (leading columns only — trailing-only subsets are not valid) or on non-key columns requires a scan
+- if no columns match by name and aura type, the query crashes
+
+### JOIN ON predicate
+
+The ON predicate may only contain column equality conditions joined by AND:
+
+```
+FROM adoptions A
+JOIN vaccinations V ON A.name = V.name AND A.species = V.species
+SELECT A.name, A.species, V.vaccine, V.vaccination-time;
+```
+
+No other operators or OR conjunctions are permitted in ON. For more complex join conditions use CROSS JOIN with WHERE filtering.
 
 ### CROSS JOIN
 
-Cartesian join of two tables. Takes no predicate.
+Cartesian join of two tables. Takes no predicate. Use with WHERE to implement complex join conditions:
+
+```
+FROM adoptions A
+CROSS JOIN vaccinations V
+WHERE A.name = V.name
+  AND A.species = V.species
+  AND V.vaccination-time > A.adoption-date
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
 
 ## predicates
 
@@ -267,7 +314,7 @@ A `<scalar-query>` is a CTE alias that selects one column. It can be used with I
 CTEs are defined with WITH and referenced by alias:
 
 ```
-WITH ( <selection> ) [ AS ] <alias>
+WITH ( <crud-txn> ) [ AS ] <alias>
 ```
 
 - CTEs produce a relation for further use by other CTEs, JOINs, SELECT, or predicates
@@ -275,7 +322,7 @@ WITH ( <selection> ) [ AS ] <alias>
 - multiple CTEs can be chained
 - predicates can reference CTEs (e.g., WHERE col IN cte-name)
 
-## scalar functions (under development, not yet available in engine)
+## scalar functions
 
 ### control flow
 

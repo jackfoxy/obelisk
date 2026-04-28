@@ -1,6 +1,6 @@
 # Introduction
 
-If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend.
+If you have worked with SQL, Obelisk should seem very familiar. If you have no experience with relational databases don't worry, this guide is your friend. If you are unfamiliar with relational database design we recommend a quick guide to [database design/normalization](https://www.splunk.com/en_us/blog/learn/data-normalization.html).
 
 It is recommended to read the [Preliminaries](/docs/reference/01-preliminaries.md) chapter of the Reference document before proceeding.
 
@@ -11,7 +11,7 @@ You can also use the %hawk [template](https://hawk.computer/~~/templates/obelisk
 
 # Commands
 
-Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/Selection. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
+Obelisk urQL provides for DDL (Data Definition Language) commands, data manipulation commands, and Query/crud-txn. Commands not available in the current release are marked in the Reference. You can string commands together by delimiting with semicolons to create scripts. Script commands execute sequentially, but all *happen at the same time* in that timestamps recorded in the system are all the same (assuming no times have been overridden). Scripts are atomic in that all commands succeed or the entire script fails. 
 
 DDL commands define databases, their data tables and other components, data manipulation commands are responsible for the content of databases, and `SELECT` performs queries.
 
@@ -38,7 +38,7 @@ DDL commands define databases, their data tables and other components, data mani
 |DELETE            | |
 |INSERT            | |
 |TRUNCATE TABLE    | |
-|UPDATE            |*not implemented*|
+|UPDATE            | |
 
 
 ### Query
@@ -83,7 +83,7 @@ Every successful command returns metadata about the state of the server and effe
 
 **%server-time** -- The time, according to the server, the script executed. This corresponds to `now.bowl` in the agent. Unless the command was submitted with an `AS OF` clause (which overrides server time) Obelisk will record this time to any internal timestamps. In this case the time of database creation.
 
-**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and selection commands).<sup>1</sup>
+**%schema-time** -- In this case, since we mutated the server state, it is the time recorded for database creation. In general *%schema-time* is either the result of schema state mutation (for DDL commands) or the highest timestamp in the database for schema components directly effecting the command (in the case of data manipulation and crud-txn commands).<sup>1</sup>
 
 Let's look at the state of our server by querying a system view on the database schema.
 
@@ -118,7 +118,7 @@ The formatting of *%result-set* is the result of a print utility used by the %ob
 ```
 The first atom is the column label or alias, and the *dime* is the data aura and atom.
 
-We will talk more about selection (querying) later.
+We will talk more about crud-txn (querying) later.
 
 *sys.sys.databases* records a row for every event that mutates the state of the server, in other words every event that changes the state of a database's schema or data contents.
 
@@ -227,6 +227,42 @@ WHERE col1 = 'tomorrow';
     [ %vector-count 2 ]
 ```
 
+## UPDATE
+
+`UPDATE` changes the content of selected columns in existing rows. Unlike `DELETE`, a predicate is optional — omitting it updates every row in the table.
+
+```
+UPDATE my-table-2
+SET col3=99
+WHERE col1 = 'today';
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'UPDATE db1.dbo.my-table-2' ]
+    [ %server-time ~2025.4.1..10.00.00..0000 ]
+    [ %schema-time ~2024.9.26..22.28.55..f02a ]
+    [ %data-time ~2025.3.31..16.28.20..063c ]
+    [ %message 'updated:' ]
+    [ %vector-count 1 ]
+    [ %message 'table data:' ]
+    [ %vector-count 2 ]
+```
+
+The first `%vector-count` is the number of rows changed; the second is the total rows in the table. When no rows match the predicate the message is `'no rows updated'` and no data-time is recorded.
+
+Use the `DEFAULT` keyword in `SET` to reset a column to its aura bunt value.
+
+```
+UPDATE my-table-2
+SET col3=DEFAULT;
+:: updates every row
+```
+
+**Advanced features**
+
+`UPDATE` supports the same `WITH` CTEs, `SCALARS`, and `AS OF` time-travel clauses as other data manipulation commands. See the [UPDATE reference](/docs/reference/update.md) for full syntax and examples.
+
 ## TRUNCATE TABLE
 
 Let's say we want to clear out the data in a table. `DELETE` is an inefficient command in every RDBMS, and Obelisk is no exception. To efficiently clear the data in a table use `TRUNCATE TABLE`, which always executes in O(1) time, in other words it is very fast regardless of how much data is in the table.
@@ -244,6 +280,31 @@ TRUNCATE TABLE my-table-1;
     [ %vector-count 3 ]
 ```
 This time *%vector-count* is the number of rows removed.
+
+## DROP TABLE
+
+`DROP TABLE` deletes a table and all its data. It requires `FORCE` if the table contains data, is referenced by a view, or is used in a foreign key. With `FORCE`, dependent views and foreign keys are also dropped.
+
+Since we already truncated `my-table-1` it can be dropped without `FORCE`:
+
+```
+DROP TABLE my-table-1;
+```
+```
+%obelisk-result:
+  %results
+    [ %action 'DROP TABLE %my-table-1' ]
+    [ %server-time ~2025.4.2..09.00.00..0000 ]
+    [ %schema-time ~2024.9.26..22.28.55..f02a ]
+    [ %data-time ~2024.9.27..17.03.38..92af ]
+    [ %vector-count 0 ]
+```
+
+Attempting to drop the still-populated `my-table-2` without `FORCE` results in an error. Add `FORCE` to proceed:
+
+```
+DROP TABLE FORCE my-table-2;
+```
 
 # Sample Database
 
@@ -357,9 +418,32 @@ Here is another difference between Obelisk and any SQL RDBMS. Rows returned from
 
 Without the `ORDER BY` clause (*not yet implemented*), data rows are returned in an arbitrary order.
 
-## The WHERE clause
+## SCALARS
 
-As with SQL, you can filter query results with a `WHERE` clause.
+The optional `SCALARS` clause defines named computed expressions evaluated per row. It appears after `FROM` and before `WHERE`. Scalar names can be used in both `SELECT` and `WHERE`.
+
+```
+FROM adoptions
+SCALARS full-label CONCAT(name, ' (', species, ')')
+        fee-tier IF adoption-fee > 75 THEN 'premium' ELSE 'standard' ENDIF
+SELECT name, species, adoption-date, full-label, fee-tier;
+```
+
+Scalar function categories:
+
+- **Arithmetic** — `col1 + col2 * 3 END` — supports `+`, `-`, `*`, `/`, `%`, `^` on `@ud`, `@sd`, `@rd`; must end with `END`
+- **String** — `CONCAT(...)`, `TRIM(...)`, `UPPER(...)`, `LOWER(...)`, `REPLACE(...)`, `SUBSTRING(...)`
+- **DateTime** — `YEAR(...)`, `MONTH(...)`, `DAY(...)`, `HOUR(...)`, `MINUTE(...)`, `GETUTCDATE()`
+- **Mathematical** — `ABS(...)`, `SQRT(...)`, `FLOOR(...)`, `CEILING(...)`, `ROUND(...)`, and trig functions
+- **Control flow** — `IF <predicate> THEN ... ELSE ... ENDIF`, `CASE ... END`, `COALESCE(...)`
+
+A scalar can also reference a CTE column, provided the CTE returns exactly one row (a singleton). See the [SCALARS reference](/docs/reference/scalars.md) for full syntax.
+
+## WHERE clause
+
+As with SQL, you can filter query results with a `WHERE` clause. In a query with a `FROM` clause, column references in the predicate must use unqualified column names or the table alias assigned in `FROM` or `JOIN`. Raw table names and fully-qualified table names are not valid in predicates — always assign and use an alias when disambiguation is needed.
+
+`SCALARS` defined in the same query and CTE columns are also valid in predicates.
 ```
 FROM reference.calendar
 WHERE day-name = 'Thursday'
@@ -418,6 +502,41 @@ SELECT *;
 ```
 
 <sup>2</sup> The *NOT* operator currently does not parse in all expected configurations due to a bug.
+
+## WITH clause
+
+A `WITH` clause defines one or more *Common Table Expressions* (CTEs) — named sub-queries whose results can be referenced in the outer query's `FROM`, `WHERE`, or `SELECT`. CTEs are defined once per statement and may chain: a later CTE may reference an earlier one.
+
+```
+WITH (FROM persons P
+      JOIN staff S
+      SELECT P.first-name, P.last-name, P.email, S.hire-date) AS shelter-staff
+FROM shelter-staff
+WHERE hire-date > ~2018.1.1
+SELECT first-name, last-name, hire-date;
+```
+
+The outer `FROM` references the CTE by its name. The inner query follows the same `FROM ... WHERE ... SELECT` syntax as any other query, including joins and aliases.
+
+Key rules:
+
+- Column names within a CTE must be unique. Joins where both tables share a column name (e.g., `date`) must resolve duplicates with aliases: `T1.date AS cal-date, T2.date AS hol-date`.
+- `SELECT *` on a joined CTE is only valid if all column names are unique.
+- A CTE selecting a single column can serve as a set in `WHERE col IN my-cte.col` predicates, or as a singleton value with `=` when the CTE returns exactly one row.
+- CTEs may also appear in `UPDATE` and `DELETE` `WHERE` predicates to filter which rows are modified.
+
+Chained CTEs:
+
+```
+WITH (FROM adoptions
+      WHERE species = 'Dog'
+      SELECT name, adopter-email, adoption-fee) AS dog-adoptions,
+     (FROM dog-adoptions
+      WHERE adoption-fee > 75
+      SELECT name, adopter-email) AS premium-dogs
+FROM premium-dogs
+SELECT *;
+```
 
 # Time Travel
 
@@ -622,7 +741,9 @@ A `JOIN` is a query clause that combines rows from two or more data objects, pos
 
 ## Natural Joins
 
-*Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk determines if the tables share the same primary key, all primary key columns having the same name and aura type. If so it will join on primary keys. It does not matter if the keys' columns ascending/descending ordering differ between the two.  If not joined on primary key it determines if there is a `FOREIGN KEY` (*not yet implemented*) relating the objects.
+*Natural Joins* rely on columns between two data objects (tables or views) that have a predetermined correspondence, rather than an `ON` predicate determining the join criteria. When specifying a `JOIN` without an `ON` predicate, Obelisk joins on all columns that share the same name and aura type between the two objects. Any matching column names and aura types qualify — the columns need not be primary keys.
+
+Joining on full primary key columns is the most efficient, as the data is indexed on primary keys. Joining on a partial primary key (the leading columns of the key) or on non-key columns requires a scan and is less efficient. A partial key must be the leading columns of the primary key — trailing-only subsets are not valid.
 
 Let's use the system view *sys.table-keys* to find like primary keys.
 
@@ -669,9 +790,225 @@ SELECT T1.date, day-name, us-federal-holiday;
   ~2025.1.20  Monday  Birthday of Martin Luther King Jr.
 ```
 
-## CROSS JOIN
+## JOIN ON predicate
+
+The `ON` predicate in a join is restricted to equality conditions between columns, combined with `AND`. No other operators or `OR` conjunctions are permitted.
+
+```
+FROM adoptions A
+JOIN vaccinations V
+  ON A.name = V.name
+ AND A.species = V.species
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
+
+For more complex join conditions — such as inequality comparisons, `OR` logic, or expressions — use `CROSS JOIN` combined with a `WHERE` clause to filter the cartesian product:
+
+```
+FROM adoptions A
+CROSS JOIN vaccinations V
+WHERE A.name = V.name
+  AND A.species = V.species
+  AND V.vaccination-time > A.adoption-date
+SELECT A.name, A.species, A.adoption-date, V.vaccine, V.vaccination-time;
+```
+
+## CROSS JOIN 
 
 `CROSS JOIN` takes no predicate and joins every row of the joined object to each and every row of the rest of the selected objects. This is also know as a cartesian join.
+
+## Outer Joins
+
+While `LEFT JOIN`, `RIGHT JOIN`, and `OUTER JOIN` are supported by the parser, but not the Obelisk runtime in the current release, the same result can be obtaind by a `UNION` of `JOIN` followed by a `CROSS JOIN` filtered by a `WHERE` predicate, or just a `CROSS JOIN` with `WHERE` predicate filtering.
+
+# SET OPERATIONS
+
+Set operations combine the rows returned by two or more complete queries. In urQL a set operation is written between queries:
+
+```
+FROM <object>
+WHERE <predicate>
+SELECT <columns>
+UNION
+FROM <object>
+WHERE <predicate>
+SELECT <columns>;
+```
+
+The supported set operations are `UNION`, `EXCEPT`, and `INTERSECT`.
+
+`UNION` returns rows from either side. Exact duplicate rows appear once.
+
+`EXCEPT` starts with the rows on the left and removes any rows that also appear on the right.
+
+`INTERSECT` returns only rows that appear on both sides.
+
+The operations are evaluated left-to-right. This matters when they are chained:
+
+```
+FROM animals
+WHERE species = 'Dog'
+SELECT name, species
+UNION
+FROM animals
+WHERE species = 'Rabbit'
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+This query first forms the set of dogs and rabbits in the shelter, then removes animals that have adoption records. It is not grouped by precedence; it is simply evaluated in the order written.
+
+Set operation results are true sets. Duplicate rows are removed, but equality is exact: the output column names, column order, and aura types are part of the row. These two projections have the same raw values but do not create matching rows because the output column names differ:
+
+```
+FROM animals
+SELECT name, species
+UNION
+FROM adoptions
+SELECT name AS animal-name, species;
+```
+
+Unlike SQL, urQL does not require every operand in a set operation to return the same row type. `UNION` can contain distinct row shapes side by side; `EXCEPT` and `INTERSECT` only match rows whose complete result vectors are exactly equal.
+
+Usually you should give corresponding columns the same names and types, especially when using `EXCEPT` or `INTERSECT`.
+
+```
+FROM adoptions
+SELECT name, species
+INTERSECT
+FROM vaccinations
+SELECT name, species;
+```
+
+The above query returns adopted animals that also have vaccination records.
+
+```
+FROM animals
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+The above query returns animals that do not have adoption records.
+
+## UNION
+
+`UNION` is useful when two queries produce the same kind of row and you want one combined list.
+
+```
+FROM staff
+SELECT email AS contact-email
+UNION
+FROM adoptions
+SELECT adopter-email AS contact-email;
+```
+
+This returns one list of contact email addresses drawn from both staff and adopters. If the same email address appears more than once with the same column name and aura, it appears once in the result.
+
+If a set query contains `UNION`, every `SELECT` in that set query must have unique output column names. Selecting the same column twice, or using `AS` to create the same output name twice, crashes:
+
+```
+FROM adoptions
+SELECT name, name
+UNION
+FROM vaccinations
+SELECT name, name;
+```
+
+```
+SET-QUERY UNION: duplicate output column %name in SELECT
+```
+
+The same rule applies inside a `WITH` clause:
+
+```
+WITH (FROM adoptions
+      SELECT name, species, species AS name
+      UNION
+      FROM vaccinations
+      SELECT name, species, vaccine AS name) AS mixed
+FROM mixed
+SELECT *;
+```
+
+The duplicate-name rule is specific to set queries containing `UNION`. `EXCEPT` and `INTERSECT` by themselves do not impose this additional restriction.
+
+## EXCEPT
+
+`EXCEPT` answers "what is in the first query that is not in the second?"
+
+```
+FROM animals
+SELECT name, species
+EXCEPT
+FROM adoptions
+SELECT name, species;
+```
+
+The left side establishes the starting set. An empty right side removes nothing. An empty left side returns an empty result.
+
+`EXCEPT` compares exact result rows. For example, this query will not remove anything unless the adopter email exactly matches a staff email under the same output column name:
+
+```
+FROM adoptions
+SELECT adopter-email AS email
+EXCEPT
+FROM staff
+SELECT email;
+```
+
+## INTERSECT
+
+`INTERSECT` answers "what appears in both queries?"
+
+```
+FROM staff
+SELECT email
+INTERSECT
+FROM vaccinations
+SELECT email;
+```
+
+This returns staff email addresses that also appear as the staff member recorded on a vaccination.
+
+If either side of an `INTERSECT` is empty, the result is empty.
+
+`UNION` with an empty side returns the non-empty side. These empty-set rules are often useful when a `WHERE` predicate happens to match no rows.
+
+## Set Operations in CTEs
+
+Set operations can be used inside `WITH` CTEs, and outer queries can select from those CTEs like any other CTE.
+
+```
+WITH (FROM adoptions
+      SELECT name, species
+      INTERSECT
+      FROM vaccinations
+      SELECT name, species) AS adopted-and-vaccinated
+FROM adopted-and-vaccinated
+SELECT *;
+```
+
+CTEs can also feed outer set operations:
+
+```
+WITH (FROM staff-assignments
+      WHERE role = 'Veterinarian'
+      SELECT email) AS vets
+FROM vets
+SELECT email
+UNION
+FROM staff-assignments
+WHERE role = 'Manager'
+SELECT email;
+```
+
+The metadata returned with a set operation includes the underlying real source tables used by all operands. Internal CTE names are not reported as source relations.
+
+`DIVIDED BY` and `DIVIDED BY WITH REMAINDER` are parsed but are not implemented for execution.
 
 
 # Commenting urQL
@@ -704,229 +1041,120 @@ CREATE TABLE db3..my-table-1
 
 The urQL parser in Obelisk is separable from the rest of the system.
 
-When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *selection*.
+When the parser alone is applied to an urQL script it creates an Obelisk API structure, as defined in desk/sur/ast/hoon and documented in the *Reference* documents. In most cases the API structure name is the same as the urQL command. For instance `CREATE DATABASE` parses to the structure *create-database*. The exception to this is queries, which get wrapped in *set-functions* structures and further wrapped in a structure named *crud-txn*.
 
 The parser alone may be run in the dojo from the Obelisk desk as follows:
 
 ```
-=uql "<query goes here>"
+=uql "WITH (FROM staff-assignments ".
+"          WHERE role = 'Veterinarian' ".
+"          SELECT email) AS vets ".
+"FROM vets ".
+"SELECT email ".
+"UNION ".
+"FROM staff-assignments ".
+"WHERE role = 'Manager' ".
+"SELECT email;"
 (parse:parse(default-database 'animal-shelter') uql)
 ```
 
-For instance the joined query we last ran produces the following pretty-printed dojo output:
-
 ```
 ~[
-  [ %selection
-    ctes=~
-      set-functions
-    { [ %query
-          from
-        [ ~
-          [ %from
-              object
-            [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-            ]
-            as-of=~
-              joins
-            ~[
-              [ %joined-relation
-                join=%join
-                  object
-                [ %qualified-table
-                    ship=~
-                    database=%animal-shelter
-                    namespace=%reference
-                    name=%calendar-us-fed-holiday
-                    alias=[~ 'T2']
-                ]
-                as-of=~
-                predicate=~
-              ]
-            ]
-          ]
-        ]
-        scalars=~
-          predicate
-        [ ~
-          { [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=~
-              ]
-              column=%date
-              alias=~
-            ]
-            %gte
-            [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
-            %between
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=~
-              ]
-              column=%date
-              alias=~
-            ]
-            %lte
-            [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
-          }
-        ]
-        group-by=~
-        having=~
-          selection
-        [ %select
-          top=~
-            columns
-          ~[
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=~
-              ]
-              column=%date
-              alias=~
-            ]
-            [ %qualified-column
-                qualifier
-              [%qualified-table ship=~ database=%UNKNOWN namespace=%COLUMN-OR-CTE name=%day-name alias=~]
-              column=%day-name
-              alias=~
-            ]
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%UNKNOWN
-                namespace=%COLUMN-OR-CTE
-                name=%us-federal-holiday
-                alias=~
-              ]
-              column=%us-federal-holiday
-              alias=~
-            ]
-          ]
-        ]
-        order-by=~
-      ]
-    }
-  ]
-]
-> =parse -build-file /=obelisk=/lib/parse/hoon
-> (parse:parse(default-database 'animal-shelter') x)
-~[
-  [ %selection
-    ctes=~
-      set-functions
-    { [ %query
-          from
-        [ ~
-          [ %from
-              object
-            [ %qualified-table
-              ship=~
-              database=%animal-shelter
-              namespace=%reference
-              name=%calendar
-              alias=[~ 'T1']
-            ]
-            as-of=~
-              joins
-            ~[
-              [ %joined-relation
-                join=%join
-                  object
+  [ %crud-txn
+      ctes
+    ~[
+      [ %cte
+        name=%vets
+          body
+        [ %query
+          [ %query
+              from
+            [ ~
+              [ %from
+                  relation
                 [ %qualified-table
                   ship=~
                   database=%animal-shelter
-                  namespace=%reference
-                  name=%calendar-us-fed-holiday
-                  alias=[~ 'T2']
+                  namespace=%dbo
+                  name=%staff-assignments
+                  alias=~
                 ]
                 as-of=~
-                predicate=~
+                joins=~
               ]
             ]
+            scalars=~
+              predicate
+            { [%unqualified-column name=%role alias=~]
+              %eq
+              [p=~.t q=34.161.114.843.280.767.114.475.234.646]
+            }
+            group-by=~
+            having={}
+              select
+            [ %select
+              top=~
+              columns=~[[%unqualified-column name=%email alias=~]]
+            ]
+            order-by=~
           ]
         ]
-        scalars=~
-          predicate
-        [ ~
-          { [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-              column=%date
-              alias=~
-            ]
-            %gte
-            [p=~.da q=170.141.184.507.169.989.800.102.371.306.084.761.600]
-            %between
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-              column=%date
-              alias=~
-            ]
-            %lte
-            [p=~.da q=170.141.184.507.750.132.522.522.907.220.587.315.200]
-          }
-        ]
-        group-by=~
-        having=~
-          selection
-        [ %select
-          top=~
-            columns
-          ~[
-            [ %qualified-column
-                qualifier
-              [ %qualified-table
-                ship=~
-                database=%animal-shelter
-                namespace=%reference
-                name=%calendar
-                alias=[~ 'T1']
-              ]
-              column=%date
-              alias=~
-            ]
-            [%unqualified-column column=%day-name alias=~]
-            [%unqualified-column column=%us-federal-holiday alias=~]
-          ]
-        ]
-        order-by=~
       ]
-    }
+    ]
+      body
+    [ %set-query
+      [ %set-query
+          head
+        [ %query
+            from
+          [~ [%from relation=[%cte-name name=%vets alias=~] as-of=~ joins=~]]
+          scalars=~
+          predicate={}
+          group-by=~
+          having={}
+            select
+          [%select top=~ columns=~[[%unqualified-column name=%email alias=~]]]
+          order-by=~
+        ]
+          tail
+        ~[
+          [ op=%union
+              query
+            [ %query
+                from
+              [ ~
+                [ %from
+                    relation
+                  [ %qualified-table
+                    ship=~
+                    database=%animal-shelter
+                    namespace=%dbo
+                    name=%staff-assignments
+                    alias=~
+                  ]
+                  as-of=~
+                  joins=~
+                ]
+              ]
+              scalars=~
+                predicate
+              { [%unqualified-column name=%role alias=~]
+                %eq
+                [p=~.t q=32.199.642.035.675.469]
+              }
+              group-by=~
+              having={}
+                select
+              [ %select
+                top=~
+                columns=~[[%unqualified-column name=%email alias=~]]
+              ]
+              order-by=~
+            ]
+          ]
+        ]
+      ]
+    ]
   ]
 ]
 ```

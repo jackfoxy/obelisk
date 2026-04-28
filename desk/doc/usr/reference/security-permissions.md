@@ -1,5 +1,5 @@
 # Security and Permissions
-*supported in urQL parser, not yet supported in Obelisk*
+*supported in urQL parser, not yet supported in Obelisk runtime*
 
 ## Security Model
 

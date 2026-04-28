@@ -201,7 +201,6 @@
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
 ++  foo-alias-y
   :*  %qualified-table
           ship=~
@@ -250,12 +249,6 @@
           name='adoptions'
           alias=[~ 'T2']
           ==
-++  passthru-row-y
-  [%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]
-++  passthru-row-x
-  [%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]
-++  passthru-unaliased
-  [%query-row alias=~ ~['col1' 'col2' 'col3']]
 ::
 ::  test binary operators, varying spacing
 ++  test-predicate-01
@@ -263,9 +256,10 @@
         "FROM adoptions AS T1 JOIN adoptions AS T2 ON T1.foo = T2.bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -284,8 +278,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -293,9 +285,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo<>bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -314,8 +307,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -323,9 +314,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%neq foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -344,8 +336,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -353,9 +343,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo >bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gt foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -374,8 +365,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -383,9 +372,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lt foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -404,8 +394,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -413,9 +401,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo>= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -434,8 +423,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -443,9 +430,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo!< bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%gte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -464,8 +452,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -473,9 +459,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo <= bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -494,8 +481,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -503,9 +488,10 @@
   =/  query  "FROM adoptions AS T1 JOIN adoptions AS T2 ON foo !> bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%lte foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -524,8 +510,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -533,9 +517,10 @@
   =/  query  "FROM foo WHERE foobar EQUIV bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%equiv foobar bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -544,8 +529,6 @@
                     [%select top=~ columns=~[[%all %all]]]
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -553,9 +536,10 @@
   =/  query  "FROM foo WHERE foobar NOT EQUIV bar SELECT *"
   =/  pred=(tree predicate-component:ast)  [%not-equiv foobar bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -564,8 +548,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -579,9 +561,10 @@
   =/  pred=(tree predicate-component:ast)
         [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -600,8 +583,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -613,9 +594,10 @@
   =/  pred=(tree predicate-component:ast)
         [%not-between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -634,8 +616,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -647,9 +627,10 @@
   =/  pred=(tree predicate-component:ast)
         [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -668,8 +649,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -681,9 +660,10 @@
   =/  pred=(tree predicate-component:ast)
         [%between foobar-gte-foo foobar-lte-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -702,8 +682,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -714,9 +692,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%gte t1-foo [%all bar ~]]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -735,8 +714,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -747,9 +724,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -768,8 +746,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -780,9 +756,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-in t1-foo value-literals]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -801,8 +778,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -813,9 +788,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -834,8 +810,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -846,9 +820,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%in t1-foo value-literals]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -867,8 +842,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -879,9 +852,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists t1-foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -900,8 +874,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -912,9 +884,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%not-exists foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -933,8 +906,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -945,9 +916,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists t1-foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -966,8 +938,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -978,9 +948,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      [%exists foo ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -999,8 +970,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1013,9 +982,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-fb-gte-f--fb-lte-b
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1034,8 +1004,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1056,9 +1024,10 @@
                 t1-foo2
                 [[%p 0] ~ ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1077,8 +1046,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1093,9 +1060,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1114,8 +1082,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1132,9 +1098,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1153,8 +1120,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1174,9 +1139,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      and-and-or-and-or-and
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1195,8 +1161,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1225,9 +1189,10 @@
                     t1-foo2-eq-zod
                     foo-eq-1
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1246,8 +1211,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1266,9 +1229,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      a-a-l-a-o-l-a-a-r-o-r-a-l-o-r-a
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1287,8 +1251,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1304,9 +1266,10 @@
   =/  joinpred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  pred=(tree predicate-component:ast)      king-and
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1325,8 +1288,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1337,9 +1298,10 @@
   =/  pred=(tree predicate-component:ast)
         [%gt [aggregate-count-foobar ~ ~] literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -1348,8 +1310,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') select)
@@ -1360,9 +1320,10 @@
   =/  pred=(tree predicate-component:ast)
         [%gt [aggregate-count-foobar ~ ~] literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -1371,8 +1332,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') select)
@@ -1383,9 +1342,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq bar [aggregate-count-foobar ~ ~]]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -1394,8 +1354,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') select)
@@ -1427,9 +1385,10 @@
                     [%and [%gt a1-name a2-name] [%eq a1-species a2-species]]
                 [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             :*  %qualified-table
@@ -1460,8 +1419,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1473,9 +1430,10 @@
         "SELECT *"
   =/  pred=(tree predicate-component:ast)  [%eq t1-foo t2-bar]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1494,8 +1452,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1516,9 +1472,10 @@
                     ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1531,8 +1488,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1550,9 +1505,10 @@
                     ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1565,8 +1521,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1587,9 +1541,10 @@
                 ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1602,8 +1557,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1624,9 +1577,10 @@
                 ~
             ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1639,8 +1593,6 @@
                     select-all-columns
                     ~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1650,9 +1602,10 @@
     " SELECT *"
   =/  pred=(tree predicate-component:ast)  [%not [%not-exists t1-foo ~] ~]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             relation=adoptions
@@ -1665,8 +1618,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1706,9 +1657,10 @@
                     [%and [%gt a1-name a2-name] [%gt a1-species a2-species]]
                 ~
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     :-  ~
                         :^  %from
                             :*  %qualified-table
@@ -1739,8 +1691,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1755,31 +1705,34 @@
 ++  unq-col1     [[%unqualified-column 'col1' ~] ~ ~]
 ++  unq-col2     [[%unqualified-column 'col2' ~] ~ ~]
 ++  my-cte-table
-  [%cte-name name='my-cte']
+  [%cte-name name='my-cte' alias=~]
 ++  cte1-table
-  [%cte-name name='cte1']
+  [%cte-name name='cte1' alias=~]
 ++  cte2-table
-  [%cte-name name='cte2']
+  [%cte-name name='cte2' alias=~]
 ++  cte-my-cte
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-all-columns  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-all-columns  ~
+              ==
       ==
 ++  cte-cte1
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='cte1'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-all-columns  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-all-columns  ~
+              ==
       ==
 ++  cte-cte2
   =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
   :*  %cte  name='cte2'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-all-columns  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-all-columns  ~
+              ==
       ==
 ++  from-my-cte-outer
   [~ [%from relation=my-cte-table as-of=~ joins=~]]
@@ -1806,9 +1759,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1817,8 +1771,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1831,9 +1783,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1842,8 +1795,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1856,9 +1807,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1867,8 +1819,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1881,9 +1831,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1892,8 +1843,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1906,9 +1855,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1917,8 +1867,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1931,9 +1879,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1942,8 +1891,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1956,9 +1903,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -1967,8 +1915,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -1985,9 +1931,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -1996,8 +1943,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2012,9 +1957,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2023,8 +1969,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2039,9 +1983,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2050,8 +1995,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2066,9 +2009,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2077,8 +2021,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2093,9 +2035,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2104,8 +2047,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2120,9 +2061,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2131,8 +2073,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2147,9 +2087,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1 cte-cte2]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2158,8 +2099,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2171,23 +2110,26 @@
 ++  cte-my-cte-cols
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='my-cte'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-col1-col2  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-col1-col2  ~
+              ==
       ==
 ++  cte-cte1-cols
   =/  from-clause  [%from relation=foo-unaliased as-of=~ joins=~]
   :*  %cte  name='cte1'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-col1-col2  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-col1-col2  ~
+              ==
       ==
 ++  cte-cte2-cols
   =/  from-clause  [%from relation=bar-unaliased as-of=~ joins=~]
   :*  %cte  name='cte2'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select-col1-col2  ~
-          ==
+      :-  %query
+          :*  %query  [~ from-clause]  scalars=~  ~
+              group-by=~  having=~  select-col1-col2  ~
+              ==
       ==
 ::
 ::  test cte column in predicate, single table, named cte columns
@@ -2200,9 +2142,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2211,8 +2154,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2225,9 +2166,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2236,8 +2178,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2250,9 +2190,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2261,8 +2202,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2275,9 +2214,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq my-cte-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2286,8 +2226,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2300,9 +2238,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2311,8 +2250,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2325,9 +2262,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 my-cte-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2336,8 +2274,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2350,9 +2286,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 my-cte-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-my-cte-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-my-cte-outer
                     scalars=~
                     pred
@@ -2361,8 +2298,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2379,9 +2314,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2390,8 +2326,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2406,9 +2340,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2417,8 +2352,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2433,9 +2366,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2444,8 +2378,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2460,9 +2392,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq cte1-col1 unq-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2471,8 +2404,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2487,9 +2418,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2498,8 +2430,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2514,9 +2444,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in literal-10 cte1-col1]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2525,8 +2456,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2541,9 +2470,10 @@
   =/  pred=(tree predicate-component:ast)
         [%in unq-col1 cte2-col2]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~[cte-cte1-cols cte-cte2-cols]
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-cte1-join-cte2
                     scalars=~
                     pred
@@ -2552,8 +2482,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)
@@ -2565,9 +2493,10 @@
   =/  pred=(tree predicate-component:ast)
         [%eq left-scalar literal-10]
   =/  expected
-        :+  %selection
+        :+  %crud-txn
             ctes=~
-            :+  :*  %query
+            :-  %query
+                :*  %query
                     from-foo
                     scalars=~
                     pred
@@ -2576,8 +2505,6 @@
                     select-all-columns
                     order-by=~
                     ==
-                ~
-                ~
   %+  expect-eq
     !>  ~[expected]
     !>  (parse:parse(default-database 'db1') query)

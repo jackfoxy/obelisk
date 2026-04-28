@@ -1,4 +1,4 @@
-/-  *ast, *server-state
+/-  *ast, *server-state-0
 /+  *mip
 ^?
 |%
@@ -38,8 +38,8 @@
 ::
 ::  $action
 ::    [%tape @tas tape]          - prints result to dodjo
-::    [%tape2 @tas tape]         - suppresses printing result to dodjo
-::    [%commands (list command)] - prints result to dodjo
+::    [%tape2 @tas tape]         - suppresses printing result to dojo
+::    [%commands (list command)] - prints result to dojo
 ::    [%test @tas tape]          - supports expect-fail-message in unit tests
 ::    [%parse tape]              - returns (list command)
 ::  

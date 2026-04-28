@@ -5,15 +5,15 @@
 ::
 ::  helper gates
 ::
-::  mk-selection
-::  returns a constant selection with scalars set to arg
-++  mk-selection
+::  mk-crud-txn
+::  returns a constant crud-txn with scalars set to arg
+++  mk-crud-txn
   |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast)]
   ^-  (list command:ast)
   =/  columns  ~[unqualified-foo-2 unqualified-foo-3]
-  (mk-selection-columns scalars table columns)
-::  same as mk-selection, but with explicit selected columns
-++  mk-selection-columns
+  (mk-crud-txn-columns scalars table columns)
+::  same as mk-crud-txn, but with explicit selected columns
+++  mk-crud-txn-columns
   |=  [scalars=(list scalar:ast) table=(unit qualified-table:ast) columns=(list selected-column:ast)]
   ^-  (list command:ast)
   =/  select  [%select top=~ columns=columns]
@@ -30,9 +30,9 @@
       select=select
       ~
     ==
-  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
-::  same as mk-selection, but without a FROM clause
-++  mk-selection-no-from-columns
+  ~[[%crud-txn ctes=~ body=[%query query]]]
+::  same as mk-crud-txn, but without a FROM clause
+++  mk-crud-txn-no-from-columns
   |=  [scalars=(list scalar:ast) columns=(list selected-column:ast)]
   ^-  (list command:ast)
   =/  select  [%select top=~ columns=columns]
@@ -47,15 +47,15 @@
       select=select
       ~
     ==
-  ~[[%selection ctes=~ set-functions=[query ~ ~]]]
-::  same as mk-selection, but with explicit ctes
-++  mk-selection-with-ctes
+  ~[[%crud-txn ctes=~ body=[%query query]]]
+::  same as mk-crud-txn, but with explicit ctes
+++  mk-crud-txn-with-ctes
   |=  [ctes=(list cte:ast) scalars=(list scalar:ast) table=(unit qualified-table:ast)]
   ^-  (list command:ast)
   =/  columns  ~[unqualified-foo-2 unqualified-foo-3]
-  (mk-selection-with-ctes-columns ctes scalars table columns)
-::  same as mk-selection-with-ctes, but with explicit selected columns
-++  mk-selection-with-ctes-columns
+  (mk-crud-txn-with-ctes-columns ctes scalars table columns)
+::  same as mk-crud-txn-with-ctes, but with explicit selected columns
+++  mk-crud-txn-with-ctes-columns
   |=  [ctes=(list cte:ast) scalars=(list scalar:ast) table=(unit qualified-table:ast) columns=(list selected-column:ast)]
   ^-  (list command:ast)
   =/  select  [%select top=~ columns=columns]
@@ -72,7 +72,7 @@
       select=select
       ~
     ==
-  ~[[%selection ctes=ctes set-functions=[query ~ ~]]]
+  ~[[%crud-txn ctes=ctes body=[%query query]]]
 ::
 ::  helper-objects
 ::
@@ -92,10 +92,12 @@
 ++  cte-my-cte
   =/  from-clause  [%from relation=relation-1 as-of=~ joins=~]
   =/  select  [%select top=~ columns=~[unqualified-foo-2 unqualified-foo-3]]
+  =/  q
+    :*  %query  [~ from-clause]  scalars=~  ~
+        group-by=~  having=~  select  ~
+        ==
   :*  %cte  name='my-cte'
-      :*  %query  [~ from-clause]  scalars=~  ~
-          group-by=~  having=~  select  ~
-          ==
+      body=[%query q]
       ==
 ::
 ::  @p.<database>.<namespace>.<table-or-view>.<column-name>
@@ -228,7 +230,7 @@
       [%scalar 'bar-ca' case]
       [%scalar 'foo-ca' case]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -250,7 +252,7 @@
       [%scalar 'bar1' coalesce-1]
       [%scalar 'bar2' coalesce-2]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -265,7 +267,7 @@
   =/  scalars
     ~[[%scalar 'sc1' [%abs literal-neg5]]]
   =/  expected
-    (mk-selection-no-from-columns scalars ~[[%selected-scalar name=%sc1 alias=~]])
+    (mk-crud-txn-no-from-columns scalars ~[[%selected-scalar name=%sc1 alias=~]])
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -280,7 +282,7 @@
   =/  scalars
     ~[[%scalar 'sc1' [%abs literal-neg5]]]
   =/  expected
-    %-  mk-selection-no-from-columns
+    %-  mk-crud-txn-no-from-columns
     :*  scalars
         ~[[%selected-scalar name=%sc1 alias=[~ 'answer']]]
         ==
@@ -317,7 +319,7 @@
       [%scalar 'sc3' arithmetic-scalar]
     ==
   =/  expected
-    %-  mk-selection-no-from-columns
+    %-  mk-crud-txn-no-from-columns
     :*  scalars
         :~  [%selected-scalar name=%sc1 alias=~]
             [%selected-scalar name=%sc2 alias=~]
@@ -367,7 +369,7 @@
       [%scalar 'sc4' arithmetic-scalar]
     ==
   =/  expected
-    %-  mk-selection-no-from-columns
+    %-  mk-crud-txn-no-from-columns
     :*  scalars
         :~  [%selected-scalar name=%sc1 alias=~]
             [%selected-scalar name=%sc2 alias=~]
@@ -390,7 +392,7 @@
   =/  scalars
     ~[[%scalar 'foo2' [%abs literal-neg5]]]
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars
         ~
         ~[selected-scalar-foo-2]
@@ -415,10 +417,10 @@
         group-by=~  having=~  select  ~
         ==
   =/  ctes
-    ~[[%cte name='my-cte' query=cte-query]]
+    ~[[%cte name='my-cte' body=[%query cte-query]]]
   =/  outer-query
     :*  %query
-        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
         scalars=~
         ~
         group-by=~
@@ -427,7 +429,7 @@
         ~
         ==
   =/  expected
-    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+    ~[[%crud-txn ctes=ctes body=[%query outer-query]]]
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -447,10 +449,10 @@
         group-by=~  having=~  select  ~
         ==
   =/  ctes
-    ~[[%cte name='my-cte' query=cte-query]]
+    ~[[%cte name='my-cte' body=[%query cte-query]]]
   =/  outer-query
     :*  %query
-        from=[~ [%from relation=[%cte-name name='my-cte'] as-of=~ joins=~]]
+        from=[~ [%from relation=[%cte-name name='my-cte' alias=~] as-of=~ joins=~]]
         scalars=~
         ~
         group-by=~
@@ -459,7 +461,7 @@
         ~
         ==
   =/  expected
-    ~[[%selection ctes=ctes set-functions=[outer-query ~ ~]]]
+    ~[[%crud-txn ctes=ctes body=[%query outer-query]]]
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -568,7 +570,7 @@
       [%scalar 'sc9' sc9]
       [%scalar 'sc10' sc10]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -681,7 +683,7 @@
       [%scalar 'lu1' [%len unqualified-foo-3]]
       [%scalar 'ls1' [%len [%scalar-name name=%st1]]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -760,7 +762,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -845,7 +847,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -930,7 +932,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -951,7 +953,7 @@
   :~
     [%scalar 'foo' coalesce-1]
   ==
-=/  expected  (mk-selection scalars ~)
+=/  expected  (mk-crud-txn scalars ~)
 %+  expect-eq
   !>  expected
   !>  (parse:parse(default-database default-db) query-string)
@@ -972,7 +974,7 @@
     [%scalar 'foo' coalesce-1]
     [%scalar 'baz' coalesce-1]
   ==
-=/  expected  (mk-selection scalars ~)
+=/  expected  (mk-crud-txn scalars ~)
 %+  expect-eq
   !>  expected
   !>  (parse:parse(default-database default-db) query-string)
@@ -991,7 +993,7 @@
   :~
     [%scalar 'foo' coalesce-1]
   ==
-=/  expected=(list command:ast)  (mk-selection scalars ~)
+=/  expected=(list command:ast)  (mk-crud-txn scalars ~)
 %+  expect-eq
   !>  expected
   !>  (parse:parse(default-database default-db) query-string)
@@ -1010,7 +1012,7 @@
     :~
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1029,7 +1031,7 @@
     :~
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1048,7 +1050,7 @@
     :~
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1067,7 +1069,7 @@
     :~
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1094,7 +1096,7 @@
     :~
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1128,7 +1130,7 @@
       [%scalar 'foo' naked-if]
       [%scalar 'bar' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1157,7 +1159,7 @@
       [%scalar 'foo' naked-case]
       [%scalar 'bar' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1184,7 +1186,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1219,7 +1221,7 @@
       [%scalar 'bar' first-coalesce]
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1238,7 +1240,7 @@
     :~
       [%scalar 'foo' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1261,7 +1263,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' coalesce-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1278,7 +1280,7 @@
   =/  coalesce-1
     [%coalesce ~[my-cte-foo-2 unqualified-foo-2 my-cte-foo-3]]
   =/  scalars  ~[[%scalar 'bar' coalesce-1]]
-  =/  expected  (mk-selection-with-ctes ~[cte-my-cte] scalars ~)
+  =/  expected  (mk-crud-txn-with-ctes ~[cte-my-cte] scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1301,7 +1303,7 @@
   =/  coalesce-1
     [%coalesce ~[inline-if unqualified-foo-2 literal-1]]
   =/  scalars  ~[[%scalar 'bar' coalesce-1]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1372,7 +1374,7 @@
       else=[unqualified-foo-2]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1398,7 +1400,7 @@
       [%scalar 'foo' naked-if]
       [%scalar 'baz' naked-if]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1422,7 +1424,7 @@
       else=[qualified-col-1]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1446,7 +1448,7 @@
       else=[qualified-col-2]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1470,7 +1472,7 @@
       else=[qualified-col-3]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1494,7 +1496,7 @@
       else=[qualified-col-4]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1518,7 +1520,7 @@
       else=[qualified-col-5]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1550,7 +1552,7 @@
       else=[qualified-col-6]
     ==
   =/  scalars  ~[[%scalar 'foo' naked-if]]
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1578,7 +1580,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' if-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1610,7 +1612,7 @@
       [%scalar 'foo' naked-case]
       [%scalar 'bar' if-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1643,7 +1645,7 @@
       [%scalar 'foo' naked-if]
       [%scalar 'bar' if-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1685,7 +1687,7 @@
       [%scalar 'bar' first-if]
       [%scalar 'foo' if-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1718,7 +1720,7 @@
       [%scalar 'foo' naked-if]
       [%scalar 'bar' if-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1740,7 +1742,7 @@
       else=my-cte-foo-3
     ==
   =/  scalars  ~[[%scalar 'bar' if-1]]
-  =/  expected  (mk-selection-with-ctes ~[cte-my-cte] scalars ~)
+  =/  expected  (mk-crud-txn-with-ctes ~[cte-my-cte] scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1773,7 +1775,7 @@
       else=inline-case
     ==
   =/  scalars  ~[[%scalar 'bar' if-1]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1805,7 +1807,7 @@
       (some unqualified-foo-3)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1827,7 +1829,7 @@
       (some else-expr)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1846,7 +1848,7 @@
         'foobaz'
         [%case (some unqualified-foo-3) ~[case-when-then] ~]
   =/  scalars  ~[case]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1874,7 +1876,7 @@
       (some unqualified-foo-2)
     ==
   =/  scalars  ~[[%scalar 'foobaz' case-1] [%scalar 'foobar' case-2]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1911,7 +1913,7 @@
       (some unqualified-foo-2)
     ==
   =/  scalars  ~[[%scalar 'foobaz' case-1] [%scalar 'foobar' case-2]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1937,7 +1939,7 @@
       (some qualified-col-1)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1963,7 +1965,7 @@
       (some qualified-col-2)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -1989,7 +1991,7 @@
       (some qualified-col-3)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2015,7 +2017,7 @@
       (some qualified-col-4)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2041,7 +2043,7 @@
       (some qualified-col-5)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2075,7 +2077,7 @@
       (some qualified-col-6)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2103,7 +2105,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2136,7 +2138,7 @@
       [%scalar 'foo' naked-if]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2169,7 +2171,7 @@
       [%scalar 'foo' naked-case]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2211,7 +2213,7 @@
       [%scalar 'bar' first-case]
       [%scalar 'foo' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2244,7 +2246,7 @@
       [%scalar 'foo' naked-case]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2272,7 +2274,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2302,7 +2304,7 @@
       else=(some unqualified-foo-3)
     ==
   =/  scalars  ~[[%scalar 'bar' case-1]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2324,7 +2326,7 @@
       else=(some my-cte-foo-3)
     ==
   =/  scalars  ~[[%scalar 'bar' case-1]]
-  =/  expected  (mk-selection-with-ctes ~[cte-my-cte] scalars ~)
+  =/  expected  (mk-crud-txn-with-ctes ~[cte-my-cte] scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2352,7 +2354,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2384,7 +2386,7 @@
       else=(some inline-coalesce)
     ==
   =/  scalars  ~[[%scalar 'bar' case-1]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2404,7 +2406,7 @@
       (some unqualified-foo-3)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2426,7 +2428,7 @@
       (some else-expr)
     ==
   =/  scalars  ~[[%scalar 'foobar' case]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2446,7 +2448,7 @@
         [%case ~ ~[case-when-then] ~]
     
   =/  scalars  ~[case]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2474,7 +2476,7 @@
       (some unqualified-foo-2)
     ==
   =/  scalars  ~[[%scalar 'foobaz' case-1] [%scalar 'foobar' case-2]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2511,7 +2513,7 @@
       (some unqualified-foo-2)
     ==
   =/  scalars  ~[[%scalar 'foobaz' case-1] [%scalar 'foobar' case-2]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2536,7 +2538,7 @@
       (some qualified-col-1)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2562,7 +2564,7 @@
       (some qualified-col-2)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2588,7 +2590,7 @@
       (some qualified-col-3)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2614,7 +2616,7 @@
       (some qualified-col-4)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2640,7 +2642,7 @@
       (some qualified-col-5)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2674,7 +2676,7 @@
       (some qualified-col-6)
     ==
   =/  scalars  ~[[%scalar 'foo' case-qualified]]
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2702,7 +2704,7 @@
       [%scalar 'foo' naked-coalesce]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2735,7 +2737,7 @@
       [%scalar 'foo' naked-if]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2768,7 +2770,7 @@
       [%scalar 'foo' naked-case]
       [%scalar 'bar' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2810,7 +2812,7 @@
       [%scalar 'bar' first-case]
       [%scalar 'foo' case-1]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -2853,7 +2855,7 @@
      [%scalar 'foo6' [%arithmetic operator=%cen left=literal-1 right=literal-1]]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -2924,7 +2926,7 @@
       [%scalar 'foo6' modulo]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -2995,7 +2997,7 @@
       [%scalar 'foo6' modulo]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -3090,7 +3092,7 @@
       [%scalar 'foo6' modulo]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -3185,7 +3187,7 @@
       [%scalar 'foo6' modulo]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -3307,7 +3309,7 @@
       [%scalar 'foo15' double-nested-right-paren-space]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -3741,7 +3743,7 @@
       [%scalar 'foo32' mixed-modulo-6]
     ==
   =/  expected
-    %-  mk-selection-columns
+    %-  mk-crud-txn-columns
     :*  scalars  ~  ~[selected-scalar-foo-2 selected-scalar-foo-3]  ==
   %+  expect-eq
     !>  expected
@@ -3769,7 +3771,7 @@
       [%scalar 'suma' left-add]
       [%scalar 'sumb' right-add]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -3848,7 +3850,7 @@
       [%scalar 'mt-atn' [%atan literal-float]]
       [%scalar 'mt-at2' [%atan2 literal-float literal-float2]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -3915,7 +3917,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -3982,7 +3984,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4049,7 +4051,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4119,7 +4121,7 @@
       [%scalar 'lou1' [%lower unqualified-foo-3]]
       [%scalar 'los1' [%lower [%scalar-name name=%st-low]]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4195,7 +4197,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4271,7 +4273,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4347,7 +4349,7 @@
       name=%table1
       alias=[~ 'MyTable']
     ==
-  =/  expected  (mk-selection scalars (some table))
+  =/  expected  (mk-crud-txn scalars (some table))
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4555,7 +4557,7 @@
     :~
       [%scalar 'st4' [%substring literal-hello literal-2 ~]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)
@@ -4620,7 +4622,7 @@
           [%string-concat ~[[%lower literal-hello] [%upper literal-world]] string-concat-delim]
       [%scalar 'st-stf' [%stuff [%lower literal-hello] stuff-start stuff-length [%upper literal-xx]]]
     ==
-  =/  expected  (mk-selection scalars ~)
+  =/  expected  (mk-crud-txn scalars ~)
   %+  expect-eq
     !>  expected
     !>  (parse:parse(default-database default-db) query-string)

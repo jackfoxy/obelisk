@@ -1,6 +1,6 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
-/-  ast, *server-state
+/-  ast, *server-state-0
 /+  *test, *sys-views
 /=  agent  /app/obelisk
 |%
@@ -115,9 +115,9 @@
       :*  %view
           [~.test-agent /]
           sys-time
-          :+  %selection
+          :+  %crud-txn
               ~
-              sys-sys-dbs-query
+              [%query sys-sys-dbs-query]
           (malt (spun columns mk-col-lu-data))
           (mk-unqualified-typ-addr-lookup columns)
           columns
@@ -125,6 +125,7 @@
               [aor=%.n ascending=%.y offset=2]
               [aor=%.n ascending=%.y offset=5]
               ==
+          ~
           ==
 ++  ns-sys-views
     |*  [db=@tas sys-time=@da]
