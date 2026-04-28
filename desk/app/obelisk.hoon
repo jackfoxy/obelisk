@@ -17,8 +17,42 @@
 |_  =bowl:gall
 +*  this  .
     default  ~(. (default-agent this %n) bowl)
-++  on-init  `this(state *state-0)
-++  on-save   !>(state)
+++  on-init
+  ^-  (quip card _this)
+  =+  [our=(scot %p our.bowl) now=(scot %da now.bowl)]
+  =+  .^(dudes=(set [dude:gall ?]) %ge our %base now /$)
+  =/  install-hawk=card
+    :*  %pass
+        /init/hawk/install
+        %agent
+        [our.bowl %hood]
+        %poke
+        %kiln-install
+        !>([%hawk ~dister-migrev-dolseg %hawk])
+    ==
+  =/  hawk-cards=(list card)
+    ?:  |((~(has in dudes) [%hawk &]) (~(has in dudes) [%hawk |]))
+      ~
+    [install-hawk ~]
+  =/  animal-cards=(list card)
+    :~  :*  %pass
+            /init/animal-shelter
+            %arvo
+            %c
+            %warp
+            our.bowl
+            q.byk.bowl
+            ~
+            %sing
+            %x
+            da+now.bowl
+            /gen/animal-shelter/all-animal-shelter/txt
+        ==
+    ==
+  :_  this(state *state-0)
+  (weld hawk-cards animal-cards)
+++  on-save
+  !>(state)
 ++  on-load
   |=  old-state=vase
   ^-  (quip card _this)
@@ -145,7 +179,46 @@
   ?+  path  [~ ~]
     [%x %server ~]  ``noun+!>(server.state)
   ==
-++  on-agent  on-agent:default
-++  on-arvo   on-arvo:default
+++  on-agent
+  |=  [=wire =sign:agent:gall]
+  ^-  (quip card _this)
+  ?+    wire  (on-agent:default wire sign)
+      [%init %animal-shelter %poke ~]
+    `this
+  ::
+      [%init %hawk %install ~]
+    `this
+  ==
+++  on-arvo
+  |=  [=wire =sign-arvo]
+  ^-  (quip card _this)
+  ?+    wire  (on-arvo:default wire sign-arvo)
+      [%init %animal-shelter ~]
+    ?+    -.sign-arvo  (on-arvo:default wire sign-arvo)
+        %clay
+      ?+    -.+.sign-arvo  (on-arvo:default wire sign-arvo)
+          %writ
+        =/  riot=riot:clay  +.+.sign-arvo
+        ?~  riot
+          %-  (slog 'animal-shelter init import file not found' ~)
+          `this
+        =/  cage  r.u.riot
+        ?.  ?=(%txt p.cage)
+          %-  (slog 'animal-shelter init import expected %txt cage' ~)
+          `this
+        =/  txt  !<(wain q.cage)
+        :_  this
+        :~  :*  %pass
+                /init/animal-shelter/poke
+                %agent
+                [our.bowl dap.bowl]
+                %poke
+                %obelisk-action
+                !>([%tape2 %animal-shelter (reel txt |=([a=cord b=tape] (weld (trip a) b)))])
+            ==
+        ==
+      ==
+    ==
+  ==
 ++  on-fail   on-fail:default
 --
