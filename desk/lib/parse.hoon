@@ -1948,23 +1948,12 @@
                           ==
                 ==
       ;~  pfix  whitespace
-                ;~  plug  (stag %query-row face-list)
-                          ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias))
-                          ==
-                ==
-      ;~  pfix  whitespace
                 ;~  plug  parse-qualified-table
                           (cold %as whitespace)
                           ;~(less merge-stop parse-alias)
                           ==
                 ==
-      ;~  pfix  whitespace
-                ;~  plug  (stag %query-row face-list)
-                          ;~(pfix whitespace ;~(less merge-stop parse-alias))
-                          ==
-                ==
       ;~(pfix whitespace parse-qualified-table)
-      ;~(pfix whitespace (stag %query-row face-list))
     ==
     ;~  pose
         ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
@@ -1974,36 +1963,13 @@
                     ==
                   ==
         ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
-                  %:  stag  %query-row
-                            ;~  plug  face-list
-                                      ;~  pfix
-                                        whitespace
-                                        ;~(pfix (jester 'as') parse-alias)
-                                        ==
-                                      ==
-                            ==
-                  ==
-        ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
                   ;~  plug  ;~(pose parse-qualified-table parse-alias)
                             (cold %as whitespace)
                             ;~(less merge-stop parse-alias)
                             ==
                   ==
         ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
-                   %:  stag  %query-row
-                            ;~  plug  face-list
-                                      ;~  pfix
-                                        whitespace
-                                        ;~(less merge-stop parse-alias)
-                                        ==
-                                      ==
-                            ==
-                  ==
-        ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
                   parse-qualified-table
-                  ==
-        ;~  plug  (cold %using ;~(plug whitespace (jester 'using') whitespace))
-                  (stag %query-row face-list)
                   ==
     ==
     ;~(plug ;~(pfix whitespace (jester 'on')) parse-predicate)
@@ -2575,20 +2541,10 @@
       a  +.a
       predicate  (produce-predicate (predicate-list ->.a))
     ==
-  ?:  =(%query-row -<.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
-    ==
   ?:  =(%using -<.a)
     %=  $
       a  +.a
       source-table  `(make-query-object ->.a)
-    ==
-  ?:  =(%query-row -<-.a)
-    %=  $
-      a  +.a
-      target-table  `(make-query-object -.a)
     ==
   %=  $
     a  +.a
@@ -2674,9 +2630,6 @@
         f
       f(relation [%cte-name name.relation.f alias.relation.f])
     $(a +.a, from `f)
-  ?:  =(-<-.a %query-row)
-    ~|  "make-query produce-from query-row: {<-.a>}"
-    $(a +.a, from `(produce-from -.a))
   ?:  =(-<-<.a %qualified-table)
     ~|  "make-query produce-from nested qualified-table: {<-.a>}"
     $(a +.a, from `(produce-from -.a))
@@ -4486,16 +4439,6 @@
       ;~(pfix whitespace ;~(less join-stop parse-alias))
     ==
     parse-qualified-table    :: no alias, no as-of
-    ::    
-    %:  stag
-      %query-row
-      ;~(plug face-list ;~(pfix whitespace ;~(pfix (jester 'as') parse-alias)))
-    ==
-    %:  stag
-      %query-row
-      ;~(plug face-list ;~(pfix whitespace ;~(less join-stop parse-alias)))
-    ==
-    (stag %query-row face-list)
   ==
 ++  parse-join-type  ~+
   ;~  pfix  whitespace
@@ -4573,7 +4516,6 @@
             ==
         ;;(as-of:ast [+<+<.parsed +<+>.parsed])
   ::
-  ?:  =(%query-row -.parsed)  ;;(relation:ast parsed)
   ~|("cannot parse query-object  {<parsed>}" !!)
 ::
 ++  parse-query-object  ~+
@@ -4623,18 +4565,6 @@
     [%qualified-table -.a +<.a +>-.a +>+<.a ~]
   ?:  ?=([~ @tas @tas @tas [~ @t]] a)
     [%qualified-table -.a +<.a +>-.a +>+<.a +>+>.a]
-  ::  %query-row not implemented
-  =/  columns  *(list @t)
-  =/  b       ?:  =(%query-row -.a)  +.a
-              ?:  =(%query-row -<.a)  ->.a  -.a
-  =/  alias   ?:  ?=([%query-row * @] a)  +>.a
-              ?:  =(%query-row -.a)  ~  +.a
-  |-
-  ?~  b
-    ?~  alias
-      (relation:ast [%query-row ~ (flop columns)])
-    (relation:ast [%query-row `alias (flop columns)])
-  ?@  -.b  $(b +.b, columns [-.b columns])
   ~|("cannot make-query-object:  {<a>}" !!)
 ::
 ++  cook-qualified-column

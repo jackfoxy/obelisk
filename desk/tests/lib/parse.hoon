@@ -4876,8 +4876,6 @@
   [%qualified-column qualifier=qt-src column='bar' alias=~]
 ++  column-src-foobar
   [%qualified-column qualifier=qt-src column='foobar' alias=~]
-++  passthru-tgt  [%query-row alias=[~ 'tgt'] ~['col1' 'col2' 'col3']]
-++  passthru-src  [%query-row alias=[~ 'src'] ~['col1' 'col2' 'col3']]
 ::::
 ::::
 ::++  test-merge-01
@@ -4924,99 +4922,6 @@
 ::  %+  expect-eq
 ::    !>  ~[expected]
 ::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::  query row tests, uncomment when query row implemented
-::::
-:::: merge target passthru alias AS
-::++  test-merge-04
-::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-::" MERGE INTO (col1,col2,col3) AS tgt ".
-::" USING T1 AS src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED THEN ".
-::"    UPDATE SET foobar = src.foo "
-::  =/  expected
-::    [%crud-txn ctes=~[cte-bar-foobar] body=[%merge [%merge target-table=passthru-tgt new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~]]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-:::: merge target passthru alias
-::++  test-merge-05
-::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-::" MERGE INTO ( col1, col2 , col3) tgt ".
-::" USING T1 AS src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED THEN ".
-::"    UPDATE SET foobar = src.foo "
-::  =/  expected
-::    [%crud-txn ctes=~[cte-bar-foobar] body=[%merge [%merge target-table=passthru-tgt new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~]]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-:::: merge target passthru unaliased
-::++  test-merge-06
-::  =/  query  "WITH (SELECT bar, foobar) as T1 ".
-::" MERGE INTO (col1, col2 , col3)  ".
-::" USING T1 AS src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED THEN ".
-::"    UPDATE SET foobar = src.foo "
-::  =/  expected
-::    [%crud-txn ctes=~[cte-bar-foobar] body=[%merge [%merge target-table=passthru-unaliased new-table=~ source-table=[%qualified-table ship=~ database='UNKNOWN' namespace='COLUMN-OR-CTE' name='T1' alias=[~ 'src']] predicate=predicate-bar-eq-bar matched=~[[%matching predicate=~ matching-profile=[%update ~[['foobar' column-src-foo]]]]] unmatched-by-target=~ unmatched-by-source=~ as-of=~]]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::merge source passthru alias AS
-::++  test-merge-07
-::  =/  query  "MERGE dbo.foo ".
-::" USING (col1, col2 , col3) as src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED AND 1 = 1 THEN ".
-::"    UPDATE SET foobar = src.foobar ".
-::" WHEN NOT MATCHED THEN ".
-::"    INSERT (bar, foobar) ".
-::"    VALUES (src.bar, 99)"
-::  =/  expected
-::    [%crud-txn ctes=~ body=[%merge [%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~]]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::merge source passthru alias AS
-::++  test-merge-08
-::  =/  query  "MERGE dbo.foo ".
-::" USING (col1, col2 , col3) src ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED AND 1 = 1 THEN ".
-::"    UPDATE SET foobar = src.foobar ".
-::" WHEN NOT MATCHED THEN ".
-::"    INSERT (bar, foobar) ".
-::"    VALUES (src.bar, 99)"
-::  =/  expected
-::    [%crud-txn ctes=~ body=[%merge [%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-src predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~]]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-::::
-::::merge source passthru alias AS
-::++  test-merge-09
-::  =/  query  "MERGE dbo.foo ".
-::" USING (col1, col2 , col3) ".
-::" ON (tgt.bar = src.bar) ".
-::" WHEN MATCHED AND 1 = 1 THEN ".
-::"    UPDATE SET foobar = src.foobar ".
-::" WHEN NOT MATCHED THEN ".
-::"    INSERT (bar, foobar) ".
-::"    VALUES (src.bar, 99)"
-::  =/  expected
-::    [%crud-txn ctes=~ body=[%merge [%merge target-table=[%qualified-table ship=~ database='db1' namespace='dbo' name='foo' alias=~] new-table=~ source-table=passthru-unaliased predicate=predicate-bar-eq-bar matched=~[[%matching predicate=one-eq-1 matching-profile=[%update ~[['foobar' column-src-foobar]]]]] unmatched-by-target=~[[%matching predicate=~ matching-profile=[%insert ~[['bar' column-src-bar] ['foobar' [value-type=%ud value=99]]]]]] unmatched-by-source=~ as-of=~]]]
-::  %+  expect-eq
-::    !>  ~[expected]
-::    !>  (parse:parse(default-database 'db1') query)
-:: to do: tests for merge to new file
 ::
 :: block comment
 ::

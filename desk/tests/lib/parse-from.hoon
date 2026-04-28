@@ -281,12 +281,6 @@
       name='bar'
       alias=[~ 'B1']
       ==
-++  passthru-row-y
-  [%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]
-++  passthru-row-x
-  [%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]
-++  passthru-unaliased
-  [%query-row alias=~ ~['col1' 'col2' 'col3']]
 ::
 ::  QUERY
 ::

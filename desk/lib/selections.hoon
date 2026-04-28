@@ -959,8 +959,6 @@
                     map-meta
                     column-metas
                     ==
-    %query-row
-      ~|("SELECT: not supported on %query-row" !!)
   ==
 ::
 ++  got-relation

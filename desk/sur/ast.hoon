@@ -206,14 +206,7 @@
     ==
 ::
 ::  $relation:
-+$  relation  $%(qualified-table cte-name query-row)
-::
-+$  query-row     ::  parses, not used for now, may never be used
-  $+  query-row
-  $:  %query-row
-    alias=(unit @t)
-    (list @t)
-    ==
++$  relation  $%(qualified-table cte-name)
 ::
 ::  $select:
 +$  select

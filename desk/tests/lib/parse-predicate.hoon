@@ -201,7 +201,6 @@
   [%query from-foo scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
 ++  aliased-from-foo
   [%query from-foo-aliased scalars=~ ~ group-by=~ having=~ select-top-10-all ~]
-++  foo-table-row  [%query-row ~['col1' 'col2' 'col3']]
 ++  foo-alias-y
   :*  %qualified-table
           ship=~
@@ -250,12 +249,6 @@
           name='adoptions'
           alias=[~ 'T2']
           ==
-++  passthru-row-y
-  [%query-row alias=[~ 'y'] ~['col1' 'col2' 'col3']]
-++  passthru-row-x
-  [%query-row alias=[~ 'x'] ~['col1' 'col2' 'col3']]
-++  passthru-unaliased
-  [%query-row alias=~ ~['col1' 'col2' 'col3']]
 ::
 ::  test binary operators, varying spacing
 ++  test-predicate-01
