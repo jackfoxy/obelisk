@@ -705,54 +705,51 @@
       ==
 ::
 ::  view WHERE <column> = <literal> joined
-::++  test-eq-joined-03
+++  test-eq-joined-03
 :: to do: beta2, no natural join, missing index on sys views,
 ::        this is a partial natural join
-  ::=|  run=@ud
-  ::=/  expected-rows
-  ::      :~
-  ::        :-  %vector
-  ::            :~  [p=%namespace q=[p=~.tas q=%dbo]]
-  ::                [p=%name q=[p=~.tas q=%my-table]]
-  ::                [p=%col-ordinal q=[p=~.ud q=3]]
-  ::                [p=%col-name q=[p=~.tas q=%col3]]
-  ::                [p=%col-type q=[p=~.ta q=116]]
-  ::                [p=%key q=[p=~.tas q=%col1]]
-  ::                ==
-  ::          ==
-  ::=/  expected  :~  %results
-  ::                  [%action 'SELECT']
-  ::                  [%result-set expected-rows]
-  ::                  [%server-time ~2012.5.3]
-  ::                  [%relation 'db1.sys.columns']
-  ::                  [%schema-time ~2012.5.1]
-  ::                  [%data-time ~2012.5.1]
-  ::                  [%vector-count 1]
-  ::              ==
-  ::=^  mov1  agent
-  ::  %+  ~(on-poke agent (bowl [run ~2012.4.30]))
-  ::      %obelisk-action
-  ::      !>([%tape2 %sys "CREATE DATABASE db1"])
-  ::=.  run  +(run)
-  ::=^  mov2  agent
-  ::  %+  ~(on-poke agent (bowl [run ~2012.5.1]))
-  ::      %obelisk-action
-  ::      !>  :+  %tape2
-  ::              %db1
-  ::              "CREATE TABLE db1..my-table ".
-  ::              "(col1 @t, col2 @da, col3 @t, col4 @t) ".
-  ::              "PRIMARY KEY (col1)"
-  ::=.  run  +(run)
-  ::=^  mov3  agent
-  ::  %+  ~(on-poke agent (bowl [run ~2012.5.3]))
-  ::      %obelisk-action
-  ::      !>  :+  %tape2
-  ::              %db1
-  ::              "FROM sys.columns JOIN sys.table-keys ".
-  ::              "WHERE col-name = 'col3' ".
-  ::              "SELECT sys.columns.*, sys.table-keys.key"
-  ::::
-  ::(eval-results expected ;;(cmd-result ->+>+>+<.mov3))
+  =|  run=@ud
+  =/  expected-rows
+        :~
+          :-  %vector
+              :~  [p=%namespace q=[p=~.tas q=%dbo]]
+                  [p=%name q=[p=~.tas q=%my-table]]
+                  [p=%col-ordinal q=[p=~.ud q=3]]
+                  [p=%col-name q=[p=~.tas q=%col3]]
+                  [p=%col-type q=[p=~.ta q=116]]
+                  [p=%key q=[p=~.tas q=%col1]]
+                  ==
+            ==
+  %-  exec-1-1
+  :*  run
+      [~2012.4.30 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2012.5.1
+          %db1
+          "CREATE TABLE db1..my-table ".
+          "(col1 @t, col2 @da, col3 @t, col4 @t) ".
+          "PRIMARY KEY (col1)"
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.columns ".
+          "JOIN sys.table-keys ".
+          "WHERE col-name = 'col3' ".
+          "SELECT sys.columns.*, sys.table-keys.key"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              [%result-set expected-rows]
+              [%server-time ~2012.5.3]
+              [%relation 'db1.sys.columns']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation relation='db1.sys.table-keys']
+              [%schema-time date=~2012.5.1]
+              [%data-time date=~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
 ::
 ::  fail WHERE <column> = <literal> types differ joined
 ++  test-fail-eq-joined-00

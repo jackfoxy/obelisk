@@ -156,8 +156,6 @@
 ++  join-natural
   |=  [prior=set-table this=set-table column-metas=(list column-meta)]
   ^-  set-table
-  =/  this-key   key:(need pri-indx.this)
-  =/  prior-key  key:(need pri-indx.prior)
   =/  rel-prior  (need relation.prior)
   =/  rel-this   (need relation.this)
   ::  accumulated columns from all prior source tables
@@ -169,6 +167,12 @@
     ^-  (unit column:ast)
     ?:  =(qualifier.qualified-column.cm rel-this)  ~
     [~ [%column name.qualified-column.cm type.cm addr.cm]]
+  ?~  pri-indx.prior
+    (join-natural-hash prior this rel-prior rel-this prior-accum-cols)
+  ?~  pri-indx.this
+    (join-natural-hash prior this rel-prior rel-this prior-accum-cols)
+  =/  this-key   key:(need pri-indx.this)
+  =/  prior-key  key:(need pri-indx.prior)
   :: perfect natural join
   =/  count-and-rows  ?.  =(prior-key this-key)  [0 ~]
                       ?~  joined-rows.prior
@@ -318,6 +322,34 @@
   ::
   (joined-set-table this -.count-and-rows +.count-and-rows)
 ::
+++  join-natural-hash
+  |=  $:  prior=set-table
+          this=set-table
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          prior-accum-cols=(list column:ast)
+          ==
+  ^-  set-table
+  =/  match-cols  (find-all-matches prior-accum-cols this)
+  ?~  match-cols
+    ~|  "no natural join or foreign key join, columns do not match: ".
+        "{<rel-this>}"
+        !!
+  ::  check for ambiguous columns in multi-table join
+  =/  ambig-col  (find-ambig-nonkey joined-rows.prior match-cols)
+  ?^  ambig-col
+    ~|  %-  crip
+        %+  weld  "natural join: column %"
+        %+  weld  (trip u.ambig-col)
+                  " occurs in multiple tables"
+        !!
+  =/  prior-rows=(list data-row)
+    ?~  joined-rows.prior  indexed-rows.prior
+    joined-rows.prior
+  =/  count-and-rows
+    (join-hash prior-rows rel-prior indexed-rows.this rel-this match-cols)
+  (joined-set-table this -.count-and-rows +.count-and-rows)
+::
 ++  join-predicate
   ::  predicate join (JOIN ... ON ...)
   ::  currently only supports equality conditions with AND conjunctions
@@ -362,6 +394,21 @@
     ~|("ON predicate must reference columns from different relations" !!)
   =/  prior-cols  (turn resolved |=(p=[@tas @tas] -.p))
   =/  this-cols   (turn resolved |=(p=[@tas @tas] +.p))
+  ?~  pri-indx.prior
+    (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+  ?~  pri-indx.this
+    (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+  (join-predicate-hash-set prior this rel-prior rel-this prior-cols this-cols)
+::
+++  join-predicate-hash-set
+  |=  $:  prior=set-table
+          this=set-table
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          prior-cols=(list @tas)
+          this-cols=(list @tas)
+          ==
+  ^-  set-table
   ::  hash join with separate column name lists
   =/  prior-rows=(list data-row)
     ?~  joined-rows.prior  indexed-rows.prior

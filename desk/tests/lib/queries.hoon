@@ -8150,6 +8150,15 @@
   "INSERT INTO date-catalog VALUES ".
   "(1, ~2012.4.30, 'matches emp table') ".
   "(2, ~2099.1.1, 'no match');"
+::  partial-date-catalog: ref-date is the leading column of a compound key
+++  create-partial-date-catalog
+  "CREATE TABLE partial-date-catalog ".
+  "(ref-date @da, pdc-id @ud, pdc-note @t) ".
+  "PRIMARY KEY (ref-date, pdc-id);"
+++  insert-partial-date-catalog
+  "INSERT INTO partial-date-catalog VALUES ".
+  "(~2012.4.30, 1, 'matches emp table') ".
+  "(~2099.1.1, 2, 'no match');"
 ::  compound-cat: joins sys.tables on tmsp @da AND row-count @ud (both different names)
 ++  create-compound-cat
   "CREATE TABLE compound-cat ".
@@ -10292,6 +10301,188 @@
               [%relation 'db1.sys.namespaces']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.4.30]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-40
+::  sys.tables on left, user table on right; ON uses a partial table key
+++  test-predicate-join-40
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-partial-date-catalog
+                        insert-partial-date-catalog
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.tables T1 ".
+          "JOIN partial-date-catalog T2 ON T1.tmsp = T2.ref-date ".
+          "SELECT T2.ref-date, T2.pdc-id, T2.pdc-note, T1.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%pdc-id [~.ud 1]]
+                              [%pdc-note [~.t 'matches emp table']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.partial-date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-41
+::  user table on left, sys.tables on right; ON uses a partial table key
+++  test-predicate-join-41
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-partial-date-catalog
+                        insert-partial-date-catalog
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM partial-date-catalog T1 ".
+          "JOIN sys.tables T2 ON T2.tmsp = T1.ref-date ".
+          "SELECT T1.ref-date, T1.pdc-id, T1.pdc-note, T2.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%pdc-id [~.ud 1]]
+                              [%pdc-note [~.t 'matches emp table']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.partial-date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-42
+::  sys.tables on left, user table on right; ON does not use the table key
+++  test-predicate-join-42
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-catalog
+                        insert-date-catalog
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM sys.tables T1 ".
+          "JOIN date-catalog T2 ON T1.tmsp = T2.ref-date ".
+          "SELECT T2.ref-date, T2.dc-note, T1.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%dc-note [~.t 'matches emp table']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  test-predicate-join-43
+::  user table on left, sys.tables on right; ON does not use the table key
+++  test-predicate-join-43
+  =|  run=@ud
+  %-  exec-1-1
+  :*  run
+      :+  ~2012.4.30
+          %db1
+          %-  zing  :~  "CREATE DATABASE db1;"
+                        create-emp
+                        insert-emp
+                        ==
+      ::
+      :+  ~2012.5.1
+          %db1
+          %-  zing  :~  create-date-catalog
+                        insert-date-catalog
+                        ==
+      ::
+      :+  ~2012.5.3
+          %db1
+          "FROM date-catalog T1 ".
+          "JOIN sys.tables T2 ON T2.tmsp = T1.ref-date ".
+          "SELECT T1.ref-date, T1.dc-note, T2.name"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%ref-date [~.da ~2012.4.30]]
+                              [%dc-note [~.t 'matches emp table']]
+                              [%name [~.tas %emp]]
+                              ==
+                      ==
+              [%server-time ~2012.5.3]
+              [%relation 'db1.dbo.date-catalog']
+              [%schema-time ~2012.5.1]
+              [%data-time ~2012.5.1]
               [%relation 'db1.sys.tables']
               [%schema-time ~2012.5.1]
               [%data-time ~2012.5.1]
