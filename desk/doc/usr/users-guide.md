@@ -6,7 +6,7 @@ It is recommended to read the [Preliminaries](/docs/reference/01-preliminaries.m
 
 Examples in this article rely on the Urbit %obelisk agent which prints results to the dojo.
 
-You can also use the %hawk [template](https://hawk.computer/~~/templates/obelisk-ui/) which provides a UI for the %obelisk agent. 
+Use the %hawk Obelisk UI for a SQL Studio-like experience: write and run scripts, save scripts and results, and open script templates.
 
 
 # Commands
