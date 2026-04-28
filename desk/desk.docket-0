@@ -2,7 +2,7 @@
   title+'Obelisk'
   info+'Temporal RDBMS for the Urbit computer'
   color+0xff.f8e7
-  version+[0 0 9]
+  version+[0 7 0]
   website+'https://github.com/jackfoxy/obelisk'
   license+'MIT+n https://github.com/jackfoxy/obelisk/blob/master/LICENSE.md'
   image+'https://raw.githubusercontent.com/jackfoxy/obelisk/refs/heads/master/public/obelisk-icon.png'
