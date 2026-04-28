@@ -221,7 +221,8 @@
     =/  prior-prefix  (scag plen prior-key)
     =/  this-prefix   (scag plen this-key)
     =/  noncontig     (find-noncontig-matches prior-key this-key plen)
-    =/  nonkey-cols   (find-nonkey-matches prior-accum-cols this prior-key this-key)
+    =/  nonkey-cols
+          (find-nonkey-matches prior-accum-cols this prior-key this-key)
     ::  check for ambiguous non-key columns in multi-table join result
     =/  ambig-col  (find-ambig-nonkey joined-rows.prior nonkey-cols)
     ?^  ambig-col
@@ -312,8 +313,9 @@
                             ==
         %:  join-partial-key  joined-rows.prior
                               rel-prior
-                              %+  sort  indexed-rows.this
-                                      ~(order data-row-comp (reduce-key the-key))
+                              %+  sort
+                                    indexed-rows.this
+                                    ~(order data-row-comp (reduce-key the-key))
                               rel-this
                               prior-key
                               ~
@@ -462,7 +464,10 @@
 ++  rebrand-on-col
   ::  rebrand a qualifier whose table name matches an execution-time
   ::  relation but whose database/namespace differ (CTE alias case)
-  |=  [col=resolved-on-col rel-prior=qualified-table:ast rel-this=qualified-table:ast]
+  |=  $:  col=resolved-on-col
+          rel-prior=qualified-table:ast
+          rel-this=qualified-table:ast
+          ==
   ^-  resolved-on-col
   ?~  qualifier.col  col
   =/  q  u.qualifier.col
@@ -496,7 +501,7 @@
     ^-  (unit qualified-table:ast)
     ?.  =(name.qualified-column.cm name.col)  ~
     [~ qualifier.qualified-column.cm]
-  ::  deduplicate (same relation may appear multiple times for different columns)
+  ::  deduplicate, same relation may appear multiple times for different columns
   =/  unique=(list qualified-table:ast)
     %+  roll  matches
     |=  [qt=qualified-table:ast acc=(list qualified-table:ast)]
@@ -513,7 +518,10 @@
 ::
 ++  col-in-relation
   ::  check if a resolved column exists in a specific relation
-  |=  [col=resolved-on-col rel=qualified-table:ast column-metas=(list column-meta)]
+  |=  $:  col=resolved-on-col
+          rel=qualified-table:ast
+          column-metas=(list column-meta)
+          ==
   ^-  ?
   ?^  qualifier.col
     ::  qualified: check if the qualifier matches this relation
@@ -622,8 +630,9 @@
     ?:  ?=(%joined-row -.i.a)
       [%joined-row ~ (~(put by data.i.a) b-qual data.i.b-rows)]
     :+  %joined-row  ~
-    %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a))
-    [b-qual data.i.b-rows]
+    %-  %~  put  by 
+            (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a)
+        [b-qual data.i.b-rows]
   $(b-rows t.b-rows, out [jr out], cnt +(cnt))
 ::
 ++  cross-join
@@ -719,28 +728,38 @@
   ::      =predicate
   ::      pri-indexed=(tree [(list @) (map @tas @)])
   ::  5) row count
-  |=  [q=query:ast set-tables=(list set-table) f=(unit $-(data-row ?)) =named-ctes =resolved-scalars]
+  |=  $:  q=query:ast
+          set-tables=(list set-table)
+          f=(unit $-(data-row ?))
+          =named-ctes
+          =resolved-scalars
+          ==
   ^-  (list set-table)
   ?~  set-tables  ~|("select-for-cte can't get here" !!)
   =/  st2  i.set-tables
   =.  relation.st2      ~
-  =/  col-map       (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
+  =/  col-map  (malt (turn columns.i.set-tables |=(a=column:ast [name.a a])))
   =/  flipped-cols  (flop columns.i.set-tables)
   =.  columns.st2     %-  flop
                         ^-  (list column:ast)  %-  zing
                             %+  turn  columns.select.q
                                       |=  a=selected-column:ast
                                       %-  selected-column-to-column
-                                      [named-ctes col-map flipped-cols a resolved-scalars]
-  
+                                      :*  named-ctes
+                                          col-map
+                                          flipped-cols
+                                          a
+                                          resolved-scalars
+                                          ==  
   =/  selected-cols   %^  fold  columns.select.q
                                 *(map @tas [@tas (unit @t)])
                                 (cury selected-table-cols columns.i.set-tables)
   =.  pri-indx.st2    ?~  pri-indx.i.set-tables  ~
                       =/  st-key  key:(need pri-indx.i.set-tables)
-                      =/  count-key-cols  %^  fold  st-key
-                                                    *(pair @ud (list key-column))
-                                                    (cury count-keys selected-cols)
+                      =/  count-key-cols
+                            %^  fold  st-key
+                                      *(pair @ud (list key-column))
+                                      (cury count-keys selected-cols)
                       ?:  =(p.count-key-cols (lent st-key))
                         [~ [%index %.y q.count-key-cols]]
                       ~
@@ -812,7 +831,11 @@
       =/  rs=resolved-scalar
         ~|  "{<selected-column>} not in resolved-scalars"
         (~(got by resolved-scalars) name.selected-column)
-      ~[[%column (heading selected-column name.selected-column) (resolved-scalar-type rs) 0]]
+      :~  :^  %column
+              (heading selected-column name.selected-column)
+              (resolved-scalar-type rs)
+              0
+          ==
     selected-value:ast
       ~[[%column `@tas`(need alias.selected-column) p.value.selected-column 0]]
     selected-all:ast
@@ -821,8 +844,9 @@
       flipped-cols
     selected-cte-column:ast
       =/  cte-fr  (~(got by named-ctes) cte.selected-column)
-      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected-column ~]
-                                                              name.selected-column
+      =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)
+                            [%cte-name cte.selected-column ~]
+                            name.selected-column
       ~[[%column (heading selected-column name.selected-column) type.ta 0]]
     ==
 ::
@@ -852,8 +876,10 @@
                    templ-cells
   ?~  non-lit
     ?-  -.i.rows
-      %joined-row  (joined-results filter ;;((list joined-row) rows) templ-cells)
-      %indexed-row  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+      %joined-row 
+        (joined-results filter ;;((list joined-row) rows) templ-cells)
+      %indexed-row
+        (indexed-results filter ;;((list indexed-row) rows) templ-cells)
     ==
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
   ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
@@ -1261,7 +1287,7 @@
   ^-  joined-row
   :+  %joined-row
       key.a
-      %+  %~  put  by  %+  %~  put  by  *(map qualified-table:ast (map @tas @))
+      %+  %~  put  by  %+  ~(put by *(map qualified-table:ast (map @tas @)))
                            a-qual
                            data.a
           b-qual
@@ -1345,7 +1371,7 @@
   ^-  (list [@ud @ud])
   =/  prior-rest  (slag plen prior-key)
   =/  this-rest   (slag plen this-key)
-  ::  build lookup from name+aura to absolute position for prior's remaining cols
+  ::  lookup from name+aura to absolute position for prior's remaining cols
   =/  prior-lookup=(map [@tas @ta] @ud)
     %-  malt
     =/  idx  plen
@@ -1480,8 +1506,9 @@
     ?:  ?=(%joined-row -.i.a)
       [%joined-row ~ (~(put by data.i.a) b-qual data.i.b-rows)]
     :+  %joined-row  ~
-    %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a))
-    [b-qual data.i.b-rows]
+    %-  %~  put  by
+            (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.a)
+        [b-qual data.i.b-rows]
   $(b-rows t.b-rows, out [jr out], cnt +(cnt))
 ::
 ++  collect-group
@@ -1540,7 +1567,8 @@
   $(b t.b)
 ::
 ++  cross-filter
-  ::  cross-product of two groups, filtering on non-key and non-contiguous matches
+  ::  cross-product of two groups,
+  ::filtering on non-key and non-contiguous matches
   |=  $:  ga=(list data-row)
           gb=(list data-row)
           a-qual=qualified-table:ast
@@ -1570,8 +1598,9 @@
       [%joined-row prefix (~(put by data.i.ga) b-qual data.i.b-rows)]
     :+  %joined-row
       prefix
-      %-  ~(put by (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.ga))
-      [b-qual data.i.b-rows]
+      %-  %~  put  by
+            (~(put by *(map qualified-table:ast (map @tas @))) a-qual data.i.ga)
+          [b-qual data.i.b-rows]
   %=  $
     out    [jr out]
     cnt    +(cnt)

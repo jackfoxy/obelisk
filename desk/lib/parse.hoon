@@ -155,7 +155,7 @@
                         (jester 'update')
                         ==
               ==
-    %:  cold  %query                                  :: scalars+select — must be after %delete/%update
+    %:  cold  %query           :: scalars+select — must be after %delete/%update
               ;~  plug  whitespace
                         ;~(pfix (jester 'scalars') (funk "scalars" (easy ' ')))
                         ==
@@ -1399,7 +1399,8 @@
               script    q.q.u.+3.q:nail
               commands  :-  %:  crud-txn:ast  %crud-txn
                                               (produce-ctes -.parsed)
-                                              [%insert (produce-insert +>.parsed)]
+                                              :-  %insert
+                                                  (produce-insert +>.parsed)
                                               ==
                             commands
             ==
@@ -2195,7 +2196,8 @@
             ?:  =(raw-tail ~)  (flop acc)
             %=  $
               raw-tail  +.raw-tail
-              acc  [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
+              acc
+                [[;;(set-op:ast -<.raw-tail) (make-query ctes ->.raw-tail)] acc]
             ==
           [%set-query [%set-query head=head-q tail=tail]]
     %=  $
@@ -2227,7 +2229,8 @@
                                           ~
                                           %+  qualify-predicate
                                               %:  finalize-predicate
-                                                    (produce-predicate (predicate-list +>-.a))
+                                                    %-  produce-predicate
+                                                        (predicate-list +>-.a)
                                                     ~
                                                     scalar-map
                                                     cte-map
@@ -2246,7 +2249,8 @@
                                           ~
                                           %+  qualify-predicate
                                               %:  finalize-predicate
-                                                    (produce-predicate (predicate-list +>+<.a))
+                                                    %-  produce-predicate
+                                                        (predicate-list +>+<.a)
                                                     ~
                                                     scalar-map
                                                     cte-map
@@ -2265,7 +2269,8 @@
                                           [~ +<+.a]
                                           %+  qualify-predicate
                                               %:  finalize-predicate
-                                                    (produce-predicate (predicate-list +>+<.a))
+                                                    %-  produce-predicate
+                                                        (predicate-list +>+<.a)
                                                     ~
                                                     scalar-map
                                                     cte-map
@@ -2284,7 +2289,8 @@
                                           [~ [%as-of-offset +<+<.a +<+>-.a]]
                                           %+  qualify-predicate
                                               %:  finalize-predicate
-                                                    (produce-predicate (predicate-list +>+<.a))
+                                                    %-  produce-predicate
+                                                        (predicate-list +>+<.a)
                                                     ~
                                                     scalar-map
                                                     cte-map
@@ -2616,7 +2622,11 @@
                             ==
   ?:  =(-<.a %select)
     ~|  "make-query produce-select: {<->.a>}"
-    $(a +.a, select `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map))
+    %=  $
+      a  +.a
+      select
+        `(produce-select ->.a from alias-map scalar-map cte-map cte-col-map)
+    ==
   ?:  =(-<.a %group-by)     $(a +.a, group-by (group-by-list ->.a))
   ?:  =(-<.a %order-by)     $(a +.a, order-by (order-by-list ->.a))
   ?:  =(-<-.a %qualified-table)
@@ -3475,7 +3485,9 @@
                                           scalars
                                           table
                                           [~ ->.b]
-                                          (produce-column-sets table scalar-map +>-.b)
+                                          %^  produce-column-sets  table
+                                                                   scalar-map
+                                                                   +>-.b
                                           ~
                                           ==
                       ==
@@ -3487,7 +3499,9 @@
                                           scalars
                                           table
                                           [~ [%as-of-offset ->-.b ->+<.b]]
-                                          (produce-column-sets table scalar-map +>-.b)
+                                          %^  produce-column-sets  table
+                                                                   scalar-map
+                                                                   +>-.b
                                           ~
                                           ==
                       ==
@@ -3501,7 +3515,13 @@
                               ~
                               (produce-column-sets table scalar-map +>-.b)
                               %+  qualify-predicate
-                                  (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
+                                  %:  finalize-predicate
+                                      (produce-predicate (predicate-list +>+.b))
+                                      ~
+                                      scalar-map
+                                      cte-map
+                                      cte-col-map
+                                      ==
                                   table
                               ==
                       ==
@@ -3513,9 +3533,19 @@
                                           scalars
                                           table
                                           [~ ->.b]
-                                          (produce-column-sets table scalar-map +>-.b)
+                                          %^  produce-column-sets
+                                                table
+                                                scalar-map
+                                                +>-.b
                                           %+  qualify-predicate
-                                              (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
+                                              %:  finalize-predicate
+                                                    %-  produce-predicate
+                                                          (predicate-list +>+.b)
+                                                    ~
+                                                    scalar-map
+                                                    cte-map
+                                                    cte-col-map
+                                                    ==
                                               table
                                           ==
                       ==
@@ -3529,7 +3559,14 @@
                               [~ (as-of-offset:ast %as-of-offset ->-.b ->+<.b)]
                               (produce-column-sets table scalar-map +>-.b)
                               %+  qualify-predicate
-                                  (finalize-predicate (produce-predicate (predicate-list +>+.b)) ~ scalar-map cte-map cte-col-map)
+                                  %:  finalize-predicate
+                                        %-  produce-predicate
+                                              (predicate-list +>+.b)
+                                        ~
+                                        scalar-map
+                                        cte-map
+                                        cte-col-map
+                                        ==
                                   table
                               ==
                       ==
@@ -3542,7 +3579,13 @@
                             ~
                             (produce-column-sets table scalar-map +<.b)
                             %+  qualify-predicate
-                                (finalize-predicate (produce-predicate (predicate-list +>.b)) ~ scalar-map cte-map cte-col-map)
+                                %:  finalize-predicate
+                                      (produce-predicate (predicate-list +>.b))
+                                      ~
+                                      scalar-map
+                                      cte-map
+                                      cte-col-map
+                                      ==
                                 table
                             ==
                     ==
@@ -6038,7 +6081,8 @@
       [%arithmetic *]
       [%builtin-fn *]
       ==
-+$  scalar-param   $?(dime qualified-column:ast unqualified-column:ast cte-column:ast)
++$  scalar-param
+      $?(dime qualified-column:ast unqualified-column:ast cte-column:ast)
 +$  scalar-node-helper  $%(scalar-param raw-scalar-fn)
 +$  coalesce-helper
   $:

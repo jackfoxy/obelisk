@@ -344,24 +344,29 @@
           ?=(%unqualified-map-meta -.map-meta)
           ==
     %+  bake
-          (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
+          %+  cury
+                (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ)
+                in-list
           data-row
   ?:  ?&  ?=(qualified-column:ast n.l.p)
           ?=(%qualified-map-meta -.map-meta)
           ==
-    %+  bake  %+  cury
+    %+  bake
+          %+  cury
+              %+  cury
                   %+  cury
-                      %+  cury
-                            list-pred
-                            +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p)
-                      typ
-                  in-list
-              data-row
+                        list-pred
+                        +:(~(got bi:mip +.map-meta) qualifier.n.l.p name.n.l.p)
+                  typ
+              in-list
+          data-row
   ?:  ?&  ?=(qualified-column:ast n.l.p)
           ?=(%unqualified-map-meta -.map-meta)
           ==
     %+  bake
-          (cury (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ) in-list)
+          %+  cury
+                (cury (cury list-pred +:(~(got by +.map-meta) name.n.l.p)) typ)
+                in-list
           data-row
   ?:  ?=(scalar-name:ast n.l.p)
     =/  rs  (resolve-scalar-name n.l.p resolved-scalars)

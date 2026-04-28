@@ -264,8 +264,8 @@
         columns
         |=(a=column:ast [%column name.a type.a +:(~(dig by fake-data) name.a)])
 ::
-::  Resolve a projected CTE column into a single literal value for SELECT output.
 ++  selected-cte-dime
+  ::  Resolve projected CTE column into a single literal value for SELECT output
   |=  [selected=selected-cte-column:ast =named-ctes]
   ^-  dime
   =/  cte-fr  (~(got by named-ctes) cte.selected)
@@ -274,11 +274,14 @@
   =/  cte-st  i.set-tables.cte-fr
   ?.  =(1 rowcount.cte-st)
     ~|("SELECT cte-column requires exactly 1 row in cte {<cte.selected>}" !!)
-  =/  ta=typ-addr  %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected ~]
-                                                          name.selected
+  =/  ta=typ-addr
+        %+  ~(got bi:mip +.map-meta.cte-fr)  [%cte-name cte.selected ~]
+                                             name.selected
   =/  row=data-row  ?~  joined-rows.cte-st
                       ?~  indexed-rows.cte-st
-                        ~|("resolve selected-cte-column: no rows in cte {<cte.selected>}" !!)
+                        ~|  "resolve selected-cte-column: no rows in cte ".
+                            "{<cte.selected>}"
+                            !!
                       i.indexed-rows.cte-st
                     i.joined-rows.cte-st
   =/  x  .*(data.row [%0 addr.ta])
@@ -351,7 +354,8 @@
                 column=~
                 scalar=~
                 addr=0  :: addr
-                vc=[(heading i.selected (crip "literal-{<i>}")) [p=+<-.i.selected q=+<+.i.selected]]
+                :-  (heading i.selected (crip "literal-{<i>}"))
+                    [p=+<-.i.selected q=+<+.i.selected]
                 ==
             cells
     ==
@@ -367,7 +371,8 @@
                 column=~
                 scalar=[~ rs]
                 addr=0
-                vc=[(heading i.selected name.i.selected) [(resolved-scalar-type rs) 0]]
+                :-  (heading i.selected name.i.selected)
+                    [(resolved-scalar-type rs) 0]
                 ==
             cells
     ==
@@ -380,7 +385,8 @@
                 column=~
                 scalar=~
                 addr=0
-                vc=[(heading i.selected name.i.selected) (selected-cte-dime i.selected named-ctes)]
+                :-  (heading i.selected name.i.selected)
+                    (selected-cte-dime i.selected named-ctes)
                 ==
             cells
     ==

@@ -561,14 +561,14 @@
               ?:  ?=(dime high)
                 =/  int  (san:rd (need (toi:rd +.high)))
                 =/  dcm  (sub:rd +.high int)
-                high(+ ?:(=(0 dcm) `@`int ?:((sig:rd +.high) `@`(add:rd int .~1) `@`int)))
+      high(+ ?:(=(0 dcm) `@`int ?:((sig:rd +.high) `@`(add:rd int .~1) `@`int)))
               high
       =.  low  ?.  ?=(%rd ns1)  low
              ?:  ?=(dime low)
                =/  dat  `@rd`+.low
                =/  int  (san:rd (need (toi:rd dat)))
                =/  dcm  (sub:rd dat int)
-               low(+ ?:(=(0 dcm) `@`int ?:((sig:rd dat) `@`int `@`(sub:rd int .~1))))
+          low(+ ?:(=(0 dcm) `@`int ?:((sig:rd dat) `@`int `@`(sub:rd int .~1))))
              low
       =/  rng       ~(. og seed)
       =/  new-seed  +>-:(rads:rng 100)
@@ -1322,8 +1322,10 @@
               ~.ud
               |=  =data-row
               ^-  dime
-              =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
-              =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+              =/  str
+                    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+              =/  pat
+                    `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
               [~.ud (do-patindex str pat)]
   ::
     %quotestring
@@ -1394,7 +1396,7 @@
               =/  open
                 `@t`+:?:(?=(dime open-expr) open-expr (f.open-expr data-row))
               =/  close
-                    `@t`+:?:(?=(dime close-expr) close-expr (f.close-expr data-row))
+                `@t`+:?:(?=(dime close-expr) close-expr (f.close-expr data-row))
               [~.t (do-quote str open close)]
   ::
     %replace
@@ -1742,7 +1744,7 @@
                                                   ?:  ?=(dime e)  +.e
                                                   +:(f.e data-row)
                               %-  trip
-                                  `@t`+:?:(?=(dime delim-expr) delim-expr (f.delim-expr data-row))
+                `@t`+:?:(?=(dime delim-expr) delim-expr (f.delim-expr data-row))
   ::
     %stuff
       ::  STUFF(str, start, length, replace) deletes length chars at start
@@ -1823,7 +1825,7 @@
               =/  str
                     `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
               =/  start
-                    `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+               `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
               =/  len
                     `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
               =/  rep
@@ -1892,16 +1894,20 @@
             "{<?:(?=(dime len-expr) -.len-expr type.len-expr)>}"
             !!
       ?:  &(?=(dime str-expr) &(?=(dime start-expr) ?=(dime len-expr)))
-        [-.ps [~.t (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))]]
+        :-  -.ps
+            :-  ~.t
+                (do-sub `@t`+.str-expr `@ud`+.start-expr (some `@ud`+.len-expr))
       :-  -.ps
           :+  %fn
               ~.t
               |=  =data-row
               ^-  dime
-              =/  str    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+              =/  str 
+                    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
               =/  start
-                    `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
-              =/  len    `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
+               `@ud`+:?:(?=(dime start-expr) start-expr (f.start-expr data-row))
+              =/  len
+                    `@ud`+:?:(?=(dime len-expr) len-expr (f.len-expr data-row))
               [~.t (do-sub str start (some len))]
   ::
     %trim
@@ -1941,7 +1947,10 @@
       =/  do-trim-pat  |=  [str=@t pat=@t]
                        ^-  @t
                        =/  p=tape  (trip pat)
-                       (crip (flop (drop-pat (flop p) (flop (drop-pat p (trip str))))))
+                       %-  crip
+                           %-  flop
+                               %+  drop-pat  (flop p)
+                                             (flop (drop-pat p (trip str)))
       ?~  raw-pattern
         ?:  ?=(dime str-expr)
           [-.ps [~.t (do-trim-ws `@t`+.str-expr)]]
@@ -1971,8 +1980,10 @@
               ~.t
               |=  =data-row
               ^-  dime
-              =/  str  `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
-              =/  pat  `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
+              =/  str
+                    `@t`+:?:(?=(dime str-expr) str-expr (f.str-expr data-row))
+              =/  pat
+                    `@t`+:?:(?=(dime pat-expr) pat-expr (f.pat-expr data-row))
               [~.t (do-trim-pat str pat)]
   ::
     %upper
@@ -2617,7 +2628,8 @@
                 ?:  ?=(dime r)
                   =/  args  (guard-sub-underflow-ud +:(f.l data-row) +.r)
                   [l-number-system (sub -.args +.args)]
-                =/  args  (guard-sub-underflow-ud +:(f.l data-row) +:(f.r data-row))
+                =/  args
+                      (guard-sub-underflow-ud +:(f.l data-row) +:(f.r data-row))
                 [l-number-system (sub -.args +.args)]
               ==
       ::
@@ -2681,26 +2693,37 @@
               %rd
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (div:rd +.l (guard-div-zero-rd +:(f.r data-row)))]
+                  :-  l-number-system
+                      (div:rd +.l (guard-div-zero-rd +:(f.r data-row)))
                 ?:  ?=(dime r)
-                  [l-number-system (div:rd +:(f.l data-row) (guard-div-zero-rd +.r))]
-                [l-number-system (div:rd +:(f.l data-row) (guard-div-zero-rd +:(f.r data-row)))]
+                  :-  l-number-system
+                      (div:rd +:(f.l data-row) (guard-div-zero-rd +.r))
+                :-  l-number-system
+                    %+  div:rd  +:(f.l data-row)
+                                (guard-div-zero-rd +:(f.r data-row))
               ::
               %sd
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (fra:si +.l (guard-div-zero-sd +:(f.r data-row)))]
+                  :-  l-number-system
+                      (fra:si +.l (guard-div-zero-sd +:(f.r data-row)))
                 ?:  ?=(dime r)
-                  [l-number-system (fra:si +:(f.l data-row) (guard-div-zero-sd +.r))]
-                [l-number-system (fra:si +:(f.l data-row) (guard-div-zero-sd +:(f.r data-row)))]
+                  :-  l-number-system
+                      (fra:si +:(f.l data-row) (guard-div-zero-sd +.r))
+                :-  l-number-system
+                    %+  fra:si  +:(f.l data-row)
+                                (guard-div-zero-sd +:(f.r data-row))
               ::
               %ud
                 ?:  ?=(dime l)
                   ?:  ?=(dime r)  ~|("eval-operator: can't get here" !!)
-                  [l-number-system (div +.l (guard-div-zero-ud +:(f.r data-row)))]
+                  :-  l-number-system
+                      (div +.l (guard-div-zero-ud +:(f.r data-row)))
                 ?:  ?=(dime r)
-                  [l-number-system (div +:(f.l data-row) (guard-div-zero-ud +.r))]
-                [l-number-system (div +:(f.l data-row) (guard-div-zero-ud +:(f.r data-row)))]
+                  :-  l-number-system
+                      (div +:(f.l data-row) (guard-div-zero-ud +.r))
+                :-  l-number-system
+                    (div +:(f.l data-row) (guard-div-zero-ud +:(f.r data-row)))
               ==
       ::
       %ket
@@ -2841,7 +2864,9 @@
     col(qualifier (normalize-qt-alias qualifier.col))
 
   ?:  =(%qualified-map-meta -.map-meta)
-    -:(~(got bi:mip +:;;(qualified-map-meta map-meta)) qualifier.normalized-col name.normalized-col)
+    %-  head  %+  ~(got bi:mip +:;;(qualified-map-meta map-meta))
+                    qualifier.normalized-col
+                    name.normalized-col
   -:(~(got by +:;;(unqualified-map-meta map-meta)) name.normalized-col)
 ::
 ++  got-column-dime
@@ -2853,7 +2878,8 @@
   ?-  -.data-row
       %joined-row
         :-  (got-qualified-col-type map-meta normalized-col)
-            (~(got bi:mip data.data-row) qualifier.normalized-col name.normalized-col)
+            %+  ~(got bi:mip data.data-row)  qualifier.normalized-col
+                                             name.normalized-col
       ::
       %indexed-row
         :-  (got-qualified-col-type map-meta normalized-col)

@@ -137,10 +137,14 @@
     %insert
       ?:  query-has-run  ~|("INSERT: state change after query in script" !!)
       :-  %.n
+          ::::~&  "{<name.qualified-table.+.body.crud-txn>}"   :: table name
+          ::::~>  %bout.[0 %insert]
           (do-insert +.body.crud-txn next-data next-schemas)
     %query
       =/  q=query:ast  +.body.crud-txn
       :-  %.y
+          ::::~&  "{<relation:(need from.q)>}"   :: from objects
+          ::::~>  %bout.[0 %select]
           =/  rt  (do-query q named-ctes %.n)
           =/  results  (select-results named-ctes -.rt +.rt)
           :+  next-data  ->-.rt
@@ -259,7 +263,11 @@
   $(i +(i), value-table `(list (list value-or-default:ast))`+.value-table)
 ::
 ++  do-delete
-  |=  [d=delete:ast =named-ctes next-schemas=(map @tas @da) next-data=(map @tas @da)]
+  |=  $:  d=delete:ast
+          =named-ctes
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
   ^-  [(map @tas @da) server (list result:ast)]
   =/  txn  %:  common-txn  "DELETE FROM"
                            state
@@ -287,11 +295,12 @@
               |=  [c=column:ast ql=qualifier-lookup]
               (~(put by ql) name.c (limo ~[qualified-table.d]))
   =/  resolved-scalars
-    %:  resolve-query-scalars(state state, bowl bowl)  scalars.d
-                                                       named-ctes
-                                                       del-qualifier-lookup
-                                                       [%unqualified-map-meta typ-addr-lookup.table.txn]
-                                                       ==
+    %:  resolve-query-scalars(state state, bowl bowl)
+          scalars.d
+          named-ctes
+          del-qualifier-lookup
+          [%unqualified-map-meta typ-addr-lookup.table.txn]
+          ==
   =/  filter=(unit $-(data-row ?))
     ?~  predicate.d  ~
     :-  ~
@@ -390,11 +399,12 @@
               |=  [c=column:ast ql=qualifier-lookup]
               (~(put by ql) name.c (limo ~[qualified-table.u]))
   =/  resolved-scalars
-    %:  resolve-query-scalars(state state, bowl bowl)  scalars.u
-                                                       named-ctes
-                                                       upd-qualifier-lookup
-                                                       [%unqualified-map-meta typ-addr-lookup.table.txn]
-                                                       ==
+    %:  resolve-query-scalars(state state, bowl bowl)
+          scalars.u
+          named-ctes
+          upd-qualifier-lookup
+          [%unqualified-map-meta typ-addr-lookup.table.txn]
+          ==
   =/  filter  ?~  predicate.u  ~
               :-  ~
                   %:  prepare-predicate  %-  pred-unqualify-qualified
@@ -423,8 +433,20 @@
                   (turn static-updates |=(a=[@tas @] -.a))
                   (turn scalar-updates |=(a=[@tas @tas] -.a))
   =/  xx  ?:  (gth ~(wyt in (~(int in aa) bb)) 0)  :: update key column?
-            [filter static-updates scalar-updates resolved-scalars key.pri-indx.table.txn columns.table.txn]
-          [filter static-updates scalar-updates resolved-scalars ~ columns.table.txn]
+            :*  filter
+                static-updates
+                scalar-updates
+                resolved-scalars
+                key.pri-indx.table.txn
+                columns.table.txn
+                ==
+          :*  filter
+              static-updates
+              scalar-updates
+              resolved-scalars
+              ~
+              columns.table.txn
+              ==
   =/  rows-count=[(list indexed-row) @ud]
         %^  spin
               indexed-rows.file.txn
@@ -510,13 +532,15 @@
   =/  =join-return      (join-all(state state, bowl bowl) q named-ctes)
   ?:  is-cte
     ?~  predicate.q  [join-return ~]
-    =/  qualifier-lookup  (mk-qualifier-lookup set-tables.join-return columns.select.q)
+    =/  qualifier-lookup
+          (mk-qualifier-lookup set-tables.join-return columns.select.q)
     =/  resolved-scalars
-          %:  resolve-query-scalars(state state, bowl bowl)  scalars.q
-                                                             named-ctes
-                                                             qualifier-lookup
-                                                             map-meta.join-return
-                                                             ==
+          %:  resolve-query-scalars(state state, bowl bowl)
+                scalars.q
+                named-ctes
+                qualifier-lookup
+                map-meta.join-return
+                ==
     =/  filter
       %:  prepare-predicate
             %+  normalize-predicate
@@ -718,7 +742,11 @@
     selected-value:ast
       %=  $
         selected  t.selected
-        out       [[%column (heading i.selected (crip "literal")) p.value.i.selected 0] out]
+        out       :-  :^  %column
+                          (heading i.selected (crip "literal"))
+                          p.value.i.selected
+                          0
+                      out
       ==
     selected-all:ast
       =/  cols
@@ -747,7 +775,11 @@
         (~(got by resolved-scalars) name.i.selected)
       %=  $
         selected  t.selected
-        out       [[%column (heading i.selected name.i.selected) (resolved-scalar-type rs) 0] out]
+        out       :-  :^  %column
+                          (heading i.selected name.i.selected)
+                          (resolved-scalar-type rs)
+                          0
+                      out
       ==
     selected-cte-column:ast
       =/  cte-fr  (~(got by named-ctes) cte.i.selected)
@@ -897,7 +929,8 @@
   |-
   ?~  columns
     =/  addressed-cols  (addr-columns columns-out)
-    =/  map-meta        [%unqualified-map-meta (mk-unqualified-typ-addr-lookup addressed-cols)]
+    =/  map-meta        :-  %unqualified-map-meta
+                            (mk-unqualified-typ-addr-lookup addressed-cols)
     ?:  is-cte  :-  :*  %join-return
                         server
                         :~  :*  %set-table
@@ -997,7 +1030,9 @@
     %+  turn  scalar-updates
               |=  [col=@tas sname=@tas]
               :-  col
-              +:(apply-resolved-scalar (~(got by rs) sname) [%indexed-row key.row data.row])
+              %-  tail  %+  apply-resolved-scalar
+                              (~(got by rs) sname)
+                              [%indexed-row key.row data.row]
   =/  all-updates=(list [@tas @])  (weld updates row-scalars)
   ?~  f
     ?~  key-columns  :-  :+  %indexed-row
@@ -1006,7 +1041,9 @@
                          +(count)
     [(update-key row all-updates key-columns cols) +(count)]
   ?.  ((need f) [%indexed-row key.row data.row])  [row count]
-  ?~  key-columns  :-  [%indexed-row key.row (produce-update row all-updates cols)]
+  ?~  key-columns  :-  :+  %indexed-row
+                           key.row
+                           (produce-update row all-updates cols)
                        +(count)
   [(update-key row all-updates key-columns cols) +(count)]
 ++  update-key
@@ -1117,7 +1154,13 @@
                       !=(~ joined-rows.i.set-tables.join-return)
   =/  set-tables      ?:  ?|(needs-mat has-joined)
                         %-  materialize-cte-set-tables
-                        [name.i.ctes selected nctes join-return cte-shaped resolved-scalars]
+                        :*  name.i.ctes
+                            selected
+                            nctes
+                            join-return
+                            cte-shaped
+                            resolved-scalars
+                            ==
                       cte-shaped
   ?~  set-tables      ~|("named-queries can't get here" !!)
   =/  canonical-list  %+  murn  set-tables
@@ -1229,7 +1272,12 @@
   ==
 ::
 ++  cte-set-tables
-  |=  [name=@tas columns=(list selected-column:ast) st=(list set-table) =named-ctes =resolved-scalars]
+  |=  $:  name=@tas
+          columns=(list selected-column:ast)
+          st=(list set-table)
+          =named-ctes
+          =resolved-scalars
+          ==
   ^-  (list set-table)
   ?~  st  ~|("cte-set-tables can't get here" !!)
   ?:  =(~ relation.i.st)  st
@@ -1244,7 +1292,8 @@
           %-  cte-columns
           [col-lookup rel-col-lookup named-ctes resolved-scalars flipped-st a]
   =.  columns.new  (addr-columns (cte-col-dups name (zing (turn columns f))))
-  =.  map-meta.new  [%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns.new)]
+  =.  map-meta.new
+        [%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns.new)]
   [new st]
 ::
 ++  cte-columns
@@ -1471,17 +1520,27 @@
   =.  columns.st       out-cols
   =.  relation.st      ~
   =.  join.st          ~
-  =.  map-meta.st      [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
-  =/  src-map-meta  :-  %unqualified-map-meta
-    %-  malt
-    %+  turn  column-metas.join-return
-    |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
+  =.  map-meta.st
+        [%unqualified-map-meta (mk-unqualified-typ-addr-lookup out-cols)]
+  =/  src-map-meta
+        :-  %unqualified-map-meta
+            %-  malt
+                %+  turn
+                    column-metas.join-return
+                    |=(a=column-meta [name.qualified-column.a [type.a addr.a]])
   ::  when materializing joined-rows, the inner query's primary key
   ::  doesn't apply to the flattened result; skip key extraction
   =/  mat-pri  ?:  has-jr  ~  pri-indx.st
   =.  indexed-rows.st
     %-  materialize-cte-indexed-rows
-    [rows mat-pri column-metas.join-return src-map-meta selected named-ctes resolved-scalars]
+        :*  rows
+            mat-pri
+            column-metas.join-return
+            src-map-meta
+            selected
+            named-ctes
+            resolved-scalars
+            ==
   =.  joined-rows.st   ~
   =.  rowcount.st      (lent indexed-rows.st)
   =.  pri-indexed.st   (materialize-cte-pri-index mat-pri indexed-rows.st)
@@ -1642,7 +1701,12 @@
     ==
 ::
 ++  update-file
-  |=  [=file =data tbl-key=[@tas @tas] primary-key=(list key-column) inserted=@ud]
+  |=  $:  =file
+          =data
+          tbl-key=[@tas @tas]
+          primary-key=(list key-column)
+          inserted=@ud
+          ==
   =/  new-indexed-rows  %+  turn  (tap:(pri-key primary-key) pri-idx.file)
                                   |=(a=[(list @) (map @tas @)] [%indexed-row a])
   =.  indexed-rows.file    new-indexed-rows
@@ -1797,11 +1861,14 @@
     %right      ~[string-expression.sn integer-expression.sn]
   ::
     %ltrim
-      ?~(pattern.sn ~[string-expression.sn] ~[string-expression.sn u.pattern.sn])
+      ?~  pattern.sn  ~[string-expression.sn]
+      ~[string-expression.sn u.pattern.sn]
     %rtrim
-      ?~(pattern.sn ~[string-expression.sn] ~[string-expression.sn u.pattern.sn])
+      ?~  pattern.sn  ~[string-expression.sn]
+      ~[string-expression.sn u.pattern.sn]
     %trim
-      ?~(pattern.sn ~[string-expression.sn] ~[string-expression.sn u.pattern.sn])
+      ?~  pattern.sn  ~[string-expression.sn]
+      ~[string-expression.sn u.pattern.sn]
     %substring
       ?~  length.sn  ~[string-expression.sn start.sn]
       ~[string-expression.sn start.sn u.length.sn]
