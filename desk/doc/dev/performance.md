@@ -50,8 +50,10 @@ The insert performance of city-zip-codes is noteworthy, probably explained by a 
 
 #### SELECT * from large table
 
+```
 FROM reference.calendar
 SELECT *
+```
 
 parse: ms/6.093
 query: s/2.043
@@ -82,8 +84,10 @@ query: s/2.043
 
 #### SELECT column from large table
 
+```
 FROM reference.calendar
 SELECT day-name
+```
 
 parse: ms/4.822
 query: s/1.067
@@ -110,9 +114,11 @@ query: s/1.067
 
 #### Generating random number on large table select
 
+```
 FROM animal-shelter.reference.calendar
 SCALARS rando RAND(.~0, .~1000) * .~0.001 END 
 SELECT rando, *
+```
 
 parse: ms/12.547
 query: s/6.592.039
@@ -144,8 +150,10 @@ query: s/6.592.039
 
 #### Select system view
 
+```
 FROM animal-shelter.sys.tables
 SELECT namespace, name, agent, tmsp, row-count
+```
 
 parse: ms/17.520
 query: ms/8.371
@@ -178,10 +186,12 @@ query: ms/8.371
 
 21,916 X 601 rows
 
+```
 FROM reference.calendar T1
 JOIN reference.calendar-us-fed-holiday T2
 WHERE T1.date BETWEEN ~2025.1.1 AND ~2025.12.31
 SELECT T1.date, day-name, us-federal-holiday
+```
 
 parse: ms/12.915
 query: ms/122.265
@@ -216,9 +226,11 @@ query: ms/122.265
 
 21,916 X 4 rows
 
-FROM reference.calendar ".
-"JOIN reference.federal-holidays-fixed ".
-"SELECT date, month-name, day-name, holiday, day-of-month
+```
+FROM reference.calendar
+JOIN reference.federal-holidays-fixed
+SELECT date, month-name, day-name, holiday, day-of-month
+```
 
 parse: ms/11.037
 query: ms/432.952
@@ -255,11 +267,13 @@ query: ms/432.952
 
 4,065 X 15,503 rows
 
+```
 FROM reference.cities T1
 JOIN reference.city-zip-codes T2
 ON T1.state = T2.state AND T1.city = T2.city
 WHERE T1.population > 100000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
+```
 
 parse: ms/26.533
 query: ms/663.616
@@ -295,11 +309,13 @@ query: ms/663.616
 
 21,916 X 6 rows
 
+```
 FROM reference.calendar T1
 JOIN reference.federal-holidays-floating T2
 ON T1.month = T2.month AND T1.weekday = T2.day-of-week
 WHERE T1.day >= T2.date-min AND T1.day <= T2.date-max
 SELECT T1.date, T1.year, T1.month-name, T1.day, T1.day-name, T2.holiday
+```
 
 parse: ms/15.577
 query: ms/266.500
@@ -335,11 +351,13 @@ query: ms/266.500
 
 4,065 X 15,503 rows
 
+```
 FROM reference.cities T1
 JOIN reference.city-zip-codes T2
 ON T1.city = T2.city                 :: cannot use primary key
 WHERE T1.population > 500000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
+```
 
 parse: ms/12.018
 query: ms/589.860
