@@ -270,7 +270,7 @@ query: ms/432.952
 ```
 FROM reference.cities T1
 JOIN reference.city-zip-codes T2
-ON T1.state = T2.state AND T1.city = T2.city
+  ON T1.state = T2.state AND T1.city = T2.city
 WHERE T1.population > 100000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```
@@ -312,7 +312,7 @@ query: ms/663.616
 ```
 FROM reference.calendar T1
 JOIN reference.federal-holidays-floating T2
-ON T1.month = T2.month AND T1.weekday = T2.day-of-week
+  ON T1.month = T2.month AND T1.weekday = T2.day-of-week
 WHERE T1.day >= T2.date-min AND T1.day <= T2.date-max
 SELECT T1.date, T1.year, T1.month-name, T1.day, T1.day-name, T2.holiday
 ```
@@ -354,7 +354,7 @@ query: ms/266.500
 ```
 FROM reference.cities T1
 JOIN reference.city-zip-codes T2
-ON T1.city = T2.city                 :: cannot use primary key
+  ON T1.city = T2.city                 :: cannot use primary key
 WHERE T1.population > 500000
 SELECT T1.state, T1.city, T1.county, T1.population, T2.zip-code
 ```
