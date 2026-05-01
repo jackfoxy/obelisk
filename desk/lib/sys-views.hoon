@@ -5,14 +5,16 @@
 ++  sys-sys-dbs-view
   ::  view name: sys-databases
   ::
-  ::      databases
-  ::         /\
-  ::      sys  content
+  ::  Base data comes from the server map in server-state-0.  For each
+  ::  +database, +sys-view-databases merges the +database.sys schema history
+  ::  and +database.content data history, carrying the previous side forward
+  ::  when only one history changes at a timestamp.
   ::
-  ::  *  only available in %sys database
-  ::  *  initial cache key created upon new database creation
-  ::  *  subsequent cache keys created upon creation of new user database schema
-  ::     and data keys
+  ::  The view body is a %crud-txn query over sys.sys.databases.  It exposes
+  ::  columns: database, sys-agent, sys-tmsp, data-ship, data-agent,
+  ::  data-tmsp.
+  ::
+  ::  Orders by database, sys-tmsp, then data-tmsp ascending.
   |=  [provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -161,12 +163,14 @@
 ++  sys-namespaces-view
   ::  view name: sys-namespaces
   ::
-  ::      schema
-  ::         \
-  ::        namespaces
+  ::  Base data comes from +schema.namespaces in server-state-0, a map from
+  ::  namespace name to the timestamp when that namespace entered the schema.
+  ::  +populate-system-view materializes one row per namespace at cache time.
   ::
-  ::  *  initial cache key created upon database creation
-  ::  *  subsequent cache keys created upon create and drop namespace
+  ::  The view body is a %crud-txn query over db.sys.namespaces.  It exposes
+  ::  columns: namespace, tmsp.
+  ::
+  ::  Orders by tmsp, then namespace ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -258,12 +262,19 @@
           ==
 ::
 ++  sys-tables-view
-  ::    tables  files
-  ::
   ::  view name: sys-tables
   ::
-  ::  *  initial cache key created upon table creation
-  ::  *  subsequent cache keys created upon...drop table, insert
+  ::  Base data comes from +schema.tables and the cache-time +data.files in
+  ::  server-state-0.  +populate-system-view selects the current +data with
+  ::  +get-data, walks its file keys, then +sys-view-tables looks up each
+  ::  matching +table for provenance and schema timestamp.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.tables.  It exposes
+  ::  columns: namespace, name, agent, tmsp, row-count.  agent is the table
+  ::  provenance path rendered as text; row-count comes from the matching
+  ::  +file.
+  ::
+  ::  Orders by namespace, then name ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -388,8 +399,17 @@
           ==
 ::
 ++  sys-table-keys-view
-  ::  *  initial cache key created upon table creation
-  ::  *  subsequent cache keys created upon...drop table
+  ::  view name: sys-table-keys
+  ::
+  ::  Base data comes from +schema.tables and the cache-time +data.files in
+  ::  server-state-0.  +populate-system-view walks file keys, looks up each
+  ::  matching +table, then +sys-view-table-keys enumerates the primary index
+  ::  key columns from +table.pri-indx with one-based ordinals.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.table-keys.  It exposes
+  ::  columns: namespace, name, key-ordinal, key, key-ascending.
+  ::
+  ::  Orders by namespace, name, then key-ordinal ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -404,7 +424,7 @@
       tmsp                                  ::tmsp=@da
       :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
-          [%query (sys-tables-query db)]      ::query
+          [%query (sys-table-keys-query db)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -492,7 +512,7 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %tables  ::name=@tas
+                      %tables     ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
                   %namespace  ::column=@tas
@@ -504,7 +524,7 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %tables  ::name=@tas
+                      %tables     ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
                   %name      ::column=@tas
@@ -516,7 +536,7 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %tables  ::name=@tas
+                      %tables      ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
                   %key-ordinal  ::column=@tas
@@ -526,6 +546,17 @@
           ==
 ::
 ++  sys-columns-view
+  ::  view name: sys-columns
+  ::
+  ::  Base data comes from +schema.tables and the cache-time +data.files in
+  ::  server-state-0.  +populate-system-view walks file keys, looks up each
+  ::  matching +table, then +sys-view-columns enumerates +table.columns with
+  ::  one-based ordinals.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.columns.  It exposes
+  ::  columns: namespace, name, col-ordinal, col-name, col-type.
+  ::
+  ::  Orders by namespace, name, then col-ordinal ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -662,6 +693,18 @@
           ==
 ::
 ++  sys-sys-log-view
+  ::  view name: sys-sys-log
+  ::
+  ::  Base data comes from the full +database.sys schema history in
+  ::  server-state-0.  +populate-system-view walks every schema snapshot, and
+  ::  +sys-view-sys-log-ns/+sys-view-sys-log-tbl emit namespace and table rows
+  ::  whose stored timestamp equals that schema snapshot timestamp.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.sys-log.  It exposes
+  ::  columns: tmsp, agent, component, name.  agent is the schema provenance
+  ::  path rendered as text.
+  ::
+  ::  Orders by tmsp descending, then component and name ascending.
   |=  [database=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -787,6 +830,18 @@
           ==
 ::
 ++  sys-data-log-view
+  ::  view name: sys-data-log
+  ::
+  ::  Base data comes from the full +database.content data history in
+  ::  server-state-0.  +populate-system-view walks every +data snapshot, and
+  ::  +sys-view-data-log emits file rows whose +file.tmsp equals that data
+  ::  snapshot timestamp.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.data-log.  It exposes
+  ::  columns: tmsp, ship, agent, namespace, table, row-count.  ship and agent
+  ::  come from +data.ship and +data.provenance; row-count comes from +file.
+  ::
+  ::  Orders by tmsp descending, then namespace and table ascending.
   |=  [database=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -882,6 +937,16 @@
                           ==
                       %table                 ::column=@tas
                       `%table                ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %data-log            ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %row-count             ::column=@tas
+                      `%row-count            ::alias=(unit @t)
                   ==
           :~      ::order-by=(list ordering-column)
               :+  %ordering-column
