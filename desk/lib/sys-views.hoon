@@ -1,18 +1,20 @@
-/-  ast, *obelisk, *server-state-0
+/-  ast, *obelisk, *server-state-1
 /+  *utils
 |%
 ::
 ++  sys-sys-dbs-view
   ::  view name: sys-databases
   ::
-  ::      databases
-  ::         /\
-  ::      sys  content
+  ::  Base data comes from the server map in server-state-1.  For each
+  ::  +database, +sys-view-databases merges the +database.sys schema history
+  ::  and +database.content data history, carrying the previous side forward
+  ::  when only one history changes at a timestamp.
   ::
-  ::  *  only available in %sys database
-  ::  *  initial cache key created upon new database creation
-  ::  *  subsequent cache keys created upon creation of new user database schema
-  ::     and data keys
+  ::  The view body is a %crud-txn query over sys.sys.databases.  It exposes
+  ::  columns: database, sys-agent, sys-tmsp, data-ship, data-agent,
+  ::  data-tmsp.
+  ::
+  ::  Orders by database, sys-tmsp, then data-tmsp ascending.
   |=  [provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -161,12 +163,14 @@
 ++  sys-namespaces-view
   ::  view name: sys-namespaces
   ::
-  ::      schema
-  ::         \
-  ::        namespaces
+  ::  Base data comes from +schema.namespaces in server-state-1, a map from
+  ::  namespace name to the timestamp when that namespace entered the schema.
+  ::  +populate-system-view materializes one row per namespace at cache time.
   ::
-  ::  *  initial cache key created upon database creation
-  ::  *  subsequent cache keys created upon create and drop namespace
+  ::  The view body is a %crud-txn query over db.sys.namespaces.  It exposes
+  ::  columns: namespace, tmsp.
+  ::
+  ::  Orders by tmsp, then namespace ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -258,12 +262,19 @@
           ==
 ::
 ++  sys-tables-view
-  ::    tables  files
-  ::
   ::  view name: sys-tables
   ::
-  ::  *  initial cache key created upon table creation
-  ::  *  subsequent cache keys created upon...drop table, insert
+  ::  Base data comes from +schema.tables and the cache-time +data.files in
+  ::  server-state-1.  +populate-system-view selects the current +data with
+  ::  +get-data, walks its file keys, then +sys-view-tables looks up each
+  ::  matching +table for provenance and schema timestamp.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.tables.  It exposes
+  ::  columns: namespace, name, agent, tmsp, row-count.  agent is the table
+  ::  provenance path rendered as text; row-count comes from the matching
+  ::  +file.
+  ::
+  ::  Orders by namespace, then name ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -388,8 +399,17 @@
           ==
 ::
 ++  sys-table-keys-view
-  ::  *  initial cache key created upon table creation
-  ::  *  subsequent cache keys created upon...drop table
+  ::  view name: sys-table-keys
+  ::
+  ::  Base data comes from +schema.tables and the cache-time +data.files in
+  ::  server-state-1.  +populate-system-view walks file keys, looks up each
+  ::  matching +table, then +sys-view-table-keys enumerates the primary index
+  ::  key columns from +table.pri-indx with one-based ordinals.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.table-keys.  It exposes
+  ::  columns: namespace, name, key-ordinal, key, key-ascending.
+  ::
+  ::  Orders by namespace, name, then key-ordinal ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -404,7 +424,7 @@
       tmsp                                  ::tmsp=@da
       :+  %crud-txn                        ::crud-txn
           ~                                   ::ctes=(list cte)
-          [%query (sys-tables-query db)]      ::query
+          [%query (sys-table-keys-query db)]  ::query
       (malt (spun columns mk-col-lu-data))  ::column-lookup
       %-  malt
         %+  turn  columns
@@ -492,7 +512,7 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %tables  ::name=@tas
+                      %tables     ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
                   %namespace  ::column=@tas
@@ -504,7 +524,7 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %tables  ::name=@tas
+                      %tables     ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
                   %name      ::column=@tas
@@ -516,7 +536,7 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %tables  ::name=@tas
+                      %tables      ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
                   %key-ordinal  ::column=@tas
@@ -526,6 +546,17 @@
           ==
 ::
 ++  sys-columns-view
+  ::  view name: sys-columns
+  ::
+  ::  Base data comes from +schema.tables and the cache-time +data.files in
+  ::  server-state-1.  +populate-system-view walks file keys, looks up each
+  ::  matching +table, then +sys-view-columns enumerates +table.columns with
+  ::  one-based ordinals.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.columns.  It exposes
+  ::  columns: namespace, name, col-ordinal, col-name, col-type.
+  ::
+  ::  Orders by namespace, name, then col-ordinal ascending.
   |=  [db=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -662,13 +693,31 @@
           ==
 ::
 ++  sys-sys-log-view
+  ::  view name: sys-sys-log
+  ::
+  ::  Base data comes from +database.event-log in server-state-1.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.sys-log.  It exposes the
+  ::  complete persisted event: tmsp, agent, action, component, database,
+  ::  namespace, name, target-database, target-namespace, target-relation, 
+  ::  message.
+  ::  agent is the schema provenance path rendered as text.
+  ::
+  ::  Orders by tmsp descending, then component, name, and action ascending.
   |=  [database=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
         %-  addr-columns  :~  [%column %tmsp ~.da 0]
                               [%column %agent ~.ta 0]
+                              [%column %action ~.tas 0]
                               [%column %component ~.tas 0]
-                              [%column %name ~.tas 0]
+                              [%column %database ~.tas 0]
+                              [%column %namespace ~.tas 0]
+                              [%column %relation ~.tas 0]
+                              [%column %target-database ~.tas 0]
+                              [%column %target-namespace ~.tas 0]
+                              [%column %target-relation ~.tas 0]
+                              [%column %message ~.t 0]
                               ==
   :*  %view
       provenance                            ::provenance=path
@@ -733,6 +782,16 @@
                           %sys-log             ::name=@tas
                           ~                    ::alias=(unit @t)
                           ==
+                      %action                ::column=@tas
+                      `%action               ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
                       %component             ::column=@tas
                       `%component            ::alias=(unit @t)
                   :^  %qualified-column    ::qualified-column
@@ -743,8 +802,68 @@
                           %sys-log             ::name=@tas
                           ~                    ::alias=(unit @t)
                           ==
+                      %database              ::column=@tas
+                      `%database             ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %namespace             ::column=@tas
+                      `%namespace            ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
                       %name                  ::column=@tas
                       `%name                 ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %target-database       ::column=@tas
+                      `%target-database      ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %target-namespace      ::column=@tas
+                      `%target-namespace     ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %target-relation           ::column=@tas
+                      `%target-relation          ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %sys-log             ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %message               ::column=@tas
+                      `%message              ::alias=(unit @t)
                   ==
           :~      ::order-by=(list ordering-column)
               :+  %ordering-column
@@ -777,16 +896,40 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
+                      %sys-log    ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %relation  ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
                       %sys-log  ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %name  ::column=@tas
+                  %action      ::column=@tas
                   ~  ::alias=(unit @t)
                   %.y  ::ascending=?
               ==
           ==
 ::
 ++  sys-data-log-view
+  ::  view name: sys-data-log
+  ::
+  ::  Base data comes from the full +database.content data history in
+  ::  server-state-1.  +populate-system-view walks every +data snapshot, and
+  ::  +sys-view-data-log emits file rows whose +file.tmsp equals that data
+  ::  snapshot timestamp.
+  ::
+  ::  The view body is a %crud-txn query over db.sys.data-log.  It exposes
+  ::  columns: tmsp, ship, agent, namespace, table, row-count.  ship and agent
+  ::  come from +data.ship and +data.provenance; row-count comes from +file.
+  ::
+  ::  Orders by tmsp descending, then namespace and table ascending.
   |=  [database=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -882,6 +1025,16 @@
                           ==
                       %table                 ::column=@tas
                       `%table                ::alias=(unit @t)
+                  :^  %qualified-column    ::qualified-column
+                      :*  %qualified-table  ::qualifier
+                          ~                    ::ship=(unit @p)
+                          database             ::database=@tas
+                          %sys                 ::namespace=@tas
+                          %data-log            ::name=@tas
+                          ~                    ::alias=(unit @t)
+                          ==
+                      %row-count             ::column=@tas
+                      `%row-count            ::alias=(unit @t)
                   ==
           :~      ::order-by=(list ordering-column)
               :+  %ordering-column
@@ -989,13 +1142,8 @@
         columns.view
   ::
   %sys-log
-      ::      :: to do: rewrite as jagged when architecture available
-    =/  sys=(list ^schema)
-          (turn (tap:schema-key sys.database) |=(b=[@da ^schema] +.b))
-    =/  namespaces  (zing (turn sys sys-view-sys-log-ns))
-    =/  tbls        (zing (turn sys sys-view-sys-log-tbl))
     =/  log   %+  skim
-                  (weld `(list (list @))`namespaces `(list (list @))`tbls)
+                  (turn event-log.database sys-view-sys-log-event)
                   |=(a=(list @) (lte -.a cache-time))
     %+  atoms-2-mapped-row
         (sort `(list (list @))`log ~(order order-row ordering.view))
@@ -1103,7 +1251,7 @@
     ^-  (list (list @))
     =/  aa=(list @)  :~  -.k
                         +.k
-                      ==
+                          ==
     =/  tbl  (~(got by tables) [-.k +.k])
     =/  keys
       %^  spin  key.pri-indx.tbl
@@ -1126,14 +1274,34 @@
     (turn p.columns |=(a=(list @) (weld aa a)))
     --
 ::
-++  sys-view-sys-log-ns
-  |=  a=schema
-    ^-  (list (list @))
-    =/  namespaces  %+  skim
-                    ~(val by (~(urn by namespaces.a) |=([k=@tas v=@da] [k v])))
-                    |=(b=[ns=@tas tmsp=@da] =(tmsp.a tmsp.b))
-    %+  turn  namespaces
-      |=([ns=@tas tmsp=@da] ~[tmsp.a (crip (spud provenance.a)) %namespace ns])
+::
+++  sys-view-sys-log-event
+  |=  event=sys-log-event
+  ^-  (list @)
+  :~  tmsp.event
+      (crip (spud provenance.event))
+      action.event
+      component.event
+      database.event
+      (unit-tas-text namespace.event)
+      (unit-tas-text relation.event)
+      (unit-tas-text target-database.event)
+      (unit-tas-text target-namespace.event)
+      (unit-tas-text target-relation.event)
+      (unit-text message.event)
+      ==
+::
+++  unit-tas-text
+  |=  value=(unit @tas)
+  ^-  @t
+  ?~  value  ''
+  `@t`u.value
+::
+++  unit-text
+  |=  value=(unit @t)
+  ^-  @t
+  ?~  value  ''
+  u.value
 ::
 ++  sys-view-data-log
   |=  a=data
@@ -1149,17 +1317,8 @@
                       -.k
                       +.k
                       rowcount.file
-                      ==
+                          ==
 ::
-++  sys-view-sys-log-tbl
-  |=  a=schema
-  ^-  (list (list @))
-  =/  tbls  %+  skim
-                %~  val  by
-                    (~(urn by tables.a) |=([k=[@tas @tas] =table] [k table]))
-                |=(b=[k=[@tas @tas] =table] =(tmsp.a tmsp.table.b))
-  %+  turn  tbls
-    |=([k=[@tas @tas] =table] ~[tmsp.a (crip (spud provenance.a)) -.k +.k])
 ++  get-data
   |=  [sys=((mop @da data) gth) time=@da]
   ^-  data

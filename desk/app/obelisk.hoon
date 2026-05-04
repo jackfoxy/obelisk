@@ -1,17 +1,22 @@
-/-  *server-state-0, server-state-0, *obelisk, ast
-/+  default-agent, dbug, *main, *print
+/-  *server-state-1, server-state-1, server-state-0, *obelisk, ast
+/+  default-agent, dbug, *main, *migration, *print
 |%
 +$  versioned-state
   $%  state-0
+      state-1
   ==
 +$  state-0
   $:  %0
+      server=server:server-state-0
+  ==
++$  state-1
+  $:  %1
       =server
   ==
 +$  card  card:agent:gall
 --
 %-  agent:dbug
-=|  state-0
+=|  state-1
 =*  state  -
 ^-  agent:gall
 |_  =bowl:gall
@@ -49,7 +54,7 @@
             /gen/animal-shelter/all-animal-shelter/txt
         ==
     ==
-  :_  this(state *state-0)
+  :_  this(state *state-1)
   (weld hawk-cards animal-cards)
 ++  on-save
   !>(state)
@@ -58,12 +63,12 @@
   ^-  (quip card _this)
   ::  attempt state reload/migration
   ::
-  =/  r=(each state-0 tang)
+  =/  r=(each state-1 tang)
     %-  mule  |.
     =/  old  !<(versioned-state old-state)
     ?-  -.old
-      %0  old
-      :: %1
+      %0  [%1 (migrate-server-0-to-1 server.old)]
+      %1  old
     ==
   ::  if it succeeded, use the old state
   ::
@@ -71,7 +76,7 @@
   ::  if it failed, bunt the correct state type
   ::
   %-  (slog 'old state corrupt, unable to migrate data' ~)
-  `this(state *state-0)
+  `this(state *state-1)
 ++  on-poke
   |=  [=mark =vase]
   ^-  (quip card _this)
@@ -85,7 +90,7 @@
   ::  prints results
   %tape
     =/  virtualized
-        ^-  (each (pair (list cmd-result) server:server-state-0) tang)
+        ^-  (each (pair (list cmd-result) server:server-state-1) tang)
         %-  mule
           |.
           %:  state-server
@@ -110,7 +115,7 @@
   ::  action without printing results
   %tape2
     =/  virtualized
-      ^-  (each (pair (list cmd-result) server:server-state-0) tang)
+      ^-  (each (pair (list cmd-result) server:server-state-1) tang)
       %-  mule
       |.
       %:  state-server

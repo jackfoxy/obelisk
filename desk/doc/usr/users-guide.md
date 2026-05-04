@@ -1164,11 +1164,14 @@ The last two column structures are unqualified. The parser does not have the tab
 
 # APPENDIX: System Views
 
-Views on database schema metadata available in every database.
+Views on database schema, data, and history metadata. `sys.sys.databases` is
+only available in database `sys`; the remaining system views are in the `sys`
+namespace of each user database.
 
 ## sys.sys.databases
 
-Lists all databases on an Obelisk server and every event that caused a schema or data state change. Only available in database "sys".
+Lists all databases on an Obelisk server and the schema/data state history for
+each database. Only available in database `sys`.
 
 This is the only query in Obelisk that is not idempotent. This is because dropping a database results in permanently clearing all references to that database on the server.
 
@@ -1176,15 +1179,15 @@ This is the only query in Obelisk that is not idempotent. This is because droppi
 
 **database @tas** Database name.
 
-**sys-agent @tas** Agent responsible for the latest database schema state.
+**sys-agent @ta** Provenance path for the database schema state.
 
-**sys-tmsp @da** Timestamp of latest database schema state.
+**sys-tmsp @da** Timestamp of database schema state.
 
-**data-ship @p** Ship making the latest database user data state
+**data-ship @p** Ship making the database user data state.
 
-**data-agent @tas** Agent responsible for the latest user data state.
+**data-agent @ta** Provenance path for the user data state.
 
-**data-tmsp @da** Timestamp of latest user data state.
+**data-tmsp @da** Timestamp of user data state.
 
 ### Default Ordering
 
@@ -1192,7 +1195,7 @@ database, sys-tmsp, data-tmsp
 
 ## sys.namespaces
 
-Lists the namespaces in a database. Available in every database except "sys".
+Lists the namespaces in a user database.
 
 ### Columns
 
@@ -1214,9 +1217,9 @@ Lists tables and administrative information.
 
 **name @tas** Table name.
 
-**agent @tas** Agent responsible for the latest table schema change.
+**agent @ta** Provenance path for the table schema state.
 
-**tmsp @da** Timestamp of latest table schema change.
+**tmsp @da** Timestamp of table schema state.
 
 **row-count @ud** Count of rows in table. Use *sys.data-log* system view to get data provenance.
 
@@ -1238,7 +1241,7 @@ Lists tables and their primary keys.
 
 **key @tas** Column in primary key.
 
-**key-ascending @f** Indicates whether the column in the primary key is ascending or descending
+**key-ascending @f** Indicates whether the column in the primary key is ascending or descending.
 
 ### Default Ordering
 
@@ -1266,35 +1269,52 @@ namespace, name, col-ordinal
 
 ## sys.sys-log
 
-This view records the times and events that effected the state of the database schema.
-
-DROPs are not recorded.
+This view records persisted events that affected the state of the database
+schema. `DROP TABLE` events are recorded even after the table no longer appears
+in schema views such as `sys.tables`.
 
 ### Columns
 
-**tmsp @da** Timestamp of database schema change of state.
+**tmsp @da** Timestamp of database schema state change.
 
-**agent @tas** Agent responsible for the state change.
+**agent @ta** Provenance path for the state change.
 
-**component @tas** (To do: 2 columns, component and namespace along with view rewrite)
+**action @tas** Event action, such as `create` or `drop`.
 
-**name @tas** Added or altered component.
+**component @tas** Event component, such as `database`, `namespace`, or `table`.
+
+**database @t** Database affected by the event, when applicable.
+
+**namespace @t** Namespace affected by the event, when applicable.
+
+**relation @tas** Component name.
+
+**target-database @t** Target database for rename-style events, when
+applicable. Empty when unused.
+
+**target-namespace @t** Target namespace for rename-style events, when
+applicable. Empty when unused.
+
+**target-relation @t** Target name for rename-style events, when applicable. Empty
+when unused.
+
+**message @t** Human-readable event message. Empty when unused.
 
 ### Default Ordering
 
-tmsp descending, component, name
+tmsp descending, component, name, action
 
 ## sys.data-log
 
-This view records the times and events that effected the state of the database data.
+This view records the times and events that affected the state of the database data.
 
 ### Columns
 
-**tmsp @da**  Timestamp of table data change of state.
+**tmsp @da**  Timestamp of table data state change.
 
 **ship @p** Ship making the state change.
 
-**agent @tas** Agent responsible for the state change.
+**agent @ta** Provenance path for the state change.
 
 **namespace @tas** Table namespace.
 

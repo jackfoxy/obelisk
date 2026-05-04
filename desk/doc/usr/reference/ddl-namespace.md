@@ -95,9 +95,9 @@ Timestamp of namespace update. Defaults to NOW (current time). When specified, t
   $:  %alter-namespace
     database-name=@tas
     source-namespace=@tas
-    object-type=table-or-view
+    relation=table-or-view
     target-namespace=@tas
-    target-name=@tas
+    target-relation=@tas
     as-of=(unit as-of)
   ==
 ```

@@ -1,5 +1,5 @@
-/-  ast, *server-state-0, *obelisk
-/+  *sys-views, *ddl, *crud, parse
+/-  ast, *server-state-1, *obelisk
+/+  *sys-views, *ddl, *crud, parse, *utils
 |_  [state=server =bowl:gall]
 ::
 ++  license
@@ -258,6 +258,22 @@
                                 (sys-sys-dbs-view sap.bowl sys-time)
                         ==
                     ==
+  =.  event-log.sys-db
+        ^-  (list sys-log-event)
+        :-  :*  %sys-log-event
+                sys-time
+                sap.bowl
+                %create
+                %database
+                name.c
+                ~
+                ~
+                ~
+                ~
+                ~
+                ~
+                    ==
+            event-log.sys-db
   =.  sys-db  ?:  =(created-tmsp.sys-db sys-time)  sys-db
   sys-db(view-cache (upd-view-caches state sys-db sys-time ~ %create-database))
   =.  state  (~(put by state) %sys sys-db)
@@ -285,25 +301,47 @@
               %+  turn  db-views
                         |=([p=ns-rel-key q=view] [p [%cache time.p ~]])
   ::
+  =/  db-schemas=((mop @da schema) gth)  :+  :-  sys-time
+                                                 :*  %schema
+                                                     sap.bowl
+                                                     sys-time
+                                                     namespaces
+                                                     ~
+                                                     vws
+                                                     ==
+                                             ~
+                                             ~
   :*  %database
       name
       sap.bowl
       sys-time
-      :+  :-  sys-time
-              :*  %schema
-                  sap.bowl
-                  sys-time
-                  namespaces
-                  ~
-                  vws
-                  ==
-          ~
-          ~
+      db-schemas
       :+  :-  sys-time
               [%data src.bowl sap.bowl sys-time ~]
           ~
           ~
       vw-cache
+      ?:  =(%sys name)  ~[(namespace-event sys-time sap.bowl name %sys)]
+      :~  (namespace-event sys-time sap.bowl name %dbo)
+          (namespace-event sys-time sap.bowl name %sys)
+          ==
+      ==
+::
+++  namespace-event
+  |=  [sys-time=@da provenance=path db=@tas namespace=@tas]
+  ^-  sys-log-event
+  :*  %sys-log-event
+      sys-time
+      provenance
+      %create
+      %namespace
+      db
+      `namespace
+      ~
+      ~
+      ~
+      ~
+      ~
       ==
 ::
 ++  drop-db
