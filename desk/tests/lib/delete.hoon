@@ -1,15 +1,7 @@
 ::  Demonstrate unit testing queries on a Gall agent with %obelisk.
 ::
 /+  *test-helpers
-|%
 ::
-::  Build a reference state mold
-+$  state
-  $:  %0
-      =server
-      ==
-::
---
 |%
 ++  create-calendar
   "CREATE TABLE calendar ".

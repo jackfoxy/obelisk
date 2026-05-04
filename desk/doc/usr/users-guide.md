@@ -1269,9 +1269,9 @@ namespace, name, col-ordinal
 
 ## sys.sys-log
 
-This view records the times and events that affected the state of the database schema.
-
-DROPs are not recorded.
+This view records persisted events that affected the state of the database
+schema. `DROP TABLE` events are recorded even after the table no longer appears
+in schema views such as `sys.tables`.
 
 ### Columns
 
@@ -1279,13 +1279,30 @@ DROPs are not recorded.
 
 **agent @ta** Provenance path for the state change.
 
-**component @tas** (To do: 2 columns, component and namespace along with view rewrite)
+**action @tas** Event action, such as `create` or `drop`.
 
-**name @tas** Added or altered component.
+**component @tas** Event component, such as `database`, `namespace`, or `table`.
+
+**database @t** Database affected by the event, when applicable.
+
+**namespace @t** Namespace affected by the event, when applicable.
+
+**name @tas** Component name.
+
+**target-database @t** Target database for rename-style events, when
+applicable. Empty when unused.
+
+**target-namespace @t** Target namespace for rename-style events, when
+applicable. Empty when unused.
+
+**target-name @t** Target name for rename-style events, when applicable. Empty
+when unused.
+
+**message @t** Human-readable event message. Empty when unused.
 
 ### Default Ordering
 
-tmsp descending, component, name
+tmsp descending, component, name, action
 
 ## sys.data-log
 

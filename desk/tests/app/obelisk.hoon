@@ -1,7 +1,7 @@
 ::  Demonstrate unit testing on a Gall agent with %obelisk.
 ::
-/-  ast, *server-state-0
-/+  *test, *sys-views
+/-  ast, *server-state-1
+/+  *test, *sys-views, *utils
 /=  agent  /app/obelisk
 |%
 ::
@@ -16,7 +16,7 @@
 ::
 ::  Build a reference state mold
 +$  state
-  $:  %0
+  $:  %1
       =server
       ==
 --
@@ -31,6 +31,7 @@
           view-caches=(list ns-rel-key)
           sys-caches=(list @da)
           ==
+  =/  db-schemas  (gas:schema-key *((mop @da schema) gth) schemas)
   %-  ~(gas by `(map @tas database)`~)
     :~
       :-  name
@@ -38,7 +39,7 @@
             name=name
             created-provenance=`path`/test-agent
             created-tmsp=sys-time
-            sys=(gas:schema-key *((mop @da schema) gth) schemas)
+            sys=db-schemas
             content=(gas:data-key *((mop @da data) gth) contents)
             %+  gas:view-cache-key
               %+  gas:view-cache-key
@@ -47,34 +48,50 @@
                         |=([p=ns-rel-key q=view] [p (cache %cache time.p ~)])
               %+  turn  view-caches
                         |=(p=ns-rel-key [p (cache %cache time.p ~)])
+           (build-event-log name db-schemas)
             ==
-      (sys-database sys-time sys-caches)
+      (sys-database name sys-time sys-caches)
       ==
 ::
 ++  sys-database
-  |=  [sys-time=@da sys-caches=(list @da)]
+  |=  [name=@tas sys-time=@da sys-caches=(list @da)]
+  =/  db-schemas
+        %+  gas:schema-key
+            *((mop @da schema) gth)
+            :~  :-  sys-time
+                  :*  %schema
+                      `path`/test-agent
+                      sys-time
+                      [[%sys sys-time] ~ ~]
+                      ~
+                      %+  gas:view-key
+                            *((mop ns-rel-key view) ns-rel-comp)
+                            (limo ~[(sys-sys-databases-view sys-time)])
+                      ==
+                ==
   :-  %sys
         :*  %database
             %sys
             `path`/test-agent
             sys-time
-            %+  gas:schema-key
-                  *((mop @da schema) gth)
-                  :~  :-  sys-time
-                        :*  %schema
-                            `path`/test-agent
-                            sys-time
-                            [[%sys sys-time] ~ ~]
-                            ~
-                            %+  gas:view-key
-                                  *((mop ns-rel-key view) ns-rel-comp)
-                                  (limo ~[(sys-sys-databases-view sys-time)])
-                            ==
-                      ==
+            db-schemas
             %+  gas:data-key  *((mop @da data) gth)
                           ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
             %+  gas:view-cache-key  *((mop ns-rel-key cache) ns-rel-comp)
                   (turn sys-caches |=(a=@da [[%sys %databases a] [%cache a ~]]))
+            :~  %:  make-sys-log-event  sys-time
+                                        `path`/test-agent
+                                        %create
+                                        %database
+                                        `name
+                                        ~
+                                        name
+                                        ~
+                                        ~
+                                        ~
+                                        ~
+                                        ==
+                ==
             ==
 ::
 ::  views
@@ -1193,30 +1210,30 @@
 ::  TIME
 ::
 ::  time, create database
-++  test-time-create-database
-  =|  run=@ud
-  =^  mov1  agent
-    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
-        %obelisk-action
-        !>([%tape2 %sys "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"])
-  =+  !<(=state on-save:agent)
-  %+  weld
-        %+  expect-eq
-          !>  :-  %results
-                  :~  [%message 'created database %db1']
-                      [%server-time ~2000.1.1]
-                      [%schema-time ~2023.7.9..22.35.35..7e90]
-                      ==
-          !>  ->+>+>+<.mov1
-        %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2023.7.9..22.35.35..7e90
-                        ~[(sys1 ~2023.7.9..22.35.35..7e90)]
-                        ~[content-time-1]
-                        ~
-                        ~[~2023.7.9..22.35.35..7e90]
-                        ==
-          !>  server.state
+::::++  test-time-create-database
+::::  =|  run=@ud
+::::  =^  mov1  agent
+::::    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
+::::        %obelisk-action
+::::        !>([%tape2 %sys "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"])
+::::  =+  !<(=state on-save:agent)
+::::  %+  weld
+::::        %+  expect-eq
+::::          !>  :-  %results
+::::                  :~  [%message 'created database %db1']
+::::                      [%server-time ~2000.1.1]
+::::                      [%schema-time ~2023.7.9..22.35.35..7e90]
+::::                      ==
+::::          !>  ->+>+>+<.mov1
+::::        %+  expect-eq
+::::          !>  %:  mk-db  %db1
+::::                        ~2023.7.9..22.35.35..7e90
+::::                        ~[(sys1 ~2023.7.9..22.35.35..7e90)]
+::::                        ~[content-time-1]
+::::                        ~
+::::                        ~[~2023.7.9..22.35.35..7e90]
+::::                        ==
+::::          !>  server.state
 ::
 ::  time, create ns as of 1 second > schema
 ++  test-time-create-ns-gt-schema

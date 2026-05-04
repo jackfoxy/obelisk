@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state-0
+/-  ast, *obelisk, *server-state-1
 /+  mip
 |%
 ::
@@ -577,6 +577,117 @@
   =.  view-cache.sys-db
         (upd-view-caches state sys-db sys-time ~ %create-database)
   (~(put by state) %sys sys-db)
+::
+++  build-event-log
+  |=  [db-name=@tas sys=((mop @da schema) gth)]
+  ^-  (list sys-log-event)
+  =/  snaps=(list schema)
+        (turn (tap:schema-key sys) |=(b=[@da schema] +.b))
+  =/  events  *(list sys-log-event)
+  |-
+  ?~  snaps  events
+  =/  prev=(unit schema)  ?~(t.snaps ~ `i.t.snaps)
+  %=  $
+    snaps   t.snaps
+    events  (weld (schema-events db-name i.snaps prev) events)
+  ==
+::
+++  schema-events
+  |=  [db-name=@tas curr=schema prev=(unit schema)]
+  ^-  (list sys-log-event)
+  =/  ns-events
+        %+  turn
+          %+  skim  ~(tap by namespaces.curr)
+          |=  [kv=[@tas @da]]
+          ?~  prev
+            =(tmsp.curr +.kv)
+          ?&  =(tmsp.curr +.kv)
+              ?!((~(has by namespaces.u.prev) -.kv))
+          ==
+        |=  [kv=[@tas @da]]
+        %:  make-sys-log-event  tmsp.curr
+                                provenance.curr
+                                %create
+                                %namespace
+                                `db-name
+                                ~
+                                -.kv
+                                ~
+                                ~
+                                ~
+                                ~
+                                ==
+  =/  tbl-creates
+        %+  turn
+          %+  skim  ~(tap by tables.curr)
+          |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+          ?~  prev
+            =(tmsp.curr tmsp.tbl.kv)
+          ?&  =(tmsp.curr tmsp.tbl.kv)
+              ?!((~(has by tables.u.prev) k.kv))
+          ==
+        |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+        %:  make-sys-log-event  tmsp.curr
+                                provenance.curr
+                                %create
+                                %table
+                                `db-name
+                                `ns.k.kv
+                                name.k.kv
+                                ~
+                                ~
+                                ~
+                                ~
+                                ==
+  =/  tbl-drops
+        ?~  prev
+          ~
+        %+  turn
+          %+  skim  ~(tap by tables.u.prev)
+          |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+          ?!((~(has by tables.curr) k.kv))
+        |=  [kv=[k=[ns=@tas name=@tas] tbl=table]]
+        %:  make-sys-log-event  tmsp.curr
+                                provenance.curr
+                                %drop
+                                %table
+                                `db-name
+                                `ns.k.kv
+                                name.k.kv
+                                ~
+                                ~
+                                ~
+                                ~
+                                ==
+  (weld ns-events (weld tbl-creates tbl-drops))
+::
+++  make-sys-log-event
+  |=  $:  tmsp=@da
+          provenance=path
+          action=@tas
+          component=@tas
+          database=(unit @tas)
+          namespace=(unit @tas)
+          name=@tas
+          target-database=(unit @tas)
+          target-namespace=(unit @tas)
+          target-name=(unit @tas)
+          message=(unit @t)
+          ==
+  ^-  sys-log-event
+  :*  %sys-log-event
+      tmsp
+      provenance
+      action
+      component
+      database
+      namespace
+      name
+      target-database
+      target-namespace
+      target-name
+      message
+      ==
 ::
 ++  upd-view-caches
   ::  state needed for cross-db view changes

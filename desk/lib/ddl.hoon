@@ -1,4 +1,4 @@
-/-  ast, *obelisk, *server-state-0
+/-  ast, *obelisk, *server-state-1
 /+  *utils
 |_  [state=server =bowl:gall]
 ::
@@ -76,6 +76,7 @@
   =.  provenance.nxt-schema  sap.bowl
   ::
   =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
+  =.  event-log.db   (build-event-log name.db sys.db)
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-namespace)
   ::
   :+  :-  %results
@@ -181,6 +182,7 @@
   ::
   =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
   =.  content.db     (put:data-key content.db sys-time nxt-data)
+  =.  event-log.db   (build-event-log name.db sys.db)
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-table)
   =.  state          (update-sys state sys-time)
   ::
@@ -255,6 +257,7 @@
   ::
   =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
   =.  content.db     (put:data-key content.db sys-time nxt-data)
+  =.  event-log.db   (build-event-log name.db sys.db)
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-table)
   =.  state          (update-sys state sys-time)
   ::

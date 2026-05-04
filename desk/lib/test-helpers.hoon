@@ -1,5 +1,5 @@
 ::
-/-  ast, *obelisk, *server-state-0
+/-  ast, *obelisk, *server-state-1
 /+  *test, *scalars, parse
 /=  agent  /app/obelisk
 |%
@@ -12,13 +12,6 @@
       [~ ~ ~]                                              :: (wex sup sky)
       [run `@uvJ`(shax run) now [~zod %base ud+run]]       :: (act eny now byk)
   ==
-::
-::  Build a reference state mold
-+$  state
-  $:  %0
-      =server
-      ==
-::
 --
 |%
 ::
