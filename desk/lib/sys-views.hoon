@@ -699,7 +699,8 @@
   ::
   ::  The view body is a %crud-txn query over db.sys.sys-log.  It exposes the
   ::  complete persisted event: tmsp, agent, action, component, database,
-  ::  namespace, name, target-database, target-namespace, target-name, message.
+  ::  namespace, name, target-database, target-namespace, target-relation, 
+  ::  message.
   ::  agent is the schema provenance path rendered as text.
   ::
   ::  Orders by tmsp descending, then component, name, and action ascending.
@@ -710,12 +711,12 @@
                               [%column %agent ~.ta 0]
                               [%column %action ~.tas 0]
                               [%column %component ~.tas 0]
-                              [%column %database ~.t 0]
-                              [%column %namespace ~.t 0]
-                              [%column %name ~.tas 0]
-                              [%column %target-database ~.t 0]
-                              [%column %target-namespace ~.t 0]
-                              [%column %target-name ~.t 0]
+                              [%column %database ~.tas 0]
+                              [%column %namespace ~.tas 0]
+                              [%column %relation ~.tas 0]
+                              [%column %target-database ~.tas 0]
+                              [%column %target-namespace ~.tas 0]
+                              [%column %target-relation ~.tas 0]
                               [%column %message ~.t 0]
                               ==
   :*  %view
@@ -851,8 +852,8 @@
                           %sys-log             ::name=@tas
                           ~                    ::alias=(unit @t)
                           ==
-                      %target-name           ::column=@tas
-                      `%target-name          ::alias=(unit @t)
+                      %target-relation           ::column=@tas
+                      `%target-relation          ::alias=(unit @t)
                   :^  %qualified-column    ::qualified-column
                       :*  %qualified-table  ::qualifier
                           ~                    ::ship=(unit @p)
@@ -898,7 +899,7 @@
                       %sys-log    ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %name  ::column=@tas
+                  %relation  ::column=@tas
                   ~  ::alias=(unit @t)
                   %.y  ::ascending=?
               :+  %ordering-column
@@ -1281,12 +1282,12 @@
       (crip (spud provenance.event))
       action.event
       component.event
-      (unit-tas-text database.event)
+      database.event
       (unit-tas-text namespace.event)
-      name.event
+      (unit-tas-text relation.event)
       (unit-tas-text target-database.event)
       (unit-tas-text target-namespace.event)
-      (unit-tas-text target-name.event)
+      (unit-tas-text target-relation.event)
       (unit-text message.event)
       ==
 ::

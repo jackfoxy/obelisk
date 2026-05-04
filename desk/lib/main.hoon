@@ -259,18 +259,20 @@
                         ==
                     ==
   =.  event-log.sys-db
-        :-  %:  make-sys-log-event  sys-time
-                                    sap.bowl
-                                    %create
-                                    %database
-                                    `name.c
-                                    ~
-                                    name.c
-                                    ~
-                                    ~
-                                    ~
-                                    ~
-                                    ==
+        ^-  (list sys-log-event)
+        :-  :*  %sys-log-event
+                sys-time
+                sap.bowl
+                %create
+                %database
+                name.c
+                ~
+                ~
+                ~
+                ~
+                ~
+                ~
+                    ==
             event-log.sys-db
   =.  sys-db  ?:  =(created-tmsp.sys-db sys-time)  sys-db
   sys-db(view-cache (upd-view-caches state sys-db sys-time ~ %create-database))
@@ -319,6 +321,26 @@
           ~
           ~
       vw-cache
+      ?:  =(%sys name)  ~[(namespace-event sys-time sap.bowl name %sys)]
+      :~  (namespace-event sys-time sap.bowl name %dbo)
+          (namespace-event sys-time sap.bowl name %sys)
+          ==
+      ==
+::
+++  namespace-event
+  |=  [sys-time=@da provenance=path db=@tas namespace=@tas]
+  ^-  sys-log-event
+  :*  %sys-log-event
+      sys-time
+      provenance
+      %create
+      %namespace
+      db
+      `namespace
+      ~
+      ~
+      ~
+      ~
       ~
       ==
 ::

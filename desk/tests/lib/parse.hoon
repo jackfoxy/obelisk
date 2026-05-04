@@ -139,15 +139,21 @@
 :: tests 1, 2, 3, 5, and extra whitespace characters, alter namespace db.ns db.ns2.table ; ns db..table
 ++  test-alter-namespace-00
   =/  expected1
-    :*  %alter-namespace  database-name='db'
-        source-namespace='ns'  object-type=%table
-        target-namespace='ns2'  target-name='table'
+    :*  %alter-namespace
+        database-name='db'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='ns2'
+        target-relation='table'
         as-of=~
         ==
   =/  expected2
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=~
         ==
   %+  expect-eq
@@ -160,9 +166,12 @@
 :: alter namespace  ns table
 ++  test-alter-namespace-01
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=~
         ==
   %+  expect-eq
@@ -173,9 +182,12 @@
 :: alter namespace db.ns db.ns2.table as of now
 ++  test-alter-namespace-02
   =/  expected
-    :*  %alter-namespace  database-name='db'
-        source-namespace='ns'  object-type=%table
-        target-namespace='ns2'  target-name='table'
+    :*  %alter-namespace
+        database-name='db'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='ns2'
+        target-relation='table'
         as-of=~
         ==
   %+  expect-eq
@@ -186,9 +198,12 @@
 :: alter namespace db.ns db.ns2.table as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-namespace-03
   =/  expected
-    :*  %alter-namespace  database-name='db'
-        source-namespace='ns'  object-type=%table
-        target-namespace='ns2'  target-name='table'
+    :*  %alter-namespace
+        database-name='db'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='ns2'
+        target-relation='table'
         as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -200,9 +215,12 @@
 :: alter namespace db.ns db.ns2.table as of 5 days ago
 ++  test-alter-namespace-04
   =/  expected
-    :*  %alter-namespace  database-name='db'
-        source-namespace='ns'  object-type=%table
-        target-namespace='ns2'  target-name='table'
+    :*  %alter-namespace
+        database-name='db'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='ns2'
+        target-relation='table'
         as-of=[~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
@@ -214,9 +232,12 @@
 :: alter namespace ns table as of now
 ++  test-alter-namespace-05
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=~
         ==
   %+  expect-eq
@@ -227,9 +248,12 @@
 :: alter namespace ns table as of ~2023.12.25..7.15.0..1ef5
 ++  test-alter-namespace-06
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -241,9 +265,12 @@
 :: alter namespace ns table as of 5 days ago
 ++  test-alter-namespace-07
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=[~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
@@ -255,9 +282,12 @@
 :: alter namespace ns table as of ~d3.h5.m30.s12
 ++  test-alter-namespace-08
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=[~ [%dr ~d3.h5.m30.s12]]
         ==
   %+  expect-eq
@@ -269,9 +299,12 @@
 :: alter namespace ns table as of ~h5.m30.s12
 ++  test-alter-namespace-09
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=[~ [%dr ~h5.m30.s12]]
         ==
   %+  expect-eq
@@ -283,9 +316,12 @@
 :: alter namespace ns table as of ~m30.s12
 ++  test-alter-namespace-10
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=[~ [%dr ~m30.s12]]
         ==
   %+  expect-eq
@@ -297,9 +333,12 @@
 :: alter namespace ns table as of ~s12
 ++  test-alter-namespace-11
   =/  expected
-    :*  %alter-namespace  database-name='db1'
-        source-namespace='ns'  object-type=%table
-        target-namespace='dbo'  target-name='table'
+    :*  %alter-namespace
+        database-name='db1'
+        source-namespace='ns'
+        relation=%table
+        target-namespace='dbo'
+        target-relation='table'
         as-of=[~ [%dr ~s12]]
         ==
   %+  expect-eq

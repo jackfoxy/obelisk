@@ -132,12 +132,12 @@
     provenance=path
     action=@tas
     component=@tas
-    database=(unit @tas)
+    database=@tas
     namespace=(unit @tas)
-    name=@tas
+    relation=(unit @tas)
     target-database=(unit @tas)
     target-namespace=(unit @tas)
-    target-name=(unit @tas)
+    target-relation=(unit @tas)
     message=(unit @t)
     ==
 ::

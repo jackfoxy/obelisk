@@ -48,7 +48,33 @@
                         |=([p=ns-rel-key q=view] [p (cache %cache time.p ~)])
               %+  turn  view-caches
                         |=(p=ns-rel-key [p (cache %cache time.p ~)])
-           (build-event-log name db-schemas)
+            :~  :*  %sys-log-event
+                    sys-time
+                    `path`/test-agent
+                    %create
+                    %namespace
+                    name
+                    `%dbo
+                    ~
+                    ~
+                    ~
+                    ~
+                    ~
+                    ==
+                  :*  %sys-log-event
+                    sys-time
+                    `path`/test-agent
+                    %create
+                    %namespace
+                    name
+                    `%sys
+                    ~
+                    ~
+                    ~
+                    ~
+                    ~
+                    ==
+                ==
             ==
       (sys-database name sys-time sys-caches)
       ==
@@ -79,18 +105,32 @@
                           ~[[sys-time %data ~zod `path`/test-agent sys-time ~]]
             %+  gas:view-cache-key  *((mop ns-rel-key cache) ns-rel-comp)
                   (turn sys-caches |=(a=@da [[%sys %databases a] [%cache a ~]]))
-            :~  %:  make-sys-log-event  sys-time
-                                        `path`/test-agent
-                                        %create
-                                        %database
-                                        `name
-                                        ~
-                                        name
-                                        ~
-                                        ~
-                                        ~
-                                        ~
-                                        ==
+            :~  :*  %sys-log-event
+                    sys-time
+                    `path`/test-agent
+                    %create
+                    %database
+                    name
+                    ~
+                    ~
+                    ~
+                    ~
+                    ~
+                    ~
+                    ==
+                :*  %sys-log-event
+                    sys-time
+                    `path`/test-agent
+                    %create
+                    %namespace
+                    name
+                    `%sys
+                    ~
+                    ~
+                    ~
+                    ~
+                    ~
+                    ==
                 ==
             ==
 ::
@@ -669,6 +709,53 @@
 ::  CREATE TABLE
 ++  test-cmd-create-1-col-tbl
   =|  run=@ud
+  =/  created-dbs=(list [@tas database])
+        %~  tap  by
+                 %:  mk-db  %db1
+                             ~2000.1.1
+                             :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                                 (sys1 ~2000.1.1)
+                                 ==
+                             ~[content-2 content-1]
+                             :~  [%sys %columns ~2000.1.2]
+                                 [%sys %tables ~2000.1.2]
+                                 [%sys %table-keys ~2000.1.2]
+                                 [%sys %sys-log ~2000.1.2]
+                                 [%sys %data-log ~2000.1.2]
+                                 ==
+                             ~[~2000.1.1 ~2000.1.2]
+                             ==
+
+  =/  new-list=(list [@tas database])
+        ?~  created-dbs  ~|("cant' get here" !!)
+        :-  :-  `@tas`-.i.created-dbs
+                ^-  database
+                :*  %database
+                    name.+.i.created-dbs
+                    created-provenance.+.i.created-dbs
+                    created-tmsp.+.i.created-dbs
+                    sys.+.i.created-dbs
+                    content.+.i.created-dbs
+                    view-cache.+.i.created-dbs
+                    :-  :*  %sys-log-event
+                            ~2000.1.2
+                            `path`/test-agent
+                            %create
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.+.i.created-dbs
+                    ==
+            ;;((list [@tas database]) t.created-dbs)
+  =/  expected-dbs=(map @tas database)
+        %-  ~(gas by `(map @tas database)`~)
+            new-list
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -688,20 +775,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-2 content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2]
-                        ==
+          !>  expected-dbs
           !>  server.state
 ::
 ++  test-tape-create-1-col-tbl

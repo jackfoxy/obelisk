@@ -75,8 +75,21 @@
   =.  tmsp.nxt-schema        sys-time
   =.  provenance.nxt-schema  sap.bowl
   ::
-  =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
-  =.  event-log.db   (build-event-log name.db sys.db)
+  =.  sys.db        (put:schema-key sys.db sys-time nxt-schema)
+  =.  event-log.db  :-  :*  %sys-log-event
+                            sys-time
+                            sap.bowl
+                            %create
+                            %namespace
+                            database-name.create-namespace
+                            `name.create-namespace
+                            ~
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.db
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-namespace)
   ::
   :+  :-  %results
@@ -180,9 +193,22 @@
   =.  provenance.nxt-data  sap.bowl
   =.  tmsp.nxt-data        sys-time
   ::
-  =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
-  =.  content.db     (put:data-key content.db sys-time nxt-data)
-  =.  event-log.db   (build-event-log name.db sys.db)
+  =.  sys.db        (put:schema-key sys.db sys-time nxt-schema)
+  =.  content.db    (put:data-key content.db sys-time nxt-data)
+  =.  event-log.db  :-  :*  %sys-log-event
+                            sys-time
+                            sap.bowl
+                            %create
+                            %table
+                            database.qualified-table.create-table
+                            `namespace.qualified-table.create-table
+                            `name.qualified-table.create-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.db
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %create-table)
   =.  state          (update-sys state sys-time)
   ::
@@ -255,9 +281,22 @@
   =.  provenance.nxt-data  sap.bowl
   =.  tmsp.nxt-data        sys-time
   ::
-  =.  sys.db         (put:schema-key sys.db sys-time nxt-schema)
-  =.  content.db     (put:data-key content.db sys-time nxt-data)
-  =.  event-log.db   (build-event-log name.db sys.db)
+  =.  sys.db        (put:schema-key sys.db sys-time nxt-schema)
+  =.  content.db    (put:data-key content.db sys-time nxt-data)
+  =.  event-log.db  :-  :*  %sys-log-event
+                            sys-time
+                            sap.bowl
+                            %drop
+                            %table
+                            database.qualified-table.d
+                            `namespace.qualified-table.d
+                            `name.qualified-table.d
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.db
   =.  view-cache.db  (upd-view-caches state db sys-time ~ %drop-table)
   =.  state          (update-sys state sys-time)
   ::

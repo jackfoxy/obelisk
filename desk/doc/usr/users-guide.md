@@ -1287,7 +1287,7 @@ in schema views such as `sys.tables`.
 
 **namespace @t** Namespace affected by the event, when applicable.
 
-**name @tas** Component name.
+**relation @tas** Component name.
 
 **target-database @t** Target database for rename-style events, when
 applicable. Empty when unused.
@@ -1295,7 +1295,7 @@ applicable. Empty when unused.
 **target-namespace @t** Target namespace for rename-style events, when
 applicable. Empty when unused.
 
-**target-name @t** Target name for rename-style events, when applicable. Empty
+**target-relation @t** Target name for rename-style events, when applicable. Empty
 when unused.
 
 **message @t** Human-readable event message. Empty when unused.

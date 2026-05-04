@@ -1978,9 +1978,15 @@
           "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
           "PRIMARY KEY (col1, col3)"
       ::
-      [~2000.1.8 %db1 "FROM sys.sys-log SELECT tmsp, agent, component, name"]
+      :+  ~2000.1.8
+          %db1
+          "FROM sys.sys-log ".
+          "SELECT tmsp, agent, action, component, database, namespace, relation"
       ::
-      [~2000.1.9 %db1 "FROM sys.sys-log AS OF ~2000.1.6 SELECT tmsp, agent, component, name"]
+      :+  ~2000.1.9
+          %db1
+          "FROM sys.sys-log AS OF ~2000.1.6 ".
+          "SELECT tmsp, agent, action, component, database, namespace, relation"
       ::
       :-  %results
           :~  [%action 'SELECT']
@@ -1988,50 +1994,74 @@
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-3]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %ref]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-2]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %sys]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %dbo]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
                               ==
                       ==
               [%server-time ~2000.1.8]
@@ -2047,44 +2077,65 @@
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-3]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %ref]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-2]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %sys]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %dbo]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
                               ==
                       ==
               [%server-time ~2000.1.9]
@@ -2129,9 +2180,15 @@
           %db1
           "DROP TABLE db1..my-table"
       ::
-      [~2000.1.9 %db1 "FROM sys.sys-log SELECT tmsp, agent, component, name"]
+      :+  ~2000.1.9
+          %db1
+          "FROM sys.sys-log ".
+          "SELECT tmsp, agent, action, component, database, namespace, relation"
       ::
-      [~2000.1.10 %db1 "FROM sys.sys-log AS OF ~2000.1.7 SELECT tmsp, agent, component, name"]
+      :+  ~2000.1.10
+          %db1
+          "FROM sys.sys-log AS OF ~2000.1.7 ".
+          "SELECT tmsp, agent, action, component, database, namespace, relation"
       ::
       :-  %results
           :~  [%action 'SELECT']
@@ -2139,56 +2196,83 @@
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.8]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %drop]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-3]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %ref]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-2]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %sys]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %dbo]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
                               ==
                       ==
               [%server-time ~2000.1.9]
@@ -2204,50 +2288,74 @@
                   :~  :-  %vector
                           :~  [%tmsp [~.da ~2000.1.7]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-3]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-4]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.5]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %ref]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %ref]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table-2]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %sys]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%name [~.tas %my-table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.1]]
                               [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%name [~.tas %dbo]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
                               ==
                       ==
               [%server-time ~2000.1.10]
@@ -2282,12 +2390,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %drop]]
                               [%component [~.tas %table]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t 'dbo']]
-                              [%name [~.tas %my-table]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas 'dbo']]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       :-  %vector
@@ -2295,12 +2403,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t 'dbo']]
-                              [%name [~.tas %my-table]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas 'dbo']]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       :-  %vector
@@ -2308,12 +2416,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t '']]
-                              [%name [~.tas %sys]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       :-  %vector
@@ -2321,12 +2429,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t '']]
-                              [%name [~.tas %dbo]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       ==
@@ -2345,12 +2453,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
                               [%component [~.tas %table]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t 'dbo']]
-                              [%name [~.tas %my-table]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas 'dbo']]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       :-  %vector
@@ -2358,12 +2466,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t '']]
-                              [%name [~.tas %sys]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       :-  %vector
@@ -2371,12 +2479,12 @@
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
                               [%component [~.tas %namespace]]
-                              [%database [~.t 'db1']]
-                              [%namespace [~.t '']]
-                              [%name [~.tas %dbo]]
-                              [%target-database [~.t '']]
-                              [%target-namespace [~.t '']]
-                              [%target-name [~.t '']]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
                               [%message [~.t ~]]
                               ==
                       ==
