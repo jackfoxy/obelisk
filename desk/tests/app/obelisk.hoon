@@ -123,7 +123,7 @@
                     `path`/test-agent
                     %create
                     %namespace
-                    name
+                    %sys
                     `%sys
                     ~
                     ~
@@ -645,6 +645,223 @@
       ~
   ==
 ::
+++  created-1-col-dbs
+  ^-  (list [@tas database])
+  %-  flop
+      %~  tap  by
+              %:  mk-db  %db1
+                          ~2000.1.1
+                          :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                              (sys1 ~2000.1.1)
+                              ==
+                          ~[content-2 content-1]
+                          :~  [%sys %columns ~2000.1.2]
+                              [%sys %tables ~2000.1.2]
+                              [%sys %table-keys ~2000.1.2]
+                              [%sys %sys-log ~2000.1.2]
+                              [%sys %data-log ~2000.1.2]
+                              ==
+                          ~[~2000.1.1 ~2000.1.2]
+                          ==
+++  expected-1-col-dbs
+  ^-  (map @tas database)
+  =/  dbs  created-1-col-dbs
+  %-  ~(gas by `(map @tas database)`~)
+      ?~  dbs  ~|("cant' get here" !!)
+      :-  :-  -.i.dbs
+              :*  %database
+                  name.+.i.dbs
+                  created-provenance.+.i.dbs
+                  created-tmsp.+.i.dbs
+                  sys.+.i.dbs
+                  content.+.i.dbs
+                  view-cache.+.i.dbs
+                  :-  :*  %sys-log-event
+                          ~2000.1.2
+                          `path`/test-agent
+                          %create
+                          %table
+                          %db1
+                          `%dbo
+                          `%my-table
+                          ~
+                          ~
+                          ~
+                          ~
+                          ==
+                      event-log.+.i.dbs
+                  ==
+          t.dbs
+::
+++  created-2-col-dbs
+  ^-  (list [@tas database])
+  %-  flop
+      %~  tap  by
+          %:  mk-db  %db1
+                    ~2000.1.1
+                    :~  (two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                        (sys1 ~2000.1.1)
+                        ==
+                    ~[content-3-a content-1]
+                    :~  [%sys %columns ~2000.1.2]
+                        [%sys %tables ~2000.1.2]
+                        [%sys %table-keys ~2000.1.2]
+                        [%sys %sys-log ~2000.1.2]
+                        [%sys %data-log ~2000.1.2]
+                        ==
+                    ~[~2000.1.1 ~2000.1.2]
+                    ==
+++  expected-2-col-dbs
+  ^-  (map @tas database)
+  =/  dbs  created-2-col-dbs
+  %-  ~(gas by `(map @tas database)`~)
+      ?~  dbs  ~|("cant' get here" !!)
+      :-  :-  -.i.dbs
+              :*  %database
+                  name.+.i.dbs
+                  created-provenance.+.i.dbs
+                  created-tmsp.+.i.dbs
+                  sys.+.i.dbs
+                  content.+.i.dbs
+                  view-cache.+.i.dbs
+                  :-  :*  %sys-log-event
+                          ~2000.1.2
+                          `path`/test-agent
+                          %create
+                          %table
+                          %db1
+                          `%dbo
+                          `%my-table
+                          ~
+                          ~
+                          ~
+                          ~
+                          ==
+                    :-  :*  %sys-log-event
+                            ~2000.1.2
+                            `path`/test-agent
+                            %create
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table-2
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.+.i.dbs
+                  ==
+          t.dbs
+::
+++  created-1-2-col-dbs
+  ^-  (list [@tas database])
+  %-  flop
+      %~  tap  by
+          %:  mk-db  %db1
+                    ~2000.1.1
+                        :~  (two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
+                            (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                            (sys1 ~2000.1.1)
+                            ==
+                        ~[content-3 content-2 content-1]
+                        :~  [%sys %columns ~2000.1.2]
+                            [%sys %tables ~2000.1.2]
+                            [%sys %table-keys ~2000.1.2]
+                            [%sys %sys-log ~2000.1.2]
+                            [%sys %columns ~2000.1.3]
+                            [%sys %tables ~2000.1.3]
+                            [%sys %table-keys ~2000.1.3]
+                            [%sys %sys-log ~2000.1.3]
+                            [%sys %data-log ~2000.1.2]
+                            [%sys %data-log ~2000.1.3]
+                            ==
+                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3]
+                        ==
+++  expected-1-2-col-dbs
+  ^-  (map @tas database)
+  =/  dbs  created-1-2-col-dbs
+  %-  ~(gas by `(map @tas database)`~)
+      ?~  dbs  ~|("cant' get here" !!)
+      :-  :-  -.i.dbs
+              :*  %database
+                  name.+.i.dbs
+                  created-provenance.+.i.dbs
+                  created-tmsp.+.i.dbs
+                  sys.+.i.dbs
+                  content.+.i.dbs
+                  view-cache.+.i.dbs
+                  :-  :*  %sys-log-event
+                          ~2000.1.3
+                          `path`/test-agent
+                          %create
+                          %table
+                          %db1
+                          `%dbo
+                          `%my-table-2
+                          ~
+                          ~
+                          ~
+                          ~
+                          ==
+                    :-  :*  %sys-log-event
+                            ~2000.1.2
+                            `path`/test-agent
+                            %create
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.+.i.dbs
+                  ==
+          t.dbs
+::
+++  created-ns-dbs
+  ^-  (list [@tas database])
+  %-  flop
+      %~  tap  by
+          %:  mk-db  %db1
+                        ~2000.1.1
+                        ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
+                        ~[content-1]
+                        ~[[%sys %namespaces ~2000.1.2]]
+                        ~[~2000.1.1]
+                        ==
+++  expected-ns-dbs
+  ^-  (map @tas database)
+  =/  dbs  created-ns-dbs
+  %-  ~(gas by `(map @tas database)`~)
+      ?~  dbs  ~|("cant' get here" !!)
+      :-  :-  -.i.dbs
+              :*  %database
+                  name.+.i.dbs
+                  created-provenance.+.i.dbs
+                  created-tmsp.+.i.dbs
+                  sys.+.i.dbs
+                  content.+.i.dbs
+                  view-cache.+.i.dbs
+                  :-  :*  %sys-log-event
+                          ~2000.1.2
+                          `path`/test-agent
+                          %create
+                          %namespace
+                          %db1
+                          `%ns1
+                          ~
+                          ~
+                          ~
+                          ~
+                          ~
+                          ==
+                      event-log.+.i.dbs
+                  ==
+          t.dbs
+::
 ::  Create namespace
 ++  test-tape-create-ns
   =|  run=@ud
@@ -667,13 +884,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
-                        ~[content-1]
-                        ~[[%sys %namespaces ~2000.1.2]]
-                        ~[~2000.1.1]
-                        ==
+          !>  expected-ns-dbs
           !>  server.state
 ::
 ++  test-cmd-create-ns
@@ -697,65 +908,12 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        ~[(sys-ns1-time2 ~2000.1.1 ~2000.1.2) (sys1 ~2000.1.1)]
-                        ~[content-1]
-                        ~[[%sys %namespaces ~2000.1.2]]
-                        ~[~2000.1.1]
-                        ==
+          !>  expected-ns-dbs
           !>  server.state
 ::
 ::  CREATE TABLE
 ++  test-cmd-create-1-col-tbl
   =|  run=@ud
-  =/  created-dbs=(list [@tas database])
-        %~  tap  by
-                 %:  mk-db  %db1
-                             ~2000.1.1
-                             :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                                 (sys1 ~2000.1.1)
-                                 ==
-                             ~[content-2 content-1]
-                             :~  [%sys %columns ~2000.1.2]
-                                 [%sys %tables ~2000.1.2]
-                                 [%sys %table-keys ~2000.1.2]
-                                 [%sys %sys-log ~2000.1.2]
-                                 [%sys %data-log ~2000.1.2]
-                                 ==
-                             ~[~2000.1.1 ~2000.1.2]
-                             ==
-
-  =/  new-list=(list [@tas database])
-        ?~  created-dbs  ~|("cant' get here" !!)
-        :-  :-  `@tas`-.i.created-dbs
-                ^-  database
-                :*  %database
-                    name.+.i.created-dbs
-                    created-provenance.+.i.created-dbs
-                    created-tmsp.+.i.created-dbs
-                    sys.+.i.created-dbs
-                    content.+.i.created-dbs
-                    view-cache.+.i.created-dbs
-                    :-  :*  %sys-log-event
-                            ~2000.1.2
-                            `path`/test-agent
-                            %create
-                            %table
-                            %db1
-                            `%dbo
-                            `%my-table
-                            ~
-                            ~
-                            ~
-                            ~
-                            ==
-                        event-log.+.i.created-dbs
-                    ==
-            ;;((list [@tas database]) t.created-dbs)
-  =/  expected-dbs=(map @tas database)
-        %-  ~(gas by `(map @tas database)`~)
-            new-list
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -775,7 +933,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov2)
         %+  expect-eq
-          !>  expected-dbs
+          !>  expected-1-col-dbs
           !>  server.state
 ::
 ++  test-tape-create-1-col-tbl
@@ -801,20 +959,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-2 content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2]
-                        ==
+          !>  expected-1-col-dbs
           !>  server.state
 ::
 ++  test-cmd-create-2-col-tbl
@@ -842,26 +987,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
-                            (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-3 content-2 content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %columns ~2000.1.3]
-                            [%sys %tables ~2000.1.3]
-                            [%sys %table-keys ~2000.1.3]
-                            [%sys %sys-log ~2000.1.3]
-                            [%sys %data-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.3]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3]
-                        ==
+          !>  expected-1-2-col-dbs
           !>  server.state
 ::
 ++  test-tape-create-2-col-tbl
@@ -895,26 +1021,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (two-col-tbl-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
-                            (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-3 content-2 content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %columns ~2000.1.3]
-                            [%sys %tables ~2000.1.3]
-                            [%sys %table-keys ~2000.1.3]
-                            [%sys %sys-log ~2000.1.3]
-                            [%sys %data-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.3]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3]
-                        ==
+          !>  expected-1-2-col-dbs
           !>  server.state
 ::
 ++  test-cmd-create-comb-2-col-tbl
@@ -945,20 +1052,7 @@
               ==
           !>  ;;((list cmd-result:ast) ->+>+>.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-3-a content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2]
-                        ==
+          !>  expected-2-col-dbs
           !>  server.state
 ::
 ++  test-tape-create-comb-2-col-tbl
@@ -973,40 +1067,27 @@
         %obelisk-action
         !>  :+  %tape2
                 %db1
-                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); ".
                 "CREATE TABLE db1..my-table-2 (col1 @t, col2 @p) ".
-                "PRIMARY KEY (col1, col2)"
+                "PRIMARY KEY (col1, col2); ".
+                "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1); "
   =+  !<(=state on-save:agent)
   %+  weld
         %+  expect-eq
           !>  :~    
               :-  %results
-                  :~  [%action 'CREATE TABLE %my-table']
+                  :~  [%action 'CREATE TABLE %my-table-2']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
               :-  %results
-                  :~  [%action 'CREATE TABLE %my-table-2']
+                  :~  [%action 'CREATE TABLE %my-table']
                       [%server-time ~2000.1.2]
                       [%schema-time ~2000.1.2]
                       ==
               ==
           !>  ;;((list cmd-result:ast) ->+>+>+.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (two-comb-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-3-a content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2]
-                        ==
+          !>  expected-2-col-dbs
           !>  server.state
 
 :: to do: create table with foreign keys
@@ -1021,6 +1102,73 @@
 ::  drop table no data
 ++  test-drop-tbl
   =|  run=@ud
+  =/  created-drop-1-col-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by
+              %:  mk-db  %db1
+                        ~2000.1.1
+                        :~  (one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
+                            (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                            (sys1 ~2000.1.1)
+                            ==
+                        ~[content-1-a content-2 content-1]
+                        :~  [%sys %columns ~2000.1.2]
+                            [%sys %tables ~2000.1.2]
+                            [%sys %table-keys ~2000.1.2]
+                            [%sys %sys-log ~2000.1.2]
+                            [%sys %columns ~2000.1.3]
+                            [%sys %tables ~2000.1.3]
+                            [%sys %table-keys ~2000.1.3]
+                            [%sys %sys-log ~2000.1.3]
+                            [%sys %data-log ~2000.1.2]
+                            [%sys %data-log ~2000.1.3]
+                            ==
+                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3]
+                        ==
+  =/  expected-drop-1-col-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-drop-1-col-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2000.1.3
+                            `path`/test-agent
+                            %drop
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                      :-  :*  %sys-log-event
+                              ~2000.1.2
+                              `path`/test-agent
+                              %create
+                              %table
+                              %db1
+                              `%dbo
+                              `%my-table
+                              ~
+                              ~
+                              ~
+                              ~
+                              ==
+                          event-log.+.i.dbs
+                    ==
+            t.dbs
+::
   =/  cmd
     :^  %drop-table
         :*  %qualified-table
@@ -1058,31 +1206,84 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (one-col-tbl-drop-sys ~2000.1.1 ~2000.1.2 ~2000.1.3)
-                            (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-1-a content-2 content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %columns ~2000.1.3]
-                            [%sys %tables ~2000.1.3]
-                            [%sys %table-keys ~2000.1.3]
-                            [%sys %sys-log ~2000.1.3]
-                            [%sys %data-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.3]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3]
-                        ==
+          !>  expected-drop-1-col-dbs
           !>  server.state
 ::
 ::  drop table with data force
 ++  test-drop-tbl-force
   =|  run=@ud
+  =/  created-drop-1-col-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                                ~2000.1.1
+                                :~  (sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4)
+                                    (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                                    (sys1 ~2000.1.1)
+                                    ==
+                                :~  ;;([@da =data] content-4)
+                                    ;;([@da =data] content-1b)
+                                    ;;([@da =data] content-2)
+                                    ;;([@da =data] content-1)
+                                    ==
+                                :~  [%sys %tables ~2000.1.2]
+                                    [%sys %table-keys ~2000.1.2]
+                                    [%sys %columns ~2000.1.2]
+                                    [%sys %data-log ~2000.1.2]
+                                    [%sys %sys-log ~2000.1.2]
+                                    [%sys %data-log ~2000.1.3]
+                                    [%sys %tables ~2000.1.3]
+                                    [%sys %tables ~2000.1.4]
+                                    [%sys %table-keys ~2000.1.4]
+                                    [%sys %columns ~2000.1.4]
+                                    [%sys %sys-log ~2000.1.4]
+                                    [%sys %data-log ~2000.1.4]
+                                    ==
+                                ~[~2000.1.1 ~2000.1.2 ~2000.1.3 ~2000.1.4]
+                                ==
+  =/  expected-drop-1-col-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-drop-1-col-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2000.1.4
+                            `path`/test-agent
+                            %drop
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                      :-  :*  %sys-log-event
+                              ~2000.1.2
+                              `path`/test-agent
+                              %create
+                              %table
+                              %db1
+                              `%dbo
+                              `%my-table
+                              ~
+                              ~
+                              ~
+                              ~
+                              ==
+                          event-log.+.i.dbs
+                    ==
+            t.dbs
+  ::
   =/  cmd
     :^  %drop-table
         :*  %qualified-table
@@ -1127,32 +1328,7 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov4)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (sys4 ~2000.1.1 ~2000.1.2 ~2000.1.4)
-                            (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        :~  ;;([@da =data] content-4)
-                            ;;([@da =data] content-1b)
-                            ;;([@da =data] content-2)
-                            ;;([@da =data] content-1)
-                            ==
-                        :~  [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %columns ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.3]
-                            [%sys %tables ~2000.1.3]
-                            [%sys %tables ~2000.1.4]
-                            [%sys %table-keys ~2000.1.4]
-                            [%sys %columns ~2000.1.4]
-                            [%sys %sys-log ~2000.1.4]
-                            [%sys %data-log ~2000.1.4]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3 ~2000.1.4]
-                        ==
+          !>  expected-drop-1-col-dbs
           !>  server.state
 ::
 ::
@@ -1161,6 +1337,53 @@
 ::  truncate table with no data
 ++  test-truncate-tbl-no-data
   =|  run=@ud
+  =/  created-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                                ~2000.1.1
+                                :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                                    (sys1 ~2000.1.1)
+                                    ==
+                                ~[content-2 content-1]
+                                :~  [%sys %columns ~2000.1.2]
+                                    [%sys %tables ~2000.1.2]
+                                    [%sys %table-keys ~2000.1.2]
+                                    [%sys %sys-log ~2000.1.2]
+                                    [%sys %data-log ~2000.1.2]
+                                    ==
+                                ~[~2000.1.1 ~2000.1.2]
+                                ==
+  =/  expected-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2000.1.2
+                            `path`/test-agent
+                            %create
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.+.i.dbs
+                    ==
+            t.dbs
+  ::
   =/  cmd
     :+  %truncate-table
         :*  %qualified-table
@@ -1196,25 +1419,67 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-2 content-1]
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2]
-                        ==
+          !>  expected-dbs
           !>  server.state
 ::
 ::  truncate table with data
 ++  test-truncate-tbl
   =|  run=@ud
+  =/  created-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                        ~2000.1.1
+                        :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
+                            (sys1 ~2000.1.1)
+                            ==
+                        :~  ;;([@da =data] content-1c)
+                            ;;([@da =data] content-1b)
+                            ;;([@da =data] content-2)
+                            ;;([@da =data] content-1)
+                            ==
+                        :~  [%sys %columns ~2000.1.2]
+                            [%sys %tables ~2000.1.2]
+                            [%sys %table-keys ~2000.1.2]
+                            [%sys %tables ~2000.1.3]
+                            [%sys %sys-log ~2000.1.2]
+                            [%sys %data-log ~2000.1.2]
+                            [%sys %data-log ~2000.1.3]
+                            [%sys %tables ~2000.1.4]
+                            [%sys %data-log ~2000.1.4]
+                            ==
+                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3 ~2000.1.4]
+                        ==
+  =/  expected-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2000.1.2
+                            `path`/test-agent
+                            %create
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.+.i.dbs
+                    ==
+            t.dbs
+  ::
   =/  cmd
     :+  %truncate-table
         :*  %qualified-table
@@ -1257,61 +1522,100 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>-.mov4)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (one-col-tbl-sys ~2000.1.1 ~2000.1.2)
-                            (sys1 ~2000.1.1)
-                            ==
-                        :~  ;;([@da =data] content-1c)
-                            ;;([@da =data] content-1b)
-                            ;;([@da =data] content-2)
-                            ;;([@da =data] content-1)
-                            ==
-                        :~  [%sys %columns ~2000.1.2]
-                            [%sys %tables ~2000.1.2]
-                            [%sys %table-keys ~2000.1.2]
-                            [%sys %tables ~2000.1.3]
-                            [%sys %sys-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.2]
-                            [%sys %data-log ~2000.1.3]
-                            [%sys %tables ~2000.1.4]
-                            [%sys %data-log ~2000.1.4]
-                            ==
-                        ~[~2000.1.1 ~2000.1.2 ~2000.1.3 ~2000.1.4]
-                        ==
+          !>  expected-dbs
           !>  server.state
 ::
 ::  TIME
 ::
 ::  time, create database
-::::++  test-time-create-database
-::::  =|  run=@ud
-::::  =^  mov1  agent
-::::    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
-::::        %obelisk-action
-::::        !>([%tape2 %sys "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"])
-::::  =+  !<(=state on-save:agent)
-::::  %+  weld
-::::        %+  expect-eq
-::::          !>  :-  %results
-::::                  :~  [%message 'created database %db1']
-::::                      [%server-time ~2000.1.1]
-::::                      [%schema-time ~2023.7.9..22.35.35..7e90]
-::::                      ==
-::::          !>  ->+>+>+<.mov1
-::::        %+  expect-eq
-::::          !>  %:  mk-db  %db1
-::::                        ~2023.7.9..22.35.35..7e90
-::::                        ~[(sys1 ~2023.7.9..22.35.35..7e90)]
-::::                        ~[content-time-1]
-::::                        ~
-::::                        ~[~2023.7.9..22.35.35..7e90]
-::::                        ==
-::::          !>  server.state
+++  test-time-create-database
+  =|  run=@ud
+  =^  mov1  agent
+    %+  ~(on-poke agent (bowl [run ~2000.1.1]))
+        %obelisk-action
+        !>([%tape2 %sys "CREATE DATABASE db1 as of ~2023.7.9..22.35.35..7e90"])
+  =+  !<(=state on-save:agent)
+  %+  weld
+        %+  expect-eq
+          !>  :-  %results
+                  :~  [%message 'created database %db1']
+                      [%server-time ~2000.1.1]
+                      [%schema-time ~2023.7.9..22.35.35..7e90]
+                      ==
+          !>  ->+>+>+<.mov1
+        %+  expect-eq
+          !>  %:  mk-db  %db1
+                        ~2023.7.9..22.35.35..7e90
+                        ~[(sys1 ~2023.7.9..22.35.35..7e90)]
+                        ~[content-time-1]
+                        ~
+                        ~[~2023.7.9..22.35.35..7e90]
+                        ==
+          !>  server.state
 ::
 ::  time, create ns as of 1 second > schema
 ++  test-time-create-ns-gt-schema
   =|  run=@ud
+  =/  created-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                        ~2000.1.1
+                        :~  %^  sys-ns1-ns2  ~2000.1.1
+                                              ~2023.7.9..22.35.35..7e90
+                                              ~2023.7.9..22.35.36..7e90
+                            (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
+                            (sys1 ~2000.1.1)
+                            ==
+                        ~[content-1]
+                        :~  [%sys %namespaces ~2023.7.9..22.35.35..7e90]
+                            [%sys %namespaces ~2023.7.9..22.35.36..7e90]
+                            ==
+                        ~[~2000.1.1]
+                        ==
+  =/  expected-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2023.7.9..22.35.36..7e90
+                            `path`/test-agent
+                            %create
+                            %namespace
+                            %db1
+                            `%ns2
+                            ~
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        :-  :*  %sys-log-event
+                                ~2023.7.9..22.35.35..7e90
+                                `path`/test-agent
+                                %create
+                                %namespace
+                                %db1
+                                `%ns1
+                                ~
+                                ~
+                                ~
+                                ~
+                                ~
+                                ==
+                            event-log.+.i.dbs
+                    ==
+            t.dbs
+  ::
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1336,25 +1640,60 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  %^  sys-ns1-ns2  ~2000.1.1
-                                              ~2023.7.9..22.35.35..7e90
-                                              ~2023.7.9..22.35.36..7e90
-                            (sys-ns1-time2 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-1]
-                        :~  [%sys %namespaces ~2023.7.9..22.35.35..7e90]
-                            [%sys %namespaces ~2023.7.9..22.35.36..7e90]
-                            ==
-                        ~[~2000.1.1]
-                        ==
+          !>  expected-dbs
           !>  server.state
 ::
 ::  time, create table as of 1 second > content
 ++  test-time-create-table-gt-schema
   =|  run=@ud
+  =/  created-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                          ~2023.7.9..22.35.35..7e90
+                          :~  %+  time-3-sys  ~2023.7.9..22.35.35..7e90
+                                              ~2023.7.9..22.35.36..7e90
+                              (sys1 ~2023.7.9..22.35.35..7e90)
+                              ==
+                          ~[content-time-3 content-time-1]
+                          :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
+                              [%sys %columns ~2023.7.9..22.35.36..7e90]
+                              [%sys %tables ~2023.7.9..22.35.36..7e90]
+                              [%sys %table-keys ~2023.7.9..22.35.36..7e90]
+                              [%sys %data-log ~2023.7.9..22.35.36..7e90]
+                              ==
+                          ~[~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90]
+                          ==
+  =/  expected-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2023.7.9..22.35.36..7e90
+                            `path`/test-agent
+                            %create
+                            %table
+                            %db1
+                            `%dbo
+                            `%my-table-2
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        event-log.+.i.dbs
+                    ==
+            t.dbs
+  ::
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1378,26 +1717,102 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov2)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2023.7.9..22.35.35..7e90
-                        :~  %+  time-3-sys  ~2023.7.9..22.35.35..7e90
-                                            ~2023.7.9..22.35.36..7e90
-                            (sys1 ~2023.7.9..22.35.35..7e90)
-                            ==
-                        ~[content-time-3 content-time-1]
-                        :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
-                            [%sys %columns ~2023.7.9..22.35.36..7e90]
-                            [%sys %tables ~2023.7.9..22.35.36..7e90]
-                            [%sys %table-keys ~2023.7.9..22.35.36..7e90]
-                            [%sys %data-log ~2023.7.9..22.35.36..7e90]
-                            ==
-                        ~[~2023.7.9..22.35.35..7e90 ~2023.7.9..22.35.36..7e90]
-                        ==
+          !>  expected-dbs
           !>  server.state
 ::
 ::  time, drop table as of 1 second > content
 ++  test-time-drop-table-gt-schema
   =|  run=@ud
+  =/  created-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                          ~2000.1.1
+                          :~  %:  time-5-sys  ~2000.1.1
+                                              ~2023.7.9..22.35.36..7e90
+                                              ~2023.7.9..22.35.37..7e90
+                                              ~2023.7.9..22.35.38..7e90
+                                              ==
+                              %^  time-4-sys  ~2000.1.1
+                                              ~2023.7.9..22.35.36..7e90
+                                              ~2023.7.9..22.35.37..7e90
+                              (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90)
+                              (sys1 ~2000.1.1)
+                              ==
+                          ~[content-time-5 content-time-3 content-1]
+                          :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
+                              [%sys %columns ~2023.7.9..22.35.36..7e90]
+                              [%sys %tables ~2023.7.9..22.35.36..7e90]
+                              [%sys %table-keys ~2023.7.9..22.35.36..7e90]
+                              [%sys %data-log ~2023.7.9..22.35.36..7e90]
+                              [%sys %data-log ~2023.7.9..22.35.38..7e90]
+                              [%sys %namespaces ~2023.7.9..22.35.37..7e90]
+                              [%sys %sys-log ~2023.7.9..22.35.38..7e90]
+                              [%sys %columns ~2023.7.9..22.35.38..7e90]
+                              [%sys %tables ~2023.7.9..22.35.38..7e90]
+                              [%sys %table-keys ~2023.7.9..22.35.38..7e90]
+                              ==
+                          :~  ~2000.1.1
+                              ~2023.7.9..22.35.36..7e90
+                              ~2023.7.9..22.35.38..7e90
+                              ==
+                          ==
+  =/  expected-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                    :-  :*  %sys-log-event
+                            ~2023.7.9..22.35.38..7e90
+                            `path`/test-agent
+                            %drop
+                            %table
+                            %db1
+                            `%dbo
+                             `%my-table-2
+                            ~
+                            ~
+                            ~
+                            ~
+                            ==
+                        :-  :*  %sys-log-event
+                                ~2023.7.9..22.35.37..7e90
+                                `path`/test-agent
+                                %create
+                                %namespace
+                                %db1
+                                `%ns1
+                                ~
+                                ~
+                                ~
+                                ~
+                                ~
+                                ==
+                            :-  :*  %sys-log-event
+                                    ~2023.7.9..22.35.36..7e90
+                                    `path`/test-agent
+                                    %create
+                                    %table
+                                    %db1
+                                    `%dbo
+                                    `%my-table-2
+                                    ~
+                                    ~
+                                    ~
+                                    ~
+                                    ==
+                                event-log.+.i.dbs
+                      ==
+            t.dbs
+  ::
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1434,43 +1849,67 @@
                       ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  %:  time-5-sys  ~2000.1.1
-                                            ~2023.7.9..22.35.36..7e90
-                                            ~2023.7.9..22.35.37..7e90
-                                            ~2023.7.9..22.35.38..7e90
-                                            ==
-                            %^  time-4-sys  ~2000.1.1
-                                            ~2023.7.9..22.35.36..7e90
-                                            ~2023.7.9..22.35.37..7e90
-                            (time-3a-sys ~2000.1.1 ~2023.7.9..22.35.36..7e90)
-                            (sys1 ~2000.1.1)
-                            ==
-                        ~[content-time-5 content-time-3 content-1]
-                        :~  [%sys %sys-log ~2023.7.9..22.35.36..7e90]
-                            [%sys %columns ~2023.7.9..22.35.36..7e90]
-                            [%sys %tables ~2023.7.9..22.35.36..7e90]
-                            [%sys %table-keys ~2023.7.9..22.35.36..7e90]
-                            [%sys %data-log ~2023.7.9..22.35.36..7e90]
-                            [%sys %data-log ~2023.7.9..22.35.38..7e90]
-                            [%sys %namespaces ~2023.7.9..22.35.37..7e90]
-                            [%sys %sys-log ~2023.7.9..22.35.38..7e90]
-                            [%sys %columns ~2023.7.9..22.35.38..7e90]
-                            [%sys %tables ~2023.7.9..22.35.38..7e90]
-                            [%sys %table-keys ~2023.7.9..22.35.38..7e90]
-                            ==
-                        :~  ~2000.1.1
-                            ~2023.7.9..22.35.36..7e90
-                            ~2023.7.9..22.35.38..7e90
-                            ==
-                        ==
+          !>  expected-dbs
           !>  server.state
 ::
-::
-::::  time, insert as of 1 second > schema
+::  time, insert as of 1 second > schema
 ++  test-time-insert-gt-schema
   =|  run=@ud
+  =/  created-dbs
+    ^-  (list [@tas database])
+    %-  flop
+        %~  tap  by  %:  mk-db  %db1
+                        ~2000.1.1
+                        :~  (time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
+                            (sys1 ~2000.1.1)
+                            ==
+                        :~  ;;([@da =data] content-insert)
+                            ;;([@da =data] content-my-table)
+                            ;;([@da =data] content-1)
+                            ==
+                        :~  [%sys %sys-log ~2023.7.9..22.35.35..7e90]
+                            [%sys %columns ~2023.7.9..22.35.35..7e90]
+                            [%sys %tables ~2023.7.9..22.35.35..7e90]
+                            [%sys %table-keys ~2023.7.9..22.35.35..7e90]
+                            [%sys %tables ~2023.7.9..22.35.36..7e90]
+                            [%sys %data-log ~2023.7.9..22.35.35..7e90]
+                            [%sys %data-log ~2023.7.9..22.35.36..7e90]
+                            ==
+                        :~  ~2000.1.1
+                            ~2023.7.9..22.35.35..7e90
+                            ~2023.7.9..22.35.36..7e90
+                            ==
+                        ==
+  =/  expected-dbs
+    ^-  (map @tas database)
+    =/  dbs  created-dbs
+    %-  ~(gas by `(map @tas database)`~)
+        ?~  dbs  ~|("cant' get here" !!)
+        :-  :-  -.i.dbs
+                :*  %database
+                    name.+.i.dbs
+                    created-provenance.+.i.dbs
+                    created-tmsp.+.i.dbs
+                    sys.+.i.dbs
+                    content.+.i.dbs
+                    view-cache.+.i.dbs
+                      :-  :*  %sys-log-event
+                              ~2023.7.9..22.35.35..7e90
+                              `path`/test-agent
+                              %create
+                              %table
+                              %db1
+                              `%dbo
+                              `%my-table
+                              ~
+                              ~
+                              ~
+                              ~
+                              ==
+                          event-log.+.i.dbs
+                    ==
+            t.dbs
+  ::
   =^  mov1  agent
     %+  ~(on-poke agent (bowl [run ~2000.1.1]))
         %obelisk-action
@@ -1506,27 +1945,6 @@
                     ==
           !>  ;;(cmd-result:ast ->+>+>+<.mov3)
         %+  expect-eq
-          !>  %:  mk-db  %db1
-                        ~2000.1.1
-                        :~  (time-2-sys1 ~2000.1.1 ~2023.7.9..22.35.35..7e90)
-                            (sys1 ~2000.1.1)
-                            ==
-                        :~  ;;([@da =data] content-insert)
-                            ;;([@da =data] content-my-table)
-                            ;;([@da =data] content-1)
-                            ==
-                        :~  [%sys %sys-log ~2023.7.9..22.35.35..7e90]
-                            [%sys %columns ~2023.7.9..22.35.35..7e90]
-                            [%sys %tables ~2023.7.9..22.35.35..7e90]
-                            [%sys %table-keys ~2023.7.9..22.35.35..7e90]
-                            [%sys %tables ~2023.7.9..22.35.36..7e90]
-                            [%sys %data-log ~2023.7.9..22.35.35..7e90]
-                            [%sys %data-log ~2023.7.9..22.35.36..7e90]
-                            ==
-                        :~  ~2000.1.1
-                            ~2023.7.9..22.35.35..7e90
-                            ~2023.7.9..22.35.36..7e90
-                            ==
-                        ==
+          !>  expected-dbs
           !>  server.state
 --
