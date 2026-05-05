@@ -2366,135 +2366,135 @@
               ==
       ==
 ::
-::::++  test-sys-log-03    ::  complete event view
-::::  =|  run=@ud
-::::  %-  exec-2-2-ordered
-::::  :*  run
-::::      [~2000.1.1 %sys "CREATE DATABASE db1"]
-::::      ::
-::::      :+  ~2000.1.2
-::::          %db1
-::::          "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
-::::      ::
-::::      [~2000.1.3 %db1 "DROP TABLE db1..my-table"]
-::::      ::
-::::      [~2000.1.4 %db1 "FROM sys.sys-log SELECT *"]
-::::      ::
-::::      [~2000.1.5 %db1 "FROM sys.sys-log AS OF ~2000.1.2 SELECT *"]
-::::      ::
-::::      :-  %results
-::::          :~  [%action 'SELECT']
-::::              :-  %result-set
-::::                  :~  :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.3]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %drop]]
-::::                              [%component [~.tas %table]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas 'dbo']]
-::::                              [%relation [~.tas %my-table]]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.2]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %create]]
-::::                              [%component [~.tas %table]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas 'dbo']]
-::::                              [%relation [~.tas %my-table]]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.1]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %create]]
-::::                              [%component [~.tas %namespace]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%relation [~.tas '']]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.1]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %create]]
-::::                              [%component [~.tas %namespace]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas %sys]]
-::::                              [%relation [~.tas '']]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      ==
-::::              [%server-time ~2000.1.4]
-::::              [%relation 'db1.sys.sys-log']
-::::              [%schema-time ~2000.1.3]
-::::              [%data-time ~2000.1.3]
-::::              [%vector-count 4]
-::::              ==
-::::      ::
-::::      :-  %results
-::::          :~  [%action 'SELECT']
-::::              :-  %result-set
-::::                  :~  :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.2]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %create]]
-::::                              [%component [~.tas %table]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas 'dbo']]
-::::                              [%relation [~.tas %my-table]]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.1]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %create]]
-::::                              [%component [~.tas %namespace]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%relation [~.tas '']]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.1]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%action [~.tas %create]]
-::::                              [%component [~.tas %namespace]]
-::::                              [%database [~.tas 'db1']]
-::::                              [%namespace [~.tas %sys]]
-::::                              [%relation [~.tas '']]
-::::                              [%target-database [~.tas '']]
-::::                              [%target-namespace [~.tas '']]
-::::                              [%target-relation [~.tas '']]
-::::                              [%message [~.t ~]]
-::::                              ==
-::::                      ==
-::::              [%server-time ~2000.1.5]
-::::              [%relation 'db1.sys.sys-log']
-::::              [%schema-time ~2000.1.2]
-::::              [%data-time ~2000.1.2]
-::::              [%vector-count 3]
-::::              ==
-::::      ==
+++  test-sys-log-03    ::  complete event view
+  =|  run=@ud
+  %-  exec-2-2-ordered
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2000.1.2
+          %db1
+          "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+      ::
+      [~2000.1.3 %db1 "DROP TABLE db1..my-table"]
+      ::
+      [~2000.1.4 %db1 "FROM sys.sys-log SELECT *"]
+      ::
+      [~2000.1.5 %db1 "FROM sys.sys-log AS OF ~2000.1.2 SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.3]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %drop]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas 'dbo']]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.2]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas 'dbo']]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      ==
+              [%server-time ~2000.1.4]
+              [%relation 'db1.sys.sys-log']
+              [%schema-time ~2000.1.3]
+              [%data-time ~2000.1.3]
+              [%vector-count 4]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.2]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas 'dbo']]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              [%message [~.t ~]]
+                              ==
+                      ==
+              [%server-time ~2000.1.5]
+              [%relation 'db1.sys.sys-log']
+              [%schema-time ~2000.1.2]
+              [%data-time ~2000.1.2]
+              [%vector-count 3]
+              ==
+      ==
 ::
 ++  test-sys-data-log-01   ::  INSERT
   =|  run=@ud
@@ -3104,207 +3104,207 @@
           [%vector-count 8]
           ==
   ==
-::::++  test-sys-data-log-04   ::  TRUNCATE TABLE
-::::  =|  run=@ud
-::::  %-  exec-9-2-ordered
-::::  :*  run
-::::      [~2000.1.1 %sys "CREATE DATABASE db1"]
-::::      ::
-::::      :+  ~2000.1.2
-::::          %db1
-::::          "CREATE TABLE db1..my-table (col1 @t, col2 @t) ".
-::::          "PRIMARY KEY (col1, col2 DESC)"
-::::      ::
-::::      :+  ~2000.1.3
-::::          %db1
-::::          "INSERT INTO db1..my-table (col1, col2) ".
-::::          "VALUES ('cord', 'cord2')"
-::::      ::
-::::      :+  ~2000.1.4
-::::          %db1
-::::          "CREATE TABLE db1..my-table-2 (col1 @p, col2 @t) ".
-::::          "PRIMARY KEY (col1 desc, col2); ".
-::::          "CREATE TABLE db1..my-table-3 (col1 @p, col2 @t, col3 @ud) ".
-::::          "PRIMARY KEY (col1)"
-::::      ::
-::::      :+  ~2000.1.5
-::::          %db1
-::::          "INSERT INTO db1..my-table-2 (col1, col2) ".
-::::          "VALUES (~zod, 'cord2')"
-::::      ::
-::::      [~2000.1.6 %db1 "CREATE NAMESPACE ref"]
-::::      ::
-::::      :+  ~2000.1.7
-::::          %db1
-::::          "CREATE TABLE db1..my-table-4 (col1 @p, col2 @t, col3 @ud) ".
-::::          "PRIMARY KEY (col1, col3)"
-::::      ::
-::::      :+  ~2000.1.8
-::::          %db1
-::::          "INSERT INTO db1..my-table-4 (col1, col2, col3) ".
-::::          "VALUES (~zod, 'cord2', 42)"
-::::      ::
-::::      :+  ~2000.1.9
-::::          %db1
-::::          "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
-::::          "PRIMARY KEY (col1, col3)"
-::::      ::
-::::      :+  ~2000.1.10
-::::          %db1
-::::          "TRUNCATE TABLE db1..my-table-4"
-::::      ::
-::::      [~2000.1.11 %db1 "FROM sys.data-log SELECT *"]
-::::      ::
-::::      [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.8 SELECT *"]
-::::      ::
-::::      :-  %results
-::::          :~  [%action 'SELECT']
-::::              :-  %result-set
-::::                  :~  :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.10]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-4]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.9]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %ref]]
-::::                              [%table [~.tas %my-table-4]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.8]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-4]]
-::::                              [%row-count [~.ud 1]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.7]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-4]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.5]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-2]]
-::::                              [%row-count [~.ud 1]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.4]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-2]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.4]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-3]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.3]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table]]
-::::                              [%row-count [~.ud 1]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.2]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      ==
-::::              [%server-time ~2000.1.11]
-::::              [%relation 'db1.sys.data-log']
-::::              [%schema-time ~2000.1.9]
-::::              [%data-time ~2000.1.10]
-::::              [%vector-count 9]
-::::              ==
-::::      ::
-::::      :-  %results
-::::          :~  [%action 'SELECT']
-::::              :-  %result-set
-::::                  :~  :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.8]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-4]]
-::::                              [%row-count [~.ud 1]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.7]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-4]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.5]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-2]]
-::::                              [%row-count [~.ud 1]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.4]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-2]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.4]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table-3]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.3]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table]]
-::::                              [%row-count [~.ud 1]]
-::::                              ==
-::::                      :-  %vector
-::::                          :~  [%tmsp [~.da ~2000.1.2]]
-::::                              [%ship [~.p 0]]
-::::                              [%agent [~.ta '/test-agent']]
-::::                              [%namespace [~.tas %dbo]]
-::::                              [%table [~.tas %my-table]]
-::::                              [%row-count [~.ud 0]]
-::::                              ==
-::::                      ==
-::::              [%server-time ~2000.1.12]
-::::              [%relation 'db1.sys.data-log']
-::::              [%schema-time ~2000.1.7]
-::::              [%data-time ~2000.1.8]
-::::              [%vector-count 7]
-::::              ==
-::::      ==
+++  test-sys-data-log-04   ::  TRUNCATE TABLE
+  =|  run=@ud
+  %-  exec-9-2-ordered
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      :+  ~2000.1.2
+          %db1
+          "CREATE TABLE db1..my-table (col1 @t, col2 @t) ".
+          "PRIMARY KEY (col1, col2 DESC)"
+      ::
+      :+  ~2000.1.3
+          %db1
+          "INSERT INTO db1..my-table (col1, col2) ".
+          "VALUES ('cord', 'cord2')"
+      ::
+      :+  ~2000.1.4
+          %db1
+          "CREATE TABLE db1..my-table-2 (col1 @p, col2 @t) ".
+          "PRIMARY KEY (col1 desc, col2); ".
+          "CREATE TABLE db1..my-table-3 (col1 @p, col2 @t, col3 @ud) ".
+          "PRIMARY KEY (col1)"
+      ::
+      :+  ~2000.1.5
+          %db1
+          "INSERT INTO db1..my-table-2 (col1, col2) ".
+          "VALUES (~zod, 'cord2')"
+      ::
+      [~2000.1.6 %db1 "CREATE NAMESPACE ref"]
+      ::
+      :+  ~2000.1.7
+          %db1
+          "CREATE TABLE db1..my-table-4 (col1 @p, col2 @t, col3 @ud) ".
+          "PRIMARY KEY (col1, col3)"
+      ::
+      :+  ~2000.1.8
+          %db1
+          "INSERT INTO db1..my-table-4 (col1, col2, col3) ".
+          "VALUES (~zod, 'cord2', 42)"
+      ::
+      :+  ~2000.1.9
+          %db1
+          "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
+          "PRIMARY KEY (col1, col3)"
+      ::
+      :+  ~2000.1.10
+          %db1
+          "TRUNCATE TABLE db1..my-table-4"
+      ::
+      [~2000.1.11 %db1 "FROM sys.data-log SELECT *"]
+      ::
+      [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.8 SELECT *"]
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.10]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.9]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %ref]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.3]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.2]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      ==
+              [%server-time ~2000.1.11]
+              [%relation 'db1.sys.data-log']
+              [%schema-time ~2000.1.9]
+              [%data-time ~2000.1.10]
+              [%vector-count 9]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.3]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.2]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      ==
+              [%server-time ~2000.1.12]
+              [%relation 'db1.sys.data-log']
+              [%schema-time ~2000.1.7]
+              [%data-time ~2000.1.8]
+              [%vector-count 7]
+              ==
+      ==
 --
