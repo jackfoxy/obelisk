@@ -943,6 +943,7 @@
                                 1
                                 map-meta
                                 ~
+                                %.n
                                 *(tree [(list @) (map @tas @)])
                                 ~[[%indexed-row ~ indexed-cols]]
                                 *(list joined-row)
@@ -964,6 +965,7 @@
                     1
                     map-meta
                     ~
+                    %.n
                     *(tree [(list @) (map @tas @)])
                     ~[[%indexed-row ~ indexed-cols]]
                     *(list joined-row)
@@ -1239,6 +1241,7 @@
         (lent row-data)
         [%unqualified-map-meta (mk-unqualified-typ-addr-lookup cols)]
         ~
+        %.n
         *(tree [(list @) (map @tas @)])
         row-data
         *(list joined-row)

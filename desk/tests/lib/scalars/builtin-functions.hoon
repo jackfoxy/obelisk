@@ -81,6 +81,7 @@
               rowcount=1
               map-meta=[%unqualified-map-meta (mk-unqualified-typ-addr-lookup columns)]
               pri-indx=~
+              ordered=%.n
               pri-indexed=*(tree [(list @) (map @tas @)])
               indexed-rows=~[row]
               joined-rows=~

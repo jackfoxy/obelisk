@@ -194,8 +194,8 @@
 ::
 ++  printable-ascii  "0123456789:;<=>?@ABCDEFGHIJK !#$%&'()*+,-./".
                      "LMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz|}~\{\"\\"
-++  alpha-ordering  " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_`AaBbCcDdEeFfGgHhIiJjKk".
-                    "LlMmNnOoPpQqRrSsTtUuVvWwXxYyZz\{|}~"
+++  alpha-ordering  " !\"#$%&'()*+,-./0123456789:;<=>?@[\\]^_`aAbBcCdDeEfFgG".
+                    "hHiIjJkKlLmMnNoOpPqQrRsStTuUvVwWxXyYzZ\{|}~"
 ++  aor-ordering    " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW".
                     "XYZ[\\]^_`abcdefghijklmnopqrstuvwxyz\{|}~"
 ::
@@ -225,7 +225,7 @@
   %+  expect-eq
     !>  alpha-ordering
     !>  (sort alpha-ordering alpha:utils)
-++  test-alpha-06
+  ++  test-alpha-06
   =/  the-list  :~  'abc'
                     'aBc'
                     'ab'
@@ -244,20 +244,20 @@
                     'ABc'
                     'AB'
                     ==
-  =/  expected  :~  'A'
-                    'a'
-                    'AB'
-                    'Ab'
-                    'aB'
+  =/  expected  :~  'a'
+                    'A'
                     'ab'
-                    'ABC'
-                    'ABc'
-                    'AbC'
-                    'Abc'
-                    'aBC'
-                    'aBc'
-                    'abC'
+                    'aB'
+                    'Ab'
+                    'AB'
                     'abc'
+                    'abC'
+                    'aBc'
+                    'aBC'
+                    'Abc'
+                    'AbC'
+                    'ABc'
+                    'ABC'
                     'b'
                     'bac'
                     'bb'

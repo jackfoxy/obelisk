@@ -1205,7 +1205,7 @@ Lists the namespaces in a user database.
 
 ### Default Ordering
 
-tmsp, namespace 
+namespace 
 
 ## sys.tables
 

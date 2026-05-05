@@ -731,7 +731,7 @@
   =/  a-cass  (cass a)
   =/  b-cass  (cass b)
   ?.  =(a-cass b-cass)  (aor a-cass b-cass)
-  (aor a b)
+  (aor b a)
 ::
 ::  tree engine
 ::

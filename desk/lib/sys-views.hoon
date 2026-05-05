@@ -243,18 +243,6 @@
                       %namespaces  ::name=@tas
                       ~
                       ==
-                  %tmsp  ::column=@tas
-                  ~    ::alias=(unit @t)
-                  %.y  ::ascending=?
-              :+  %ordering-column
-                  :^  %qualified-column    ::qualified-column
-                  :*  %qualified-table  ::qualifier
-                      ~            ::ship=(unit @p)
-                      database     ::database=@tas
-                      %sys         ::namespace=@tas
-                      %namespaces  ::name=@tas
-                      ~
-                      ==
                   %namespace  ::column=@tas
                   ~    ::alias=(unit @t)
                   %.y  ::ascending=?
@@ -1345,9 +1333,9 @@
     ?:  =(0 ->+.k)  q                      ::offset of current index
     (oust [0 ->+.k] q)
   ?:  =(-.pp -.qq)  $(k +.k)
-  ?:  =(-<.k %.y)  (alpha -.qq -.pp)
-  ?:  ->-.k  (gth -.pp -.qq)
-  (lth -.pp -.qq)
+  ?:  =(-<.k %.y)  (alpha -.pp -.qq)
+  ?:  ->-.k  (gth -.qq -.pp)
+  (lth -.qq -.pp)
   --
 ::
 ++  make-ordering
@@ -1388,7 +1376,7 @@
   =/  rows  *(list (map @tas @))
   =/  i  0
   |-
-  ?~  p  [i (flop rows)]
+  ?~  p  [i rows]
   $(i +(i), p +.p, rows [(malt (zip-columns -.p q)) rows])
 ::
 ++  zip-columns

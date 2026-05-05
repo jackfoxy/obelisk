@@ -90,6 +90,7 @@
           selected
           resolved-scalars
           named-ctes
+          ordered.i.set-tables.full-relation
           ==
 ::
 ++  join-all
@@ -860,6 +861,7 @@
           selected=(list selected-column:ast)
           =resolved-scalars
           =named-ctes
+          ordered=?
           ==
   ^-  (list vector)
   ?~  rows         *(list vector)
@@ -870,27 +872,55 @@
   ::
   ?~  templ-cells  ~|("relation-vectors can't get here" !!)
   =/  non-lit  %-  |=  a=(list templ-cell)
-                   |-  ^-  (unit templ-cell) 
+                   |-  ^-  (unit templ-cell)
                    ?~  a  ~
                    ?~  column.i.a  $(a t.a)  [~ i.a]
                    templ-cells
   ?~  non-lit
     ?-  -.i.rows
-      %joined-row 
-        (joined-results filter ;;((list joined-row) rows) templ-cells)
+      %joined-row
+        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
       %indexed-row
-        (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+        (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
     ==
   =/  x        .*(data.i.rows [%0 addr:(need non-lit)])
-  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells)
-  (indexed-results filter ;;((list indexed-row) rows) templ-cells)
+  ?@  x        (joined-results filter ;;((list joined-row) rows) templ-cells ordered)
+  (indexed-results filter ;;((list indexed-row) rows) templ-cells ordered)
 ::
 ++  indexed-results
   |=  $:  filter=(unit $-(data-row ?))
           rows=(list indexed-row)
           templ-cells=(list templ-cell)
+          ordered=?
           ==
   ^-  (list vector)
+  ?:  ordered
+    =/  out   *(list vector)
+    |-
+    ?~  rows  out
+    =/  include-row=?
+      ?~  filter
+        %.y
+      ((need filter) i.rows)
+    ?.  include-row
+      $(rows t.rows)
+    =/  row                     *(list vector-cell:ast)
+    =/  cols=(list templ-cell)  templ-cells
+    |-
+    ?~  cols
+      ^$(rows t.rows, out [(vector %vector row) out])
+    ?^  scalar.i.cols
+      =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+      $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
+    ?~  column.i.cols    :: literal
+      $(cols t.cols, row [vc.i.cols row])
+    %=  $
+      cols  t.cols
+      row   :-  :-  p.vc.i.cols
+                    [p.q.vc.i.cols ;;(@ +:.*(data.i.rows [%0 addr.i.cols]))]
+                row
+    ==
+  ::  original set-based path for unordered rows
   =/  out-rows   *(set vector)
   |-
   ?~  rows  ~(tap in out-rows)
@@ -924,8 +954,36 @@
   |=  $:  filter=(unit $-(data-row ?))
           rows=(list joined-row)
           templ-cells=(list templ-cell)
+          ordered=?
           ==
   ^-  (list vector)
+  ?:  ordered
+    =/  out   *(list vector)
+    |-
+    ?~  rows  out
+    =/  include-row=?
+      ?~  filter
+        %.y
+      ((need filter) i.rows)
+    ?.  include-row
+      $(rows t.rows)
+    =/  row                     *(list vector-cell:ast)
+    =/  cols=(list templ-cell)  templ-cells
+    |-
+    ?~  cols
+      ^$(rows t.rows, out [(vector %vector row) out])
+    ?^  scalar.i.cols
+      =/  x=dime  (resolve-selected-scalar i.rows (need scalar.i.cols))
+      $(cols t.cols, row [[p.vc.i.cols [p.x q.x]] row])
+    ?~  column.i.cols    :: literal
+      $(cols t.cols, row [vc.i.cols row])
+    %=  $
+      cols  t.cols
+      row   :-  :-  p.vc.i.cols
+                    [p.q.vc.i.cols ;;(@ .*(data.i.rows [%0 addr.i.cols]))]
+                row
+    ==
+  ::  original set-based path for unordered rows
   =/  out-rows   *(set vector)
   |-
   ?~  rows  ~(tap in out-rows)
@@ -1087,6 +1145,7 @@
               rowcount.view-content
               [%unqualified-map-meta typ-addr-lookup.vw2]
               ~
+              %.y
               ~
               %+  turn  rows.view-content
                    |=(a=(map @tas @) [%indexed-row ~ a])
@@ -1139,6 +1198,7 @@
               rowcount.file
               [%unqualified-map-meta typ-addr-lookup.tbl2]
               [~ pri-indx.tbl2]
+              %.n
               pri-idx.file
               indexed-rows.file
               *(list joined-row)

@@ -80,6 +80,7 @@
     rowcount=@
     =map-meta
     pri-indx=(unit index)
+    ordered=?
     pri-indexed=(tree [(list @) (map @tas @)])
     indexed-rows=(list indexed-row)
     joined-rows=(list joined-row)

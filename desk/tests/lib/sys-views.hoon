@@ -11,7 +11,7 @@
 ::
 ++  test-sys-databases-01  ::  CREATE TABLE
   =|  run=@ud
-  %-  exec-4-2
+  %-  exec-4-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -37,12 +37,12 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%database [~.tas %db2]]
+                          :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.5]]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -61,28 +61,28 @@
                               [%data-tmsp [~.da ~2000.1.3]]
                               ==
                       :-  %vector
-                          :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
                           :~  [%database [~.tas %db2]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db2]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.5]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %sys]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
               [%server-time ~2000.1.6]
@@ -98,6 +98,14 @@
                   :~  :-  %vector
                           :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db1]]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.2]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
@@ -112,28 +120,20 @@
                               [%data-tmsp [~.da ~2000.1.3]]
                               ==
                       :-  %vector
-                          :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
                           :~  [%database [~.tas %db2]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %sys]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
               [%server-time ~2000.1.7]
@@ -146,7 +146,7 @@
 ::
 ++  test-sys-databases-02  ::  DROP TABLE
   =|  run=@ud
-  %-  exec-5-1
+  %-  exec-5-1-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -170,12 +170,12 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%database [~.tas %db2]]
+                          :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.5]]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -188,34 +188,18 @@
                       :-  %vector
                           :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.6]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.6]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
-                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.2]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.3]]
                               ==
                       :-  %vector
-                          :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
                           :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%sys-tmsp [~.da ~2000.1.6]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
+                              [%data-tmsp [~.da ~2000.1.6]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -224,6 +208,22 @@
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db2]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.5]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %sys]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
               [%server-time ~2000.1.7]
@@ -236,7 +236,7 @@
 ::
 ++  test-sys-databases-03  ::  DROP DATABASE not idempotent
   =|  run=@ud
-  %-  exec-5-2-68
+  %-  exec-5-2-68-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -264,12 +264,12 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%database [~.tas %db2]]
+                          :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.5]]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -288,22 +288,6 @@
                               [%data-tmsp [~.da ~2000.1.3]]
                               ==
                       :-  %vector
-                          :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
                           :~  [%database [~.tas %db2]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
@@ -311,18 +295,7 @@
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
                               ==
-                      ==
-              [%server-time ~2000.1.6]
-              [%relation 'sys.sys.databases']
-              [%schema-time ~2000.1.1]
-              [%data-time ~2000.1.5]
-              [%vector-count 6]
-              ==
-      ::
-      :-  %results
-          :~  [%action 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
+                      :-  %vector
                           :~  [%database [~.tas %db2]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.5]]
@@ -338,13 +311,40 @@
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.1]]
                               ==
-                      :-  %vector
+                      ==
+              [%server-time ~2000.1.6]
+              [%relation 'sys.sys.databases']
+              [%schema-time ~2000.1.1]
+              [%data-time ~2000.1.5]
+              [%vector-count 6]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
                           :~  [%database [~.tas %db2]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db2]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.5]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %sys]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
               [%server-time ~2000.1.8]
@@ -357,7 +357,7 @@
 ::
 ++  test-sys-databases-04  ::  TRUNCATE TABLE (data present)
   =|  run=@ud
-  %-  exec-5-1
+  %-  exec-5-1-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -381,12 +381,12 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%database [~.tas %db2]]
+                          :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.5]]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -402,7 +402,7 @@
                               [%sys-tmsp [~.da ~2000.1.2]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.6]]
+                              [%data-tmsp [~.da ~2000.1.3]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -410,23 +410,7 @@
                               [%sys-tmsp [~.da ~2000.1.2]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.3]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
+                              [%data-tmsp [~.da ~2000.1.6]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db2]]
@@ -435,6 +419,22 @@
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db2]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.5]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %sys]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
               [%server-time ~2000.1.7]
@@ -447,7 +447,7 @@
 ::
 ++  test-sys-databases-05  ::  TRUNCATE TABLE (no data present)
   =|  run=@ud
-  %-  exec-5-1
+  %-  exec-5-1-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -471,12 +471,12 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%database [~.tas %db2]]
+                          :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.5]]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       :-  %vector
                           :~  [%database [~.tas %db1]]
@@ -495,28 +495,28 @@
                               [%data-tmsp [~.da ~2000.1.3]]
                               ==
                       :-  %vector
-                          :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
                           :~  [%database [~.tas %db2]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.4]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
                               [%data-tmsp [~.da ~2000.1.4]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db2]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.5]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.5]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %sys]]
+                              [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
                               ==
                       ==
               [%server-time ~2000.1.7]
@@ -529,7 +529,7 @@
 ::
 ++  test-sys-databases-06  ::  INSERT
   =|  run=@ud
-  %-  exec-2-1
+  %-  exec-2-1-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -547,6 +547,14 @@
                   :~  :-  %vector
                           :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
+                              [%sys-tmsp [~.da ~2000.1.1]]
+                              [%data-ship [~.p 0]]
+                              [%data-agent [~.ta '/test-agent']]
+                              [%data-tmsp [~.da ~2000.1.1]]
+                              ==
+                      :-  %vector
+                          :~  [%database [~.tas %db1]]
+                              [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.2]]
                               [%data-ship [~.p 0]]
                               [%data-agent [~.ta '/test-agent']]
@@ -562,14 +570,6 @@
                               ==
                       :-  %vector
                           :~  [%database [~.tas %sys]]
-                              [%sys-agent [~.ta '/test-agent']]
-                              [%sys-tmsp [~.da ~2000.1.1]]
-                              [%data-ship [~.p 0]]
-                              [%data-agent [~.ta '/test-agent']]
-                              [%data-tmsp [~.da ~2000.1.1]]
-                              ==
-                      :-  %vector
-                          :~  [%database [~.tas %db1]]
                               [%sys-agent [~.ta '/test-agent']]
                               [%sys-tmsp [~.da ~2000.1.1]]
                               [%data-ship [~.p 0]]
@@ -589,9 +589,9 @@
 ::
 ::  Test Cases: CREATE or DROP NAMESPACE
 ::
-++  test-sys-namspaces-01
+++  test-sys-namespaces-01
   =|  run=@ud
-  %-  exec-1-2
+  %-  exec-1-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1 AS OF ~2000.1.1"]
       ::
@@ -649,9 +649,9 @@
       ==
 ::
 ::  sys-namespaces not default DB
-++  test-sys-namspaces-02
+++  test-sys-namespaces-02
   =|  run=@ud
-  %-  exec-2-1
+  %-  exec-2-1-ordered
   :*  run
       [~1999.12.31 %sys "CREATE DATABASE db1"]
       ::
@@ -695,7 +695,7 @@
 ::
 ++  test-sys-tables-and-keys-01  ::  CREATE TABLE
   =|  run=@ud
-  %-  exec-6-4
+  %-  exec-6-4-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -747,17 +747,10 @@
                               [%row-count [~.ud 1]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.7]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.6]]
+                              [%tmsp [~.da ~2000.1.4]]
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
@@ -769,9 +762,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.4]]
+                              [%tmsp [~.da ~2000.1.6]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %ref]]
+                              [%name [~.tas %my-table-4]]
+                              [%agent [~.ta '/test-agent']]
+                              [%tmsp [~.da ~2000.1.7]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -794,9 +794,9 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.6]]
+                              [%tmsp [~.da ~2000.1.4]]
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
@@ -808,9 +808,9 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.4]]
+                              [%tmsp [~.da ~2000.1.6]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -832,25 +832,25 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table]]
                               [%key-ordinal [~.ud 2]]
                               [%key [~.tas %col2]]
                               [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col2]]
+                              [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -861,9 +861,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
@@ -874,18 +881,11 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
+                          :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
-                              [%key-ascending [~.f 1]]
                               ==
                       ==
               [%server-time ~2000.1.8]
@@ -907,17 +907,24 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table]]
                               [%key-ordinal [~.ud 2]]
                               [%key [~.tas %col2]]
                               [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col2]]
+                              [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -928,13 +935,6 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 1]]
                               [%key [~.tas %col1]]
@@ -942,10 +942,10 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
-                              [%key-ascending [~.f 1]]
+                              [%name [~.tas %my-table-4]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col3]]
+                              [%key-ascending [~.f 0]]
                               ==
                       ==
               [%server-time ~2000.1.9]
@@ -958,7 +958,7 @@
 ::
 ++  test-sys-tables-and-keys-02  ::  INSERT and DROP TABLE
   =|  run=@ud
-  %-  exec-7-6
+  %-  exec-7-6-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -1017,9 +1017,9 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.6]]
+                              [%tmsp [~.da ~2000.1.4]]
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
@@ -1031,9 +1031,9 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.4]]
+                              [%tmsp [~.da ~2000.1.6]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -1055,17 +1055,10 @@
                               [%row-count [~.ud 1]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.7]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.6]]
+                              [%tmsp [~.da ~2000.1.4]]
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
@@ -1077,9 +1070,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.4]]
+                              [%tmsp [~.da ~2000.1.6]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %ref]]
+                              [%name [~.tas %my-table-4]]
+                              [%agent [~.ta '/test-agent']]
+                              [%tmsp [~.da ~2000.1.7]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -1120,17 +1120,24 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table]]
                               [%key-ordinal [~.ud 2]]
                               [%key [~.tas %col2]]
                               [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col2]]
+                              [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1141,13 +1148,6 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 1]]
                               [%key [~.tas %col1]]
@@ -1155,10 +1155,10 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
-                              [%key-ascending [~.f 1]]
+                              [%name [~.tas %my-table-4]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col3]]
+                              [%key-ascending [~.f 0]]
                               ==
                       ==
               [%server-time ~2000.1.9]
@@ -1179,25 +1179,25 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table]]
                               [%key-ordinal [~.ud 2]]
                               [%key [~.tas %col2]]
                               [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col2]]
+                              [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1208,9 +1208,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
@@ -1221,18 +1228,11 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
+                          :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
-                              [%key-ascending [~.f 1]]
                               ==
                       ==
               [%server-time ~2000.1.10]
@@ -1270,7 +1270,7 @@
 ::
 ++  test-sys-tables-and-keys-03  ::  TRUNCATE TABLE  (data present)
   =|  run=@ud
-  %-  exec-7-2
+  %-  exec-7-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -1320,17 +1320,10 @@
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.7]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.6]]
+                              [%tmsp [~.da ~2000.1.4]]
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
@@ -1342,9 +1335,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.4]]
+                              [%tmsp [~.da ~2000.1.6]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %ref]]
+                              [%name [~.tas %my-table-4]]
+                              [%agent [~.ta '/test-agent']]
+                              [%tmsp [~.da ~2000.1.7]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -1361,22 +1361,29 @@
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table]]
                               [%key-ordinal [~.ud 2]]
                               [%key [~.tas %col2]]
                               [%key-ascending [~.f 1]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 1]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
+                              [%key [~.tas %col2]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
@@ -1388,16 +1395,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table]]
+                              [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 1]]
                               [%key [~.tas %col1]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
@@ -1408,18 +1415,11 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
+                          :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
-                              [%key-ascending [~.f 1]]
                               ==
                       ==
               [%server-time ~2000.1.9]
@@ -1432,7 +1432,7 @@
 ::
 ++  test-sys-tables-and-keys-04  ::  TRUNCATE TABLE  (data not present)
   =|  run=@ud
-  %-  exec-6-2
+  %-  exec-6-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -1477,17 +1477,10 @@
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.7]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.6]]
+                              [%tmsp [~.da ~2000.1.4]]
                               [%row-count [~.ud 0]]
                               ==
                       :-  %vector
@@ -1499,9 +1492,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
                               [%agent [~.ta '/test-agent']]
-                              [%tmsp [~.da ~2000.1.4]]
+                              [%tmsp [~.da ~2000.1.6]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %ref]]
+                              [%name [~.tas %my-table-4]]
+                              [%agent [~.ta '/test-agent']]
+                              [%tmsp [~.da ~2000.1.7]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -1523,17 +1523,24 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table-4]]
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
-                              [%key-ascending [~.f 0]]
+                              [%key [~.tas %col2]]
+                              [%key-ascending [~.f 1]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-2]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col3]]
+                              [%key [~.tas %col2]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
@@ -1545,9 +1552,16 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-4]]
+                              [%key-ordinal [~.ud 1]]
+                              [%key [~.tas %col1]]
+                              [%key-ascending [~.f 0]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
                               [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
@@ -1558,25 +1572,11 @@
                               [%key-ascending [~.f 0]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table]]
-                              [%key-ordinal [~.ud 2]]
-                              [%key [~.tas %col2]]
-                              [%key-ascending [~.f 1]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
+                          :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table-4]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
+                              [%key-ordinal [~.ud 2]]
+                              [%key [~.tas %col3]]
                               [%key-ascending [~.f 0]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%key-ordinal [~.ud 1]]
-                              [%key [~.tas %col1]]
-                              [%key-ascending [~.f 1]]
                               ==
                       ==
               [%server-time ~2000.1.9]
@@ -1589,7 +1589,7 @@
 ::
 ++  test-sys-columns-01 ::  CREATE TABLE
   =|  run=@ud
-  %-  exec-4-2
+  %-  exec-4-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -1620,6 +1620,62 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-3]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-3]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-3]]
+                              [%col-ordinal [~.ud 3]]
+                              [%col-name [~.tas %col3]]
+                              [%col-type [~.ta ~.ud]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 3]]
+                              [%col-name [~.tas %col3]]
+                              [%col-type [~.ta ~.ud]]
+                              ==
+                      :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
                               [%col-ordinal [~.ud 1]]
@@ -1632,62 +1688,6 @@
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
-                              [%col-ordinal [~.ud 3]]
-                              [%col-name [~.tas %col3]]
-                              [%col-type [~.ta ~.ud]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 3]]
-                              [%col-name [~.tas %col3]]
-                              [%col-type [~.ta ~.ud]]
                               ==
                       ==
               [%server-time ~2000.1.6]
@@ -1701,15 +1701,15 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table]]
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.t]]
+                              [%col-type [~.ta ~.p]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %ref]]
-                              [%name [~.tas %my-table]]
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1723,14 +1723,7 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
+                              [%name [~.tas %my-table-3]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1743,8 +1736,15 @@
                               [%col-type [~.ta ~.ud]]
                               ==
                       :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
+                          :~  [%namespace [~.tas %ref]]
+                              [%name [~.tas %my-table]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %ref]]
+                              [%name [~.tas %my-table]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1770,7 +1770,7 @@
               ==
               %.y
               ~
-  %-  exec-5-2xx
+  %-  exec-5-2xx-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -1804,6 +1804,20 @@
               :-  %result-set
                   :~  :-  %vector
                           :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
                               [%name [~.tas %my-table-3]]
                               [%col-ordinal [~.ud 1]]
                               [%col-name [~.tas %col1]]
@@ -1811,31 +1825,10 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
+                              [%name [~.tas %my-table-3]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
@@ -1846,7 +1839,14 @@
                               ==
                       :-  %vector
                           :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
@@ -1870,6 +1870,62 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-2]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-3]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-3]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-3]]
+                              [%col-ordinal [~.ud 3]]
+                              [%col-name [~.tas %col3]]
+                              [%col-type [~.ta ~.ud]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 1]]
+                              [%col-name [~.tas %col1]]
+                              [%col-type [~.ta ~.p]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 2]]
+                              [%col-name [~.tas %col2]]
+                              [%col-type [~.ta ~.t]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table-4]]
+                              [%col-ordinal [~.ud 3]]
+                              [%col-name [~.tas %col3]]
+                              [%col-type [~.ta ~.ud]]
+                              ==
+                      :-  %vector
                           :~  [%namespace [~.tas %ref]]
                               [%name [~.tas %my-table]]
                               [%col-ordinal [~.ud 1]]
@@ -1882,62 +1938,6 @@
                               [%col-ordinal [~.ud 2]]
                               [%col-name [~.tas %col2]]
                               [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-2]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 1]]
-                              [%col-name [~.tas %col1]]
-                              [%col-type [~.ta ~.p]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
-                              [%col-ordinal [~.ud 3]]
-                              [%col-name [~.tas %col3]]
-                              [%col-type [~.ta ~.ud]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-3]]
-                              [%col-ordinal [~.ud 2]]
-                              [%col-name [~.tas %col2]]
-                              [%col-type [~.ta ~.t]]
-                              ==
-                      :-  %vector
-                          :~  [%namespace [~.tas %dbo]]
-                              [%name [~.tas %my-table-4]]
-                              [%col-ordinal [~.ud 3]]
-                              [%col-name [~.tas %col3]]
-                              [%col-type [~.ta ~.ud]]
                               ==
                       ==
               [%server-time ~2000.1.8]
@@ -1950,7 +1950,7 @@
 ::
 ++  test-sys-log-01    ::  CREATE TABLE
   =|  run=@ud
-  %-  exec-5-2
+  %-  exec-5-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -2001,15 +2001,6 @@
                               [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
-                              ==
-                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
@@ -2037,13 +2028,13 @@
                               [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
+                          :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
+                              [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
-                              [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2061,6 +2052,15 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
                               [%relation [~.tas '']]
                               ==
                       ==
@@ -2075,15 +2075,6 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
-                              ==
-                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
@@ -2111,13 +2102,13 @@
                               [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
+                          :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
+                              [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
-                              [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2137,6 +2128,15 @@
                               [%namespace [~.tas %dbo]]
                               [%relation [~.tas '']]
                               ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              ==
                       ==
               [%server-time ~2000.1.9]
               [%relation 'db1.sys.sys-log']
@@ -2148,7 +2148,7 @@
 ::
 ++  test-sys-log-02    ::  DROP TABLE
   =|  run=@ud
-  %-  exec-6-2
+  %-  exec-6-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -2212,15 +2212,6 @@
                               [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
-                              ==
-                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
@@ -2248,13 +2239,13 @@
                               [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
+                          :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
+                              [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
-                              [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2272,6 +2263,15 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
                               [%relation [~.tas '']]
                               ==
                       ==
@@ -2295,15 +2295,6 @@
                               [%relation [~.tas %my-table-4]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %dbo]]
-                              [%relation [~.tas %my-table-3]]
-                              ==
-                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.6]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
@@ -2331,13 +2322,13 @@
                               [%relation [~.tas %my-table-2]]
                               ==
                       :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
+                          :~  [%tmsp [~.da ~2000.1.4]]
                               [%agent [~.ta '/test-agent']]
                               [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
+                              [%component [~.tas %table]]
                               [%database [~.tas 'db1']]
-                              [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table-3]]
                               ==
                       :-  %vector
                           :~  [%tmsp [~.da ~2000.1.2]]
@@ -2355,6 +2346,15 @@
                               [%component [~.tas %namespace]]
                               [%database [~.tas 'db1']]
                               [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.1]]
+                              [%agent [~.ta '/test-agent']]
+                              [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas 'db1']]
+                              [%namespace [~.tas %sys]]
                               [%relation [~.tas '']]
                               ==
                       ==
@@ -2366,139 +2366,139 @@
               ==
       ==
 ::
-++  test-sys-log-03    ::  complete event view
-  =|  run=@ud
-  %-  exec-2-2
-  :*  run
-      [~2000.1.1 %sys "CREATE DATABASE db1"]
-      ::
-      :+  ~2000.1.2
-          %db1
-          "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
-      ::
-      [~2000.1.3 %db1 "DROP TABLE db1..my-table"]
-      ::
-      [~2000.1.4 %db1 "FROM sys.sys-log SELECT *"]
-      ::
-      [~2000.1.5 %db1 "FROM sys.sys-log AS OF ~2000.1.2 SELECT *"]
-      ::
-      :-  %results
-          :~  [%action 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.3]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %drop]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas 'dbo']]
-                              [%relation [~.tas %my-table]]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.2]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas 'dbo']]
-                              [%relation [~.tas %my-table]]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      ==
-              [%server-time ~2000.1.4]
-              [%relation 'db1.sys.sys-log']
-              [%schema-time ~2000.1.3]
-              [%data-time ~2000.1.3]
-              [%vector-count 4]
-              ==
-      ::
-      :-  %results
-          :~  [%action 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.2]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %table]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas 'dbo']]
-                              [%relation [~.tas %my-table]]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %sys]]
-                              [%relation [~.tas '']]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.1]]
-                              [%agent [~.ta '/test-agent']]
-                              [%action [~.tas %create]]
-                              [%component [~.tas %namespace]]
-                              [%database [~.tas 'db1']]
-                              [%namespace [~.tas %dbo]]
-                              [%relation [~.tas '']]
-                              [%target-database [~.tas '']]
-                              [%target-namespace [~.tas '']]
-                              [%target-relation [~.tas '']]
-                              [%message [~.t ~]]
-                              ==
-                      ==
-              [%server-time ~2000.1.5]
-              [%relation 'db1.sys.sys-log']
-              [%schema-time ~2000.1.2]
-              [%data-time ~2000.1.2]
-              [%vector-count 3]
-              ==
-      ==
+::::++  test-sys-log-03    ::  complete event view
+::::  =|  run=@ud
+::::  %-  exec-2-2-ordered
+::::  :*  run
+::::      [~2000.1.1 %sys "CREATE DATABASE db1"]
+::::      ::
+::::      :+  ~2000.1.2
+::::          %db1
+::::          "CREATE TABLE db1..my-table (col1 @t) PRIMARY KEY (col1)"
+::::      ::
+::::      [~2000.1.3 %db1 "DROP TABLE db1..my-table"]
+::::      ::
+::::      [~2000.1.4 %db1 "FROM sys.sys-log SELECT *"]
+::::      ::
+::::      [~2000.1.5 %db1 "FROM sys.sys-log AS OF ~2000.1.2 SELECT *"]
+::::      ::
+::::      :-  %results
+::::          :~  [%action 'SELECT']
+::::              :-  %result-set
+::::                  :~  :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.3]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %drop]]
+::::                              [%component [~.tas %table]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas 'dbo']]
+::::                              [%relation [~.tas %my-table]]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.2]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %create]]
+::::                              [%component [~.tas %table]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas 'dbo']]
+::::                              [%relation [~.tas %my-table]]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.1]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %create]]
+::::                              [%component [~.tas %namespace]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%relation [~.tas '']]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.1]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %create]]
+::::                              [%component [~.tas %namespace]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas %sys]]
+::::                              [%relation [~.tas '']]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      ==
+::::              [%server-time ~2000.1.4]
+::::              [%relation 'db1.sys.sys-log']
+::::              [%schema-time ~2000.1.3]
+::::              [%data-time ~2000.1.3]
+::::              [%vector-count 4]
+::::              ==
+::::      ::
+::::      :-  %results
+::::          :~  [%action 'SELECT']
+::::              :-  %result-set
+::::                  :~  :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.2]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %create]]
+::::                              [%component [~.tas %table]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas 'dbo']]
+::::                              [%relation [~.tas %my-table]]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.1]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %create]]
+::::                              [%component [~.tas %namespace]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%relation [~.tas '']]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.1]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%action [~.tas %create]]
+::::                              [%component [~.tas %namespace]]
+::::                              [%database [~.tas 'db1']]
+::::                              [%namespace [~.tas %sys]]
+::::                              [%relation [~.tas '']]
+::::                              [%target-database [~.tas '']]
+::::                              [%target-namespace [~.tas '']]
+::::                              [%target-relation [~.tas '']]
+::::                              [%message [~.t ~]]
+::::                              ==
+::::                      ==
+::::              [%server-time ~2000.1.5]
+::::              [%relation 'db1.sys.sys-log']
+::::              [%schema-time ~2000.1.2]
+::::              [%data-time ~2000.1.2]
+::::              [%vector-count 3]
+::::              ==
+::::      ==
 ::
 ++  test-sys-data-log-01   ::  INSERT
   =|  run=@ud
-  %-  exec-9-2
+  %-  exec-9-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -2554,6 +2554,62 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.10]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %ref]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.9]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %ref]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
                               [%ship [~.p 0]]
                               [%agent [~.ta '/test-agent']]
@@ -2567,62 +2623,6 @@
                               [%agent [~.ta '/test-agent']]
                               [%namespace [~.tas %dbo]]
                               [%table [~.tas %my-table]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.10]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %ref]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.9]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %ref]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -2637,6 +2637,54 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.9]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %ref]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
                               [%ship [~.p 0]]
                               [%agent [~.ta '/test-agent']]
@@ -2652,54 +2700,6 @@
                               [%table [~.tas %my-table]]
                               [%row-count [~.ud 0]]
                               ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.9]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %ref]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 0]]
-                              ==
                       ==
               [%server-time ~2000.1.12]
               [%relation 'db1.sys.data-log']
@@ -2711,7 +2711,7 @@
 ::
 ++  test-sys-data-log-02   ::  CREATE TABLE
   =|  run=@ud
-  %-  exec-8-2
+  %-  exec-8-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -2762,6 +2762,54 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.9]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %ref]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
                               [%ship [~.p 0]]
                               [%agent [~.ta '/test-agent']]
@@ -2775,54 +2823,6 @@
                               [%agent [~.ta '/test-agent']]
                               [%namespace [~.tas %dbo]]
                               [%table [~.tas %my-table]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.9]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %ref]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -2837,6 +2837,46 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
                               [%ship [~.p 0]]
                               [%agent [~.ta '/test-agent']]
@@ -2852,46 +2892,6 @@
                               [%table [~.tas %my-table]]
                               [%row-count [~.ud 0]]
                               ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 0]]
-                              ==
                       ==
               [%server-time ~2000.1.11]
               [%relation 'db1.sys.data-log']
@@ -2903,7 +2903,7 @@
 ::
 ++  test-sys-data-log-03   ::  DROP TABLE FORCE
   =|  run=@ud
-  %-  exec-9-2
+  %-  exec-9-2-ordered
   :*  run
       [~2000.1.1 %sys "CREATE DATABASE db1"]
       ::
@@ -2958,6 +2958,54 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.9]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %ref]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.8]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.7]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-4]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.5]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-2]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
+                          :~  [%tmsp [~.da ~2000.1.4]]
+                              [%ship [~.p 0]]
+                              [%agent [~.ta '/test-agent']]
+                              [%namespace [~.tas %dbo]]
+                              [%table [~.tas %my-table-3]]
+                              [%row-count [~.ud 0]]
+                              ==
+                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.3]]
                               [%ship [~.p 0]]
                               [%agent [~.ta '/test-agent']]
@@ -2971,54 +3019,6 @@
                               [%agent [~.ta '/test-agent']]
                               [%namespace [~.tas %dbo]]
                               [%table [~.tas %my-table]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.9]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %ref]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
                               [%row-count [~.ud 0]]
                               ==
                       ==
@@ -3033,52 +3033,20 @@
           :~  [%action 'SELECT']
               :-  %result-set
                   :~  :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.3]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.2]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
                           :~  [%tmsp [~.da ~2000.1.9]]
                               [%ship [~.p 0]]
                               [%agent [~.ta '/test-agent']]
                           [%namespace [~.tas %ref]]
                           [%table [~.tas %my-table-4]]
                           [%row-count [~.ud 0]]
+                          ==
+                  :-  %vector
+                      :~  [%tmsp [~.da ~2000.1.8]]
+                          [%ship [~.p 0]]
+                          [%agent [~.ta '/test-agent']]
+                          [%namespace [~.tas %dbo]]
+                          [%table [~.tas %my-table-4]]
+                          [%row-count [~.ud 1]]
                           ==
                   :-  %vector
                       :~  [%tmsp [~.da ~2000.1.7]]
@@ -3089,11 +3057,43 @@
                           [%row-count [~.ud 0]]
                           ==
                   :-  %vector
+                      :~  [%tmsp [~.da ~2000.1.5]]
+                          [%ship [~.p 0]]
+                          [%agent [~.ta '/test-agent']]
+                          [%namespace [~.tas %dbo]]
+                          [%table [~.tas %my-table-2]]
+                          [%row-count [~.ud 1]]
+                          ==
+                  :-  %vector
                       :~  [%tmsp [~.da ~2000.1.4]]
                           [%ship [~.p 0]]
                           [%agent [~.ta '/test-agent']]
                           [%namespace [~.tas %dbo]]
                           [%table [~.tas %my-table-2]]
+                          [%row-count [~.ud 0]]
+                          ==
+                  :-  %vector
+                      :~  [%tmsp [~.da ~2000.1.4]]
+                          [%ship [~.p 0]]
+                          [%agent [~.ta '/test-agent']]
+                          [%namespace [~.tas %dbo]]
+                          [%table [~.tas %my-table-3]]
+                          [%row-count [~.ud 0]]
+                          ==
+                  :-  %vector
+                      :~  [%tmsp [~.da ~2000.1.3]]
+                          [%ship [~.p 0]]
+                          [%agent [~.ta '/test-agent']]
+                          [%namespace [~.tas %dbo]]
+                          [%table [~.tas %my-table]]
+                          [%row-count [~.ud 1]]
+                          ==
+                  :-  %vector
+                      :~  [%tmsp [~.da ~2000.1.2]]
+                          [%ship [~.p 0]]
+                          [%agent [~.ta '/test-agent']]
+                          [%namespace [~.tas %dbo]]
+                          [%table [~.tas %my-table]]
                           [%row-count [~.ud 0]]
                           ==
                   ==
@@ -3104,207 +3104,207 @@
           [%vector-count 8]
           ==
   ==
-++  test-sys-data-log-04   ::  TRUNCATE TABLE
-  =|  run=@ud
-  %-  exec-9-2
-  :*  run
-      [~2000.1.1 %sys "CREATE DATABASE db1"]
-      ::
-      :+  ~2000.1.2
-          %db1
-          "CREATE TABLE db1..my-table (col1 @t, col2 @t) ".
-          "PRIMARY KEY (col1, col2 DESC)"
-      ::
-      :+  ~2000.1.3
-          %db1
-          "INSERT INTO db1..my-table (col1, col2) ".
-          "VALUES ('cord', 'cord2')"
-      ::
-      :+  ~2000.1.4
-          %db1
-          "CREATE TABLE db1..my-table-2 (col1 @p, col2 @t) ".
-          "PRIMARY KEY (col1 desc, col2); ".
-          "CREATE TABLE db1..my-table-3 (col1 @p, col2 @t, col3 @ud) ".
-          "PRIMARY KEY (col1)"
-      ::
-      :+  ~2000.1.5
-          %db1
-          "INSERT INTO db1..my-table-2 (col1, col2) ".
-          "VALUES (~zod, 'cord2')"
-      ::
-      [~2000.1.6 %db1 "CREATE NAMESPACE ref"]
-      ::
-      :+  ~2000.1.7
-          %db1
-          "CREATE TABLE db1..my-table-4 (col1 @p, col2 @t, col3 @ud) ".
-          "PRIMARY KEY (col1, col3)"
-      ::
-      :+  ~2000.1.8
-          %db1
-          "INSERT INTO db1..my-table-4 (col1, col2, col3) ".
-          "VALUES (~zod, 'cord2', 42)"
-      ::
-      :+  ~2000.1.9
-          %db1
-          "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
-          "PRIMARY KEY (col1, col3)"
-      ::
-      :+  ~2000.1.10
-          %db1
-          "TRUNCATE TABLE db1..my-table-4"
-      ::
-      [~2000.1.11 %db1 "FROM sys.data-log SELECT *"]
-      ::
-      [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.8 SELECT *"]
-      ::
-      :-  %results
-          :~  [%action 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.3]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.2]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.10]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.9]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %ref]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      ==
-              [%server-time ~2000.1.11]
-              [%relation 'db1.sys.data-log']
-              [%schema-time ~2000.1.9]
-              [%data-time ~2000.1.10]
-              [%vector-count 9]
-              ==
-      ::
-      :-  %results
-          :~  [%action 'SELECT']
-              :-  %result-set
-                  :~  :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.3]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.2]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.8]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-3]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.5]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 1]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.7]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-4]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      :-  %vector
-                          :~  [%tmsp [~.da ~2000.1.4]]
-                              [%ship [~.p 0]]
-                              [%agent [~.ta '/test-agent']]
-                              [%namespace [~.tas %dbo]]
-                              [%table [~.tas %my-table-2]]
-                              [%row-count [~.ud 0]]
-                              ==
-                      ==
-              [%server-time ~2000.1.12]
-              [%relation 'db1.sys.data-log']
-              [%schema-time ~2000.1.7]
-              [%data-time ~2000.1.8]
-              [%vector-count 7]
-              ==
-      ==
+::::++  test-sys-data-log-04   ::  TRUNCATE TABLE
+::::  =|  run=@ud
+::::  %-  exec-9-2-ordered
+::::  :*  run
+::::      [~2000.1.1 %sys "CREATE DATABASE db1"]
+::::      ::
+::::      :+  ~2000.1.2
+::::          %db1
+::::          "CREATE TABLE db1..my-table (col1 @t, col2 @t) ".
+::::          "PRIMARY KEY (col1, col2 DESC)"
+::::      ::
+::::      :+  ~2000.1.3
+::::          %db1
+::::          "INSERT INTO db1..my-table (col1, col2) ".
+::::          "VALUES ('cord', 'cord2')"
+::::      ::
+::::      :+  ~2000.1.4
+::::          %db1
+::::          "CREATE TABLE db1..my-table-2 (col1 @p, col2 @t) ".
+::::          "PRIMARY KEY (col1 desc, col2); ".
+::::          "CREATE TABLE db1..my-table-3 (col1 @p, col2 @t, col3 @ud) ".
+::::          "PRIMARY KEY (col1)"
+::::      ::
+::::      :+  ~2000.1.5
+::::          %db1
+::::          "INSERT INTO db1..my-table-2 (col1, col2) ".
+::::          "VALUES (~zod, 'cord2')"
+::::      ::
+::::      [~2000.1.6 %db1 "CREATE NAMESPACE ref"]
+::::      ::
+::::      :+  ~2000.1.7
+::::          %db1
+::::          "CREATE TABLE db1..my-table-4 (col1 @p, col2 @t, col3 @ud) ".
+::::          "PRIMARY KEY (col1, col3)"
+::::      ::
+::::      :+  ~2000.1.8
+::::          %db1
+::::          "INSERT INTO db1..my-table-4 (col1, col2, col3) ".
+::::          "VALUES (~zod, 'cord2', 42)"
+::::      ::
+::::      :+  ~2000.1.9
+::::          %db1
+::::          "CREATE TABLE db1.ref.my-table-4 (col1 @p, col2 @t, col3 @ud) ".
+::::          "PRIMARY KEY (col1, col3)"
+::::      ::
+::::      :+  ~2000.1.10
+::::          %db1
+::::          "TRUNCATE TABLE db1..my-table-4"
+::::      ::
+::::      [~2000.1.11 %db1 "FROM sys.data-log SELECT *"]
+::::      ::
+::::      [~2000.1.12 %db1 "FROM sys.data-log AS OF ~2000.1.8 SELECT *"]
+::::      ::
+::::      :-  %results
+::::          :~  [%action 'SELECT']
+::::              :-  %result-set
+::::                  :~  :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.10]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-4]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.9]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %ref]]
+::::                              [%table [~.tas %my-table-4]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.8]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-4]]
+::::                              [%row-count [~.ud 1]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.7]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-4]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.5]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-2]]
+::::                              [%row-count [~.ud 1]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.4]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-2]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.4]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-3]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.3]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table]]
+::::                              [%row-count [~.ud 1]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.2]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      ==
+::::              [%server-time ~2000.1.11]
+::::              [%relation 'db1.sys.data-log']
+::::              [%schema-time ~2000.1.9]
+::::              [%data-time ~2000.1.10]
+::::              [%vector-count 9]
+::::              ==
+::::      ::
+::::      :-  %results
+::::          :~  [%action 'SELECT']
+::::              :-  %result-set
+::::                  :~  :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.8]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-4]]
+::::                              [%row-count [~.ud 1]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.7]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-4]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.5]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-2]]
+::::                              [%row-count [~.ud 1]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.4]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-2]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.4]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table-3]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.3]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table]]
+::::                              [%row-count [~.ud 1]]
+::::                              ==
+::::                      :-  %vector
+::::                          :~  [%tmsp [~.da ~2000.1.2]]
+::::                              [%ship [~.p 0]]
+::::                              [%agent [~.ta '/test-agent']]
+::::                              [%namespace [~.tas %dbo]]
+::::                              [%table [~.tas %my-table]]
+::::                              [%row-count [~.ud 0]]
+::::                              ==
+::::                      ==
+::::              [%server-time ~2000.1.12]
+::::              [%relation 'db1.sys.data-log']
+::::              [%schema-time ~2000.1.7]
+::::              [%data-time ~2000.1.8]
+::::              [%vector-count 7]
+::::              ==
+::::      ==
 --

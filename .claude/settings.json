@@ -30,7 +30,8 @@
       "Bash(grep \"^\\\\+\\\\$\\\\|^+\\\\$\")",
       "Bash(git -C /mnt/mars/gitrepos/obelisk diff HEAD~5 -- desk/sur/server-state-0.hoon)",
       "Bash(git -C /mnt/mars/gitrepos/obelisk show HEAD~5:desk/sur/ast.hoon)",
-      "Bash(grep -n \"ctes=.*scalars=\\\\|%update$\\\\|ctes=.*%update\" /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse.hoon)"
+      "Bash(grep -n \"ctes=.*scalars=\\\\|%update$\\\\|ctes=.*%update\" /mnt/mars/gitrepos/obelisk/desk/tests/lib/parse.hoon)",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
       "/mnt/mars/gitrepos/obelisk/desk/tests/lib"
