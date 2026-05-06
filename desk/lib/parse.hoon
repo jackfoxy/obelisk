@@ -284,8 +284,7 @@
                                           -<.parsed
                                           ->.parsed
                                           +<.parsed
-                                          +>->+>-.parsed
-                                          +>->+>+<.parsed
+                                          +>-.parsed
                                           ~
                                           ==
                 ?:  ?=([@ @] +>+>.parsed)
@@ -293,16 +292,14 @@
                                           -<.parsed
                                           ->.parsed
                                           +<.parsed
-                                          +>->+>-.parsed
-                                          +>->+>+<.parsed
+                                          +>-.parsed
                                           [~ +>+>.parsed]
                                           ==
                 %:  alter-namespace:ast  %alter-namespace
                                         -<.parsed
                                         ->.parsed
                                         +<.parsed
-                                        +>->+>-.parsed
-                                        +>->+>+<.parsed
+                                        +>-.parsed
                                         :-  ~
                                             %:  as-of-offset:ast  %as-of-offset
                                                                   +>+>-.parsed
@@ -314,8 +311,7 @@
                                       -<.parsed
                                       ->.parsed
                                       +<.parsed
-                                      +>+>+<.parsed
-                                      +>+>+>-.parsed
+                                      +>.parsed
                                       ~
                                       ==
         commands
@@ -1481,7 +1477,7 @@
               parse-qualified-2-name
               ==
     ;~  pfix  ;~(plug whitespace (jester 'transfer'))
-              ;~(pfix whitespace ;~(pose (jester 'table') (jester 'view')))
+              ;~(pfix whitespace (jester 'table'))
               ==
     ;~  sfix
       ;~  pose

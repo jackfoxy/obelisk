@@ -85,10 +85,18 @@
       ~|("%alter-index not implemented" !!)
     %alter-namespace
       ?.  =(our.bowl src.bowl)
-            ~|("CREATE NAMESPACE: schema changes must be by local agent" !!)
+            ~|("ALTER NAMESPACE: schema changes must be by local agent" !!)
       ?:  query-has-run
         ~|("ALTER NAMESPACE: state change after query in script" !!)
-      ~|("%alter-namespace not implemented" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-ns(state state, bowl bowl) i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %alter-table
       ?.  =(our.bowl src.bowl)
             ~|("ALTER TABLE: schema changes must be by local agent" !!)

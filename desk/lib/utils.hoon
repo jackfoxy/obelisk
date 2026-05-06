@@ -601,7 +601,14 @@
     %create-namespace
       (next-view-cache-keys db sys-time ~[[%sys %namespaces]])
     %alter-namespace
-      ~|("%alter-namespace not implemented" !!)
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %tables]
+                                    [%sys %table-keys]
+                                    [%sys %columns]
+                                    [%sys %sys-log]
+                                    [%sys %data-log]
+                                    ==
     %drop-namespace
       ~|("%drop-namespace not implemented" !!)
     %create-table

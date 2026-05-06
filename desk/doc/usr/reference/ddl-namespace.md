@@ -64,14 +64,12 @@ namespace `<namespace>` already exists
 
 ## ALTER NAMESPACE
 
-*supported in urQL parser, not yet supported in Obelisk runtime*
-
-Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
+Transfer an existing user `<table>` to another `<namespace>`.
 
 ```
 <alter-namespace> ::=
   ALTER NAMESPACE [ <database>. ] <namespace>
-    TRANSFER { TABLE | VIEW } [ <db-qualifier> ]{ <table> | <view> }
+    TRANSFER TABLE [ <db-qualifier> ] <table>
     [ <as-of> ]
 ```
 
@@ -80,10 +78,10 @@ Transfer an existing user `<table>` or `<view>` to another `<namespace>`.
 **`<namespace>`**
 Name of the target namespace into which the object is to be transferred. 
 
-**`TABLE | VIEW`**
+**`TABLE`**
 Indicates the type of the target object.
 
-**`<table> | <view>`**
+**`<table>`**
 Name of the object to be transferred to the target namespace.
 
 **`<as-of>`**
@@ -94,21 +92,28 @@ Timestamp of namespace update. Defaults to NOW (current time). When specified, t
 +$  alter-namespace
   $:  %alter-namespace
     database-name=@tas
-    source-namespace=@tas
-    relation=table-or-view
     target-namespace=@tas
-    target-relation=@tas
+    =table-or-view
+    =qualified-table
     as-of=(unit as-of)
-  ==
+    ==
 ```
 
 ### Remarks
 This command mutates the state of the Obelisk agent.
 
+Tables can be transferred across databases.
+
+Objects cannot be transferred in or out of database *sys*.
+
 Objects cannot be transferred in or out of namespace *sys*.
 
 ### Produced Metadata
-Schema timestamp
+
+action: ALTER NAMESPACE TRANSFER TABLE <table>
+server-time: <timestamp>
+schema-time: <timestamp>
+data-time: <timestamp>
 
 ### Exceptions
 
@@ -118,7 +123,8 @@ namespace `<namespace>` as-of schema time out of order
 namespace `<namespace>` as-of content time out of order
 namespace `<namespace>` does not exist
 alter namespace state change after query in script
-`<table>` or `<view>` does not exist
+`<table>` does not exist
+`<table>` already exists in target namespace
 
 ## DROP NAMESPACE
 

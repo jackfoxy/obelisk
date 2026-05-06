@@ -527,10 +527,9 @@
   $+  alter-namespace
   $:  %alter-namespace
     database-name=@tas
-    source-namespace=@tas
-    relation=table-or-view
     target-namespace=@tas
-    target-relation=@tas
+    =table-or-view
+    =qualified-table
     as-of=(unit as-of)
     ==
 ::

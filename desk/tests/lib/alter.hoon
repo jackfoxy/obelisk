@@ -107,4 +107,229 @@
       ::
       'database %missing-db does not exist'
       ==
+::
+::  copies a table into a new namespace and preserves old as-of reads
+++  test-alter-namespace-table-00
+  =|  run=@ud
+  %-  exec-4-2-ordered
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.1.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.1.3 %db1 "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"]
+      ::
+      [~2000.1.4 %db1 "INSERT INTO my-table (col1) VALUES ('cord')"]
+      ::
+      [~2000.1.5 %db1 "ALTER NAMESPACE ns1 TRANSFER TABLE my-table"]
+      ::
+      [~2000.1.6 %db1 "FROM sys.tables SELECT *"]
+      ::
+      :+  ~2000.1.7
+          %db1
+          "FROM dbo.my-table AS OF ~2000.1.4 SELECT *"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%namespace [~.tas %dbo]]
+                              [%name [~.tas %my-table]]
+                              [%agent [~.ta '/test-agent']]
+                              [%tmsp [~.da ~2000.1.3]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      :-  %vector
+                          :~  [%namespace [~.tas %ns1]]
+                              [%name [~.tas %my-table]]
+                              [%agent [~.ta '/test-agent']]
+                              [%tmsp [~.da ~2000.1.5]]
+                              [%row-count [~.ud 1]]
+                              ==
+                      ==
+              [%server-time ~2000.1.6]
+              [%relation 'db1.sys.tables']
+              [%schema-time ~2000.1.5]
+              [%data-time ~2000.1.5]
+              [%vector-count 2]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%col1 [~.t 'cord']]
+                              ==
+                      ==
+              [%server-time ~2000.1.7]
+              [%relation 'db1.dbo.my-table']
+              [%schema-time ~2000.1.3]
+              [%data-time ~2000.1.4]
+              [%vector-count 1]
+              ==
+      ==
+::
+::  records cross-database table transfers in both database logs
+++  test-alter-namespace-table-01
+  =|  run=@ud
+  %-  exec-4-2-ordered
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.1.2 %sys "CREATE DATABASE db2"]
+      ::
+      [~2000.1.3 %db1 "CREATE NAMESPACE db2.ns2"]
+      ::
+      [~2000.1.4 %db1 "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"]
+      ::
+      [~2000.1.5 %db1 "ALTER NAMESPACE db2.ns2 TRANSFER TABLE my-table"]
+      ::
+      :+  ~2000.1.6
+          %db1
+          "FROM sys.sys-log SELECT action, component, database, namespace, ".
+          "relation, target-database, target-namespace, target-relation"
+      ::
+      :+  ~2000.1.7
+          %db2
+          "FROM sys.sys-log SELECT action, component, database, namespace, ".
+          "relation, target-database, target-namespace, target-relation"
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %create]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %alter]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas %db2]]
+                              [%target-namespace [~.tas %ns2]]
+                              [%target-relation [~.tas %my-table]]
+                              ==
+                      ==
+              [%server-time ~2000.1.6]
+              [%relation 'db1.sys.sys-log']
+              [%schema-time ~2000.1.5]
+              [%data-time ~2000.1.5]
+              [%vector-count 4]
+              ==
+      ::
+      :-  %results
+          :~  [%action 'SELECT']
+              :-  %result-set
+                  :~  :-  %vector
+                          :~  [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas %db2]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas %db2]]
+                              [%namespace [~.tas %ns2]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %create]]
+                              [%component [~.tas %namespace]]
+                              [%database [~.tas %db2]]
+                              [%namespace [~.tas %sys]]
+                              [%relation [~.tas '']]
+                              [%target-database [~.tas '']]
+                              [%target-namespace [~.tas '']]
+                              [%target-relation [~.tas '']]
+                              ==
+                      :-  %vector
+                          :~  [%action [~.tas %alter]]
+                              [%component [~.tas %table]]
+                              [%database [~.tas %db1]]
+                              [%namespace [~.tas %dbo]]
+                              [%relation [~.tas %my-table]]
+                              [%target-database [~.tas %db2]]
+                              [%target-namespace [~.tas %ns2]]
+                              [%target-relation [~.tas %my-table]]
+                              ==
+                      ==
+              [%server-time ~2000.1.7]
+              [%relation 'db2.sys.sys-log']
+              [%schema-time ~2000.1.5]
+              [%data-time ~2000.1.5]
+              [%vector-count 4]
+              ==
+      ==
+::
+::  rejects alter namespace when as-of equals latest schema time
+++  test-fail-alter-namespace-table-00
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.1.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.1.3 %db1 "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"]
+      ::
+      :+  ~2000.1.4
+          %db1
+          "ALTER NAMESPACE ns1 TRANSFER TABLE my-table AS OF ~2000.1.3"
+      ::
+      'ALTER NAMESPACE: %my-table as-of schema time out of order'
+      ==
+::
+::  rejects alter namespace when as-of precedes latest schema time
+++  test-fail-alter-namespace-table-01
+  =|  run=@ud
+  %-  failon-3
+  :*  run
+      [~2000.1.1 %sys "CREATE DATABASE db1"]
+      ::
+      [~2000.1.2 %db1 "CREATE NAMESPACE ns1"]
+      ::
+      [~2000.1.3 %db1 "CREATE TABLE my-table (col1 @t) PRIMARY KEY (col1)"]
+      ::
+      :+  ~2000.1.4
+          %db1
+          "ALTER NAMESPACE ns1 TRANSFER TABLE my-table AS OF ~2000.1.2"
+      ::
+      'ALTER NAMESPACE: %my-table as-of schema time out of order'
+      ==
 --

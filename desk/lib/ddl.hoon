@@ -100,6 +100,151 @@
       (~(put by next-schemas) database-name.create-namespace sys-time)
       (~(put by state) name.db db) 
 ::
+++  alter-ns
+  |=  $:  a=alter-namespace:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  ?:  !=(%table table-or-view.a)
+    ~|("ALTER NAMESPACE: only table transfers are implemented" !!)
+  =/  src=qualified-table:ast  qualified-table.a
+  ?:  =(%sys database.src)
+    ~|("ALTER NAMESPACE: cannot transfer table out of %sys database" !!)
+  ?:  =(%sys database-name.a)
+    ~|("ALTER NAMESPACE: cannot transfer table into %sys database" !!)
+  ?:  =(%sys namespace.src)
+    ~|("ALTER NAMESPACE: cannot transfer table out of %sys namespace" !!)
+  ?:  =(%sys target-namespace.a)
+    ~|("ALTER NAMESPACE: cannot transfer table into %sys namespace" !!)
+  =/  same-db=?  =(database.src database-name.a)
+  =/  sys-time  (set-tmsp as-of.a now.bowl)
+  =/  src-db  ~|  "ALTER NAMESPACE: database {<database.src>} does not exist"
+                  (~(got by state) database.src)
+  =/  tgt-db  ~|  "ALTER NAMESPACE: database {<database-name.a>} does not exist"
+                  (~(got by state) database-name.a)
+  =/  src-schema=schema  +:(need (pry:schema-key sys.src-db))
+  =/  tgt-schema=schema  +:(need (pry:schema-key sys.tgt-db))
+  ?.  (gth sys-time tmsp.src-schema)
+    ~|  "ALTER NAMESPACE: {<name.src>} as-of schema time out of order"
+        !!
+  ?.  ?|(same-db (gth sys-time tmsp.tgt-schema))
+    ~|  "ALTER NAMESPACE: {<name.src>} as-of schema time out of order"
+        !!
+  =/  src-data=data  +:(need (pry:data-key content.src-db))
+  =/  tgt-data=data  +:(need (pry:data-key content.tgt-db))
+  ?.  (gth sys-time tmsp.src-data)
+    ~|  "ALTER NAMESPACE: {<name.src>} as-of content time out of order"
+        !!
+  ?.  ?|(same-db (gth sys-time tmsp.tgt-data))
+    ~|  "ALTER NAMESPACE: {<name.src>} as-of content time out of order"
+        !!
+  ?.  (~(has by namespaces.tgt-schema) target-namespace.a)
+    ~|  "ALTER NAMESPACE: namespace {<target-namespace.a>} does not exist"
+        !!
+  =/  src-key  [namespace.src name.src]
+  =/  tgt-key  [target-namespace.a name.src]
+  =/  tbl=table
+        ~|  "ALTER NAMESPACE: table {<namespace.src>}.{<name.src>} does not exist"
+        (~(got by tables.src-schema) src-key)
+  ?:  (~(has by tables.tgt-schema) tgt-key)
+    ~|  "ALTER NAMESPACE: table {<target-namespace.a>}.{<name.src>} ".
+        "already exists"
+        !!
+  =/  fil=file
+        ~|  "ALTER NAMESPACE: data for table {<namespace.src>}.{<name.src>} ".
+            "does not exist"
+        (~(got by files.src-data) src-key)
+  =/  event=sys-log-event
+        :*  %sys-log-event
+            sys-time
+            sap.bowl
+            %alter
+            %table
+            database.src
+            `namespace.src
+            `name.src
+            `database-name.a
+            `target-namespace.a
+            `name.src
+            ~
+            ==
+  =.  tmsp.tbl        sys-time
+  =.  provenance.tbl  sap.bowl
+  =.  tmsp.fil        sys-time
+  =.  provenance.fil  sap.bowl
+  =.  ship.fil        src.bowl
+  ?:  same-db
+    =.  tables.src-schema
+          %:  map-insert  tables.src-schema
+                          tgt-key
+                          tbl
+                          ==
+    =.  tmsp.src-schema        sys-time
+    =.  provenance.src-schema  sap.bowl
+    =.  files.src-data
+          %:  map-insert  files.src-data
+                          tgt-key
+                          fil
+                          ==
+    =.  tmsp.src-data        sys-time
+    =.  provenance.src-data  sap.bowl
+    =.  ship.src-data        src.bowl
+    =.  sys.src-db        (put:schema-key sys.src-db sys-time src-schema)
+    =.  content.src-db    (put:data-key content.src-db sys-time src-data)
+    =.  event-log.src-db  [event event-log.src-db]
+    =.  view-cache.src-db  (upd-view-caches state src-db sys-time ~ %alter-namespace)
+    =.  state             (~(put by state) database.src src-db)
+    =.  state             (update-sys state sys-time)
+    :^  :-  %results
+            :~  [%action (crip "ALTER NAMESPACE TRANSFER TABLE {<name.src>}")]
+                [%server-time now.bowl]
+                [%schema-time sys-time]
+                [%data-time sys-time]
+                ==
+        (~(put by next-schemas) database.src sys-time)
+        (~(put by next-data) database.src sys-time)
+        state
+  =.  tmsp.src-schema        sys-time
+  =.  provenance.src-schema  sap.bowl
+  =.  event-log.src-db       [event event-log.src-db]
+  =.  view-cache.src-db
+        %^  next-view-cache-keys  src-db
+                                  sys-time
+                                  ~[[%sys %sys-log]]
+  =.  tables.tgt-schema
+        %:  map-insert  tables.tgt-schema
+                        tgt-key
+                        tbl
+                        ==
+  =.  tmsp.tgt-schema        sys-time
+  =.  provenance.tgt-schema  sap.bowl
+  =.  files.tgt-data
+        %:  map-insert  files.tgt-data
+                        tgt-key
+                        fil
+                        ==
+  =.  tmsp.tgt-data        sys-time
+  =.  provenance.tgt-data  sap.bowl
+  =.  ship.tgt-data        src.bowl
+  =.  event-log.tgt-db     [event event-log.tgt-db]
+  =.  sys.src-db      (put:schema-key sys.src-db sys-time src-schema)
+  =.  sys.tgt-db      (put:schema-key sys.tgt-db sys-time tgt-schema)
+  =.  content.tgt-db  (put:data-key content.tgt-db sys-time tgt-data)
+  =.  view-cache.tgt-db  (upd-view-caches state tgt-db sys-time ~ %alter-namespace)
+  =.  state  (~(put by state) database.src src-db)
+  =.  state  (~(put by state) database-name.a tgt-db)
+  =.  state  (update-sys state sys-time)
+  :^  :-  %results
+          :~  [%action (crip "ALTER NAMESPACE TRANSFER TABLE {<name.src>}")]
+              [%server-time now.bowl]
+              [%schema-time sys-time]
+              [%data-time sys-time]
+              ==
+      (~(put by (~(put by next-schemas) database.src sys-time)) database-name.a sys-time)
+      (~(put by next-data) database-name.a sys-time)
+      state
+::
 ++  create-tbl
   |=  $:  =create-table:ast
           next-schemas=(map @tas @da)

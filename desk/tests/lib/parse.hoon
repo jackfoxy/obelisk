@@ -141,19 +141,17 @@
   =/  expected1
     :*  %alter-namespace
         database-name='db'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='ns2'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db' namespace='ns2' name='table' ~]
         as-of=~
         ==
   =/  expected2
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db' namespace='dbo' name='table' ~]
         as-of=~
         ==
   %+  expect-eq
@@ -168,10 +166,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=~
         ==
   %+  expect-eq
@@ -184,10 +181,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='ns2'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db' namespace='ns2' name='table' ~]
         as-of=~
         ==
   %+  expect-eq
@@ -200,10 +196,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='ns2'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db' namespace='ns2' name='table' ~]
         as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -217,10 +212,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='ns2'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db' namespace='ns2' name='table' ~]
         as-of=[~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
@@ -234,10 +228,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=~
         ==
   %+  expect-eq
@@ -250,10 +243,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=[~ [%da ~2023.12.25..7.15.0..1ef5]]
         ==
   %+  expect-eq
@@ -267,10 +259,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=[~ %as-of-offset 5 %days]
         ==
   %+  expect-eq
@@ -284,10 +275,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=[~ [%dr ~d3.h5.m30.s12]]
         ==
   %+  expect-eq
@@ -301,10 +291,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=[~ [%dr ~h5.m30.s12]]
         ==
   %+  expect-eq
@@ -318,10 +307,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=[~ [%dr ~m30.s12]]
         ==
   %+  expect-eq
@@ -335,10 +323,9 @@
   =/  expected
     :*  %alter-namespace
         database-name='db1'
-        source-namespace='ns'
-        relation=%table
-        target-namespace='dbo'
-        target-relation='table'
+        target-namespace='ns'
+        table-or-view=%table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
         as-of=[~ [%dr ~s12]]
         ==
   %+  expect-eq
@@ -358,6 +345,12 @@
   %-  expect-fail
   |.  %-  parse:parse(default-database 'other-db')
       "ALTER NAMESPACE db.ns TRANSFER TABLE db.ns2.tAble"
+::
+:: fail because alter namespace only accepts table transfers
+++  test-fail-alter-namespace-14
+  %-  expect-fail
+  |.  %-  parse:parse(default-database 'other-db')
+      "ALTER NAMESPACE db.ns TRANSFER VIEW db.ns2.my-view"
 ::
 ::
 :: alter table
