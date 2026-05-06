@@ -691,7 +691,7 @@
   ::  message.
   ::  agent is the schema provenance path rendered as text.
   ::
-  ::  Orders by tmsp descending, then component, name, and action ascending.
+  ::  Orders by component, database, namespace, relation, and tmsp ascending.
   |=  [database=@tas provenance=path tmsp=@da]
   ^-  view
   =/  columns=(list column:ast)
@@ -863,9 +863,9 @@
                       %sys-log    ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %tmsp  ::column=@tas
+                  %component      ::column=@tas
                   ~  ::alias=(unit @t)
-                  %.n  ::ascending=?
+                  %.y  ::ascending=?
               :+  %ordering-column
                   :^  %qualified-column    ::qualified-column
                   :*  %qualified-table  ::qualifier
@@ -875,7 +875,19 @@
                       %sys-log    ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %component      ::column=@tas
+                  %database       ::column=@tas
+                  ~  ::alias=(unit @t)
+                  %.y  ::ascending=?
+              :+  %ordering-column
+                  :^  %qualified-column    ::qualified-column
+                  :*  %qualified-table  ::qualifier
+                      ~           ::ship=(unit @p)
+                      database    ::database=@tas
+                      %sys        ::namespace=@tas
+                      %sys-log    ::name=@tas
+                      ~                    ::alias=(unit @t)
+                      ==
+                  %namespace      ::column=@tas
                   ~  ::alias=(unit @t)
                   %.y  ::ascending=?
               :+  %ordering-column
@@ -896,10 +908,10 @@
                       ~           ::ship=(unit @p)
                       database    ::database=@tas
                       %sys        ::namespace=@tas
-                      %sys-log  ::name=@tas
+                      %sys-log    ::name=@tas
                       ~                    ::alias=(unit @t)
                       ==
-                  %action      ::column=@tas
+                  %tmsp          ::column=@tas
                   ~  ::alias=(unit @t)
                   %.y  ::ascending=?
               ==

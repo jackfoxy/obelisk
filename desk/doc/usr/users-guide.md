@@ -1302,7 +1302,7 @@ when unused.
 
 ### Default Ordering
 
-tmsp descending, component, name, action
+component, database, namespace, relation, tmsp
 
 ## sys.data-log
 
