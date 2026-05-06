@@ -588,6 +588,12 @@
           ==
   ^-  view-cache
   ?-  caller
+    %alter-database
+      %^  next-view-cache-keys  db
+                                sys-time
+                                :~  [%sys %databases]
+                                    [%sys %sys-log]
+                                    ==
     %create-database
       (next-view-cache-keys db sys-time ~[[%sys %databases]])
     %drop-database

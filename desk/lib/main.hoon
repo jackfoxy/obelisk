@@ -63,6 +63,20 @@
   ?~  cmds  :-  (flop results)
                 state
   ?-  -<.cmds
+    %alter-database
+      ?.  =(our.bowl src.bowl)
+            ~|("ALTER DATABASE: database must be renamed by local agent" !!)
+      ?:  query-has-run
+            ~|("ALTER DATABASE: state change after query in script" !!)
+      =/  r=[cmd-result:ast (map @tas @da) (map @tas @da) server]
+            (alter-db i.cmds next-schemas next-data)
+      %=  $
+        next-schemas  +<.r
+        next-data     +>-.r
+        state         +>+.r
+        cmds          t.cmds
+        results       [-.r results]
+      ==
     %alter-index
       ?.  =(our.bowl src.bowl)
             ~|("ALTER INDEX: schema changes must be by local agent" !!)
@@ -286,6 +300,91 @@
       :+  (~(put by next-schemas) name.c sys-time)
           (~(put by next-data) name.c sys-time)
           (~(put by state) name.c (mk-db name.c ns sys-time db-views))
+::
+++  alter-db
+  |=  $:  c=alter-database:ast
+          next-schemas=(map @tas @da)
+          next-data=(map @tas @da)
+          ==
+  ^-  [cmd-result:ast (map @tas @da) (map @tas @da) server]
+  ?:  =(%sys name.c)          ~|("database %sys cannot be renamed" !!)
+  =/  db  ~|  "database {<name.c>} does not exist"
+              (~(got by state) name.c)
+  ?:  (~(has by state) new-name.c)
+    ~|("database {<new-name.c>} already exists" !!)
+  =/  sys-time=@da  now.bowl
+  =/  nxt-schema=schema
+        ~|  "ALTER DATABASE: {<name.c>} schema time out of order"
+            %:  get-next-schema  sys.db
+                                 next-schemas
+                                 sys-time
+                                 name.c
+                                 ==
+  =.  name.db  new-name.c
+  =/  db-views
+        %-  limo  :~  :-  [%sys %namespaces sys-time]
+                          %-  apply-ordering
+                              (sys-namespaces-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %tables sys-time]
+                          %-  apply-ordering
+                              (sys-tables-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %table-keys sys-time]
+                          %-  apply-ordering
+                              (sys-table-keys-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %columns sys-time]
+                          %-  apply-ordering
+                              (sys-columns-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %sys-log sys-time]
+                          %-  apply-ordering
+                              (sys-sys-log-view new-name.c sap.bowl sys-time)
+                      :-  [%sys %data-log sys-time]
+                          %-  apply-ordering
+                              (sys-data-log-view new-name.c sap.bowl sys-time)
+                      ==
+  =.  views.nxt-schema       (gas:view-key views.nxt-schema db-views)
+  =.  tmsp.nxt-schema        sys-time
+  =.  provenance.nxt-schema  sap.bowl
+  =.  sys.db                 (put:schema-key sys.db sys-time nxt-schema)
+  =.  view-cache.db
+        %^  next-view-cache-keys
+            db
+            sys-time
+            :~  [%sys %namespaces]
+                [%sys %tables]
+                [%sys %table-keys]
+                [%sys %columns]
+                [%sys %sys-log]
+                [%sys %data-log]
+                ==
+  =/  sys-db  (~(got by state) %sys)
+  =.  event-log.sys-db
+        ^-  (list sys-log-event)
+        :-  :*  %sys-log-event
+                sys-time
+                sap.bowl
+                %alter
+                %database
+                name.c
+                ~
+                ~
+                `new-name.c
+                ~
+                ~
+                `(crip "renamed database {<name.c>} to {<new-name.c>}")
+                ==
+            event-log.sys-db
+  =.  view-cache.sys-db  (upd-view-caches state sys-db sys-time ~ %alter-database)
+  =.  state  (~(put by (~(del by state) name.c)) new-name.c db)
+  =.  state  (~(put by state) %sys sys-db)
+  :^  :-  %results
+          :~  [%action (crip "ALTER DATABASE {<name.c>} RENAME TO {<new-name.c>}")]
+              [%server-time sys-time]
+              [%schema-time sys-time]
+              [%message (crip "database {<name.c>} renamed to {<new-name.c>}")]
+              ==
+      (~(put by (~(del by next-schemas) name.c)) new-name.c sys-time)
+      (~(put by (~(del by next-data) name.c)) new-name.c sys-time)
+      state
 ::
 ++  mk-db
   |=  $:  name=@tas

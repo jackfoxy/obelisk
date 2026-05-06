@@ -50,6 +50,58 @@ database must be created by local agent
 database name cannot be 'sys'
 database `<database>` already exists'
 
+## ALTER DATABASE
+
+Renames an existing user-space database.
+
+```
+<alter-database> ::=
+  ALTER DATABASE <database> RENAME TO <new-database>
+```
+
+### Example
+```
+ALTER DATABASE db1 RENAME TO db2;
+```
+
+### Arguments
+
+**`<database>`**
+The current database name.
+
+**`<new-database>`**
+The new database name. It must comply with the Hoon term naming standard.
+
+### API
+```
++$  alter-database
+  $:
+    %alter-database
+    name=@tas
+    new-name=@tas
+  ==
+```
+
+### Remarks
+
+This command mutates the state of the Obelisk agent. It records the rename in the `sys` database log and updates `sys.sys.databases`.
+
+The `sys` database cannot be renamed. A database cannot be renamed to the name of a database that currently exists.
+
+### Produced Metadata
+
+message: database <database> renamed to <new-database>
+server time: <timestamp>
+schema time: <timestamp>
+
+### Exceptions
+
+database must be renamed by local agent
+database %sys cannot be renamed
+database `<database>` does not exist
+database `<new-database>` already exists
+state change after query in script
+
 ## DROP DATABASE
 
 *supported in urQL parser, not yet supported in Obelisk runtime*

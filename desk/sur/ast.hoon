@@ -55,6 +55,7 @@
 +$  command
   $+  command
   $%
+    alter-database
     alter-index
     alter-namespace
     alter-table
@@ -456,22 +457,6 @@
     as-of=(unit as-of)
     ==
 ::
-::  $create-trigger: TBD
-+$  create-trigger
-  $+  create-trigger
-  $:  %create-trigger
-    name=@tas
-    =qualified-table
-    enabled=?
-    ==
-::
-::  $create-type: TBD
-+$  create-type
-  $+  create-type
-  $:  %create-type
-    name=@tas
-    ==
-::
 ::  $create-view: persist a crud-txn as a view
 +$  create-view
   $+  create-view
@@ -518,21 +503,6 @@
     as-of=(unit as-of)
     ==
 ::
-::  $drop-trigger: TBD
-+$  drop-trigger
-  $+  drop-trigger
-  $:  %drop-trigger
-    name=@tas
-    =qualified-table
-    ==
-::
-::  $drop-type: TBD
-+$  drop-type
-  $+  drop-type
-  $:  %drop-type
-    name=@tas
-    ==
-::
 ::  $drop-view: view=qualified-table force=?
 +$  drop-view
   $+  drop-view
@@ -544,15 +514,12 @@
 ::  ALTER SCHEMA
 ::
 ::
-::  $alter-index: change an index
-+$  alter-index
-  $+  alter-index
-  $:  %alter-index
+::  $alter-database: change database name
++$  alter-database
+  $+  alter-database
+  $:  %alter-database
     name=@tas
-    =qualified-table
-    columns=(list ordered-column)
-    action=index-action
-    as-of=(unit as-of)
+    new-name=@tas
     ==
 ::
 ::  $alter-namespace: move an object from one namespace to another
@@ -580,21 +547,23 @@
     as-of=(unit as-of)
     ==
 ::
-::  $alter-trigger: TBD
-+$  alter-trigger
-  $+  alter-trigger
-  $:  %alter-trigger
-    name=@tas
-    =qualified-table
-    enabled=?
-    ==
-::
 ::  $alter-view: view=qualified-table crud-txn
 +$  alter-view
   $+  alter-view
   $:  %alter-view
     view=qualified-table
     =crud-txn
+    ==
+::
+::  $alter-index: change an index
++$  alter-index
+  $+  alter-index
+  $:  %alter-index
+    name=@tas
+    =qualified-table
+    columns=(list ordered-column)
+    action=index-action
+    as-of=(unit as-of)
     ==
 ::
 ::  SCALARS

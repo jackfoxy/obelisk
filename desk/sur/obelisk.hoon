@@ -54,6 +54,7 @@
 ::
 +$  db-cmd
   $?
+    %alter-database
     %create-database
     %drop-database
     %create-namespace

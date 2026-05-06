@@ -45,6 +45,9 @@
   =/  script=tape  (block-cmnts raw-script)
   =/  commands  `(list command:ast)`~
   =/  parse-command  ;~  pose
+    %:  cold  %alter-database
+              ;~(plug whitespace (jester 'alter') whitespace (jester 'database'))
+              ==
     %:  cold  %alter-index
               ;~(plug whitespace (jester 'alter') whitespace (jester 'index'))
               ==
@@ -176,6 +179,22 @@
   =/  command-nail  u.+3:q.+3:(parse-command [[1 1] script])
   ~|  "PARSER: "
   ?-  `urql-command`p.command-nail
+    %alter-database
+      =/  [parsed=* nail=edge]  |-
+                                =/  nail
+                                    ~|  "alter database parse phase:  ".
+                                        "{<`tape`(scag 100 q.q.command-nail)>}".
+                                        " ..."
+                                        %-  parse-alter-database
+                                              [[1 1] q.q.command-nail]
+                                [(wonk nail) nail]
+      ~|  "alter database parse produce phase:  ".
+          "{<`tape`(scag 100 q.q.command-nail)>} ..."
+          %=  $
+            script    q.q.u.+3.q:nail
+            commands  :-  (alter-database:ast %alter-database -.parsed +.parsed)
+                          commands
+          ==
     %alter-index
       =/  [parsed=* nail=edge]  |-
                                 =/  nail  
@@ -1444,6 +1463,17 @@
               ;~(pfix (jester 'on') ;~(pfix whitespace parse-qualified-3object))
               ==
     ;~(sfix ;~(pose ;~(plug columns action) columns action) end-or-next-command)
+  ==
+++  parse-alter-database  ~+
+  ;~  sfix
+    ;~  plug
+      parse-face
+      ;~  pfix
+        ;~(plug whitespace (jester 'rename') whitespace (jester 'to'))
+        parse-face
+        ==
+      ==
+    end-or-next-command
   ==
 ++  parse-alter-namespace  ~+
   ;~  plug
@@ -6011,6 +6041,7 @@
 ::
 +$  urql-command
   $%
+    %alter-database
     %alter-index
     %alter-namespace
     %alter-table
