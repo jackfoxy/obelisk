@@ -146,16 +146,21 @@ Modify the columns and/or `<foreign-key>`s of an existing `<table>`.
 
 ```
 <alter-table> ::=
-  ALTER TABLE [ <db-qualifier> ]{ <table> }
-    { ADD COLUMN ( <column>  <aura> [ ,... n ] )
-      | ALTER COLUMN ( <column>  <aura> [ ,... n ] )
-      | DROP COLUMN ( <column> [ ,... n ] )
-      | ADD FOREIGN KEY <foreign-key> (<column> [ ,... n ])
-        REFERENCES [<namespace>.]<table> (<column> [ ,... n ])
-        [ ON DELETE { NO ACTION | CASCADE } ]
-        [ ON UPDATE { NO ACTION | CASCADE } ]
+  ALTER TABLE [ <db-qualifier> ]<table>
+    [ RENAME TO <table> ]
+    [ COLUMNS ( <column> [ ,... n ] ] )
+    [ PRIMARY KEY ( <column> [ ,... n ] ) ]
+    [ ADD COLUMN ( { <column>  <aura> } [ ,... n ] )
+      | DROP COLUMN <column> [ ,... n ]
+      | RENAME COLUMN <column> TO <column>
+      | ALTER COLUMN ( { <column>  <aura> } [ ,... n ] )
+      | ADD FOREIGN KEY <foreign-key> ( <column> [ ,... n ] )
+        REFERENCES <namespace>.]<table> ( <column> [ ,... n ] )
+        [ ON DELETE { RESTRICT | CASCADE } ]
+        [ ON UPDATE { RESTRICT | CASCADE } ]
         [ ,... n ]
-      | DROP FOREIGN KEY ( <foreign-key> [ ,... n ] } )
+      | DROP FOREIGN KEY <foreign-key>
+    ] [ ,... n ]
     [ <as-of> ]
 ```
 
@@ -172,11 +177,23 @@ Note: All names must adhere to the hoon term naming standard.
 **`<table>`**
 Name of `<table>` to alter.
 
-**`ADD | ALTER COLUMN ( <column> <aura> [ ,... n ] )`**
-Denotes a list of user-defined column names and associated auras. `ALTER` is used to change the aura of an existing column.
+**`RENAME TO`**
+Renames `<table>` within the current namespace. Use `ALTER NAMESPACE` to transfer table to another namespace.
+
+**`COLUMNS`**
+Sets the cannonical ordering of columns after all `ADD`, `DROP`, and `RENAME` column operations have been performed.
+
+**`ADD ( <column> <aura> [ ,... n ] )`**
+Denotes a list of user-defined column names and associated auras. If `COLUMNS` is not specified the columns are appended to the existing canonical ordering.
 
 **`DROP COLUMN ( <column> [ ,... n ] )`**
 Denotes a list of existing column names to delete from the `<table>` structure.
+
+**`RENAME COLUMN`**
+Renames an existing column. If `COLUMNS` is not specified the existing canonical ordering remains in effect.
+
+**`ALTER COLUMN ( <column> <aura> [ ,... n ] )`**
+Denotes a list of user-defined column names and associated auras. `ALTER` is used to change the aura of an existing column.
 
 **`ADD | DROP`**
 The action is to add or drop a foreign key.
@@ -188,33 +205,20 @@ This list comprises column names in the table for association with a foreign tab
 **`<table> ( <column> [ ,... n ]`**
 Referenced foreign `<table>` and columns. Count and associated column auras must match the specified columns from the new `<table>` and comprise a `UNIQUE` index on the referenced foreign `<table>`.
 
-**`ON DELETE { NO ACTION | CASCADE | SET DEFAULT }`**
+**`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
-
-* `NO ACTION` (default)
-The Obelisk agent raises an error and the delete action on the row in the parent foreign table is aborted.
-
-* `CASCADE`
-Corresponding rows are deleted from the referencing table when that row is deleted from the parent foreign table.
-
-* `SET DEFAULT`
-All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted.
-
-The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
 
 **`ON UPDATE { NO ACTION | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is updated in the foreign table.
 
-* `NO ACTION` (default)
-The Database Engine raises an error and the update action on the row in the parent table is aborted.
+**`RESTRICT` (default)
+The Obelisk agent raises an error and the delete action on the row in the parent foreign table is aborted.
 
 * `CASCADE`
-Corresponding rows are updated in the referencing table when that row is updated in the parent table.
+Corresponding rows are deleted/update from the referencing table when that row is deleted/updated from the parent foreign table.
 
 * `SET DEFAULT`
-All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is updated. 
-
-The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
+All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted. This operation is successful only if the foreign table contains the bunt key, otherwise the action on the parent foreign table is aborted.
 
 **`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
@@ -233,7 +237,7 @@ WARNING: It is possible to future date a `CREATE TABLE`. This will lock all sche
     add-foreign-keys=(list foreign-key)
     drop-foreign-keys=(list @tas)
     as-of=(unit as-of)
-  ==
+    ==
 ```
 
 ### Remarks

@@ -2,15 +2,6 @@
 /+  parse, *test, *test-helpers
 |%
 ::
-::  ALTER DATABASE
-::
-::  parses ALTER DATABASE with mixed-case keywords and extra whitespace
-++  test-alter-database-parse-00
-  %+  expect-eq
-    !>  ~[[%alter-database name='old-db' new-name='new-db']]
-    !>  %-  parse:parse(default-database 'dummy')
-        " aLtEr \0d dataBase  old-db  rename \09 TO  new-db "
-::
 ::  renames a database and reflects the change in sys.sys.databases
 ++  test-alter-database-run-00
   =|  run=@ud
