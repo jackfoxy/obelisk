@@ -1096,4 +1096,35 @@
   %-  expect-fail
   |.  %-  parse:parse(default-database 'db1')
       "ALTER TABLE table ADD COLUMN (a @t) AS OF now, DROP COLUMN (b)"
+::
+:: drop foreign keys without parentheses
+++  test-alter-table-48
+  =/  expected
+    :*  %alter-table
+        :*  %qualified-table  ship=~  database='db1'
+            namespace='dbo'  name='mytable'  ~
+            ==
+        ~  ~  ~  ~  ~  ~  ~  ~
+        ['fk1' 'fk2' ~]
+        ~
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE mytable DROP FOREIGN KEY fk1, fk2"
+::
+:: add column with duration as-of
+++  test-alter-table-49
+  =/  expected
+    :*  %alter-table
+        [%qualified-table ship=~ database='db1' namespace='dbo' name='table' ~]
+        ~  ~  ~
+        ~[[%column name='col1' type=%t addr=0]]
+        ~  ~  ~  ~  ~
+        [~ [%dr ~h5.m30.s12]]
+        ==
+  %+  expect-eq
+    !>  ~[expected]
+    !>  %-  parse:parse(default-database 'db1')
+        "ALTER TABLE table ADD COLUMN (col1 @t) AS OF ~h5.m30.s12"
 --

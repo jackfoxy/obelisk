@@ -491,7 +491,7 @@
             name='fk-table'  ~
             ==
         ~['col19' 'col20']
-        ~[%delete-cascade %update-cascade]
+        ~[%update-cascade %delete-cascade]
         ==
   =/  expected1
     :*  %create-table

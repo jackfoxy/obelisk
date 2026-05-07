@@ -65,35 +65,22 @@ Referenced foreign `<table>` and columns. Count and associated column auras must
 **`ON DELETE { RESTRICT | CASCADE | SET DEFAULT }`**
 This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is deleted from the foreign table.
 
-* `RESTRICT` (default)
+**`ON UPDATE { NO ACTION | CASCADE | SET DEFAULT }`**
+This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is updated in the foreign table.
+
+**`RESTRICT` (default)
 The Obelisk agent raises an error and the delete action on the row in the parent foreign table is aborted.
 
 * `CASCADE`
-Corresponding rows are deleted from the referencing table when that row is deleted from the parent foreign table.
+Corresponding rows are deleted/update from the referencing table when that row is deleted/updated from the parent foreign table.
 
 * `SET DEFAULT`
-All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted.
-
-The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
-
-**`ON UPDATE { RESTRICT | CASCADE | SET DEFAULT }`**
-This argument specifies the action to be taken on the rows in the table that have a referential relationship when the referenced row is updated in the foreign table.
-
-* `RESTRICT` (default)
-The Database Engine raises an error and the update action on the row in the parent table is aborted.
-
-* `CASCADE`
-Corresponding rows are updated in the referencing table when that row is updated in the parent table.
-
-* `SET DEFAULT`
-All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is updated. 
-
-The Obelisk agent raises an error if the parent foreign table has no entry with bunt values.
+All the values that make up the foreign key in the referencing row(s) are set to their bunt (default) values when the corresponding row in the parent foreign table is deleted. This operation is successful only if the foreign table contains the bunt key, otherwise the action on the parent foreign table is aborted.
 
 **`<as-of>`**
-Timestamp of table creation. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps. 
+Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
-WARNING: Future `<as-of>` is possible, but this sets the database content timestamp to the future, effectively locking the database for content updates until the future date is realized.
+WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time..
 
 ### API
 ```
@@ -224,7 +211,7 @@ All the values that make up the foreign key in the referencing row(s) are set to
 **`<as-of>`**
 Timestamp of table alteration. Defaults to `NOW` (current time). When specified, the timestamp must be greater than both the latest database schema and content timestamps.
 
-WARNING: It is possible to future date a `CREATE TABLE`. This will lock all schema and data updates in the database until that future time.
+WARNING: It is possible to future date a `ALTER TABLE`. This will lock all schema and data updates in the database until that future time.
 
 ### API
 ```

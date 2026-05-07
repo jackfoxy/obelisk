@@ -1220,8 +1220,19 @@
       end-or-next-command
     ==
   ==
-++  alter-table-clause
-  ::  one ALTER TABLE clause; produces [tag=@tas payload=*]
++$  alter-table-clause
+  $%  [%rename-to @tas]
+      [%columns (list @tas)]
+      [%pri-indx (list ordered-column:ast)]
+      [%add-column (list column:ast)]
+      [%drop-column (list @tas)]
+      [%rename-columns (list [@tas @tas])]
+      [%alter-column (list column:ast)]
+      [%add-fk *]
+      [%drop-fk (list @tas)]
+      ==
+++  parse-alter-table-clause
+  ::  one ALTER TABLE clause
   ;~  pose
     rename-to
     columns-clause
@@ -1235,15 +1246,16 @@
   ==
 ++  check-alter-table-clauses
   ::  parser-level enforcement: at least one clause; no duplicates of single-occurrence tags
-  |=  clauses=*
-  ^-  *
+  |=  raw=*
+  ^-  (list alter-table-clause)
+  =/  clauses  ;;((list alter-table-clause) raw)
   ?~  clauses
     ~|("ALTER TABLE: at least one clause is required" !!)
   =/  seen=(set @tas)  ~
-  =/  loop  clauses
+  =/  loop  ;;((list alter-table-clause) clauses)
   |-
   ?~  loop  clauses
-  =/  tag=@tas  ?@(-.loop -.loop -<.loop)
+  =/  tag=@tas  -.-.loop
   ?:  ?|(=(tag %add-fk) =(tag %drop-fk))
     $(loop +.loop)
   ?:  (~(has in seen) tag)
@@ -1255,10 +1267,10 @@
     ;~  sfix
       ;~  pose
         ;~  plug
-          (cook check-alter-table-clauses (more com alter-table-clause))
+          (cook check-alter-table-clauses (more com parse-alter-table-clause))
           parse-as-of
         ==
-        (cook check-alter-table-clauses (more com alter-table-clause))
+        (cook check-alter-table-clauses (more com parse-alter-table-clause))
       ==
       end-or-next-command
     ==
@@ -3794,10 +3806,12 @@
     ~[u.u]
   ::  two pairs
   ?:  ?=([[@ @] [@ @]] a)
-    =/  u1  (one -.a)
-    =/  u2  (one +.a)
-    ?:  =(-<.a -<+.a)
-      ~|("cook-referential-integrity duplicate {<-<.a>}" !!)
+    =/  p1  ;;([@ @] -.a)
+    =/  p2  ;;([@ @] +.a)
+    =/  u1  (one p1)
+    =/  u2  (one p2)
+    ?:  =(-.p1 -.p2)
+      ~|("cook-referential-integrity duplicate {<-.p1>}" !!)
     =/  out=(list referential-integrity-action:ast)  ~
     =.  out  ?~(u1 out [u.u1 out])
     =.  out  ?~(u2 out [u.u2 out])
@@ -4186,21 +4200,23 @@
   ::  fold ALTER TABLE clauses into a positional alter-table AST
   ::  inputs:  qt=qualified-table  clauses=(list clause)  as-of=(unit as-of)
   |=  [qt=* clauses=* as-of=*]
-  ^-  *
-  =|  new-name=*
-  =|  columns=*
-  =|  pri-indx=*
-  =|  add-columns=*
-  =|  drop-columns=*
-  =|  rename-columns=*
-  =|  alter-columns=*
-  =|  add-fks=*
-  =|  drop-fks=*
-  =/  loop  clauses
+  ^-  alter-table:ast
+  =/  table  ;;(qualified-table:ast qt)
+  =/  cooked-as-of  ;;((unit as-of:ast) as-of)
+  =/  new-name=(unit @tas)  ~
+  =/  columns=(list @tas)  ~
+  =/  pri-indx=(list ordered-column:ast)  ~
+  =/  add-columns=(list column:ast)  ~
+  =/  drop-columns=(list @tas)  ~
+  =/  rename-columns=(list [@tas @tas])  ~
+  =/  alter-columns=(list column:ast)  ~
+  =/  add-fks=(list foreign-key:ast)  ~
+  =/  drop-fks=(list @tas)  ~
+  =/  loop  ;;((list alter-table-clause) clauses)
   |-
   ?~  loop
-    :*  %alter-table  qt
-        ?:(=(0 new-name) ~ [~ new-name])
+    :*  %alter-table  table
+        new-name
         columns
         pri-indx
         add-columns
@@ -4209,40 +4225,43 @@
         alter-columns
         (flop add-fks)
         (flop drop-fks)
-        as-of
+        cooked-as-of
         ==
-  ?@  -.loop
-    ~|("build-alter-table bad clause {<-.loop>}" !!)
-  =/  tag  -.-.loop
-  =/  pay  +.-.loop
-  ?:  =(tag %rename-to)
-    $(loop +.loop, new-name pay)
-  ?:  =(tag %columns)
-    $(loop +.loop, columns pay)
-  ?:  =(tag %pri-indx)
-    $(loop +.loop, pri-indx pay)
-  ?:  =(tag %alter-column)
-    $(loop +.loop, alter-columns pay)
-  ?:  =(tag %add-column)
-    $(loop +.loop, add-columns pay)
-  ?:  =(tag %drop-column)
-    $(loop +.loop, drop-columns pay)
-  ?:  =(tag %rename-columns)
-    $(loop +.loop, rename-columns pay)
-  ?:  =(tag %add-fk)
-    =/  fks  (build-foreign-keys [qt pay])
-    $(loop +.loop, add-fks (weld (flop fks) add-fks))
-  ?:  =(tag %drop-fk)
-    $(loop +.loop, drop-fks (weld (flop pay) drop-fks))
-  ~|("build-alter-table unknown clause {<tag>}" !!)
+  =/  clause=alter-table-clause  -.loop
+  ?-  -.clause
+    %rename-to
+      $(loop +.loop, new-name [~ +.clause])
+    %columns
+      $(loop +.loop, columns +.clause)
+    %pri-indx
+      $(loop +.loop, pri-indx +.clause)
+    %alter-column
+      $(loop +.loop, alter-columns +.clause)
+    %add-column
+      $(loop +.loop, add-columns +.clause)
+    %drop-column
+      $(loop +.loop, drop-columns +.clause)
+    %rename-columns
+      $(loop +.loop, rename-columns +.clause)
+    %add-fk
+      =/  fks=(list foreign-key:ast)  (build-foreign-keys [table +.clause])
+      $(loop +.loop, add-fks (weld (flop fks) add-fks))
+    %drop-fk
+      $(loop +.loop, drop-fks (weld (flop +.clause) drop-fks))
+  ==
 ++  cook-as-of
   ::  convert parse-as-of payload to (unit as-of); accepts ~ if no as-of given
   |=  a=*
-  ^-  *
+  ^-  (unit as-of:ast)
   ?:  ?=(~ a)  ~
   ?:  ?=([%as-of %now] a)  ~
-  ?:  ?=([%as-of @ @] a)  [~ +.a]
-  ?:  ?=([%as-of @ @ @] a)  [~ %as-of-offset +<.a +>-.a]
+  ?:  ?=([%as-of @ @] a)  [~ ;;(as-of:ast +.a)]
+  ?:  ?=([%as-of @ @ @] a)
+    :-  ~
+        %:  as-of-offset:ast  %as-of-offset
+                              +<.a
+                              +>-.a
+                              ==
   ~|("cook-as-of unexpected shape {<a>}" !!)
 ++  build-foreign-keys
   |=  a=*  ::a=[table=qualified-table:ast f-keys=*]
@@ -4320,6 +4339,11 @@
     (cold %add-fk ;~(plug whitespace (jester 'add')))
     ;~(pfix foreign-key-literal (more com full-foreign-key))
   ==
+++  foreign-key-name-list
+  ;~  pose
+    face-list
+    ;~(pfix whitespace (more com parse-face))
+  ==
 ++  drop-foreign-key
   ;~  plug
     %:  cold  %drop-fk
@@ -4331,7 +4355,7 @@
                         (jester 'key')
                         ==
               ==
-    face-list
+    foreign-key-name-list
   ==
 ++  primary-key
    %:  cook
